@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SouqOne — تقرير نظام النقل الشامل</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+  
+  :root {
+    --primary: #004ac6;
+    --primary-dark: #0B2447;
+    --primary-light: #EFF6FF;
+    --accent: #d97706;
+    --accent-light: #FEF3C7;
+    --success: #16a34a;
+    --success-light: #DCFCE7;
+    --error: #dc2626;
+    --error-light: #FEE2E2;
+    --purple: #7c3aed;
+    --purple-light: #F3E8FF;
+    --cyan: #0891b2;
+    --text: #111827;
+    --text2: #4B5563;
+    --muted: #9CA3AF;
+    --border: #E2E6EC;
+    --surface: #F5F7FA;
+    --white: #FFFFFF;
+    --radius: 16px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: white;
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0; right: 0;
+    height: 40px;
+    background: var(--surface);
+    border-radius: 40px 40px 0 0;
+  }
+  .hero h1 { font-size: 36px; font-weight: 900; margin-bottom: 8px; }
+  .hero .subtitle { font-size: 16px; opacity: 0.8; font-weight: 400; }
+  .hero .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    margin-top: 16px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── Container ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: white;
+    border-radius: var(--radius);
+    padding: 32px;
+    margin: -20px auto 32px;
+    max-width: 700px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 8px 30px rgba(11,36,71,0.08);
+  }
+  .toc h2 { font-size: 20px; font-weight: 800; color: var(--primary-dark); margin-bottom: 16px; text-align: center; }
+  .toc ol { padding-right: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── Section ── */
+  .section {
+    background: white;
+    border-radius: var(--radius);
+    padding: 36px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 16px rgba(11,36,71,0.04);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--surface);
+  }
+  .section-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+
+  /* ── Cards grid ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    transition: 0.2s;
+  }
+  .card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,74,198,0.08); }
+  .card h4 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .card p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+  /* ── Mini card ── */
+  .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .mini-card {
+    text-align: center;
+    padding: 20px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .mini-card .emoji { font-size: 28px; margin-bottom: 8px; }
+  .mini-card .label { font-size: 13px; font-weight: 700; color: var(--text); }
+  .mini-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Flow ── */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding: 8px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    padding: 16px 12px;
+    position: relative;
+    flex: 1;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '←';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .flow-dot {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+  }
+  .flow-label { font-size: 12px; font-weight: 700; text-align: center; }
+  .flow-sub { font-size: 10px; color: var(--muted); text-align: center; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--primary-dark);
+    color: white;
+    padding: 12px 16px;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+  }
+  thead th:first-child { border-radius: 0 8px 0 0; }
+  thead th:last-child { border-radius: 8px 0 0 0; }
+  tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover td { background: var(--primary-light); }
+  code {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    direction: ltr;
+    display: inline-block;
+    color: var(--primary);
+  }
+
+  /* ── Status badges ── */
+  .badge-sm {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-open    { background: #dcfce7; color: #16a34a; }
+  .badge-quoted  { background: #dbeafe; color: #2563eb; }
+  .badge-accept  { background: #fef3c7; color: #d97706; }
+  .badge-prog    { background: #f3e8ff; color: #7c3aed; }
+  .badge-done    { background: #d1fae5; color: #059669; }
+  .badge-cancel  { background: #fee2e2; color: #dc2626; }
+  .badge-pending { background: #fef3c7; color: #d97706; }
+  .badge-reject  { background: #fee2e2; color: #dc2626; }
+  .badge-withdraw{ background: #f3f4f6; color: #6b7280; }
+
+  /* ── Workflow swimlane ── */
+  .swimlane { display: grid; grid-template-columns: 140px 1fr; gap: 0; margin-top: 16px; }
+  .swim-role {
+    padding: 16px;
+    font-weight: 800;
+    font-size: 14px;
+    border-left: 3px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swim-steps {
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .swim-chip {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .swim-arrow { color: var(--muted); font-weight: 700; }
+
+  /* ── Screen card ── */
+  .screen-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: 0.2s;
+  }
+  .screen-card:hover { border-color: var(--primary); }
+  .screen-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .screen-title h4 { font-size: 16px; font-weight: 800; color: var(--primary-dark); }
+  .screen-route { font-size: 12px; color: var(--muted); direction: ltr; }
+  .screen-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.8; }
+  .fields-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .field-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+  .field-tag.required { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  /* ── Issues ── */
+  .issue {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .issue-warn  { background: #FEF3C7; border-right: 4px solid #d97706; }
+  .issue-info  { background: #DBEAFE; border-right: 4px solid #2563eb; }
+  .issue-ok    { background: #DCFCE7; border-right: 4px solid #16a34a; }
+  .issue .icon { font-size: 18px; flex-shrink: 0; }
+  .issue strong { font-weight: 700; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero { padding: 40px 20px 36px; }
+    .hero h1 { font-size: 26px; }
+    .section { padding: 24px 20px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .swimlane { grid-template-columns: 1fr; }
+    .swim-role { border-left: none; border-bottom: 2px solid var(--border); }
+    .flow-step:not(:last-child)::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <h1>🚛 نظام النقل — SouqOne</h1>
+  <p class="subtitle">تقرير شامل عن بنية النظام، سير العمل، الشاشات، والـ API</p>
+  <span class="badge">📅 مايو 2026 &nbsp;·&nbsp; الإصدار 1.0 &nbsp;·&nbsp; React Native + Expo Router</span>
+</div>
+
+<div class="container">
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- TOC -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>📑 فهرس المحتويات</h2>
+  <ol>
+    <li><a href="#overview">نظرة عامة على النظام</a></li>
+    <li><a href="#users">أنواع المستخدمين والأدوار</a></li>
+    <li><a href="#service-types">أنواع خدمات النقل (6 أنواع)</a></li>
+    <li><a href="#workflow">سير العمل الكامل (Workflow)</a></li>
+    <li><a href="#statuses">حالات النظام (الطلب، العرض، الحجز)</a></li>
+    <li><a href="#screens">جميع الشاشات (9 شاشات)</a></li>
+    <li><a href="#new-request">نموذج إضافة طلب نقل (5 خطوات)</a></li>
+    <li><a href="#api">الـ API Endpoints (17 endpoint)</a></li>
+    <li><a href="#navigation">نقاط الدخول والتنقل</a></li>
+    <li><a href="#issues">المشاكل والنواقص</a></li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 1. OVERVIEW -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EFF6FF;">🔍</div>
+    <h2>1. نظرة عامة على النظام</h2>
+  </div>
+  <p style="font-size:14px; color:var(--text2); margin-bottom:20px; line-height:2;">
+    نظام النقل في SouqOne هو <strong>سوق لخدمات النقل والشحن</strong> داخل سلطنة عمان. يربط بين <strong>العملاء (الشاحنين)</strong>
+    الذين يحتاجون نقل بضائع، و<strong>شركات النقل (الناقلين)</strong> الذين يملكون مركبات ويقدمون خدمات الشحن.
+    النظام يعمل بنموذج <strong>الطلب → العروض → القبول → التنفيذ</strong>.
+  </p>
+
+  <div class="cards-grid">
+    <div class="card">
+      <h4>📱 التقنية</h4>
+      <p>
+        React Native (Expo SDK 54) مع TypeScript<br>
+        Expo Router v6 (ملفات)<br>
+        TanStack React Query v5<br>
+        Zustand + Axios<br>
+        واجهة عربية RTL بخط Almarai
+      </p>
+    </div>
+    <div class="card">
+      <h4>🖥️ الباك اند</h4>
+      <p>
+        NestJS على Railway<br>
+        <code>caroneapi-production-255b.up.railway.app/api/v1</code><br>
+        17 endpoint للنقل<br>
+        JWT Authentication<br>
+        Pagination بـ page/limit
+      </p>
+    </div>
+    <div class="card">
+      <h4>📊 الأرقام</h4>
+      <p>
+        9 شاشات كاملة<br>
+        6 أنواع خدمات نقل<br>
+        6 حالات للطلب<br>
+        4 حالات للعرض<br>
+        4 حالات للحجز
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 2. USERS -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="users">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FDF4FF;">👥</div>
+    <h2>2. أنواع المستخدمين والأدوار</h2>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="border-right: 4px solid var(--primary);">
+      <h4>👤 العميل (الشاحن / Shipper)</h4>
+      <p>
+        <strong>من هو:</strong> أي مستخدم مسجل في التطبيق<br><br>
+        <strong>ما يقدر يعمل:</strong><br>
+        ✅ إنشاء طلب نقل جديد (5 خطوات)<br>
+        ✅ تصفح جميع طلبات النقل<br>
+        ✅ مشاهدة العروض المقدمة على طلبه<br>
+        ✅ قبول عرض من ناقل<br>
+        ✅ إلغاء طلبه (إذا كان مفتوح)<br>
+        ✅ متابعة حجوزاته (كمُرسِل)<br>
+        ✅ التواصل مع الناقل (اتصال / واتساب / محادثة)<br>
+        ✅ عرض ملف الناقل
+      </p>
+    </div>
+    <div class="card" style="border-right: 4px solid var(--accent);">
+      <h4>🚚 الناقل (Carrier)</h4>
+      <p>
+        <strong>من هو:</strong> مستخدم سجّل كناقل عبر شاشة التسجيل<br><br>
+        <strong>ما يقدر يعمل:</strong><br>
+        ✅ تصفح طلبات النقل المتاحة<br>
+        ✅ تقديم عرض سعر على أي طلب مفتوح<br>
+        ✅ سحب عرضه (إذا بانتظار)<br>
+        ✅ إدارة حجوزاته (كناقل)<br>
+        ✅ بدء رحلة النقل<br>
+        ✅ تأكيد إتمام التسليم<br>
+        ✅ إلغاء حجز<br>
+        ✅ له ملف شخصي عام (تقييم، مركبات، خدمات)
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 3. SERVICE TYPES -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="service-types">
+  <div class="section-header">
+    <div class="section-icon" style="background:#ECFDF5;">📦</div>
+    <h2>3. أنواع خدمات النقل (6 أنواع)</h2>
+  </div>
+
+  <div class="mini-grid">
+    <div class="mini-card" style="background: #EFF6FF;">
+      <div class="emoji">📦</div>
+      <div class="label">بضائع عامة</div>
+      <div class="sub">GOODS</div>
+    </div>
+    <div class="mini-card" style="background: #F3E8FF;">
+      <div class="emoji">🛋️</div>
+      <div class="label">أثاث ومنزليات</div>
+      <div class="sub">FURNITURE</div>
+    </div>
+    <div class="mini-card" style="background: #FEF3C7;">
+      <div class="emoji">🧱</div>
+      <div class="label">مواد البناء</div>
+      <div class="sub">CONSTRUCTION</div>
+    </div>
+    <div class="mini-card" style="background: #FEE2E2;">
+      <div class="emoji">🏗️</div>
+      <div class="label">شحن ثقيل</div>
+      <div class="sub">HEAVY</div>
+    </div>
+    <div class="mini-card" style="background: #DCFCE7;">
+      <div class="emoji">🔄</div>
+      <div class="label">عودة فارغة</div>
+      <div class="sub">BACKLOAD</div>
+    </div>
+    <div class="mini-card" style="background: #E0F2FE;">
+      <div class="emoji">⚙️</div>
+      <div class="label">معدات وآليات</div>
+      <div class="sub">EQUIPMENT</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 4. WORKFLOW -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="workflow">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7;">⚡</div>
+    <h2>4. سير العمل الكامل (Workflow)</h2>
+  </div>
+
+  <h3 style="font-size:16px; font-weight:800; margin-bottom:16px; color:var(--primary-dark);">المسار الرئيسي (Happy Path)</h3>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-dot" style="background: var(--primary);">1</div>
+      <div class="flow-label">إنشاء طلب</div>
+      <div class="flow-sub">العميل يملأ نموذج 5 خطوات</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot" style="background: var(--success);">2</div>
+      <div class="flow-label">مفتوح OPEN</div>
+      <div class="flow-sub">الطلب يظهر في القائمة</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot" style="background: #2563eb;">3</div>
+      <div class="flow-label">عروض QUOTED</div>
+      <div class="flow-sub">الناقلين يقدمون عروضهم</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot" style="background: var(--accent);">4</div>
+      <div class="flow-label">قبول ACCEPTED</div>
+      <div class="flow-sub">العميل يقبل عرض → حجز</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot" style="background: var(--purple);">5</div>
+      <div class="flow-label">جارٍ IN_PROGRESS</div>
+      <div class="flow-sub">الناقل يبدأ الرحلة</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot" style="background: #059669;">6</div>
+      <div class="flow-label">مكتمل COMPLETED</div>
+      <div class="flow-sub">الناقل يؤكد التسليم</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px; font-weight:800; margin:32px 0 16px; color:var(--primary-dark);">التفاصيل حسب الدور</h3>
+
+  <div class="swimlane">
+    <div class="swim-role" style="background: var(--primary-light); color: var(--primary);">👤 العميل<br>(الشاحن)</div>
+    <div class="swim-steps" style="background: var(--primary-light);">
+      <span class="swim-chip" style="background:var(--primary); color:white;">ينشئ طلب نقل</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">ينتظر العروض</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">يراجع العروض</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:var(--accent); color:white;">يقبل عرض</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">يتابع الحجز</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:var(--success); color:white;">تم التسليم ✓</span>
+    </div>
+
+    <div class="swim-role" style="background: var(--accent-light); color: var(--accent);">🚚 الناقل<br>(Carrier)</div>
+    <div class="swim-steps" style="background: var(--accent-light);">
+      <span class="swim-chip" style="background:var(--accent); color:white;">يسجّل كناقل</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">يتصفح الطلبات</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">يقدّم عرض سعر</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:white; color:var(--text);">ينتظر القبول</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:var(--purple); color:white;">يبدأ النقل</span>
+      <span class="swim-arrow">←</span>
+      <span class="swim-chip" style="background:var(--success); color:white;">يؤكد التسليم ✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 5. STATUSES -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="statuses">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DBEAFE;">🏷️</div>
+    <h2>5. حالات النظام</h2>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:800; margin-bottom:12px;">حالات طلب النقل (Transport Request)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>الحالة</th>
+          <th>المفتاح</th>
+          <th>الوصف</th>
+          <th>الإجراءات المتاحة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge-sm badge-open">مفتوح</span></td>
+          <td><code>OPEN</code></td>
+          <td>الطلب جديد وينتظر عروض من الناقلين</td>
+          <td>تقديم عرض · إلغاء الطلب (صاحب الطلب)</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sm badge-quoted">وصلت عروض</span></td>
+          <td><code>QUOTED</code></td>
+          <td>هناك عرض أو أكثر مقدّم على الطلب</td>
+          <td>تقديم عرض جديد · قبول عرض · إلغاء الطلب</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sm badge-accept">مقبول</span></td>
+          <td><code>ACCEPTED</code></td>
+          <td>تم قبول عرض ناقل — يتم إنشاء حجز تلقائياً</td>
+          <td>بدء النقل (الناقل) · إلغاء الحجز</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sm badge-prog">جارٍ التنفيذ</span></td>
+          <td><code>IN_PROGRESS</code></td>
+          <td>الناقل بدأ رحلة النقل</td>
+          <td>تأكيد التسليم (الناقل) · إلغاء</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sm badge-done">مكتمل</span></td>
+          <td><code>COMPLETED</code></td>
+          <td>تم التسليم بنجاح</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sm badge-cancel">ملغى</span></td>
+          <td><code>CANCELLED</code></td>
+          <td>تم إلغاء الطلب</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:800; margin:24px 0 12px;">حالات العرض (Quote)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الحالة</th><th>المفتاح</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-sm badge-pending">بانتظار الرد</span></td><td><code>PENDING</code></td><td>العرض مقدّم وينتظر رد العميل</td></tr>
+        <tr><td><span class="badge-sm badge-accept">مقبول</span></td><td><code>ACCEPTED</code></td><td>العميل قبل هذا العرض</td></tr>
+        <tr><td><span class="badge-sm badge-reject">مرفوض</span></td><td><code>REJECTED</code></td><td>تم رفض العرض</td></tr>
+        <tr><td><span class="badge-sm badge-withdraw">مسحوب</span></td><td><code>WITHDRAWN</code></td><td>الناقل سحب عرضه</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:800; margin:24px 0 12px;">حالات الحجز (Booking)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الحالة</th><th>المفتاح</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-sm badge-accept">تم القبول</span></td><td><code>ACCEPTED</code></td><td>الحجز مؤكد، بانتظار بدء النقل</td></tr>
+        <tr><td><span class="badge-sm badge-prog">جارٍ التنفيذ</span></td><td><code>IN_PROGRESS</code></td><td>الناقل بدأ الرحلة</td></tr>
+        <tr><td><span class="badge-sm badge-done">مكتمل</span></td><td><code>COMPLETED</code></td><td>تم التسليم</td></tr>
+        <tr><td><span class="badge-sm badge-cancel">ملغى</span></td><td><code>CANCELLED</code></td><td>تم إلغاء الحجز</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 6. SCREENS -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="screens">
+  <div class="section-header">
+    <div class="section-icon" style="background:#ECFDF5;">📱</div>
+    <h2>6. جميع الشاشات (9 شاشات)</h2>
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:24px;">
+    <table>
+      <thead>
+        <tr><th>#</th><th>الشاشة</th><th>المسار</th><th>الوصف</th><th>يحتاج تسجيل؟</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><strong>تصفح الطلبات</strong></td><td><code>transport/index.tsx</code></td><td>قائمة جميع طلبات النقل مع فلاتر وترتيب وصفحات</td><td>لا</td></tr>
+        <tr><td>2</td><td><strong>تفاصيل الطلب</strong></td><td><code>transport/[id].tsx</code></td><td>صفحة تفصيلية: الحالة، المسار، البضاعة، الميزانية، العروض، نموذج تقديم عرض</td><td>لا (للعرض) / نعم (للتفاعل)</td></tr>
+        <tr><td>3</td><td><strong>طلب نقل جديد</strong></td><td><code>transport/new.tsx</code></td><td>معالج 5 خطوات لإنشاء طلب نقل</td><td>نعم</td></tr>
+        <tr><td>4</td><td><strong>طلباتي</strong></td><td><code>transport/my-requests.tsx</code></td><td>طلبات النقل الخاصة بالمستخدم مع تبويبات حسب الحالة</td><td>نعم</td></tr>
+        <tr><td>5</td><td><strong>عروضي المقدمة</strong></td><td><code>transport/my-quotes.tsx</code></td><td>العروض التي قدمها الناقل مع إمكانية السحب</td><td>نعم</td></tr>
+        <tr><td>6</td><td><strong>حجوزاتي</strong></td><td><code>transport/bookings.tsx</code></td><td>الحجوزات (كمُرسِل أو كناقل) مع إجراءات البدء والإتمام</td><td>نعم</td></tr>
+        <tr><td>7</td><td><strong>التسجيل كناقل</strong></td><td><code>transport/carrier-register.tsx</code></td><td>نموذج تسجيل ملف ناقل (مركبات، خدمات، موقع، تواصل)</td><td>نعم</td></tr>
+        <tr><td>8</td><td><strong>ملف الناقل</strong></td><td><code>transport/carrier/[id].tsx</code></td><td>الملف الشخصي العام للناقل (إحصائيات، تقييم، خدمات)</td><td>لا</td></tr>
+        <tr><td>9</td><td><strong>إعلان عام (نقل)</strong></td><td><code>post/step1→step5</code></td><td>النظام العام لإضافة إعلان — يتخطى خطوة الصور للنقل</td><td>نعم</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Screen 1: Index -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">📋</span>
+      <div>
+        <h4>تصفح طلبات النقل</h4>
+        <span class="screen-route">app/transport/index.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      الشاشة الرئيسية لقسم النقل. تعرض جميع طلبات النقل في قائمة مع 5 فلاتر قابلة للتخصيص.
+      تدعم الصفحات (pagination) وزر + عائم لإنشاء طلب جديد.
+    </p>
+    <strong style="font-size:12px; color:var(--text2); display:block; margin-bottom:8px;">الفلاتر المتاحة:</strong>
+    <div class="fields-list">
+      <span class="field-tag">نوع الشحن (6 أنواع)</span>
+      <span class="field-tag">الحالة (OPEN / QUOTED / IN_PROGRESS)</span>
+      <span class="field-tag">من (محافظة)</span>
+      <span class="field-tag">إلى (محافظة)</span>
+      <span class="field-tag">الترتيب (5 خيارات)</span>
+    </div>
+  </div>
+
+  <!-- Screen 2: Detail -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">🔎</span>
+      <div>
+        <h4>تفاصيل طلب النقل</h4>
+        <span class="screen-route">app/transport/[id].tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      أهم شاشة في النظام. تعرض كل تفاصيل الطلب في كروت منفصلة:
+    </p>
+    <strong style="font-size:12px; color:var(--text2); display:block; margin-bottom:8px;">الأقسام:</strong>
+    <div class="fields-list">
+      <span class="field-tag required">شريط الحالة (Timeline)</span>
+      <span class="field-tag required">نوع الخدمة + الحالة</span>
+      <span class="field-tag required">المسار (من → إلى)</span>
+      <span class="field-tag required">تفاصيل الحمولة</span>
+      <span class="field-tag required">الميزانية</span>
+      <span class="field-tag required">العروض المقدمة (قائمة)</span>
+      <span class="field-tag">نموذج تقديم عرض (للناقل)</span>
+      <span class="field-tag">صاحب الطلب</span>
+      <span class="field-tag">أزرار التواصل (اتصال / واتساب / شات)</span>
+      <span class="field-tag">زر إلغاء (لصاحب الطلب)</span>
+      <span class="field-tag">زر قبول العرض</span>
+    </div>
+  </div>
+
+  <!-- Screen 3: New -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">✏️</span>
+      <div>
+        <h4>طلب نقل جديد (المعالج)</h4>
+        <span class="screen-route">app/transport/new.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      معالج من 5 خطوات مع شريط تقدم. كل خطوة لها تحقق قبل الانتقال للتالية.
+      <strong>لا توجد صور في إعلانات النقل.</strong>
+    </p>
+    <p style="font-size:13px; color:var(--text2);">
+      📌 التفاصيل الكاملة في <a href="#new-request">القسم 7</a>
+    </p>
+  </div>
+
+  <!-- Screen 4: My Requests -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">📑</span>
+      <div>
+        <h4>طلباتي</h4>
+        <span class="screen-route">app/transport/my-requests.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      قائمة طلبات النقل الخاصة بالمستخدم. 7 تبويبات للفلترة حسب الحالة.
+      زر إلغاء يظهر للطلبات المفتوحة فقط.
+    </p>
+    <div class="fields-list">
+      <span class="field-tag">الكل</span>
+      <span class="field-tag">مفتوح</span>
+      <span class="field-tag">وصلت عروض</span>
+      <span class="field-tag">مقبول</span>
+      <span class="field-tag">جارٍ</span>
+      <span class="field-tag">مكتمل</span>
+      <span class="field-tag">ملغى</span>
+    </div>
+  </div>
+
+  <!-- Screen 5: My Quotes -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">🏷️</span>
+      <div>
+        <h4>عروضي المقدمة</h4>
+        <span class="screen-route">app/transport/my-quotes.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      العروض التي قدمها الناقل على طلبات نقل مختلفة. كل عرض يعرض السعر والحالة والمدة والرسالة.
+      يمكن سحب العروض في حالة "بانتظار" فقط.
+    </p>
+    <div class="fields-list">
+      <span class="field-tag">الكل</span>
+      <span class="field-tag">بانتظار</span>
+      <span class="field-tag">مقبول</span>
+      <span class="field-tag">مرفوض</span>
+      <span class="field-tag">مسحوب</span>
+    </div>
+  </div>
+
+  <!-- Screen 6: Bookings -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">📦</span>
+      <div>
+        <h4>حجوزاتي</h4>
+        <span class="screen-route">app/transport/bookings.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      إدارة الحجوزات. مفتاح تبديل بين دور <strong>"كمُرسِل"</strong> و<strong>"كناقل"</strong>.
+      الإجراءات تختلف حسب الدور والحالة.
+    </p>
+    <div class="fields-list">
+      <span class="field-tag required">الناقل + ACCEPTED → بدء النقل</span>
+      <span class="field-tag required">الناقل + IN_PROGRESS → تم التسليم</span>
+      <span class="field-tag">أي دور + (ACCEPTED/IN_PROGRESS) → إلغاء</span>
+    </div>
+  </div>
+
+  <!-- Screen 7: Carrier Register -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">🚛</span>
+      <div>
+        <h4>التسجيل كناقل</h4>
+        <span class="screen-route">app/transport/carrier-register.tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      نموذج تسجيل لتحويل المستخدم العادي إلى ناقل. اختيار متعدد للمركبات والخدمات.
+    </p>
+    <div class="fields-list">
+      <span class="field-tag">اسم الشركة (اختياري)</span>
+      <span class="field-tag">نبذة (اختياري)</span>
+      <span class="field-tag required">أنواع المركبات * (9 أنواع)</span>
+      <span class="field-tag required">أنواع الخدمات * (6 أنواع)</span>
+      <span class="field-tag required">المحافظة * (11 محافظة)</span>
+      <span class="field-tag">المدينة (اختياري)</span>
+      <span class="field-tag">رقم الهاتف</span>
+      <span class="field-tag">واتساب (اختياري)</span>
+    </div>
+  </div>
+
+  <!-- Screen 8: Carrier Profile -->
+  <div class="screen-card">
+    <div class="screen-title">
+      <span style="font-size:20px;">👤</span>
+      <div>
+        <h4>ملف الناقل</h4>
+        <span class="screen-route">app/transport/carrier/[id].tsx</span>
+      </div>
+    </div>
+    <p class="screen-desc">
+      الملف الشخصي العام للناقل. يعرض الاسم/الشركة، النبذة، إحصائيات (رحلات مكتملة، تقييم، حالة التوفر)،
+      المركبات، الخدمات، الموقع، وأزرار التواصل.
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 7. NEW REQUEST FORM -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="new-request">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FDF4FF;">📝</div>
+    <h2>7. نموذج إضافة طلب نقل (5 خطوات)</h2>
+  </div>
+
+  <div class="cards-grid" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="card" style="text-align:center; border-top: 3px solid var(--primary);">
+      <h4 style="justify-content:center;">الخطوة 1</h4>
+      <p><strong>نوع الشحن</strong><br>اختيار واحد من 6 أنواع بكروت بصرية مع أيقونات ملونة</p>
+      <div style="margin-top:8px;"><span class="field-tag required">serviceType *</span></div>
+    </div>
+    <div class="card" style="text-align:center; border-top: 3px solid #2563eb;">
+      <h4 style="justify-content:center;">الخطوة 2</h4>
+      <p><strong>المسار</strong><br>اختيار محافظة الانطلاق والوصول + المدينة اختيارياً</p>
+      <div style="margin-top:8px;">
+        <span class="field-tag required">fromGovernorate *</span>
+        <span class="field-tag">fromCity</span>
+        <span class="field-tag required">toGovernorate *</span>
+        <span class="field-tag">toCity</span>
+      </div>
+    </div>
+    <div class="card" style="text-align:center; border-top: 3px solid var(--accent);">
+      <h4 style="justify-content:center;">الخطوة 3</h4>
+      <p><strong>البضاعة</strong><br>وصف الشحنة + الوزن + مساعد + ملاحظات</p>
+      <div style="margin-top:8px;">
+        <span class="field-tag required">cargoDescription *</span>
+        <span class="field-tag">weightTons</span>
+        <span class="field-tag">requiresHelper</span>
+        <span class="field-tag">notes</span>
+      </div>
+    </div>
+    <div class="card" style="text-align:center; border-top: 3px solid var(--purple);">
+      <h4 style="justify-content:center;">الخطوة 4</h4>
+      <p><strong>الموعد والميزانية</strong><br>موعد مرن/محدد + نطاق الميزانية</p>
+      <div style="margin-top:8px;">
+        <span class="field-tag">isFlexible</span>
+        <span class="field-tag">scheduledAt</span>
+        <span class="field-tag">budgetMin</span>
+        <span class="field-tag">budgetMax</span>
+      </div>
+    </div>
+    <div class="card" style="text-align:center; border-top: 3px solid var(--success);">
+      <h4 style="justify-content:center;">الخطوة 5</h4>
+      <p><strong>مراجعة</strong><br>عرض ملخص كامل للبيانات قبل الإرسال</p>
+      <div style="margin-top:8px;"><span class="field-tag required">إرسال الطلب</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; padding:16px 20px; background:var(--accent-light); border-radius:10px; font-size:13px;">
+    ⚠️ <strong>ملاحظة:</strong> إعلانات النقل <strong>لا تحتوي على صور</strong>.
+    في نظام الإعلانات العام (<code>app/post/</code>)، يتم تخطي خطوة الصور تلقائياً عندما يكون القسم = transport.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 8. API -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="api">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEE2E2;">🔌</div>
+    <h2>8. الـ API Endpoints (17 endpoint)</h2>
+  </div>
+
+  <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">
+    Base URL: <code>https://caroneapi-production-255b.up.railway.app/api/v1</code><br>
+    ملف الكود: <code>src/api/transport.ts</code>
+  </p>
+
+  <h3 style="font-size:14px; font-weight:800; margin-bottom:8px;">📋 الطلبات (Requests) — 6 endpoints</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الوظيفة</th><th>الطريقة</th><th>المسار</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>getAll</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/requests</code></td><td>جميع الطلبات (مع فلاتر وصفحات)</td></tr>
+        <tr><td><code>getById</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/requests/:id</code></td><td>تفاصيل طلب محدد</td></tr>
+        <tr><td><code>create</code></td><td><span class="badge-sm badge-quoted">POST</span></td><td><code>/transport/requests</code></td><td>إنشاء طلب نقل جديد</td></tr>
+        <tr><td><code>uploadImages</code></td><td><span class="badge-sm badge-quoted">POST</span></td><td><code>/transport/requests/:id/images</code></td><td>رفع صور (غير مستخدم حالياً)</td></tr>
+        <tr><td><code>cancel</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/requests/:id/cancel</code></td><td>إلغاء طلب</td></tr>
+        <tr><td><code>myRequests</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/requests/my</code></td><td>طلباتي</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:14px; font-weight:800; margin:20px 0 8px;">🏷️ العروض (Quotes) — 5 endpoints</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الوظيفة</th><th>الطريقة</th><th>المسار</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>submitQuote</code></td><td><span class="badge-sm badge-quoted">POST</span></td><td><code>/transport/requests/:id/quotes</code></td><td>تقديم عرض سعر</td></tr>
+        <tr><td><code>getQuotes</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/requests/:id/quotes</code></td><td>عروض طلب محدد</td></tr>
+        <tr><td><code>acceptQuote</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/quotes/:id/accept</code></td><td>قبول عرض</td></tr>
+        <tr><td><code>withdrawQuote</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/quotes/:id/withdraw</code></td><td>سحب عرض</td></tr>
+        <tr><td><code>myQuotes</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/quotes/my</code></td><td>عروضي المقدمة</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:14px; font-weight:800; margin:20px 0 8px;">📦 الحجوزات (Bookings) — 5 endpoints</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الوظيفة</th><th>الطريقة</th><th>المسار</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>getBooking</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/bookings/:id</code></td><td>تفاصيل حجز</td></tr>
+        <tr><td><code>myBookings</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/bookings/my</code></td><td>حجوزاتي (shipper/carrier)</td></tr>
+        <tr><td><code>markInProgress</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/bookings/:id/start</code></td><td>بدء النقل</td></tr>
+        <tr><td><code>completeBooking</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/bookings/:id/complete</code></td><td>تأكيد التسليم</td></tr>
+        <tr><td><code>cancelBooking</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/bookings/:id/cancel</code></td><td>إلغاء حجز</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:14px; font-weight:800; margin:20px 0 8px;">🚚 الناقل (Carrier Profile) — 6 endpoints</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الوظيفة</th><th>الطريقة</th><th>المسار</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>createCarrierProfile</code></td><td><span class="badge-sm badge-quoted">POST</span></td><td><code>/transport/carrier-profile</code></td><td>إنشاء ملف ناقل</td></tr>
+        <tr><td><code>getMyCarrierProfile</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/carrier-profile/me</code></td><td>ملفي كناقل</td></tr>
+        <tr><td><code>updateCarrierProfile</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/carrier-profile</code></td><td>تحديث ملفي</td></tr>
+        <tr><td><code>setAvailability</code></td><td><span class="badge-sm badge-pending">PATCH</span></td><td><code>/transport/carrier-profile/availability</code></td><td>تغيير حالة التوفر</td></tr>
+        <tr><td><code>getCarriers</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/carriers</code></td><td>قائمة الناقلين</td></tr>
+        <tr><td><code>getCarrier</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/carriers/:id</code></td><td>ملف ناقل محدد</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:14px; font-weight:800; margin:20px 0 8px;">📊 الإحصائيات — 1 endpoint</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الوظيفة</th><th>الطريقة</th><th>المسار</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>getStats</code></td><td><span class="badge-sm badge-open">GET</span></td><td><code>/transport/stats</code></td><td>إحصائيات عامة للنقل</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 9. NAVIGATION -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="navigation">
+  <div class="section-header">
+    <div class="section-icon" style="background:#E0F2FE;">🗺️</div>
+    <h2>9. نقاط الدخول والتنقل</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>من أين</th><th>إلى أين</th><th>كيف</th></tr></thead>
+      <tbody>
+        <tr><td>صفحة الملف الشخصي</td><td>طلبات النقل (my-requests)</td><td>عنصر قائمة "طلبات النقل"</td></tr>
+        <tr><td>صفحة الملف الشخصي</td><td>عروضي المقدمة (my-quotes)</td><td>عنصر قائمة "عروضي المقدمة"</td></tr>
+        <tr><td>صفحة الملف الشخصي</td><td>حجوزاتي (bookings)</td><td>عنصر قائمة "حجوزاتي"</td></tr>
+        <tr><td>صفحة الملف الشخصي</td><td>التسجيل كناقل (carrier-register)</td><td>عنصر قائمة "سجّل كناقل"</td></tr>
+        <tr><td>قائمة طلبات النقل (index)</td><td>تفاصيل طلب ([id])</td><td>الضغط على كرت الطلب</td></tr>
+        <tr><td>قائمة طلبات النقل (index)</td><td>طلب جديد (new)</td><td>زر FAB (+) عائم</td></tr>
+        <tr><td>صفحة طلباتي (my-requests)</td><td>طلب جديد (new)</td><td>زر + في الهيدر + زر في الحالة الفارغة</td></tr>
+        <tr><td>تفاصيل طلب ([id])</td><td>محادثة (chat)</td><td>زر "محادثة" في شريط الأسفل</td></tr>
+        <tr><td>تفاصيل طلب ([id])</td><td>ملف ناقل (carrier/[id])</td><td>الضغط على اسم الناقل في العرض</td></tr>
+        <tr><td>عروضي (my-quotes)</td><td>تفاصيل الطلب ([id])</td><td>الضغط على العرض</td></tr>
+        <tr><td>حجوزاتي (bookings)</td><td>تفاصيل الطلب ([id])</td><td>الضغط على المسار</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- 10. ISSUES -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="issues">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEE2E2;">⚠️</div>
+    <h2>10. المشاكل والنواقص المعروفة</h2>
+  </div>
+
+  <div class="issue issue-warn">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>نظام الإعلانات العام (app/post/) — نموذج النقل غير موجود</strong><br>
+      في <code>step3.tsx</code>، قسم النقل يعرض "نموذج transport قيد التطوير" بدل نموذج حقيقي. الحل: ربط step1 → transport/new.tsx مباشرة عند اختيار قسم النقل.
+    </div>
+  </div>
+
+  <div class="issue issue-warn">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>uploadImages endpoint مضاف لكن غير مستخدم</strong><br>
+      تم إضافة <code>transportApi.uploadImages</code> لكن لا يوجد شاشة تستخدمه لأن إعلانات النقل بدون صور. يمكن إزالته أو الإبقاء عليه للمستقبل.
+    </div>
+  </div>
+
+  <div class="issue issue-warn">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>my-requests تستخدم getAll بدل myRequests</strong><br>
+      شاشة <code>my-requests.tsx</code> تستخدم <code>transportApi.getAll({ userId })</code> بدل <code>transportApi.myRequests()</code>.
+      الأفضل استخدام endpoint المخصص <code>/transport/requests/my</code>.
+    </div>
+  </div>
+
+  <div class="issue issue-warn">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>التاريخ في new.tsx — حقل نصي عادي</strong><br>
+      حقل التاريخ <code>scheduledAt</code> يستخدم TextInput بصيغة "YYYY-MM-DD" بدل Date Picker حقيقي. يحتاج تحسين بإضافة <code>@react-native-community/datetimepicker</code>.
+    </div>
+  </div>
+
+  <div class="issue issue-info">
+    <span class="icon">💡</span>
+    <div>
+      <strong>لا توجد صفحة تقييم بعد إتمام الرحلة</strong><br>
+      بعد COMPLETED، لا توجد شاشة لتقييم الناقل أو العميل. ميزة مستقبلية مهمة لبناء الثقة.
+    </div>
+  </div>
+
+  <div class="issue issue-info">
+    <span class="icon">💡</span>
+    <div>
+      <strong>لا يوجد نظام إشعارات للنقل</strong><br>
+      عند تقديم عرض أو قبوله أو بدء النقل، لا يوجد push notification. يحتاج ربط مع نظام الإشعارات الحالي.
+    </div>
+  </div>
+
+  <div class="issue issue-info">
+    <span class="icon">💡</span>
+    <div>
+      <strong>لا يوجد تتبع حي للشحنة</strong><br>
+      أثناء IN_PROGRESS، لا يوجد تتبع GPS حي. ميزة مستقبلية.
+    </div>
+  </div>
+
+  <div class="issue issue-ok">
+    <span class="icon">✅</span>
+    <div>
+      <strong>API paths تم إصلاحها</strong><br>
+      جميع مسارات API تتطابق مع الباك اند: <code>/my</code> بدل <code>/mine</code>، <code>/start</code> بدل <code>/in-progress</code>.
+    </div>
+  </div>
+
+  <div class="issue issue-ok">
+    <span class="icon">✅</span>
+    <div>
+      <strong>خطوة الصور تُتخطى تلقائياً</strong><br>
+      في نظام الإعلانات العام (<code>post/step2.tsx</code>)، عندما يكون القسم = transport يتم التحويل مباشرة لـ step3.
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <p>📄 SouqOne Transport System Report — تم إنشاؤه تلقائياً بواسطة Cascade AI</p>
+  <p>مايو 2026 · v1.0</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سوق وان — نظام التصميم (Design System)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ─── Colors: Primary ─── */
+    --primary:       #004ac6;
+    --primaryDark:   #0B2447;
+    --primaryMid:    #19376D;
+    --primaryLight:  #2563eb;
+    --primaryDeep:   #003B9E;
+
+    /* ─── Colors: Accent ─── */
+    --accent:        #E8781E;
+    --brandOrange:   #fe5e00;
+
+    /* ─── Colors: Surface ─── */
+    --surface:       #F5F7FA;
+    --surfaceAlt:    #f7f9fc;
+    --white:         #FFFFFF;
+    --inputBg:       #f2f4f7;
+
+    /* ─── Colors: Text ─── */
+    --text:          #111827;
+    --text2:         #4B5563;
+    --textMuted:     #9CA3AF;
+    --placeholder:   #737685;
+
+    /* ─── Colors: Borders ─── */
+    --border:        #E2E6EC;
+    --borderStrong:  #c3c6d6;
+
+    /* ─── Colors: Semantic ─── */
+    --success:       #16a34a;
+    --successDeep:   #059669;
+    --error:         #dc2626;
+    --warning:       #d97706;
+    --info:          #4ade80;
+
+    /* ─── Spacing ─── */
+    --sp1: 4px;  --sp2: 8px;  --sp3: 12px;
+    --sp4: 16px; --sp5: 20px; --sp6: 24px; --sp8: 32px;
+    --touch: 44px;
+
+    /* ─── Radius ─── */
+    --rad-sm: 8px;  --rad-md: 12px; --rad-lg: 16px;
+    --rad-xl: 28px; --rad-pill: 9999px;
+
+    /* ─── Font Families ─── */
+    --font-regular:  'Noto Kufi Arabic', 'Almarai', sans-serif;
+    --font-bold:     'Noto Kufi Arabic', 'Almarai', sans-serif;
+    --font-extrabold:'Noto Kufi Arabic', 'Almarai', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-regular);
+    background: var(--surfaceAlt);
+    color: var(--text);
+    line-height: 1.6;
+    direction: rtl;
+  }
+
+  /* ─── Layout ─── */
+  .page-header {
+    background: linear-gradient(135deg, var(--primaryDark) 0%, #1a3a6b 60%, #0d3060 100%);
+    color: white;
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+  }
+  .page-header h1 { font-weight: 800; font-size: 32px; margin-bottom: 8px; }
+  .page-header p { opacity: 0.75; font-size: 14px; }
+  .page-header .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    padding: 6px 16px; border-radius: 9999px; margin-top: 16px; font-size: 13px;
+  }
+  .page-header .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--info); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  .section {
+    background: var(--white);
+    border-radius: var(--rad-lg);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(11,36,71,0.05);
+  }
+  .section-title {
+    font-weight: 800; font-size: 20px; color: var(--primaryDark);
+    margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .icon { font-size: 22px; }
+  .section-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+  .source-file {
+    display: inline-block;
+    background: var(--inputBg); border: 1px solid var(--border);
+    font-family: 'Courier New', monospace; font-size: 11px; direction: ltr;
+    padding: 2px 8px; border-radius: 4px; color: var(--primary); margin-bottom: 16px;
+  }
+
+  /* ─── Grids ─── */
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .color-swatch {
+    border-radius: var(--rad-md); overflow: hidden;
+    border: 1px solid var(--border); background: white;
+  }
+  .color-swatch .preview { height: 64px; }
+  .color-swatch .meta { padding: 8px 10px; }
+  .color-swatch .name { font-weight: 700; font-size: 12px; color: var(--text); }
+  .color-swatch .hex {
+    font-family: 'Courier New', monospace; font-size: 11px; color: var(--text2);
+    direction: ltr; text-align: left;
+  }
+
+  .token-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .token-table th {
+    text-align: right; padding: 10px 12px; background: var(--inputBg);
+    font-weight: 700; color: var(--text); border-bottom: 2px solid var(--border);
+  }
+  .token-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  .token-table tr:last-child td { border-bottom: none; }
+  .token-table code {
+    background: var(--inputBg); padding: 2px 6px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 11px; direction: ltr;
+    display: inline-block; color: var(--primary);
+  }
+
+  .preview-box {
+    display: inline-block; border: 1px solid var(--border); border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  /* ─── Component Previews ─── */
+  .component-preview {
+    background: var(--surfaceAlt); border-radius: var(--rad-md);
+    padding: 20px; margin: 16px 0; border: 1px dashed var(--borderStrong);
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 54px; padding: 0 32px; border-radius: var(--rad-md); border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primaryDeep));
+    color: white; font-family: var(--font-extrabold); font-weight: 800;
+    font-size: 16px; cursor: pointer; box-shadow: 0 6px 12px rgba(0,74,198,0.2);
+  }
+  .btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 54px; padding: 0 32px; border-radius: var(--rad-md);
+    border: 1px solid var(--border); background: var(--white);
+    color: var(--text); font-family: var(--font-extrabold); font-weight: 800;
+    font-size: 16px; cursor: pointer;
+  }
+  .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    height: 44px; padding: 0 16px; border-radius: var(--rad-md);
+    border: none; background: transparent;
+    color: var(--primary); font-family: var(--font-bold); font-weight: 700;
+    font-size: 14px; cursor: pointer;
+  }
+
+  .input-wrap {
+    height: 52px; background: var(--inputBg); border-radius: var(--rad-md);
+    border: 1px solid var(--border); display: flex; align-items: center;
+    padding: 0 16px; font-family: var(--font-regular); font-size: 14px;
+    color: var(--text); max-width: 360px;
+  }
+  .input-wrap.focused { border-color: var(--primary); }
+  .input-wrap.error { border-color: var(--error); }
+  .input-wrap .placeholder { color: var(--textMuted); }
+
+  .header-preview {
+    background: linear-gradient(135deg, var(--primaryDark) 0%, #1a3a6b 60%, #0d3060 100%);
+    border-radius: 0 0 24px 24px; padding: 16px 20px; color: white;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-preview .back-btn {
+    width: 40px; height: 40px; border-radius: 20px;
+    background: rgba(255,255,255,0.15); display: flex;
+    align-items: center; justify-content: center; font-size: 18px;
+  }
+  .header-preview .title { font-weight: 800; font-size: 20px; flex: 1; text-align: center; }
+
+  .card-preview {
+    background: white; border-radius: var(--rad-lg); padding: 24px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 10px rgba(11,36,71,0.05);
+  }
+
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 400;
+  }
+
+  .gradient-bar {
+    height: 48px; border-radius: var(--rad-md); display: flex;
+    align-items: center; justify-content: center; color: white;
+    font-size: 12px; font-family: 'Courier New', monospace; direction: ltr;
+  }
+
+  .spacing-block {
+    display: inline-block; background: var(--primary); opacity: 0.2;
+    border-radius: 2px; vertical-align: middle;
+  }
+
+  .radius-circle {
+    display: inline-flex; width: 60px; height: 60px;
+    background: var(--primary); opacity: 0.15;
+    align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--primaryDark);
+  }
+
+  .shadow-card {
+    width: 120px; height: 64px; background: white;
+    border-radius: var(--rad-md); display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--text2);
+  }
+
+  .rtl-rule {
+    padding: 10px 14px; border-radius: var(--rad-sm);
+    margin-bottom: 8px; font-size: 13px;
+    border-right: 4px solid; display: flex; align-items: center; gap: 8px;
+  }
+  .rtl-rule.do { background: #d1fae5; border-color: var(--success); }
+  .rtl-rule.dont { background: #fee2e2; border-color: var(--error); }
+  .rtl-rule .tag {
+    font-weight: 700; font-size: 11px; padding: 2px 8px;
+    border-radius: 4px; flex-shrink: 0;
+  }
+  .rtl-rule.do .tag { background: var(--success); color: white; }
+  .rtl-rule.dont .tag { background: var(--error); color: white; }
+
+  .tab-bar-preview {
+    background: white; border-radius: 0; padding: 8px 4px;
+    display: flex; align-items: center; justify-content: space-around;
+    border-top: 1px solid var(--border); max-width: 400px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: var(--textMuted); padding: 6px 0;
+  }
+  .tab-item.active { color: var(--primary); font-weight: 700; }
+  .tab-item .icon { font-size: 22px; }
+  .tab-item .active-dot {
+    width: 16px; height: 3px; border-radius: 2px; background: var(--primary);
+  }
+  .tab-item .active-bg {
+    width: 44px; height: 30px; border-radius: 15px;
+    background: #EEF3FF; display: flex; align-items: center; justify-content: center;
+  }
+  .fab-circle {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--primary); color: white; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 28px; margin-top: -16px;
+    box-shadow: 0 6px 12px rgba(0,74,198,0.35);
+  }
+
+  .price-row { display: flex; align-items: baseline; gap: 4px; direction: ltr; }
+  .price-val { font-weight: 700; color: #003594; }
+  .price-curr { font-weight: 400; color: var(--text2); }
+
+  .subsection { margin-top: 20px; margin-bottom: 8px; font-weight: 700; font-size: 15px; color: var(--text); }
+
+  .note-box {
+    background: #dbeafe; border: 1px solid #bfdbfe; border-radius: var(--rad-sm);
+    padding: 12px 16px; font-size: 13px; color: #1d4ed8; margin: 12px 0;
+  }
+
+  .hero-section-preview {
+    background: linear-gradient(135deg, var(--primaryDark) 0%, #1a3a6b 60%, #0d3060 100%);
+    border-radius: 0 0 32px 32px; padding: 40px 20px 30px; color: white; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero-section-preview::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6z' fill='rgba(255,255,255,0.04)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill='url(%23g)' width='100%25' height='100%25'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+  .hero-section-preview * { position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .hero-badge .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--info); }
+  .hero-title { font-weight: 800; font-size: 22px; line-height: 36px; margin-bottom: 8px; }
+  .hero-title .accent { color: var(--accent); }
+  .hero-sub { font-size: 13px; opacity: 0.7; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; }
+  .hero-btn {
+    flex: 1; max-width: 180px; height: 42px; border-radius: var(--rad-xl);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; border: none; cursor: pointer;
+  }
+  .hero-btn.primary { background: var(--accent); color: white; }
+  .hero-btn.outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.4); color: white; }
+
+  .search-bar-preview {
+    display: flex; align-items: center; background: white;
+    height: 48px; border-radius: var(--rad-xl); padding: 0 4px 0 16px;
+    gap: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); max-width: 400px;
+    margin: 16px auto 0;
+  }
+  .search-bar-preview .txt { flex: 1; color: var(--textMuted); font-size: 13px; }
+  .search-filter-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; color: white;
+    font-size: 16px; border: none;
+  }
+
+  .skeleton-row { display: flex; gap: 8px; align-items: center; }
+  .skeleton-bar {
+    border-radius: 7px; animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { background: #F5F7FA; }
+    50% { background: #E2E6EC; }
+  }
+
+  h3.subsection::before { content: '◆ '; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ PAGE HEADER ═══════════════ -->
+<div class="page-header">
+  <h1>🚗 سوق وان — نظام التصميم</h1>
+  <p>Design System Reference — SouqOne App</p>
+  <div class="badge"><span class="dot"></span> الإصدار الحالي — يونيو ٢٠٢٦</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════ 1. COLORS ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🎨</span> الألوان (Colors)</div>
+  <div class="section-sub">كل الألوان المستخدمة في التطبيق. يجب استخدام <code>Colors.xxx</code> دائماً — ممنوع Inline.</div>
+  <div class="source-file">src/constants/colors.ts</div>
+
+  <h3 class="subsection">الألوان الأساسية (Primary)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#004ac6"></div><div class="meta"><div class="name">primary</div><div class="hex">#004ac6</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#0B2447"></div><div class="meta"><div class="name">primaryDark</div><div class="hex">#0B2447</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#19376D"></div><div class="meta"><div class="name">primaryMid</div><div class="hex">#19376D</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#2563eb"></div><div class="meta"><div class="name">primaryLight</div><div class="hex">#2563eb</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#003B9E"></div><div class="meta"><div class="name">primaryDeep</div><div class="hex">#003B9E</div></div></div>
+  </div>
+
+  <h3 class="subsection">الألوان المميزة (Accent)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#E8781E"></div><div class="meta"><div class="name">accent</div><div class="hex">#E8781E</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#fe5e00"></div><div class="meta"><div class="name">brandOrange</div><div class="hex">#fe5e00</div></div></div>
+  </div>
+
+  <h3 class="subsection">الخلفيات (Surfaces)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#F5F7FA; border-bottom:1px solid #E2E6EC"></div><div class="meta"><div class="name">surface</div><div class="hex">#F5F7FA</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#f7f9fc; border-bottom:1px solid #E2E6EC"></div><div class="meta"><div class="name">surfaceAlt</div><div class="hex">#f7f9fc</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#FFFFFF; border-bottom:1px solid #E2E6EC"></div><div class="meta"><div class="name">white</div><div class="hex">#FFFFFF</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#f2f4f7; border-bottom:1px solid #E2E6EC"></div><div class="meta"><div class="name">inputBg</div><div class="hex">#f2f4f7</div></div></div>
+  </div>
+
+  <h3 class="subsection">النصوص (Text)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#111827"></div><div class="meta"><div class="name">text</div><div class="hex">#111827</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#4B5563"></div><div class="meta"><div class="name">text2</div><div class="hex">#4B5563</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#9CA3AF"></div><div class="meta"><div class="name">textMuted</div><div class="hex">#9CA3AF</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#737685"></div><div class="meta"><div class="name">placeholder</div><div class="hex">#737685</div></div></div>
+  </div>
+
+  <h3 class="subsection">الحدود (Borders)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#E2E6EC"></div><div class="meta"><div class="name">border</div><div class="hex">#E2E6EC</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#c3c6d6"></div><div class="meta"><div class="name">borderStrong</div><div class="hex">#c3c6d6</div></div></div>
+  </div>
+
+  <h3 class="subsection">ألوان دلالية (Semantic)</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="preview" style="background:#16a34a"></div><div class="meta"><div class="name">success</div><div class="hex">#16a34a</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#059669"></div><div class="meta"><div class="name">successDeep</div><div class="hex">#059669</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#dc2626"></div><div class="meta"><div class="name">error</div><div class="hex">#dc2626</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#d97706"></div><div class="meta"><div class="name">warning</div><div class="hex">#d97706</div></div></div>
+    <div class="color-swatch"><div class="preview" style="background:#4ade80"></div><div class="meta"><div class="name">info</div><div class="hex">#4ade80</div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 2. GRADIENTS ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🌈</span> التدرجات اللونية (Gradients)</div>
+  <div class="section-sub">التدرجات المستخدمة في Headers والأزرار والكروت.</div>
+  <div class="source-file">src/constants/gradients.ts</div>
+
+  <table class="token-table">
+    <tr><th>الاسم</th><th>الألوان</th><th>الاستخدام</th><th>معاينة</th></tr>
+    <tr>
+      <td><code>primary</code></td><td><code>['#0B2447', '#004ac6']</code></td><td>Headers عامة + Auth</td>
+      <td><div class="gradient-bar" style="background:linear-gradient(135deg,#0B2447,#004ac6); width:200px;">#0B2447 → #004ac6</div></td>
+    </tr>
+    <tr>
+      <td><code>hero</code></td><td><code>['#0B2447', '#1a3a6b', '#0d3060']</code></td><td>الهيرو (Jobs Landing)</td>
+      <td><div class="gradient-bar" style="background:linear-gradient(135deg,#0B2447 0%,#1a3a6b 60%,#0d3060 100%); width:200px;">#0B2447 → #1a3a6b → #0d3060</div></td>
+    </tr>
+    <tr>
+      <td><code>button</code></td><td><code>['#004ac6', '#003B9E']</code></td><td>أزرار Primary</td>
+      <td><div class="gradient-bar" style="background:linear-gradient(135deg,#004ac6,#003B9E); width:200px;">#004ac6 → #003B9E</div></td>
+    </tr>
+    <tr>
+      <td><code>driver</code></td><td><code>['#065f46', '#059669']</code></td><td>كارت السائق</td>
+      <td><div class="gradient-bar" style="background:linear-gradient(135deg,#065f46,#059669); width:200px;">#065f46 → #059669</div></td>
+    </tr>
+    <tr>
+      <td><code>employer</code></td><td><code>['#0B2447', '#1e3a5f']</code></td><td>كارت صاحب العمل</td>
+      <td><div class="gradient-bar" style="background:linear-gradient(135deg,#0B2447,#1e3a5f); width:200px;">#0B2447 → #1e3a5f</div></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 3. TYPOGRAPHY ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔤</span> الخطوط (Typography)</div>
+  <div class="section-sub">خط Almarai (Google Fonts) — ٣ أوزان: Regular 400، Bold 700، ExtraBold 800.</div>
+  <div class="source-file">src/constants/typography.ts</div>
+
+  <table class="token-table">
+    <tr><th>الاسم</th><th>الحجم</th><th>الارتفاع</th><th>الوزن</th><th>الخط</th><th>معاينة</th></tr>
+    <tr><td><code>displayLg</code></td><td>34px</td><td>44px</td><td>800</td><td>Almarai_800ExtraBold</td><td style="font-size:34px;font-weight:800;line-height:44px">سوق وان</td></tr>
+    <tr><td><code>displayMob</code></td><td>28px</td><td>36px</td><td>800</td><td>Almarai_800ExtraBold</td><td style="font-size:28px;font-weight:800;line-height:36px">سوق وان</td></tr>
+    <tr><td><code>headlineMd</code></td><td>24px</td><td>32px</td><td>700</td><td>Almarai_700Bold</td><td style="font-size:24px;font-weight:700;line-height:32px">عنوان رئيسي</td></tr>
+    <tr><td><code>headlineSm</code></td><td>20px</td><td>28px</td><td>700</td><td>Almarai_700Bold</td><td style="font-size:20px;font-weight:700;line-height:28px">عنوان فرعي</td></tr>
+    <tr><td><code>titleMd</code></td><td>18px</td><td>26px</td><td>700</td><td>Almarai_700Bold</td><td style="font-size:18px;font-weight:700;line-height:26px">عنوان قسم</td></tr>
+    <tr><td><code>bodyLg</code></td><td>16px</td><td>24px</td><td>400</td><td>Almarai_400Regular</td><td style="font-size:16px;font-weight:400;line-height:24px">نص عادي كبير</td></tr>
+    <tr><td><code>bodyMd</code></td><td>14px</td><td>20px</td><td>400</td><td>Almarai_400Regular</td><td style="font-size:14px;font-weight:400;line-height:20px">نص عادي متوسط</td></tr>
+    <tr><td><code>labelMd</code></td><td>12px</td><td>16px</td><td>700</td><td>Almarai_700Bold</td><td style="font-size:12px;font-weight:700;line-height:16px">تسمية / Label</td></tr>
+    <tr><td><code>caption</code></td><td>12px</td><td>16px</td><td>400</td><td>Almarai_400Regular</td><td style="font-size:12px;font-weight:400;line-height:16px">تعليق / Caption</td></tr>
+  </table>
+
+  <div class="note-box">
+    <strong>⚠️ هام (قطع الخط):</strong> خط Almarai يحتاج <code>paddingTop: 4, paddingBottom: 4</code> على Android لمنع قطع الحروف العلوية (ط، ل) والسفلية (ي، ر).
+  </div>
+</div>
+
+<!-- ═══════════════ 4. SPACING ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">📏</span> المسافات (Spacing)</div>
+  <div class="section-sub">وحدات المسافة الثابتة — يُستخدم Spacing.spaceX في كل مكان.</div>
+  <div class="source-file">src/constants/spacing.ts</div>
+
+  <table class="token-table">
+    <tr><th>الاسم</th><th>القيمة</th><th>الاستخدام</th><th>معاينة</th></tr>
+    <tr><td><code>space1</code></td><td>4px</td><td>أصغر فجوة (gap بين أيقونة ونص)</td><td><span class="spacing-block" style="width:4px;height:16px"></span></td></tr>
+    <tr><td><code>space2</code></td><td>8px</td><td>فجوة بين عناصر متقاربة</td><td><span class="spacing-block" style="width:8px;height:16px"></span></td></tr>
+    <tr><td><code>space3</code></td><td>12px</td><td>فجوة عناصر (element gap)</td><td><span class="spacing-block" style="width:12px;height:16px"></span></td></tr>
+    <tr><td><code>space4</code></td><td>16px</td><td>Gutter / padding داخلي</td><td><span class="spacing-block" style="width:16px;height:16px"></span></td></tr>
+    <tr><td><code>space5</code></td><td>20px</td><td>Container margin (هوامش الشاشة)</td><td><span class="spacing-block" style="width:20px;height:16px"></span></td></tr>
+    <tr><td><code>space6</code></td><td>24px</td><td>Section gap (مسافة بين أقسام)</td><td><span class="spacing-block" style="width:24px;height:16px"></span></td></tr>
+    <tr><td><code>space8</code></td><td>32px</td><td>مسافة كبيرة</td><td><span class="spacing-block" style="width:32px;height:16px"></span></td></tr>
+    <tr><td><code>touch</code></td><td>44px</td><td>الحد الأدنى لمنطقة اللمس (Touch Target)</td><td><span class="spacing-block" style="width:44px;height:16px"></span></td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 5. RADIUS ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">⬜</span> الزوايا (Border Radius)</div>
+  <div class="source-file">src/constants/radius.ts</div>
+
+  <table class="token-table">
+    <tr><th>الاسم</th><th>القيمة</th><th>الاستخدام</th><th>معاينة</th></tr>
+    <tr><td><code>sm</code></td><td>8px</td><td>Chips, badges صغيرة</td><td><div class="radius-circle" style="border-radius:8px">sm</div></td></tr>
+    <tr><td><code>md</code></td><td>12px</td><td>Inputs, buttons, cards صغيرة</td><td><div class="radius-circle" style="border-radius:12px">md</div></td></tr>
+    <tr><td><code>lg</code></td><td>16px</td><td>Cards كبيرة</td><td><div class="radius-circle" style="border-radius:16px">lg</div></td></tr>
+    <tr><td><code>xl</code></td><td>28px</td><td>Bottom sheets, hero corners</td><td><div class="radius-circle" style="border-radius:28px">xl</div></td></tr>
+    <tr><td><code>pill</code></td><td>9999px</td><td>Badges, pills, search bar</td><td><div class="radius-circle" style="border-radius:9999px">pill</div></td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 6. SHADOWS ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🌫</span> الظلال (Shadows)</div>
+  <div class="source-file">src/constants/shadows.ts</div>
+
+  <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:12px;">
+    <div class="shadow-card" style="box-shadow: 0 4px 10px rgba(11,36,71,0.05);">card</div>
+    <div class="shadow-card" style="box-shadow: 0 6px 16px rgba(11,36,71,0.08);">card2</div>
+    <div class="shadow-card" style="box-shadow: 0 8px 20px rgba(0,74,198,0.15);">floating</div>
+    <div class="shadow-card" style="box-shadow: 0 -4px 10px rgba(11,36,71,0.05);">nav</div>
+  </div>
+
+  <table class="token-table" style="margin-top:16px">
+    <tr><th>الاسم</th><th>shadowColor</th><th>offset</th><th>opacity</th><th>radius</th><th>elevation (Android)</th></tr>
+    <tr><td><code>card</code></td><td>#0B2447</td><td>0, 4</td><td>0.05</td><td>10</td><td>2</td></tr>
+    <tr><td><code>card2</code></td><td>#0B2447</td><td>0, 6</td><td>0.08</td><td>16</td><td>4</td></tr>
+    <tr><td><code>floating</code></td><td>#004ac6</td><td>0, 8</td><td>0.15</td><td>20</td><td>8</td></tr>
+    <tr><td><code>nav</code></td><td>#0B2447</td><td>0, -4</td><td>0.05</td><td>10</td><td>4</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 7. RTL RULES ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">↩️</span> قواعد RTL</div>
+  <div class="section-sub">التطبيق يستخدم <code>I18nManager.forceRTL(true)</code> — كل شيء معكوس تلقائياً.</div>
+  <div class="source-file">src/constants/rtl.ts + src/constants/rtl-rules.ts</div>
+
+  <h3 class="subsection">القواعد الإلزامية</h3>
+
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> استخدم <code>start:</code> / <code>end:</code> بدل left/right في absolute positioning</div>
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> استخدم <code>paddingStart</code> / <code>paddingEnd</code> بدل paddingLeft/Right</div>
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> استخدم <code>writingDirection: 'rtl'</code> على كل Text عربي</div>
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> استخدم <code>textAlign: 'right'</code> على TextInput فقط (مش Text)</div>
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> استخدم <code>arrow-forward-outline</code> كسهم الرجوع (لأن forceRTL يعكسه)</div>
+  <div class="rtl-rule do"><span class="tag">✅ افعل</span> <code>alignItems: 'flex-end'</code> = محاذاة لليمين (بصرياً)</div>
+
+  <div class="rtl-rule dont"><span class="tag">❌ لا تفعل</span> استخدام <code>left:</code> / <code>right:</code> في StyleSheet</div>
+  <div class="rtl-rule dont"><span class="tag">❌ لا تفعل</span> استخدام <code>marginLeft</code> / <code>marginRight</code></div>
+  <div class="rtl-rule dont"><span class="tag">❌ لا تفعل</span> استخدام <code>flexDirection: 'row-reverse'</code></div>
+  <div class="rtl-rule dont"><span class="tag">❌ لا تفعل</span> استخدام <code>textAlign: 'right'</code> على Text (forceRTL يعكسها!)</div>
+
+  <h3 class="subsection">مساعدات RTL جاهزة</h3>
+  <table class="token-table">
+    <tr><th>المرجع</th><th>القيمة</th><th>الاستخدام</th></tr>
+    <tr><td><code>RTLText</code></td><td><code>{ writingDirection: 'rtl' }</code></td><td>كل Text عربي</td></tr>
+    <tr><td><code>RTLTextInput</code></td><td><code>{ textAlign: 'right', writingDirection: 'rtl' }</code></td><td>TextInput فقط</td></tr>
+    <tr><td><code>RTL.absRight</code></td><td><code>{ position: 'absolute', start: 0 }</code></td><td>وضع عنصر يمين الشاشة</td></tr>
+    <tr><td><code>RTL.absLeft</code></td><td><code>{ position: 'absolute', end: 0 }</code></td><td>وضع عنصر يسار الشاشة</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 8. HERO SECTION (Reference) ═══════════════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏔️</span> قسم الهيرو — المرجع (Jobs Landing)</div>
+  <div class="section-sub">هذا هو التصميم المرجعي. كل شاشات التطبيق يجب أن تتبع هذا المستوى.</div>
+  <div class="source-file">app/jobs/index.tsx (L312-L403)</div>
+
+  <div class="component-preview" style="padding:0; overflow:hidden; border-radius:16px;">
+    <div class="hero-section-preview">
+      <div class="hero-badge"><span class="dot"></span> منصة الوظائف الأولى</div>
+      <div class="hero-title">ابحث عن <span class="accent">وظيفتك</span> القادمة</div>
+      <div class="hero-sub">آلاف الوظائف في قطاع السيارات والنقل</div>
+      <div class="hero-actions">
+        <button class="hero-btn primary">🔍 ابحث عن وظائف</button>
+        <button class="hero-btn outline">📋 أضف إعلان</button>
+      </div>
+      <div class="search-bar-preview">
+        <span class="txt">🔍 ابحث عن وظائف، سائقين...</span>
+        <button class="search-filter-btn">⚙</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="subsection">مواصفات الهيرو</h3>
+  <table class="token-table">
+    <tr><th>العنصر</th><th>القيمة</th></tr>
+    <tr><td>Gradient</td><td><code>['#0B2447', '#1a3a6b', '#0d3060']</code> — locations: [0, 0.6, 1]</td></tr>
+    <tr><td>Border Radius (أسفل)</td><td>32px (يتحول لـ 0 عند scroll)</td></tr>
+    <tr><td>الارتفاع الموسع</td><td><code>insets.top + 215px</code></td></tr>
+    <tr><td>الارتفاع المضغوط</td><td><code>insets.top + 56px</code></td></tr>
+    <tr><td>Animation Range</td><td>Dead zone أول 40px → ثم animation من 40px إلى 180px</td></tr>
+    <tr><td>SVG Pattern</td><td>+ crosses pattern بشفافية 4%</td></tr>
+    <tr><td>Badge</td><td><code>rgba(255,255,255,0.1)</code> background, border 0.2, pill shape</td></tr>
+    <tr><td>Title Font</td><td>Almarai_800ExtraBold, 22px, lineHeight 36</td></tr>
+    <tr><td>Accent Color in Title</td><td><code>#E8781E</code> (accent)</td></tr>
+    <tr><td>CTA Button (primary)</td><td>background: <code>#E8781E</code>, radius: 28px, height: 42px</td></tr>
+    <tr><td>CTA Button (outline)</td><td>border: 1.5px rgba(255,255,255,0.4), transparent bg</td></tr>
+    <tr><td>Search Bar</td><td>white, height 48px, radius pill, shadow 0 4px 8px</td></tr>
+    <tr><td>Filter Button</td><td>40×40, circle, background: <code>#E8781E</code></td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ 9. COMPONENTS ═══════════════ -->
+
+<!-- AppHeader -->
+<div class="section">
+  <div class="section-title"><span class="icon">📌</span> AppHeader</div>
+  <div class="section-sub">شريط التنقل العلوي — يستخدم LinearGradient + زوايا مدورة أسفل.</div>
+  <div class="source-file">src/components/ui/AppHeader.tsx</div>
+
+  <div class="component-preview" style="padding:0; overflow:hidden; border-radius:16px;">
+    <div class="header-preview">
+      <div class="back-btn">→</div>
+      <div class="title">عنوان الصفحة</div>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>Gradient (default)</td><td><code>[Colors.primary, '#003B9E']</code></td></tr>
+    <tr><td>Gradient (jobs variant)</td><td><code>['#0B2447', '#1a3a6b', '#0d3060']</code></td></tr>
+    <tr><td>Bottom Radius</td><td>24px</td></tr>
+    <tr><td>Row Height</td><td>56px</td></tr>
+    <tr><td>Padding</td><td><code>paddingHorizontal: Spacing.space5</code> (20px)</td></tr>
+    <tr><td>Icon Button</td><td>40×40, radius 20, bg <code>rgba(255,255,255,0.15)</code></td></tr>
+    <tr><td>Title Font</td><td>Almarai_800ExtraBold, 20px, white, center</td></tr>
+    <tr><td>Shadow (iOS)</td><td>primaryColor, offset 0/6, opacity 0.15, radius 12</td></tr>
+    <tr><td>Back Icon</td><td><code>arrow-forward-outline</code> (معكوس بسبب RTL)</td></tr>
+    <tr><td>Props</td><td><code>title, showBack, leftIcon, rightIcon, leftSlot, centerSlot, rightSlot, variant</code></td></tr>
+  </table>
+</div>
+
+<!-- AppButton -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔘</span> AppButton</div>
+  <div class="section-sub">الأزرار — ٣ أنواع: Primary (gradient), Outline, Ghost.</div>
+  <div class="source-file">src/components/ui/AppButton.tsx</div>
+
+  <div class="component-preview">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <button class="btn-primary">تسجيل الدخول</button>
+      <button class="btn-outline">تسجيل بـ Google</button>
+      <button class="btn-ghost">عرض الكل ←</button>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>النوع</th><th>الارتفاع</th><th>الخلفية</th><th>اللون</th><th>الخط</th><th>Radius</th><th>Shadow</th></tr>
+    <tr><td><code>primary</code></td><td>54px</td><td><code>gradient: [primary, primaryDeep]</code></td><td>white</td><td>Almarai_800ExtraBold, 16px</td><td>md (12px)</td><td>✅ primary shadow</td></tr>
+    <tr><td><code>outline</code></td><td>54px</td><td>white</td><td>text (#111827)</td><td>Almarai_800ExtraBold, 16px</td><td>md (12px)</td><td>❌</td></tr>
+    <tr><td><code>ghost</code></td><td>44px (touch)</td><td>transparent</td><td>primary (#004ac6)</td><td>Almarai_700Bold, 14px</td><td>md (12px)</td><td>❌</td></tr>
+  </table>
+</div>
+
+<!-- AppInput -->
+<div class="section">
+  <div class="section-title"><span class="icon">✏️</span> AppInput</div>
+  <div class="section-sub">حقل الإدخال — يدعم أيقونة يمين ويسار، RTL، وحالة Focus/Error.</div>
+  <div class="source-file">src/components/ui/AppInput.tsx</div>
+
+  <div class="component-preview">
+    <div style="display:flex; flex-direction:column; gap:12px; max-width:360px;">
+      <div style="font-weight:700; font-size:12px; color:var(--text2);">البريد الإلكتروني</div>
+      <div class="input-wrap"><span class="placeholder">📧 أدخل بريدك الإلكتروني</span></div>
+      <div class="input-wrap focused"><span style="color:var(--text)">📧 user@email.com</span></div>
+      <div class="input-wrap error"><span style="color:var(--text)">📧 بريد غير صحيح</span></div>
+      <div style="font-size:12px; color:var(--error);">يرجى إدخال بريد صحيح</div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>الارتفاع</td><td>52px (multiline: auto, minHeight 80)</td></tr>
+    <tr><td>الخلفية</td><td><code>#f2f4f7</code> (inputBg)</td></tr>
+    <tr><td>Radius</td><td>md (12px)</td></tr>
+    <tr><td>Border (عادي)</td><td>1px <code>#E2E6EC</code> (border)</td></tr>
+    <tr><td>Border (focus)</td><td>1px <code>#004ac6</code> (primary)</td></tr>
+    <tr><td>Border (error)</td><td>1px <code>#dc2626</code> (error)</td></tr>
+    <tr><td>الخط</td><td>Almarai_400Regular, 14px, color: text</td></tr>
+    <tr><td>Placeholder Color</td><td><code>#9CA3AF</code> (textMuted)</td></tr>
+    <tr><td>محاذاة النص</td><td><code>textAlign: 'right'</code> (TextInput)</td></tr>
+    <tr><td>أيقونة يمين (Leading)</td><td>position: absolute, <code>start: 16px</code>, عرض 36px</td></tr>
+    <tr><td>أيقونة يسار (Trailing)</td><td>position: absolute, <code>end: 16px</code>, عرض 36px</td></tr>
+    <tr><td>Padding مع أيقونة</td><td><code>paddingStart: 52px</code> / <code>paddingEnd: 52px</code></td></tr>
+    <tr><td>Label</td><td>Almarai_700Bold, 12px, color: text2, <code>writingDirection: 'rtl'</code></td></tr>
+    <tr><td>Error Text</td><td>Almarai_400Regular, 12px, color: error, <code>writingDirection: 'rtl'</code></td></tr>
+  </table>
+</div>
+
+<!-- AppSelect -->
+<div class="section">
+  <div class="section-title"><span class="icon">📋</span> AppSelect</div>
+  <div class="section-sub">قائمة الاختيار (Dropdown) — يستخدم RNPickerSelect مع تنسيق مخصص.</div>
+  <div class="source-file">src/components/ui/AppSelect.tsx</div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>الارتفاع</td><td>52px</td></tr>
+    <tr><td>الخلفية</td><td><code>#f2f4f7</code> (inputBg)</td></tr>
+    <tr><td>Radius</td><td>md (12px)</td></tr>
+    <tr><td>Border</td><td>1px border / primary عند focus</td></tr>
+    <tr><td>Chevron</td><td><code>chevron-down</code>, 20px, textMuted</td></tr>
+    <tr><td>الخط</td><td>Almarai_400Regular, 14px, <code>textAlign: 'right'</code></td></tr>
+    <tr><td>Disabled</td><td>opacity: 0.6</td></tr>
+  </table>
+</div>
+
+<!-- BackButton -->
+<div class="section">
+  <div class="section-title"><span class="icon">◀</span> BackButton</div>
+  <div class="source-file">src/components/ui/BackButton.tsx</div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>الحجم</td><td>44×44px (Touch Target)</td></tr>
+    <tr><td>Radius</td><td>22px (دائرة)</td></tr>
+    <tr><td>الخلفية (default)</td><td><code>rgba(255,255,255,0.1)</code></td></tr>
+    <tr><td>لون الأيقونة (default)</td><td>white</td></tr>
+    <tr><td>الأيقونة</td><td><code>arrow-forward-outline</code> (22px) — يعكسها RTL لسهم يسار</td></tr>
+  </table>
+</div>
+
+<!-- ScreenCard -->
+<div class="section">
+  <div class="section-title"><span class="icon">🃏</span> ScreenCard</div>
+  <div class="section-sub">كارت أبيض عام — يُستخدم كغلاف للمحتوى في الشاشات.</div>
+  <div class="source-file">src/components/ui/ScreenCard.tsx</div>
+
+  <div class="component-preview">
+    <div class="card-preview">
+      <div style="font-weight:700; font-size:16px; margin-bottom:8px;">محتوى الكارت</div>
+      <div style="font-size:14px; color:var(--text2)">هذا مثال لكارت ScreenCard</div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>الخلفية</td><td>white</td></tr>
+    <tr><td>Radius</td><td>16px</td></tr>
+    <tr><td>Padding</td><td>24px</td></tr>
+    <tr><td>Border</td><td>1px <code>#E2E6EC</code> (اختياري — <code>noBorder</code> prop)</td></tr>
+    <tr><td>Shadow</td><td>shadowColor: #0B2447, offset 0/4, opacity 0.05, radius 10, elevation 3</td></tr>
+  </table>
+</div>
+
+<!-- SectionHeader -->
+<div class="section">
+  <div class="section-title"><span class="icon">📑</span> SectionHeader</div>
+  <div class="source-file">src/components/ui/SectionHeader.tsx</div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>Layout</td><td><code>flexDirection: 'row'</code>, space-between</td></tr>
+    <tr><td>العنوان</td><td>Almarai_700Bold, 18px, lineHeight 26, color: text, <code>writingDirection: 'rtl'</code></td></tr>
+    <tr><td>زر "عرض الكل"</td><td>Almarai_700Bold, 14px, lineHeight 20, color: primary</td></tr>
+    <tr><td>المسافة السفلية</td><td><code>marginBottom: Spacing.space3</code> (12px)</td></tr>
+  </table>
+</div>
+
+<!-- PriceBadge -->
+<div class="section">
+  <div class="section-title"><span class="icon">💰</span> PriceBadge</div>
+  <div class="section-sub">عرض الأسعار — ٣ أحجام مع عملة "ر.ع".</div>
+  <div class="source-file">src/components/ui/PriceBadge.tsx</div>
+
+  <div class="component-preview">
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:baseline;">
+      <div class="price-row"><span class="price-val" style="font-size:28px; font-weight:800">١٢,٥٠٠</span><span class="price-curr" style="font-size:16px"> ر.ع</span></div>
+      <div class="price-row"><span class="price-val" style="font-size:20px; font-weight:700">٤,٢٠٠</span><span class="price-curr" style="font-size:14px"> ر.ع</span></div>
+      <div class="price-row"><span class="price-val" style="font-size:18px; font-weight:700">٨٥٠</span><span class="price-curr" style="font-size:14px"> ر.ع</span></div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الحجم</th><th>الخط (السعر)</th><th>الخط (العملة)</th><th>لون السعر</th><th>لون العملة</th></tr>
+    <tr><td><code>lg</code></td><td>Almarai_800ExtraBold, 28px/36px</td><td>Almarai_400Regular, 16px/24px</td><td>#003594</td><td>#4B5563</td></tr>
+    <tr><td><code>md</code></td><td>Almarai_700Bold, 20px/28px</td><td>Almarai_400Regular, 14px/20px</td><td>#003594</td><td>#4B5563</td></tr>
+    <tr><td><code>sm</code></td><td>Almarai_700Bold, 18px/26px</td><td>Almarai_400Regular, 14px/20px</td><td>#003594</td><td>#4B5563</td></tr>
+  </table>
+</div>
+
+<!-- LocationRow -->
+<div class="section">
+  <div class="section-title"><span class="icon">📍</span> LocationRow</div>
+  <div class="source-file">src/components/ui/LocationRow.tsx</div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>Layout</td><td><code>flexDirection: 'row'</code>, gap 4px</td></tr>
+    <tr><td>الأيقونة</td><td><code>location-outline</code>, 14px, <code>#4B5563</code></td></tr>
+    <tr><td>النص</td><td>Almarai_400Regular, 12px/16px, <code>#4B5563</code></td></tr>
+    <tr><td>وضع Pill</td><td>background: <code>#eceef1</code>, padding 8/4, radius 4px</td></tr>
+  </table>
+</div>
+
+<!-- StatusBadge -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏷️</span> StatusBadge</div>
+  <div class="source-file">src/components/ui/StatusBadge.tsx</div>
+
+  <div class="component-preview">
+    <div class="badge-row">
+      <span class="status-badge" style="background:#E8781E;color:white">premium ⭐</span>
+      <span class="status-badge" style="background:rgba(0,53,148,0.1);color:#003594">featured</span>
+      <span class="status-badge" style="background:#e6e8eb;color:#434654">category</span>
+      <span class="status-badge" style="background:#eceef1;color:#434654">neutral</span>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>Variant</th><th>Background</th><th>Text Color</th></tr>
+    <tr><td><code>premium</code></td><td>#E8781E</td><td>white</td></tr>
+    <tr><td><code>featured</code></td><td>rgba(0,53,148,0.1)</td><td>#003594</td></tr>
+    <tr><td><code>category</code></td><td>#e6e8eb</td><td>#434654</td></tr>
+    <tr><td><code>neutral</code></td><td>#eceef1</td><td>#434654</td></tr>
+  </table>
+
+  <table class="token-table" style="margin-top:12px">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>Layout</td><td>flexDirection: row, gap 4, alignSelf: flex-start</td></tr>
+    <tr><td>Padding</td><td>8px / 4px</td></tr>
+    <tr><td>Radius</td><td>pill (9999px)</td></tr>
+    <tr><td>الخط</td><td>Almarai_400Regular, 12px/16px</td></tr>
+  </table>
+</div>
+
+<!-- SkeletonCard -->
+<div class="section">
+  <div class="section-title"><span class="icon">💀</span> SkeletonCard</div>
+  <div class="section-sub">كارت التحميل (Loading State) — يستخدم Animation pulse بين Surface و Border.</div>
+  <div class="source-file">src/components/ui/SkeletonCard.tsx</div>
+
+  <div class="component-preview">
+    <div style="width:280px; background:white; border-radius:12px; border:1px solid rgba(226,230,236,0.5); overflow:hidden;">
+      <div class="skeleton-bar" style="width:100%; height:140px;"></div>
+      <div style="padding:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="skeleton-row"><div class="skeleton-bar" style="flex:1; height:14px;"></div><div class="skeleton-bar" style="width:52px; height:20px; border-radius:10px;"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:64px; height:24px; border-radius:12px;"></div><div class="skeleton-bar" style="width:64px; height:24px; border-radius:12px;"></div></div>
+        <div class="skeleton-bar" style="height:1px;"></div>
+        <div style="display:flex; justify-content:space-between;"><div class="skeleton-bar" style="width:80px; height:12px; border-radius:6px;"></div><div class="skeleton-bar" style="width:90px; height:20px; border-radius:10px;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>Animation</td><td>Pulse loop: <code>#F5F7FA</code> ↔ <code>#E2E6EC</code> (900ms لكل اتجاه)</td></tr>
+    <tr><td>Card background</td><td>white</td></tr>
+    <tr><td>Card radius</td><td>12px</td></tr>
+    <tr><td>Card border</td><td><code>rgba(226,230,236,0.5)</code></td></tr>
+    <tr><td>Image aspect ratio</td><td>4:3</td></tr>
+  </table>
+</div>
+
+<!-- Tab Bar -->
+<div class="section">
+  <div class="section-title"><span class="icon">🗂️</span> شريط التنقل السفلي (Tab Bar)</div>
+  <div class="source-file">app/(tabs)/_layout.tsx</div>
+
+  <div class="component-preview">
+    <div class="tab-bar-preview">
+      <div class="tab-item active">
+        <div class="active-bg">🏠</div>
+        <span>الرئيسية</span>
+        <div class="active-dot"></div>
+      </div>
+      <div class="tab-item"><span class="icon">🔍</span><span>البحث</span></div>
+      <div class="tab-item" style="position:relative;">
+        <div class="fab-circle">+</div>
+        <span style="margin-top:4px">أضف</span>
+      </div>
+      <div class="tab-item"><span class="icon">💬</span><span>رسائل</span></div>
+      <div class="tab-item"><span class="icon">👤</span><span>حسابي</span></div>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>الخاصية</th><th>القيمة</th></tr>
+    <tr><td>ارتفاع الشريط</td><td>60px</td></tr>
+    <tr><td>خلفية</td><td>white</td></tr>
+    <tr><td>Active Color</td><td><code>#004ac6</code> (primary)</td></tr>
+    <tr><td>Inactive Color</td><td><code>#9CA3AF</code> (textMuted)</td></tr>
+    <tr><td>Active BG Pill</td><td>44×30, radius 15, color <code>#EEF3FF</code></td></tr>
+    <tr><td>Active Dot</td><td>16×3, radius 2, primary</td></tr>
+    <tr><td>Label Font (active)</td><td>Almarai_700Bold, 10px</td></tr>
+    <tr><td>Label Font (inactive)</td><td>Almarai_400Regular, 10px</td></tr>
+    <tr><td>FAB Size</td><td>52×52, radius 50%</td></tr>
+    <tr><td>FAB Color</td><td><code>#004ac6</code> (primary)</td></tr>
+    <tr><td>FAB Shadow</td><td>primaryColor, offset 0/6, opacity 0.35, radius 12</td></tr>
+    <tr><td>FAB Icon</td><td><code>add</code>, 30px, white</td></tr>
+    <tr><td>Badge (unread)</td><td>7×7, radius 4, <code>#E8781E</code>, border 1.5 white</td></tr>
+    <tr><td>Animation</td><td>Spring scale bounce (0.78 → 1) + dot/bg fade with Reanimated</td></tr>
+    <tr><td>Hide Animation</td><td>translateY + opacity fade on scroll (via NavVisibility context)</td></tr>
+  </table>
+</div>
+
+<!-- Badges Constants -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏅</span> ألوان الشارات (Badge Colors)</div>
+  <div class="source-file">src/constants/badges.ts</div>
+
+  <div class="component-preview">
+    <div class="badge-row">
+      <span class="status-badge" style="background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe">primary</span>
+      <span class="status-badge" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0">success</span>
+      <span class="status-badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca">danger</span>
+      <span class="status-badge" style="background:#ffedd5;color:#9a3412;border:1px solid #fed7aa">orange</span>
+      <span class="status-badge" style="background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb">neutral</span>
+      <span class="status-badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a">gold</span>
+      <span class="status-badge" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1">silver</span>
+    </div>
+  </div>
+
+  <table class="token-table">
+    <tr><th>Intent</th><th>Background</th><th>Text</th><th>Border</th></tr>
+    <tr><td><code>primary</code></td><td>#dbeafe</td><td>#1d4ed8</td><td>#bfdbfe</td></tr>
+    <tr><td><code>success</code></td><td>#d1fae5</td><td>#065f46</td><td>#a7f3d0</td></tr>
+    <tr><td><code>danger</code></td><td>#fee2e2</td><td>#991b1b</td><td>#fecaca</td></tr>
+    <tr><td><code>orange</code></td><td>#ffedd5</td><td>#9a3412</td><td>#fed7aa</td></tr>
+    <tr><td><code>neutral</code></td><td>#f3f4f6</td><td>#4b5563</td><td>#e5e7eb</td></tr>
+    <tr><td><code>gold</code></td><td>#fef3c7</td><td>#92400e</td><td>#fde68a</td></tr>
+    <tr><td><code>silver</code></td><td>#f1f5f9</td><td>#475569</td><td>#cbd5e1</td></tr>
+  </table>
+</div>
+
+<!-- File Map -->
+<div class="section">
+  <div class="section-title"><span class="icon">🗺️</span> خريطة الملفات (Source File Map)</div>
+  <div class="section-sub">كل ملف في نظام التصميم ومكانه في المشروع.</div>
+
+  <h3 class="subsection">Design Tokens (ثوابت التصميم)</h3>
+  <table class="token-table">
+    <tr><th>الملف</th><th>المحتوى</th></tr>
+    <tr><td><code>src/constants/colors.ts</code></td><td>كل الألوان (Primary, Accent, Surface, Text, Borders, Semantic)</td></tr>
+    <tr><td><code>src/constants/gradients.ts</code></td><td>التدرجات اللونية (primary, hero, button, driver, employer)</td></tr>
+    <tr><td><code>src/constants/typography.ts</code></td><td>أحجام الخطوط وارتفاعات الأسطر (displayLg → caption)</td></tr>
+    <tr><td><code>src/constants/spacing.ts</code></td><td>وحدات المسافات (4px → 44px)</td></tr>
+    <tr><td><code>src/constants/radius.ts</code></td><td>زوايا الحواف (sm 8 → pill 9999)</td></tr>
+    <tr><td><code>src/constants/shadows.ts</code></td><td>الظلال (card, card2, floating, nav)</td></tr>
+    <tr><td><code>src/constants/rtl.ts</code></td><td>مساعدات RTL (RTLText, RTLTextInput)</td></tr>
+    <tr><td><code>src/constants/rtl-rules.ts</code></td><td>قواعد RTL الكاملة + أدوات مساعدة (RTL.absRight, etc.)</td></tr>
+    <tr><td><code>src/constants/badges.ts</code></td><td>ألوان الشارات (7 أنواع: primary → silver)</td></tr>
+  </table>
+
+  <h3 class="subsection">UI Components (مكونات واجهة المستخدم)</h3>
+  <table class="token-table">
+    <tr><th>الملف</th><th>المكون</th><th>الوصف</th></tr>
+    <tr><td><code>src/components/ui/AppHeader.tsx</code></td><td>AppHeader</td><td>شريط التنقل العلوي مع gradient</td></tr>
+    <tr><td><code>src/components/ui/AppButton.tsx</code></td><td>AppButton</td><td>أزرار (primary/outline/ghost)</td></tr>
+    <tr><td><code>src/components/ui/AppInput.tsx</code></td><td>AppInput</td><td>حقل إدخال مع أيقونات وRTL</td></tr>
+    <tr><td><code>src/components/ui/AppSelect.tsx</code></td><td>AppSelect</td><td>قائمة اختيار dropdown</td></tr>
+    <tr><td><code>src/components/ui/BackButton.tsx</code></td><td>BackButton</td><td>زر الرجوع (دائري)</td></tr>
+    <tr><td><code>src/components/ui/ScreenCard.tsx</code></td><td>ScreenCard</td><td>كارت محتوى أبيض</td></tr>
+    <tr><td><code>src/components/ui/SectionHeader.tsx</code></td><td>SectionHeader</td><td>عنوان قسم + "عرض الكل"</td></tr>
+    <tr><td><code>src/components/ui/PriceBadge.tsx</code></td><td>PriceBadge</td><td>عرض سعر (sm/md/lg)</td></tr>
+    <tr><td><code>src/components/ui/LocationRow.tsx</code></td><td>LocationRow</td><td>صف الموقع مع أيقونة</td></tr>
+    <tr><td><code>src/components/ui/StatusBadge.tsx</code></td><td>StatusBadge</td><td>شارة حالة (4 variants)</td></tr>
+    <tr><td><code>src/components/ui/SkeletonCard.tsx</code></td><td>SkeletonCard</td><td>كارت تحميل (Loading)</td></tr>
+    <tr><td><code>src/components/ui/index.ts</code></td><td>Barrel Export</td><td>تصدير كل المكونات</td></tr>
+  </table>
+</div>
+
+</div><!-- .container -->
+
+<div style="text-align:center; padding:40px 20px; color:var(--textMuted); font-size:12px;">
+  سوق وان — نظام التصميم © ٢٠٢٦ | تم إنشاؤه بواسطة Design System Manager
+</div>
+
+</body>
+</html>

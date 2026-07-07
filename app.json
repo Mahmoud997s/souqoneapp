@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "SouqOne",
+    "slug": "souqone",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.souqone.app",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B2447"
+      },
+      "package": "com.souqone.app",
+      "supportsRtl": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "runtimeVersion": "1.0.0"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B2447",
+          "image": "./assets/splash.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "السماح لـ SouqOne برفع الصور",
+          "cameraPermission": "السماح لـ SouqOne باستخدام الكاميرا"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#004ac6"
+        }
+      ],
+      "@config-plugins/detox"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "scheme": "souqone",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f39a4e37-dea0-46cd-849e-b0efeef1559b"
+      }
+    },
+    "owner": "mahmudsadd",
+    "updates": {
+      "url": "https://u.expo.dev/f39a4e37-dea0-46cd-849e-b0efeef1559b"
+    }
+  }
+}
