@@ -25,10 +25,7 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Setup Expo CLI
-        uses: expo/expo-github-action@v8
-        with:
-          token: ${{ secrets.EXPO_TOKEN }}
-
       - name: Publish Update
         run: eas update --branch preview --message "${{ github.event.head_commit.message }}" --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
