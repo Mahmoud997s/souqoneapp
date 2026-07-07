@@ -3,7 +3,7 @@ name: Expo EAS Update
 on:
   push:
     branches:
-      - main  # أو اسم الفرع الذي تستخدمه لرفع تعديلاتك (مثال: master)
+      - master
 
 jobs:
   update:
