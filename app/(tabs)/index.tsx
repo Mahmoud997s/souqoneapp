@@ -10,6 +10,9 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Gradients } from '../../src/constants/gradients'
 import { UnifiedCard, UnifiedCardItem } from '../../src/components/cards/UnifiedCard'
+import { JobCard } from '../../src/components/cards/JobCard'
+import { EquipCard } from '../../src/components/cards/EquipCard'
+import { TransportRequestCard } from '../../src/components/cards/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobs } from '../../src/hooks/useJobs'
@@ -295,12 +298,12 @@ export default function HomeScreen() {
 
         {/* ── SECTIONS ── */}
         <CategorySection title="سيارات مميزة" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" />
-        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs} isLoading={loadingJobs} routeBase="jobs" />
+        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} />} />
         <CategorySection title="خدمات" icon="build" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
         <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
         <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" />
-        <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" />
-        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport} isLoading={loadingTransport} routeBase="transport" />
+        <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth />} />
+        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard item={item as any} onPress={onPress} fullWidth />} />
 
       </Animated.ScrollView>
     </View>
