@@ -22,11 +22,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Setup EAS CLI
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Setup Expo CLI
         uses: expo/expo-github-action@v8
         with:
-          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish Update
-        run: npx eas-cli update --branch preview --message "${{ github.event.head_commit.message }}" --non-interactive
+        run: eas update --branch preview --message "${{ github.event.head_commit.message }}" --non-interactive
