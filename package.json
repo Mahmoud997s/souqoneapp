@@ -63,6 +63,6 @@
     "jest": "^30.4.2",
     "jest-circus": "^30.4.2",
     "ts-jest": "^29.4.11",
-    "typescript": "^7.0.2"
+    "typescript": "^5.3.3"
   }
 }
