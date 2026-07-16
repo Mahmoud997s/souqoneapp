@@ -22,6 +22,7 @@ interface AppButtonProps {
   title: string
   onPress?: () => void
   variant?: Variant
+  size?: 'default' | 'sm'
   icon?: string
   loading?: boolean
   disabled?: boolean
@@ -33,11 +34,14 @@ export function AppButton({
   title,
   onPress,
   variant = 'primary',
+  size = 'default',
   icon,
   loading,
   disabled,
   style,
 }: AppButtonProps) {
+  const height = size === 'sm' ? 46 : 54
+
   if (variant === 'primary') {
     return (
       <TouchableOpacity
@@ -50,7 +54,7 @@ export function AppButton({
           colors={Gradients.button}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={s.gradient}
+          style={[s.gradient, { height }]}
         >
           {loading ? (
             <ActivityIndicator color={Colors.white} />
@@ -73,7 +77,7 @@ export function AppButton({
         onPress={onPress}
         activeOpacity={0.8}
         disabled={loading || disabled}
-        style={[s.outlineBtn, style]}
+        style={[s.outlineBtn, { height }, style]}
       >
         {loading ? (
           <ActivityIndicator color={Colors.primary} />

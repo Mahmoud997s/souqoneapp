@@ -14,7 +14,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from './create'
+import { WizardProgress } from '../../src/components/ui/WizardProgress'
 import {
   LICENSE_TYPE_LABELS,
   EMPLOYMENT_TYPE_LABELS,
@@ -23,6 +23,7 @@ import {
 } from '../../src/constants/jobs'
 import { jobsApi } from '../../src/api/jobs'
 import { formatSalary } from '../../src/utils/format'
+import { normalizeJobType } from '../../src/utils/normalizeJobType'
 
 const TOTAL_STEPS = 4
 
@@ -90,7 +91,9 @@ export default function CreateStep4() {
       ])
     },
     onError: (e: any) => {
-      Alert.alert('خطأ', e?.response?.data?.message ?? STRINGS.ERROR_GENERIC)
+      const msg = e?.response?.data?.message
+      const errorText = Array.isArray(msg) ? msg[0] : (msg || STRINGS.ERROR_GENERIC)
+      Alert.alert('خطأ', String(errorText))
     },
   })
 
@@ -123,12 +126,12 @@ export default function CreateStep4() {
           <View style={s.summaryCard}>
             <View style={s.summaryHeader}>
               <Ionicons
-                name={store.jobType === 'HIRING' ? 'briefcase' : 'car'}
+                name={normalizeJobType(store.jobType) === 'HIRING' ? 'briefcase' : 'car'}
                 size={20}
                 color={Colors.primary}
               />
               <Text style={s.summaryType}>
-                {store.jobType === 'HIRING' ? '🏢 طلب سائق' : '🚗 عرض خدمة'}
+                {normalizeJobType(store.jobType) === 'HIRING' ? '🏢 طلب سائق' : '🚗 عرض خدمة'}
               </Text>
             </View>
             <Text style={s.summaryTitle}>{store.title}</Text>
@@ -177,7 +180,6 @@ export default function CreateStep4() {
             placeholder="رقم الهاتف (مثال: 96898765432)"
             placeholderTextColor={Colors.textMuted}
             keyboardType="phone-pad"
-            textAlign="right"
           />
           <TextInput
             style={s.input}
@@ -186,7 +188,6 @@ export default function CreateStep4() {
             placeholder="رقم واتساب"
             placeholderTextColor={Colors.textMuted}
             keyboardType="phone-pad"
-            textAlign="right"
           />
           <TextInput
             style={s.input}
@@ -195,7 +196,6 @@ export default function CreateStep4() {
             placeholder="بريد إلكتروني للتواصل"
             placeholderTextColor={Colors.textMuted}
             keyboardType="email-address"
-            textAlign="right"
             autoCapitalize="none"
           />
 
@@ -209,27 +209,23 @@ export default function CreateStep4() {
 
         </ScrollView>
 
-        <View style={[s.footer, { paddingBottom: insets.bottom + 8 }]}>
+        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, Spacing.space4) }]}>
           <View style={s.footerBtns}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={20} color={Colors.text2} />
-              <Text style={s.backBtnText}>السابق</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.publishBtn, publishMutation.isPending && s.publishBtnDisabled]}
+            <AppButton
+              title="السابق"
+              variant="outline"
+              size="sm"
+              onPress={() => router.back()}
+              style={{ flex: 1 }}
+            />
+            <AppButton
+              title="نشر الإعلان"
+              size="sm"
               onPress={() => publishMutation.mutate()}
               disabled={publishMutation.isPending}
-              activeOpacity={0.85}
-            >
-              {publishMutation.isPending ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Ionicons name="rocket-outline" size={20} color="#fff" />
-              )}
-              <Text style={s.publishBtnText}>
-                {publishMutation.isPending ? 'جاري النشر...' : 'نشر الإعلان'}
-              </Text>
-            </TouchableOpacity>
+              loading={publishMutation.isPending}
+              style={{ flex: 1 }}
+            />
           </View>
         </View>
       </View>
@@ -247,7 +243,7 @@ const r = StyleSheet.create({
     backgroundColor: Colors.primary + '12',
     alignItems: 'center', justifyContent: 'center',
   },
-  rowContent: { flex: 1, alignItems: 'flex-end' },
+  rowContent: { flex: 1, alignItems: 'flex-start' },
   rowLabel: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
     color: Colors.textMuted,
@@ -263,15 +259,15 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.textMuted, textAlign: 'right', marginBottom: Spacing.space1,
+    color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
     fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
-    color: Colors.text, textAlign: 'right', marginBottom: 6,
+    color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, textAlign: 'right',
+    color: Colors.text2, writingDirection: 'rtl',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   summaryCard: {
@@ -289,12 +285,12 @@ const s = StyleSheet.create({
   },
   summaryTitle: {
     fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 17,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: 6,
   },
   summaryDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text2, textAlign: 'right',
+    color: Colors.text2, writingDirection: 'rtl',
     lineHeight: 20,
   },
   divider: { height: 1, backgroundColor: Colors.border, marginVertical: 12 },
@@ -310,18 +306,18 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    color: Colors.text, textAlign: 'right', marginBottom: 8,
+    color: Colors.text, writingDirection: 'rtl', marginBottom: 8,
   },
   sectionDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text2, textAlign: 'right', marginBottom: Spacing.space4, lineHeight: 20,
+    color: Colors.text2, writingDirection: 'rtl', marginBottom: Spacing.space4, lineHeight: 20,
   },
   input: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    borderWidth: 1.5, borderColor: Colors.border,
-    paddingHorizontal: Spacing.space4, height: 52,
+    backgroundColor: Colors.white, borderRadius: Radius.xl,
+    borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing.space4, height: 56,
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text,
-    marginBottom: Spacing.space3,
+    marginBottom: Spacing.space3, textAlign: 'right', writingDirection: 'rtl',
   },
   termsBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.space2,
@@ -330,29 +326,12 @@ const s = StyleSheet.create({
   },
   termsText: {
     flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
-    color: Colors.textMuted, textAlign: 'right', lineHeight: 18,
+    color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 18,
   },
   footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: 0, start: 0, end: 0,
     backgroundColor: Colors.white, paddingHorizontal: Spacing.space4, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: Colors.border,
   },
   footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
-  backBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: Spacing.space3, paddingHorizontal: Spacing.space4,
-    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
-    backgroundColor: Colors.white,
-  },
-  backBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2 },
-  publishBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: Spacing.space2,
-    backgroundColor: Colors.primary, borderRadius: Radius.md,
-    paddingVertical: 14,
-  },
-  publishBtnDisabled: { opacity: 0.6 },
-  publishBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: '#fff',
-  },
 })

@@ -104,7 +104,7 @@ export default function RootLayout() {
     registerForPushNotifications().then((token) => {
       if (token) {
         console.log('[Push] Token:', token)
-        usersApi.updatePushToken(token).catch(e => console.error('[Push] Failed to send token', e))
+        usersApi.updatePushToken(token).catch(e => console.warn('[Push] Failed to send token (Endpoint might not exist yet)'))
       }
     })
 

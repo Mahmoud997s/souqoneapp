@@ -62,3 +62,6 @@ testsprite_chat_prd.md
 *التطبيق.PNG
 *.png.bak
 
+.agent/
+.agents/
+docs/

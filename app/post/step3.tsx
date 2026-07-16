@@ -82,7 +82,7 @@ export default function PostStep3Screen() {
     <View style={s.root}>
       <AppHeader title="إضافة إعلان" showBack />
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={s.progressWrap}>
 
           <Stepper currentStep={3} totalSteps={5} title="التفاصيل والمواصفات" />

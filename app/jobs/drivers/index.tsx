@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, TextInput, RefreshControl,
-  ScrollView, ActivityIndicator
+  ActivityIndicator
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -15,6 +15,7 @@ import { Radius } from '../../../src/constants/radius'
 import { useDrivers } from '../../../src/hooks/useDrivers'
 import { DriverProfile } from '../../../src/types/jobs.types'
 import { OMAN_GOVERNORATES, LICENSE_TYPE_LABELS } from '../../../src/constants/jobs'
+import { DriversFilterBottomSheet, DriverFilterState } from '../../../src/components/filters/DriversFilterBottomSheet'
 
 const LICENSE_KEYS = Object.keys(LICENSE_TYPE_LABELS)
 
@@ -25,9 +26,7 @@ export default function DriversDirectoryScreen() {
 
   // Filters
   const [search, setSearch] = useState('')
-  const [govFilter, setGovFilter] = useState('')
-  const [licFilter, setLicFilter] = useState('')
-  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [filters, setFilters] = useState<DriverFilterState>({})
   const [showFilters, setShowFilters] = useState(false)
 
   const drivers: DriverProfile[] = useMemo(() => {
@@ -36,27 +35,28 @@ export default function DriversDirectoryScreen() {
       if (search) {
         const name = d.user?.displayName ?? d.user?.username ?? ''
         if (!name.toLowerCase().includes(search.toLowerCase()) &&
-            !d.governorate?.includes(search)) return false
+            !d.governorate?.includes(search) &&
+            !d.city?.includes(search)) return false
       }
-      if (govFilter && d.governorate !== govFilter) return false
-      if (licFilter && !d.licenseTypes?.includes(licFilter as any)) return false
-      if (verifiedOnly && !d.isVerified) return false
+      if (filters.location && d.governorate !== filters.location) return false
+      if (filters.city && d.city !== filters.city) return false
+      if (filters.licenseType && !d.licenseTypes?.includes(filters.licenseType as any)) return false
+      if (filters.verifiedOnly && !d.isVerified) return false
       return true
     })
-  }, [data, search, govFilter, licFilter, verifiedOnly])
+  }, [data, search, filters])
 
-  const activeFiltersCount = [govFilter, licFilter, verifiedOnly].filter(Boolean).length
+  const activeFiltersCount = Object.values(filters).filter(Boolean).length
+
+  const clearFilters = () => {
+    setFilters({})
+    setSearch('')
+  }
 
   const onRefresh = async () => {
     setRefreshing(true)
     await refetch()
     setRefreshing(false)
-  }
-
-  const clearFilters = () => {
-    setGovFilter('')
-    setLicFilter('')
-    setVerifiedOnly(false)
   }
 
   return (
@@ -73,7 +73,7 @@ export default function DriversDirectoryScreen() {
             onChangeText={setSearch}
             placeholder="ابحث بالاسم أو المحافظة..."
             placeholderTextColor={Colors.textMuted}
-            textAlign="right"
+            textAlign="left"
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
@@ -100,74 +100,12 @@ export default function DriversDirectoryScreen() {
       </View>
 
       {/* Filter Panel */}
-      {showFilters && (
-        <View style={s.filterPanel}>
-          {/* Verified toggle */}
-          <TouchableOpacity
-            style={[s.toggleRow, verifiedOnly && s.toggleRowActive]}
-            onPress={() => setVerifiedOnly(!verifiedOnly)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={verifiedOnly ? 'shield-checkmark' : 'shield-outline'}
-              size={18}
-              color={verifiedOnly ? Colors.primary : Colors.textMuted}
-            />
-            <Text style={[s.toggleText, verifiedOnly && s.toggleTextActive]}>
-              الموثقون فقط
-            </Text>
-          </TouchableOpacity>
-
-          {/* Governorate filter */}
-          <Text style={s.filterSectionTitle}>المحافظة</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipsRow}>
-            <TouchableOpacity
-              style={[s.chip, govFilter === '' && s.chipActive]}
-              onPress={() => setGovFilter('')}
-            >
-              <Text style={[s.chipText, govFilter === '' && s.chipTextActive]}>الكل</Text>
-            </TouchableOpacity>
-            {OMAN_GOVERNORATES.map(gov => (
-              <TouchableOpacity
-                key={gov}
-                style={[s.chip, govFilter === gov && s.chipActive]}
-                onPress={() => setGovFilter(gov === govFilter ? '' : gov)}
-              >
-                <Text style={[s.chipText, govFilter === gov && s.chipTextActive]}>{gov}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* License filter */}
-          <Text style={s.filterSectionTitle}>نوع الرخصة</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipsRow}>
-            <TouchableOpacity
-              style={[s.chip, licFilter === '' && s.chipActive]}
-              onPress={() => setLicFilter('')}
-            >
-              <Text style={[s.chipText, licFilter === '' && s.chipTextActive]}>الكل</Text>
-            </TouchableOpacity>
-            {LICENSE_KEYS.map(lk => (
-              <TouchableOpacity
-                key={lk}
-                style={[s.chip, licFilter === lk && s.chipActive]}
-                onPress={() => setLicFilter(lk === licFilter ? '' : lk)}
-              >
-                <Text style={[s.chipText, licFilter === lk && s.chipTextActive]}>
-                  {LICENSE_TYPE_LABELS[lk]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {activeFiltersCount > 0 && (
-            <TouchableOpacity style={s.clearBtn} onPress={clearFilters}>
-              <Ionicons name="trash-outline" size={14} color={Colors.error} />
-              <Text style={s.clearBtnText}>مسح الفلاتر</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      <DriversFilterBottomSheet
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        initialFilters={filters}
+        onApplyFilters={setFilters}
+      />
 
       {/* Results count */}
       <View style={s.resultsMeta}>
@@ -242,7 +180,7 @@ const s = StyleSheet.create({
   },
   filterBtnActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
   filterBadge: {
-    position: 'absolute', top: -4, right: -4,
+    position: 'absolute', top: -4, left: -4,
     width: 18, height: 18, borderRadius: 9,
     backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
@@ -268,7 +206,7 @@ const s = StyleSheet.create({
   toggleTextActive: { color: Colors.primary },
   filterSectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, textAlign: 'left',
     marginBottom: Spacing.space2, marginTop: Spacing.space1,
   },
   chipsRow: {
@@ -297,7 +235,7 @@ const s = StyleSheet.create({
   },
   resultsCount: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text2, textAlign: 'right',
+    color: Colors.text2, textAlign: 'left',
   },
   list: { padding: Spacing.space4, gap: Spacing.space3, paddingBottom: 100 },
   errorState: {

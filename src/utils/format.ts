@@ -55,7 +55,7 @@ export function formatSalary(
   if (!salary) return 'قابل للتفاوض'
   const cur = !currency || currency === 'OMR' ? 'ر.ع.' : currency
   const per = period ? SALARY_PERIOD_AR[period] ?? period : ''
-  return per ? `${salary.toLocaleString('en-US')} ${cur}/${per}` : `${salary.toLocaleString('en-US')} ${cur}`
+  return per ? `${salary.toLocaleString('en-US')} ${cur} / ${per}` : `${salary.toLocaleString('en-US')} ${cur}`
 }
 
 export function getInitials(name: string): string {

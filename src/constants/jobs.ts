@@ -1,3 +1,4 @@
+import { JobType } from '../types/jobs.types'
 import { OMAN_LOCATIONS } from './locations'
 
 export const OMAN_GOVERNORATES = OMAN_LOCATIONS.map(g => g.labelAr)
@@ -191,3 +192,29 @@ export const STRINGS = {
   APPLY_NOW: 'قدّم عرضك الآن',
   NO_PROPOSALS_YET: 'لم يصل أي عرض لهذا الإعلان بعد',
 }
+
+export enum Role {
+  DRIVER = 'driver',
+  EMPLOYER = 'employer',
+}
+
+export const JOB_POST_TYPES: { id: JobType; label: string; desc: string; icon: string }[] = [
+  {
+    id: 'HIRING',
+    label: 'طلب سائق',
+    desc: 'أنت صاحب عمل تبحث عن سائق للتوظيف',
+    icon: '🏢',
+  },
+  {
+    id: 'OFFERING',
+    label: 'عرض خدمة',
+    desc: 'أنت سائق تعلن عن خدماتك لأصحاب العمل',
+    icon: '🚗',
+  },
+]
+
+export const DASHBOARD_TABS = [
+  { id: 'overview', label: 'الرئيسية', icon: 'home-outline' },
+  { id: 'listings', label: 'إعلاناتي', icon: 'briefcase-outline' },
+  { id: 'applications', label: 'طلباتي', icon: 'document-text-outline' },
+]

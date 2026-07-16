@@ -2,40 +2,76 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'r
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { JobsFilterBottomSheet, JobFilterState } from '../../src/components/filters/JobsFilterBottomSheet'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Ionicons } from '@expo/vector-icons'
 import { useJobsRaw } from '../../src/hooks/useJobs'
+import { SORT_OPTIONS } from '../../src/constants/jobs'
 import { router } from 'expo-router'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
-const JOB_TYPES  = [{ id: '', label: 'الكل' }, { id: 'FULL_TIME', label: 'دوام كامل' }, { id: 'PART_TIME', label: 'دوام جزئي' }, { id: 'CONTRACT', label: 'عقد' }]
+const JOB_TYPES = [{ id: '', label: 'الكل' }, { id: 'HIRING', label: 'طلب سائق' }, { id: 'OFFERING', label: 'عرض خدمة' }]
+const EMPLOYMENT_TYPES = [{ id: 'FULL_TIME', label: 'دوام كامل' }, { id: 'PART_TIME', label: 'دوام جزئي' }, { id: 'CONTRACT', label: 'عقد' }, { id: 'TEMPORARY', label: 'مؤقت' }]
 const EXPERIENCES = [{ id: '', label: 'الكل' }, { id: '1', label: 'سنة+' }, { id: '3', label: '3 سنوات+' }, { id: '5', label: '5 سنوات+' }]
+const LICENSE_TYPES = [{ id: 'LIGHT', label: 'خفيفة' }, { id: 'HEAVY', label: 'ثقيلة' }, { id: 'TRANSPORT', label: 'نقل' }, { id: 'BUS', label: 'حافلات' }, { id: 'MOTORCYCLE', label: 'دراجة' }]
 
 export default function JobsBrowseScreen() {
   const { data, isLoading, isError, refetch } = useJobsRaw()
-  const [search,    setSearch]    = useState('')
-  const [jobType,   setJobType]   = useState('')
-  const [minSalary, setMinSalary] = useState('')
-  const [maxSalary, setMaxSalary] = useState('')
-  const [location,  setLocation]  = useState('')
-  const [experience,setExperience]= useState('')
-  const [filterOpen,setFilterOpen]= useState(false)
-  const [refreshing,setRefreshing]= useState(false)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  
+  const [filters, setFilters] = useState<JobFilterState>({})
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const displayData = useMemo(() => {
     let filtered = data ?? []
-    if (search) filtered = filtered.filter(d => d.title?.toLowerCase().includes(search.toLowerCase()))
-    if (jobType) filtered = filtered.filter(d => d.employmentType === jobType)
-    if (minSalary) filtered = filtered.filter(d => d.salary != null && d.salary >= parseFloat(minSalary))
-    if (maxSalary) filtered = filtered.filter(d => d.salary != null && d.salary <= parseFloat(maxSalary))
-    if (location)  filtered = filtered.filter(d => d.governorate?.includes(location) || d.title?.includes(location))
-    if (experience) filtered = filtered.filter(d => d.experienceYears != null && d.experienceYears >= parseInt(experience))
-    return filtered
-  }, [data, search, jobType, minSalary, maxSalary, location, experience])
+    
+    // Filters
+    if (debouncedSearch) {
+      const s = debouncedSearch.toLowerCase()
+      filtered = filtered.filter(d => 
+        d.title?.toLowerCase().includes(s) || 
+        d.governorate?.toLowerCase().includes(s) || 
+        d.city?.toLowerCase().includes(s)
+      )
+    }
+    if (filters.jobType) filtered = filtered.filter(d => d.jobType === filters.jobType)
+    if (filters.employmentType) filtered = filtered.filter(d => d.employmentType === filters.employmentType)
+    if (filters.minSalary) filtered = filtered.filter(d => d.salary != null && d.salary >= parseFloat(filters.minSalary!))
+    if (filters.maxSalary) filtered = filtered.filter(d => d.salary != null && d.salary <= parseFloat(filters.maxSalary!))
+    if (filters.location) filtered = filtered.filter(d => d.governorate === filters.location)
+    if (filters.city) filtered = filtered.filter(d => d.city === filters.city)
+    if (filters.experience) filtered = filtered.filter(d => d.experienceYears != null && d.experienceYears >= parseInt(filters.experience!, 10))
+    if (filters.licenseType) filtered = filtered.filter(d => d.licenseTypes?.includes(filters.licenseType as any))
 
-  const activeFilters = [jobType, minSalary, maxSalary, location, experience].filter(Boolean).length
+    // Sorting
+    filtered = [...filtered]
+    const currentSort = filters.sort || 'createdAt_desc'
+    if (currentSort === 'createdAt_desc') {
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    } else if (currentSort === 'createdAt_asc') {
+      filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    } else if (currentSort === 'salary_desc') {
+      filtered.sort((a, b) => (b.salary || 0) - (a.salary || 0))
+    } else if (currentSort === 'viewCount_desc') {
+      filtered.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+    } else {
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }
+
+    return filtered
+  }, [data, debouncedSearch, filters])
+
+  const activeFilters = Object.values(filters).filter(Boolean).length
 
   return (
     <View style={s.root}>
@@ -71,53 +107,37 @@ export default function JobsBrowseScreen() {
         }
       />
 
-      {/* Job Type Quick Chips */}
-      <FlatList
-        horizontal
-        data={JOB_TYPES}
-        keyExtractor={i => i.id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.chipsRow}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[s.chip, jobType === item.id && s.chipActive]}
-            onPress={() => setJobType(item.id)}
-          >
-            <Text style={[s.chipTxt, jobType === item.id && s.chipTxtActive]}>{item.label}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {/* Main Job Type Tabs */}
+      <View style={s.tabsContainer}>
+        {JOB_TYPES.map((item) => {
+          const isActive = filters.jobType === item.id || (!filters.jobType && item.id === '');
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={[s.tab, isActive && s.tabActive]}
+              onPress={() => setFilters(prev => ({ ...prev, jobType: item.id }))}
+            >
+              <Text style={[s.tabTxt, isActive && s.tabTxtActive]}>{item.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {/* Filter Panel */}
-      {filterOpen && (
-        <View style={s.filterPanel}>
-          <View style={s.filterRow}>
-            <TextInput style={s.filterInput} placeholder="الراتب من (ر.ع)" placeholderTextColor={Colors.textMuted} keyboardType="numeric" value={minSalary} onChangeText={setMinSalary} />
-            <TextInput style={s.filterInput} placeholder="الراتب إلى (ر.ع)" placeholderTextColor={Colors.textMuted} keyboardType="numeric" value={maxSalary} onChangeText={setMaxSalary} />
-          </View>
-          <TextInput style={s.filterInputFull} placeholder="الموقع / المحافظة" placeholderTextColor={Colors.textMuted} value={location} onChangeText={setLocation} />
-          <View style={s.expChips}>
-            {EXPERIENCES.map(e => (
-              <TouchableOpacity
-                key={e.id}
-                style={[s.chip, experience === e.id && s.chipActive]}
-                onPress={() => setExperience(e.id)}
-              >
-                <Text style={[s.chipTxt, experience === e.id && s.chipTxtActive]}>{e.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {activeFilters > 0 && (
-            <TouchableOpacity style={s.clearBtn} onPress={() => { setJobType(''); setMinSalary(''); setMaxSalary(''); setLocation(''); setExperience('') }}>
-              <Text style={s.clearBtnTxt}>مسح الفلاتر</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      <JobsFilterBottomSheet
+        visible={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        initialFilters={filters}
+        onApplyFilters={setFilters}
+      />
 
       {/* Results count */}
-      {!isLoading && (
-        <Text style={s.count}>{displayData.length} نتيجة</Text>
+      {!isLoading && data && (
+        <View style={s.countWrap}>
+          <Text style={s.countText}>
+            إظهار {displayData.length} من {data.length} نتيجة
+          </Text>
+        </View>
       )}
 
       {/* List */}
@@ -136,7 +156,7 @@ export default function JobsBrowseScreen() {
       ) : (
         <FlatList
           data={displayData}
-          keyExtractor={item => (item as any).id ?? (item as any)._id ?? String(Math.random())}
+          keyExtractor={(item, index) => (item as any).id ?? (item as any)._id ?? `job-${index}`}
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
           refreshing={refreshing}
@@ -172,13 +192,13 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, textAlign: 'right'
+    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, writingDirection: 'rtl'
   },
   iconBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
   },
   filterBadge: {
-    position: 'absolute', top: -2, right: -2,
+    position: 'absolute', top: -2, end: -2,
     width: 14, height: 14, borderRadius: 7,
     backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center'
   },
@@ -186,45 +206,74 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 9, color: Colors.white
   },
 
-  // Chips
-  chipsRow: { paddingHorizontal: Spacing.space5, gap: Spacing.space2, paddingBottom: Spacing.space3 },
-  chip: {
-    paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
-    borderRadius: Radius.pill, borderWidth: 1, borderColor: Colors.border,
-    backgroundColor: Colors.white,
+  // Tabs
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.border,
+    borderRadius: Radius.lg,
+    padding: 4,
+    marginHorizontal: Spacing.space5,
+    marginVertical: Spacing.space3,
   },
-  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipTxt:    { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text2 },
-  chipTxtActive: { color: Colors.white },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.space2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.md,
+  },
+  tabActive: {
+    backgroundColor: Colors.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabTxt: {
+    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    color: Colors.text2,
+  },
+  tabTxtActive: {
+    color: Colors.primary,
+  },
 
   // Filter panel
   filterPanel: {
     marginHorizontal: Spacing.space5, marginBottom: Spacing.space3,
     backgroundColor: Colors.white, borderRadius: Radius.lg,
     borderWidth: 1, borderColor: Colors.border, padding: Spacing.space4, gap: Spacing.space3,
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 2,
   },
-  filterRow: { flexDirection: 'row', gap: Spacing.space2 },
+  filterHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: Spacing.space1,
+  },
+  filterTitle: {
+    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: Colors.text, writingDirection: 'rtl',
+  },
+  filterSectionTitle: {
+    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.text2, writingDirection: 'rtl',
+    marginTop: Spacing.space1,
+  },
+  filterRow: { flexDirection: 'row', gap: Spacing.space3, alignItems: 'flex-start' },
   filterInput: {
     flex: 1, height: 40, borderRadius: Radius.md, borderWidth: 1,
     borderColor: Colors.border, paddingHorizontal: Spacing.space3,
     fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text,
-    backgroundColor: Colors.surface, textAlign: 'right', writingDirection: 'rtl',
-  },
-  filterInputFull: {
-    height: 40, borderRadius: Radius.md, borderWidth: 1,
-    borderColor: Colors.border, paddingHorizontal: Spacing.space3,
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text,
-    backgroundColor: Colors.surface, textAlign: 'right', writingDirection: 'rtl',
+    backgroundColor: Colors.surface, writingDirection: 'rtl',
   },
   expChips: { flexDirection: 'row', gap: Spacing.space2, flexWrap: 'wrap' },
   clearBtn: {
-    alignSelf: 'flex-start', paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.space1,
+    paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
     borderRadius: Radius.pill, backgroundColor: Colors.error + '10',
   },
-  clearBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.error },
+  clearBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11, color: Colors.error },
 
   // Results
-  count: { paddingHorizontal: Spacing.space5, marginBottom: Spacing.space2, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, textAlign: 'right', writingDirection: 'rtl' },
+  countWrap: { paddingHorizontal: Spacing.space5, marginBottom: Spacing.space3, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
+  countText: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.primary, backgroundColor: Colors.primary + '15', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden', writingDirection: 'rtl' },
 
   // States
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.space6, gap: Spacing.space3 },

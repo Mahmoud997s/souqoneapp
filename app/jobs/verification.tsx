@@ -225,15 +225,15 @@ const s = StyleSheet.create({
   statusContent: { flex: 1, alignItems: 'flex-end' },
   statusTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
-    color: Colors.text, textAlign: 'right', marginBottom: Spacing.space1,
+    color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   statusDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text2, textAlign: 'right', lineHeight: 18,
+    color: Colors.text2, writingDirection: 'rtl', lineHeight: 18,
   },
   rejectionReason: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.error, textAlign: 'right', lineHeight: 18,
+    color: Colors.error, writingDirection: 'rtl', lineHeight: 18,
   },
 
   infoCard: {
@@ -245,16 +245,16 @@ const s = StyleSheet.create({
   infoContent: { flex: 1, alignItems: 'flex-end' },
   infoTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.primary, textAlign: 'right', marginBottom: Spacing.space1,
+    color: Colors.primary, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   infoDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.primaryLight, textAlign: 'right', lineHeight: 18,
+    color: Colors.primaryLight, writingDirection: 'rtl', lineHeight: 18,
   },
 
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
   uploadBox: {

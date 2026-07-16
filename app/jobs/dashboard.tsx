@@ -11,6 +11,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { ProposalCard } from '../../src/components/cards/ProposalCard'
 import VerificationBanner from '../../src/components/jobs/VerificationBanner'
+import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
@@ -20,13 +21,9 @@ import { useMyEmployerProfile } from '../../src/hooks/useEmployerProfile'
 import { useVerificationStatus } from '../../src/hooks/useVerification'
 import { useJobProfileStore } from '../../src/store/jobProfileStore'
 
-type TabId = 'overview' | 'listings' | 'applications'
+import { DASHBOARD_TABS } from '../../src/constants/jobs'
 
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'overview', label: 'الرئيسية', icon: 'home-outline' },
-  { id: 'listings', label: 'إعلاناتي', icon: 'briefcase-outline' },
-  { id: 'applications', label: 'طلباتي', icon: 'document-text-outline' },
-]
+type TabId = 'overview' | 'listings' | 'applications'
 
 function StatCard({ icon, label, value, color }: {
   icon: string; label: string; value: string | number; color?: string
@@ -94,11 +91,11 @@ export default function DashboardScreen() {
 
       {/* Tab Bar */}
       <View style={s.tabBar}>
-        {TABS.map(tab => (
+        {DASHBOARD_TABS.map(tab => (
           <TouchableOpacity
             key={tab.id}
             style={[s.tab, activeTab === tab.id && s.tabActive]}
-            onPress={() => setActiveTab(tab.id)}
+            onPress={() => setActiveTab(tab.id as TabId)}
             activeOpacity={0.8}
           >
             <Ionicons
@@ -119,7 +116,7 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
 
-        {isDriver && !verification?.status && (
+        {(!verification || !verification.status) && (
           <VerificationBanner />
         )}
 
@@ -217,7 +214,7 @@ export default function DashboardScreen() {
         )}
 
         {/* ── LISTINGS TAB ── */}
-        {activeTab === 'listings' && isEmployer && (
+        {activeTab === 'listings' && (
           <>
             <View style={s.tabHeader}>
               <Text style={s.sectionTitle}>إعلاناتي المنشورة</Text>
@@ -229,7 +226,7 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
             {jobsLoading ? (
-              <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
+              <SkeletonCard />
             ) : (myJobs?.items?.length ?? 0) === 0 ? (
               <View style={s.emptyState}>
                 <Ionicons name="briefcase-outline" size={48} color={Colors.textMuted} />
@@ -251,11 +248,11 @@ export default function DashboardScreen() {
         )}
 
         {/* ── APPLICATIONS TAB ── */}
-        {activeTab === 'applications' && isDriver && (
+        {activeTab === 'applications' && (
           <>
             <Text style={s.sectionTitle}>طلبات التوظيف المُقدَّمة</Text>
             {appsLoading ? (
-              <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
+              <SkeletonCard />
             ) : (myApplications?.length ?? 0) === 0 ? (
               <View style={s.emptyState}>
                 <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
@@ -346,7 +343,7 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 100 },
   greeting: {
     fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: Spacing.space4,
   },
   statsRow: {
@@ -355,7 +352,7 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: Spacing.space3,
   },
   quickActions: {

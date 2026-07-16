@@ -10,7 +10,7 @@ interface JobBadgeProps {
 }
 
 export function JobBadge({ type }: JobBadgeProps) {
-  const isHiring = type === 'HIRING'
+  const isHiring = type?.toUpperCase() === 'HIRING'
   return (
     <View style={[s.badge, isHiring ? s.hiring : s.offering]}>
       <Text style={s.text}>

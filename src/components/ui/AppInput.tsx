@@ -133,7 +133,8 @@ const s = StyleSheet.create({
     paddingEnd: Spacing.space4,
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
     color: Colors.text,
-    textAlign: 'right',
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   inputWithIconRight: {
     paddingStart: 52,

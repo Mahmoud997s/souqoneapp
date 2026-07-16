@@ -15,7 +15,7 @@ import { EquipCard } from '../../src/components/cards/EquipCard'
 import { TransportRequestCard } from '../../src/components/cards/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
-import { useJobs } from '../../src/hooks/useJobs'
+import { useJobsRaw } from '../../src/hooks/useJobs'
 import { useServices } from '../../src/hooks/useServices'
 import { useParts } from '../../src/hooks/useParts'
 import { useBuses } from '../../src/hooks/useBuses'
@@ -144,7 +144,7 @@ export default function HomeScreen() {
   const { user } = useAuthStore()
 
   const { data: listings, isLoading: loadingListings } = useListings({ limit: 8 })
-  const { data: jobs,      isLoading: loadingJobs      } = useJobs({ limit: 8 })
+  const { data: jobs,      isLoading: loadingJobs      } = useJobsRaw({ limit: 8 })
   const { data: services,  isLoading: loadingServices  } = useServices({ limit: 8 })
   const { data: parts,     isLoading: loadingParts     } = useParts({ limit: 8 })
   const { data: buses,     isLoading: loadingBuses     } = useBuses({ limit: 8 })
@@ -298,7 +298,7 @@ export default function HomeScreen() {
 
         {/* ── SECTIONS ── */}
         <CategorySection title="سيارات مميزة" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" />
-        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} />} />
+        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} />} />
         <CategorySection title="خدمات" icon="build" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
         <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
         <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" />

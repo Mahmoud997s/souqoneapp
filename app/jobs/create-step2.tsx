@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform
+  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -12,7 +12,8 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from './create'
+import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { InlineError } from '../../src/components/ui/InlineError'
 import {
   LICENSE_TYPE_LABELS,
   EMPLOYMENT_TYPE_LABELS,
@@ -52,7 +53,22 @@ export default function CreateStep2() {
 
   const isNegotiable = salaryPeriod === 'NEGOTIABLE'
 
-  const canNext = employmentType && licenseTypes.length > 0
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const handleNext = () => {
+    const nextErrors: Record<string, string> = {}
+    if (!employmentType) nextErrors.employmentType = 'الرجاء تحديد نوع الدوام'
+    if (licenseTypes.length === 0) nextErrors.licenseTypes = 'الرجاء تحديد نوع الرخصة المطلوبة'
+    if (!salary && salaryPeriod !== 'NEGOTIABLE') nextErrors.salary = 'الرجاء إدخال الراتب أو اختيار قابل للتفاوض'
+    if (languages.length === 0) nextErrors.languages = 'الرجاء تحديد لغة واحدة على الأقل'
+    
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
+      return
+    }
+    setErrors({})
+    router.push('/jobs/create-step3')
+  }
 
   return (
     <KeyboardAvoidingView
@@ -74,51 +90,52 @@ export default function CreateStep2() {
             {EMP_TYPES.map(et => (
               <TouchableOpacity
                 key={et}
-                style={[s.chip, employmentType === et && s.chipActive]}
+                style={[s.periodChip, employmentType === et && s.periodChipActive]}
                 onPress={() => set({ employmentType: et })}
                 activeOpacity={0.8}
               >
-                <Text style={[s.chipText, employmentType === et && s.chipTextActive]}>
+                <View style={[s.radioCircle, employmentType === et && s.radioCircleActive]}>
+                  {employmentType === et && <View style={s.radioDot} />}
+                </View>
+                <Text style={[s.periodText, employmentType === et && s.periodTextActive]}>
                   {EMPLOYMENT_TYPE_LABELS[et]}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+          <InlineError message={errors.employmentType} />
 
           {/* Salary */}
           <Text style={s.sectionTitle}>الراتب / الأجر</Text>
-          <View style={s.salaryRow}>
-            <View style={{ flex: 2 }}>
-              <TextInput
-                style={[s.input, isNegotiable && s.inputDisabled]}
-                value={salary ? salary.toString() : ''}
-                onChangeText={v => set({ salary: v ? parseFloat(v) : undefined })}
-                placeholder="المبلغ (ر.ع)"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="numeric"
-                textAlign="right"
-                editable={!isNegotiable}
-              />
-            </View>
-            <View style={{ flex: 3 }}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ flexDirection: 'row', gap: Spacing.space2 }}>
-                  {SAL_PERIODS.map(sp => (
-                    <TouchableOpacity
-                      key={sp}
-                      style={[s.chip, salaryPeriod === sp && s.chipActive]}
-                      onPress={() => set({ salaryPeriod: sp })}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[s.chipText, salaryPeriod === sp && s.chipTextActive]}>
-                        {SALARY_PERIOD_LABELS[sp]}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
+          <View style={s.salaryContainer}>
+            <TextInput
+              style={[s.input, isNegotiable && s.inputDisabled, { marginBottom: Spacing.space2 }]}
+              value={salary ? salary.toString() : ''}
+              onChangeText={v => set({ salary: v ? parseFloat(v) : undefined })}
+              placeholder="المبلغ (ر.ع)"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="numeric"
+              editable={!isNegotiable}
+            />
+            <View style={s.periodWrap}>
+              {SAL_PERIODS.map(sp => (
+                <TouchableOpacity
+                  key={sp}
+                  style={[s.periodChip, salaryPeriod === sp && s.periodChipActive]}
+                  onPress={() => set({ salaryPeriod: sp })}
+                  activeOpacity={0.8}
+                >
+                  <View style={[s.radioCircle, salaryPeriod === sp && s.radioCircleActive]}>
+                    {salaryPeriod === sp && <View style={s.radioDot} />}
+                  </View>
+                  <Text style={[s.periodText, salaryPeriod === sp && s.periodTextActive]}>
+                    {SALARY_PERIOD_LABELS[sp]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
+          <InlineError message={errors.salary} />
 
           {/* License Types */}
           <Text style={s.sectionTitle}>أنواع الرخص المطلوبة *</Text>
@@ -126,16 +143,20 @@ export default function CreateStep2() {
             {LIC_TYPES.map(lt => (
               <TouchableOpacity
                 key={lt}
-                style={[s.chip, licenseTypes.includes(lt) && s.chipActive]}
+                style={[s.periodChip, licenseTypes.includes(lt) && s.periodChipActive]}
                 onPress={() => toggleLicense(lt)}
                 activeOpacity={0.8}
               >
-                <Text style={[s.chipText, licenseTypes.includes(lt) && s.chipTextActive]}>
-                  🪪 {LICENSE_TYPE_LABELS[lt]}
+                <View style={[s.checkboxSmall, licenseTypes.includes(lt) && s.checkboxSmallActive]}>
+                  {licenseTypes.includes(lt) && <Ionicons name="checkmark" size={10} color="#fff" />}
+                </View>
+                <Text style={[s.periodText, licenseTypes.includes(lt) && s.periodTextActive]}>
+                  {LICENSE_TYPE_LABELS[lt]}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+          <InlineError message={errors.licenseTypes} />
 
           {/* Experience */}
           <Text style={s.sectionTitle}>سنوات الخبرة المطلوبة (اختياري)</Text>
@@ -146,7 +167,6 @@ export default function CreateStep2() {
             placeholder="مثال: 2"
             placeholderTextColor={Colors.textMuted}
             keyboardType="numeric"
-            textAlign="right"
           />
 
           {/* Own Vehicle */}
@@ -167,30 +187,37 @@ export default function CreateStep2() {
             {LANGUAGE_OPTIONS.map(lang => (
               <TouchableOpacity
                 key={lang}
-                style={[s.chip, languages.includes(lang) && s.chipActive]}
+                style={[s.periodChip, languages.includes(lang) && s.periodChipActive]}
                 onPress={() => toggleLanguage(lang)}
                 activeOpacity={0.8}
               >
-                <Text style={[s.chipText, languages.includes(lang) && s.chipTextActive]}>
+                <View style={[s.checkboxSmall, languages.includes(lang) && s.checkboxSmallActive]}>
+                  {languages.includes(lang) && <Ionicons name="checkmark" size={10} color="#fff" />}
+                </View>
+                <Text style={[s.periodText, languages.includes(lang) && s.periodTextActive]}>
                   {lang}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+          <InlineError message={errors.languages} />
 
         </ScrollView>
 
-        <View style={[s.footer, { paddingBottom: insets.bottom + 8 }]}>
+        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, Spacing.space4) }]}>
           <View style={s.footerBtns}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={20} color={Colors.text2} />
-              <Text style={s.backBtnText}>السابق</Text>
-            </TouchableOpacity>
             <AppButton
-              title="التالي ←"
-              onPress={() => router.push('/jobs/create-step3')}
-              disabled={!canNext}
-              style={s.nextBtn}
+              title="السابق"
+              variant="outline"
+              size="sm"
+              onPress={() => router.back()}
+              style={{ flex: 1 }}
+            />
+            <AppButton
+              title="التالي"
+              size="sm"
+              onPress={handleNext}
+              style={{ flex: 1 }}
             />
           </View>
         </View>
@@ -204,20 +231,20 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.textMuted, textAlign: 'right', marginBottom: Spacing.space1,
+    color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
     fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
-    color: Colors.text, textAlign: 'right', marginBottom: 6,
+    color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, textAlign: 'right',
+    color: Colors.text2, writingDirection: 'rtl',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.space2, marginBottom: Spacing.space5 },
@@ -229,16 +256,44 @@ const s = StyleSheet.create({
   chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
   chipText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
   chipTextActive: { color: Colors.primary },
-  salaryRow: {
-    flexDirection: 'row', gap: 10,
-    marginBottom: Spacing.space5, alignItems: 'center',
+  salaryContainer: {
+    marginBottom: Spacing.space5,
   },
-  input: {
+  periodWrap: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.space3,
+    marginTop: Spacing.space1,
+  },
+  periodChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 6, paddingHorizontal: 10,
     backgroundColor: Colors.white, borderRadius: Radius.md,
-    borderWidth: 1.5, borderColor: Colors.border,
-    paddingHorizontal: Spacing.space4, height: 52,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text,
-    marginBottom: Spacing.space4,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  periodChipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
+  radioCircle: {
+    width: 14, height: 14, borderRadius: 7,
+    borderWidth: 1.5, borderColor: Colors.textMuted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  radioCircleActive: { borderColor: Colors.primary },
+  radioDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary },
+  checkboxSmall: {
+    width: 14, height: 14, borderRadius: 4,
+    borderWidth: 1.5, borderColor: Colors.textMuted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkboxSmallActive: { borderColor: Colors.primary, backgroundColor: Colors.primary },
+  periodText: {
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    color: Colors.text2, writingDirection: 'rtl',
+  },
+  periodTextActive: { color: Colors.primary },
+  input: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing.space4, minHeight: 56, paddingVertical: 14,
+    fontFamily: 'Almarai_400Regular', includeFontPadding: false, fontSize: 15, color: Colors.text,
+    marginBottom: Spacing.space4, textAlign: 'right', writingDirection: 'rtl',
   },
   inputDisabled: { backgroundColor: Colors.surface, color: Colors.textMuted },
   checkRow: {
@@ -255,17 +310,10 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text,
   },
   footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: 0, start: 0, end: 0,
     backgroundColor: Colors.white, paddingHorizontal: Spacing.space4, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: Colors.border,
   },
   footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
-  backBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: Spacing.space3, paddingHorizontal: Spacing.space4,
-    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
-    backgroundColor: Colors.white,
-  },
-  backBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2 },
-  nextBtn: { flex: 1 },
+  footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
 })

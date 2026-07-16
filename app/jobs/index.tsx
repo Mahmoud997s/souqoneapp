@@ -30,6 +30,7 @@ import { useJobProfileStore } from '../../src/store/jobProfileStore'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { DriverCard } from '../../src/components/cards/DriverCard'
+import { normalizeJobType } from '../../src/utils/normalizeJobType'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -174,8 +175,8 @@ export default function JobsLandingScreen() {
   }))
 
   // ─── Filtered Data ───
-  const hiringJobs = useMemo(() => jobs?.filter((j: any) => j.jobType === 'HIRING').slice(0, 3) || [], [jobs])
-  const serviceJobs = useMemo(() => jobs?.filter((j: any) => j.jobType === 'OFFERING').slice(0, 3) || [], [jobs])
+  const hiringJobs = useMemo(() => jobs?.filter((j: any) => normalizeJobType(j.jobType) === 'HIRING').slice(0, 3) || [], [jobs])
+  const serviceJobs = useMemo(() => jobs?.filter((j: any) => normalizeJobType(j.jobType) === 'OFFERING').slice(0, 3) || [], [jobs])
   const topDrivers = useMemo(() => {
     const arr = (driversPage as any)?.items || (driversPage as any)?.drivers || (driversPage as any)?.data || (Array.isArray(driversPage) ? driversPage : [])
     return arr.slice(0, 3)
@@ -372,8 +373,8 @@ export default function JobsLandingScreen() {
           {/* ── HERO SEARCH BAR (fades OUT on scroll) ── */}
           <Animated.View style={[{ alignSelf: 'stretch' }, heroSearchAnimStyle]}>
             <TouchableOpacity style={s.searchBar} onPress={() => router.push('/jobs/browse' as any)} activeOpacity={0.9}>
-              <View style={s.navSearchInner}>
-                <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
+              <View style={s.searchInnerWrapper}>
+                <Ionicons name="search" size={18} color={Colors.textMuted} />
                 <Text style={s.searchPlaceholder}>ابحث عن وظيفة أو سائق...</Text>
               </View>
               <View style={s.searchFilterBtn}>
@@ -456,7 +457,7 @@ export default function JobsLandingScreen() {
            {driversLoading ? (
              <><SkeletonCard style={{ marginBottom: Spacing.space4 }} /><SkeletonCard style={{ marginBottom: Spacing.space4 }} /></>
            ) : topDrivers.length > 0 ? (
-             topDrivers.map((driver: any) => <DriverCard key={driver.id ?? driver._id} driver={driver} onPress={() => router.push(`/jobs/driver/${driver.id ?? driver._id}` as any)} />)
+             topDrivers.map((driver: any) => <DriverCard key={driver.id ?? driver._id} driver={driver} onPress={() => router.push(`/jobs/drivers/${driver.id ?? driver._id}` as any)} />)
            ) : (
              <View style={s.emptyBox}>
                <Ionicons name="person-outline" size={40} color={Colors.border} />
@@ -562,7 +563,7 @@ const s = StyleSheet.create({
   },
   navSearchTxt: {
     fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
-    color: 'rgba(255,255,255,0.7)', textAlign: 'left'
+    color: 'rgba(255,255,255,0.7)', writingDirection: 'rtl'
   },
 
   // ─── Hero Expandable Content ───
@@ -642,7 +643,10 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left' },
+  searchInnerWrapper: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
+  },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.textMuted, fontSize: 13, flex: 1, writingDirection: 'rtl' },
   searchFilterBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
 
   // ─── Sections ───

@@ -103,38 +103,39 @@ export default function BusesLandingScreen() {
     ),
   }))
 
-  const renderHorizontalList = (title: string, subTitle: string, listData: any[], loading: boolean) => (
-    <View style={s.section}>
-      <View style={s.sectionHeader}>
-        <View style={s.flex1}>
-          <Text style={s.sectionTitleHeader}>{title}</Text>
-          <Text style={s.sectionSubHeader}>{subTitle}</Text>
-        </View>
-        <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push('/buses/browse' as any)}>
-          <Ionicons name="arrow-back" size={16} color={Colors.primary} />
-          <Text style={s.seeAllTxt}>الكل</Text>
-        </TouchableOpacity>
-      </View>
+  const renderHorizontalList = (title: string, subTitle: string, listData: any[], loading: boolean) => {
+    // Hide section entirely when empty and not loading
+    if (!loading && listData.length === 0) return null
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.hList}>
-        {loading ? (
-          [1, 2, 3].map((i) => (
-            <View key={i} style={s.cardWrapper}><SkeletonCard /></View>
-          ))
-        ) : listData.length > 0 ? (
-          listData.map((item) => (
-            <View key={item.id} style={s.cardWrapper}>
-              <CarCard item={item as any} onPress={() => router.push(`/buses/${item.id}` as any)} />
-            </View>
-          ))
-        ) : (
-          <View style={s.emptyHList}>
-            <Text style={s.emptyHTxt}>لا تتوفر إعلانات حالياً</Text>
+    return (
+      <View style={s.section}>
+        <View style={s.sectionHeader}>
+          <View style={s.flex1}>
+            <Text style={s.sectionTitleHeader}>{title}</Text>
+            <Text style={s.sectionSubHeader}>{subTitle}</Text>
           </View>
-        )}
-      </ScrollView>
-    </View>
-  )
+          <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push('/buses/browse' as any)}>
+            <Ionicons name="arrow-back" size={16} color={Colors.primary} />
+            <Text style={s.seeAllTxt}>الكل</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.hList}>
+          {loading ? (
+            [1, 2, 3].map((i) => (
+              <View key={i} style={s.cardWrapper}><SkeletonCard /></View>
+            ))
+          ) : (
+            listData.map((item) => (
+              <View key={item.id} style={s.cardWrapper}>
+                <CarCard item={item as any} onPress={() => router.push(`/buses/${item.id}` as any)} />
+              </View>
+            ))
+          )}
+        </ScrollView>
+      </View>
+    )
+  }
 
   return (
     <View style={s.root}>
@@ -268,8 +269,8 @@ const s = StyleSheet.create({
   searchFilterBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   
   gridWrap: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6 },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, textAlign: 'right', marginBottom: 4 },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, textAlign: 'right' },
+  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, writingDirection: 'rtl', marginBottom: 4 },
+  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
   catsGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.space2, marginTop: 12 },
   catItem: { width: '23.5%', backgroundColor: '#fff', borderRadius: Radius.lg, paddingVertical: 12, paddingHorizontal: 4, alignItems: 'center', borderWidth: 1, borderColor: Colors.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
   catIconBox: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },

@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform
+  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -12,7 +12,8 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from './create'
+import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { InlineError } from '../../src/components/ui/InlineError'
 import { OMAN_GOVERNORATES, OMAN_WILAYAT_BY_GOVERNORATE } from '../../src/constants/jobs'
 import { LocationPicker } from '../../src/components/ui/LocationPicker'
 
@@ -23,7 +24,16 @@ export default function CreateStep3() {
   const { governorate, city, set } = useJobPostStore()
 
   const wilayat = governorate ? (OMAN_WILAYAT_BY_GOVERNORATE[governorate] ?? []) : []
-  const canNext = governorate.trim().length > 0
+  const [error, setError] = useState('')
+
+  const handleNext = () => {
+    if (governorate.trim().length === 0) {
+      setError('الرجاء تحديد المحافظة أولاً')
+      return
+    }
+    setError('')
+    router.push('/jobs/create-step4')
+  }
 
   return (
     <KeyboardAvoidingView
@@ -49,6 +59,7 @@ export default function CreateStep3() {
               showCity={true}
             />
           </View>
+          <InlineError message={error} />
 
           {/* Selected location summary */}
           {governorate && (
@@ -65,17 +76,20 @@ export default function CreateStep3() {
 
         </ScrollView>
 
-        <View style={[s.footer, { paddingBottom: insets.bottom + 8 }]}>
+        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, Spacing.space4) }]}>
           <View style={s.footerBtns}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={20} color={Colors.text2} />
-              <Text style={s.backBtnText}>السابق</Text>
-            </TouchableOpacity>
             <AppButton
-              title="التالي ←"
-              onPress={() => router.push('/jobs/create-step4')}
-              disabled={!canNext}
-              style={s.nextBtn}
+              title="السابق"
+              variant="outline"
+              size="sm"
+              onPress={() => router.back()}
+              style={{ flex: 1 }}
+            />
+            <AppButton
+              title="التالي"
+              size="sm"
+              onPress={handleNext}
+              style={{ flex: 1 }}
             />
           </View>
         </View>
@@ -89,20 +103,20 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.textMuted, textAlign: 'right', marginBottom: Spacing.space1,
+    color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
     fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
-    color: Colors.text, textAlign: 'right', marginBottom: 6,
+    color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, textAlign: 'right',
+    color: Colors.text2, writingDirection: 'rtl',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    color: Colors.text, textAlign: 'right',
+    color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
   govGrid: {
@@ -135,7 +149,7 @@ const s = StyleSheet.create({
     backgroundColor: '#EFF6FF', borderRadius: Radius.lg,
     borderWidth: 1, borderColor: '#DBEAFE', padding: Spacing.space4,
   },
-  summaryContent: { flex: 1, alignItems: 'flex-end' },
+  summaryContent: { flex: 1, alignItems: 'flex-start' },
   summaryTitle: {
     fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
     color: Colors.primaryLight, marginBottom: 2,
@@ -145,17 +159,9 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
   footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: 0, start: 0, end: 0,
     backgroundColor: Colors.white, paddingHorizontal: Spacing.space4, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: Colors.border,
   },
   footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
-  backBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: Spacing.space3, paddingHorizontal: Spacing.space4,
-    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
-    backgroundColor: Colors.white,
-  },
-  backBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2 },
-  nextBtn: { flex: 1 },
 })

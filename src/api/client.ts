@@ -1,5 +1,6 @@
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
+import { Alert } from 'react-native'
 import { Config } from '../constants/config'
 
 export const apiClient = axios.create({
@@ -41,6 +42,11 @@ apiClient.interceptors.response.use(
         useAuthStore.getState().logout()
         return Promise.reject(error)
       }
+    }
+    if (error.response?.status >= 500) {
+      Alert.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً')
+    } else if (error.message === 'Network Error') {
+      Alert.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت')
     }
     return Promise.reject(error)
   }

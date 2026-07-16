@@ -392,7 +392,7 @@ const s = StyleSheet.create({
   selectText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text, flex: 1, writingDirection: 'rtl' },
   placeholder: { color: Colors.textMuted },
   priceWrap: { flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 14, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space4 },
-  priceInput: { flex: 1, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20, color: Colors.primary, textAlign: 'right' },
+  priceInput: { flex: 1, height: '100%', fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20, color: Colors.primary, textAlign: 'right' },
   currencyTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.textMuted, marginStart: Spacing.space2 },
   negotiableRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, alignSelf: 'flex-start' },
   checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: '#9CA3AF', alignItems: 'center', justifyContent: 'center' },
@@ -404,7 +404,7 @@ const s = StyleSheet.create({
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: Spacing.space3, borderBottomWidth: 1, borderBottomColor: '#F1F3F5', marginBottom: Spacing.space4 },
   modalTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text },
   modalSearchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 12, paddingHorizontal: Spacing.space4, height: 56, marginBottom: Spacing.space4, borderWidth: 1.5, borderColor: '#E5E7EB' },
-  modalSearchInput: { flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, paddingHorizontal: Spacing.space2 },
+  modalSearchInput: { flex: 1, height: '100%', fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, paddingHorizontal: Spacing.space2 },
   selectItem: { paddingVertical: Spacing.space4, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
   selectItemTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.text, writingDirection: 'rtl' },
 })

@@ -21,7 +21,7 @@ interface JobCardProps {
 export function JobCard({ job, onPress }: JobCardProps) {
   if (!job) return null
 
-  const isHiring = job.jobType === 'HIRING'
+  const isHiring = job.jobType?.toUpperCase() === 'HIRING'
   const poster = isHiring
     ? (job.employerProfile?.companyName ?? job.user?.displayName ?? job.user?.username ?? '')
     : (job.driverProfile?.user?.displayName ?? job.user?.displayName ?? job.user?.username ?? '')
@@ -38,7 +38,7 @@ export function JobCard({ job, onPress }: JobCardProps) {
       </View>
 
       {/* Title */}
-      <View style={{ width: '100%', alignItems: 'flex-start' }}>
+      <View>
         <Text style={s.title} numberOfLines={2}>
           {job.title}
         </Text>
@@ -77,7 +77,7 @@ export function JobCard({ job, onPress }: JobCardProps) {
       )}
 
       {/* Description Preview */}
-      <View style={{ width: '100%', alignItems: 'flex-start' }}>
+      <View>
         <Text style={s.description} numberOfLines={2}>
           {job.description}
         </Text>
@@ -145,10 +145,8 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 16,
     color: Colors.text,
-    textAlign: 'right',
     writingDirection: 'rtl',
     marginBottom: Spacing.space1,  // 4
-    marginLeft: Spacing.space3, // 12
     lineHeight: 24,
   },
   posterRow: {
@@ -173,7 +171,6 @@ const s = StyleSheet.create({
   posterName: {
     fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
     color: Colors.text,
-    textAlign: 'right',
     writingDirection: 'rtl',
     maxWidth: '40%',
   },
@@ -187,7 +184,6 @@ const s = StyleSheet.create({
   locationText: {
     fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12,
     color: Colors.text2,
-    textAlign: 'right',
     writingDirection: 'rtl',
     maxWidth: '40%',
   },
@@ -197,7 +193,6 @@ const s = StyleSheet.create({
   description: {
     fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
     color: Colors.text2,
-    textAlign: 'right',
     writingDirection: 'rtl',
     lineHeight: 20,
     marginBottom: Spacing.space3,  // 12
