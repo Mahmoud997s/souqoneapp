@@ -187,14 +187,14 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 24,
+    fontFamily: 'Almarai_700Bold',  fontSize: 24,
     lineHeight: 32,
     color: '#ffffff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   headerSubtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
@@ -214,14 +214,14 @@ const s = StyleSheet.create({
   },
   loginRow: { alignItems: 'center', marginTop: Spacing.space2 },
   loginTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#4B5563',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   loginLink: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
   },
   successHero: {
     paddingTop: 64,
@@ -240,13 +240,13 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,
   },
   successTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 28,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
     lineHeight: 36,
     color: '#ffffff',
     writingDirection: 'rtl',
   },
   successDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 22,
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
@@ -254,7 +254,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   successEmail: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: '#ffffff',
+    fontFamily: 'Almarai_700Bold',  color: '#ffffff',
   },
   successBody: {
     flex: 1,
@@ -263,7 +263,7 @@ const s = StyleSheet.create({
     gap: Spacing.space6,
   },
   successNote: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 22,
     color: '#4B5563',
     textAlign: 'center',

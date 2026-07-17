@@ -13,8 +13,9 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { JOB_POST_TYPES } from '../../src/constants/jobs'
-import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { JOB_POST_TYPES, Role } from '../../src/constants/jobs'
+import { useJobProfileStore } from '../../src/store/jobProfileStore'
+import { Stepper } from '../../src/components/ui/Stepper'
 import { InlineError } from '../../src/components/ui/InlineError'
 
 const TOTAL_STEPS = 4
@@ -22,11 +23,27 @@ const TOTAL_STEPS = 4
 export default function CreateStep1() {
   const insets = useSafeAreaInsets()
   const { jobType, title, description, set, reset } = useJobPostStore()
+  const { activeRole } = useJobProfileStore()
+
+  const availableJobTypes = React.useMemo(() => {
+    return JOB_POST_TYPES.filter(type => {
+      if (activeRole === Role.DRIVER) return type.id === 'OFFERING'
+      if (activeRole === Role.EMPLOYER) return type.id === 'HIRING'
+      return true
+    })
+  }, [activeRole])
 
   // Reset draft on fresh start (only if title is empty)
   useEffect(() => {
     // intentionally do nothing — preserve draft
   }, [])
+
+  // Auto-select the only available job type
+  useEffect(() => {
+    if (availableJobTypes.length === 1 && jobType !== availableJobTypes[0].id) {
+      set({ jobType: availableJobTypes[0].id })
+    }
+  }, [availableJobTypes, jobType, set])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -52,18 +69,14 @@ export default function CreateStep1() {
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <AppHeader title="نشر إعلان" showBack variant="jobs" />
 
-        {/* Progress */}
-        <WizardProgress current={1} total={TOTAL_STEPS} />
-
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <Text style={s.stepLabel}>الخطوة 1 من {TOTAL_STEPS}</Text>
-          <Text style={s.pageTitle}>نوع الإعلان والعنوان</Text>
+          <Stepper currentStep={1} totalSteps={TOTAL_STEPS} title="نوع الإعلان والعنوان" />
           <Text style={s.pageDesc}>اختر نوع الإعلان ثم أضف عنواناً وصفاً واضحاً</Text>
 
           {/* Job Type */}
           <Text style={s.sectionTitle}>نوع الإعلان *</Text>
           <View style={s.typeRow}>
-            {JOB_POST_TYPES.map(t => (
+            {availableJobTypes.map(t => (
               <TouchableOpacity
                 key={t.id}
                 style={[s.typeCard, jobType === t.id && s.typeCardActive]}
@@ -145,22 +158,22 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted, writingDirection: 'rtl',
     marginBottom: Spacing.space1,
   },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, writingDirection: 'rtl',
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    color: Colors.text2, writingDirection: 'rtl', textAlign: 'center',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
@@ -177,26 +190,26 @@ const s = StyleSheet.create({
   typeCardActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
   typeEmoji: { fontSize: 28, marginBottom: Spacing.space2 },
   typeLabel: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text, marginBottom: Spacing.space1, textAlign: 'center',
   },
   typeLabelActive: { color: Colors.primary },
   typeDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.text2, textAlign: 'center', lineHeight: 18,
   },
   typeDescActive: { color: Colors.primaryLight },
   typeCheck: { position: 'absolute', top: 8, end: 8 },
   input: {
     backgroundColor: Colors.white,
-    borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border,
     paddingHorizontal: Spacing.space4, minHeight: 56, paddingVertical: 14,
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, fontSize: 15, color: Colors.text,
+    fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text,
     marginBottom: Spacing.space1, textAlign: 'right', writingDirection: 'rtl',
   },
   textArea: { height: 130, paddingTop: 16, paddingBottom: 16, textAlignVertical: 'top' },
   charCount: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.textMuted, alignSelf: 'flex-start',
   },
   draftBanner: {
@@ -205,7 +218,7 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2, paddingHorizontal: Spacing.space3,
   },
   draftText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: '#92400e',
   },
   footer: {

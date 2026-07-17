@@ -139,7 +139,7 @@ const s = StyleSheet.create({
     }),
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.primary,
     marginBottom: Spacing.space3,
     writingDirection: 'rtl',

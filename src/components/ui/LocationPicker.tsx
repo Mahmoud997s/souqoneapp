@@ -175,7 +175,7 @@ const s = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
-    includeFontPadding: false,
+    
   },
   inputBox: {
     height: 52,
@@ -211,7 +211,7 @@ const s = StyleSheet.create({
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    includeFontPadding: false,
+    
   },
   placeholder: {
     color: Colors.textMuted,
@@ -241,7 +241,7 @@ const s = StyleSheet.create({
     fontSize: 18,
     color: Colors.text,
     writingDirection: 'rtl',
-    includeFontPadding: false,
+    
   },
   listContent: {
     paddingBottom: Spacing.space5,
@@ -263,7 +263,7 @@ const s = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     writingDirection: 'rtl',
-    includeFontPadding: false,
+    
   },
   listItemTextSelected: {
     fontFamily: 'Almarai_700Bold',

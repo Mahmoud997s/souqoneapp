@@ -391,14 +391,14 @@ const s = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   badgeTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 10, color: Colors.white,
   },
   carDetails: {
     padding: Spacing.space3,
   },
   carTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 14, color: Colors.text, textAlign: 'left',
   },
   verifiedRow: {
@@ -406,33 +406,33 @@ const s = StyleSheet.create({
     backgroundColor: '#E7F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 100,
   },
   verifiedTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 9, color: '#1877F2',
   },
   carPrice: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 14, color: Colors.primary, textAlign: 'left',
   },
   negotiableTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 10, color: '#10b981', backgroundColor: '#d1fae5', paddingHorizontal: 6, borderRadius: Radius.sm, overflow: 'hidden'
   },
   locationRow: {
     flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4,
   },
   locationTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 11, color: Colors.textMuted,
   },
   carMetaRow: {
     flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.space2,
   },
   carMetaTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 11, color: Colors.textMuted,
   },
   carMetaDot: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 11, color: Colors.textMuted, marginHorizontal: 2,
   },
   chipsWrapper: {
@@ -449,7 +449,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border,
   },
   specChipTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 10, color: Colors.text2,
   },
 })

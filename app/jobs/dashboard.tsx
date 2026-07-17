@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, FlatList,
-  TouchableOpacity, RefreshControl, ActivityIndicator
+  View, Text, StyleSheet, ScrollView,
+  TouchableOpacity, RefreshControl, Image
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -30,8 +30,8 @@ function StatCard({ icon, label, value, color }: {
 }) {
   return (
     <View style={stat.card}>
-      <View style={[stat.iconBox, { backgroundColor: (color ?? Colors.primary) + '18' }]}>
-        <Ionicons name={icon as any} size={20} color={color ?? Colors.primary} />
+      <View style={[stat.iconBox, { backgroundColor: (color ?? Colors.primary) + '15' }]}>
+        <Ionicons name={icon as any} size={22} color={color ?? Colors.primary} />
       </View>
       <Text style={stat.value}>{value}</Text>
       <Text style={stat.label}>{label}</Text>
@@ -43,11 +43,10 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets()
   const { activeRole } = useJobProfileStore()
   const [activeTab, setActiveTab] = useState<TabId>('overview')
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const { data: driverProfile } = useMyDriverProfile()
   const { data: employerProfile } = useMyEmployerProfile()
-  const { data: verification } = useVerificationStatus()
+  const { data: verification, refetch: refetchVerification } = useVerificationStatus()
   const { data: myJobs, isLoading: jobsLoading, refetch: refetchJobs } = useMyJobs()
   const { data: myApplications, isLoading: appsLoading, refetch: refetchApps } = useMyApplications()
 
@@ -55,12 +54,16 @@ export default function DashboardScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await Promise.all([refetchJobs(), refetchApps()])
+    await Promise.all([refetchJobs(), refetchApps(), refetchVerification()])
     setRefreshing(false)
   }
 
   const isDriver = activeRole === 'driver'
   const isEmployer = activeRole === 'employer'
+
+  const userName = isDriver 
+    ? (driverProfile?.user?.displayName ?? driverProfile?.user?.username ?? 'مستخدم')
+    : (employerProfile?.companyName ?? employerProfile?.user?.displayName ?? employerProfile?.user?.username ?? 'مستخدم')
 
   // ── If no profile: Onboarding CTA ──
   if (!driverProfile && !employerProfile) {
@@ -78,7 +81,6 @@ export default function DashboardScreen() {
           <AppButton
             title="إنشاء بروفايل"
             onPress={() => router.push('/jobs/onboarding')}
-            style={s.mainBtn}
           />
         </View>
       </View>
@@ -89,25 +91,28 @@ export default function DashboardScreen() {
     <View style={[s.root, { paddingBottom: insets.bottom }]}>
       <AppHeader title="لوحة التحكم" showBack variant="jobs" />
 
-      {/* Tab Bar */}
-      <View style={s.tabBar}>
-        {DASHBOARD_TABS.map(tab => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[s.tab, activeTab === tab.id && s.tabActive]}
-            onPress={() => setActiveTab(tab.id as TabId)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={tab.icon as any}
-              size={18}
-              color={activeTab === tab.id ? Colors.primary : Colors.textMuted}
-            />
-            <Text style={[s.tabText, activeTab === tab.id && s.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Premium Segmented Control */}
+      <View style={s.segmentedControl}>
+        {DASHBOARD_TABS.map(tab => {
+          const isActive = activeTab === tab.id
+          return (
+            <TouchableOpacity
+              key={tab.id}
+              style={[s.segmentBtn, isActive && s.segmentBtnActive]}
+              onPress={() => setActiveTab(tab.id as TabId)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={tab.icon as any}
+                size={16}
+                color={isActive ? Colors.primary : Colors.textMuted}
+              />
+              <Text style={[s.segmentText, isActive && s.segmentTextActive]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
       </View>
 
       <ScrollView
@@ -116,97 +121,108 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
 
-        {(!verification || !verification.status) && (
-          <VerificationBanner />
+        {(!verification || verification.status?.toUpperCase() !== 'APPROVED') && (
+          <View style={{ marginBottom: Spacing.space4 }}>
+            <VerificationBanner status={verification?.status} rejectionReason={verification?.rejectionReason} />
+          </View>
         )}
 
         {/* ── OVERVIEW TAB ── */}
         {activeTab === 'overview' && (
           <>
-            {/* Greeting */}
-            <Text style={s.greeting}>
-              مرحباً 👋 {isDriver 
-              ? (driverProfile?.user?.displayName ?? driverProfile?.user?.username)
-              : (employerProfile?.companyName ?? employerProfile?.user?.displayName ?? employerProfile?.user?.username)}
-            </Text>
-
-            {/* Stats Row */}
-            <View style={s.statsRow}>
-              {isDriver ? (
-                <>
-                  <StatCard
-                    icon="document-text-outline"
-                    label="طلباتي"
-                    value={myApplications?.length ?? 0}
-                  />
-                  <StatCard
-                    icon="star-outline"
-                    label="تقييمي"
-                    value={driverProfile?.averageRating ? `${driverProfile.averageRating.toFixed(1)}★` : 'لا يوجد'}
-                    color="#f59e0b"
-                  />
-                  <StatCard
-                    icon="shield-checkmark-outline"
-                    label="التوثيق"
-                    value={verification?.status === 'APPROVED' ? 'موثق ✅' : 'غير موثق'}
-                    color={verification?.status === 'APPROVED' ? '#16a34a' : Colors.error}
-                  />
-                </>
-              ) : (
-                <>
-                  <StatCard
-                    icon="briefcase-outline"
-                    label="إعلاناتي"
-                    value={myJobs?.items?.length ?? 0}
-                  />
-                  <StatCard
-                    icon="people-outline"
-                    label="المتقدمون"
-                    value={myJobs?.items?.reduce((acc: number, j: any) => acc + (j.applicantsCount ?? 0), 0) ?? 0}
-                  />
-                  <StatCard
-                    icon="checkmark-circle-outline"
-                    label="النشطة"
-                    value={myJobs?.items?.filter((j: any) => j.status === 'ACTIVE').length ?? 0}
-                    color="#16a34a"
-                  />
-                </>
-              )}
+            {/* Premium Header Card */}
+            <View style={s.headerCard}>
+              <View style={s.headerCardContent}>
+                <View>
+                  <Text style={s.greetingText}>مرحباً بك،</Text>
+                  <Text style={s.userNameText}>{userName}</Text>
+                </View>
+                <View style={s.avatarPlaceholder}>
+                  <Ionicons name="person" size={24} color={Colors.primary} />
+                </View>
+              </View>
             </View>
 
-            {/* Quick Actions */}
-            <Text style={s.sectionTitle}>إجراءات سريعة</Text>
-            <View style={s.quickActions}>
+            {/* Quick Actions - Grid Style */}
+            <Text style={s.sectionTitle}>الوصول السريع</Text>
+            <View style={s.quickActionsGrid}>
               {isDriver && (
                 <>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => router.push('/jobs')} activeOpacity={0.8}>
-                    <Ionicons name="search-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>تصفح الوظائف</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => router.push('/jobs')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#EFF6FF' }]}>
+                      <Ionicons name="search" size={26} color="#3B82F6" />
+                    </View>
+                    <Text style={s.gridActionText}>الوظائف</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => router.push('/jobs/verification')} activeOpacity={0.8}>
-                    <Ionicons name="shield-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>توثيق الحساب</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => router.push('/jobs/verification')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#FEF2F2' }]}>
+                      <Ionicons name="shield-checkmark" size={26} color="#EF4444" />
+                    </View>
+                    <Text style={s.gridActionText}>التوثيق</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => setActiveTab('applications')} activeOpacity={0.8}>
-                    <Ionicons name="time-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>طلباتي</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => setActiveTab('applications')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#F0FDF4' }]}>
+                      <Ionicons name="document-text" size={26} color="#22C55E" />
+                    </View>
+                    <Text style={s.gridActionText}>طلباتي</Text>
                   </TouchableOpacity>
                 </>
               )}
               {isEmployer && (
                 <>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => router.push('/jobs/create')} activeOpacity={0.8}>
-                    <Ionicons name="add-circle-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>نشر وظيفة</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => router.push('/jobs/create')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#EFF6FF' }]}>
+                      <Ionicons name="add-circle" size={26} color="#3B82F6" />
+                    </View>
+                    <Text style={s.gridActionText}>نشر وظيفة</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => router.push('/jobs/drivers')} activeOpacity={0.8}>
-                    <Ionicons name="people-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>دليل السائقين</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => router.push('/jobs/drivers')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#FEF2F2' }]}>
+                      <Ionicons name="people" size={26} color="#EF4444" />
+                    </View>
+                    <Text style={s.gridActionText}>السائقين</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.actionBtn} onPress={() => setActiveTab('listings')} activeOpacity={0.8}>
-                    <Ionicons name="list-outline" size={22} color={Colors.primary} />
-                    <Text style={s.actionText}>إعلاناتي</Text>
+                  <TouchableOpacity style={s.gridActionBtn} onPress={() => setActiveTab('listings')} activeOpacity={0.8}>
+                    <View style={[s.gridActionIcon, { backgroundColor: '#F0FDF4' }]}>
+                      <Ionicons name="list" size={26} color="#22C55E" />
+                    </View>
+                    <Text style={s.gridActionText}>إعلاناتي</Text>
                   </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {/* Stats Row */}
+            <Text style={s.sectionTitle}>إحصائيات حسابك</Text>
+            <View style={s.statsRow}>
+              {isDriver ? (
+                <>
+                  <StatCard
+                    icon="briefcase"
+                    label="الطلبات المُقدمة"
+                    value={myApplications?.length ?? 0}
+                  />
+                  <StatCard
+                    icon="star"
+                    label="متوسط التقييم"
+                    value={driverProfile?.averageRating ? `${driverProfile.averageRating.toFixed(1)}` : '0.0'}
+                    color="#F59E0B"
+                  />
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    icon="megaphone"
+                    label="إعلانات نشطة"
+                    value={myJobs?.items?.filter((j: any) => j.status === 'ACTIVE').length ?? 0}
+                    color="#22C55E"
+                  />
+                  <StatCard
+                    icon="people"
+                    label="المتقدمون الكلي"
+                    value={myJobs?.items?.reduce((acc: number, j: any) => acc + (j.applicantsCount ?? 0), 0) ?? 0}
+                    color="#3B82F6"
+                  />
                 </>
               )}
             </View>
@@ -220,8 +236,8 @@ export default function DashboardScreen() {
               <Text style={s.sectionTitle}>إعلاناتي المنشورة</Text>
               <TouchableOpacity onPress={() => router.push('/jobs/create')} activeOpacity={0.8}>
                 <View style={s.addBtn}>
-                  <Ionicons name="add" size={18} color={Colors.primary} />
-                  <Text style={s.addBtnText}>نشر وظيفة</Text>
+                  <Ionicons name="add" size={18} color={Colors.white} />
+                  <Text style={s.addBtnText}>وظيفة جديدة</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -229,12 +245,16 @@ export default function DashboardScreen() {
               <SkeletonCard />
             ) : (myJobs?.items?.length ?? 0) === 0 ? (
               <View style={s.emptyState}>
-                <Ionicons name="briefcase-outline" size={48} color={Colors.textMuted} />
-                <Text style={s.emptyStateText}>لم تنشر أي وظيفة بعد</Text>
+                <View style={s.emptyIconContainer}>
+                  <Ionicons name="folder-open-outline" size={42} color={Colors.primary} />
+                </View>
+                <Text style={s.emptyStateText}>لم تقم بنشر أي وظيفة حتى الآن</Text>
                 <AppButton
                   title="نشر أول وظيفة"
                   onPress={() => router.push('/jobs/create')}
-                  style={{ marginTop: Spacing.space4 }}
+                  variant="outline"
+                  style={{ marginTop: Spacing.space5, paddingHorizontal: 30, borderRadius: 100 }}
+                  textStyle={{ fontSize: 14 }}
                 />
               </View>
             ) : myJobs?.items?.map((job: any) => (
@@ -250,17 +270,21 @@ export default function DashboardScreen() {
         {/* ── APPLICATIONS TAB ── */}
         {activeTab === 'applications' && (
           <>
-            <Text style={s.sectionTitle}>طلبات التوظيف المُقدَّمة</Text>
+            <Text style={s.sectionTitle}>طلبات التوظيف الخاصة بي</Text>
             {appsLoading ? (
               <SkeletonCard />
             ) : (myApplications?.length ?? 0) === 0 ? (
               <View style={s.emptyState}>
-                <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
+                <View style={s.emptyIconContainer}>
+                  <Ionicons name="document-text-outline" size={42} color={Colors.primary} />
+                </View>
                 <Text style={s.emptyStateText}>لم تتقدم لأي وظيفة بعد</Text>
                 <AppButton
-                  title="تصفح الوظائف"
+                  title="تصفح الوظائف المتاحة"
                   onPress={() => router.push('/jobs')}
-                  style={{ marginTop: Spacing.space4 }}
+                  variant="outline"
+                  style={{ marginTop: Spacing.space5, paddingHorizontal: 30, borderRadius: 100 }}
+                  textStyle={{ fontSize: 14 }}
                 />
               </View>
             ) : myApplications?.map((app: any) => (
@@ -282,27 +306,27 @@ export default function DashboardScreen() {
 
 const stat = StyleSheet.create({
   card: {
-    flex: 1, backgroundColor: Colors.white, borderRadius: Radius.lg,
-    padding: Spacing.space3, alignItems: 'center',
-    borderWidth: 1, borderColor: Colors.border,
+    flex: 1, backgroundColor: Colors.white, borderRadius: Radius.xl,
+    padding: Spacing.space4, alignItems: 'flex-start', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1,
   },
   iconBox: {
-    width: 40, height: 40, borderRadius: Radius.pill,
+    width: 42, height: 42, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: Spacing.space3,
   },
   value: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
-    color: Colors.text, textAlign: 'center',
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 22,
+    color: Colors.text, textAlign: 'left', writingDirection: 'rtl',
   },
   label: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
-    color: Colors.text2, textAlign: 'center', marginTop: 2,
+    fontFamily: 'Almarai_400Regular', fontSize: 12,
+    color: Colors.textMuted, textAlign: 'left', writingDirection: 'rtl', marginTop: 4,
   },
 })
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FA' },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
     padding: Spacing.space6,
@@ -314,79 +338,117 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space4,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 20,
     color: Colors.text, textAlign: 'center', marginBottom: Spacing.space2,
   },
   emptyDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, textAlign: 'center', lineHeight: 22,
-    marginBottom: Spacing.space4,
+    fontFamily: 'Almarai_400Regular', fontSize: 14,
+    color: Colors.textMuted, textAlign: 'center', lineHeight: 22,
+    marginBottom: Spacing.space5,
   },
-  mainBtn: {},
 
-  tabBar: {
+  segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    backgroundColor: '#E2E8F0',
+    borderRadius: Radius.pill,
+    padding: 4,
+    marginHorizontal: Spacing.space4,
+    marginTop: Spacing.space3,
+    marginBottom: Spacing.space2,
   },
-  tab: {
+  segmentBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: Spacing.space3, gap: Spacing.space1,
+    paddingVertical: 10, borderRadius: Radius.pill, gap: Spacing.space2,
   },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: Colors.primary },
-  tabText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+  segmentBtnActive: { 
+    backgroundColor: Colors.white,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+  segmentText: {
+    fontFamily: 'Almarai_700Bold', fontSize: 13,
     color: Colors.textMuted,
   },
-  tabTextActive: { color: Colors.primary },
+  segmentTextActive: { color: Colors.primary },
 
-  content: { padding: Spacing.space4, paddingBottom: 100 },
-  greeting: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20,
-    color: Colors.text, writingDirection: 'rtl',
+  content: { padding: Spacing.space4, paddingBottom: 120 },
+
+  headerCard: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.xl,
+    padding: Spacing.space5,
+    marginBottom: Spacing.space6,
+    shadowColor: Colors.primary, shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4,
+  },
+  headerCardContent: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  greetingText: {
+    fontFamily: 'Almarai_400Regular', fontSize: 14,
+    color: 'rgba(255,255,255,0.8)', textAlign: 'left', writingDirection: 'rtl', marginBottom: 4,
+  },
+  userNameText: {
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 20,
+    color: Colors.white, textAlign: 'left', writingDirection: 'rtl',
+  },
+  avatarPlaceholder: {
+    width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+
+  sectionTitle: {
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 16,
+    color: Colors.text, textAlign: 'left', writingDirection: 'rtl',
     marginBottom: Spacing.space4,
   },
-  statsRow: {
-    flexDirection: 'row', gap: 10,
-    marginBottom: Spacing.space5,
+
+  quickActionsGrid: {
+    flexDirection: 'row', gap: Spacing.space3,
+    marginBottom: Spacing.space6,
   },
-  sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    color: Colors.text, writingDirection: 'rtl',
+  gridActionBtn: {
+    flex: 1, backgroundColor: Colors.white, borderRadius: Radius.xl,
+    padding: Spacing.space4, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
+  },
+  gridActionIcon: {
+    width: 50, height: 50, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center',
     marginBottom: Spacing.space3,
   },
-  quickActions: {
-    flexDirection: 'row', gap: 10,
-    marginBottom: Spacing.space5,
-  },
-  actionBtn: {
-    flex: 1, backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.space3, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border, gap: 6,
-  },
-  actionText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+  gridActionText: {
+    fontFamily: 'Almarai_700Bold', fontSize: 12,
     color: Colors.text, textAlign: 'center',
   },
+
+  statsRow: {
+    flexDirection: 'row', gap: Spacing.space3,
+    marginBottom: Spacing.space6,
+  },
+
   tabHeader: {
     flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: Spacing.space3,
+    justifyContent: 'space-between', marginBottom: Spacing.space4,
   },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.space1,
-    paddingVertical: 6, paddingHorizontal: Spacing.space3,
-    backgroundColor: Colors.primary + '15',
+    paddingVertical: 8, paddingHorizontal: Spacing.space4,
+    backgroundColor: Colors.primary,
     borderRadius: Radius.pill,
   },
   addBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.primary,
+    fontFamily: 'Almarai_700Bold', fontSize: 13,
+    color: Colors.white,
   },
   emptyState: {
-    alignItems: 'center', padding: Spacing.space6, marginTop: Spacing.space5,
+    alignItems: 'center', padding: Spacing.space6, marginTop: Spacing.space4,
+    backgroundColor: Colors.white, borderRadius: Radius.xl,
+  },
+  emptyIconContainer: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: '#F1F5F9',
+    alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.space4,
   },
   emptyStateText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
-    color: Colors.textMuted, marginTop: Spacing.space3, textAlign: 'center',
+    fontFamily: 'Almarai_700Bold', fontSize: 15,
+    color: Colors.textMuted, textAlign: 'center', lineHeight: 24, paddingTop: 4,
   },
 })

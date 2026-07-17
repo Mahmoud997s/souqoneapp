@@ -135,12 +135,12 @@ const s = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: Spacing.space4, paddingBottom: 40 },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 26,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 26,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
+    fontFamily: 'Almarai_400Regular',  fontSize: 15,
     color: Colors.textMuted, writingDirection: 'rtl',
     lineHeight: 22, marginBottom: Spacing.space6,
   },
@@ -158,14 +158,14 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space5,
   },
   cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, 
+    fontFamily: 'Almarai_800ExtraBold',  
     fontSize: 16, color: Colors.text, writingDirection: 'rtl',
   },
   inputGroup: {
     marginBottom: Spacing.space4,
   },
   inputLabel: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, 
+    fontFamily: 'Almarai_700Bold',  
     fontSize: 13, color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
@@ -173,7 +173,7 @@ const s = StyleSheet.create({
     height: 56, backgroundColor: '#F4F6F8',
     borderRadius: Radius.xl,
     paddingHorizontal: Spacing.space4,
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,  fontSize: 15, color: Colors.text,
+    fontFamily: 'Almarai_400Regular',   fontSize: 15, color: Colors.text,
     textAlign: 'right', writingDirection: 'rtl',
   },
   textArea: { height: 110, paddingTop: 16, paddingBottom: 16 },

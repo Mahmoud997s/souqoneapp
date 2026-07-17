@@ -129,9 +129,9 @@ export default function BusesBrowseScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.error, marginBottom: 12 },
+  errorTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.error, marginBottom: 12 },
   retryBtn: { backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: Radius.lg },
-  retryTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.white },
+  retryTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.white },
   grid: { padding: Spacing.space4, gap: Spacing.space4 },
   list: { paddingBottom: Spacing.space6 },
   fullCard: { paddingHorizontal: Spacing.space5, paddingBottom: Spacing.space3 },
@@ -139,19 +139,19 @@ const s = StyleSheet.create({
   
   filterHeaderRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.space5, paddingVertical: 12 },
   filterMainBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.primary + '15', paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.pill },
-  filterMainTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.primary },
+  filterMainTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.primary },
   badge: { backgroundColor: Colors.primary, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  badgeTxt: { color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2 },
+  badgeTxt: { color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold',  },
   
   activeChipsScroll: { paddingHorizontal: 12, gap: 8, alignItems: 'center' },
   activeChip: { backgroundColor: Colors.surface, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, borderWidth: 1, borderColor: Colors.border },
-  activeChipTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.text },
-  noFiltersTxt: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted },
+  activeChipTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text },
+  noFiltersTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
   
-  resultsCount: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, fontSize: 18, color: Colors.text, paddingHorizontal: Spacing.space5, paddingBottom: 12, textAlign: 'right' },
+  resultsCount: { fontFamily: 'Almarai_700Bold',  paddingTop: 4, fontSize: 18, color: Colors.text, paddingHorizontal: Spacing.space5, paddingBottom: 12, textAlign: 'right' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: Spacing.space3 },
-  emptyTitle: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, textAlign: 'center' },
-  emptySubtitle: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
+  emptyTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, textAlign: 'center' },
+  emptySubtitle: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
   clearBtn: { marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: Colors.border },
-  clearBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.text }
+  clearBtnTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text }
 })

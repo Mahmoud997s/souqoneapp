@@ -27,6 +27,7 @@ interface AppButtonProps {
   loading?: boolean
   disabled?: boolean
   style?: StyleProp<ViewStyle>
+  textStyle?: StyleProp<import('react-native').TextStyle>
   children?: ReactNode
 }
 
@@ -39,6 +40,7 @@ export function AppButton({
   loading,
   disabled,
   style,
+  textStyle,
 }: AppButtonProps) {
   const height = size === 'sm' ? 46 : 54
 
@@ -60,7 +62,7 @@ export function AppButton({
             <ActivityIndicator color={Colors.white} />
           ) : (
             <>
-              <Text style={s.primaryTxt}>{title}</Text>
+              <Text style={[s.primaryTxt, textStyle]}>{title}</Text>
               {icon ? (
                 <Ionicons name={icon as any} size={18} color={Colors.white} />
               ) : null}
@@ -83,7 +85,7 @@ export function AppButton({
           <ActivityIndicator color={Colors.primary} />
         ) : (
           <>
-            <Text style={s.outlineTxt}>{title}</Text>
+            <Text style={[s.outlineTxt, textStyle]}>{title}</Text>
             {icon ? (
               <Ionicons name={icon as any} size={18} color={Colors.text} />
             ) : null}
@@ -101,7 +103,7 @@ export function AppButton({
       disabled={loading || disabled}
       style={[s.ghostBtn, style]}
     >
-      <Text style={s.ghostTxt}>{title}</Text>
+      <Text style={[s.ghostTxt, textStyle]}>{title}</Text>
       {icon ? (
         <Ionicons name={icon as any} size={18} color={Colors.primary} />
       ) : null}
@@ -127,8 +129,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryTxt: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    lineHeight: 24,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 16,
     color: Colors.white,
     writingDirection: 'rtl',
   },
@@ -144,8 +145,7 @@ const s = StyleSheet.create({
     gap: Spacing.space2,
   },
   outlineTxt: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
-    lineHeight: 24,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 16,
     color: Colors.text,
     writingDirection: 'rtl',
   },
@@ -157,8 +157,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
   },
   ghostTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    lineHeight: 20,
+    fontFamily: 'Almarai_700Bold', fontSize: 14,
     color: Colors.primary,
     writingDirection: 'rtl',
   },

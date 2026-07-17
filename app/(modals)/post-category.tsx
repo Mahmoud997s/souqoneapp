@@ -86,13 +86,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   title: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 24, color: '#111827',
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 24, color: '#111827',
     marginBottom: 6,
     textAlign: 'left', // in RTL, left is visually right
     writingDirection: 'rtl',
   },
   subtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: '#6B7280',
+    fontFamily: 'Almarai_400Regular',  fontSize: 14, color: '#6B7280',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: '#1F2937', textAlign: 'center',
+    fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#1F2937', textAlign: 'center',
   },
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -131,6 +131,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
   closeBtnTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: '#4B5563',
+    fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#4B5563',
   },
 })

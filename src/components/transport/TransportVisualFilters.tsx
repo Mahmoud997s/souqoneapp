@@ -210,11 +210,11 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary + '15',
   },
   tabText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.textMuted,
   },
   tabTextActive: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_800ExtraBold',  color: Colors.primary,
   },
   contentArea: {
     paddingTop: Spacing.space3,
@@ -263,7 +263,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   itemTextPremium: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+    fontFamily: 'Almarai_700Bold',  fontSize: 11,
     color: Colors.text,
     textAlign: 'center',
   },
@@ -281,7 +281,7 @@ const s = StyleSheet.create({
     marginTop: Spacing.space1,
   },
   viewAllBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.primary,
     marginStart: Spacing.space1,
   },

@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent || '#e67e22', alignItems: 'center', justifyContent: 'center'
   },
   filterBadgeTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 10,
+    fontFamily: 'Almarai_700Bold',  fontSize: 10,
     color: Colors.white,
   },
   compactSearch: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, textAlign: 'right'
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
   },
   list: {
     padding: 16,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resultsCount: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 16, color: '#0f172a',
   },
   skeletonGrid: {
@@ -272,12 +272,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 20, color: '#0f172a',
     marginBottom: 8,
   },
   emptySub: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 15, color: '#64748b',
     textAlign: 'center',
     lineHeight: 24,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   clearAllBtnInlineTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
   },
   retryBtn: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   retryBtnTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
   },
 })

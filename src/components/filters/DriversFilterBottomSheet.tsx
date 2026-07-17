@@ -281,7 +281,7 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
   },
   title: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'center',
@@ -290,7 +290,7 @@ const s = StyleSheet.create({
     padding: Spacing.space1,
   },
   clearText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.error || '#d9534f',
     writingDirection: 'rtl',
   },
@@ -305,7 +305,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space4,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text,
     marginBottom: Spacing.space2,
     textAlign: 'left',
@@ -326,7 +326,7 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   toggleText: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.text2, writingDirection: 'rtl'
+    fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text2, writingDirection: 'rtl'
   },
   toggleTextActive: {
     color: Colors.primary,
@@ -351,7 +351,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary + '08',
   },
   dropdownEmpty: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted,
     textAlign: 'center',
     paddingVertical: Spacing.space3,
@@ -359,7 +359,7 @@ const s = StyleSheet.create({
   },
   locationDropdownText: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text,
     writingDirection: 'rtl',
   },
@@ -379,12 +379,12 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   chipText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text2,
     writingDirection: 'rtl',
   },
   activeChipText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
     writingDirection: 'rtl',
   },
   dropdownPlaceholder: {
@@ -414,13 +414,13 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   dropdownItemText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   activeDropdownItemText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
     writingDirection: 'rtl',
   },
   inputSeparator: {
@@ -443,7 +443,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   applyBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.white,
   },
 });

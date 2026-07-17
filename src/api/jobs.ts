@@ -81,10 +81,8 @@ export const jobsApi = {
     apiClient.get<DriverProfile>(`/jobs/drivers/${id}`),
 
   // Driver Verification
-  submitVerification: (data: FormData) =>
-    apiClient.post<DriverVerification>('/jobs/verification/submit', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  submitVerification: (data: { licenseImageUrl: string; licenseBackImageUrl?: string; idImageUrl: string; idBackImageUrl?: string; notes?: string }) =>
+    apiClient.post<DriverVerification>('/jobs/verification/submit', data),
   
   getVerificationStatus: () =>
     apiClient.get<DriverVerification>('/jobs/verification/status'),

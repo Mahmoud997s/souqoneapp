@@ -253,41 +253,41 @@ const s = StyleSheet.create({
   topBarRight: { width: 40, alignItems: 'flex-end' },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   compactTitleWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 56, alignItems: 'center', justifyContent: 'center' },
-  compactTitle: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: '#fff' },
+  compactTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: '#fff' },
   heroContent: { paddingHorizontal: Spacing.space5, alignItems: 'center', justifyContent: 'center', flex: 1, paddingBottom: 20 },
   heroIconBox: { width: 64, height: 64, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  heroTitle: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 24, color: '#fff', textAlign: 'center', marginBottom: 6 },
-  heroSubtitle: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 20 },
+  heroTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 24, color: '#fff', textAlign: 'center', marginBottom: 6 },
+  heroSubtitle: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 20 },
   
   navSearch: { flex: 1, marginHorizontal: Spacing.space3, justifyContent: 'center' },
   navSearchInner: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', height: 38, borderRadius: 19, paddingHorizontal: Spacing.space3, gap: Spacing.space2 },
-  navSearchTxt: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#fff', opacity: 0.9 },
+  navSearchTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: '#fff', opacity: 0.9 },
 
   searchBar: { backgroundColor: '#fff', height: 56, borderRadius: Radius.pill, flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.space2, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
   searchInner: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space3, paddingHorizontal: Spacing.space3 },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: Colors.textMuted },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.textMuted },
   searchFilterBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   
   gridWrap: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6 },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, writingDirection: 'rtl', marginBottom: 4 },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
+  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, writingDirection: 'rtl', marginBottom: 4 },
+  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
   catsGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.space2, marginTop: 12 },
   catItem: { width: '23.5%', backgroundColor: '#fff', borderRadius: Radius.lg, paddingVertical: 12, paddingHorizontal: 4, alignItems: 'center', borderWidth: 1, borderColor: Colors.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
   catIconBox: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  catLabel: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11, color: Colors.text, textAlign: 'center' },
+  catLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.text, textAlign: 'center' },
   
   section: { marginBottom: Spacing.space6 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space3 },
   flex1: { flex: 1 },
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, borderRadius: Radius.pill, backgroundColor: Colors.primary + '15' },
-  seeAllTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.primary },
+  seeAllTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
   
   hList: { paddingHorizontal: Spacing.space4, gap: Spacing.space3 },
   cardWrapper: { width: 260 },
   emptyHList: { padding: 20, alignItems: 'center', justifyContent: 'center', width: 260, backgroundColor: '#fff', borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed' },
-  emptyHTxt: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.textMuted },
+  emptyHTxt: { fontFamily: 'Almarai_400Regular',  color: Colors.textMuted },
 
   bottomBar: { position: 'absolute', left: 0, right: 0, paddingHorizontal: Spacing.space4 },
   postBtn: { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: Radius.pill, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
-  postBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 16, color: '#fff' }
+  postBtnTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#fff' }
 })

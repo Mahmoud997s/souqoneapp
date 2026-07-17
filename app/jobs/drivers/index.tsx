@@ -169,7 +169,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
   },
   searchInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text, height: '100%',
   },
   filterBtn: {
@@ -186,7 +186,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   filterBadgeText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 10, color: '#fff',
+    fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#fff',
   },
   filterPanel: {
     backgroundColor: Colors.white, padding: Spacing.space4,
@@ -201,11 +201,11 @@ const s = StyleSheet.create({
   },
   toggleRowActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
   toggleText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2,
   },
   toggleTextActive: { color: Colors.primary },
   filterSectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.text, textAlign: 'left',
     marginBottom: Spacing.space2, marginTop: Spacing.space1,
   },
@@ -219,7 +219,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  chipText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text2 },
+  chipText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text2 },
   chipTextActive: { color: Colors.primary },
   clearBtn: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.space1,
@@ -227,14 +227,14 @@ const s = StyleSheet.create({
     paddingVertical: 6, paddingHorizontal: Spacing.space3,
   },
   clearBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.error,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.error,
   },
   resultsMeta: {
     paddingHorizontal: Spacing.space4, paddingVertical: Spacing.space2,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   resultsCount: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.text2, textAlign: 'left',
   },
   list: { padding: Spacing.space4, gap: Spacing.space3, paddingBottom: 100 },
@@ -242,7 +242,7 @@ const s = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.space6,
   },
   errorText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
+    fontFamily: 'Almarai_700Bold',  fontSize: 15,
     color: Colors.text2, marginTop: Spacing.space3, textAlign: 'center',
   },
   retryBtn: {
@@ -250,17 +250,17 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary + '15', borderRadius: Radius.md,
   },
   retryText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.primary,
   },
   emptyState: {
     flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.space6,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.text, marginTop: Spacing.space3, textAlign: 'center',
   },
   emptyDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text2, marginTop: Spacing.space2, textAlign: 'center', lineHeight: 22,
   },
 })

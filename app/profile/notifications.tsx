@@ -155,7 +155,7 @@ const s = StyleSheet.create({
     ...softShadow,
   },
   tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2 },
+  tabTxt: { fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2 },
   tabTxtActive: { color: Colors.white },
   
   actionRow: {
@@ -175,15 +175,15 @@ const s = StyleSheet.create({
     gap: 4,
   },
   markBtnDisabled: { opacity: 0.5 },
-  markTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.caption.fontSize, color: Colors.primary, writingDirection: 'rtl' },
+  markTxt: { fontFamily: 'Almarai_700Bold',  fontSize: Typography.caption.fontSize, color: Colors.primary, writingDirection: 'rtl' },
   
   loader: { marginTop: 60 },
   list: { padding: Spacing.space4, gap: Spacing.space4, paddingBottom: 100 },
   
   emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 80, paddingHorizontal: 30 },
   emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(0, 74, 198, 0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.titleMd.fontSize, color: Colors.text, marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2, textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize, color: Colors.text, marginBottom: 8, textAlign: 'center' },
+  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, textAlign: 'center', lineHeight: 22 },
   
   card: {
     flexDirection: 'row',
@@ -216,9 +216,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   info: { flex: 1, alignItems: 'flex-start' },
-  title: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyLg.fontSize, color: Colors.text, marginBottom: 4, writingDirection: 'rtl' },
-  titleUnread: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
-  body: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2, writingDirection: 'rtl', lineHeight: 22 },
+  title: { fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyLg.fontSize, color: Colors.text, marginBottom: 4, writingDirection: 'rtl' },
+  titleUnread: { fontFamily: 'Almarai_800ExtraBold',  color: Colors.primary },
+  body: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, writingDirection: 'rtl', lineHeight: 22 },
   timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 4, marginTop: Spacing.space2 },
-  time: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.caption.fontSize, color: Colors.primary },
+  time: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.caption.fontSize, color: Colors.primary },
 })

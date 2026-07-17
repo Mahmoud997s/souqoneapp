@@ -56,8 +56,8 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: Spacing.space3, marginTop: Spacing.space2,
   },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, textAlign: 'left' },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
+  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, textAlign: 'left' },
+  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
   catsGrid: {
     flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.space2,
     marginBottom: Spacing.space6,
@@ -74,7 +74,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,
   },
   catLabel: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 12, color: Colors.text, textAlign: 'center',
   },
 })

@@ -67,7 +67,7 @@ const s = StyleSheet.create({
   licenseText: {
     color: Colors.primary, // Colors.primary
     fontSize: 11,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, },
+    fontFamily: 'Almarai_700Bold',  },
   employmentChip: {
     backgroundColor: Colors.surface, // #F5F7FA
     borderRadius: Radius.pill,
@@ -81,5 +81,5 @@ const s = StyleSheet.create({
   employmentText: {
     color: Colors.text2, // #4B5563
     fontSize: 11,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, },
+    fontFamily: 'Almarai_700Bold',  },
 })

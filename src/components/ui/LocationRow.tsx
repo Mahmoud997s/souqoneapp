@@ -32,7 +32,7 @@ const s = StyleSheet.create({
     borderRadius: 4,
   },
   txt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     lineHeight: 16,
     color: Colors.text2,
     writingDirection: 'rtl',

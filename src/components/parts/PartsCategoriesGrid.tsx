@@ -59,7 +59,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space6,
   },
   title: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 18, color: Colors.text, textAlign: 'left',
     marginBottom: Spacing.space3,
   },
@@ -74,7 +74,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   label: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 11, color: Colors.text2, textAlign: 'center',
   },
 })

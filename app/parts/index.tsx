@@ -275,7 +275,7 @@ const s = StyleSheet.create({
     height: 38, borderRadius: 19, paddingHorizontal: Spacing.space3, gap: Spacing.space2,
   },
   navSearchTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'left', flex: 1,
   },
 
@@ -284,7 +284,7 @@ const s = StyleSheet.create({
     zIndex: 1,
   },
   heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 22, color: Colors.white, lineHeight: 36, marginBottom: Spacing.space3, textAlign: 'center',
   },
   heroTitleAccent: {
@@ -301,7 +301,7 @@ const s = StyleSheet.create({
   },
   searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
   searchPlaceholder: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left',
   },
   searchFilterBtn: {
@@ -319,13 +319,13 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   ctaBtnPrimaryTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#1f2937', marginLeft: 6,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#1f2937', marginLeft: 6,
   },
   ctaBtnOutline: {
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', gap: Spacing.space1,
   },
   ctaBtnOutlineTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.white,
   },
 
   // ─── Content ───

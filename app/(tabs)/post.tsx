@@ -77,7 +77,7 @@ const s = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   headerTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
     color: Colors.text,
     textAlign: 'center',
     marginTop: Spacing.space4,
@@ -103,7 +103,7 @@ const s = StyleSheet.create({
   },
   itemTitle: {
     flex: 1,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text,
     textAlign: 'right',
     marginRight: Spacing.space4,
@@ -139,7 +139,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   closeBtnTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text2,
   },
 })

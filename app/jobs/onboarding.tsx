@@ -133,16 +133,16 @@ const s = StyleSheet.create({
   dotLineActive: { backgroundColor: Colors.primary },
   dotLineInactive: { backgroundColor: '#E2E8F0' },
   progressTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text, writingDirection: 'rtl',
+    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, writingDirection: 'rtl',
   },
   content: { padding: Spacing.space4, paddingBottom: 40 },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 26,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 26,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
+    fontFamily: 'Almarai_400Regular',  fontSize: 15,
     color: Colors.textMuted, writingDirection: 'rtl',
     lineHeight: 22, marginBottom: Spacing.space6,
   },
@@ -174,11 +174,11 @@ const s = StyleSheet.create({
   proEmoji: { fontSize: 26 },
   proTextWrap: { flex: 1, paddingEnd: Spacing.space3 },
   proTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 17, color: Colors.text, writingDirection: 'rtl', marginBottom: 4,
+    fontFamily: 'Almarai_700Bold',  fontSize: 17, color: Colors.text, writingDirection: 'rtl', marginBottom: 4,
   },
   proTitleActive: { color: Colors.primary },
   proDesc: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 20,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 20,
   },
   proDescActive: { color: Colors.text },
   proRadio: {

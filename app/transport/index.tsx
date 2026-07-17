@@ -322,7 +322,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 20,
     color: '#fff',
   },
@@ -345,7 +345,7 @@ const s = StyleSheet.create({
   searchIcon: { marginRight: 8 },
   searchInput: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 15,
     color: '#0f172a',
     writingDirection: 'rtl',
@@ -372,7 +372,7 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: '#fff',
   },
   filterBadgeTxt: {
-    color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold', 
   },
   typeTabs: {
     flexDirection: 'row',
@@ -393,7 +393,7 @@ const s = StyleSheet.create({
     borderColor: '#fff',
   },
   typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 14, color: '#fff',
   },
   typeTabTxtActive: {
@@ -413,7 +413,7 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   resultsCount: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 16, color: '#0f172a',
   },
   cardWrapper: {
@@ -449,12 +449,12 @@ const s = StyleSheet.create({
     marginBottom: 20,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 20, color: '#0f172a',
     marginBottom: 8,
   },
   emptySub: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 15, color: '#64748b',
     textAlign: 'center',
     lineHeight: 24,
@@ -470,7 +470,7 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   clearAllBtnInlineTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
   },
   retryBtn: {
@@ -479,7 +479,7 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   retryBtnTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
   },
 });

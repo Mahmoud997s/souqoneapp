@@ -198,13 +198,13 @@ const s = StyleSheet.create({
   scroll: { padding: Spacing.space5, gap: Spacing.space4, paddingBottom: Spacing.space6 },
   pageTitleWrap: { gap: Spacing.space2 },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 28,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
     lineHeight: 36,
     color: '#111827',
     writingDirection: 'rtl',
   },
   pageSubtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#4B5563',
     writingDirection: 'rtl',
@@ -220,7 +220,7 @@ const s = StyleSheet.create({
   hints: { gap: Spacing.space1, marginTop: Spacing.space1 },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   hintTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     lineHeight: 16,
     color: '#4B5563',
     writingDirection: 'rtl',
@@ -228,7 +228,7 @@ const s = StyleSheet.create({
   hintOk: { color: '#16a34a' },
   divider: { height: 1, backgroundColor: '#E2E6EC' },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: '#dc2626',
     textAlign: 'center',
     writingDirection: 'rtl',
@@ -261,13 +261,13 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,
   },
   successTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 28,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
     lineHeight: 36,
     color: '#ffffff',
     writingDirection: 'rtl',
   },
   successDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     lineHeight: 24,
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   successBtnTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
     writingDirection: 'rtl',

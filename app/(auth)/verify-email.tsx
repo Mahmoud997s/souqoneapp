@@ -224,14 +224,14 @@ const s = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 28,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
     lineHeight: 36,
     color: '#ffffff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   heroDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#b4c5ff',
     textAlign: 'center',
@@ -239,7 +239,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   heroEmail: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     lineHeight: 20,
     color: '#ffffff',
     textAlign: 'center',
@@ -257,7 +257,7 @@ const s = StyleSheet.create({
     gap: Spacing.space4,
   },
   label: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     lineHeight: 16,
     color: '#434654',
     textAlign: 'center',
@@ -276,18 +276,18 @@ const s = StyleSheet.create({
     borderColor: '#c3c6d6',
     backgroundColor: '#f7f9fc',
     textAlign: 'center',
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20,
+    fontFamily: 'Almarai_700Bold',  fontSize: 20,
     lineHeight: 28,
     color: Colors.primary,
   },
   otpFilled: { borderColor: Colors.primary },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: '#dc2626',
     textAlign: 'center',
   },
   notReceivedTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#4B5563',
     textAlign: 'center',
@@ -311,7 +311,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
   },
   resendTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
     writingDirection: 'rtl',
@@ -327,7 +327,7 @@ const s = StyleSheet.create({
     borderRadius: 6,
   },
   timerTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     lineHeight: 16,
     color: '#d97706',
   },
@@ -341,7 +341,7 @@ const s = StyleSheet.create({
     paddingBottom: Spacing.space4,
   },
   changeEmailTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#4B5563',
     writingDirection: 'rtl',

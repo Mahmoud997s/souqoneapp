@@ -89,7 +89,7 @@ const s = StyleSheet.create({
     justifyContent: 'center', marginBottom: 8,
   },
   input: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 15, color: Colors.text, paddingHorizontal: 16, paddingVertical: 10,
     maxHeight: 100,
   },

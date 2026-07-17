@@ -174,7 +174,7 @@ const s = StyleSheet.create({
     fontFamily: Typography.caption.fontFamily,
     fontSize: 10,
     color: Colors.textMuted,
-    includeFontPadding: false, letterSpacing: 0.1,
+     letterSpacing: 0.1,
     lineHeight: 16,
     paddingBottom: 2,
   },

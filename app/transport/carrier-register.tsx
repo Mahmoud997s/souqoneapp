@@ -172,18 +172,18 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f5f7fa' },
   body: { padding: 20, paddingBottom: 120, gap: 12 },
 
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginTop: 8 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, height: 48, paddingHorizontal: 14, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, textAlign: 'right', writingDirection: 'rtl' },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginTop: 8 },
+  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, height: 48, paddingHorizontal: 14, fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, textAlign: 'right', writingDirection: 'rtl' },
   textArea: { height: 90, paddingTop: 12 },
 
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border },
   chipActive: { backgroundColor: Colors.primary + '12', borderColor: Colors.primary },
-  chipText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text2 },
-  chipTextActive: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  chipText: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
+  chipTextActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 
   bottomBar: { position: 'absolute', bottom: 0, start: 0, end: 0, backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: Radius.md, backgroundColor: Colors.primary },
-  submitBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: '#fff' },
+  submitBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#fff' },
   disabledBtn: { opacity: 0.5 },
 })

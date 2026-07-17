@@ -1,8 +1,11 @@
 import React from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Gradients } from '../../constants/gradients'
 
 interface StepperProps {
   currentStep: number
@@ -14,7 +17,19 @@ export function Stepper({ currentStep, totalSteps, title }: StepperProps) {
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1)
 
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={s.banner}>
+    <Animated.View entering={FadeIn.duration(400)} style={[s.banner, { overflow: 'hidden' }]}>
+      <LinearGradient colors={Gradients.hero as any} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, { opacity: 0.8 }]} pointerEvents="none">
+        <Svg width="100%" height="100%">
+          <Defs>
+            <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+            </Pattern>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#grid)" />
+        </Svg>
+      </View>
+
       {title && (
         <Animated.Text entering={FadeIn.delay(200)} style={s.bannerTitle}>
           {title}
@@ -78,9 +93,7 @@ const s = StyleSheet.create({
     color: Colors.white,
     textAlign: 'center',
     marginBottom: Spacing.space4,
-    includeFontPadding: false,
-    paddingTop: 4,
-    paddingBottom: 4,
+    
   },
   stepperContainer: {
     flexDirection: 'row',
@@ -117,7 +130,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     color: 'rgba(255,255,255,0.4)',
-    includeFontPadding: false,
+    
     paddingTop: 2,
   },
   stepTextActive: {

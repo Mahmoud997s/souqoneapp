@@ -70,7 +70,7 @@ export default function PostStep3Screen() {
       default:
         return (
           <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
-            <Text style={{ fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.textMuted }}>
+            <Text style={{ fontFamily: 'Almarai_700Bold',  color: Colors.textMuted }}>
               نموذج {category} قيد التطوير
             </Text>
           </View>
@@ -113,13 +113,13 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 100 },
   progressWrap: { marginBottom: Spacing.space6 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.space2 },
-  progressStepTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.textMuted },
-  progressTitle: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.primary },
+  progressStepTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.textMuted },
+  progressTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
   progressBarBg: { height: 10, backgroundColor: Colors.surface, borderRadius: 100, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 100 },
   headerBox: { marginBottom: Spacing.space6 },
-  title: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2 },
-  subtitle: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 22 },
+  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2 },
+  subtitle: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 22 },
   bottomBar: { 
     position: 'absolute', left: 0, right: 0, 
     paddingHorizontal: Spacing.space4, 

@@ -7,7 +7,13 @@ export function useVerificationStatus() {
     queryFn: async () => {
       try {
         const res = await jobsApi.getVerificationStatus()
-        return res.data
+        // Handle case where backend wraps in { success: true, data: { ... } }
+        let data = (res.data as any)?.data ? (res.data as any).data : res.data
+        // Handle case where backend returns an array from findMany
+        if (Array.isArray(data)) {
+          data = data.length > 0 ? data[0] : null
+        }
+        return data
       } catch (e) {
         // Return null if no verification request exists yet
         return null
@@ -19,7 +25,7 @@ export function useVerificationStatus() {
 export function useSubmitVerification() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: FormData) => jobsApi.submitVerification(data),
+    mutationFn: (data: { licenseImageUrl: string; licenseBackImageUrl?: string; idImageUrl: string; idBackImageUrl?: string; notes?: string }) => jobsApi.submitVerification(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['verificationStatus'] })
       qc.invalidateQueries({ queryKey: ['myDriverProfile'] })

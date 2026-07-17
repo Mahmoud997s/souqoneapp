@@ -179,7 +179,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space1,
   },
   tagline: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     lineHeight: 24,
     color: 'rgba(255,255,255,0.8)',
   },
@@ -196,14 +196,14 @@ const s = StyleSheet.create({
   },
   cardHeader: { alignItems: 'center', gap: Spacing.space2 },
   cardTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 24,
+    fontFamily: 'Almarai_700Bold',  fontSize: 24,
     lineHeight: 32,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   cardSub: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text2,
     textAlign: 'center',
@@ -212,14 +212,14 @@ const s = StyleSheet.create({
 
   form: { gap: Spacing.space3 },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   forgotRow: { alignSelf: 'flex-end' },
   forgotTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     lineHeight: 16,
     color: Colors.primary,
     writingDirection: 'rtl',
@@ -233,21 +233,21 @@ const s = StyleSheet.create({
   },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     lineHeight: 16,
     color: Colors.textMuted,
   },
 
   signupRow: { alignItems: 'center' },
   signupTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text2,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   signupLink: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
   },

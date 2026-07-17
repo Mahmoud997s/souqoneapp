@@ -60,8 +60,8 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: Spacing.space3, marginTop: Spacing.space2,
   },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, textAlign: 'left' },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
+  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, textAlign: 'left' },
+  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
   promoContainer: {
     gap: Spacing.space3,
     marginBottom: Spacing.space6,
@@ -80,14 +80,14 @@ const s = StyleSheet.create({
     backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginBottom: 8,
   },
   badgeTxt: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, fontSize: 10,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 10,
   },
   promoTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 18, marginBottom: 4, textAlign: 'left',
   },
   promoDesc: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 13, marginBottom: 16, textAlign: 'left', lineHeight: 22, opacity: 0.9,
   },
   promoBtn: {
@@ -98,7 +98,7 @@ const s = StyleSheet.create({
     alignSelf: 'flex-end'
   },
   promoBtnTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 2,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 13, color: Colors.white,
   },
   promoIcon: {

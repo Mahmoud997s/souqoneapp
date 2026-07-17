@@ -106,7 +106,7 @@ const s = StyleSheet.create({
   topBar: { alignItems: 'flex-start', paddingHorizontal: Spacing.space5, paddingTop: Spacing.space1 },
   skipBtn: { paddingHorizontal: Spacing.space4, paddingVertical: Spacing.space2, borderRadius: 999 },
   skipTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     lineHeight: 16,
     color: '#4B5563',
     writingDirection: 'rtl',
@@ -143,14 +143,14 @@ const s = StyleSheet.create({
   },
   textWrap: { alignItems: 'center', gap: Spacing.space3 },
   slideTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 24,
+    fontFamily: 'Almarai_700Bold',  fontSize: 24,
     lineHeight: 32,
     color: Colors.primary,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   slideSubtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     lineHeight: 24,
     color: '#4B5563',
     textAlign: 'center',
@@ -177,11 +177,11 @@ const s = StyleSheet.create({
   dotActive: { width: 32, backgroundColor: Colors.primary },
   dotInactive: { width: 8, backgroundColor: '#c3c6d6' },
   loginTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: '#4B5563',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  loginLink: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  loginLink: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 })

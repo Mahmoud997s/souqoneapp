@@ -411,15 +411,15 @@ const s = StyleSheet.create({
   stepItem: { alignItems: 'center', gap: 4 },
   stepDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   stepDotActive: { backgroundColor: Colors.primary },
-  stepNum: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11, color: Colors.textMuted },
+  stepNum: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.textMuted },
   stepNumActive: { color: '#fff' },
-  stepLabel: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 10, color: Colors.textMuted },
-  stepLabelActive: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  stepLabel: { fontFamily: 'Almarai_400Regular',  fontSize: 10, color: Colors.textMuted },
+  stepLabelActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 
   // Body
   body: { padding: 20, paddingBottom: 120 },
   stepContent: { gap: 14 },
-  stepTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text, writingDirection: 'rtl' },
+  stepTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, writingDirection: 'rtl' },
 
   // Type grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -435,11 +435,11 @@ const s = StyleSheet.create({
     ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }, android: { elevation: 2 } }),
   },
   typeIcon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  typeLabel: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text, textAlign: 'center' },
+  typeLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, textAlign: 'center' },
   typeCheck: { position: 'absolute', top: 8, left: 8, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
 
   // Fields
-  fieldLabel: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text, writingDirection: 'rtl' },
+  fieldLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, writingDirection: 'rtl' },
   input: {
     backgroundColor: '#fff',
     borderWidth: 1,
@@ -447,7 +447,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     height: 48,
     paddingHorizontal: 14,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'right',
@@ -458,28 +458,28 @@ const s = StyleSheet.create({
   optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   optionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border },
   optionChipActive: { backgroundColor: Colors.primary + '12', borderColor: Colors.primary },
-  optionText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text2 },
-  optionTextActive: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  optionText: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
+  optionTextActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 
   // Toggle
   toggle: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  toggleText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
+  toggleText: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
 
   // Budget
   budgetRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  budgetDash: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.textMuted },
+  budgetDash: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.textMuted },
 
   // Review
   reviewCard: { backgroundColor: '#fff', borderRadius: Radius.lg, padding: 16, gap: 12, borderWidth: 1, borderColor: Colors.border },
   reviewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-  reviewLabel: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
-  reviewValue: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text, writingDirection: 'rtl', flex: 1, textAlign: 'left' },
+  reviewLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
+  reviewValue: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, writingDirection: 'rtl', flex: 1, textAlign: 'left' },
 
   // Bottom bar
   bottomBar: { position: 'absolute', bottom: 0, start: 0, end: 0, backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
   nextBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: Radius.md, backgroundColor: Colors.primary },
-  nextBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: '#fff' },
+  nextBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#fff' },
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: Radius.md, backgroundColor: '#16a34a' },
-  submitBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: '#fff' },
+  submitBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#fff' },
   disabledBtn: { opacity: 0.5 },
 })

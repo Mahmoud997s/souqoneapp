@@ -31,6 +31,8 @@ import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { DriverCard } from '../../src/components/cards/DriverCard'
 import { normalizeJobType } from '../../src/utils/normalizeJobType'
+import VerificationBanner from '../../src/components/jobs/VerificationBanner'
+import { useVerificationStatus } from '../../src/hooks/useVerification'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -73,16 +75,59 @@ function StatPill({ icon, value, label }: { icon: string; value: string; label: 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
+function DriversSwiper({ drivers }: { drivers: any[] }) {
+  if (!drivers || drivers.length === 0) return null
+  return (
+    <View style={{ marginTop: 0, marginBottom: Spacing.space2 }}>
+      <Text style={s.sectionTitle}>سائقين جاهزين للعمل</Text>
+      <FlatList
+        data={drivers}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={item => item.id}
+        contentContainerStyle={{ paddingHorizontal: Spacing.space4, gap: Spacing.space4 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity 
+            style={s.driverCircleCard}
+            onPress={() => router.push(`/jobs/drivers/${item.id}` as any)}
+            activeOpacity={0.8}
+          >
+            <View style={s.driverCircleAvatarWrap}>
+              {item.user?.avatarUrl ? (
+                <Image source={{ uri: item.user.avatarUrl }} style={s.driverCircleAvatar} />
+              ) : (
+                <View style={[s.driverCircleAvatar, { backgroundColor: Colors.primary + '15', justifyContent: 'center', alignItems: 'center' }]}>
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 24, color: Colors.primary,  }}>
+                    {item.user?.displayName?.[0] || 'س'}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <Text style={s.driverCircleName} numberOfLines={1}>
+              {item.user?.displayName || 'سائق'}
+            </Text>
+            <View style={s.driverCircleRating}>
+              <Ionicons name="star" size={12} color="#FBBF24" />
+              <Text style={s.driverCircleRatingTxt}>{item.averageRating ? item.averageRating.toFixed(1) : 'جديد'}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  )
+}
+
 export default function JobsLandingScreen() {
   const insets = useSafeAreaInsets()
   const isRTL = I18nManager.isRTL
   const { user } = useAuthStore()
   const { activeRole } = useJobProfileStore()
   const { data: jobs, isLoading: jobsLoading } = useJobsRaw({ limit: 15 })
-  const { data: driversPage, isLoading: driversLoading } = useDrivers({ limit: 3 })
+  const { data: driversPage, isLoading: driversLoading } = useDrivers({ limit: 15 })
   
   const { data: driverProfile, isLoading: dLoading } = useMyDriverProfile()
   const { data: employerProfile, isLoading: eLoading } = useMyEmployerProfile()
+  const { data: verification } = useVerificationStatus()
 
   useEffect(() => {
     // If role already set in session, do nothing
@@ -179,7 +224,7 @@ export default function JobsLandingScreen() {
   const serviceJobs = useMemo(() => jobs?.filter((j: any) => normalizeJobType(j.jobType) === 'OFFERING').slice(0, 3) || [], [jobs])
   const topDrivers = useMemo(() => {
     const arr = (driversPage as any)?.items || (driversPage as any)?.drivers || (driversPage as any)?.data || (Array.isArray(driversPage) ? driversPage : [])
-    return arr.slice(0, 3)
+    return [...arr].sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
   }, [driversPage])
 
   // ─── Header Content (Banners, Actions, etc) ───
@@ -199,79 +244,14 @@ export default function JobsLandingScreen() {
         </View>
       )}
 
-      {/* ── BANNERS CAROUSEL ── */}
-      <View style={{ marginTop: Spacing.space4, height: 150 }}>
-        <Carousel
-          style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
-          loop={true}
-          width={SW}
-          height={150}
-          autoPlay={false}
-          data={[{ id: 'b1', type: 'driver' }, { id: 'b2', type: 'job' }]}
-          onSnapToItem={(index) => setActiveBanner(index)}
-          renderItem={({ item }) => {
-            if (item.type === 'driver') {
-              return (
-                <View style={{ flex: 1, transform: [{ scaleX: isRTL ? -1 : 1 }] }}>
-                  <TouchableOpacity
-                    style={{ width: SW, paddingHorizontal: 10, flex: 1 }}
-                    onPress={() => router.push('/jobs/drivers' as any)}
-                    activeOpacity={0.88}
-                  >
-                    <LinearGradient
-                      colors={['#065F46', '#059669']}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                      style={[s.driverBannerGrad, { flex: 1 }]}
-                    >
-                      <View style={s.driverBannerContent}>
-                        <Text style={s.driverBannerTitle}>هل تبحث عن سائق؟</Text>
-                        <Text style={s.driverBannerSub}>تواصل مع سائقين موثّقين الآن</Text>
-                        <View style={s.driverBannerBtn}>
-                          <Text style={s.driverBannerBtnTxt}>استعرض السائقين</Text>
-                          <Ionicons name="arrow-back" size={14} color="#059669" />
-                        </View>
-                      </View>
-                      <Ionicons name="car-sport" size={80} color="rgba(255,255,255,0.15)" style={s.driverBannerIcon} />
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              )
-            } else {
-              return (
-                <View style={{ flex: 1, transform: [{ scaleX: isRTL ? -1 : 1 }] }}>
-                  <TouchableOpacity
-                    style={{ width: SW, paddingHorizontal: 10, flex: 1 }}
-                    onPress={() => router.push('/jobs/create' as any)}
-                    activeOpacity={0.88}
-                  >
-                    <LinearGradient
-                      colors={Gradients.hero as any}
-                      locations={[0, 0.6, 1]}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                      style={[s.driverBannerGrad, { flex: 1 }]}
-                    >
-                      <View style={s.driverBannerContent}>
-                        <Text style={s.driverBannerTitle}>هل تبحث عن فرصة عمل كسائق؟</Text>
-                        <Text style={s.driverBannerSub}>انضم لأكبر بورصة سائقين في عُمان</Text>
-                        <View style={[s.driverBannerBtn, { backgroundColor: Colors.accent }]}>
-                          <Text style={[s.driverBannerBtnTxt, { color: Colors.white }]}>ابدأ الآن - مجاناً</Text>
-                        </View>
-                      </View>
-                      <Ionicons name="briefcase" size={80} color="rgba(255,255,255,0.1)" style={s.driverBannerIcon} />
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              )
-            }
-          }}
-        />
-
-        {/* Dots Indicator */}
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: Spacing.space3 }}>
-          <View style={{ width: activeBanner === 0 ? 20 : 8, height: 8, borderRadius: 4, backgroundColor: activeBanner === 0 ? Colors.primary : Colors.border }} />
-          <View style={{ width: activeBanner === 1 ? 20 : 8, height: 8, borderRadius: 4, backgroundColor: activeBanner === 1 ? Colors.primary : Colors.border }} />
+      {hasProfile && (!verification || verification.status?.toUpperCase() !== 'APPROVED') && (
+        <View style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space1 }}>
+          <VerificationBanner status={verification?.status} rejectionReason={verification?.rejectionReason} />
         </View>
-      </View>
+      )}
+
+      {/* ── DRIVERS SWIPER ── */}
+      <DriversSwiper drivers={topDrivers} />
 
       {/* ── QUICK ACTIONS ── */}
       <Text style={s.sectionTitle}>ماذا تريد؟</Text>
@@ -304,7 +284,7 @@ export default function JobsLandingScreen() {
 
       <View style={{ height: Spacing.space4 }} />
     </>
-  ), [hasProfile, user, activeBanner])
+  ), [hasProfile, user, activeBanner, verification, topDrivers])
 
   return (
     <View style={s.root}>
@@ -497,7 +477,7 @@ export default function JobsLandingScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const act = StyleSheet.create({
   card: {
-    width: (SW - 10 * 2 - Spacing.space4) / 2,
+    width: (SW - Spacing.space5 * 2 - Spacing.space4) / 2,
     flexDirection: 'row',
     borderRadius: Radius.lg, padding: Spacing.space3,
     gap: Spacing.space2,
@@ -510,14 +490,14 @@ const act = StyleSheet.create({
   },
   iconBox: { width: 44, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   textBox: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', gap: 4 },
-  label:   { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
-  desc:    { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text2, textAlign: 'left', writingDirection: 'rtl' },
+  label:   { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
+  desc:    { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.text2, textAlign: 'left', writingDirection: 'rtl' },
 })
 
 const st = StyleSheet.create({
   pill:   { alignItems: 'center', flex: 1, gap: 2 },
-  value:  { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.white },
-  label:  { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11, color: 'rgba(255,255,255,0.75)' },
+  value:  { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.white },
+  label:  { fontFamily: 'Almarai_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.75)' },
 })
 
 const s = StyleSheet.create({
@@ -562,7 +542,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, gap: Spacing.space2,
   },
   navSearchTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_400Regular', fontSize: 13,
     color: 'rgba(255,255,255,0.7)', writingDirection: 'rtl'
   },
 
@@ -581,10 +561,10 @@ const s = StyleSheet.create({
     marginBottom: 0,
   },
   heroBadgeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4ade80' },
-  heroBadgeTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: 'rgba(255,255,255,0.9)' },
+  heroBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: 'rgba(255,255,255,0.9)' },
 
   heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 22,
     color: Colors.white,
     lineHeight: 36,
     marginBottom: Spacing.space2,
@@ -594,7 +574,7 @@ const s = StyleSheet.create({
     color: Colors.accent,
   },
   heroSub: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_400Regular', fontSize: 13,
     color: 'rgba(255,255,255,0.7)',
     marginBottom: Spacing.space2,
     textAlign: 'center',
@@ -622,14 +602,14 @@ const s = StyleSheet.create({
     backgroundColor: Colors.accent,
   },
   heroBtnPrimaryTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#FFFFFF',
+    fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#FFFFFF',
   },
   heroBtnOutline: {
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)',
     gap: Spacing.space1,
   },
   heroBtnOutlineTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white,
+    fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.white,
   },
 
   // ─── Hero Search Bar ───
@@ -646,7 +626,7 @@ const s = StyleSheet.create({
   searchInnerWrapper: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
   },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.textMuted, fontSize: 13, flex: 1, writingDirection: 'rtl' },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular', color: Colors.textMuted, fontSize: 13, flex: 1, writingDirection: 'rtl' },
   searchFilterBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
 
   // ─── Sections ───
@@ -655,17 +635,17 @@ const s = StyleSheet.create({
     paddingHorizontal: 10, marginTop: Spacing.space5, marginBottom: Spacing.space3,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text,
     paddingHorizontal: 10,
     marginTop: Spacing.space5, marginBottom: Spacing.space3,
     alignSelf: 'flex-start',
   },
   sectionTitleHeader: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text,
+    fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text,
     textAlign: 'left', writingDirection: 'rtl',
   },
   sectionSubHeader: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted,
+    fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.textMuted,
     marginTop: 2, textAlign: 'left', writingDirection: 'rtl',
   },
   seeAllBtn: {
@@ -673,7 +653,7 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
     backgroundColor: Colors.primary + '10', borderRadius: Radius.pill,
   },
-  seeAllTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.primary },
+  seeAllTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.primary },
 
   // ─── CTA Buttons (inside hero) ───
   ctaRow: {
@@ -697,14 +677,14 @@ const s = StyleSheet.create({
     backgroundColor: Colors.accent,
   },
   ctaBtnPrimaryTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#FFFFFF',
+    fontFamily: 'Almarai_700Bold', fontSize: 14, color: '#FFFFFF',
   },
   ctaBtnOutline: {
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)',
     backgroundColor: 'transparent',
   },
   ctaBtnOutlineTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.white,
+    fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.white,
   },
 
   // ─── Actions grid ───
@@ -717,20 +697,20 @@ const s = StyleSheet.create({
 
   // ─── Job cards container ───
   emptyBox: { alignItems: 'center', paddingVertical: Spacing.space6, gap: Spacing.space2 },
-  emptyTxt: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.textMuted },
+  emptyTxt: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted },
 
   // ─── Driver banner ───
   driverBannerGrad: { padding: Spacing.space5, flexDirection: 'row', overflow: 'hidden', minHeight: 110, borderRadius: Radius.lg },
   driverBannerContent: { flex: 1, gap: Spacing.space1, alignItems: 'flex-start' },
-  driverBannerTitle: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.white },
-  driverBannerSub:   { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: 'rgba(255,255,255,0.85)' },
+  driverBannerTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.white },
+  driverBannerSub:   { fontFamily: 'Almarai_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.85)' },
   driverBannerBtn: {
     marginTop: Spacing.space3, flexDirection: 'row', alignItems: 'center', gap: Spacing.space1,
     backgroundColor: Colors.white, alignSelf: 'flex-start',
     paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
     borderRadius: Radius.pill,
   },
-  driverBannerBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: '#059669' },
+  driverBannerBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#059669' },
   driverBannerIcon:   { position: 'absolute', end: -16, bottom: -12 },
 
   // ─── Profile CTA ───
@@ -745,11 +725,55 @@ const s = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
-  profileCtaTitle: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.text },
-  profileCtaDesc:  { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.text2, marginTop: 2 },
+  profileCtaTitle: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text },
+  profileCtaDesc:  { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2, marginTop: 2 },
   profileCtaBtn: {
     backgroundColor: Colors.primary, borderRadius: Radius.md,
     paddingVertical: Spacing.space2, paddingHorizontal: Spacing.space3,
   },
-  profileCtaBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white },
+  profileCtaBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.white },
+
+  // ─── DRIVER SWIPER ───
+  driverCircleCard: {
+    alignItems: 'center',
+    width: 76,
+  },
+  driverCircleAvatarWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: Spacing.space2,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    padding: 2,
+  },
+  driverCircleAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+  },
+  driverCircleName: {
+    fontFamily: 'Almarai_700Bold',
+    
+    fontSize: 12,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 2,
+    width: '100%',
+  },
+  driverCircleRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  driverCircleRatingTxt: {
+    fontFamily: 'Almarai_700Bold',
+    
+    fontSize: 10,
+    color: '#D97706',
+  },
 })

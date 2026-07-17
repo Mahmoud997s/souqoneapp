@@ -41,5 +41,5 @@ const s = StyleSheet.create({
   badgeText: {
     color: '#2563eb', // text-blue-600
     fontSize: 10,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, }
+    fontFamily: 'Almarai_700Bold',  }
 })

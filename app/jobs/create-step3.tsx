@@ -12,7 +12,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { Stepper } from '../../src/components/ui/Stepper'
 import { InlineError } from '../../src/components/ui/InlineError'
 import { OMAN_GOVERNORATES, OMAN_WILAYAT_BY_GOVERNORATE } from '../../src/constants/jobs'
 import { LocationPicker } from '../../src/components/ui/LocationPicker'
@@ -31,6 +31,10 @@ export default function CreateStep3() {
       setError('الرجاء تحديد المحافظة أولاً')
       return
     }
+    if (city.trim().length === 0) {
+      setError('الرجاء تحديد الولاية/المدينة')
+      return
+    }
     setError('')
     router.push('/jobs/create-step4')
   }
@@ -42,11 +46,9 @@ export default function CreateStep3() {
     >
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <AppHeader title="نشر إعلان" showBack variant="jobs" />
-        <WizardProgress current={3} total={TOTAL_STEPS} />
 
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <Text style={s.stepLabel}>الخطوة 3 من {TOTAL_STEPS}</Text>
-          <Text style={s.pageTitle}>الموقع الجغرافي</Text>
+          <Stepper currentStep={3} totalSteps={TOTAL_STEPS} title="الموقع الجغرافي" />
           <Text style={s.pageDesc}>حدد محافظة وولاية الوظيفة لتسهيل البحث</Text>
 
           {/* Governorate & City */}
@@ -102,20 +104,20 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
     color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, writingDirection: 'rtl',
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    color: Colors.text2, writingDirection: 'rtl', textAlign: 'center',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
@@ -130,7 +132,7 @@ const s = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border,
   },
   govCardActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  govText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
+  govText: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2 },
   govTextActive: { color: Colors.primary },
   wilayatRow: {
     flexDirection: 'row', gap: Spacing.space2, paddingVertical: Spacing.space1,
@@ -142,7 +144,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  chipText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
+  chipText: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2 },
   chipTextActive: { color: Colors.primary },
   summaryCard: {
     flexDirection: 'row', gap: Spacing.space3, alignItems: 'center',
@@ -151,11 +153,11 @@ const s = StyleSheet.create({
   },
   summaryContent: { flex: 1, alignItems: 'flex-start' },
   summaryTitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.primaryLight, marginBottom: 2,
   },
   summaryValue: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
+    fontFamily: 'Almarai_700Bold',  fontSize: 15,
     color: Colors.primary,
   },
   footer: {

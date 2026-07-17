@@ -92,7 +92,7 @@ const s = StyleSheet.create({
     marginVertical: Spacing.space3,
   },
   title: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text,
     paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space2,
@@ -138,13 +138,13 @@ const s = StyleSheet.create({
     height: '100%',
   },
   name: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.textMuted,
     textAlign: 'center',
     marginTop: 2,
   },
   activeName: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
   },
   loader: {
     height: 90,

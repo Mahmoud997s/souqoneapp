@@ -101,19 +101,19 @@ const s = StyleSheet.create({
     padding: Spacing.space4,
   },
   loadingTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 16,
     color: Colors.text,
     marginTop: Spacing.space4,
   },
   error: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 16,
     color: Colors.error,
     marginBottom: Spacing.space4,
   },
   backBtn: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 14,
     color: Colors.primary,
   },

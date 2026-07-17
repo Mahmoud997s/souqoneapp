@@ -141,7 +141,7 @@ const s = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.headlineSm.fontSize,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.headlineSm.fontSize,
     lineHeight: 26,
     color: Colors.white,
     textAlign: 'center',

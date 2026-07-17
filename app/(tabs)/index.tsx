@@ -331,8 +331,8 @@ const s = StyleSheet.create({
     flex: 1, height: 44, justifyContent: 'center'
   },
   
-  greeting: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'left' },
-  userName: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.white, textAlign: 'left' },
+  greeting: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'left' },
+  userName: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.white, textAlign: 'left' },
   
   navSearchInner: {
     flexDirection: 'row', alignItems: 'center',
@@ -341,7 +341,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, gap: Spacing.space2,
   },
   navSearchTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: 'rgba(255,255,255,0.85)', flex: 1, textAlign: 'left',
   },
 
@@ -362,7 +362,7 @@ const s = StyleSheet.create({
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
   searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left' },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular',  color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left' },
   searchFilterBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
 
   content: { },
@@ -372,8 +372,8 @@ const s = StyleSheet.create({
   bannerCard: { width: SW * 0.85, height: 110, borderRadius: 20, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
   bannerGradient: { flex: 1, padding: Spacing.space4, justifyContent: 'center', position: 'relative' },
   bannerTexts: { zIndex: 2, paddingEnd: 40 },
-  bannerTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.white, marginBottom: 4, writingDirection: 'rtl' },
-  bannerSub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: 'rgba(255,255,255,0.9)', writingDirection: 'rtl' },
+  bannerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.white, marginBottom: 4, writingDirection: 'rtl' },
+  bannerSub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: 'rgba(255,255,255,0.9)', writingDirection: 'rtl' },
   bannerIconBg: { position: 'absolute', left: -10, bottom: -15, transform: [{ rotate: '-15deg' }] },
 
   // Categories
@@ -388,16 +388,16 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
-  catLabel: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text, textAlign: 'center' },
+  catLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text, textAlign: 'center' },
 
   // Section
   section: { marginBottom: 32 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.space5, marginBottom: Spacing.space3 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sectionIconWrap: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text },
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: Colors.primary + '10', borderRadius: Radius.pill },
-  seeAll: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.primary },
+  seeAll: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary },
 
   // Horizontal list
   hList: { },

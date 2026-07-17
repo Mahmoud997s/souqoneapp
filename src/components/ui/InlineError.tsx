@@ -35,9 +35,7 @@ const s = StyleSheet.create({
   },
   text: {
     fontFamily: 'Almarai_400Regular',
-    paddingTop: 4,
-    paddingBottom: 4,
-    includeFontPadding: false,
+    
     fontSize: 12,
     color: Colors.error,
     writingDirection: 'rtl',

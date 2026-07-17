@@ -14,7 +14,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { Stepper } from '../../src/components/ui/Stepper'
 import {
   LICENSE_TYPE_LABELS,
   EMPLOYMENT_TYPE_LABELS,
@@ -65,6 +65,9 @@ export default function CreateStep4() {
         salaryPeriod: store.salaryPeriod,
         licenseTypes: store.licenseTypes,
         experienceYears: store.experienceYears,
+        minAge: store.minAge,
+        maxAge: store.maxAge,
+        nationality: store.nationality,
         languages: store.languages,
         vehicleTypes: store.vehicleTypes,
         hasOwnVehicle: store.hasOwnVehicle,
@@ -108,6 +111,8 @@ export default function CreateStep4() {
     ? formatSalary(store.salary, store.salaryPeriod)
     : 'غير محدد'
 
+  const isHiring = normalizeJobType(store.jobType) === 'HIRING'
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -115,25 +120,34 @@ export default function CreateStep4() {
     >
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <AppHeader title="نشر إعلان" showBack variant="jobs" />
-        <WizardProgress current={4} total={TOTAL_STEPS} />
 
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <Text style={s.stepLabel}>الخطوة 4 من {TOTAL_STEPS}</Text>
-          <Text style={s.pageTitle}>مراجعة ونشر الإعلان</Text>
+          <Stepper currentStep={4} totalSteps={TOTAL_STEPS} title="مراجعة ونشر الإعلان" />
           <Text style={s.pageDesc}>راجع تفاصيل إعلانك قبل النشر، ثم أضف معلومات التواصل</Text>
 
           {/* Summary Card */}
           <View style={s.summaryCard}>
-            <View style={s.summaryHeader}>
-              <Ionicons
-                name={normalizeJobType(store.jobType) === 'HIRING' ? 'briefcase' : 'car'}
-                size={20}
-                color={Colors.primary}
-              />
-              <Text style={s.summaryType}>
-                {normalizeJobType(store.jobType) === 'HIRING' ? '🏢 طلب سائق' : '🚗 عرض خدمة'}
-              </Text>
+            <View style={s.summaryTopRow}>
+              <View style={[s.typeBadge, isHiring ? s.typeBadgeHiring : s.typeBadgeOffering]}>
+                <Ionicons
+                  name={isHiring ? 'briefcase' : 'car'}
+                  size={14}
+                  color={isHiring ? Colors.primary : Colors.accent}
+                />
+                <Text style={[s.typeBadgeText, isHiring ? s.typeTextHiring : s.typeTextOffering]}>
+                  {isHiring ? 'طلب سائق' : 'عرض خدمة'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => router.push('/jobs/create')}
+                activeOpacity={0.8}
+                style={s.editCircle}
+              >
+                <Ionicons name="pencil" size={16} color={Colors.text2} />
+              </TouchableOpacity>
             </View>
+
             <Text style={s.summaryTitle}>{store.title}</Text>
             <Text style={s.summaryDesc} numberOfLines={3}>{store.description}</Text>
 
@@ -141,10 +155,10 @@ export default function CreateStep4() {
 
             <ReviewRow icon="time-outline" label="نوع الدوام" value={EMPLOYMENT_TYPE_LABELS[store.employmentType]} />
             <ReviewRow icon="cash-outline" label="الراتب" value={salaryLabel} />
-            <ReviewRow icon="id-card-outline" label="الرخصة المطلوبة" value={licenseLabel || 'غير محدد'} />
+            <ReviewRow icon="id-card-outline" label={isHiring ? "الرخصة المطلوبة" : "رخصتك"} value={licenseLabel || 'غير محدد'} />
             <ReviewRow
               icon="school-outline"
-              label="سنوات الخبرة"
+              label={isHiring ? "الخبرة المطلوبة" : "خبرتك"}
               value={store.experienceYears ? `${store.experienceYears} سنوات` : null}
             />
             <ReviewRow
@@ -153,51 +167,66 @@ export default function CreateStep4() {
               value={[store.governorate, store.city].filter(Boolean).join(' — ')}
             />
             {store.hasOwnVehicle && (
-              <ReviewRow icon="car-outline" label="المركبة" value="يجب امتلاك مركبة خاصة" />
+              <ReviewRow icon="car-outline" label="المركبة" value={isHiring ? "يجب امتلاك مركبة خاصة" : "يمتلك مركبة خاصة"} />
             )}
           </View>
 
-          {/* Edit hint */}
-          <TouchableOpacity
-            style={s.editHint}
-            onPress={() => router.push('/jobs/create')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="create-outline" size={16} color={Colors.primary} />
-            <Text style={s.editHintText}>تعديل التفاصيل</Text>
-          </TouchableOpacity>
-
           {/* Contact Info */}
-          <Text style={s.sectionTitle}>معلومات التواصل (اختياري)</Text>
+          <Text style={s.sectionTitle}>معلومات التواصل *</Text>
           <Text style={s.sectionDesc}>
             أضف طرق تواصل إضافية إلى جانب البريد الإلكتروني الافتراضي لحسابك
           </Text>
 
-          <TextInput
-            style={s.input}
-            value={contactPhone}
-            onChangeText={setContactPhone}
-            placeholder="رقم الهاتف (مثال: 96898765432)"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="phone-pad"
-          />
-          <TextInput
-            style={s.input}
-            value={whatsapp}
-            onChangeText={setWhatsapp}
-            placeholder="رقم واتساب"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="phone-pad"
-          />
-          <TextInput
-            style={s.input}
-            value={contactEmail}
-            onChangeText={setContactEmail}
-            placeholder="بريد إلكتروني للتواصل"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={s.contactCard}>
+            <View style={s.contactRowInput}>
+              <View style={s.contactIconBoxInput}>
+                <Ionicons name="call" size={18} color={Colors.primary} />
+              </View>
+              <TextInput
+                style={s.contactInputInner}
+                value={contactPhone}
+                onChangeText={setContactPhone}
+                placeholder="رقم الهاتف (إجباري) *"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                textContentType="telephoneNumber"
+              />
+            </View>
+            <View style={s.dividerLine} />
+            <View style={s.contactRowInput}>
+              <View style={s.contactIconBoxInput}>
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+              </View>
+              <TextInput
+                style={s.contactInputInner}
+                value={whatsapp}
+                onChangeText={setWhatsapp}
+                placeholder="رقم واتساب (اختياري)"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                textContentType="telephoneNumber"
+              />
+            </View>
+            <View style={s.dividerLine} />
+            <View style={s.contactRowInput}>
+              <View style={s.contactIconBoxInput}>
+                <Ionicons name="mail" size={18} color={Colors.primary} />
+              </View>
+              <TextInput
+                style={s.contactInputInner}
+                value={contactEmail}
+                onChangeText={setContactEmail}
+                placeholder="البريد الإلكتروني (اختياري)"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                textContentType="emailAddress"
+              />
+            </View>
+          </View>
 
           {/* Terms */}
           <View style={s.termsBox}>
@@ -221,7 +250,13 @@ export default function CreateStep4() {
             <AppButton
               title="نشر الإعلان"
               size="sm"
-              onPress={() => publishMutation.mutate()}
+              onPress={() => {
+                if (!contactPhone || contactPhone.trim() === '') {
+                  Alert.alert('تنبيه', 'الرجاء إدخال رقم الهاتف للتواصل')
+                  return
+                }
+                publishMutation.mutate()
+              }}
               disabled={publishMutation.isPending}
               loading={publishMutation.isPending}
               style={{ flex: 1 }}
@@ -245,11 +280,11 @@ const r = StyleSheet.create({
   },
   rowContent: { flex: 1, alignItems: 'flex-start' },
   rowLabel: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+    fontFamily: 'Almarai_400Regular',  fontSize: 11,
     color: Colors.textMuted,
   },
   rowValue: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text,
   },
 })
@@ -258,40 +293,56 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
     color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, writingDirection: 'rtl',
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    color: Colors.text2, writingDirection: 'rtl', textAlign: 'center',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   summaryCard: {
-    backgroundColor: Colors.white, borderRadius: Radius.lg,
-    borderWidth: 1, borderColor: Colors.border,
-    padding: Spacing.space4, marginBottom: Spacing.space2,
+    backgroundColor: Colors.white, borderRadius: Radius.xl,
+    padding: Spacing.space4, marginBottom: Spacing.space5,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
+      android: { elevation: 3 },
+    }),
   },
-  summaryHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    marginBottom: Spacing.space2,
+  summaryTopRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: Spacing.space3,
   },
-  summaryType: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.primary,
+  typeBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 6, paddingHorizontal: 12,
+    borderRadius: Radius.pill,
+  },
+  typeBadgeHiring: { backgroundColor: Colors.primary + '15' },
+  typeBadgeOffering: { backgroundColor: Colors.accent + '15' },
+  typeBadgeText: {
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
+  },
+  typeTextHiring: { color: Colors.primary },
+  typeTextOffering: { color: Colors.accent },
+  editCircle: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: Colors.surface,
+    alignItems: 'center', justifyContent: 'center',
   },
   summaryTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 17,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 18,
     color: Colors.text, writingDirection: 'rtl',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   summaryDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text2, writingDirection: 'rtl',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   divider: { height: 1, backgroundColor: Colors.border, marginVertical: 12 },
   editHint: {
@@ -301,31 +352,54 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary + '12', borderRadius: Radius.pill,
   },
   editHintText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.primary,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text, writingDirection: 'rtl', marginBottom: 8,
   },
   sectionDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text2, writingDirection: 'rtl', marginBottom: Spacing.space4, lineHeight: 20,
   },
   input: {
-    backgroundColor: Colors.white, borderRadius: Radius.xl,
+    backgroundColor: Colors.white, borderRadius: Radius.sm,
     borderWidth: 1, borderColor: Colors.border,
-    paddingHorizontal: Spacing.space4, height: 56,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text,
-    marginBottom: Spacing.space3, textAlign: 'right', writingDirection: 'rtl',
+    paddingHorizontal: Spacing.space4, minHeight: 56, paddingVertical: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text,
+    textAlign: 'right', writingDirection: 'rtl',
   },
+  contactCard: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg,
+    borderWidth: 1, borderColor: Colors.border,
+    overflow: 'hidden', marginBottom: Spacing.space4,
+  },
+  contactRowInput: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: Spacing.space3,
+    minHeight: 56,
+  },
+  contactIconBoxInput: {
+    width: 36, height: 36, borderRadius: Radius.sm,
+    backgroundColor: Colors.surface,
+    alignItems: 'center', justifyContent: 'center',
+    marginEnd: Spacing.space3,
+  },
+  contactInputInner: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text,
+    textAlign: 'right', writingDirection: 'rtl',
+    minHeight: 56, paddingVertical: 14,
+  },
+  dividerLine: { height: 1, backgroundColor: Colors.border, marginHorizontal: Spacing.space3 },
   termsBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.space2,
     backgroundColor: Colors.surface, borderRadius: Radius.sm,
     padding: Spacing.space3, marginTop: Spacing.space1,
   },
   termsText: {
-    flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 18,
   },
   footer: {

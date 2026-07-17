@@ -155,9 +155,7 @@ const s = StyleSheet.create({
   },
   tagline: {
     fontFamily: 'Almarai_700Bold', 
-    paddingTop: 4, 
-    paddingBottom: 4, 
-    includeFontPadding: false, 
+     
     fontSize: 18,
     lineHeight: 26,
     color: 'rgba(255,255,255,0.95)',

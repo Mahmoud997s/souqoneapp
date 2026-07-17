@@ -150,8 +150,8 @@ const s = StyleSheet.create({
   tabsScroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, backgroundColor: '#fff' },
   tab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 100, backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: 'transparent' },
   tabActive: { backgroundColor: Colors.primary + '12', borderColor: Colors.primary },
-  tabText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.text2 },
-  tabTextActive: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  tabText: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
+  tabTextActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 
   // List
   list: { paddingVertical: 12 },
@@ -159,16 +159,16 @@ const s = StyleSheet.create({
 
   // Cancel
   cancelBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: Radius.sm, backgroundColor: '#fee2e2' },
-  cancelText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.error },
+  cancelText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.error },
 
   // Empty
   emptyState: { alignItems: 'center', paddingTop: 80, gap: 10 },
-  emptyTitle: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.text },
-  emptySubtitle: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.textMuted },
+  emptyTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text },
+  emptySubtitle: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
   newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: Radius.md },
-  newBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: '#fff' },
+  newBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#fff' },
 
   // Login
   loginBtn: { backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
-  loginBtnText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: '#fff' },
+  loginBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#fff' },
 })

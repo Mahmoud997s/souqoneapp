@@ -142,17 +142,17 @@ const s = StyleSheet.create({
   tabsRow: { paddingHorizontal: Spacing.space4, paddingBottom: Spacing.space3, gap: Spacing.space2 },
   tab: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border },
   tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
+  tabTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2 },
   tabTxtActive: { color: Colors.white },
   list: { paddingHorizontal: Spacing.space4, gap: Spacing.space4 },
   
   // Empty State
   emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 60, paddingHorizontal: 30 },
   emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(56, 189, 248, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  emptyTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text, marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
+  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, marginBottom: 8, textAlign: 'center' },
+  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text2, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.pill, gap: 8 },
-  emptyBtnTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.white },
+  emptyBtnTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.white },
 
   // FAB
   fab: {

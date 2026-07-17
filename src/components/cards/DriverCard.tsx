@@ -120,7 +120,7 @@ const s = StyleSheet.create({
   initialsText: {
     color: Colors.white,
     fontSize: 16,
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, },
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, },
   nameBox: {
     flex: 1,
     gap: Spacing.space1,              // 4
@@ -132,7 +132,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,              // 4
   },
   nameText: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 14,
     color: Colors.text,
   },
   locationRow: {
@@ -141,7 +141,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,              // 4
   },
   locationText: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 12,
     color: Colors.text2,
   },
   availBadge: {
@@ -188,7 +188,7 @@ const s = StyleSheet.create({
   },
   ctaText: {
     color: Colors.primary,
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 13,
   },
 })
 

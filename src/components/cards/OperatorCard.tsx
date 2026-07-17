@@ -111,7 +111,7 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   title: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold',  paddingTop: 4, paddingBottom: 4,
     fontSize: 15, color: Colors.text, textAlign: 'left',
   },
   verifiedRow: {
@@ -119,11 +119,11 @@ const s = StyleSheet.create({
     backgroundColor: '#E7F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 100,
   },
   verifiedTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 2, paddingBottom: 4,
     fontSize: 9, color: '#1877F2',
   },
   subtitle: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4,
     fontSize: 12, color: Colors.textMuted, textAlign: 'left', lineHeight: 20, marginTop: 2,
   },
   tagsRow: {
@@ -138,7 +138,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   tagTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4,
     fontSize: 11, color: Colors.text2,
   },
   footer: {
@@ -155,11 +155,11 @@ const s = StyleSheet.create({
     flex: 1,
   },
   locationTxt: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4,
     fontSize: 12, color: Colors.textMuted, textAlign: 'left',
   },
   priceTxt: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold',  paddingTop: 4, paddingBottom: 4,
     fontSize: 14, color: Colors.accent, textAlign: 'right',
   },
 })

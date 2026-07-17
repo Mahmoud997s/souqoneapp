@@ -211,7 +211,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.15)'
   },
-  headerTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.headlineSm.fontSize, color: Colors.white },
+  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.headlineSm.fontSize, color: Colors.white },
   
   content: { padding: Spacing.space4, paddingBottom: 100 },
   loader: { marginTop: 60 },
@@ -226,7 +226,7 @@ const s = StyleSheet.create({
   },
   searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
   searchIcon: { marginEnd: Spacing.space2 },
-  searchInput: { flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text, textAlign: 'right' },
+  searchInput: { flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text, textAlign: 'right' },
   
   filterRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space5, paddingHorizontal: 2 },
   filterChip: { 
@@ -236,13 +236,13 @@ const s = StyleSheet.create({
     ...softShadow,
   },
   filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  filterChipTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2 },
+  filterChipTxt: { fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2 },
   filterChipTxtActive: { color: Colors.white },
   
   emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 80, paddingHorizontal: 30 },
   emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(0, 74, 198, 0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.titleMd.fontSize, color: Colors.text, marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2, textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize, color: Colors.text, marginBottom: 8, textAlign: 'center' },
+  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, textAlign: 'center', lineHeight: 22 },
   
   list: { gap: Spacing.space4 },
   
@@ -260,19 +260,19 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0, 74, 198, 0.1)',
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarLetter: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.titleMd.fontSize, color: Colors.primary },
+  avatarLetter: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize, color: Colors.primary },
   
   chatInfo: { flex: 1, alignItems: 'flex-start' },
   chatRowTop: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 6, alignItems: 'center' },
-  timeTxt: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.caption.fontSize, color: Colors.textMuted },
-  userName: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyLg.fontSize, color: Colors.text, writingDirection: 'rtl', flex: 1 },
-  msgTxt: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.bodyMd.fontSize, color: Colors.text2, writingDirection: 'rtl', textAlign: 'right' },
-  msgUnread: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  timeTxt: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.caption.fontSize, color: Colors.textMuted },
+  userName: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.bodyLg.fontSize, color: Colors.text, writingDirection: 'rtl', flex: 1 },
+  msgTxt: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, writingDirection: 'rtl', textAlign: 'right' },
+  msgUnread: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
   
   unreadBadge: {
     minWidth: 24, height: 24, borderRadius: 12,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 6, marginStart: Spacing.space2,
   },
-  unreadBadgeTxt: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: Typography.caption.fontSize, color: Colors.white },
+  unreadBadgeTxt: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.caption.fontSize, color: Colors.white },
 })

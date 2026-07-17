@@ -125,13 +125,13 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, textAlign: 'right'
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
   },
   iconBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
   },
   list: { padding: Spacing.space4, gap: Spacing.space4, paddingBottom: 100 },
   fullCard: { width: '100%', alignItems: 'center' },
-  errorTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.error, textAlign: 'center', marginTop: 40 },
-  emptyTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2, textAlign: 'center', marginTop: 40 }
+  errorTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.error, textAlign: 'center', marginTop: 40 },
+  emptyTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text2, textAlign: 'center', marginTop: 40 }
 })

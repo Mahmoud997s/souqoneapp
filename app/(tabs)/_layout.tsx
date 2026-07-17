@@ -340,7 +340,7 @@ const s = StyleSheet.create({
     fontFamily: FONT_INACT,
     fontSize: 10,
     color: T.inactive,
-    includeFontPadding: false, letterSpacing: 0.1,
+     letterSpacing: 0.1,
     lineHeight: 16, // added line height to prevent clipping
     paddingBottom: 2, // explicit padding to protect Arabic font bottom
   },
@@ -424,7 +424,6 @@ const s = StyleSheet.create({
     fontFamily: FONT_ACT,
     fontSize: 15,
     color: T.white,
-    paddingTop: 4, paddingBottom: 4,
-    includeFontPadding: false,
+    
   },
 })

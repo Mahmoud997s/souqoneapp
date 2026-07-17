@@ -38,5 +38,5 @@ const s = StyleSheet.create({
   text: {
     color: '#ffffff',
     fontSize: 11,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, },
+    fontFamily: 'Almarai_700Bold',  },
 })

@@ -190,11 +190,11 @@ const s = StyleSheet.create({
     marginLeft: Spacing.space3 
   },
   jobInfo: { flex: 1, justifyContent: 'center' },
-  jobTitle: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.text, textAlign: 'left' },
-  jobCompany: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2, marginTop: 2, textAlign: 'left' },
+  jobTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text, textAlign: 'left' },
+  jobCompany: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text2, marginTop: 2, textAlign: 'left' },
   
   form: { gap: Spacing.space2 },
-  label: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2, marginTop: Spacing.space3, textAlign: 'left' },
+  label: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text2, marginTop: Spacing.space3, textAlign: 'left' },
   req: { color: Colors.error },
   
   inputRow: { 
@@ -221,9 +221,7 @@ const s = StyleSheet.create({
     height: '100%', 
     paddingHorizontal: Spacing.space3, 
     fontFamily: 'Almarai_400Regular', 
-    paddingTop: 4, 
-    paddingBottom: 4, 
-    includeFontPadding: false, 
+     
     color: Colors.text, 
     textAlign: 'left',
     writingDirection: 'rtl'
@@ -234,9 +232,7 @@ const s = StyleSheet.create({
     height: '100%', 
     paddingHorizontal: Spacing.space3, 
     fontFamily: 'Almarai_400Regular', 
-    paddingTop: 4, 
-    paddingBottom: 4, 
-    includeFontPadding: false, 
+     
     color: Colors.text, 
     textAlign: 'right',
     writingDirection: 'ltr'
@@ -250,7 +246,7 @@ const s = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  codeTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.textMuted },
+  codeTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.textMuted },
   
   uploadBox: { 
     height: 120, 
@@ -264,8 +260,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 16 
   },
   uploadBoxSuccess: { borderColor: Colors.success, backgroundColor: '#f0fdf4', borderStyle: 'solid' },
-  uploadTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, marginTop: 8, textAlign: 'center' },
-  uploadSub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.textMuted, marginTop: 4, textAlign: 'center' },
+  uploadTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, marginTop: 8, textAlign: 'center' },
+  uploadSub: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.textMuted, marginTop: 4, textAlign: 'center' },
   
   textArea: { 
     backgroundColor: Colors.white, 
@@ -274,9 +270,7 @@ const s = StyleSheet.create({
     borderColor: Colors.border, 
     padding: Spacing.space3, 
     fontFamily: 'Almarai_400Regular', 
-    paddingTop: 4, 
-    paddingBottom: 4, 
-    includeFontPadding: false, 
+     
     textAlign: 'left',
     writingDirection: 'rtl',
     textAlignVertical: 'top',
@@ -299,5 +293,5 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   submitBtn: { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: Radius.lg, gap: 8 },
-  submitTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.white }
+  submitTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.white }
 })

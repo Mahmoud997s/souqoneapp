@@ -111,7 +111,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
 const s = StyleSheet.create({
   container: { gap: Spacing.space2, width: '100%' },
   label: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
   },
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   inputText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -173,7 +173,7 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   modalTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.text,
     writingDirection: 'rtl',
   },
@@ -193,7 +193,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   listItemText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     color: Colors.text,
     writingDirection: 'rtl',
   },

@@ -3,7 +3,7 @@ export type EmploymentType = 'FULL_TIME' | 'PART_TIME' | 'TEMPORARY' | 'CONTRACT
 export type SalaryPeriod = 'DAILY' | 'MONTHLY' | 'YEARLY' | 'NEGOTIABLE'
 export type JobStatus = 'ACTIVE' | 'CLOSED' | 'EXPIRED'
 export type ApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN'
-export type LicenseType = 'LIGHT' | 'HEAVY' | 'TRANSPORT' | 'MOTORCYCLE'
+export type LicenseType = 'LIGHT' | 'HEAVY' | 'TRANSPORT' | 'BUS' | 'MOTORCYCLE'
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export interface UserSummary {

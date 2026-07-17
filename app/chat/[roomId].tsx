@@ -8,10 +8,10 @@ export default function ChatRoomScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.primary }}>
+        <Text style={{ fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.primary }}>
           المحادثة
         </Text>
-        <Text style={{ fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: '#6B7280', marginTop: 8 }}>
+        <Text style={{ fontFamily: 'Almarai_400Regular',  fontSize: 14, color: '#6B7280', marginTop: 8 }}>
           #{roomId}
         </Text>
       </View>

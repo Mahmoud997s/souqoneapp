@@ -323,15 +323,15 @@ const s = StyleSheet.create({
   header: { paddingBottom: Spacing.space5, paddingHorizontal: Spacing.space5 },
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
   backBtn: { padding: 4 },
-  headerTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.white, lineHeight: 28, includeFontPadding: false },
+  headerTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.white, lineHeight: 28,  },
   progressContainer: { flexDirection: 'row', gap: 8 },
   progressDot: { flex: 1, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2 },
   progressDotActive: { backgroundColor: '#d97706' },
   
   scrollContent: { padding: Spacing.space5, paddingBottom: 120 },
   stepContent: { flex: 1 },
-  stepTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 22, color: Colors.text, marginBottom: 8, textAlign: 'left', lineHeight: 32, includeFontPadding: false },
-  stepSub: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted, marginBottom: 24, textAlign: 'left', lineHeight: 24, includeFontPadding: false },
+  stepTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 22, color: Colors.text, marginBottom: 8, textAlign: 'left', lineHeight: 32,  },
+  stepSub: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted, marginBottom: 24, textAlign: 'left', lineHeight: 24,  },
   
   cardsGrid: { gap: Spacing.space3 },
   roleCard: { 
@@ -345,30 +345,30 @@ const s = StyleSheet.create({
   roleIconWrap: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', marginHorizontal: 12 },
   roleIconWrapSelected: { backgroundColor: '#fef08a' },
   roleTextWrap: { flex: 1 },
-  roleTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text, marginBottom: 4, textAlign: 'left', lineHeight: 24, includeFontPadding: false },
+  roleTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text, marginBottom: 4, textAlign: 'left', lineHeight: 24,  },
   roleTitleSelected: { color: '#92400e' },
-  roleDesc: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.textMuted, textAlign: 'left', lineHeight: 22, includeFontPadding: false },
+  roleDesc: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.textMuted, textAlign: 'left', lineHeight: 22,  },
   checkMark: { position: 'absolute', top: -10, left: -10, zIndex: 10 },
 
   formGroup: { gap: Spacing.space4 },
-  inputLabel: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, marginBottom: 8, textAlign: 'left', includeFontPadding: false },
+  inputLabel: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, marginBottom: 8, textAlign: 'left',  },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
   chipSelected: { backgroundColor: '#d97706', borderColor: '#b45309' },
-  chipTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#475569', includeFontPadding: false },
+  chipTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#475569',  },
   chipTxtSelected: { color: Colors.white },
   
   divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 24 },
-  sectionHeaderTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text, marginBottom: 16, textAlign: 'left', lineHeight: 24, includeFontPadding: false },
+  sectionHeaderTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text, marginBottom: 16, textAlign: 'left', lineHeight: 24,  },
   row: { flexDirection: 'row' },
   
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, padding: 16, backgroundColor: Colors.white, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0' },
-  switchTitle: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, marginBottom: 4, textAlign: 'left', lineHeight: 24, includeFontPadding: false },
-  switchDesc: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.textMuted, textAlign: 'left', lineHeight: 20, includeFontPadding: false },
+  switchTitle: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, marginBottom: 4, textAlign: 'left', lineHeight: 24,  },
+  switchDesc: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.textMuted, textAlign: 'left', lineHeight: 20,  },
   
   finishBox: { alignItems: 'center', backgroundColor: '#ecfdf5', padding: 24, borderRadius: 16, borderWidth: 1, borderColor: '#dcfce7', marginTop: 32 },
-  finishTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: '#065f46', marginBottom: 8, lineHeight: 30, includeFontPadding: false },
-  finishDesc: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: '#059669', textAlign: 'center', lineHeight: 24, includeFontPadding: false },
+  finishTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: '#065f46', marginBottom: 8, lineHeight: 30,  },
+  finishDesc: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: '#059669', textAlign: 'center', lineHeight: 24,  },
 
   bottomBar: { 
     position: 'absolute', bottom: 0, left: 0, right: 0, 
@@ -380,10 +380,10 @@ const s = StyleSheet.create({
     flex: 0.4, height: 50, borderRadius: Radius.lg, alignItems: 'center', justifyContent: 'center', 
     backgroundColor: '#f1f5f9' 
   },
-  prevBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, lineHeight: 24, includeFontPadding: false },
+  prevBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, lineHeight: 24,  },
   nextBtn: { 
     flex: 1, height: 50, borderRadius: Radius.lg, alignItems: 'center', justifyContent: 'center', 
     backgroundColor: '#d97706', flexDirection: 'row', gap: 8 
   },
-  nextBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.white, lineHeight: 24, includeFontPadding: false },
+  nextBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.white, lineHeight: 24,  },
 })

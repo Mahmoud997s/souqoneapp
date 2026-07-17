@@ -12,6 +12,9 @@ interface JobPostState {
   salaryPeriod: SalaryPeriod
   licenseTypes: LicenseType[]
   experienceYears?: number
+  minAge?: number
+  maxAge?: number
+  nationality?: string
   languages: string[]
   vehicleTypes: string[]
   hasOwnVehicle: boolean
@@ -34,6 +37,9 @@ const initial: Omit<JobPostState, 'set' | 'reset'> = {
   salaryPeriod: 'MONTHLY',
   licenseTypes: [],
   experienceYears: undefined,
+  minAge: undefined,
+  maxAge: undefined,
+  nationality: undefined,
   languages: [],
   vehicleTypes: [],
   hasOwnVehicle: false,

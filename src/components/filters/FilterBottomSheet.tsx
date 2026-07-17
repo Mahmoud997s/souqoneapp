@@ -633,7 +633,7 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
   },
   title: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'center',
@@ -642,7 +642,7 @@ const s = StyleSheet.create({
     padding: Spacing.space1,
   },
   clearText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.error || '#d9534f',
     writingDirection: 'rtl',
   },
@@ -657,7 +657,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space4,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text,
     marginBottom: Spacing.space2,
     textAlign: 'left',
@@ -701,7 +701,7 @@ const s = StyleSheet.create({
     opacity: 0.6,
   },
   dropdownEmpty: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted,
     textAlign: 'center',
     paddingVertical: Spacing.space3,
@@ -709,7 +709,7 @@ const s = StyleSheet.create({
   },
   locationDropdownText: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text,
     writingDirection: 'rtl',
   },
@@ -734,12 +734,12 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   chipText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text2,
     writingDirection: 'rtl',
   },
   activeChipText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
     writingDirection: 'rtl',
   },
   dropdown: {
@@ -754,7 +754,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   dropdownText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -788,13 +788,13 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   dropdownItemText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   activeDropdownItemText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
     writingDirection: 'rtl',
   },
   inputRow: {
@@ -815,13 +815,13 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
   },
   inputLabel: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     color: Colors.textMuted,
     writingDirection: 'rtl',
   },
   input: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -835,7 +835,7 @@ const s = StyleSheet.create({
   },
   yearInput: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.text,
     textAlign: 'center',
     minWidth: 36,
@@ -843,7 +843,7 @@ const s = StyleSheet.create({
     textAlignVertical: 'center',
   },
   yearDash: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.textMuted,
   },
   footer: {
@@ -866,7 +866,7 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   applyBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.white,
   },
 });

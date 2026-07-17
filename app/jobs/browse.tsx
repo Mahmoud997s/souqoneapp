@@ -192,7 +192,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, writingDirection: 'rtl'
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, writingDirection: 'rtl'
   },
   iconBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
@@ -203,7 +203,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center'
   },
   filterBadgeTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 9, color: Colors.white
+    fontFamily: 'Almarai_700Bold',  fontSize: 9, color: Colors.white
   },
 
   // Tabs
@@ -231,7 +231,7 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   tabTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.text2,
   },
   tabTxtActive: {
@@ -250,17 +250,17 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space1,
   },
   filterTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: Colors.text, writingDirection: 'rtl',
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 15, color: Colors.text, writingDirection: 'rtl',
   },
   filterSectionTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.text2, writingDirection: 'rtl',
+    fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text2, writingDirection: 'rtl',
     marginTop: Spacing.space1,
   },
   filterRow: { flexDirection: 'row', gap: Spacing.space3, alignItems: 'flex-start' },
   filterInput: {
     flex: 1, height: 40, borderRadius: Radius.md, borderWidth: 1,
     borderColor: Colors.border, paddingHorizontal: Spacing.space3,
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text,
     backgroundColor: Colors.surface, writingDirection: 'rtl',
   },
   expChips: { flexDirection: 'row', gap: Spacing.space2, flexWrap: 'wrap' },
@@ -269,17 +269,17 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space1, paddingHorizontal: Spacing.space3,
     borderRadius: Radius.pill, backgroundColor: Colors.error + '10',
   },
-  clearBtnTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11, color: Colors.error },
+  clearBtnTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.error },
 
   // Results
   countWrap: { paddingHorizontal: Spacing.space5, marginBottom: Spacing.space3, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
-  countText: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.primary, backgroundColor: Colors.primary + '15', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden', writingDirection: 'rtl' },
+  countText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary, backgroundColor: Colors.primary + '15', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden', writingDirection: 'rtl' },
 
   // States
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.space6, gap: Spacing.space3 },
-  errorTxt:     { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.error, fontSize: 15, textAlign: 'center', writingDirection: 'rtl' },
+  errorTxt:     { fontFamily: 'Almarai_700Bold',  color: Colors.error, fontSize: 15, textAlign: 'center', writingDirection: 'rtl' },
   retryBtn:     { backgroundColor: Colors.primary, borderRadius: Radius.md, paddingVertical: Spacing.space2, paddingHorizontal: Spacing.space5 },
-  retryTxt:     { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.white, fontSize: 14, textAlign: 'center', writingDirection: 'rtl' },
-  emptyTitle:   { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 17, color: Colors.text, textAlign: 'center', writingDirection: 'rtl' },
-  emptySubtitle:{ fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.text2, textAlign: 'center', writingDirection: 'rtl' },
+  retryTxt:     { fontFamily: 'Almarai_700Bold',  color: Colors.white, fontSize: 14, textAlign: 'center', writingDirection: 'rtl' },
+  emptyTitle:   { fontFamily: 'Almarai_700Bold',  fontSize: 17, color: Colors.text, textAlign: 'center', writingDirection: 'rtl' },
+  emptySubtitle:{ fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text2, textAlign: 'center', writingDirection: 'rtl' },
 })

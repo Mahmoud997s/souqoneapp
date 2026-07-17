@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   title: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 18,
     color: Colors.text,
   },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   placeholder: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_400Regular', 
     color: Colors.textMuted,
     textAlign: 'center',
     marginTop: 40,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clearBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     color: Colors.text,
   },
   applyBtn: {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   applyBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false,
+    fontFamily: 'Almarai_700Bold', 
     color: Colors.white,
   },
 });

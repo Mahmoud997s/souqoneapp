@@ -235,12 +235,12 @@ const s = StyleSheet.create({
   content: { padding: Spacing.space4, paddingBottom: 100 },
   progressWrap: { marginBottom: Spacing.space6 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.space2 },
-  progressStepTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.primary },
-  progressTitle: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: Colors.textMuted },
+  progressStepTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
+  progressTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.textMuted },
   progressBarBg: { height: 10, backgroundColor: Colors.surface, borderRadius: 100, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 100 },
   headerBox: { marginBottom: Spacing.space5 },
-  title: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space3 },
+  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space3 },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -253,7 +253,7 @@ const s = StyleSheet.create({
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center'
   },
-  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: '#1E3A8A', writingDirection: 'rtl', lineHeight: 20 },
+  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: '#1E3A8A', writingDirection: 'rtl', lineHeight: 20 },
   
   heroUploadBtn: {
     backgroundColor: '#F8FAFC',
@@ -269,8 +269,8 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginBottom: Spacing.space3,
   },
-  heroUploadTitle: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text, marginBottom: Spacing.space1 },
-  heroUploadSub: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.textMuted },
+  heroUploadTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, marginBottom: Spacing.space1 },
+  heroUploadSub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
   uploadBtnDisabled: { opacity: 0.6 },
   
   imagesContainer: { gap: Spacing.space4 },
@@ -294,7 +294,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: 100,
   },
-  mainBadgeTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12, color: '#FFF' },
+  mainBadgeTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#FFF' },
   glassRemoveBtn: {
     position: 'absolute', top: 12, end: 12,
     width: 40, height: 40, borderRadius: 20,
@@ -332,7 +332,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: '#CBD5E1', borderStyle: 'dashed',
     alignItems: 'center', justifyContent: 'center',
   },
-  addThumbTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11, color: Colors.primary, marginTop: 4 },
+  addThumbTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.primary, marginTop: 4 },
   bottomBar: {
     position: 'absolute',
     left: 0,

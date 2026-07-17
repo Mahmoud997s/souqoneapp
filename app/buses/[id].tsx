@@ -447,7 +447,7 @@ export default function ListingDetailScreen() {
                   {Platform.OS === 'web' ? (
                     <View style={[s.mapContainer, s.center]}>
                       <Ionicons name="map-outline" size={48} color="#9CA3AF" />
-                      <Text style={{ fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: '#6B7280', marginTop: 8 }}>الخريطة غير مدعومة في المتصفح</Text>
+                      <Text style={{ fontFamily: 'Almarai_700Bold',  color: '#6B7280', marginTop: 8 }}>الخريطة غير مدعومة في المتصفح</Text>
                     </View>
                   ) : (
                     <View style={s.mapContainer}>
@@ -591,7 +591,7 @@ export default function ListingDetailScreen() {
           />
           {images.length > 1 && (
             <View style={{ position: 'absolute', bottom: insets.bottom + 40, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 }}>
-              <Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4 }}>{imgIdx + 1} / {images.length}</Text>
+              <Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Almarai_700Bold',  }}>{imgIdx + 1} / {images.length}</Text>
             </View>
           )}
         </View>
@@ -604,9 +604,9 @@ export default function ListingDetailScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f8fafc' },
   center: { alignItems: 'center', justifyContent: 'center' },
-  errorTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.error, marginTop: 16, fontSize: 18 },
+  errorTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.error, marginTop: 16, fontSize: 18 },
   retryBtn: { marginTop: 20, backgroundColor: Colors.primary, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 100 },
-  retryTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: '#fff', fontSize: 15 },
+  retryTxt: { fontFamily: 'Almarai_700Bold',  color: '#fff', fontSize: 15 },
 
   backBtn: {
     position: 'absolute', right: Spacing.space4, zIndex: 10,
@@ -626,10 +626,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: 20,
     flexDirection: 'row', alignItems: 'center' },
-  imgCounterTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingBottom: 4, color: '#fff', fontSize: 13, paddingTop: 2 },
+  imgCounterTxt: { fontFamily: 'Almarai_700Bold',  paddingBottom: 4, color: '#fff', fontSize: 13, paddingTop: 2 },
   
   imgFallback: { width: SW, height: SW * 0.7, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  imgFallbackTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.textMuted, fontSize: 15 },
+  imgFallbackTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.textMuted, fontSize: 15 },
 
   // Body
   body: { 
@@ -641,15 +641,15 @@ const s = StyleSheet.create({
   },
 
   headerArea: { gap: 12 },
-  title: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 24, color: '#0f172a', writingDirection: 'rtl', lineHeight: 34 },
+  title: { fontFamily: 'Almarai_700Bold',  fontSize: 24, color: '#0f172a', writingDirection: 'rtl', lineHeight: 34 },
   
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   typeBadgeInline: { backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#ffffff' },
+  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#ffffff' },
   condBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  condTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13 },
+  condTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13 },
   locationWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  locationTxtMeta: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#475569' },
+  locationTxtMeta: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#475569' },
 
   // Price Card
   priceCard: { 
@@ -663,15 +663,15 @@ const s = StyleSheet.create({
   priceRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   priceLeft: { alignItems: 'flex-start' },
   priceLabelWrap: { alignItems: 'flex-start' },
-  priceLabelTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: '#64748b', writingDirection: 'rtl' },
-  negotiable: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 2, paddingBottom: 0, fontSize: 11, color: Colors.success, writingDirection: 'rtl' },
-  price: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 22, color: '#0f172a', writingDirection: 'rtl' },
-  currency: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 13, color: '#0f172a' },
-  priceSub: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 13, color: '#64748b' },
+  priceLabelTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#64748b', writingDirection: 'rtl' },
+  negotiable: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.success, writingDirection: 'rtl' },
+  price: { fontFamily: 'Almarai_700Bold',  fontSize: 22, color: '#0f172a', writingDirection: 'rtl' },
+  currency: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#0f172a' },
+  priceSub: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b' },
   iconBgWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
 
   section: { gap: 16 },
-  sectionTitle: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: '#0f172a', writingDirection: 'rtl' },
+  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: '#0f172a', writingDirection: 'rtl' },
 
   // Specs
   specsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'flex-start' },
@@ -683,28 +683,28 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: '#f1f5f9'
   },
   specIconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  specVal: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 12, color: '#0f172a', textAlign: 'center' },
-  specLbl: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 10, color: '#64748b', textAlign: 'center' },
+  specVal: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#0f172a', textAlign: 'center' },
+  specLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#64748b', textAlign: 'center' },
 
   // Details Table
   detailsTable: { backgroundColor: '#ffffff', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2 },
   detailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   detailsRowAlt: { backgroundColor: '#f8fafc' },
   detailsRowLast: { borderBottomWidth: 0 },
-  detailsRowLbl: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#64748b' },
-  detailsRowVal: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#0f172a' },
+  detailsRowLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#64748b' },
+  detailsRowVal: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#0f172a' },
 
   // Features
   featuresContainer: { backgroundColor: '#ffffff', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
   featuresWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
   featureChip: { width: Math.floor((SW - 88) / 4) - 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 2, paddingVertical: 10, borderRadius: 12 },
-  featureTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 0, paddingBottom: 0, fontSize: 10, color: '#334155', textAlign: 'center' },
+  featureTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#334155', textAlign: 'center' },
 
   // Description
   descContainer: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
-  desc: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#334155', writingDirection: 'rtl', lineHeight: 26 },
+  desc: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#334155', writingDirection: 'rtl', lineHeight: 26 },
   showMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
-  showMoreTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.primary },
+  showMoreTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary },
 
   // Seller
   sellerCard: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#f1f5f9', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', shadowColor: '#64748b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 2 },
@@ -713,8 +713,8 @@ const s = StyleSheet.create({
   avatarFallback: { alignItems: 'center', justifyContent: 'center' },
   sellerTexts: { gap: 2, alignItems: 'flex-start' },
   sellerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sellerName: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 16, color: '#0f172a', writingDirection: 'rtl' },
-  sellerGov: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#64748b', writingDirection: 'rtl', textAlign: 'right' },
+  sellerName: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#0f172a', writingDirection: 'rtl' },
+  sellerGov: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b', writingDirection: 'rtl', textAlign: 'right' },
 
   // Contact bar
   contactBar: {
@@ -729,8 +729,8 @@ const s = StyleSheet.create({
   chatIconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   waBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   callWideBtn: { flex: 1, height: 56, backgroundColor: '#EFF6FF', borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  callWideTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.primary, fontSize: 16 },
+  callWideTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 16 },
   // Location & Map
   mapContainer: { width: '100%', height: 180, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', position: 'relative' },
   directionsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#EFF6FF', paddingVertical: 12, borderRadius: 12, marginTop: 12, borderWidth: 1, borderColor: '#DBEAFE' },
-  directionsTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.primary, fontSize: 14 } })
+  directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 } })

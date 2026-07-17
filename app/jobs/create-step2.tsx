@@ -12,13 +12,16 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useJobPostStore } from '../../src/store/jobPostStore'
-import { WizardProgress } from '../../src/components/ui/WizardProgress'
+import { Stepper } from '../../src/components/ui/Stepper'
 import { InlineError } from '../../src/components/ui/InlineError'
+import { AppSelect } from '../../src/components/ui/AppSelect'
+import { normalizeJobType } from '../../src/utils/normalizeJobType'
 import {
   LICENSE_TYPE_LABELS,
   EMPLOYMENT_TYPE_LABELS,
   SALARY_PERIOD_LABELS,
   LANGUAGE_OPTIONS,
+  NATIONALITY_LABELS,
 } from '../../src/constants/jobs'
 import { EmploymentType, SalaryPeriod, LicenseType } from '../../src/types/jobs.types'
 
@@ -27,13 +30,25 @@ const TOTAL_STEPS = 4
 const EMP_TYPES = Object.keys(EMPLOYMENT_TYPE_LABELS) as EmploymentType[]
 const SAL_PERIODS = Object.keys(SALARY_PERIOD_LABELS) as SalaryPeriod[]
 const LIC_TYPES = Object.keys(LICENSE_TYPE_LABELS) as LicenseType[]
+const NAT_TYPES = ['OMANI', 'EXPAT', 'ANY']
+
+const EXPERIENCE_OPTIONS = [
+  { label: 'بدون خبرة', value: '0' },
+  { label: 'سنة واحدة', value: '1' },
+  { label: 'سنتان', value: '2' },
+  ...Array.from({ length: 18 }, (_, i) => ({ label: `${i + 3} سنوات`, value: String(i + 3) }))
+]
+
+const AGE_OPTIONS = Array.from({ length: 43 }, (_, i) => ({ label: `${i + 18} سنة`, value: String(i + 18) }))
 
 export default function CreateStep2() {
   const insets = useSafeAreaInsets()
   const {
-    employmentType, salary, salaryPeriod,
-    licenseTypes, experienceYears, languages, hasOwnVehicle, set
+    jobType, employmentType, salary, salaryPeriod,
+    licenseTypes, experienceYears, minAge, maxAge, nationality, languages, hasOwnVehicle, set
   } = useJobPostStore()
+
+  const isHiring = normalizeJobType(jobType) === 'HIRING'
 
   const toggleLicense = (lt: LicenseType) => {
     if (licenseTypes.includes(lt)) {
@@ -61,7 +76,11 @@ export default function CreateStep2() {
     if (licenseTypes.length === 0) nextErrors.licenseTypes = 'الرجاء تحديد نوع الرخصة المطلوبة'
     if (!salary && salaryPeriod !== 'NEGOTIABLE') nextErrors.salary = 'الرجاء إدخال الراتب أو اختيار قابل للتفاوض'
     if (languages.length === 0) nextErrors.languages = 'الرجاء تحديد لغة واحدة على الأقل'
-    
+    if (experienceYears === undefined) nextErrors.experienceYears = 'الرجاء تحديد سنوات الخبرة'
+    if (minAge === undefined) nextErrors.minAge = isHiring ? 'الرجاء تحديد العمر الأدنى' : 'الرجاء إدخال عمرك'
+    if (isHiring && maxAge === undefined) nextErrors.maxAge = 'الرجاء تحديد العمر الأقصى'
+    if (!nationality) nextErrors.nationality = 'الرجاء تحديد الجنسية'
+
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
       return
@@ -77,15 +96,13 @@ export default function CreateStep2() {
     >
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <AppHeader title="نشر إعلان" showBack variant="jobs" />
-        <WizardProgress current={2} total={TOTAL_STEPS} />
 
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <Text style={s.stepLabel}>الخطوة 2 من {TOTAL_STEPS}</Text>
-          <Text style={s.pageTitle}>متطلبات الوظيفة</Text>
-          <Text style={s.pageDesc}>حدد نوع الدوام والراتب ومتطلبات الرخصة والخبرة</Text>
+          <Stepper currentStep={2} totalSteps={TOTAL_STEPS} title={isHiring ? "متطلبات الوظيفة" : "التفاصيل الشخصية"} />
+          <Text style={s.pageDesc}>{isHiring ? "حدد نوع الدوام والراتب ومتطلبات الرخصة والخبرة" : "حدد تفاصيل رخصتك وخبرتك وراتبك المتوقع"}</Text>
 
           {/* Employment Type */}
-          <Text style={s.sectionTitle}>نوع الدوام *</Text>
+          <Text style={s.sectionTitle}>{isHiring ? "نوع الدوام المطلوب *" : "نوع الدوام المفضل *"}</Text>
           <View style={s.chipsWrap}>
             {EMP_TYPES.map(et => (
               <TouchableOpacity
@@ -106,7 +123,7 @@ export default function CreateStep2() {
           <InlineError message={errors.employmentType} />
 
           {/* Salary */}
-          <Text style={s.sectionTitle}>الراتب / الأجر</Text>
+          <Text style={s.sectionTitle}>{isHiring ? "الراتب / الأجر" : "الراتب المتوقع"}</Text>
           <View style={s.salaryContainer}>
             <TextInput
               style={[s.input, isNegotiable && s.inputDisabled, { marginBottom: Spacing.space2 }]}
@@ -138,7 +155,7 @@ export default function CreateStep2() {
           <InlineError message={errors.salary} />
 
           {/* License Types */}
-          <Text style={s.sectionTitle}>أنواع الرخص المطلوبة *</Text>
+          <Text style={s.sectionTitle}>{isHiring ? "أنواع الرخص المطلوبة *" : "الرخص التي تمتلكها *"}</Text>
           <View style={s.chipsWrap}>
             {LIC_TYPES.map(lt => (
               <TouchableOpacity
@@ -159,15 +176,61 @@ export default function CreateStep2() {
           <InlineError message={errors.licenseTypes} />
 
           {/* Experience */}
-          <Text style={s.sectionTitle}>سنوات الخبرة المطلوبة (اختياري)</Text>
-          <TextInput
-            style={s.input}
-            value={experienceYears ? experienceYears.toString() : ''}
-            onChangeText={v => set({ experienceYears: v ? parseInt(v) : undefined })}
-            placeholder="مثال: 2"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="numeric"
+          <Text style={s.sectionTitle}>{isHiring ? "سنوات الخبرة المطلوبة *" : "سنوات خبرتك *"}</Text>
+          <AppSelect
+            value={experienceYears !== undefined ? experienceYears.toString() : ''}
+            onValueChange={v => set({ experienceYears: parseInt(v) })}
+            items={EXPERIENCE_OPTIONS}
+            placeholder="اختر سنوات الخبرة..."
           />
+          <InlineError message={errors.experienceYears} />
+
+          {/* Age Range */}
+          <Text style={s.sectionTitle}>{isHiring ? "العمر المطلوب *" : "عمرك *"}</Text>
+          <View style={{ flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space3 }}>
+            <View style={{ flex: 1 }}>
+              <AppSelect
+                value={minAge !== undefined ? minAge.toString() : ''}
+                onValueChange={v => set({ minAge: parseInt(v) })}
+                items={AGE_OPTIONS}
+                placeholder={isHiring ? "من عمر..." : "اختر عمرك..."}
+              />
+            </View>
+            {isHiring && (
+              <View style={{ flex: 1 }}>
+                <AppSelect
+                  value={maxAge !== undefined ? maxAge.toString() : ''}
+                  onValueChange={v => set({ maxAge: parseInt(v) })}
+                  items={AGE_OPTIONS}
+                  placeholder="إلى عمر..."
+                />
+              </View>
+            )}
+          </View>
+          {(errors.minAge || errors.maxAge) && (
+            <InlineError message={errors.minAge || errors.maxAge} />
+          )}
+
+          {/* Nationality */}
+          <Text style={s.sectionTitle}>{isHiring ? "الجنسية المطلوبة *" : "جنسيتك *"}</Text>
+          <View style={s.chipsWrap}>
+            {NAT_TYPES.map(nat => (
+              <TouchableOpacity
+                key={nat}
+                style={[s.periodChip, nationality === nat && s.periodChipActive]}
+                onPress={() => set({ nationality: nationality === nat ? undefined : nat })}
+                activeOpacity={0.8}
+              >
+                <View style={[s.radioCircle, nationality === nat && s.radioCircleActive]}>
+                  {nationality === nat && <View style={s.radioDot} />}
+                </View>
+                <Text style={[s.periodText, nationality === nat && s.periodTextActive]}>
+                  {NATIONALITY_LABELS[nat]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <InlineError message={errors.nationality} />
 
           {/* Own Vehicle */}
           <TouchableOpacity
@@ -178,11 +241,11 @@ export default function CreateStep2() {
             <View style={[s.checkbox, hasOwnVehicle && s.checkboxActive]}>
               {hasOwnVehicle && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
-            <Text style={s.checkLabel}>يجب أن يمتلك السائق مركبته الخاصة</Text>
+            <Text style={s.checkLabel}>{isHiring ? "يجب أن يمتلك السائق مركبته الخاصة" : "أمتلك مركبة خاصة للتوصيل"}</Text>
           </TouchableOpacity>
 
           {/* Languages */}
-          <Text style={[s.sectionTitle, { marginTop: Spacing.space4 }]}>اللغات المطلوبة (اختياري)</Text>
+          <Text style={[s.sectionTitle, { marginTop: Spacing.space4 }]}>{isHiring ? "اللغات المطلوبة (اختياري)" : "اللغات التي تتقنها (اختياري)"}</Text>
           <View style={s.chipsWrap}>
             {LANGUAGE_OPTIONS.map(lang => (
               <TouchableOpacity
@@ -230,20 +293,20 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
   content: { padding: Spacing.space4, paddingBottom: 120 },
   stepLabel: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.textMuted, writingDirection: 'rtl', marginBottom: Spacing.space1,
   },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
     color: Colors.text, writingDirection: 'rtl', marginBottom: 6,
   },
   pageDesc: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text2, writingDirection: 'rtl',
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    color: Colors.text2, writingDirection: 'rtl', textAlign: 'center',
     marginBottom: Spacing.space5, lineHeight: 22,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  fontSize: 16,
     color: Colors.text, writingDirection: 'rtl',
     marginBottom: 10,
   },
@@ -254,7 +317,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  chipText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
+  chipText: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2 },
   chipTextActive: { color: Colors.primary },
   salaryContainer: {
     marginBottom: Spacing.space5,
@@ -284,15 +347,15 @@ const s = StyleSheet.create({
   },
   checkboxSmallActive: { borderColor: Colors.primary, backgroundColor: Colors.primary },
   periodText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     color: Colors.text2, writingDirection: 'rtl',
   },
   periodTextActive: { color: Colors.primary },
   input: {
     backgroundColor: Colors.white,
-    borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border,
     paddingHorizontal: Spacing.space4, minHeight: 56, paddingVertical: 14,
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, fontSize: 15, color: Colors.text,
+    fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text,
     marginBottom: Spacing.space4, textAlign: 'right', writingDirection: 'rtl',
   },
   inputDisabled: { backgroundColor: Colors.surface, color: Colors.textMuted },
@@ -307,13 +370,12 @@ const s = StyleSheet.create({
   },
   checkboxActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   checkLabel: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text,
   },
   footer: {
     position: 'absolute', bottom: 0, start: 0, end: 0,
     backgroundColor: Colors.white, paddingHorizontal: Spacing.space4, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: Colors.border,
   },
-  footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
   footerBtns: { flexDirection: 'row', gap: Spacing.space3 },
 })

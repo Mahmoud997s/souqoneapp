@@ -86,7 +86,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
 const s = StyleSheet.create({
   container: { gap: Spacing.space2, width: '100%' },
   label: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_700Bold',  fontSize: 12,
     lineHeight: 16,
     color: Colors.text2,
     alignSelf: 'stretch',
@@ -131,7 +131,7 @@ const s = StyleSheet.create({
     paddingVertical: 0,
     paddingStart: Spacing.space4,
     paddingEnd: Spacing.space4,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -143,7 +143,7 @@ const s = StyleSheet.create({
     paddingEnd: 52,
   },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  fontSize: 12,
     color: Colors.error,
     writingDirection: 'rtl',
   },

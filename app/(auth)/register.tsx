@@ -261,7 +261,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.white,
     textAlign: 'center',
@@ -284,19 +284,19 @@ const s = StyleSheet.create({
     ...Shadows.card,
   },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
   sectionSubtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text2,
     writingDirection: 'rtl',
   },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  fontSize: 13,
     color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
@@ -330,7 +330,7 @@ const s = StyleSheet.create({
   },
   selectInner: { flex: 1, paddingStart: 48, paddingEnd: 48, justifyContent: 'center' },
   selectTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text,
     writingDirection: 'rtl',
@@ -357,14 +357,14 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   phonePrefixTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text2,
   },
   phoneInput: {
     height: 52,
     paddingEnd: 80,
     paddingStart: Spacing.space4,
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.text,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -397,7 +397,7 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   modalTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.text,
     writingDirection: 'rtl',
@@ -413,10 +413,10 @@ const s = StyleSheet.create({
   },
   govItemActive: { backgroundColor: Colors.surface },
   govItemTxt: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     lineHeight: 24,
     color: Colors.text,
     writingDirection: 'rtl',
   },
-  govItemTxtActive: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary },
+  govItemTxtActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 })

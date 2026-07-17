@@ -219,7 +219,7 @@ const s = StyleSheet.create({
   avatarText: {
     color: '#ffffff',
     fontSize: 14,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, },
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  },
   nameBox: {
     alignItems: 'flex-start',
     flex: 1,
@@ -231,19 +231,19 @@ const s = StyleSheet.create({
     marginBottom: 2,
   },
   nameText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
-    color: Colors.text,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 14,
+    color: Colors.text, textAlign: 'left', writingDirection: 'rtl',
   },
   timeText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
-    color: Colors.textMuted,
+    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  fontSize: 11,
+    color: Colors.textMuted, textAlign: 'left', writingDirection: 'rtl',
   },
   body: {
     marginBottom: Spacing.space3,
   },
   messageText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
-    color: Colors.text,
+    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  fontSize: 13,
+    color: Colors.text, textAlign: 'left', writingDirection: 'rtl',
     lineHeight: 18,
   },
   expandBtn: {
@@ -254,8 +254,8 @@ const s = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   expandText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
-    color: Colors.primary,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 12,
+    color: Colors.primary, textAlign: 'left', writingDirection: 'rtl',
   },
   lockedBox: {
     flexDirection: 'row',
@@ -269,8 +269,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   lockedText: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 12,
-    color: Colors.text2,
+    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  fontSize: 12,
+    color: Colors.text2, textAlign: 'left', writingDirection: 'rtl',
   },
   footer: {
     flexDirection: 'row',
@@ -296,20 +296,20 @@ const s = StyleSheet.create({
   },
   txtAccept: {
     color: '#15803D',
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 11,
   },
   btnReject: {
     backgroundColor: '#FEF2F2', // bg-red-50
   },
   txtReject: {
     color: Colors.error,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 11,
   },
   btnWithdraw: {
     backgroundColor: Colors.surface,
   },
   txtWithdraw: {
     color: Colors.text2,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 11,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 11,
   },
 })

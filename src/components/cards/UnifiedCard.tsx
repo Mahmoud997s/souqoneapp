@@ -358,13 +358,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent, paddingHorizontal: 10, paddingVertical: 5,
     borderRadius: 100,
   },
-  premiumText: { fontSize: 11, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.white },
+  premiumText: { fontSize: 11, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.white },
   typeBadge: {
     position: 'absolute', bottom: Spacing.space2, left: Spacing.space2,
     backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: 100,
   },
-  typeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.white },
+  typeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.white },
   heartBtn: {
     position: 'absolute', top: Spacing.space2, right: Spacing.space2,
     width: 36, height: 36, borderRadius: 18,
@@ -372,12 +372,12 @@ const styles = StyleSheet.create({
   },
   body: { padding: Spacing.space3, gap: 8 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
+  title: { fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
   priceLocationRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
-  price: { fontSize: 20, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary, writingDirection: 'rtl' },
-  priceContact: { fontSize: 14, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2, writingDirection: 'rtl' },
+  price: { fontSize: 20, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.primary, writingDirection: 'rtl' },
+  priceContact: { fontSize: 14, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.text2, writingDirection: 'rtl' },
   locRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locText: { fontSize: 12, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.textMuted, writingDirection: 'rtl' },
+  locText: { fontSize: 12, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.textMuted, writingDirection: 'rtl' },
   divider: { height: 1, backgroundColor: Colors.surface, marginVertical: 4 },
   detailsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   detailPill: {
@@ -385,13 +385,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface, paddingHorizontal: 10, paddingVertical: 5,
     borderRadius: 100,
   },
-  detailText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2 },
+  detailText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
 
   cardActionsRow: { flexDirection: 'row', gap: 8, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.surface },
   actionBtnCall: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: 100, borderWidth: 1, borderColor: Colors.primary, backgroundColor: '#eff6ff' },
-  actionBtnCallText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.primary },
+  actionBtnCallText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 13, color: Colors.primary },
   actionBtnChat: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: 100 },
-  actionBtnChatText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.white },
+  actionBtnChatText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 13, color: Colors.white },
 
   // ── Compact (horizontal) card ──
   compactCard: {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   compactTitle: {
-    fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text,
+    fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.text,
     writingDirection: 'rtl', lineHeight: 22,
   },
   compactTypePill: {
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface, paddingHorizontal: 8, paddingVertical: 3,
     borderRadius: 100, marginTop: 4,
   },
-  compactTypeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2 },
+  compactTypeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
   compactBottom: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface, paddingHorizontal: 8, paddingVertical: 4,
     borderRadius: 100,
   },
-  compactLocText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2 },
+  compactLocText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
   verifiedPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   },
   verifiedText: {
     fontSize: 10,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.primary,
+    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.primary,
   },
   dotsWrapper: {
     position: 'absolute',

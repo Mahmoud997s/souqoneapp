@@ -67,10 +67,10 @@ export default function ListingsScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.error, marginBottom: 12 },
-  emptyTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.text2 },
+  errorTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.error, marginBottom: 12 },
+  emptyTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text2 },
   retryBtn: { backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: Radius.lg },
-  retryTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.white },
+  retryTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.white },
   grid: { padding: Spacing.space4, gap: Spacing.space4 },
   list: { padding: Spacing.space4, gap: Spacing.space4 },
   fullCard: { width: '100%' }

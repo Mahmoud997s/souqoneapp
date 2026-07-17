@@ -71,11 +71,11 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,
   },
   title: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 18, color: Colors.text, textAlign: 'left',
   },
   subTitle: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 12, color: Colors.textMuted, textAlign: 'left',
   },
   seeAllBtn: {
@@ -83,7 +83,7 @@ const s = StyleSheet.create({
     backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
   seeAllTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 12, color: Colors.primary,
   },
   loaderWrap: {

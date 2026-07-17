@@ -143,7 +143,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,  // 12
   },
   title: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 16,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 16,
     color: Colors.text,
     writingDirection: 'rtl',
     marginBottom: Spacing.space1,  // 4
@@ -167,9 +167,9 @@ const s = StyleSheet.create({
   initialsText: {
     color: Colors.white,
     fontSize: 9,
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, },
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, },
   posterName: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 13,
     color: Colors.text,
     writingDirection: 'rtl',
     maxWidth: '40%',
@@ -182,7 +182,7 @@ const s = StyleSheet.create({
     marginEnd: 2,
   },
   locationText: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 12,
     color: Colors.text2,
     writingDirection: 'rtl',
     maxWidth: '40%',
@@ -191,7 +191,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,  // 8
   },
   description: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 13,
     color: Colors.text2,
     writingDirection: 'rtl',
     lineHeight: 20,
@@ -221,15 +221,15 @@ const s = StyleSheet.create({
     gap: Spacing.space1,           // 4
   },
   statText: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
     color: Colors.textMuted,
   },
   timeText: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
     color: Colors.textMuted,
   },
   salaryText: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 15,
     color: Colors.accent,
   },
 })

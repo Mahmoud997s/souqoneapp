@@ -37,13 +37,13 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,
   },
   title: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.text,
     writingDirection: 'rtl',
   },
   action: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     lineHeight: 20,
     color: Colors.primary,
     writingDirection: 'rtl',

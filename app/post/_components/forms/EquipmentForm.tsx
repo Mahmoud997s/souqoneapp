@@ -351,7 +351,7 @@ export function EquipmentForm() {
                 )}
                 ListEmptyComponent={() => (
                   <View style={{ padding: Spacing.space6, alignItems: 'center' }}>
-                    <Text style={{ fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.textMuted }}>لا توجد نتائج مطابقة</Text>
+                    <Text style={{ fontFamily: 'Almarai_400Regular',  color: Colors.textMuted }}>لا توجد نتائج مطابقة</Text>
                   </View>
                 )}
               />
@@ -376,9 +376,9 @@ const s = StyleSheet.create({
       android: { elevation: 3 },
     }),
   },
-  cardTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 17, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space4 },
-  label: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2, marginTop: Spacing.space4 },
-  textInput: { height: 52, borderRadius: 14, paddingHorizontal: Spacing.space4, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text, backgroundColor: '#F8F9FA', textAlign: 'right', borderWidth: 1.5, borderColor: '#E5E7EB' },
+  cardTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 17, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space4 },
+  label: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2, marginTop: Spacing.space4 },
+  textInput: { height: 52, borderRadius: 14, paddingHorizontal: Spacing.space4, fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, backgroundColor: '#F8F9FA', textAlign: 'right', borderWidth: 1.5, borderColor: '#E5E7EB' },
   textInputFocused: { borderColor: Colors.primary, backgroundColor: '#FFFFFF', ...Platform.select({ ios: { shadowColor: Colors.primary, shadowOffset: {width:0, height:2}, shadowOpacity:0.1, shadowRadius:4}, android: {elevation: 2} }) },
   textArea: { height: 110, paddingTop: Spacing.space4 },
   rowFields: { flexDirection: 'row', gap: Spacing.space4, marginTop: Spacing.space2 },
@@ -386,26 +386,26 @@ const s = StyleSheet.create({
   chipRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space3, flexWrap: 'wrap' },
   chip: { paddingHorizontal: 16, minWidth: 80, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F9FA' },
   chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  chipTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13, color: Colors.text2 },
+  chipTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text2 },
   chipTxtActive: { color: Colors.primary },
   selectWrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 52, borderRadius: 14, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space2 },
-  selectText: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15, color: Colors.text, flex: 1, writingDirection: 'rtl' },
+  selectText: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, flex: 1, writingDirection: 'rtl' },
   placeholder: { color: Colors.textMuted },
   priceWrap: { flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 14, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space4 },
-  priceInput: { flex: 1, height: '100%', fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20, color: Colors.primary, textAlign: 'right' },
-  currencyTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.textMuted, marginStart: Spacing.space2 },
+  priceInput: { flex: 1, height: '100%', fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.primary, textAlign: 'right' },
+  currencyTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.textMuted, marginStart: Spacing.space2 },
   negotiableRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, alignSelf: 'flex-start' },
   checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: '#9CA3AF', alignItems: 'center', justifyContent: 'center' },
   checkboxActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  negotiableTxt: { fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text2 },
+  negotiableTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text2 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalSheet: { width: '100%', backgroundColor: Colors.white, borderTopStartRadius: 28, borderTopEndRadius: 28, paddingHorizontal: Spacing.space5, paddingBottom: 40, maxHeight: '85%' },
   modalHandle: { width: 44, height: 5, backgroundColor: '#E5E7EB', borderRadius: 3, alignSelf: 'center', marginTop: Spacing.space3, marginBottom: Spacing.space3 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: Spacing.space3, borderBottomWidth: 1, borderBottomColor: '#F1F3F5', marginBottom: Spacing.space4 },
-  modalTitle: { fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18, color: Colors.text },
+  modalTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text },
   modalSearchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 12, paddingHorizontal: Spacing.space4, height: 56, marginBottom: Spacing.space4, borderWidth: 1.5, borderColor: '#E5E7EB' },
-  modalSearchInput: { flex: 1, height: '100%', fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14, color: Colors.text, paddingHorizontal: Spacing.space2 },
+  modalSearchInput: { flex: 1, height: '100%', fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, paddingHorizontal: Spacing.space2 },
   selectItem: { paddingVertical: Spacing.space4, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
-  selectItemTxt: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16, color: Colors.text, writingDirection: 'rtl' },
+  selectItemTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text, writingDirection: 'rtl' },
 })
 export default function Dummy() { return null; }

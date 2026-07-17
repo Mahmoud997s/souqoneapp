@@ -560,7 +560,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.white, textAlign: 'right'
+    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
   },
   iconBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
@@ -571,7 +571,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.accent || '#e67e22', alignItems: 'center', justifyContent: 'center'
   },
   filterBadgeText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 10,
+    fontFamily: 'Almarai_700Bold',  fontSize: 10,
     color: Colors.white,
   },
   listingTypeTabs: {
@@ -592,7 +592,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.textMuted,
   },
   typeTabTxtActive: {
@@ -636,7 +636,7 @@ const s = StyleSheet.create({
     }),
   },
   quickFilterTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.text,
   },
   quickFilterTxtActive: {
@@ -657,11 +657,11 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,
   },
   resultsCount: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 15,
+    fontFamily: 'Almarai_700Bold',  fontSize: 15,
     color: Colors.text,
   },
   clearAllText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 13,
+    fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.primary,
   },
   cardWrapper: {
@@ -682,7 +682,7 @@ const s = StyleSheet.create({
     paddingTop: 80,
   },
   errorTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.error || '#d9534f',
+    fontFamily: 'Almarai_700Bold',  color: Colors.error || '#d9534f',
     marginBottom: Spacing.space3,
   },
   retryBtn: {
@@ -692,7 +692,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
   },
   retryTxt: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, color: Colors.white,
+    fontFamily: 'Almarai_700Bold',  color: Colors.white,
   },
   emptyState: {
     alignItems: 'center',
@@ -700,14 +700,14 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space5,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.text,
     marginTop: Spacing.space3,
     marginBottom: Spacing.space2,
     textAlign: 'center',
   },
   emptySubtitle: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
@@ -721,7 +721,7 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   clearAllBtnText: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.primary,
   },
   modalOverlay: {
@@ -751,7 +751,7 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 16, color: Colors.text,
   },
   modalOptionRow: {
@@ -763,7 +763,7 @@ const s = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.03)',
   },
   modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: Colors.text2,
   },
   modalOptionTxtActive: {

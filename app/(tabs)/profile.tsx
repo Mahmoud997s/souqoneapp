@@ -305,7 +305,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarLetter: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 32,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 32,
     color: Colors.white,
   },
   
@@ -335,12 +335,12 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
   },
   userName: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.headlineSm.fontSize,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.headlineSm.fontSize,
     color: Colors.white,
     textAlign: 'center',
   },
   userHandle: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyMd.fontSize,
+    fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize,
     color: 'rgba(255,255,255,0.85)',
     marginBottom: 12,
     textAlign: 'center',
@@ -357,7 +357,7 @@ const s = StyleSheet.create({
     alignSelf: 'center',
   },
   bioTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyMd.fontSize,
+    fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize,
     color: Colors.white,
     textAlign: 'center',
   },
@@ -382,7 +382,7 @@ const s = StyleSheet.create({
     gap: 6,
   },
   contactTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.labelMd.fontSize,
+    fontFamily: 'Almarai_700Bold',  fontSize: Typography.labelMd.fontSize,
     color: Colors.white,
   },
 
@@ -399,7 +399,7 @@ const s = StyleSheet.create({
     width: '60%',
   },
   editBtnTxt: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyMd.fontSize,
+    fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize,
     color: Colors.white,
   },
 
@@ -431,12 +431,12 @@ const s = StyleSheet.create({
     marginVertical: 4,
   },
   statVal: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.titleMd.fontSize,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize,
     color: Colors.primary,
     textAlign: 'center',
   },
   statLabel: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyMd.fontSize,
+    fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize,
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: 4,
@@ -473,13 +473,13 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   premiumTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.titleMd.fontSize,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize,
     color: Colors.white,
     marginBottom: 2,
     textAlign: 'right',
   },
   premiumSub: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.caption.fontSize,
+    fontFamily: 'Almarai_400Regular',  fontSize: Typography.caption.fontSize,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'right',
   },
@@ -512,7 +512,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   optionTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyLg.fontSize,
+    fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyLg.fontSize,
     color: Colors.text,
     textAlign: 'right',
   },
@@ -535,13 +535,13 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   logoutTxt: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.bodyLg.fontSize,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.bodyLg.fontSize,
     color: Colors.error,
     textAlign: 'center',
   },
   // Version
   version: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: Typography.caption.fontSize,
+    fontFamily: 'Almarai_400Regular',  fontSize: Typography.caption.fontSize,
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: 24,

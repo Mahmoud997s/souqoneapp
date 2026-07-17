@@ -41,12 +41,12 @@ interface TextWithDefaultProps {
 const CustomText = Text as unknown as TextWithDefaultProps;
 if (CustomText.defaultProps == null) CustomText.defaultProps = {};
 CustomText.defaultProps.allowFontScaling = false;
-CustomText.defaultProps.style = { includeFontPadding: false };
+CustomText.defaultProps.style = {  };
 
 const CustomTextInput = TextInput as unknown as TextWithDefaultProps;
 if (CustomTextInput.defaultProps == null) CustomTextInput.defaultProps = {};
 CustomTextInput.defaultProps.allowFontScaling = false;
-CustomTextInput.defaultProps.style = { includeFontPadding: false };
+CustomTextInput.defaultProps.style = {  };
 
 // Deep patch for styled Text components (handles forwardRef render)
 const oldTextRender = (Text as any).render;
@@ -55,7 +55,7 @@ if (oldTextRender) {
     const origin = oldTextRender.call(this, ...args);
     if (!origin) return origin;
     return React.cloneElement(origin, {
-      style: [{ includeFontPadding: false }, origin.props.style],
+      style: [{  }, origin.props.style],
     });
   };
 }
@@ -65,7 +65,7 @@ if (oldTextInputRender) {
     const origin = oldTextInputRender.call(this, ...args);
     if (!origin) return origin;
     return React.cloneElement(origin, {
-      style: [{ includeFontPadding: false }, origin.props.style],
+      style: [{  }, origin.props.style],
     });
   };
 }

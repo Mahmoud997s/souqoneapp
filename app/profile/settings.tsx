@@ -97,7 +97,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
   content: { padding: Spacing.space4, paddingBottom: 100 },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     color: Colors.primary,
     marginBottom: Spacing.space3,
     writingDirection: 'rtl',
@@ -135,7 +135,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   optionTitle: {
-    fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14,
+    fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.text,
     textAlign: 'right',
   },
@@ -148,7 +148,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   valRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  valTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted },
+  valTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.textMuted },
   logoutBtn: {
     height: 52,
     borderRadius: Radius.xl,
@@ -159,6 +159,6 @@ const s = StyleSheet.create({
     gap: Spacing.space2,
     marginBottom: Spacing.space4,
   },
-  logoutTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.error },
-  version: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: Colors.borderStrong, textAlign: 'center' }
+  logoutTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.error },
+  version: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.borderStrong, textAlign: 'center' }
 })

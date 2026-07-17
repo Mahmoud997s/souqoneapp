@@ -57,8 +57,8 @@ const s = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: Colors.textMuted },
+  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text },
+  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
   stepsContainer: {
     backgroundColor: Colors.white,
     borderRadius: Radius.xl,
@@ -81,18 +81,18 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: Colors.white,
   },
   stepNumberTxt: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 10, color: Colors.white,
   },
   stepTextContent: {
     flex: 1,
   },
   stepTitle: {
-    fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 14, color: Colors.text, textAlign: 'left',
   },
   stepDesc: {
-    fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4,
+    fontFamily: 'Almarai_400Regular', 
     fontSize: 12, color: Colors.textMuted, textAlign: 'left', lineHeight: 18,
   },
 })

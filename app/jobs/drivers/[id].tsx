@@ -265,8 +265,8 @@ export default function DriverProfileScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f8fafc' },
   centered: { alignItems: 'center', justifyContent: 'center' },
-  errorTitle: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: Colors.text, marginTop: Spacing.space3, textAlign: 'center' },
-  errorDesc: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: Colors.text2, marginTop: Spacing.space1, textAlign: 'center' },
+  errorTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, marginTop: Spacing.space3, textAlign: 'center' },
+  errorDesc: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text2, marginTop: Spacing.space1, textAlign: 'center' },
 
   stickyHeader: {
     width: SW, position: 'relative',
@@ -291,17 +291,17 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: '#ffffff',
   },
   avatarInitials: { alignItems: 'center', justifyContent: 'center' },
-  initialsTextBig: { color: Colors.white, fontSize: 24, fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4 },
+  initialsTextBig: { color: Colors.white, fontSize: 24, fontFamily: 'Almarai_700Bold',  },
   nameRow: {
     flexDirection: 'row', alignItems: 'center',
     gap: 6, marginTop: 4,
   },
-  nameHeader: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 18, color: '#ffffff', writingDirection: 'rtl', textAlign: 'center' },
+  nameHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: '#ffffff', writingDirection: 'rtl', textAlign: 'center' },
   locationRowHeader: {
     flexDirection: 'row', alignItems: 'center',
     gap: 4, marginBottom: 8,
   },
-  locationHeader: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 12, color: 'rgba(255,255,255,0.8)', writingDirection: 'rtl' },
+  locationHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: 'rgba(255,255,255,0.8)', writingDirection: 'rtl' },
 
   body: { 
     paddingTop: 16, paddingHorizontal: 16, 
@@ -319,15 +319,15 @@ const s = StyleSheet.create({
   availDot:   { width: 6, height: 6, borderRadius: 3 },
   dotGreen:   { backgroundColor: Colors.success },
   dotGray:    { backgroundColor: Colors.textMuted },
-  availText:  { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 11 },
+  availText:  { fontFamily: 'Almarai_700Bold',  fontSize: 11 },
   txtGreen:   { color: '#166534' },
   txtGray:    { color: '#64748b' },
 
   ratingsWrap: { alignItems: 'center', marginVertical: 8 },
 
   descContainer: { backgroundColor: '#ffffff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 15, color: '#0f172a', writingDirection: 'rtl', textAlign: 'left', marginBottom: 8 },
-  bioText: { fontFamily: 'Almarai_400Regular', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 13, color: '#334155', writingDirection: 'rtl', lineHeight: 22, textAlign: 'left' },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 15, color: '#0f172a', writingDirection: 'rtl', textAlign: 'left', marginBottom: 8 },
+  bioText: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: '#334155', writingDirection: 'rtl', lineHeight: 22, textAlign: 'left' },
 
   section: { gap: 10 },
   licenseWrap: { backgroundColor: '#ffffff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#f1f5f9' },
@@ -337,8 +337,8 @@ const s = StyleSheet.create({
   detailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   detailsRowAlt: { backgroundColor: '#f8fafc' },
   detailsRowLast: { borderBottomWidth: 0 },
-  detailsRowLbl: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
-  detailsRowVal: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, fontSize: 14, color: '#0f172a', textAlign: 'left', writingDirection: 'rtl' },
+  detailsRowLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
+  detailsRowVal: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#0f172a', textAlign: 'left', writingDirection: 'rtl' },
 
   // Contact bar
   contactBar: {
@@ -351,7 +351,7 @@ const s = StyleSheet.create({
   },
   chatIconBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   appChatBtn: { flex: 1, height: 48, backgroundColor: Colors.primary, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  appChatTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: '#ffffff', fontSize: 15 },
+  appChatTxt: { fontFamily: 'Almarai_700Bold',  color: '#ffffff', fontSize: 15 },
   callWideBtn: { flex: 1, height: 48, backgroundColor: '#EFF6FF', borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  callWideTxt: { fontFamily: 'Almarai_700Bold', includeFontPadding: false, paddingTop: 4, paddingBottom: 4, color: Colors.primary, fontSize: 15 },
+  callWideTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 15 },
 })

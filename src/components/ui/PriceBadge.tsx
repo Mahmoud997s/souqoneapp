@@ -33,34 +33,34 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'baseline' },
   // size=lg → display-lg-mobile
   priceLg: {
-    fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 28,
+    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
     lineHeight: 36,
     color: Colors.primary,
   },
   currLg: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 16,
+    fontFamily: 'Almarai_400Regular',  fontSize: 16,
     lineHeight: 24,
     color: Colors.text2,
   },
   // size=md → headline-sm
   priceMd: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 20,
+    fontFamily: 'Almarai_700Bold',  fontSize: 20,
     lineHeight: 28,
     color: Colors.primary,
   },
   currMd: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text2,
   },
   // size=sm → title-md
   priceSm: {
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 18,
+    fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
   },
   currSm: {
-    fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4, includeFontPadding: false, fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  fontSize: 14,
     lineHeight: 20,
     color: Colors.text2,
   },
