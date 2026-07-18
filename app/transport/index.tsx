@@ -184,9 +184,15 @@ export default function TransportBrowseScreen() {
             <Ionicons name="arrow-forward" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>طلبات النقل</Text>
-          <TouchableOpacity style={s.addBtn} onPress={() => router.push('/transport/new' as any)}>
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {/* Temporary Preview Button */}
+            <TouchableOpacity style={s.addBtn} onPress={() => router.push('/transport/preview' as any)}>
+              <Ionicons name="eye" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.addBtn} onPress={() => router.push('/transport/new' as any)}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search & Filter Row */}

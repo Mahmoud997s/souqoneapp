@@ -59,7 +59,14 @@
           "color": "#004ac6"
         }
       ],
-      "@config-plugins/detox"
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "السماح لـ SouqOne بالوصول إلى موقعك لتحديد عناوين الاستلام والتسليم بدقة."
+        }
+      ],
+      "@config-plugins/detox",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

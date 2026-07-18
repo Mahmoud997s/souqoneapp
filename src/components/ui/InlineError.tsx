@@ -5,15 +5,18 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 
+import { StyleProp, ViewStyle } from 'react-native'
+
 interface InlineErrorProps {
   message?: string
+  style?: StyleProp<ViewStyle>
 }
 
-export function InlineError({ message }: InlineErrorProps) {
+export function InlineError({ message, style }: InlineErrorProps) {
   if (!message) return null
   
   return (
-    <View style={s.capsule}>
+    <View style={[s.capsule, style]}>
       <Ionicons name="alert-circle" size={14} color={Colors.error} />
       <Text style={s.text}>{message}</Text>
     </View>

@@ -303,7 +303,7 @@ export default function HomeScreen() {
         <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
         <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" />
         <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth />} />
-        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard item={item as any} onPress={onPress} fullWidth />} />
+        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard item={item as any} onPress={onPress} fullWidth />} />
 
       </Animated.ScrollView>
     </View>
