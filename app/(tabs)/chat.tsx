@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
+import * as Haptics from 'expo-haptics'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
@@ -47,17 +48,30 @@ export default function ChatListScreen() {
   const { data: rooms, isLoading, refetch } = useChatRooms()
   
   const [activeTab, setActiveTab] = React.useState<'all' | 'unread' | 'archived'>('all')
+  const [searchText, setSearchText] = React.useState('')
   const { archivedIds, toggleArchive } = useArchiveStore()
 
   const filteredRooms = React.useMemo(() => {
-    return rooms?.filter((r: any) => {
+    const text = searchText.toLowerCase().trim()
+    let filtered = rooms || []
+    
+    if (text) {
+      filtered = filtered.filter((r: any) => {
+        const other = r.participants?.find((p: any) => p.id !== user?.id) ?? r.participants?.[0]
+        const name = (other?.displayName ?? other?.username ?? 'مجهول').toLowerCase()
+        const msg = (r.lastMessage?.content ?? '').toLowerCase()
+        return name.includes(text) || msg.includes(text)
+      })
+    }
+
+    return filtered.filter((r: any) => {
       const isArchived = archivedIds.includes(r.id)
       if (activeTab === 'archived') return isArchived
       if (isArchived) return false
       if (activeTab === 'unread') return (r.unreadCount ?? 0) > 0
       return true
     })
-  }, [rooms, archivedIds, activeTab])
+  }, [rooms, archivedIds, activeTab, searchText, user?.id])
 
   return (
     <View style={s.container}>
@@ -91,6 +105,8 @@ export default function ChatListScreen() {
               style={s.searchInput}
               placeholder="ابحث في الرسائل..."
               placeholderTextColor={Colors.textMuted}
+              value={searchText}
+              onChangeText={setSearchText}
               textAlign="right"
             />
           </View>
@@ -99,19 +115,31 @@ export default function ChatListScreen() {
         <View style={s.filterRow}>
           <TouchableOpacity 
             style={[s.filterChip, activeTab === 'all' && s.filterChipActive]}
-            onPress={() => setActiveTab('all')}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setActiveTab('all')
+            }}
           >
             <Text style={[s.filterChipTxt, activeTab === 'all' && s.filterChipTxtActive]}>الكل</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[s.filterChip, activeTab === 'unread' && s.filterChipActive]}
-            onPress={() => setActiveTab('unread')}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setActiveTab('unread')
+            }}
           >
             <Text style={[s.filterChipTxt, activeTab === 'unread' && s.filterChipTxtActive]}>غير مقروءة</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[s.filterChip, activeTab === 'archived' && s.filterChipActive]}
-            onPress={() => setActiveTab('archived')}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setActiveTab('archived')
+            }}
           >
             <Text style={[s.filterChipTxt, activeTab === 'archived' && s.filterChipTxtActive]}>مؤرشفة</Text>
           </TouchableOpacity>
@@ -122,10 +150,26 @@ export default function ChatListScreen() {
         ) : !filteredRooms || filteredRooms.length === 0 ? (
           <View style={s.emptyState}>
             <View style={s.emptyIconCircle}>
-              <Ionicons name="chatbubbles-outline" size={48} color={Colors.primary} />
+              <Ionicons 
+                name={activeTab === 'archived' ? "archive" : searchText ? "search" : "chatbubbles-outline"} 
+                size={40} 
+                color={Colors.primary} 
+              />
             </View>
-            <Text style={s.emptyTitle}>لا توجد رسائل</Text>
-            <Text style={s.emptySub}>لم تبدأ أي محادثة بعد. يمكنك التواصل مع البائعين من صفحة الإعلانات.</Text>
+            <Text style={s.emptyTitle}>
+              {activeTab === 'archived' 
+                ? 'لا توجد محادثات مؤرشفة' 
+                : searchText 
+                ? 'لم يتم العثور على نتائج' 
+                : 'لا توجد رسائل'}
+            </Text>
+            <Text style={s.emptySub}>
+              {activeTab === 'archived' 
+                ? 'سيظهر هنا المحادثات المؤرشفة'
+                : searchText 
+                ? `لا توجد محادثات تطابق "${searchText}"`
+                : 'ابدأ المحادثة الآن بكلمة طيبة!'}
+            </Text>
           </View>
         ) : (
           <View style={s.list}>
@@ -230,9 +274,9 @@ const s = StyleSheet.create({
   
   filterRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space5, paddingHorizontal: 2 },
   filterChip: { 
-    paddingHorizontal: 20, paddingVertical: 10, 
+    paddingHorizontal: 20, paddingVertical: 12, 
     borderRadius: Radius.pill, backgroundColor: Colors.white, 
-    borderWidth: 1, borderColor: Colors.border,
+    borderWidth: 1.5, borderColor: '#E0E6F2',
     ...softShadow,
   },
   filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },

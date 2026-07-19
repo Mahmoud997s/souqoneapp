@@ -12,6 +12,7 @@
     "@expo-google-fonts/almarai": "^0.4.1",
     "@expo-google-fonts/cairo": "^0.2.3",
     "@expo/vector-icons": "^14.0.0",
+    "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-picker/picker": "^2.11.4",
@@ -52,6 +53,7 @@
     "react-native-worklets": "^0.5.1",
     "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.3.0",
+    "zod": "^4.4.3",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

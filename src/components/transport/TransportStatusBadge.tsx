@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { TransportRequestStatus } from '../../types/transport.types';
+import { getRequestStatusLabel } from '../../constants/transport';
 
 interface BadgeProps {
   status: TransportRequestStatus;
@@ -21,11 +22,12 @@ const STATUS_CONFIG: Record<TransportRequestStatus, { label: string; color: stri
 
 export function TransportStatusBadge({ status }: BadgeProps) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
+  const label = getRequestStatusLabel(status);
 
   return (
     <View style={[styles.badge, { backgroundColor: config.bg }]}>
       <Text style={[styles.label, { color: config.color }]}>
-        {config.label}
+        {label}
       </Text>
     </View>
   );

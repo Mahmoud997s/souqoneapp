@@ -15,6 +15,8 @@ import { Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+import { getServiceLabel, getRequestStatusLabel } from '../../constants/transport';
+
 // ─── STATIC DATA ───
 const TABS = [
   { id: 'services', label: 'نوع الشحن' },
@@ -23,12 +25,12 @@ const TABS = [
 ];
 
 const SERVICE_TYPES = [
-  { id: 'GOODS', name: 'بضائع عامة', icon: 'cube-outline' },
-  { id: 'FURNITURE', name: 'أثاث ومنزليات', icon: 'home-outline' },
-  { id: 'CONSTRUCTION', name: 'مواد البناء', icon: 'hammer-outline' },
-  { id: 'HEAVY', name: 'شحن ثقيل', icon: 'car-outline' },
-  { id: 'BACKLOAD', name: 'عودة فارغة', icon: 'swap-horizontal-outline' },
-  { id: 'EQUIPMENT', name: 'معدات وآليات', icon: 'construct-outline' },
+  { id: 'GOODS', name: getServiceLabel('GOODS'), icon: 'cube-outline' },
+  { id: 'FURNITURE', name: getServiceLabel('FURNITURE'), icon: 'home-outline' },
+  { id: 'CONSTRUCTION', name: getServiceLabel('CONSTRUCTION'), icon: 'hammer-outline' },
+  { id: 'HEAVY', name: getServiceLabel('HEAVY'), icon: 'car-outline' },
+  { id: 'BACKLOAD', name: getServiceLabel('BACKLOAD'), icon: 'swap-horizontal-outline' },
+  { id: 'EQUIPMENT', name: getServiceLabel('EQUIPMENT'), icon: 'construct-outline' },
 ];
 
 const TOP_CITIES = [
@@ -43,9 +45,9 @@ const TOP_CITIES = [
 ];
 
 const STATUSES = [
-  { id: 'OPEN', name: 'مفتوح', icon: 'radio-button-on' },
-  { id: 'QUOTED', name: 'وصلت عروض', icon: 'pricetag' },
-  { id: 'IN_PROGRESS', name: 'جارٍ', icon: 'sync-outline' },
+  { id: 'OPEN', name: getRequestStatusLabel('OPEN'), icon: 'radio-button-on' },
+  { id: 'QUOTED', name: getRequestStatusLabel('QUOTED'), icon: 'pricetag' },
+  { id: 'IN_PROGRESS', name: getRequestStatusLabel('IN_PROGRESS'), icon: 'sync-outline' },
 ];
 
 interface TransportVisualFiltersProps {

@@ -326,3 +326,4 @@ const s = StyleSheet.create({
   makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text,  },
   makeTxtActive: { color: Colors.white },
 })
+export default function Dummy() { return null; }

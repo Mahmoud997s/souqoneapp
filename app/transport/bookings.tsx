@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
 import { transportApi } from '../../src/api/transport'
+import { getBookingStatusLabel } from '../../src/constants/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 
@@ -17,7 +18,6 @@ const ROLES = [
   { key: 'carrier', label: 'كناقل' },
 ]
 
-const STATUS_LABELS: Record<string, string> = { ACCEPTED: 'تم القبول', IN_PROGRESS: 'جارٍ التنفيذ', COMPLETED: 'مكتمل', CANCELLED: 'ملغى' }
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   ACCEPTED: { bg: '#fef3c7', text: '#d97706' },
   IN_PROGRESS: { bg: '#f3e8ff', text: '#7c3aed' },
@@ -127,14 +127,18 @@ export default function BookingsScreen() {
           const statusColor = STATUS_COLORS[b.status] ?? STATUS_COLORS.ACCEPTED
           const isCarrier = role === 'carrier'
           return (
-            <View style={s.bookingCard}>
+            <TouchableOpacity 
+              style={s.bookingCard}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/transport/bookings/${b.id}` as any)}
+            >
               <View style={s.bookingTop}>
                 <View>
                   <Text style={s.bookingPrice}>{b.quote?.price ?? '—'} ر.ع.</Text>
                   <Text style={s.bookingDate}>{new Date(b.createdAt).toLocaleDateString('ar-OM')}</Text>
                 </View>
                 <View style={[s.statusBadge, { backgroundColor: statusColor.bg }]}>
-                  <Text style={[s.statusText, { color: statusColor.text }]}>{STATUS_LABELS[b.status] ?? b.status}</Text>
+                  <Text style={[s.statusText, { color: statusColor.text }]}>{getBookingStatusLabel(b.status)}</Text>
                 </View>
               </View>
 
@@ -174,7 +178,7 @@ export default function BookingsScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           )
         }}
       />

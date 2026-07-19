@@ -8,7 +8,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { transportApi } from '../../src/api/transport'
-import { TransportRequestCard } from '../../src/components/cards/TransportRequestCard'
+import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { useAuthStore } from '../../src/store/authStore'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 
@@ -84,21 +84,24 @@ export default function MyTransportRequests() {
       />
 
       {/* Tabs */}
-      <FlatList
-        horizontal
-        data={TABS}
-        keyExtractor={t => t.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.tabsScroll}
-        renderItem={({ item: tab }) => (
-          <TouchableOpacity
-            style={[s.tab, activeTab === tab.key && s.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={{ backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
+        <FlatList
+          horizontal
+          data={TABS}
+          keyExtractor={t => t.key}
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={s.tabsScroll}
+          renderItem={({ item: tab }) => (
+            <TouchableOpacity
+              style={[s.tab, activeTab === tab.key && s.tabActive]}
+              onPress={() => setActiveTab(tab.key)}
+            >
+              <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
       {/* List */}
       <FlatList
@@ -121,18 +124,10 @@ export default function MyTransportRequests() {
         renderItem={({ item }) => (
           <View style={s.cardWrap}>
             <TransportRequestCard
-              item={item}
+              request={item}
               onPress={() => router.push(`/transport/${item.id}` as any)}
+              onDelete={(item.status === 'OPEN' || item.status === 'QUOTED') ? () => handleCancel(item.id) : undefined}
             />
-            {(item.status === 'OPEN' || item.status === 'QUOTED') && (
-              <TouchableOpacity
-                style={s.cancelBtn}
-                onPress={() => handleCancel(item.id)}
-              >
-                <Ionicons name="close-circle-outline" size={16} color={Colors.error} />
-                <Text style={s.cancelText}>إلغاء الطلب</Text>
-              </TouchableOpacity>
-            )}
           </View>
         )}
       />
@@ -147,19 +142,17 @@ const s = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center', gap: 12 },
 
   // Tabs
-  tabsScroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, backgroundColor: '#fff' },
-  tab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 100, backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: 'transparent' },
-  tabActive: { backgroundColor: Colors.primary + '12', borderColor: Colors.primary },
-  tabText: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
-  tabTextActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
+  tabsScroll: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, alignItems: 'center' },
+  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0' },
+  tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#64748b' },
+  tabTextActive: { fontFamily: 'Almarai_700Bold',  color: '#fff' },
 
   // List
   list: { paddingVertical: 12 },
   cardWrap: { marginHorizontal: 16, marginBottom: 12, gap: 8 },
 
-  // Cancel
-  cancelBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: Radius.sm, backgroundColor: '#fee2e2' },
-  cancelText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.error },
+
 
   // Empty
   emptyState: { alignItems: 'center', paddingTop: 80, gap: 10 },

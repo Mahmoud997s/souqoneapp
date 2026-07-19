@@ -18,6 +18,7 @@ import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
 import { GlobalSocketHandler } from '../src/components/GlobalSocketHandler'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false })
 
@@ -144,8 +145,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <NavVisibilityProvider>
-          <GlobalSocketHandler />
-          <Stack screenOptions={{ headerShown: false }} />
+          <BottomSheetModalProvider>
+            <GlobalSocketHandler />
+            <Stack screenOptions={{ headerShown: false }} />
+          </BottomSheetModalProvider>
         </NavVisibilityProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

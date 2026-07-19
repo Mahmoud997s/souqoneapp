@@ -9,6 +9,7 @@ import { Radius } from '../../src/constants/radius'
 import { transportApi } from '../../src/api/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { AppHeader } from '../../src/components/ui/AppHeader'
+import { getQuoteStatusLabel } from '../../src/constants/transport'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -26,8 +27,6 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   REJECTED: { bg: '#fee2e2', text: '#dc2626' },
   WITHDRAWN: { bg: '#f3f4f6', text: '#6b7280' },
 }
-
-const STATUS_LABELS: Record<string, string> = { PENDING: 'بانتظار الرد', ACCEPTED: 'مقبول', REJECTED: 'مرفوض', WITHDRAWN: 'مسحوب' }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -127,7 +126,7 @@ export default function MyQuotesScreen() {
                   {q.estimatedHours && <Text style={s.quoteHours}>{q.estimatedHours} ساعة</Text>}
                 </View>
                 <View style={[s.statusBadge, { backgroundColor: statusColor.bg }]}>
-                  <Text style={[s.statusText, { color: statusColor.text }]}>{STATUS_LABELS[q.status] ?? q.status}</Text>
+                  <Text style={[s.statusText, { color: statusColor.text }]}>{getQuoteStatusLabel(q.status)}</Text>
                 </View>
               </View>
 

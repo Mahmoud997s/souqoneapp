@@ -14,6 +14,7 @@ import { chatApi } from '../../src/api/chat'
 import { transportApi } from '../../src/api/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { resolveLocationGov } from '../../src/utils/mappers'
+import { getServiceLabel, getRequestStatusLabel, getQuoteStatusLabel } from '../../src/constants/transport'
 
 let MapView: any = null;
 let Marker: any = null;
@@ -26,16 +27,6 @@ if (Platform.OS !== 'web') {
 const { width: SW } = Dimensions.get('window')
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const SERVICE_TYPE_LABELS: Record<string, string> = {
-  GOODS: 'بضائع عامة',
-  FURNITURE: 'أثاث ومنزليات',
-  CONSTRUCTION: 'مواد البناء',
-  HEAVY: 'شحن ثقيل',
-  BACKLOAD: 'عودة فارغة',
-  EQUIPMENT: 'معدات وآليات',
-}
-
 const SERVICE_ICONS: Record<string, any> = {
   GOODS: 'cube',
   FURNITURE: 'home',
@@ -43,16 +34,6 @@ const SERVICE_ICONS: Record<string, any> = {
   HEAVY: 'car',
   BACKLOAD: 'swap-horizontal',
   EQUIPMENT: 'construct',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  OPEN: 'مفتوح',
-  QUOTED: 'وصلت عروض',
-  ACCEPTED: 'مقبول',
-  IN_PROGRESS: 'جارٍ التنفيذ',
-  COMPLETED: 'مكتمل',
-  CANCELLED: 'ملغى',
-  EXPIRED: 'منتهي',
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -64,8 +45,6 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   CANCELLED:   { bg: '#fee2e2', text: '#dc2626' },
   EXPIRED:     { bg: '#f3f4f6', text: '#6b7280' },
 }
-
-const QUOTE_STATUS_LABELS: Record<string, string> = { PENDING: 'بانتظار', ACCEPTED: 'مقبول', REJECTED: 'مرفوض', WITHDRAWN: 'مسحوب' }
 const QUOTE_STATUS_COLORS: Record<string, string> = { PENDING: '#d97706', ACCEPTED: '#16a34a', REJECTED: '#dc2626', WITHDRAWN: '#6b7280' }
 
 export default function TransportDetailScreen() {
@@ -121,7 +100,7 @@ export default function TransportDetailScreen() {
   const isOwner = user?.id === raw.userId
   const isOpen = raw.status === 'OPEN' || raw.status === 'QUOTED'
 
-  const serviceLabel = SERVICE_TYPE_LABELS[raw.serviceType] ?? raw.serviceType
+  const serviceLabel = getServiceLabel(raw.serviceType)
   const serviceIcon  = SERVICE_ICONS[raw.serviceType] ?? 'cube'
   const statusColor = STATUS_COLORS[raw.status] ?? STATUS_COLORS.OPEN
   
@@ -275,7 +254,7 @@ export default function TransportDetailScreen() {
 
               <View style={[s.condBadge, { backgroundColor: statusColor.bg }]}>
                 <Text style={[s.condTxt, { color: statusColor.text }]}>
-                  {STATUS_LABELS[raw.status] ?? raw.status}
+                  {getRequestStatusLabel(raw.status)}
                 </Text>
               </View>
 
@@ -285,6 +264,16 @@ export default function TransportDetailScreen() {
               </View>
             </View>
           </View>
+
+          {isOwner && isOpen && (
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f5f9', paddingVertical: 12, borderRadius: 12, marginBottom: 24, gap: 8, borderWidth: 1, borderColor: '#e2e8f0' }}
+              onPress={() => router.push(`/transport/requests/${id}/edit` as any)}
+            >
+              <Ionicons name="create-outline" size={20} color={Colors.primary} />
+              <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.primary }}>تعديل الطلب</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Price Card */}
           <View style={s.priceCard}>
@@ -384,7 +373,7 @@ export default function TransportDetailScreen() {
                       <View style={{ alignItems: 'flex-end' }}>
                         <Text style={s.quotePrice}>{q.price} ر.ع.</Text>
                         <View style={[s.quoteStatusBadge, { backgroundColor: (QUOTE_STATUS_COLORS[q.status] ?? '#6b7280') + '18' }]}>
-                          <Text style={[s.quoteStatusText, { color: QUOTE_STATUS_COLORS[q.status] ?? '#6b7280' }]}>{QUOTE_STATUS_LABELS[q.status] ?? q.status}</Text>
+                          <Text style={[s.quoteStatusText, { color: QUOTE_STATUS_COLORS[q.status] ?? '#6b7280' }]}>{getQuoteStatusLabel(q.status)}</Text>
                         </View>
                       </View>
                     </View>

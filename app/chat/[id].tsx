@@ -14,6 +14,7 @@ import { AppHeader } from '../../src/components/ui/AppHeader'
 import { useChatRoomLogic } from '../../src/hooks/useChatRoomLogic'
 import { MemoizedMessageBubble as MessageBubble } from '../../src/components/chat/MessageBubble'
 import { ChatInput } from '../../src/components/chat/ChatInput'
+import { ReactionPicker } from '../../src/components/chat/ReactionPicker'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChatRoom } from '../../src/types/listing.types'
 import { useChatStore } from '../../src/store/chatStore'
@@ -58,12 +59,25 @@ export default function ChatRoomScreen() {
   const room = chatRooms?.find(r => r.id === id)
   const displayName = otherUser?.name ?? 'المحادثة'
 
+  const reversedMessages = React.useMemo(
+    () => [...messages].reverse(),
+    [messages]
+  )
+
+  const [showReactionPicker, setShowReactionPicker] = React.useState(false)
+  const [selectedMsgId, setSelectedMsgId] = React.useState<string | null>(null)
+
+  const handleSelectMessage = React.useCallback((msgId: string) => {
+    setSelectedMsgId(msgId)
+    setShowReactionPicker(true)
+  }, [])
+
+  const handleReactFromPicker = React.useCallback((msgId: string, emoji: string) => {
+    handleReact(msgId, emoji)
+  }, [handleReact])
+
   return (
-    <KeyboardAvoidingView 
-      style={s.root} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
+    <View style={s.root}>
       <AppHeader
         showBack
 
@@ -121,23 +135,27 @@ export default function ChatRoomScreen() {
       ) : (
         <FlatList
           ref={scrollRef as any}
-          data={[...messages].reverse()}
+          data={reversedMessages}
           keyExtractor={(item) => item.id}
           inverted
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
-          onScrollBeginDrag={() => setActiveReactMsgId(null)}
+          onScrollBeginDrag={() => {
+            setShowReactionPicker(false)
+            setSelectedMsgId(null)
+          }}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage()
           }}
           onEndReachedThreshold={0.5}
+          maxToRenderPerBatch={20}
+          windowSize={10}
           ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={Colors.primary} style={{ marginVertical: 16 }} /> : null}
           renderItem={({ item: msg, index }) => {
-            const reversed = [...messages].reverse()
             const isOwn = msg.senderId === user?.id
             const currentDateLabel = getDateLabel(msg.createdAt)
             // Since it's inverted, the "previous" message in time is the NEXT item in the reversed array
-            const prevMessageTime = index < reversed.length - 1 ? reversed[index + 1].createdAt : null
+            const prevMessageTime = index < reversedMessages.length - 1 ? reversedMessages[index + 1].createdAt : null
             const prevDateLabel = prevMessageTime ? getDateLabel(prevMessageTime) : null
             const showDateDivider = currentDateLabel !== prevDateLabel
 
@@ -147,8 +165,8 @@ export default function ChatRoomScreen() {
                   msg={msg}
                   isOwn={isOwn}
                   isActiveReactMsgId={activeReactMsgId === msg.id}
-                  onLongPress={setActiveReactMsgId}
-                  onReact={handleReact}
+                  onLongPress={handleSelectMessage}
+                  onReact={handleReactFromPicker}
                 />
                 {showDateDivider && (
                   <View style={s.dateDivider}>
@@ -161,22 +179,39 @@ export default function ChatRoomScreen() {
         />
       )}
 
-      <ChatInput
-        msgText={msgText}
-        onChangeText={handleTextChange}
-        onSend={handleSend}
-        insetsBottom={insets.bottom}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View style={s.inputContainer}>
+          <ChatInput
+            msgText={msgText}
+            onChangeText={handleTextChange}
+            onSend={handleSend}
+            insetsBottom={insets.bottom}
+          />
+        </View>
+      </KeyboardAvoidingView>
+
+      <ReactionPicker
+        isVisible={showReactionPicker}
+        selectedMsgId={selectedMsgId}
+        onReact={handleReactFromPicker}
+        onDismiss={() => {
+          setShowReactionPicker(false)
+          setSelectedMsgId(null)
+        }}
       />
-    </KeyboardAvoidingView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
   iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space3, flex: 1, justifyContent: 'center' },
-  headerTitleWrap: { alignItems: 'flex-start', justifyContent: 'center' },
-  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: Colors.white, maxWidth: 180 },
+  headerCenter: { flexDirection: 'row-reverse', alignItems: 'center', gap: Spacing.space3, flex: 1, justifyContent: 'center' },
+  headerTitleWrap: { alignItems: 'flex-end', justifyContent: 'center', flex: 1 },
+  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: Colors.white, maxWidth: 180, textAlign: 'right' },
   typingTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: '#4ADE80' },
   avatarWrap: { position: 'relative', width: 44, height: 44 },
   avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
@@ -204,5 +239,10 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.05)', color: Colors.textMuted,
     fontFamily: 'Almarai_700Bold',  fontSize: 11,
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
+  },
+  inputContainer: {
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
 })

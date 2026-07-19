@@ -1,189 +1,321 @@
-import { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native'
-import { router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Colors } from '../../src/constants/colors'
-import { Radius } from '../../src/constants/radius'
-import { transportApi } from '../../src/api/transport'
-import { useAuthStore } from '../../src/store/authStore'
-import { AppHeader } from '../../src/components/ui/AppHeader'
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppHeader } from '../../src/components/ui/AppHeader';
+import { Colors } from '../../src/constants/colors';
+import { Radius } from '../../src/constants/radius';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const VEHICLE_TYPES = [
-  { key: 'PICKUP', label: 'بيك أب', icon: 'car-sport-outline' },
-  { key: 'VAN', label: 'فان', icon: 'bus-outline' },
-  { key: 'TRUCK_SMALL', label: 'شاحنة صغيرة', icon: 'car-outline' },
-  { key: 'TRUCK_LARGE', label: 'شاحنة كبيرة', icon: 'bus-outline' },
-  { key: 'TRAILER', label: 'تريلر', icon: 'train-outline' },
-  { key: 'EXCAVATOR', label: 'حفّار', icon: 'construct-outline' },
-  { key: 'TIPPER', label: 'قلّاب', icon: 'cube-outline' },
-  { key: 'CRANE', label: 'رافعة', icon: 'arrow-up-outline' },
-  { key: 'OTHER', label: 'أخرى', icon: 'ellipsis-horizontal-outline' },
-]
-
-const SERVICE_TYPES = [
-  { key: 'GOODS', label: 'بضائع عامة' },
-  { key: 'FURNITURE', label: 'أثاث ومنزليات' },
-  { key: 'CONSTRUCTION', label: 'مواد البناء' },
-  { key: 'HEAVY', label: 'شحن ثقيل' },
-  { key: 'BACKLOAD', label: 'عودة فارغة' },
-  { key: 'EQUIPMENT', label: 'معدات وآليات' },
-]
-
-const GOVERNORATES = [
-  'مسقط', 'ظفار', 'مسندم', 'البريمي', 'الداخلية',
-  'شمال الباطنة', 'جنوب الباطنة', 'شمال الشرقية', 'جنوب الشرقية', 'الظاهرة', 'الوسطى',
-]
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export default function CarrierRegisterScreen() {
-  const insets = useSafeAreaInsets()
-  const { user } = useAuthStore()
-
-  const [companyName, setCompanyName] = useState('')
-  const [bio, setBio] = useState('')
-  const [vehicleTypes, setVehicleTypes] = useState<string[]>([])
-  const [serviceTypes, setServiceTypes] = useState<string[]>([])
-  const [governorate, setGovernorate] = useState('')
-  const [city, setCity] = useState('')
-  const [contactPhone, setContactPhone] = useState(user?.phone ?? '')
-  const [whatsapp, setWhatsapp] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const toggleItem = (arr: string[], setArr: (v: string[]) => void, item: string) => {
-    setArr(arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item])
-  }
-
-  const canSubmit = vehicleTypes.length > 0 && serviceTypes.length > 0 && governorate
-
-  const handleSubmit = async () => {
-    if (!user) { router.push('/(auth)/login' as any); return }
-    if (!canSubmit) { Alert.alert('بيانات ناقصة', 'اختر نوع المركبة والخدمة والمحافظة على الأقل'); return }
-    setSubmitting(true)
-    try {
-      await transportApi.createCarrierProfile({
-        companyName: companyName || undefined,
-        bio: bio || undefined,
-        vehicleTypes,
-        serviceTypes,
-        governorate,
-        city: city || undefined,
-        contactPhone: contactPhone || undefined,
-        whatsapp: whatsapp || undefined,
-      })
-      Alert.alert('تم بنجاح', 'تم تسجيلك كناقل', [
-        { text: 'حسناً', onPress: () => router.back() },
-      ])
-    } catch (e: any) {
-      Alert.alert('خطأ', e?.response?.data?.message ?? 'حدث خطأ أثناء التسجيل')
-    } finally { setSubmitting(false) }
-  }
+export default function CarrierRegisterIntroScreen() {
+  const insets = useSafeAreaInsets();
+  const [agreed, setAgreed] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false);
 
   return (
     <View style={s.root}>
-      {/* Header */}
       <AppHeader title="التسجيل كناقل" showBack />
+      
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        
+        <View style={s.hero}>
+          <View style={s.iconWrap}>
+            <MaterialCommunityIcons name="truck-fast-outline" size={64} color={Colors.primary} />
+          </View>
+          <Text style={s.title}>انضم إلى شبكة نواقل سوق ون</Text>
+          <Text style={s.subtitle}>ضاعف أرباحك، احصل على طلبات نقل مستمرة، وقم بإدارة عملك بكل سهولة عبر منصة واحدة.</Text>
+        </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-
-          {/* Company info */}
-          <Text style={s.sectionTitle}>معلومات الشركة / الناقل</Text>
-          <TextInput style={s.input} placeholder="اسم الشركة (اختياري)" placeholderTextColor={Colors.textMuted} value={companyName} onChangeText={setCompanyName} />
-          <TextInput style={[s.input, s.textArea]} placeholder="نبذة عنك (اختياري)" placeholderTextColor={Colors.textMuted} value={bio} onChangeText={setBio} multiline textAlignVertical="top" />
-
-          {/* Vehicle types */}
-          <Text style={s.sectionTitle}>أنواع المركبات *</Text>
-          <View style={s.chipsWrap}>
-            {VEHICLE_TYPES.map(v => (
-              <TouchableOpacity
-                key={v.key}
-                style={[s.chip, vehicleTypes.includes(v.key) && s.chipActive]}
-                onPress={() => toggleItem(vehicleTypes, setVehicleTypes, v.key)}
-              >
-                <Ionicons name={v.icon as any} size={14} color={vehicleTypes.includes(v.key) ? Colors.primary : Colors.text2} />
-                <Text style={[s.chipText, vehicleTypes.includes(v.key) && s.chipTextActive]}>{v.label}</Text>
-              </TouchableOpacity>
-            ))}
+        <View style={s.featuresList}>
+          <View style={s.featureItem}>
+            <View style={s.featureIcon}>
+              <Ionicons name="cash-outline" size={24} color="#10b981" />
+            </View>
+            <View style={s.featureTextWrap}>
+              <Text style={s.featureTitle}>أرباح أعلى وفرص مستمرة</Text>
+              <Text style={s.featureDesc}>وصول مباشر لآلاف الطلبات المتاحة يومياً بدون وسطاء، لضمان استمرارية عملك.</Text>
+            </View>
           </View>
 
-          {/* Service types */}
-          <Text style={s.sectionTitle}>أنواع الخدمات *</Text>
-          <View style={s.chipsWrap}>
-            {SERVICE_TYPES.map(st => (
-              <TouchableOpacity
-                key={st.key}
-                style={[s.chip, serviceTypes.includes(st.key) && s.chipActive]}
-                onPress={() => toggleItem(serviceTypes, setServiceTypes, st.key)}
-              >
-                <Text style={[s.chipText, serviceTypes.includes(st.key) && s.chipTextActive]}>{st.label}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={s.featureItem}>
+            <View style={s.featureIcon}>
+              <Ionicons name="time-outline" size={24} color="#f59e0b" />
+            </View>
+            <View style={s.featureTextWrap}>
+              <Text style={s.featureTitle}>مرونة تامة في العمل</Text>
+              <Text style={s.featureDesc}>أنت مدير نفسك. اقبل الطلبات التي تناسبك في الوقت والمكان الذي تفضله.</Text>
+            </View>
           </View>
 
-          {/* Location */}
-          <Text style={s.sectionTitle}>الموقع *</Text>
-          <View style={s.chipsWrap}>
-            {GOVERNORATES.map(g => (
-              <TouchableOpacity
-                key={g}
-                style={[s.chip, governorate === g && s.chipActive]}
-                onPress={() => setGovernorate(g)}
-              >
-                <Text style={[s.chipText, governorate === g && s.chipTextActive]}>{g}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={s.featureItem}>
+            <View style={s.featureIcon}>
+              <Ionicons name="shield-checkmark-outline" size={24} color="#3b82f6" />
+            </View>
+            <View style={s.featureTextWrap}>
+              <Text style={s.featureTitle}>بيئة عمل آمنة وموثوقة</Text>
+              <Text style={s.featureDesc}>جميع الطلبات والعملاء موثقين لدينا، لضمان حقوقك المادية وحمايتك.</Text>
+            </View>
           </View>
-          <TextInput style={s.input} placeholder="المدينة/الولاية (اختياري)" placeholderTextColor={Colors.textMuted} value={city} onChangeText={setCity} />
+        </View>
 
-          {/* Contact */}
-          <Text style={s.sectionTitle}>التواصل</Text>
-          <TextInput style={s.input} placeholder="رقم الهاتف" placeholderTextColor={Colors.textMuted} value={contactPhone} onChangeText={setContactPhone} keyboardType="phone-pad" />
-          <TextInput style={s.input} placeholder="واتساب (اختياري)" placeholderTextColor={Colors.textMuted} value={whatsapp} onChangeText={setWhatsapp} keyboardType="phone-pad" />
+        <View style={s.checkboxRow}>
+          <TouchableOpacity onPress={() => setAgreed(!agreed)} activeOpacity={0.7} style={{ padding: 4, paddingRight: 0 }}>
+            <Ionicons 
+              name={agreed ? "checkbox" : "square-outline"} 
+              size={24} 
+              color={agreed ? Colors.primary : '#94a3b8'} 
+            />
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={s.termsText}>أوافق على </Text>
+            <TouchableOpacity onPress={() => setTermsVisible(true)}>
+              <Text style={s.termsLinkText}>شروط وأحكام النواقل في سوق ون</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
 
-      {/* Submit */}
-      <View style={[s.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <TouchableOpacity
-          style={[s.submitBtn, (!canSubmit || submitting) && s.disabledBtn]}
-          onPress={handleSubmit}
-          disabled={!canSubmit || submitting}
+      <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+
+        <TouchableOpacity 
+          style={[s.startBtn, !agreed && s.startBtnDisabled]}
+          onPress={() => {
+            if (agreed) {
+              router.push('/transport/carrier-onboarding' as any);
+            }
+          }}
+          activeOpacity={agreed ? 0.8 : 1}
         >
-          {submitting ? <ActivityIndicator color="#fff" size="small" /> : (
-            <>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-              <Text style={s.submitBtnText}>تسجيل كناقل</Text>
-            </>
-          )}
+          <Text style={s.startBtnText}>ابدأ التسجيل الآن</Text>
+          <Ionicons name="arrow-back-outline" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={termsVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTermsVisible(false)}
+      >
+        <View style={s.modalOverlay}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => setTermsVisible(false)} />
+          <View style={[s.bottomSheet, { paddingBottom: Math.max(insets.bottom, 20), maxHeight: '85%' }]}>
+            <View style={s.sheetHeader}>
+              <Text style={s.sheetTitle}>شروط وأحكام النواقل</Text>
+              <TouchableOpacity onPress={() => setTermsVisible(false)} style={s.sheetCloseBtn}>
+                <Ionicons name="close" size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.sheetScrollContent}>
+              <Text style={s.termsHeading}>1. شروط الانضمام</Text>
+              <Text style={s.termsParagraph}>- يجب أن يكون لدى الناقل رخصة قيادة سارية المفعول.</Text>
+              <Text style={s.termsParagraph}>- يجب أن تكون المركبة بحالة جيدة ومطابقة للمواصفات.</Text>
+              
+              <Text style={s.termsHeading}>2. الالتزام بالمواعيد</Text>
+              <Text style={s.termsParagraph}>- يلتزم الناقل بتسليم البضائع في الوقت المتفق عليه مع العميل.</Text>
+              <Text style={s.termsParagraph}>- في حالة التأخير يجب إبلاغ العميل مسبقاً.</Text>
+
+              <Text style={s.termsHeading}>3. المحافظة على الشحنة</Text>
+              <Text style={s.termsParagraph}>- يتحمل الناقل المسؤولية الكاملة عن الشحنة منذ استلامها وحتى تسليمها.</Text>
+              <Text style={s.termsParagraph}>- في حالة التلف أو الفقدان، يتم التعويض بحسب قيمة الشحنة.</Text>
+
+              <Text style={s.termsHeading}>4. المدفوعات والعمولات</Text>
+              <Text style={s.termsParagraph}>- تلتزم بدفع عمولة المنصة المحددة للطلبات الناجحة.</Text>
+              <Text style={s.termsParagraph}>- يتم تحويل المستحقات بناءً على طرق الدفع المعتمدة في التطبيق.</Text>
+            </ScrollView>
+            <TouchableOpacity style={s.acceptTermsBtn} onPress={() => { setAgreed(true); setTermsVisible(false); }}>
+              <Text style={s.acceptTermsBtnText}>موافق</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
-  )
+  );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f5f7fa' },
-  body: { padding: 20, paddingBottom: 120, gap: 12 },
-
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginTop: 8 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, height: 48, paddingHorizontal: 14, fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, textAlign: 'right', writingDirection: 'rtl' },
-  textArea: { height: 90, paddingTop: 12 },
-
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border },
-  chipActive: { backgroundColor: Colors.primary + '12', borderColor: Colors.primary },
-  chipText: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
-  chipTextActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
-
-  bottomBar: { position: 'absolute', bottom: 0, start: 0, end: 0, backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
-  submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: Radius.md, backgroundColor: Colors.primary },
-  submitBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#fff' },
-  disabledBtn: { opacity: 0.5 },
-})
+  root: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  hero: {
+    alignItems: 'center',
+    marginBottom: 40,
+    marginTop: 20,
+  },
+  iconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 22,
+    color: '#0f172a',
+    textAlign: 'left',
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  subtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  featuresList: {
+    gap: 24,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  featureIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  featureTextWrap: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    color: '#0f172a',
+    marginBottom: 4,
+    textAlign: 'left',
+    paddingVertical: 4,
+  },
+  featureDesc: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 22,
+    textAlign: 'left',
+    paddingVertical: 4,
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    backgroundColor: '#fff',
+  },
+  startBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary,
+    height: 54,
+    borderRadius: Radius.lg,
+    marginBottom: 12,
+  },
+  startBtnDisabled: {
+    opacity: 0.5,
+  },
+  startBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    color: '#fff',
+    paddingVertical: 4,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 40,
+    marginBottom: 0,
+  },
+  termsText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  termsLinkText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    color: Colors.primary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 20,
+    color: '#0f172a',
+  },
+  sheetCloseBtn: {
+    padding: 4,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 16,
+  },
+  sheetScrollContent: {
+    paddingBottom: 24,
+  },
+  termsHeading: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    color: '#0f172a',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'left',
+  },
+  termsParagraph: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 24,
+    textAlign: 'left',
+    marginBottom: 6,
+  },
+  acceptTermsBtn: {
+    backgroundColor: Colors.primary,
+    height: 54,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  acceptTermsBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    color: '#fff',
+  },
+});

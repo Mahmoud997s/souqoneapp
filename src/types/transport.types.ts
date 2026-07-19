@@ -4,7 +4,9 @@ export type TransportServiceType =
   | 'CONSTRUCTION'
   | 'HEAVY'
   | 'BACKLOAD'
-  | 'EQUIPMENT';
+  | 'EQUIPMENT'
+  | 'CARS'
+  | 'LIVESTOCK';
 
 export type TransportRequestStatus = 
   | 'OPEN'
@@ -86,11 +88,15 @@ export interface CarrierProfile {
   userId: string;
   
   companyName?: string;
-  vehicleType?: CarrierVehicleType;
-  licenseNumber?: string;
-  licensePlate?: string;
+  bio?: string;
+  vehicleTypes?: string[];
+  serviceTypes?: string[];
+  governorate?: string;
+  city?: string;
+  contactPhone?: string;
+  whatsapp?: string;
   
-  serviceAreas: string[];
+  serviceAreas?: string[];
   isAvailable: boolean;
   
   averageRating: number;
@@ -106,6 +112,8 @@ export interface CarrierProfile {
     displayName: string;
     phone: string;
     avatar?: string;
+    avatarUrl?: string;
+    isVerified?: boolean;
   };
 }
 

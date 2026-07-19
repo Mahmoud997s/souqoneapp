@@ -38,8 +38,12 @@ export function ChatInput({ msgText, onChangeText, onSend, insetsBottom }: Props
       {imageUri && (
         <View style={s.previewContainer}>
           <Image source={{ uri: imageUri }} style={s.previewImage} contentFit="cover" />
-          <TouchableOpacity style={s.removePreviewBtn} onPress={() => setImageUri(null)}>
-            <Ionicons name="close-circle" size={24} color={Colors.white} />
+          <TouchableOpacity 
+            style={s.removePreviewBtn} 
+            onPress={() => setImageUri(null)}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          >
+            <Ionicons name="close-circle" size={28} color={Colors.white} />
           </TouchableOpacity>
         </View>
       )}
@@ -75,9 +79,9 @@ export function ChatInput({ msgText, onChangeText, onSend, insetsBottom }: Props
 
 const s = StyleSheet.create({
   container: { backgroundColor: Colors.white },
-  previewContainer: { padding: 12, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', position: 'relative', alignSelf: 'flex-start', width: 100 },
-  previewImage: { width: 80, height: 80, borderRadius: 12 },
-  removePreviewBtn: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, padding: 2 },
+  previewContainer: { padding: 12, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', position: 'relative', width: '100%' },
+  previewImage: { width: '100%', height: 240, borderRadius: 12 },
+  removePreviewBtn: { position: 'absolute', top: 20, right: 20, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: 2 },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12,
     paddingTop: 8, backgroundColor: Colors.white,
@@ -85,13 +89,13 @@ const s = StyleSheet.create({
   addBtn: { padding: 8, paddingBottom: 10 },
   inputWrap: {
     flex: 1, backgroundColor: '#f0f2f5', borderRadius: 20,
-    minHeight: 40, maxHeight: 100, marginHorizontal: 8,
+    minHeight: 40, maxHeight: 120, marginHorizontal: 8,
     justifyContent: 'center', marginBottom: 8,
   },
   input: {
     fontFamily: 'Almarai_400Regular', 
     fontSize: 15, color: Colors.text, paddingHorizontal: 16, paddingVertical: 10,
-    maxHeight: 100,
+    maxHeight: 120,
   },
   sendBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary,

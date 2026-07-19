@@ -1,491 +1,467 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  TextInput,
-  Platform,
-  ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, StatusBar, InteractionManager,
+  Dimensions, FlatList, I18nManager
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import Animated, {
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useAnimatedScrollHandler, useSharedValue, useAnimatedStyle,
+  interpolate, Extrapolation,
+} from 'react-native-reanimated';
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import { useQuery } from '@tanstack/react-query';
 
-import { transportApi } from '../../src/api/transport';
-import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { useNavVisibility } from '../../src/context/NavVisibilityContext';
-
-// Components
-import { TransportRequestCard } from '../../src/components/cards/TransportRequestCard';
-import { TransportVisualFilters } from '../../src/components/transport/TransportVisualFilters';
-import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
-
-// Constants
 import { Colors } from '../../src/constants/colors';
+import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
+import { transportApi } from '../../src/api/transport';
 
-interface FilterState {
-  serviceType?: string;
-  status?: string;
-  fromGovernorate?: string;
-  toGovernorate?: string;
-  city?: string;
-  page: number;
-}
+import { TransportCategoriesGrid } from '../../src/components/transport/landing/TransportCategoriesGrid';
+import { TransportHorizontalList } from '../../src/components/transport/landing/TransportHorizontalList';
+import { TransportHowItWorks } from '../../src/components/transport/landing/TransportHowItWorks';
+import { CarrierCTABanner } from '../../src/components/transport/landing/CarrierCTABanner';
+import { CarrierCard } from '../../src/components/transport/CarrierCard';
 
-const LISTING_TYPES = [
-  { id: 'ALL', label: 'الكل' },
-  { id: 'GOODS', label: 'بضائع' },
-  { id: 'FURNITURE', label: 'أثاث' },
-  { id: 'EQUIPMENT', label: 'معدات' },
-];
+const { width: SW } = Dimensions.get('window');
 
-export default function TransportBrowseScreen() {
-  const insets = useSafeAreaInsets();
-  const { scrollHandler } = useScrollAwareNav();
-  const { navHidden } = useNavVisibility();
+const THRESHOLD  = 40;
+const ANIM_RANGE = 140;
+const ANIM_END   = THRESHOLD + ANIM_RANGE;
 
-  // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const [filters, setFilters] = useState<FilterState>({ page: 1 });
-  
-  // Combine query parameters
-  const queryParams = useMemo(() => {
-    const params: Record<string, any> = {
-      limit: 30,
-      page: filters.page,
-    };
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-    if (searchQuery.trim()) {
-      params.search = searchQuery;
-    }
-
-    if (filters.serviceType && filters.serviceType !== 'ALL') {
-      params.serviceType = filters.serviceType;
-    }
-    if (filters.status) params.status = filters.status;
-    if (filters.fromGovernorate) params.fromGovernorate = filters.fromGovernorate;
-    if (filters.city) params.fromCity = filters.city; // Map city filter to fromCity for demo
-
-    return params;
-  }, [searchQuery, filters]);
-
-  // Fetch Listings
-  const { data: raw, isLoading, isError, refetch } = useQuery({
-    queryKey: ['transport-requests', queryParams],
-    queryFn: async () => {
-      const res = await transportApi.getAll(queryParams);
-      const d = res.data as any;
-      return { items: d?.items ?? d?.data ?? (Array.isArray(d) ? d : []), meta: d?.meta };
-    },
-  });
-
-  const listings = raw?.items ?? [];
-
-  // Active filters count
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (filters.serviceType && filters.serviceType !== 'ALL') count++;
-    if (filters.status) count++;
-    if (filters.fromGovernorate) count++;
-    if (filters.city) count++;
-    return count;
-  }, [filters]);
-
-  const headerStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(navHidden.value, [0, 1], [0, -150], Extrapolation.CLAMP);
-    const opacity = interpolate(navHidden.value, [0, 0.5, 1], [1, 0.5, 0], Extrapolation.CLAMP);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const handleSelectFilter = (type: 'service' | 'city' | 'status', valueId: string, valueName?: string) => {
-    if (type === 'service') {
-      setFilters(prev => ({ ...prev, serviceType: valueId, page: 1 }));
-    } else if (type === 'city') {
-      setFilters(prev => ({ ...prev, city: valueId, page: 1 }));
-    } else if (type === 'status') {
-      setFilters(prev => ({ ...prev, status: valueId, page: 1 }));
-    }
-  };
-
-  const handleClearAll = () => {
-    setFilters({ page: 1 });
-    setSearchQuery('');
-  };
-
-  const renderEmptyState = () => {
-    if (isLoading) {
-      return (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <SkeletonCard />
-            </View>
-          ))}
-        </View>
-      );
-    }
-
-    if (isError) {
-      return (
-        <View style={s.emptyContainer}>
-          <View style={s.emptyIconWrapError}>
-            <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
-          </View>
-          <Text style={s.emptyTitle}>حدث خطأ!</Text>
-          <Text style={s.emptySub}>تعذر جلب البيانات، يرجى المحاولة لاحقاً.</Text>
-          <TouchableOpacity style={s.retryBtn} onPress={() => refetch()}>
-            <Text style={s.retryBtnTxt}>إعادة المحاولة</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View style={s.emptyContainer}>
-        <View style={s.emptyIconWrap}>
-          <Ionicons name="search-outline" size={48} color={Colors.primary} />
-        </View>
-        <Text style={s.emptyTitle}>لا توجد طلبات مطابقة</Text>
-        <Text style={s.emptySub}>لم نعثر على أي طلبات تتطابق مع معايير البحث الخاصة بك.</Text>
-        {activeFiltersCount > 0 && (
-          <TouchableOpacity style={s.clearAllBtnInline} onPress={handleClearAll}>
-            <Ionicons name="refresh-outline" size={18} color="#fff" />
-            <Text style={s.clearAllBtnInlineTxt}>مسح الفلاتر</Text>
-          </TouchableOpacity>
+function ActionCard({
+  icon, label, desc, color, bg, onPress, iconFamily = 'Ionicons'
+}: {
+  icon: string; label: string; desc: string
+  color: string; bg: string; onPress: () => void; iconFamily?: 'Ionicons' | 'MaterialCommunityIcons'
+}) {
+  return (
+    <TouchableOpacity style={[act.card, { backgroundColor: bg }]} onPress={onPress} activeOpacity={0.85}>
+      <View style={[act.iconBox, { backgroundColor: color + '20' }]}>
+        {iconFamily === 'MaterialCommunityIcons' ? (
+          <MaterialCommunityIcons name={icon as any} size={24} color={color} />
+        ) : (
+          <Ionicons name={icon as any} size={24} color={color} />
         )}
       </View>
-    );
-  };
+      <View style={act.textBox}>
+        <Text style={[act.label, { color: Colors.text }]} numberOfLines={1}>{label}</Text>
+        <Text style={act.desc} numberOfLines={1}>{desc}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
+const act = StyleSheet.create({
+  card: {
+    width: (SW - Spacing.space5 * 2 - Spacing.space4) / 2,
+    padding: Spacing.space3 + 2,
+    borderRadius: Radius.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space3,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
+  },
+  iconBox: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  textBox: { flex: 1 },
+  label: { fontFamily: 'Almarai_800ExtraBold', fontSize: 14, textAlign: 'left', marginBottom: 2 },
+  desc: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.textMuted, textAlign: 'left', paddingBottom: 4 },
+});
+
+function CarriersSwiper({ carriers }: { carriers: any[] }) {
+  const router = useRouter();
+  if (!carriers || carriers.length === 0) return null;
   return (
-    <View style={s.root}>
-      {/* ── HEADER ── */}
-      <Animated.View style={[s.headerContainer, { paddingTop: insets.top }, headerStyle]}>
-        <LinearGradient colors={[Colors.primary, '#206B70']} style={StyleSheet.absoluteFillObject} />
-        
-        {/* Top Header */}
-        <View style={s.topHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <Ionicons name="arrow-forward" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>طلبات النقل</Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {/* Temporary Preview Button */}
-            <TouchableOpacity style={s.addBtn} onPress={() => router.push('/transport/preview' as any)}>
-              <Ionicons name="eye" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={s.addBtn} onPress={() => router.push('/transport/new' as any)}>
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
+    <View style={{ marginTop: Spacing.space3, marginBottom: Spacing.space5 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.space5, marginBottom: Spacing.space4 }}>
+        <Text style={{ fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text, paddingVertical: 4 }}>الناقلون المتميزون</Text>
+        <TouchableOpacity onPress={() => router.push('/transport/carriers' as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.primary }}>عرض الكل</Text>
+          <Ionicons name="chevron-back" size={16} color={Colors.primary} />
+        </TouchableOpacity>
+      </View>
 
-        {/* Search & Filter Row */}
-        <View style={s.searchRow}>
-          <View style={s.searchBox}>
-            <Ionicons name="search" size={20} color="#94a3b8" style={s.searchIcon} />
-            <TextInput
-              style={s.searchInput}
-              placeholder="ابحث عن حمولة..."
-              placeholderTextColor="#94a3b8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} style={s.clearSearch}>
-                <Ionicons name="close-circle" size={18} color="#94a3b8" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity 
-            style={[s.filterBtnTop, activeFiltersCount > 0 && s.filterBtnTopActive]} 
-            onPress={() => {}}
-          >
-            <Ionicons name="options" size={20} color={activeFiltersCount > 0 ? '#fff' : Colors.primary} />
-            {activeFiltersCount > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeTxt}>{activeFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Listing Type Tabs */}
-        <View style={s.typeTabs}>
-          {LISTING_TYPES.map(type => {
-            const isActive = (filters.serviceType || 'ALL') === type.id;
-            return (
-              <TouchableOpacity
-                key={type.id}
-                style={[s.typeTab, isActive && s.typeTabActive]}
-                onPress={() => setFilters(prev => ({ 
-                  ...prev, 
-                  serviceType: type.id,
-                  page: 1
-                }))}
-              >
-                <Text style={[s.typeTabTxt, isActive && s.typeTabTxtActive]}>{type.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Animated.View>
-
-      {/* ── LISTINGS LIST ── */}
-      <Animated.FlatList
-        data={listings || []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={s.listContent}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isLoading && listings?.length > 0} onRefresh={refetch} tintColor={Colors.primary} />
-        }
-        ListHeaderComponent={
-          <View style={{ marginBottom: 16 }}>
-            {/* Visual Grid Filters */}
-            <TransportVisualFilters
-              onSelectFilter={handleSelectFilter}
-              onViewAll={() => {}}
-              selectedServiceId={filters.serviceType}
-              selectedCity={filters.city}
-              selectedStatusId={filters.status}
-            />
-            
-            <View style={s.resultsHeader}>
-              <Text style={s.resultsCount}>
-                {isLoading ? 'جاري البحث...' : `${raw?.meta?.total ?? (listings?.length || 0)} طلب متاح`}
-              </Text>
-            </View>
-          </View>
-        }
+      <FlatList
+        data={carriers}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={item => item.id}
+        contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: 16 }}
+        snapToInterval={(SW * 0.85) + 16}
+        snapToAlignment="start"
+        decelerationRate="fast"
         renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <TransportRequestCard 
-              item={item} 
-              onPress={() => router.push(`/transport/${item.id}` as any)} 
+          <View style={{ width: SW * 0.85 }}>
+            <CarrierCard
+              carrier={item}
+              onPress={() => router.push(`/transport/carriers/${item.id}` as any)}
+              compact={true}
             />
           </View>
         )}
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
+export default function TransportLandingScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const COMPACT_HEIGHT = insets.top + 56;
+  const HERO_HEIGHT    = insets.top + 185;
+
+  const headerAnimStyle = useAnimatedStyle(() => ({
+    height: interpolate(
+      scrollY.value,
+      [0, THRESHOLD, ANIM_END],
+      [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
+      Extrapolation.CLAMP
+    ),
+    borderBottomLeftRadius: interpolate(
+      scrollY.value,
+      [0, THRESHOLD, ANIM_END],
+      [32, 32, 0],
+      Extrapolation.CLAMP
+    ),
+    borderBottomRightRadius: interpolate(
+      scrollY.value,
+      [0, THRESHOLD, ANIM_END],
+      [32, 32, 0],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const heroContentAnimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.5],
+      [1, 1, 0],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const heroSearchAnimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.6],
+      [1, 1, 0],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const navSearchAnimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [0, THRESHOLD + ANIM_RANGE * 0.4, ANIM_END],
+      [0, 0, 1],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const [loadRest, setLoadRest] = useState(false);
+  React.useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => setLoadRest(true), 150);
+    });
+    return () => task.cancel();
+  }, []);
+
+  const { data: latestRes, isLoading: loadingLatest } = useQuery({
+    queryKey: ['transport-requests-latest'],
+    queryFn: () => transportApi.getAll({ status: 'OPEN', limit: 10 }),
+    enabled: loadRest,
+  });
+
+  const latestRequests = useMemo(() => {
+    const d = latestRes?.data as any;
+    return d?.items ?? d?.data ?? (Array.isArray(d) ? d : []);
+  }, [latestRes]);
+
+  const { data: carriersRes, isLoading: loadingCarriers } = useQuery({
+    queryKey: ['transport-carriers-featured'],
+    queryFn: () => transportApi.getCarriers(),
+    enabled: loadRest,
+  });
+
+  const featuredCarriers = useMemo(() => {
+    const d = carriersRes?.data as any;
+    return d?.items ?? d?.data ?? (Array.isArray(d) ? d : []);
+  }, [carriersRes]);
+
+  const { data: myProfileRes } = useQuery({
+    queryKey: ['my-carrier-profile'],
+    queryFn: () => transportApi.getMyCarrierProfile(),
+    retry: false,
+    enabled: loadRest,
+  });
+
+  const isCarrier = !!myProfileRes?.data;
+
+  return (
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" />
+
+      {/* ── STICKY HEADER ── */}
+      <AnimatedLinearGradient
+        colors={Gradients.hero as any}
+        locations={[0, 0.6, 1]}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={[s.stickyHeader, { paddingTop: insets.top + 8 }, headerAnimStyle]}
+      >
+        <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
+          <Svg width="100%" height="100%">
+            <Defs>
+              <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+              </Pattern>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#grid)" />
+          </Svg>
+        </View>
+
+        {/* TOP BAR */}
+        <View style={s.heroTop}>
+          <TouchableOpacity
+            style={s.backBtn}
+            onPress={() => {
+              if (router.canGoBack()) router.back();
+              else router.push('/');
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-forward-outline" size={22} color={Colors.white} />
+          </TouchableOpacity>
+
+          {/* NAVBAR SEARCH (fades IN on scroll) */}
+          <Animated.View style={[s.navSearch, navSearchAnimStyle]}>
+            <TouchableOpacity
+              style={s.navSearchInner}
+              onPress={() => router.push('/transport/browse' as any)}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="search" size={16} color={Colors.white} style={{ opacity: 0.8 }} />
+              <Text style={s.navSearchTxt}>ابحث عن طلب شحن...</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <TouchableOpacity style={s.dashBtn} onPress={() => router.push('/transport/carrier-dashboard' as any)} activeOpacity={0.7}>
+            <Ionicons name="grid-outline" size={22} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* HERO EXPANDABLE CONTENT (fades OUT on scroll) */}
+        <Animated.View style={[s.heroCenter, heroContentAnimStyle]} pointerEvents="auto">
+          <View style={{ alignItems: 'center', marginBottom: Spacing.space2 }}>
+            <Text style={s.heroTitle}>سوق ون للنقــل</Text>
+            <Text style={s.heroTitleAccent}> شحن موثوق لأي مكان في سلطنة عمــان</Text>
+          </View>
+
+          {/* HERO SEARCH BAR */}
+          <Animated.View style={[{ alignSelf: 'stretch' }, heroSearchAnimStyle]}>
+            <TouchableOpacity style={s.searchBar} onPress={() => router.push('/transport/browse' as any)} activeOpacity={0.9}>
+              <View style={s.searchInnerWrapper}>
+                <Ionicons name="search" size={18} color={Colors.textMuted} />
+                <Text style={s.searchPlaceholder}>ابحث عن طلبات شحن أو ناقلين...</Text>
+              </View>
+              <View style={s.searchFilterBtn}>
+                <Ionicons name="options-outline" size={18} color={Colors.white} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* CTA BUTTONS (inside hero) */}
+          <View style={s.ctaRow}>
+            <TouchableOpacity
+              style={[s.ctaBtn, s.ctaBtnPrimary]}
+              onPress={() => router.push('/transport/new' as any)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+              <Text style={s.ctaBtnPrimaryTxt}>إنشاء طلب نقل</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[s.ctaBtn, s.ctaBtnOutline]}
+              onPress={() => {
+                if (isCarrier) {
+                  router.push('/transport/browse' as any);
+                } else {
+                  router.push('/transport/carrier-register' as any);
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              {isCarrier ? (
+                <Ionicons name="compass-outline" size={20} color="#FFFFFF" />
+              ) : (
+                <MaterialCommunityIcons name="truck-fast-outline" size={20} color="#FFFFFF" />
+              )}
+              <Text style={s.ctaBtnOutlineTxt}>
+                {isCarrier ? 'تصفح الطلبات' : 'سجل كناقل'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+      </AnimatedLinearGradient>
+
+      {/* ── MAIN SCROLL CONTENT ── */}
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: HERO_HEIGHT + 16, paddingBottom: insets.bottom + 80 }}
+      >
+        <View style={s.content}>
+
+          {/* QUICK ACTIONS */}
+          <View style={s.actionsGrid}>
+            <ActionCard
+              icon="cube-outline" label="إنشاء طلب"
+              desc="انقل بضاعتك بأمان"
+              color={Colors.primary} bg="#EFF6FF"
+              onPress={() => router.push('/transport/new' as any)}
+            />
+            <ActionCard
+              icon="compass-outline" label="تصفح الطلبات"
+              desc="ابحث عن حمولة لنقلها"
+              color="#16a34a" bg="#F0FDF4"
+              onPress={() => router.push('/transport/browse' as any)}
+            />
+            <ActionCard
+              icon="truck-fast-outline" label="دليل الناقلين"
+              desc="أفضل شركات النقل"
+              color="#d97706" bg="#FFFBEB"
+              iconFamily="MaterialCommunityIcons"
+              onPress={() => router.push('/transport/carriers' as any)}
+            />
+            <ActionCard
+              icon="analytics-outline" label="لوحتي"
+              desc="إدارة طلباتي وعروضي"
+              color="#7c3aed" bg="#F5F3FF"
+              onPress={() => router.push('/transport/carrier-dashboard' as any)}
+            />
+          </View>
+
+          {loadRest && !loadingCarriers && featuredCarriers.length > 0 && (
+            <CarriersSwiper carriers={featuredCarriers} />
+          )}
+
+          <TransportCategoriesGrid />
+
+          {loadRest && (
+            <TransportHorizontalList
+              title="أحدث طلبات النقل"
+              subTitle="تصفح الطلبات المفتوحة وقدم عرضك"
+              data={latestRequests}
+              isLoading={loadingLatest}
+              emptyText="لا توجد طلبات نقل حالياً"
+              onSeeAll={() => router.push('/transport/browse' as any)}
+              onPressItem={(item) => router.push(`/transport/${item.id}` as any)}
+            />
+          )}
+
+          <TransportHowItWorks />
+
+          {!isCarrier && <CarrierCTABanner />}
+        </View>
+      </Animated.ScrollView>
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
+  root: { flex: 1, backgroundColor: '#F8F9FB' },
+  
+  // ── HEADER ──
+  stickyHeader: {
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space1,
+    overflow: 'hidden',
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
   },
-  headerContainer: {
-    paddingBottom: 16,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    zIndex: 10,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 44,
+  heroTop: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: Spacing.space2,
   },
   backBtn: {
-    width: 40, height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtn: {
-    width: 40, height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 20,
-    color: '#fff',
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
-  },
-  searchBox: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    height: 48,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-  },
-  searchIcon: { marginRight: 8 },
-  searchInput: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 15,
-    color: '#0f172a',
-    writingDirection: 'rtl',
-  },
-  clearSearch: { padding: 4 },
-  filterBtnTop: {
-    width: 48, height: 48,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBtnTopActive: {
-    backgroundColor: Colors.primary,
-    borderWidth: 1, borderColor: '#fff',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -6, right: -6,
-    backgroundColor: '#ef4444',
-    minWidth: 20, height: 20,
-    borderRadius: 10,
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#fff',
   },
-  filterBadgeTxt: {
-    color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold', 
-  },
-  typeTabs: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 8,
-  },
-  typeTab: {
-    flex: 1,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 10,
+  dashBtn: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'transparent',
   },
-  typeTabActive: {
-    backgroundColor: '#fff',
-    borderColor: '#fff',
+  navSearch: {
+    flex: 1, marginHorizontal: Spacing.space3,
   },
-  typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 14, color: '#fff',
+  navSearchInner: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)',
+    height: 40, borderRadius: 20, paddingHorizontal: Spacing.space3, gap: Spacing.space2,
   },
-  typeTabTxtActive: {
-    color: Colors.primary,
+  navSearchTxt: {
+    fontFamily: 'Almarai_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'left', flex: 1, writingDirection: 'rtl'
   },
-  
-  listContent: {
-    paddingTop: 16,
-    paddingBottom: 100,
-  },
-  resultsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  resultsCount: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 16, color: '#0f172a',
-  },
-  cardWrapper: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  skeletonGrid: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    gap: 16,
-  },
-  fullCard: { width: '100%' },
 
-  emptyContainer: {
-    padding: 32,
+  // ── HERO ──
+  heroCenter: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
+    paddingVertical: 0,
+    marginTop: -40,
   },
-  emptyIconWrap: {
-    width: 96, height: 96,
-    borderRadius: 48,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
+  heroTitle: {
+    fontFamily: 'Almarai_700Bold', fontSize: 22,
+    color: Colors.white, textAlign: 'center', paddingVertical: 2,
   },
-  emptyIconWrapError: {
-    width: 96, height: 96,
-    borderRadius: 48,
-    backgroundColor: '#fef2f2',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
+  heroTitleAccent: {
+    fontFamily: 'Almarai_400Regular', fontSize: 16,
+    color: Colors.accent, paddingVertical: 2,
   },
-  emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 20, color: '#0f172a',
-    marginBottom: 8,
+
+  // ── SEARCH BAR ──
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFFFFF', height: 48, borderRadius: Radius.xl,
+    marginBottom: Spacing.space3, alignSelf: 'stretch',
+    paddingStart: Spacing.space4, paddingEnd: Spacing.space1, gap: Spacing.space2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  emptySub: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 15, color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+  searchInnerWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2 },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular', color: Colors.textMuted, fontSize: 13, flex: 1, writingDirection: 'rtl', textAlign: 'left' },
+  searchFilterBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+
+  // ── CTA BUTTONS ──
+  ctaRow: {
+    flexDirection: 'row', gap: Spacing.space3, paddingHorizontal: 4, marginTop: 0, alignSelf: 'stretch', marginBottom: Spacing.space1,
   },
-  clearAllBtnInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24, paddingVertical: 14,
-    borderRadius: 12,
+  ctaBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 42, borderRadius: Radius.xl, gap: Spacing.space1,
   },
-  clearAllBtnInlineTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: '#fff',
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 32, paddingVertical: 14,
-    borderRadius: 12,
-  },
-  retryBtnTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: '#fff',
+  ctaBtnPrimary: { backgroundColor: Colors.accent },
+  ctaBtnPrimaryTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#FFFFFF' },
+  ctaBtnOutline: { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: 'transparent' },
+  ctaBtnOutlineTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.white },
+
+  // ── CONTENT ──
+  content: { paddingHorizontal: 0 },
+  actionsGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.space5, gap: Spacing.space4, justifyContent: 'space-between', marginBottom: Spacing.space4, marginTop: Spacing.space2,
   },
 });

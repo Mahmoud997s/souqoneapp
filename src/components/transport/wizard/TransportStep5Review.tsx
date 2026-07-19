@@ -7,14 +7,7 @@ import { Spacing } from '../../../constants/spacing';
 import { useTransportWizardStore } from '../../../store/transportWizardStore';
 import { TransportServiceType } from '../../../types/transport.types';
 
-const SERVICE_TYPES_MAP: Record<TransportServiceType, string> = {
-  GOODS: 'بضائع عامة',
-  FURNITURE: 'أثاث ومنزليات',
-  CONSTRUCTION: 'مواد البناء',
-  HEAVY: 'شحن ثقيل',
-  BACKLOAD: 'عودة فارغة',
-  EQUIPMENT: 'معدات وآليات',
-};
+import { getServiceLabel } from '../../../constants/transport';
 
 export function TransportStep5Review() {
   const { data } = useTransportWizardStore();
@@ -41,7 +34,7 @@ export function TransportStep5Review() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>ملخص الطلب</Text>
         
-        {renderRow('نوع الشحن', data.serviceType ? SERVICE_TYPES_MAP[data.serviceType as TransportServiceType] : '', 'cube-outline')}
+        {renderRow('نوع الشحن', data.serviceType ? getServiceLabel(data.serviceType as TransportServiceType) : '', 'cube-outline')}
         
         <View style={styles.divider} />
         {renderRow('من', `${data.fromGovernorate} ${data.fromCity ? '- ' + data.fromCity : ''} ${data.fromLat ? '(محدد على الخريطة 📍)' : ''}`, 'location-outline')}

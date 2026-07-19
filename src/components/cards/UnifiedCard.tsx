@@ -48,6 +48,7 @@ const CATEGORY_ICONS: Record<string, any> = {
   cars: 'car-outline', buses: 'bus-outline',
   equipment: 'construct-outline', parts: 'settings-outline',
   services: 'build-outline', jobs: 'briefcase-outline',
+  transport: 'cube-outline',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -56,6 +57,7 @@ const TYPE_LABELS: Record<string, string> = {
   EQUIPMENT_SALE: 'للبيع', EQUIPMENT_RENT: 'للإيجار', EQUIPMENT_WANTED: 'مطلوب',
   OPERATOR: 'مشغل معدات',
   PART: 'قطعة', SERVICE: 'خدمة',
+  GOODS: 'بضائع', FURNITURE: 'أثاث', CONSTRUCTION: 'مواد بناء', HEAVY: 'شحن ثقيل', BACKLOAD: 'عودة فارغة',
 }
 
 const CONDITION_LABELS: Record<string, string> = {

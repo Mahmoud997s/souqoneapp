@@ -44,5 +44,7 @@ export const BUS_CONTRACT_TYPES = [
   { id: 'COMPANY', label: 'نقل موظفين' },
   { id: 'TOURISM', label: 'نقل سياحي' },
   { id: 'PILGRIMAGE', label: 'رحلات عمرة / حج' },
-  { id: 'OTHER', label: 'أخرى' },
+  { id: 'OTHER', label: 'أخرى', icon: 'ellipsis-horizontal' }
 ]
+
+export default function Dummy() { return null; }

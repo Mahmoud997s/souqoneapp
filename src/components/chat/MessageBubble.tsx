@@ -1,12 +1,13 @@
 import React, { memo } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { Colors } from '../../constants/colors'
 import { LocalMessage } from '../../hooks/useChatRoomLogic'
 import { useState } from 'react'
 
-const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
+const screenWidth = Dimensions.get('window').width
+const MAX_IMAGE_WIDTH = screenWidth * 0.7 - 32
 
 function formatMsgTime(iso: string) {
   if (!iso) return ''
@@ -18,8 +19,29 @@ function formatMsgTime(iso: string) {
   return `${h % 12 || 12}:${m} ${ampm}`
 }
 
+function MessageStatusIcon({ pending, isRead, error }: any) {
+  if (pending) {
+    return <Ionicons name="ellipsis-horizontal" size={12} color={Colors.textMuted} />
+  }
+  
+  if (error) {
+    return <Ionicons name="alert-circle" size={14} color="#FF6B6B" />
+  }
+  
+  if (isRead) {
+    return (
+      <View style={{ flexDirection: 'row', marginStart: -4 }}>
+        <Ionicons name="checkmark" size={14} color="#34B7F1" />
+        <Ionicons name="checkmark" size={14} color="#34B7F1" style={{ marginLeft: -6 }} />
+      </View>
+    )
+  }
+  
+  return <Ionicons name="checkmark" size={14} color={Colors.textMuted} />
+}
+
 interface Props {
-  msg: LocalMessage
+  msg: LocalMessage & { error?: string }
   isOwn: boolean
   isActiveReactMsgId: boolean
   onLongPress: (msgId: string) => void
@@ -33,16 +55,6 @@ export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveR
   
   return (
     <View style={[s.msgRow, isOwn ? s.msgOwn : s.msgOther]}>
-      {isActiveReactMsgId && (
-        <View style={[s.reactionPicker, isOwn ? s.reactionPickerOwn : s.reactionPickerOther]}>
-          {EMOJIS.map(e => (
-            <TouchableOpacity key={e} onPress={() => onReact(msg.id, e)} style={s.reactionEmojiBtn}>
-              <Text style={s.reactionEmojiTxt}>{e}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-      
       <TouchableOpacity 
         activeOpacity={0.9} 
         onLongPress={() => onLongPress(msg.id)}
@@ -54,7 +66,11 @@ export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveR
         testID="chat_message_bubble"
       >
         {isImage && msg.mediaUrl ? (
-          <TouchableOpacity activeOpacity={0.8} onPress={() => setFullScreenImage(true)}>
+          <TouchableOpacity 
+            activeOpacity={0.8} 
+            onPress={() => setFullScreenImage(true)}
+            accessibilityLabel={`Image: ${msg.content || 'No caption'}`}
+          >
             <Image 
               source={{ uri: msg.mediaUrl }} 
               style={[s.msgImage, !msg.content && s.msgImageOnly]} 
@@ -69,24 +85,25 @@ export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveR
         )}
         
         {msg.reactions && msg.reactions.length > 0 && (
-          <View style={[s.reactionsBadge, isOwn ? s.reactionsBadgeOwn : s.reactionsBadgeOther]}>
-            <Text style={s.reactionsBadgeTxt}>
-              {Array.from(new Set(msg.reactions.map(r => r.emoji))).join('')}
-              {msg.reactions.length > 1 ? ` ${msg.reactions.length}` : ''}
+          <View style={[
+            s.reactionsBadge, 
+            isOwn ? s.reactionsBadgeOwn : s.reactionsBadgeOther,
+            { maxWidth: 160 }
+          ]}>
+            <Text 
+              style={s.reactionsBadgeTxt}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+            >
+              {Array.from(new Set(msg.reactions.map(r => r.emoji))).join(' ')}
+              {msg.reactions.length > 1 ? ` (${msg.reactions.length})` : ''}
             </Text>
           </View>
         )}
       </TouchableOpacity>
       <View style={s.timeRow}>
         <Text style={s.msgTime}>{formatMsgTime(msg.createdAt)}</Text>
-        {isOwn && (
-          <Ionicons
-            name={msg.pending ? 'time-outline' : msg.isRead ? 'checkmark-done' : 'checkmark'}
-            size={14}
-            color={msg.pending ? Colors.textMuted : msg.isRead ? '#34B7F1' : Colors.textMuted}
-            style={{ marginStart: 2 }}
-          />
-        )}
+        {isOwn && <MessageStatusIcon pending={msg.pending} isRead={msg.isRead} error={msg.error} />}
       </View>
 
       <Modal visible={fullScreenImage} transparent={true} animationType="fade" onRequestClose={() => setFullScreenImage(false)}>
@@ -117,41 +134,29 @@ const s = StyleSheet.create({
   },
   msgBubbleOwn: { backgroundColor: Colors.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomLeftRadius: 16, borderBottomRightRadius: 4 },
   msgBubbleOther: { backgroundColor: Colors.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomRightRadius: 16, borderBottomLeftRadius: 4 },
-  msgImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
+  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 4, resizeMode: 'contain' as any },
   msgImageOnly: { marginBottom: 0 },
-  msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'right' },
-  msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'right' },
+  msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'right', lineHeight: 22, letterSpacing: 0.3 },
+  msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'right', lineHeight: 22, letterSpacing: 0.3 },
   timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  msgTime: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted },
-  reactionPicker: {
-    position: 'absolute', top: -45, flexDirection: 'row', backgroundColor: Colors.white,
-    borderRadius: 20, padding: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15, shadowRadius: 8, elevation: 5, zIndex: 10,
-  },
-  reactionPickerOwn: { left: 16 },
-  reactionPickerOther: { right: 16 },
-  reactionEmojiBtn: { padding: 6 },
-  reactionEmojiTxt: { fontSize: 22 },
+  msgTime: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted, marginEnd: 4 },
   reactionsBadge: {
-    position: 'absolute', bottom: -12, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white, borderRadius: 12, paddingHorizontal: 6, paddingVertical: 2,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
+    position: 'absolute', bottom: -16, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.white, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
   },
   reactionsBadgeOwn: { left: 12 },
   reactionsBadgeOther: { right: 12 },
-  reactionsBadgeTxt: { fontSize: 12, fontFamily: 'Almarai_700Bold',  color: Colors.text },
+  reactionsBadgeTxt: { fontSize: 12, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 16 },
   fullScreenContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
   fullScreenImage: { width: '100%', height: '100%' },
   closeFsBtn: { position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 8 },
 })
 
-// Custom comparison function for React.memo to prevent re-rendering when other state changes
-// We only re-render if the message itself changed (id, content, reactions, read status) or its active state changed
 export const messageBubblePropsAreEqual = (prev: Props, next: Props) => {
   if (prev.isActiveReactMsgId !== next.isActiveReactMsgId) return false
   if (prev.isOwn !== next.isOwn) return false
   
-  // Shallow compare the message object properties that matter
   const pMsg = prev.msg
   const nMsg = next.msg
   
@@ -159,10 +164,10 @@ export const messageBubblePropsAreEqual = (prev: Props, next: Props) => {
   if (pMsg.content !== nMsg.content) return false
   if (pMsg.isRead !== nMsg.isRead) return false
   if (pMsg.pending !== nMsg.pending) return false
+  if (pMsg.error !== nMsg.error) return false
   if (pMsg.mediaUrl !== nMsg.mediaUrl) return false
   if (pMsg.reactions?.length !== nMsg.reactions?.length) return false
   
-  // If lengths are same, check inner reactions (simple stringification for fast compare, or deep check)
   if (pMsg.reactions && nMsg.reactions) {
     for (let i = 0; i < pMsg.reactions.length; i++) {
       if (pMsg.reactions[i].emoji !== nMsg.reactions[i].emoji) return false
@@ -173,6 +178,5 @@ export const messageBubblePropsAreEqual = (prev: Props, next: Props) => {
   return true
 }
 
-// Export the memoized component with the custom comparison
 export const MemoizedMessageBubble = memo(MessageBubble, messageBubblePropsAreEqual)
 

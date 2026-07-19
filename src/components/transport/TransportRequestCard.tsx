@@ -1,59 +1,112 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { TransportRequest } from '../../types/transport.types';
 import { TransportStatusBadge } from './TransportStatusBadge';
+import { getServiceLabel } from '../../constants/transport';
+import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
+import { ar } from 'date-fns/locale';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
+
+function PulsingDot({ color }: { color: string }) {
+  const scale = useSharedValue(0.8);
+  const opacity = useSharedValue(0.8);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withTiming(2.5, { duration: 1800, easing: Easing.linear }),
+      -1,
+      false
+    );
+    opacity.value = withRepeat(
+      withTiming(0, { duration: 1800, easing: Easing.linear }),
+      -1,
+      false
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <View style={styles.pulseContainer}>
+      <Animated.View style={[styles.pulseRing, { backgroundColor: color }, animatedStyle]} />
+      <View style={[styles.pulseCore, { backgroundColor: color }]} />
+    </View>
+  );
+}
+
+function AnimatedTruck() {
+  const translateX = useSharedValue(8);
+
+  useEffect(() => {
+    translateX.value = withRepeat(
+      withTiming(-6, { duration: 1200, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }, { scaleX: -1 }],
+  }));
+
+  return (
+    <View style={styles.truckIconContainer}>
+      <Animated.View style={animatedStyle}>
+        <MaterialCommunityIcons name="truck-fast" size={20} color="#94a3b8" />
+      </Animated.View>
+    </View>
+  );
+}
 
 interface Props {
   request: TransportRequest;
   onPress?: () => void;
   showStatus?: boolean;
+  onDelete?: () => void;
 }
 
 const SERVICE_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
-  GOODS: { icon: 'cube-outline', color: '#0ea5e9', bg: '#e0f2fe' },
-  FURNITURE: { icon: 'bed-outline', color: '#8b5cf6', bg: '#ede9fe' },
-  CONSTRUCTION: { icon: 'construct-outline', color: '#f59e0b', bg: '#fef3c7' },
-  HEAVY: { icon: 'barbell-outline', color: '#ef4444', bg: '#fee2e2' },
-  BACKLOAD: { icon: 'refresh-circle-outline', color: '#10b981', bg: '#d1fae5' },
-  EQUIPMENT: { icon: 'hardware-chip-outline', color: '#f97316', bg: '#ffedd5' },
-};
-
-const SERVICE_LABELS: Record<string, string> = {
-  GOODS: 'بضائع عامة',
-  FURNITURE: 'أثاث ومنزليات',
-  CONSTRUCTION: 'مواد بناء',
-  HEAVY: 'شحن ثقيل',
-  BACKLOAD: 'عودة فارغة',
-  EQUIPMENT: 'معدات وآليات',
+  GOODS: { icon: 'package-variant-closed', color: '#10b981', bg: '#ecfdf5' },
+  FURNITURE: { icon: 'sofa-outline', color: '#8b5cf6', bg: '#f5f3ff' },
+  CONSTRUCTION: { icon: 'crane', color: '#64748b', bg: '#f8fafc' },
+  HEAVY: { icon: 'truck-trailer', color: '#ef4444', bg: '#fef2f2' },
+  BACKLOAD: { icon: 'truck-check-outline', color: '#d946ef', bg: '#fdf4ff' },
+  EQUIPMENT: { icon: 'excavator', color: '#f59e0b', bg: '#fffbeb' },
+  CARS: { icon: 'tow-truck', color: '#3b82f6', bg: '#eff6ff' },
+  LIVESTOCK: { icon: 'cow', color: '#ec4899', bg: '#fdf2f8' },
 };
 
 function formatRelativeTime(dateString?: string) {
   if (!dateString) return 'الآن';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'منذ لحظات';
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `منذ ${diffInDays} يوم`;
-  return date.toLocaleDateString('ar-OM', { year: 'numeric', month: 'short', day: 'numeric' });
+  try {
+    const date = new Date(dateString);
+    return formatDistanceToNow(date, { addSuffix: true, locale: ar });
+  } catch (e) {
+    return 'مؤخراً';
+  }
 }
 
 function formatDateShort(dateString?: string) {
   if (!dateString) return '';
-  return new Date(dateString).toLocaleDateString('ar-OM', { month: 'short', day: 'numeric' });
+  try {
+    const date = new Date(dateString);
+    if (isToday(date)) return `اليوم، ${format(date, 'p', { locale: ar })}`;
+    if (isTomorrow(date)) return `غداً، ${format(date, 'p', { locale: ar })}`;
+    return format(date, 'd MMM، p', { locale: ar });
+  } catch (e) {
+    return '';
+  }
 }
 
-export function TransportRequestCard({ request, onPress, showStatus = true }: Props) {
-  const config = SERVICE_CONFIG[request.serviceType] || { icon: 'car-outline', color: Colors.primary, bg: Colors.primary + '15' };
-  const serviceLabel = SERVICE_LABELS[request.serviceType] || request.serviceType;
+export function TransportRequestCard({ request, onPress, showStatus = true, onDelete }: Props) {
+  const config = SERVICE_CONFIG[request.serviceType] || { icon: 'truck-outline', color: Colors.primary, bg: Colors.primary + '15' };
+  const serviceLabelText = getServiceLabel(request.serviceType);
   
   const fromLoc = request.fromCity ? `${request.fromGovernorate}، ${request.fromCity}` : request.fromGovernorate;
   const toLoc = request.toCity ? `${request.toGovernorate}، ${request.toCity}` : request.toGovernorate;
@@ -62,7 +115,7 @@ export function TransportRequestCard({ request, onPress, showStatus = true }: Pr
   let budgetText = 'تواصل للسعر';
   let isNegotiable = true;
   if (request.budgetMin && request.budgetMax) {
-    budgetText = `${request.budgetMin} - ${request.budgetMax} ر.ع.`;
+    budgetText = `من ${request.budgetMin} إلى ${request.budgetMax} ر.ع.`;
     isNegotiable = false;
   } else if (request.budgetMin) {
     budgetText = `من ${request.budgetMin} ر.ع.`;
@@ -84,30 +137,27 @@ export function TransportRequestCard({ request, onPress, showStatus = true }: Pr
       <View style={styles.header}>
         <View style={styles.serviceTypeRow}>
           <View style={[styles.iconBox, { backgroundColor: config.bg }]}>
-            <Ionicons name={config.icon} size={20} color={config.color} />
+            <MaterialCommunityIcons name={config.icon} size={22} color={config.color} />
           </View>
           <View>
-            <Text style={styles.serviceTitle}>{serviceLabel}</Text>
+            <Text style={styles.serviceTitle}>{serviceLabelText}</Text>
             <Text style={styles.timeText}>{formatRelativeTime(request.createdAt)}</Text>
           </View>
         </View>
-        {showStatus && <TransportStatusBadge status={request.status} />}
-      </View>
-
-      {/* Locations */}
-      <View style={styles.locationsContainer}>
-        <View style={styles.locationNode}>
-          <View style={styles.dotFrom} />
-          <Text style={styles.locationText} numberOfLines={1}>{fromLoc}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {showStatus && <TransportStatusBadge status={request.status} />}
+          {onDelete && (
+            <Pressable 
+              style={styles.deleteBtn}
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent triggering card onPress
+                onDelete();
+              }}
+            >
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+            </Pressable>
+          )}
         </View>
-        <View style={styles.locationLine} />
-        <View style={styles.locationNode}>
-          <View style={styles.dotTo} />
-          <Text style={styles.locationText} numberOfLines={1}>{toLoc}</Text>
-        </View>
-        
-        {/* Subtle background icon for aesthetic */}
-        <Ionicons name="map-outline" size={60} color="#f1f5f9" style={styles.bgMapIcon} />
       </View>
 
       {/* Cargo Description (If any) */}
@@ -119,42 +169,81 @@ export function TransportRequestCard({ request, onPress, showStatus = true }: Pr
         </View>
       ) : null}
 
+      {/* Locations - Premium Horizontal Path */}
+      <View style={styles.locationsContainerHorizontal}>
+        
+        {/* From (Right) */}
+        <View style={styles.locationCol}>
+          <PulsingDot color={Colors.primary} />
+          <Text style={styles.locationLabel}>نقطة التحميل</Text>
+          <Text style={styles.locationTextHorizontal} numberOfLines={1}>{fromLoc}</Text>
+        </View>
+
+        {/* Connecting Line (Middle) */}
+        <View style={styles.connectingLineContainer}>
+          <View style={styles.horizontalLine} />
+          {/* Animated truck pointing Left and moving */}
+          <AnimatedTruck />
+        </View>
+
+        {/* To (Left) */}
+        <View style={styles.locationCol}>
+          <View style={styles.destinationPinHorizontal}>
+            <MaterialCommunityIcons name="map-marker" size={20} color={Colors.accent} />
+          </View>
+          <Text style={styles.locationLabel}>الوجهة</Text>
+          <Text style={styles.locationTextHorizontal} numberOfLines={1}>{toLoc}</Text>
+        </View>
+
+        {/* Subtle background icon for aesthetic */}
+        <MaterialCommunityIcons name="map-marker-path" size={80} color="#f8fafc" style={styles.bgMapIcon} />
+      </View>
+
       <View style={styles.divider} />
 
       {/* Details Row (Info Pills) */}
       <View style={styles.detailsList}>
         {request.scheduledAt ? (
-          <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.infoText}>{formatDateShort(request.scheduledAt)}</Text>
+          <View style={[styles.detailPill, styles.pillBlue]}>
+            <MaterialCommunityIcons name="calendar-clock-outline" size={14} color="#3b82f6" />
+            <Text style={[styles.detailText, { color: '#3b82f6' }]}>{formatDateShort(request.scheduledAt)}</Text>
+          </View>
+        ) : null}
+
+        {request.weightTons ? (
+          <View style={[styles.detailPill, styles.pillNeutral]}>
+            <MaterialCommunityIcons name="weight-kilogram" size={14} color="#64748b" />
+            <Text style={styles.detailText}>{request.weightTons} طن</Text>
+          </View>
+        ) : null}
+
+        {request.requiresHelper ? (
+          <View style={[styles.detailPill, styles.pillAmber]}>
+            <MaterialCommunityIcons name="account-hard-hat" size={14} color="#d97706" />
+            <Text style={[styles.detailText, { color: '#d97706' }]}>مع عمال</Text>
           </View>
         ) : null}
 
         {viewCount > 0 ? (
-          <View style={styles.infoItem}>
-            <Ionicons name="eye-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.infoText}>{viewCount}</Text>
+          <View style={[styles.detailPill, styles.pillNeutral]}>
+            <Ionicons name="eye-outline" size={14} color="#64748b" />
+            <Text style={styles.detailText}>{viewCount}</Text>
           </View>
         ) : null}
       </View>
 
-      {/* Footer Row (Weight, Budget and Quotes) */}
-      <View style={styles.footerRow}>
-        {request.weightTons ? (
-          <View style={[styles.detailPill, styles.pillNeutral]}>
-            <Ionicons name="scale-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.detailText}>{request.weightTons} طن</Text>
-          </View>
-        ) : <View style={{ flex: 1 }} />}
+      <View style={[styles.divider, { marginTop: 4 }]} />
 
-        <View style={[styles.detailPill, isNegotiable ? styles.pillNeutral : styles.pillPrimary]}>
-          <Ionicons name="wallet-outline" size={16} color={isNegotiable ? Colors.textMuted : Colors.primary} />
-          <Text style={[styles.detailText, !isNegotiable && { color: Colors.primary, fontFamily: 'Almarai_700Bold' }]}>{budgetText}</Text>
+      {/* Footer Row (Budget and Quotes) */}
+      <View style={styles.footerRow}>
+        <View style={[styles.detailPill, isNegotiable ? styles.pillNeutral : styles.pillGreen, { flex: 1 }]}>
+          <Ionicons name="wallet-outline" size={18} color={isNegotiable ? '#64748b' : '#059669'} />
+          <Text style={[styles.budgetValText, !isNegotiable && { color: '#059669' }]}>{budgetText}</Text>
         </View>
         
         {request.quotesCount != null && (
-          <View style={[styles.detailPill, hasQuotes ? styles.pillActive : styles.pillNeutral]}>
-            <Ionicons name={hasQuotes ? "chatbubbles" : "chatbubbles-outline"} size={14} color={hasQuotes ? '#ea580c' : Colors.textMuted} />
+          <View style={[styles.detailPill, hasQuotes ? styles.pillOrange : styles.pillNeutral]}>
+            <Ionicons name={hasQuotes ? "chatbubbles" : "chatbubbles-outline"} size={16} color={hasQuotes ? '#ea580c' : '#64748b'} />
             <Text style={[styles.detailText, hasQuotes && { color: '#ea580c', fontFamily: 'Almarai_700Bold' }]}>
               {request.quotesCount} {request.quotesCount === 1 ? 'عرض' : 'عروض'}
             </Text>
@@ -190,6 +279,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 12,
   },
+  deleteBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fee2e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   serviceTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -207,6 +304,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     color: '#0f172a',
     writingDirection: 'rtl',
+    lineHeight: 22,
   },
   timeText: {
     fontSize: 11,
@@ -214,57 +312,96 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: 2,
     writingDirection: 'rtl',
+    lineHeight: 18,
   },
-  locationsContainer: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 12,
+  locationsContainerHorizontal: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     position: 'relative',
     overflow: 'hidden',
   },
   bgMapIcon: {
     position: 'absolute',
-    left: -10,
-    bottom: -10,
-    opacity: 0.4,
-    transform: [{ rotate: '-15deg' }]
+    left: -15,
+    top: -10,
+    opacity: 0.8,
+    transform: [{ rotate: '-10deg' }]
   },
-  locationNode: {
-    flexDirection: 'row',
+  pulseContainer: {
+    width: 20,
+    height: 20,
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  pulseCore: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  locationCol: {
+    flex: 1,
+    alignItems: 'center',
     zIndex: 2,
   },
-  dotFrom: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.white,
+  destinationPinHorizontal: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dotTo: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.accent,
+  locationLabel: {
+    fontSize: 10,
+    fontFamily: 'Almarai_400Regular',
+    color: '#64748b',
+    marginTop: 8,
+    marginBottom: 2,
+    textAlign: 'center',
+    lineHeight: 16,
   },
-  locationText: {
+  locationTextHorizontal: {
     fontSize: 13,
     fontFamily: 'Almarai_700Bold',
-    color: '#334155',
-    writingDirection: 'rtl',
-    flex: 1,
+    color: '#1e293b',
+    textAlign: 'center',
+    lineHeight: 20,
   },
-  locationLine: {
-    width: 2,
-    height: 12,
-    backgroundColor: '#cbd5e1',
-    marginVertical: 4,
-    marginLeft: 4, // RTL alignment with smaller dot
-    borderStyle: 'dashed',
+  connectingLineContainer: {
+    flex: 1,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 1,
+    marginHorizontal: 4,
+  },
+  horizontalLine: {
+    position: 'absolute',
+    width: '100%',
+    height: 1.5,
+    backgroundColor: '#e2e8f0',
+    top: '50%',
+  },
+  truckIconContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cargoBox: {
     backgroundColor: '#f8fafc',
@@ -277,7 +414,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Almarai_400Regular',
     color: '#475569',
-    lineHeight: 18,
+    lineHeight: 20,
     writingDirection: 'rtl',
   },
   divider: {
@@ -288,24 +425,13 @@ const styles = StyleSheet.create({
   detailsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 12,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  infoText: {
-    fontSize: 11,
-    fontFamily: 'Almarai_400Regular',
-    color: Colors.textMuted,
+    gap: 8,
+    marginBottom: 8,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    flexWrap: 'wrap',
     gap: 8,
   },
   cargoPill: {
@@ -317,28 +443,42 @@ const styles = StyleSheet.create({
     color: '#475569',
     flex: 1,
     writingDirection: 'rtl',
+    lineHeight: 18,
   },
   detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
   },
   pillNeutral: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f8fafc', // slate-50
   },
-  pillPrimary: {
-    backgroundColor: Colors.primary + '10',
+  pillBlue: {
+    backgroundColor: '#eff6ff', // blue-50
   },
-  pillActive: {
+  pillAmber: {
+    backgroundColor: '#fffbeb', // amber-50
+  },
+  pillGreen: {
+    backgroundColor: '#ecfdf5', // emerald-50
+  },
+  pillOrange: {
     backgroundColor: '#fff7ed', // orange-50
   },
   detailText: {
     fontSize: 12,
     fontFamily: 'Almarai_700Bold',
     color: '#475569',
+    lineHeight: 18,
+  },
+  budgetValText: {
+    fontSize: 13,
+    fontFamily: 'Almarai_800ExtraBold',
+    color: '#64748b',
+    lineHeight: 20,
   },
 });
 

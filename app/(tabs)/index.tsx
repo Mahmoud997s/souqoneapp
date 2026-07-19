@@ -12,7 +12,7 @@ import { Gradients } from '../../src/constants/gradients'
 import { UnifiedCard, UnifiedCardItem } from '../../src/components/cards/UnifiedCard'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
-import { TransportRequestCard } from '../../src/components/cards/TransportRequestCard'
+import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobsRaw } from '../../src/hooks/useJobs'
@@ -303,7 +303,7 @@ export default function HomeScreen() {
         <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
         <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" />
         <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth />} />
-        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard item={item as any} onPress={onPress} fullWidth />} />
+        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
 
       </Animated.ScrollView>
     </View>
