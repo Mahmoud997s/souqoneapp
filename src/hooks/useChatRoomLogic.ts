@@ -151,6 +151,34 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           })
           return [...next, msg]
         })
+        
+        // Update React Query caches for received messages
+        queryClient.setQueryData(['chat-messages', roomId], (old: any) => {
+          if (!old || !old.pages || old.pages.length === 0) return old
+          const newPages = [...old.pages]
+          const firstPage = { ...newPages[0] }
+          if (!firstPage.messages.find((m: any) => m.id === msg.id)) {
+            firstPage.messages = [msg, ...firstPage.messages]
+            newPages[0] = firstPage
+          }
+          return { ...old, pages: newPages }
+        })
+
+        queryClient.setQueryData(['chat-rooms'], (old: any) => {
+          if (!old) return old
+          return old.map((room: any) => {
+            if (room.id === roomId) {
+              return {
+                ...room,
+                lastMessage: msg,
+                updatedAt: msg.createdAt,
+                unreadCount: msg.senderId !== user?.id ? room.unreadCount + 1 : room.unreadCount
+              }
+            }
+            return room
+          }).sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        })
+
         // Update other user if missing
         if (data.sender && data.senderId !== user?.id) {
           setOtherUser({
@@ -289,6 +317,31 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       })
       const realMessage = res.data
       setMessages((prev) => prev.map((m) => m.id === tempId ? { ...m, pending: false, id: realMessage.id, mediaUrl: realMessage.mediaUrl || m.mediaUrl } : m))
+      
+      // Update React Query caches
+      queryClient.setQueryData(['chat-messages', roomId], (old: any) => {
+        if (!old || !old.pages || old.pages.length === 0) return old
+        const newPages = [...old.pages]
+        const firstPage = { ...newPages[0] }
+        firstPage.messages = [realMessage, ...firstPage.messages]
+        newPages[0] = firstPage
+        return { ...old, pages: newPages }
+      })
+
+      queryClient.setQueryData(['chat-rooms'], (old: any) => {
+        if (!old) return old
+        return old.map((room: any) => {
+          if (room.id === roomId) {
+            return {
+              ...room,
+              lastMessage: realMessage,
+              updatedAt: realMessage.createdAt
+            }
+          }
+          return room
+        }).sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      })
+
     } catch (err) {
       console.error('Send message error:', err)
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
@@ -355,3 +408,6 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     isFetchingNextPage
   }
 }
+
+
+

@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 import * as SecureStore from 'expo-secure-store'
 import { Config } from '../constants/config'
+import { useSocketStore } from '../store/socketStore'
 
 class SocketService {
   private socket: Socket | null = null
@@ -16,25 +17,42 @@ class SocketService {
 
     const token = await SecureStore.getItemAsync('accessToken')
 
-    this.socket = io(Config.socketUrl, {
+    // Append /chat namespace to match the backend Gateway configuration
+    const url = Config.socketUrl.endsWith('/') 
+      ? `${Config.socketUrl}chat`
+      : `${Config.socketUrl}/chat`
+
+    this.socket = io(url, {
       auth: { token: token ?? '' },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: false, // Don't auto-connect, we'll call connect manually
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5,
     })
 
     this.socket.on('connect', () => {
       console.log('[Socket] Connected:', this.socket?.id)
+      useSocketStore.setState({ 
+        isConnected: true, 
+        lastError: null,
+        retryCount: 0,
+      })
     })
 
     this.socket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected:', reason)
+      useSocketStore.setState({ isConnected: false })
     })
 
     this.socket.on('connect_error', (err) => {
       console.error('[Socket] Connection Error:', err.message)
+      useSocketStore.setState({ 
+        isConnected: false,
+        lastError: err.message,
+      })
     })
 
     this.socket.connect()
