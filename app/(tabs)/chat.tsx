@@ -47,7 +47,7 @@ export default function ChatListScreen() {
   const { user } = useAuthStore()
   const { data: rooms, isLoading, refetch } = useChatRooms()
   
-  const [activeTab, setActiveTab] = React.useState<'all' | 'unread' | 'archived'>('all')
+  const [activeTab, setActiveTab] = React.useState<'all' | 'buying' | 'selling' | 'archived'>('all')
   const [searchText, setSearchText] = React.useState('')
   const { archivedIds, toggleArchive } = useArchiveStore()
 
@@ -68,7 +68,11 @@ export default function ChatListScreen() {
       const isArchived = archivedIds.includes(r.id)
       if (activeTab === 'archived') return isArchived
       if (isArchived) return false
-      if (activeTab === 'unread') return (r.unreadCount ?? 0) > 0
+      
+      const isMyListing = r.listing?.userId === user?.id
+      if (activeTab === 'selling') return isMyListing
+      if (activeTab === 'buying') return !isMyListing
+      
       return true
     })
   }, [rooms, archivedIds, activeTab, searchText, user?.id])
@@ -124,14 +128,24 @@ export default function ChatListScreen() {
             <Text style={[s.filterChipTxt, activeTab === 'all' && s.filterChipTxtActive]}>الكل</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[s.filterChip, activeTab === 'unread' && s.filterChipActive]}
+            style={[s.filterChip, activeTab === 'buying' && s.filterChipActive]}
             activeOpacity={0.7}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setActiveTab('unread')
+              setActiveTab('buying')
             }}
           >
-            <Text style={[s.filterChipTxt, activeTab === 'unread' && s.filterChipTxtActive]}>غير مقروءة</Text>
+            <Text style={[s.filterChipTxt, activeTab === 'buying' && s.filterChipTxtActive]}>مشتريات</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[s.filterChip, activeTab === 'selling' && s.filterChipActive]}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setActiveTab('selling')
+            }}
+          >
+            <Text style={[s.filterChipTxt, activeTab === 'selling' && s.filterChipTxtActive]}>مبيعات</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[s.filterChip, activeTab === 'archived' && s.filterChipActive]}

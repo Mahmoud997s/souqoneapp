@@ -5,6 +5,8 @@ import { Image } from 'expo-image'
 import { Colors } from '../../constants/colors'
 import { LocalMessage } from '../../hooks/useChatRoomLogic'
 import { useState } from 'react'
+import { AttachmentCard } from './AttachmentCard'
+import { AudioPlayer } from './AudioPlayer'
 
 const screenWidth = Dimensions.get('window').width
 const MAX_IMAGE_WIDTH = screenWidth * 0.7 - 32
@@ -51,7 +53,9 @@ interface Props {
 export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onReact }: Props) {
   const [fullScreenImage, setFullScreenImage] = useState(false)
   
-  const isImage = msg.type === 'IMAGE' || !!msg.mediaUrl
+  const isImage = msg.type === 'IMAGE' || (msg.mediaUrl && !msg.type)
+  const isFile = msg.type === 'FILE'
+  const isVoice = msg.type === 'VOICE'
   
   return (
     <View style={[s.msgRow, isOwn ? s.msgOwn : s.msgOther]}>
@@ -79,8 +83,27 @@ export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveR
             />
           </TouchableOpacity>
         ) : null}
+
+        {isFile && msg.mediaUrl ? (
+          <View style={{ marginBottom: msg.content ? 8 : 0 }}>
+            <AttachmentCard 
+              url={msg.mediaUrl}
+              fileName={msg.content || 'ملف مرفق'}
+              isOwn={isOwn}
+            />
+          </View>
+        ) : null}
+
+        {isVoice && msg.mediaUrl ? (
+          <View style={{ marginBottom: msg.content ? 8 : 0 }}>
+            <AudioPlayer 
+              uri={msg.mediaUrl}
+              isOwn={isOwn}
+            />
+          </View>
+        ) : null}
         
-        {!!msg.content && (
+        {!!msg.content && !isFile && (
           <Text style={isOwn ? s.msgTxtOwn : s.msgTxtOther}>{msg.content}</Text>
         )}
         
@@ -125,29 +148,32 @@ export const MessageBubble = memo(function MessageBubble({ msg, isOwn, isActiveR
 })
 
 const s = StyleSheet.create({
-  msgRow: { marginVertical: 4, paddingHorizontal: 16, position: 'relative' },
-  msgOwn: { alignItems: 'flex-start' },
-  msgOther: { alignItems: 'flex-end' },
+  msgRow: { marginVertical: 6, paddingHorizontal: 16, position: 'relative' },
+  msgOwn: { alignItems: 'flex-end' }, // In RTL, flex-end aligns to physical LEFT
+  msgOther: { alignItems: 'flex-start' }, // In RTL, flex-start aligns to physical RIGHT
   msgBubble: {
-    maxWidth: '80%', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1,
+    maxWidth: '82%', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2,
   },
-  msgBubbleOwn: { backgroundColor: Colors.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomLeftRadius: 16, borderBottomRightRadius: 4 },
-  msgBubbleOther: { backgroundColor: Colors.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomRightRadius: 16, borderBottomLeftRadius: 4 },
-  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 4, resizeMode: 'contain' as any },
+  // borderBottomRightRadius maps to physical LEFT in RTL. Tail for own message points left.
+  msgBubbleOwn: { backgroundColor: Colors.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 4 },
+  // borderBottomLeftRadius maps to physical RIGHT in RTL. Tail for other message points right.
+  msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' },
+  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as any },
   msgImageOnly: { marginBottom: 0 },
-  msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'right', lineHeight: 22, letterSpacing: 0.3 },
-  msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'right', lineHeight: 22, letterSpacing: 0.3 },
-  timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
+  msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
+  timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, opacity: 0.8 },
   msgTime: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted, marginEnd: 4 },
   reactionsBadge: {
     position: 'absolute', bottom: -16, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+    backgroundColor: Colors.white, borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 4,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)'
   },
-  reactionsBadgeOwn: { left: 12 },
-  reactionsBadgeOther: { right: 12 },
-  reactionsBadgeTxt: { fontSize: 12, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 16 },
+  reactionsBadgeOwn: { left: 16 },
+  reactionsBadgeOther: { right: 16 },
+  reactionsBadgeTxt: { fontSize: 13, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 18 },
   fullScreenContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
   fullScreenImage: { width: '100%', height: '100%' },
   closeFsBtn: { position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 8 },
@@ -165,6 +191,7 @@ export const messageBubblePropsAreEqual = (prev: Props, next: Props) => {
   if (pMsg.isRead !== nMsg.isRead) return false
   if (pMsg.pending !== nMsg.pending) return false
   if (pMsg.error !== nMsg.error) return false
+  if (pMsg.type !== nMsg.type) return false
   if (pMsg.mediaUrl !== nMsg.mediaUrl) return false
   if (pMsg.reactions?.length !== nMsg.reactions?.length) return false
   

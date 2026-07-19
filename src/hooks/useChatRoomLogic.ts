@@ -14,9 +14,8 @@ export interface LocalMessage {
   content: string
   createdAt: string
   pending?: boolean
-  reactions?: { emoji: string; userId: string; username?: string }[]
-  isRead?: boolean
-  type?: 'TEXT' | 'IMAGE' | 'FILE'
+  reactions?: { emoji: string; userId: string }[]
+  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
   mediaUrl?: string
 }
 
@@ -232,7 +231,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           } else {
             // Server might not enforce single reaction per user, but local UI should for consistency
             newReactions = newReactions.filter((r) => r.userId !== data.userId)
-            newReactions.push({ emoji: data.emoji, userId: data.userId, username: data.username })
+            newReactions.push({ emoji: data.emoji, userId: data.userId })
           }
           return { ...m, reactions: newReactions }
         }))
@@ -271,13 +270,13 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     }
   }, [messages.length, roomId])
 
-  const handleSend = useCallback(async (textOverride?: string, imageUri?: string) => {
+  const handleSend = useCallback(async (textOverride?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: any) => {
     // Spec 10: Payload Sanitization
     // Limit to 2000 characters and trim excessive spaces/newlines
     let text = (textOverride ?? msgText).trim().substring(0, 2000)
     text = text.replace(/[\r\n]{3,}/g, '\n\n') // Max 2 consecutive newlines
     
-    if (!text && !imageUri) return
+    if (!text && !mediaUri) return
     setMsgText('')
     
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
@@ -291,28 +290,21 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       createdAt: new Date().toISOString(),
       pending: true,
       reactions: [],
-      type: imageUri ? 'IMAGE' : 'TEXT',
-      mediaUrl: imageUri,
+      type: mediaType ? mediaType : 'TEXT',
+      mediaUrl: mediaUri,
     }
     setMessages((prev) => [...prev, optimistic])
 
     try {
       let finalMediaUrl = undefined
-      if (imageUri) {
-        const formData = new FormData()
-        formData.append('file', {
-          uri: imageUri,
-          name: `chat-img-${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any)
-        
-        const uploadRes = await uploadsApi.single(formData)
+      if (mediaUri) {
+        const uploadRes = await fileApi.uploadFile(mediaUri)
         finalMediaUrl = uploadRes.data.url
       }
 
       const res = await chatApi.sendMessage(roomId, { 
         content: text, 
-        type: imageUri ? 'IMAGE' : 'TEXT', 
+        type: mediaType ? mediaType : 'TEXT', 
         mediaUrl: finalMediaUrl 
       })
       const realMessage = res.data
@@ -408,6 +400,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     isFetchingNextPage
   }
 }
+
 
 
 

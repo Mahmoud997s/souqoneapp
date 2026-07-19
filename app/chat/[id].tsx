@@ -18,6 +18,9 @@ import { ReactionPicker } from '../../src/components/chat/ReactionPicker'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChatRoom } from '../../src/types/listing.types'
 import { useChatStore } from '../../src/store/chatStore'
+import { NegotiationBanner } from '../../src/components/chat/NegotiationBanner'
+import { NegotiationBottomSheet } from '../../src/components/chat/NegotiationBottomSheet'
+import BottomSheet from '@gorhom/bottom-sheet'
 
 function getDateLabel(iso: string) {
   if (!iso) return ''
@@ -76,6 +79,11 @@ export default function ChatRoomScreen() {
     handleReact(msgId, emoji)
   }, [handleReact])
 
+  const negoSheetRef = React.useRef<any>(null)
+  
+  // Dummy negotiation state for demo (until backend supports offers in mobile)
+  const dummyOffer = room?.listing ? { price: room.listing.price ? room.listing.price * 0.9 : 100, isCounter: false } : null
+
   return (
     <View style={s.root}>
       <AppHeader
@@ -120,6 +128,14 @@ export default function ChatRoomScreen() {
           <Text style={s.listingBannerTxt} numberOfLines={1}>{room.listing.title}</Text>
           <Ionicons name="chevron-back" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
+      )}
+
+      {dummyOffer && room?.listing && (
+        <NegotiationBanner 
+          offerPrice={dummyOffer.price}
+          isCounter={dummyOffer.isCounter}
+          onOpenNego={() => negoSheetRef.current?.expand()}
+        />
       )}
 
       {isLoading && messages.length === 0 ? (
@@ -202,6 +218,23 @@ export default function ChatRoomScreen() {
           setSelectedMsgId(null)
         }}
       />
+
+      {dummyOffer && room?.listing && (
+        <NegotiationBottomSheet 
+          sheetRef={negoSheetRef}
+          offerPrice={dummyOffer.price}
+          listingPrice={room.listing.price || 0}
+          isCounter={dummyOffer.isCounter}
+          onAccept={() => {
+            negoSheetRef.current?.close()
+            handleSend(`تم قبول العرض بسعر ${dummyOffer.price} ر.ع`)
+          }}
+          onCounterOffer={() => {
+            negoSheetRef.current?.close()
+            handleSend(`أقدم لك عرض مضاد...`)
+          }}
+        />
+      )}
     </View>
   )
 }
@@ -209,10 +242,10 @@ export default function ChatRoomScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
   iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flexDirection: 'row-reverse', alignItems: 'center', gap: Spacing.space3, flex: 1, justifyContent: 'center' },
-  headerTitleWrap: { alignItems: 'flex-end', justifyContent: 'center', flex: 1 },
-  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: Colors.white, maxWidth: 180, textAlign: 'right' },
-  typingTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: '#4ADE80' },
+  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space3, flex: 1, justifyContent: 'center' },
+  headerTitleWrap: { alignItems: 'flex-start', justifyContent: 'center', flex: 1 },
+  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: Colors.white, maxWidth: 180, textAlign: 'left' },
+  typingTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#4ADE80' },
   avatarWrap: { position: 'relative', width: 44, height: 44 },
   avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
   avatarFallback: { backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
@@ -223,18 +256,18 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: Colors.primary 
   },
   listingBanner: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, gap: 12,
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  listingThumb: { width: 40, height: 40, borderRadius: Radius.md, marginLeft: 12 },
-  listingBannerTxt: { flex: 1, fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, textAlign: 'right', marginLeft: 8 },
+  listingThumb: { width: 44, height: 44, borderRadius: Radius.md },
+  listingBannerTxt: { flex: 1, fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, textAlign: 'left' },
   content: { paddingVertical: 16 },
   loader: { marginTop: 40 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 100, paddingHorizontal: 40 },
-  emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(28,50,91,0.05)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  emptyTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, marginBottom: 8 },
-  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
-  dateDivider: { alignItems: 'center', marginVertical: 16 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 120, paddingHorizontal: 40 },
+  emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(52, 183, 241, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, marginBottom: 8 },
+  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 },
+  dateDivider: { alignItems: 'center', marginVertical: 20 },
   dateDividerTxt: {
     backgroundColor: 'rgba(0,0,0,0.05)', color: Colors.textMuted,
     fontFamily: 'Almarai_700Bold',  fontSize: 11,
