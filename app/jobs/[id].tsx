@@ -14,7 +14,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation } from '../../src/utils/mappers'
 import { formatSalary } from '../../src/utils/format'
 import { LICENSE_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from '../../src/constants/jobs'
-import { Alert } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -53,7 +53,7 @@ export default function JobDetailScreen() {
       return
     }
     if (user.id === employer?.id) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك')
       return
     }
     try {
@@ -68,12 +68,12 @@ export default function JobDetailScreen() {
         const initialText = encodeURIComponent(`مرحباً، بخصوص إعلان الوظيفة: ${raw.title}`)
         router.push(`/chat/${conversationId}?initialText=${initialText}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
       }
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg)
     }
   }
 
@@ -255,7 +255,7 @@ export default function JobDetailScreen() {
         {isOwner ? (
           <TouchableOpacity
             style={s.callWideBtn}
-            onPress={() => Alert.alert('تنبيه', 'تعديل الإعلان غير مدعوم حالياً')}
+            onPress={() => dialogService.alert('تنبيه', 'تعديل الإعلان غير مدعوم حالياً')}
             activeOpacity={0.9}
           >
             <Ionicons name="create-outline" size={22} color={Colors.primary} />

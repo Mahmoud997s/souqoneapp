@@ -5,7 +5,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Text,
 } from 'react-native'
 import { router } from 'expo-router'
@@ -16,6 +15,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { usersApi } from '../../src/api/users'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function ChangePasswordScreen() {
   const [oldPassword, setOldPassword] = useState('')
@@ -30,13 +30,13 @@ export default function ChangePasswordScreen() {
 
   const handleSave = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      return Alert.alert('تنبيه', 'يرجى ملء جميع الحقول')
+      return dialogService.alert('تنبيه', 'يرجى ملء جميع الحقول')
     }
     if (newPassword !== confirmPassword) {
-      return Alert.alert('تنبيه', 'كلمة المرور الجديدة غير متطابقة مع التأكيد')
+      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة غير متطابقة مع التأكيد')
     }
     if (newPassword.length < 6) {
-      return Alert.alert('تنبيه', 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل')
+      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل')
     }
 
     try {
@@ -46,12 +46,11 @@ export default function ChangePasswordScreen() {
         newPassword,
       })
 
-      Alert.alert('نجاح', 'تم تغيير كلمة المرور بنجاح!', [
-        { text: 'حسناً', onPress: () => router.back() }
-      ])
+      dialogService.alert('نجاح', 'تم تغيير كلمة المرور بنجاح!', 'success')
+      router.back()
     } catch (err: any) {
       const msg = err.response?.data?.message || 'كلمة المرور الحالية غير صحيحة أو حدث خطأ'
-      Alert.alert('خطأ', typeof msg === 'string' ? msg : msg[0])
+      dialogService.alert('خطأ', typeof msg === 'string' ? msg : msg[0])
     } finally {
       setLoading(false)
     }

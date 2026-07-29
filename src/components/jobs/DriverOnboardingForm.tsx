@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert
+  TextInput
 } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +14,7 @@ import { LocationPicker } from '../ui/LocationPicker'
 import { AppButton } from '../ui/AppButton'
 import { useCreateDriverProfile } from '../../hooks/useDriverProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
+import { dialogService } from '../../store/dialogStore'
 
 const LICENSE_KEYS = Object.keys(LICENSE_TYPE_LABELS) as LicenseType[]
 
@@ -37,11 +38,11 @@ export function DriverOnboardingForm() {
 
   const handleSubmit = async () => {
     if (!governorate) {
-      Alert.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
+      dialogService.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
       return
     }
     if (licenseTypes.length === 0) {
-      Alert.alert('رخصة القيادة مطلوبة', 'يرجى اختيار نوع رخصة القيادة على الأقل')
+      dialogService.alert('رخصة القيادة مطلوبة', 'يرجى اختيار نوع رخصة القيادة على الأقل')
       return
     }
     try {
@@ -59,7 +60,7 @@ export function DriverOnboardingForm() {
       setActiveRole('driver')
       router.replace('/jobs/dashboard')
     } catch (e: any) {
-      Alert.alert('خطأ', e?.response?.data?.message ?? 'حدث خطأ، حاول مرة أخرى')
+      dialogService.alert('خطأ', e?.response?.data?.message ?? 'حدث خطأ، حاول مرة أخرى')
     }
   }
 

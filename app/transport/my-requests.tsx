@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert, Platform } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -52,10 +53,14 @@ export default function MyTransportRequests() {
   })
 
   const handleCancel = (id: string) => {
-    Alert.alert('إلغاء الطلب', 'هل أنت متأكد من إلغاء طلب النقل هذا؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، إلغاء', style: 'destructive', onPress: () => cancelMutation.mutate(id) },
-    ])
+    dialogService.confirm(
+      'إلغاء الطلب',
+      'هل أنت متأكد من إلغاء طلب النقل هذا؟',
+      () => cancelMutation.mutate(id),
+      'نعم، إلغاء',
+      'لا',
+      true,
+    )
   }
 
   if (!user) {

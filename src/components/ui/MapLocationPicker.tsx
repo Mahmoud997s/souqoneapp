@@ -39,6 +39,7 @@ export function MapLocationPicker({
     longitudeDelta: 0.0421,
   });
   const [isLoadingLoc, setIsLoadingLoc] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Sync initial props when opened
   useEffect(() => {
@@ -85,10 +86,6 @@ export function MapLocationPicker({
     }
   };
 
-  const handleMapPress = (e: any) => {
-    setSelectedLocation(e.nativeEvent.coordinate);
-  };
-
   const handleConfirm = () => {
     if (selectedLocation) {
       onConfirm(selectedLocation.latitude, selectedLocation.longitude);
@@ -113,19 +110,29 @@ export function MapLocationPicker({
           <MapView
             style={styles.map}
             region={region}
-            onRegionChangeComplete={setRegion}
-            onPress={handleMapPress}
+            onRegionChange={() => setIsDragging(true)}
+            onRegionChangeComplete={(r) => {
+              setRegion(r);
+              setSelectedLocation({ latitude: r.latitude, longitude: r.longitude });
+              setIsDragging(false);
+            }}
             showsUserLocation={true}
             showsMyLocationButton={false}
-          >
-            {selectedLocation && (
-              <Marker
-                coordinate={selectedLocation}
-                pinColor={Colors.primary}
-              />
-            )}
-          </MapView>
+          />
           
+          {/* Fixed Center Pin */}
+          <View style={styles.centerPinContainer} pointerEvents="none">
+            <Ionicons 
+              name="location" 
+              size={48} 
+              color={Colors.primary} 
+              style={[
+                styles.pinIcon,
+                { transform: [{ translateY: isDragging ? -15 : 0 }] }
+              ]} 
+            />
+            <View style={[styles.pinShadow, { opacity: isDragging ? 0.3 : 0.8 }]} />
+          </View>
           <TouchableOpacity 
             style={styles.myLocationBtn}
             onPress={getCurrentLocation}
@@ -142,7 +149,7 @@ export function MapLocationPicker({
         {/* Footer */}
         <View style={styles.footer}>
           {!selectedLocation ? (
-            <Text style={styles.helpText}>يرجى النقر على الخريطة لتحديد الموقع بدقة</Text>
+            <Text style={styles.helpText}>اسحب الخريطة لتحديد الموقع بدقة</Text>
           ) : (
             <Text style={styles.helpText}>تم تحديد الموقع بنجاح</Text>
           )}
@@ -215,5 +222,27 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: 12,
+  },
+  centerPinContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -24,
+    marginTop: -48,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: 48,
+    height: 48,
+    zIndex: 10,
+  },
+  pinIcon: {
+    marginBottom: -10,
+  },
+  pinShadow: {
+    width: 12,
+    height: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    transform: [{ scaleX: 2 }],
   }
 });

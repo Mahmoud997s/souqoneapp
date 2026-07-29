@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { View, ActivityIndicator, StyleSheet, Text, Alert } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { listingsApi } from '../../../src/api/listings'
+import { busesApi } from '../../../src/api/buses'
+import { equipmentApi } from '../../../src/api/equipment'
 import { usePostStore } from '../../../src/store/postStore'
+import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
-import { equipmentApi } from '../../../src/api/equipment'
 
 export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
@@ -21,10 +23,60 @@ export default function EditListingLoader() {
           res = await equipmentApi.getOperatorById(id)
         } else if (type === 'equipment') {
           res = await equipmentApi.getById(id)
+        } else if (type === 'bus' || type === 'buses') {
+          res = await busesApi.getById(id)
         } else {
-          res = await listingsApi.getById(id)
+          try {
+            res = await listingsApi.getById(id)
+          } catch {
+            res = await busesApi.getById(id)
+          }
         }
         const listing: any = res.data ?? res
+
+        const isBus = type === 'bus' || type === 'buses' || !!listing.busListingType || !!listing.busType
+
+        if (isBus) {
+          useBusWizardStore.getState().setEditMode(id, {
+            busListingType: listing.busListingType || '',
+            busType: listing.busType || '',
+            make: listing.make || '',
+            model: listing.model || '',
+            year: listing.year ? String(listing.year) : '',
+            capacity: listing.capacity ? String(listing.capacity) : '',
+            condition: listing.condition || 'USED',
+            transmission: listing.transmission || 'MANUAL',
+            fuelType: listing.fuelType || 'DIESEL',
+            mileage: listing.mileage ? String(listing.mileage) : '',
+            plateNumber: listing.plateNumber || '',
+            features: listing.features || [],
+            price: listing.price ? String(listing.price) : '',
+            isPriceNegotiable: listing.isPriceNegotiable || false,
+            dailyPrice: listing.dailyPrice ? String(listing.dailyPrice) : '',
+            monthlyPrice: listing.monthlyPrice ? String(listing.monthlyPrice) : '',
+            withDriver: listing.withDriver || false,
+            contractType: listing.contractType || 'COMPANY',
+            contractClient: listing.contractClient || '',
+            contractMonthly: listing.contractMonthly ? String(listing.contractMonthly) : '',
+            contractDuration: listing.contractDuration ? String(listing.contractDuration) : '',
+            title: listing.title || '',
+            description: listing.description || '',
+            governorate: listing.governorate || '',
+            city: listing.city || '',
+            latitude: listing.latitude ?? null,
+            longitude: listing.longitude ?? null,
+            existingImages: (listing.images || []).map((img: any) => ({
+              id: img.id,
+              url: img.url || img,
+            })),
+            images: [],
+            removedImageIds: [],
+            contactPhone: listing.contactPhone || '',
+            whatsapp: listing.whatsapp || '',
+          })
+          router.replace('/buses/new')
+          return
+        }
 
         reset()
 
@@ -40,7 +92,6 @@ export default function EditListingLoader() {
         let category = 'cars'
         if (type === 'operator') category = 'operators'
         else if (type === 'equipment' || listing.type === 'equipment' || ['EQUIPMENT_SALE', 'EQUIPMENT_RENT', 'EQUIPMENT_WANTED', 'EQUIPMENT_LISTING'].includes(listing.listingType)) category = 'equipment'
-        else if (listing.type === 'bus' || listing.listingType === 'BUS_LISTING') category = 'buses'
         else if (listing.type === 'transport' || listing.listingType === 'TRANSPORT_REQUEST') category = 'transport'
         else if (listing.type === 'job' || listing.listingType === 'JOB') category = 'jobs'
         else if (listing.type === 'service' || listing.listingType === 'CAR_SERVICE') category = 'services'

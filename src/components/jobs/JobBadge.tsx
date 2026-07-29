@@ -23,8 +23,8 @@ export function JobBadge({ type }: JobBadgeProps) {
 const s = StyleSheet.create({
   badge: {
     borderRadius: Radius.pill,
-    paddingVertical: 3,
-    paddingHorizontal: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
     alignSelf: 'flex-start',
     justifyContent: 'center',
     alignItems: 'center',
@@ -37,6 +37,7 @@ const s = StyleSheet.create({
   },
   text: {
     color: '#ffffff',
-    fontSize: 11,
-    fontFamily: 'Almarai_700Bold',  },
+    fontSize: 9,
+    fontFamily: 'Almarai_700Bold',  
+  },
 })

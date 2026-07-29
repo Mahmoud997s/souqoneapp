@@ -239,10 +239,7 @@ export default function TransportLandingScreen() {
         <View style={s.heroTop}>
           <TouchableOpacity
             style={s.backBtn}
-            onPress={() => {
-              if (router.canGoBack()) router.back();
-              else router.push('/');
-            }}
+            onPress={() => router.push('/')}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-forward-outline" size={22} color={Colors.white} />

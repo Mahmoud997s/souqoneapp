@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
-  TextInput, Alert
+  TextInput
 } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -12,6 +12,7 @@ import { LocationPicker } from '../ui/LocationPicker'
 import { AppButton } from '../ui/AppButton'
 import { useCreateEmployerProfile } from '../../hooks/useEmployerProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
+import { dialogService } from '../../store/dialogStore'
 
 export function EmployerOnboardingForm() {
   const { setActiveRole } = useJobProfileStore()
@@ -25,7 +26,7 @@ export function EmployerOnboardingForm() {
 
   const handleSubmit = async () => {
     if (!empGov) {
-      Alert.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
+      dialogService.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
       return
     }
     try {
@@ -39,7 +40,7 @@ export function EmployerOnboardingForm() {
       setActiveRole('employer')
       router.replace('/jobs/dashboard')
     } catch (e: any) {
-      Alert.alert('خطأ', e?.response?.data?.message ?? 'حدث خطأ، حاول مرة أخرى')
+      dialogService.alert('خطأ', e?.response?.data?.message ?? 'حدث خطأ، حاول مرة أخرى')
     }
   }
 

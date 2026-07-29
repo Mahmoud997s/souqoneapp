@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
@@ -15,6 +15,7 @@ import { EquipmentForm } from './_components/forms/EquipmentForm'
 import { BusForm } from './_components/forms/BusForm'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function PostStep3Screen() {
   const insets = useSafeAreaInsets()
@@ -22,35 +23,35 @@ export default function PostStep3Screen() {
 
   const validateAndNext = () => {
     if (!title || !title.trim()) {
-      Alert.alert('تنبيه', 'يرجى إدخال عنوان الإعلان')
+      dialogService.alert('تنبيه', 'يرجى إدخال عنوان الإعلان')
       return
     }
 
     if (category === 'equipment') {
       const { listingType, condition, equipmentType } = details || {}
-      if (!listingType) return Alert.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!condition) return Alert.alert('تنبيه', 'يرجى اختيار الحالة')
-      if (!equipmentType) return Alert.alert('تنبيه', 'يرجى اختيار فئة المعدة')
+      if (!listingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
+      if (!condition) return dialogService.alert('تنبيه', 'يرجى اختيار الحالة')
+      if (!equipmentType) return dialogService.alert('تنبيه', 'يرجى اختيار فئة المعدة')
     }
 
     if (category === 'cars') {
       const { listingType, condition, make, model, year, mileage } = details || {}
-      if (!listingType) return Alert.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!condition) return Alert.alert('تنبيه', 'يرجى اختيار الحالة')
-      if (!make) return Alert.alert('تنبيه', 'يرجى اختيار الماركة')
-      if (!model) return Alert.alert('تنبيه', 'يرجى اختيار الموديل')
-      if (!year) return Alert.alert('تنبيه', 'يرجى اختيار سنة الصنع')
-      if (!mileage) return Alert.alert('تنبيه', 'يرجى إدخال الممشى')
+      if (!listingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
+      if (!condition) return dialogService.alert('تنبيه', 'يرجى اختيار الحالة')
+      if (!make) return dialogService.alert('تنبيه', 'يرجى اختيار الماركة')
+      if (!model) return dialogService.alert('تنبيه', 'يرجى اختيار الموديل')
+      if (!year) return dialogService.alert('تنبيه', 'يرجى اختيار سنة الصنع')
+      if (!mileage) return dialogService.alert('تنبيه', 'يرجى إدخال الممشى')
     }
 
     if (category === 'buses') {
       const { busListingType, busType, make, model, year, capacity } = details || {}
-      if (!busListingType) return Alert.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!make) return Alert.alert('تنبيه', 'يرجى اختيار الماركة')
-      if (!model) return Alert.alert('تنبيه', 'يرجى إدخال الموديل')
-      if (!year) return Alert.alert('تنبيه', 'يرجى إدخال سنة الصنع')
-      if (!capacity) return Alert.alert('تنبيه', 'يرجى إدخال عدد المقاعد')
-      if (!busType) return Alert.alert('تنبيه', 'يرجى اختيار فئة الحافلة')
+      if (!busListingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
+      if (!make) return dialogService.alert('تنبيه', 'يرجى اختيار الماركة')
+      if (!model) return dialogService.alert('تنبيه', 'يرجى إدخال الموديل')
+      if (!year) return dialogService.alert('تنبيه', 'يرجى إدخال سنة الصنع')
+      if (!capacity) return dialogService.alert('تنبيه', 'يرجى إدخال عدد المقاعد')
+      if (!busType) return dialogService.alert('تنبيه', 'يرجى اختيار فئة الحافلة')
     }
 
     router.push('/post/step4')

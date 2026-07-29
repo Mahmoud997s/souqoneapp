@@ -2,7 +2,7 @@ import React from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image, ActivityIndicator,
-  Linking, Alert, Dimensions
+  Linking, Dimensions
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -22,6 +22,7 @@ import { useDriver } from '../../../src/hooks/useDrivers'
 import { getInitials, getAvatarColor } from '../../../src/utils/format'
 import { chatApi } from '../../../src/api/chat'
 import { useAuthStore } from '../../../src/store/authStore'
+import { dialogService } from '../../../src/store/dialogStore'
 
 const SW = Dimensions.get('window').width
 
@@ -39,7 +40,7 @@ export default function DriverProfileScreen() {
     }
     if (!driver?.userId) return
     if (user.id === driver.userId) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك')
       return
     }
     try {
@@ -52,10 +53,10 @@ export default function DriverProfileScreen() {
       if (conversationId) {
         router.push(`/chat/${conversationId}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم العثور على معرّف المحادثة')
+        dialogService.alert('خطأ', 'لم يتم العثور على معرّف المحادثة')
       }
     } catch (error: any) {
-      Alert.alert('خطأ', 'حدث خطأ أثناء فتح المحادثة: ' + (error?.response?.data?.message || error?.message || ''))
+      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح المحادثة: ' + (error?.response?.data?.message || error?.message || ''))
       console.log('Chat Error:', error?.response?.data || error)
     } finally {
       setIsChatting(false)
@@ -87,14 +88,14 @@ export default function DriverProfileScreen() {
 
   const openPhone = (number: string) => {
     Linking.openURL(`tel:${number}`).catch(() =>
-      Alert.alert('خطأ', 'لا يمكن فتح التطبيق الهاتفي')
+      dialogService.alert('خطأ', 'لا يمكن فتح التطبيق الهاتفي')
     )
   }
 
   const openWhatsApp = (number: string) => {
     const clean = number.replace(/[^0-9]/g, '')
     Linking.openURL(`https://wa.me/${clean}`).catch(() =>
-      Alert.alert('خطأ', 'تأكد من تثبيت واتساب')
+      dialogService.alert('خطأ', 'تأكد من تثبيت واتساب')
     )
   }
 

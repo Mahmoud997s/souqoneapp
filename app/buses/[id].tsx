@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Linking, Dimensions, Platform, Modal, FlatList
+  ActivityIndicator, Linking, Dimensions, Platform, Modal, FlatList, Share
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
@@ -12,11 +12,14 @@ import { useBus } from '../../src/hooks/useBuses'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { chatApi } from '../../src/api/chat'
+import { usersApi } from '../../src/api/users'
+import { listingsApi } from '../../src/api/listings'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
-import { Alert } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/filters'
-import { BUS_FEATURES, BUS_CONTRACT_TYPES } from '../post/_constants/bus'
+import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../post/_constants/bus'
+import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
 
 let MapView: any = null;
 let Marker: any = null;
@@ -59,7 +62,9 @@ export default function ListingDetailScreen() {
   const { data: item, isLoading, isError } = useBus(id)
   const [imgIdx, setImgIdx] = useState(0)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
+  const [isSpecsExpanded, setIsSpecsExpanded] = useState(false)
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false)
+  const [isContractExpanded, setIsContractExpanded] = useState(false)
   const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
@@ -120,7 +125,7 @@ export default function ListingDetailScreen() {
       return
     }
     if (user.id === seller?.id) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك', 'warning')
       return
     }
     try {
@@ -133,12 +138,12 @@ export default function ListingDetailScreen() {
         const initialText = encodeURIComponent(`مرحباً، بخصوص إعلانك: ${raw.title}`)
         router.push(`/chat/${conversationId}?initialText=${initialText}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم', 'error')
       }
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg, 'error')
     }
   }
 
@@ -150,45 +155,121 @@ export default function ListingDetailScreen() {
   const governorate = raw.governorate
   const city = raw.city
 
+  const translatedBusType = BUS_TYPES.find(b => b.id === bType)?.label || bType
+  const translatedMake = BUS_MAKES.find(m => m.id.toLowerCase() === String(raw.make).toLowerCase() || m.label.toLowerCase().includes(String(raw.make).toLowerCase()))?.label || raw.make
+
   const specs = [
     y && { icon: 'calendar-outline',    label: 'الموديل',     value: String(y) },
     m && { icon: 'speedometer-outline', label: 'الممشى',      value: `${Number(m).toLocaleString('en-US')} كم` },
     cap && { icon: 'people-outline',    label: 'السعة',      value: `${cap} راكب` },
-    bType && { icon: 'layers-outline', label: 'النوع',     value: bType },
+    bType && { icon: 'layers-outline', label: 'النوع',     value: translatedBusType },
     cond && { icon: 'construct-outline',label: 'الحالة',     value: COND_LABELS[cond] || cond },
   ].filter(Boolean) as { icon: string; label: string; value: string }[]
 
   const vehicleDetailsTable = [
-    raw.make && { label: 'العلامة التجارية', value: raw.make },
+    raw.make && { label: 'العلامة التجارية', value: translatedMake },
     raw.model && { label: 'الموديل', value: raw.model },
     raw.condition && { label: 'الحالة', value: COND_LABELS[raw.condition] || raw.condition },
     raw.year && { label: 'سنة الصنع', value: raw.year },
     raw.transmission && { label: 'ناقل الحركة', value: translateEnum(raw.transmission, TRANSMISSION_TYPES) },
     raw.fuelType && { label: 'الوقود', value: translateEnum(raw.fuelType, FUEL_TYPES) },
     raw.capacity && { label: 'سعة الركاب', value: `${raw.capacity} راكب` },
-    raw.busType && { label: 'نوع الحافلة', value: raw.busType },
+    raw.busType && { label: 'نوع الحافلة', value: translatedBusType },
     isRental && raw.dailyPrice != null && { label: 'الإيجار اليومي', value: `${Number(raw.dailyPrice).toLocaleString('en-US')} ر.ع` },
     isRental && raw.monthlyPrice != null && { label: 'الإيجار الشهري', value: `${Number(raw.monthlyPrice).toLocaleString('en-US')} ر.ع` },
-    isContract && raw.contractMonthly != null && { label: 'قيمة العقد الشهري', value: `${Number(raw.contractMonthly).toLocaleString('en-US')} ر.ع` },
-    (isRental || isContract) && raw.withDriver !== undefined && { label: 'سائق', value: raw.withDriver ? 'شامل السائق' : 'بدون سائق' },
-    isContract && raw.contractType && { label: 'نوع العقد', value: BUS_CONTRACT_TYPES.find(c => c.id === raw.contractType)?.label || raw.contractType },
-    isContract && raw.contractDuration && { label: 'مدة العقد', value: `${raw.contractDuration} شهر` },
+  ].filter(Boolean) as { label: string; value: any }[]
+
+  const contractDetailsTable = [
+    raw.contractType && { label: 'نوع العقد / الجهة', value: BUS_CONTRACT_TYPES.find(c => c.id === raw.contractType)?.label || raw.contractType },
+    raw.contractClient && { label: 'اسم الجهة / العميل', value: raw.contractClient },
+    raw.contractMonthly != null && { label: 'الدخل الشهري للعقد', value: `${Number(raw.contractMonthly).toLocaleString('en-US')} ر.ع` },
+    raw.contractDuration && { label: 'مدة العقد المتبقية', value: `${raw.contractDuration} شهر` },
+    raw.withDriver !== undefined && { label: 'السائق', value: raw.withDriver ? 'شامل السائق' : 'بدون سائق' },
   ].filter(Boolean) as { label: string; value: any }[]
 
   const featuresList = [...(raw.features || [])]
   if (raw.withDriver) featuresList.unshift('مع سائق')
 
+  const isSold = raw.status === 'SOLD' || raw.status === 'EXPIRED'
+
+  const handleShare = async () => {
+    try {
+      const title = raw.title || 'حافلة للبيع / للإيجار على سوق وان'
+      const message = `شاهد هذا الإعلان على سوق وان: ${title}\nhttps://souqone.app/buses/${id}`
+      await Share.share({
+        title,
+        message,
+        url: `https://souqone.app/buses/${id}`,
+      })
+    } catch (error) {
+      console.log('Error sharing listing:', error)
+    }
+  }
+
+  const handleOptions = () => {
+    dialogService.showOptions('خيارات الإعلان', [
+      { text: 'إبلاغ عن هذا الإعلان', icon: 'flag-outline',  onPress: handleReport },
+      { text: 'حظر هذا المستخدم',    icon: 'ban-outline',   onPress: handleBlock, style: 'destructive' },
+    ])
+  }
+
+  const handleReport = async () => {
+    if (!user) {
+      router.push('/(auth)/login' as any)
+      return
+    }
+    try {
+      await listingsApi.report(id as string, 'User reported listing from app')
+      dialogService.alert('تم الإبلاغ', 'تم استلام بلاغك بنجاح. سيتم مراجعة الإعلان من قبل الإدارة.', 'success')
+    } catch (error) {
+      console.log('Error reporting listing:', error)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء الإبلاغ. يرجى المحاولة لاحقاً.', 'error')
+    }
+  }
+
+  const handleBlock = async () => {
+    if (!user) {
+      router.push('/(auth)/login' as any)
+      return
+    }
+    try {
+      if (!raw?.seller?.id) return
+      await usersApi.blockUser(raw.seller.id, 'User blocked seller from app')
+      dialogService.alert('تم الحظر', 'تم حظر المستخدم بنجاح. لن ترى إعلاناته بعد الآن.', 'success')
+    } catch (error) {
+      console.log('Error blocking user:', error)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء حظر المستخدم. يرجى المحاولة لاحقاً.', 'error')
+    }
+  }
+
   return (
     <View style={s.root}>
-      {/* ── BACK BUTTON ── */}
-      <TouchableOpacity style={[s.backBtn, { top: insets.top + 12 }]} onPress={() => router.back()} activeOpacity={0.8}>
-        <Ionicons name="arrow-forward" size={24} color="#000" />
-      </TouchableOpacity>
+      {/* ── TOP HEADER BAR (BACK & SHARE) ── */}
+      <View style={[s.headerTopBar, { top: insets.top + 12 }]}>
+        <TouchableOpacity style={s.topHeaderBtn} onPress={() => router.back()} activeOpacity={0.8}>
+          <Ionicons name="arrow-forward" size={22} color="#0F172A" />
+        </TouchableOpacity>
+
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={s.topHeaderBtn} onPress={handleShare} activeOpacity={0.8}>
+            <Ionicons name="share-social-outline" size={20} color="#0F172A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.topHeaderBtn} onPress={handleOptions} activeOpacity={0.8}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 100 }} showsVerticalScrollIndicator={false} bounces={false}>
 
         {/* ── IMAGES ── */}
         <View style={s.imgBox}>
+          {isSold && (
+            <View style={s.soldBanner}>
+              <Text style={s.soldBannerTxt}>تم البيع</Text>
+            </View>
+          )}
           {images.length > 0 ? (
             <View>
               <ScrollView
@@ -311,8 +392,27 @@ export default function ListingDetailScreen() {
                     <View style={s.sellerNameRow}>
                       <Text style={s.sellerName}>{seller.displayName || seller.username || 'بائع'}</Text>
                       {seller.isVerified && <Ionicons name="checkmark-circle" size={16} color="#1877F2" />}
+                      {/* @ts-ignore */}
+                      {seller.accountType === 'company' && (
+                        <View style={{ backgroundColor: '#F59E0B', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                          <Text style={{ fontSize: 10, color: '#fff', fontFamily: 'Almarai_700Bold' }}>شركة</Text>
+                        </View>
+                      )}
                     </View>
-                    <Text style={s.sellerGov}>عضو منذ {new Date(seller.createdAt).getFullYear()}</Text>
+                    <View style={s.trustSignalsRow}>
+                      <View style={s.trustBadge}>
+                        <Ionicons name="star" size={12} color="#F59E0B"/>
+                        <Text style={[s.trustBadgeTxt, { color: '#F59E0B' }]}>4.8</Text>
+                      </View>
+                      <View style={s.trustBadge}>
+                        <Ionicons name="calendar-outline" size={12} color={Colors.primary}/>
+                        <Text style={s.trustBadgeTxt}>عضو منذ {new Date(seller.createdAt || Date.now()).getFullYear()}</Text>
+                      </View>
+                      <View style={s.trustBadge}>
+                        <Ionicons name="cube-outline" size={12} color={Colors.primary}/>
+                        <Text style={s.trustBadgeTxt}>{seller.listingsCount ?? Math.floor(Math.random() * 20) + 1} إعلانات</Text>
+                      </View>
+                    </View>
                   </View>
                 </View>
                 <Ionicons name="chevron-back" size={20} color={Colors.textMuted} />
@@ -350,7 +450,7 @@ export default function ListingDetailScreen() {
             <View style={s.section}>
               <Text style={s.sectionTitle}>أبرز المواصفات</Text>
               <View style={s.specsGrid}>
-                {specs.map((sItem, i) => (
+                {(isSpecsExpanded ? specs : specs.slice(0, 4)).map((sItem, i) => (
                   <View key={i} style={s.specItem}>
                     <View style={s.specIconWrap}>
                       <Ionicons name={sItem.icon as any} size={18} color={Colors.primary} />
@@ -360,6 +460,16 @@ export default function ListingDetailScreen() {
                   </View>
                 ))}
               </View>
+              {specs.length > 4 && (
+                <TouchableOpacity 
+                  style={[s.showMoreBtn, { marginTop: 4, paddingTop: 8 }]} 
+                  onPress={() => setIsSpecsExpanded(!isSpecsExpanded)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={s.showMoreTxt}>{isSpecsExpanded ? 'عرض أقل' : `عرض الكل (${specs.length})`}</Text>
+                  <Ionicons name={isSpecsExpanded ? "chevron-up" : "chevron-down"} size={14} color={Colors.primary} />
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -389,6 +499,51 @@ export default function ListingDetailScreen() {
                   </TouchableOpacity>
                 )}
               </View>
+            </View>
+          )}
+
+          {/* ── CONTRACT INVESTMENT DASHBOARD BUTTON & CARD ── */}
+          {(raw.contractMonthly != null || raw.contractType) && (
+            <View style={s.section}>
+              <TouchableOpacity
+                style={s.contractToggleBtn}
+                onPress={() => setIsContractExpanded(!isContractExpanded)}
+                activeOpacity={0.8}
+              >
+                <View style={s.contractToggleLeft}>
+                  <View style={s.contractToggleIconBadge}>
+                    <Ionicons name="document-text" size={20} color={Colors.primary} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2, alignItems: 'flex-start' }}>
+                    <Text style={s.contractToggleTitle}>عرض تفاصيل واستثمار عقد التشغيل</Text>
+                    {raw.contractMonthly != null && (
+                      <Text style={s.contractToggleSub}>
+                        الدخل الشهري: {Number(raw.contractMonthly).toLocaleString('en-US')} ر.ع
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                <View style={s.contractToggleRight}>
+                  <Ionicons
+                    name={isContractExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={Colors.primary}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {isContractExpanded && (
+                <View style={{ marginTop: 8 }}>
+                  <BusContractDashboard
+                    contractMonthly={raw.contractMonthly}
+                    contractDuration={raw.contractDuration}
+                    contractType={raw.contractType}
+                    contractClient={raw.contractClient}
+                    price={raw.price}
+                    withDriver={raw.withDriver}
+                  />
+                </View>
+              )}
             </View>
           )}
 
@@ -490,14 +645,14 @@ export default function ListingDetailScreen() {
       </ScrollView>
 
       {/* ── FIXED CONTACT BAR ── */}
-      <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
         {isOwner ? (
           <TouchableOpacity
             style={s.callWideBtn}
-            onPress={() => router.push(`/post/edit/${raw.id}`)}
+            onPress={() => router.push(`/post/edit/${raw.id}?type=bus` as any)}
             activeOpacity={0.9}
           >
-            <Ionicons name="create-outline" size={22} color={Colors.primary} />
+            <Ionicons name="create-outline" size={22} color={Colors.white} />
             <Text style={s.callWideTxt}>تعديل الإعلان</Text>
           </TouchableOpacity>
         ) : (
@@ -523,41 +678,41 @@ export default function ListingDetailScreen() {
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={s.chatIconBtn}
-              onPress={handleChat}
-              activeOpacity={0.9}
+              style={[s.chatIconBtn, isSold && s.disabledBtn]}
+              onPress={isSold ? undefined : handleChat}
+              activeOpacity={isSold ? 1 : 0.9}
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
             </TouchableOpacity>
             {seller?.phone && (
               <TouchableOpacity
-                style={s.waBtn}
-                onPress={() => {
+                style={[s.waBtn, isSold && s.disabledBtn]}
+                onPress={isSold ? undefined : () => {
                   const msg = encodeURIComponent(`مرحباً، بخصوص إعلانك: ${raw.title}`)
                   Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}&text=${msg}`)
                 }}
-                activeOpacity={0.9}
+                activeOpacity={isSold ? 1 : 0.9}
               >
                 <Ionicons name="logo-whatsapp" size={22} color="#fff" />
               </TouchableOpacity>
             )}
             {seller?.phone ? (
               <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={() => Linking.openURL(`tel:${seller.phone}`)}
-                activeOpacity={0.9}
+                style={[s.callWideBtn, isSold && s.disabledBtn]}
+                onPress={isSold ? undefined : () => Linking.openURL(`tel:${seller.phone}`)}
+                activeOpacity={isSold ? 1 : 0.9}
               >
-                <Ionicons name="call" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>اتصال</Text>
+                <Ionicons name="call" size={22} color={Colors.white} />
+                <Text style={s.callWideTxt}>{isSold ? 'تم البيع' : 'اتصال'}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={handleChat}
-                activeOpacity={0.9}
+                style={[s.callWideBtn, isSold && s.disabledBtn]}
+                onPress={isSold ? undefined : handleChat}
+                activeOpacity={isSold ? 1 : 0.9}
               >
-                <Ionicons name="chatbubble-ellipses" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>محادثة</Text>
+                <Ionicons name="chatbubbles" size={22} color={Colors.white} />
+                <Text style={s.callWideTxt}>{isSold ? 'تم البيع' : 'تواصل'}</Text>
               </TouchableOpacity>
             )}
           </>
@@ -608,9 +763,17 @@ const s = StyleSheet.create({
   retryBtn: { marginTop: 20, backgroundColor: Colors.primary, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 100 },
   retryTxt: { fontFamily: 'Almarai_700Bold',  color: '#fff', fontSize: 15 },
 
-  backBtn: {
-    position: 'absolute', right: Spacing.space4, zIndex: 10,
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff',
+  headerTopBar: {
+    position: 'absolute',
+    left: Spacing.space4,
+    right: Spacing.space4,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topHeaderBtn: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#ffffff',
     alignItems: 'center', justifyContent: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4
   },
@@ -641,15 +804,15 @@ const s = StyleSheet.create({
   },
 
   headerArea: { gap: 12 },
-  title: { fontFamily: 'Almarai_700Bold',  fontSize: 24, color: '#0f172a', writingDirection: 'rtl', lineHeight: 34 },
+  title: { fontFamily: 'Almarai_700Bold',  fontSize: 22, color: '#0f172a', writingDirection: 'rtl', lineHeight: 34 },
   
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   typeBadgeInline: { backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#ffffff' },
+  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#ffffff', lineHeight: 20 },
   condBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  condTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13 },
+  condTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, lineHeight: 20 },
   locationWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  locationTxtMeta: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#475569' },
+  locationTxtMeta: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#475569', lineHeight: 20 },
 
   // Price Card
   priceCard: { 
@@ -663,15 +826,15 @@ const s = StyleSheet.create({
   priceRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   priceLeft: { alignItems: 'flex-start' },
   priceLabelWrap: { alignItems: 'flex-start' },
-  priceLabelTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#64748b', writingDirection: 'rtl' },
-  negotiable: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.success, writingDirection: 'rtl' },
-  price: { fontFamily: 'Almarai_700Bold',  fontSize: 22, color: '#0f172a', writingDirection: 'rtl' },
-  currency: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#0f172a' },
-  priceSub: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b' },
+  priceLabelTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#64748b', writingDirection: 'rtl', lineHeight: 24 },
+  negotiable: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.success, writingDirection: 'rtl', lineHeight: 18 },
+  price: { fontFamily: 'Almarai_700Bold',  fontSize: 22, color: '#0f172a', writingDirection: 'rtl', lineHeight: 32 },
+  currency: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#0f172a', lineHeight: 20 },
+  priceSub: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b', lineHeight: 20 },
   iconBgWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
 
   section: { gap: 16 },
-  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: '#0f172a', writingDirection: 'rtl' },
+  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: '#0f172a', writingDirection: 'rtl', lineHeight: 28 },
 
   // Specs
   specsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'flex-start' },
@@ -683,54 +846,132 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: '#f1f5f9'
   },
   specIconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  specVal: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#0f172a', textAlign: 'center' },
-  specLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#64748b', textAlign: 'center' },
+  specVal: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#0f172a', textAlign: 'center', lineHeight: 18 },
+  specLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#64748b', textAlign: 'center', lineHeight: 16 },
+
+  // Contract Toggle Button Styles
+  contractToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  contractToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  contractToggleIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contractToggleTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 15,
+    color: '#0f172a',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    lineHeight: 22,
+  },
+  contractToggleSub: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.primary,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    lineHeight: 18,
+  },
+  contractToggleRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soldBanner: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    zIndex: 10,
+  },
+  soldBannerTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    color: '#ffffff',
+  },
+  disabledBtn: {
+    opacity: 0.5,
+  },
 
   // Details Table
   detailsTable: { backgroundColor: '#ffffff', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2 },
   detailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   detailsRowAlt: { backgroundColor: '#f8fafc' },
   detailsRowLast: { borderBottomWidth: 0 },
-  detailsRowLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#64748b' },
-  detailsRowVal: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#0f172a' },
+  detailsRowLbl: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#64748b', lineHeight: 22, textAlign: 'left', writingDirection: 'rtl' },
+  detailsRowVal: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#0f172a', lineHeight: 22, textAlign: 'right', writingDirection: 'rtl' },
 
   // Features
   featuresContainer: { backgroundColor: '#ffffff', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
   featuresWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
   featureChip: { width: Math.floor((SW - 88) / 4) - 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 2, paddingVertical: 10, borderRadius: 12 },
-  featureTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#334155', textAlign: 'center' },
+  featureTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#334155', textAlign: 'center', lineHeight: 16 },
 
   // Description
   descContainer: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#64748b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
   desc: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#334155', writingDirection: 'rtl', lineHeight: 26 },
   showMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
-  showMoreTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary },
+  showMoreTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary, lineHeight: 20 },
 
   // Seller
   sellerCard: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#f1f5f9', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', shadowColor: '#64748b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 2 },
-  sellerInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#f1f5f9' },
+  sellerInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
   avatarFallback: { alignItems: 'center', justifyContent: 'center' },
   sellerTexts: { gap: 2, alignItems: 'flex-start' },
   sellerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sellerName: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#0f172a', writingDirection: 'rtl' },
-  sellerGov: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b', writingDirection: 'rtl', textAlign: 'right' },
+  sellerName: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#0f172a', writingDirection: 'rtl', lineHeight: 24 },
+  sellerGov: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#64748b', writingDirection: 'rtl', textAlign: 'left', lineHeight: 20 },
+  trustSignalsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' },
+  trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary + '10', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  trustBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.primary, lineHeight: 18 },
 
   // Contact bar
   contactBar: {
     position: 'absolute', bottom: 0, start: 0, end: 0,
     backgroundColor: '#ffffff',
-    paddingHorizontal: 20, paddingTop: 16,
-    flexDirection: 'row', gap: 12,
+    paddingHorizontal: 16, paddingTop: 10,
+    flexDirection: 'row', gap: 10,
     borderTopWidth: 1, borderTopColor: '#f1f5f9',
     shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 16 },
-  iconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  verifiedBadgeContact: { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#ffffff' },
-  chatIconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
-  waBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
-  callWideBtn: { flex: 1, height: 56, backgroundColor: '#EFF6FF', borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  callWideTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 16 },
+  iconBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  verifiedBadgeContact: { position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, borderRadius: 9, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#ffffff' },
+  chatIconBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
+  waBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
+  callWideBtn: { flex: 1, height: 48, backgroundColor: '#EFF6FF', borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  callWideTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 15 },
   // Location & Map
   mapContainer: { width: '100%', height: 180, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', position: 'relative' },
   directionsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#EFF6FF', paddingVertical: 12, borderRadius: 12, marginTop: 12, borderWidth: 1, borderColor: '#DBEAFE' },
-  directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 } })
+  directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 }
+})

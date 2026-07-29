@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Dimensions, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Dimensions, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Colors } from '../../../src/constants/colors'
 import { useOperatorItem } from '../../../src/hooks/useEquipment'
@@ -12,6 +12,7 @@ import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
+import { dialogService } from '../../../src/store/dialogStore'
 
 const OPERATOR_TYPE_LABELS: Record<string, string> = {
   DRIVER: 'سائق',
@@ -89,7 +90,7 @@ export default function OperatorDetailScreen() {
     if (sellerPhone) {
       Linking.openURL(`tel:${sellerPhone}`)
     } else {
-      Alert.alert('تنبيه', 'رقم الهاتف غير متوفر')
+      dialogService.alert('تنبيه', 'رقم الهاتف غير متوفر')
     }
   }
 
@@ -98,7 +99,7 @@ export default function OperatorDetailScreen() {
       const msg = encodeURIComponent(`مرحباً، بخصوص إعلان المشغل: ${cardData.title}`)
       Linking.openURL(`whatsapp://send?phone=${sellerPhone.replace('+', '')}&text=${msg}`)
     } else {
-      Alert.alert('تنبيه', 'رقم الواتساب غير متوفر')
+      dialogService.alert('تنبيه', 'رقم الواتساب غير متوفر')
     }
   }
 
@@ -108,7 +109,7 @@ export default function OperatorDetailScreen() {
       return
     }
     if (user.id === sellerId) {
-      Alert.alert('تنبيه', 'لا يمكنك مراسلة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك مراسلة نفسك')
       return
     }
     try {
@@ -121,7 +122,7 @@ export default function OperatorDetailScreen() {
         router.push(`/chat/${res.data.id}`)
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر فتح المحادثة')
+      dialogService.alert('خطأ', 'تعذر فتح المحادثة')
     }
   }
 

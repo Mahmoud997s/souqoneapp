@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Linking, Dimensions, Platform, TextInput, Alert
+  ActivityIndicator, Linking, Dimensions, Platform, TextInput
 } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -122,7 +123,7 @@ export default function TransportDetailScreen() {
       return
     }
     if (user.id === owner?.id) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك', 'warning')
       return
     }
     try {
@@ -136,12 +137,12 @@ export default function TransportDetailScreen() {
         const initialText = encodeURIComponent(`مرحباً، بخصوص طلب نقل: ${title}`)
         router.push(`/chat/${conversationId}?initialText=${initialText}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم', 'error')
       }
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg, 'error')
     }
   }
 
@@ -149,7 +150,7 @@ export default function TransportDetailScreen() {
 
   const handleSubmitQuote = async () => {
     if (!user) { router.push('/(auth)/login' as any); return }
-    if (!quotePrice) { Alert.alert('خطأ', 'أدخل السعر'); return }
+    if (!quotePrice) { dialogService.alert('خطأ', 'أدخل السعر', 'warning'); return }
     setSubmitting(true)
     try {
       await transportApi.submitQuote(id, {
@@ -160,18 +161,19 @@ export default function TransportDetailScreen() {
       setQuotePrice(''); setQuoteHours(''); setQuoteMsg('')
       loadQuotes()
       refetch()
-      Alert.alert('تم', 'تم إرسال عرضك بنجاح')
+      dialogService.alert('تم', 'تم إرسال عرضك بنجاح', 'success')
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر إرسال العرض')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg, 'error')
     } finally { setSubmitting(false) }
   }
 
   const handleAcceptQuote = async (quoteId: string) => {
-    Alert.alert('قبول العرض', 'هل أنت متأكد من قبول هذا العرض؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم', onPress: async () => {
+    dialogService.confirm(
+      'قبول العرض',
+      'هل أنت متأكد من قبول هذا العرض؟',
+      async () => {
         try {
           await transportApi.acceptQuote(quoteId)
           loadQuotes()
@@ -179,10 +181,12 @@ export default function TransportDetailScreen() {
         } catch (e: any) { 
           const errorMsg = e?.response?.data?.message
           const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'حدث خطأ')
-          Alert.alert('خطأ', parsedMsg) 
+          dialogService.alert('خطأ', parsedMsg, 'error') 
         }
-      }},
-    ])
+      },
+      'نعم',
+      'لا',
+    )
   }
 
   const specs = [

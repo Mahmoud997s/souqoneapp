@@ -1,5 +1,9 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native'
-import { AppHeader } from '../../src/components/ui/AppHeader'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Platform } from 'react-native'
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader'
+import { ListingTabs } from '../../src/components/ui/ListingTabs'
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader'
+import Animated from 'react-native-reanimated'
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { JobsFilterBottomSheet, JobFilterState } from '../../src/components/filters/JobsFilterBottomSheet'
@@ -7,24 +11,123 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Ionicons } from '@expo/vector-icons'
-import { useJobsRaw } from '../../src/hooks/useJobs'
+import { useInfiniteJobsRaw } from '../../src/hooks/useJobs'
 import { SORT_OPTIONS } from '../../src/constants/jobs'
 import { router } from 'expo-router'
 import { useState, useMemo, useEffect } from 'react'
 
+import { Modal, ActivityIndicator } from 'react-native'
+import { QuickFilters } from '../../src/components/ui/QuickFilters'
+import { OMAN_LOCATIONS } from '../../src/constants/locations';
+
+const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
+  labelAr: g.labelAr,
+  value: g.labelAr
+}));
 const JOB_TYPES = [{ id: '', label: 'الكل' }, { id: 'HIRING', label: 'طلب سائق' }, { id: 'OFFERING', label: 'عرض خدمة' }]
-const EMPLOYMENT_TYPES = [{ id: 'FULL_TIME', label: 'دوام كامل' }, { id: 'PART_TIME', label: 'دوام جزئي' }, { id: 'CONTRACT', label: 'عقد' }, { id: 'TEMPORARY', label: 'مؤقت' }]
-const EXPERIENCES = [{ id: '', label: 'الكل' }, { id: '1', label: 'سنة+' }, { id: '3', label: '3 سنوات+' }, { id: '5', label: '5 سنوات+' }]
+const EMPLOYMENT_TYPES = [{ id: 'FULL_TIME', label: 'دوام كامل' }, { id: 'PART_TIME', label: 'دوام جزئي' }, { id: 'CONTRACT', label: 'عقد' }, { id: 'FREELANCE', label: 'عمل حر' }]
+const EXPERIENCES = [{ id: '0', label: 'بدون خبرة' }, { id: '1', label: 'سنة فأكثر' }, { id: '3', label: '3 سنوات فأكثر' }, { id: '5', label: '5 سنوات فأكثر' }]
 const LICENSE_TYPES = [{ id: 'LIGHT', label: 'خفيفة' }, { id: 'HEAVY', label: 'ثقيلة' }, { id: 'TRANSPORT', label: 'نقل' }, { id: 'BUS', label: 'حافلات' }, { id: 'MOTORCYCLE', label: 'دراجة' }]
 
+const DROPDOWN_FILTERS = [
+  { id: 'salary', label: 'الراتب', icon: 'wallet-outline' },
+  { id: 'city', label: 'المدينة', icon: 'location-outline' },
+  { id: 'employmentType', label: 'الدوام', icon: 'time-outline' },
+  { id: 'experience', label: 'الخبرة', icon: 'briefcase-outline' },
+  { id: 'licenseType', label: 'الرخصة', icon: 'card-outline' },
+];
+
+const SALARY_RANGES = [
+  { id: 's1', label: 'أقل من 300 ر.ع', min: 0, max: 300 },
+  { id: 's2', label: '300 - 500 ر.ع', min: 300, max: 500 },
+  { id: 's3', label: '500 - 800 ر.ع', min: 500, max: 800 },
+  { id: 's4', label: '800 - 1,200 ر.ع', min: 800, max: 1200 },
+  { id: 's5', label: 'أكثر من 1,200 ر.ع', min: 1200, max: 999999 },
+];
+
 export default function JobsBrowseScreen() {
-  const { data, isLoading, isError, refetch } = useJobsRaw()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   
   const [filters, setFilters] = useState<JobFilterState>({})
   const [filterOpen, setFilterOpen] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+
+  // Map filters to API params
+  const apiParams = useMemo(() => {
+    const params: any = {};
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (filters.jobType) params.jobType = filters.jobType;
+    if (filters.employmentType) params.employmentType = filters.employmentType;
+    if (filters.minSalary) params.minSalary = filters.minSalary;
+    if (filters.maxSalary) params.maxSalary = filters.maxSalary;
+    if (filters.location) params.governorate = filters.location;
+    if (filters.city) params.governorate = filters.city; // backend uses governorate
+    if (filters.licenseType) params.licenseType = filters.licenseType;
+    
+    if (filters.sort) {
+       const [sortBy, sortOrder] = filters.sort.split('_');
+       params.sortBy = sortBy;
+       params.sortOrder = sortOrder;
+    }
+    return params;
+  }, [debouncedSearch, filters]);
+
+  const { 
+    data, isLoading, isError, refetch, 
+    fetchNextPage, hasNextPage, isFetchingNextPage 
+  } = useInfiniteJobsRaw(apiParams);
+
+  // Flatten the pages for FlatList and apply any remaining local filters (like experience)
+  const displayData = useMemo(() => {
+    if (!data?.pages) return [];
+    let flattened = data.pages.flatMap((page: any) => page?.items || page?.data || []);
+    
+    if (filters.experience) {
+      flattened = flattened.filter((d: any) => d.experienceYears != null && d.experienceYears >= parseInt(filters.experience!, 10));
+    }
+    return flattened;
+  }, [data, filters.experience]);
+
+  const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'salary') {
+      isActive = !!filters.maxSalary;
+      if (isActive) displayLabel = SALARY_RANGES.find(p => p.max === Number(filters.maxSalary))?.label || qf.label;
+    } else if (qf.id === 'city') {
+      isActive = !!filters.city;
+      if (isActive) displayLabel = filters.city as string;
+    } else if (qf.id === 'employmentType') {
+      isActive = !!filters.employmentType;
+      if (isActive) displayLabel = EMPLOYMENT_TYPES.find(t => t.id === filters.employmentType)?.label || qf.label;
+    } else if (qf.id === 'experience') {
+      isActive = !!filters.experience;
+      if (isActive) displayLabel = EXPERIENCES.find(t => t.id === filters.experience)?.label || qf.label;
+    } else if (qf.id === 'licenseType') {
+      isActive = !!filters.licenseType;
+      if (isActive) displayLabel = LICENSE_TYPES.find(t => t.id === filters.licenseType)?.label || qf.label;
+    }
+
+    return {
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive
+    };
+  });
+
+  const handleClearQuickFilter = (id: string) => {
+    const newFilters = { ...filters };
+    if (id === 'salary') { delete newFilters.minSalary; delete newFilters.maxSalary; }
+    if (id === 'city') delete newFilters.city;
+    if (id === 'employmentType') delete newFilters.employmentType;
+    if (id === 'experience') delete newFilters.experience;
+    if (id === 'licenseType') delete newFilters.licenseType;
+    setFilters(newFilters);
+  };
 
   // Debounce search
   useEffect(() => {
@@ -32,96 +135,44 @@ export default function JobsBrowseScreen() {
     return () => clearTimeout(timer)
   }, [search])
 
-  const displayData = useMemo(() => {
-    let filtered = data ?? []
-    
-    // Filters
-    if (debouncedSearch) {
-      const s = debouncedSearch.toLowerCase()
-      filtered = filtered.filter(d => 
-        d.title?.toLowerCase().includes(s) || 
-        d.governorate?.toLowerCase().includes(s) || 
-        d.city?.toLowerCase().includes(s)
-      )
-    }
-    if (filters.jobType) filtered = filtered.filter(d => d.jobType === filters.jobType)
-    if (filters.employmentType) filtered = filtered.filter(d => d.employmentType === filters.employmentType)
-    if (filters.minSalary) filtered = filtered.filter(d => d.salary != null && d.salary >= parseFloat(filters.minSalary!))
-    if (filters.maxSalary) filtered = filtered.filter(d => d.salary != null && d.salary <= parseFloat(filters.maxSalary!))
-    if (filters.location) filtered = filtered.filter(d => d.governorate === filters.location)
-    if (filters.city) filtered = filtered.filter(d => d.city === filters.city)
-    if (filters.experience) filtered = filtered.filter(d => d.experienceYears != null && d.experienceYears >= parseInt(filters.experience!, 10))
-    if (filters.licenseType) filtered = filtered.filter(d => d.licenseTypes?.includes(filters.licenseType as any))
-
-    // Sorting
-    filtered = [...filtered]
-    const currentSort = filters.sort || 'createdAt_desc'
-    if (currentSort === 'createdAt_desc') {
-      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    } else if (currentSort === 'createdAt_asc') {
-      filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    } else if (currentSort === 'salary_desc') {
-      filtered.sort((a, b) => (b.salary || 0) - (a.salary || 0))
-    } else if (currentSort === 'viewCount_desc') {
-      filtered.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-    } else {
-      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-
-    return filtered
-  }, [data, debouncedSearch, filters])
-
+  const { scrollHandler } = useScrollAwareNav()
   const activeFilters = Object.values(filters).filter(Boolean).length
 
   return (
     <View style={s.root}>
-      <AppHeader
-        showBack
-        centerSlot={
-          <View style={s.compactSearch}>
-            <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
-            <TextInput
-              style={s.compactInput}
-              placeholder="ابحث بالعنوان أو الموقع..."
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={search}
-              onChangeText={setSearch}
-              returnKeyType="search"
-            />
-            {search ? (
-              <TouchableOpacity onPress={() => setSearch('')}>
-                <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        }
-        rightSlot={
-          <TouchableOpacity style={s.iconBtn} onPress={() => setFilterOpen(!filterOpen)}>
-            <Ionicons name="options-outline" size={20} color={Colors.white} />
-            {activeFilters > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeTxt}>{activeFilters}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        }
+      <BrowseHeader
+        searchQuery={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="ابحث في الوظائف..."
+        activeFiltersCount={activeFilters}
+        onFilterPress={() => setFilterOpen(!filterOpen)}
       />
 
-      {/* Main Job Type Tabs */}
-      <View style={s.tabsContainer}>
-        {JOB_TYPES.map((item) => {
-          const isActive = filters.jobType === item.id || (!filters.jobType && item.id === '');
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[s.tab, isActive && s.tabActive]}
-              onPress={() => setFilters(prev => ({ ...prev, jobType: item.id }))}
-            >
-              <Text style={[s.tabTxt, isActive && s.tabTxtActive]}>{item.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={JOB_TYPES}
+          activeTabId={filters.jobType}
+          onChangeTab={(id) => {
+            if (id === filters.jobType) {
+              const newFilters = { ...filters };
+              delete newFilters.jobType;
+              setFilters(newFilters);
+            } else {
+              setFilters({ ...filters, jobType: id as any });
+            }
+          }}
+          onClearTab={() => {
+            const newFilters = { ...filters };
+            delete newFilters.jobType;
+            setFilters(newFilters);
+          }}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
 
       {/* Filter Panel */}
       <JobsFilterBottomSheet
@@ -131,14 +182,7 @@ export default function JobsBrowseScreen() {
         onApplyFilters={setFilters}
       />
 
-      {/* Results count */}
-      {!isLoading && data && (
-        <View style={s.countWrap}>
-          <Text style={s.countText}>
-            إظهار {displayData.length} من {data.length} نتيجة
-          </Text>
-        </View>
-      )}
+
 
       {/* List */}
       {isLoading ? (
@@ -154,13 +198,44 @@ export default function JobsBrowseScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList
           data={displayData}
           keyExtractor={(item, index) => (item as any).id ?? (item as any)._id ?? `job-${index}`}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingTop: Spacing.space2 }]}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           refreshing={refreshing}
           onRefresh={async () => { setRefreshing(true); await refetch(); setRefreshing(false) }}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
+            ) : null
+          }
+          ListHeaderComponent={
+            <View style={{ paddingBottom: Spacing.space3, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              {activeFilters > 0 ? (
+                <TouchableOpacity onPress={() => setFilters({})}>
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                    مسح الفلاتر
+                  </Text>
+                </TouchableOpacity>
+              ) : <View />}
+
+              <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                <Ionicons name="briefcase-outline" size={14} color="#64748b" />
+                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                  {displayData.length} وظيفة متاحة
+                </Text>
+              </View>
+            </View>
+          }
           ListEmptyComponent={
             <View style={s.center}>
               <Ionicons name="briefcase-outline" size={56} color={Colors.border} />
@@ -176,6 +251,140 @@ export default function JobsBrowseScreen() {
           )}
         />
       )}
+
+      <Modal
+        visible={!!activeDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdown(null)}
+      >
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>
+                {activeDropdown === 'salary' ? 'الراتب' :
+                 activeDropdown === 'city' ? 'اختر المدينة' :
+                 activeDropdown === 'employmentType' ? 'طبيعة العمل' :
+                 activeDropdown === 'experience' ? 'سنوات الخبرة' :
+                 activeDropdown === 'licenseType' ? 'نوع الرخصة' : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {activeDropdown === 'salary' && (
+              <FlatList
+                data={SALARY_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, minSalary: item.min.toString(), maxSalary: item.max.toString() });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.maxSalary === item.max.toString() && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.maxSalary === item.max.toString() && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'city' && (
+              <FlatList
+                data={GOVERNORATE_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, city: item.labelAr });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.city === item.labelAr && s.modalOptionTxtActive]}>
+                      {item.labelAr}
+                    </Text>
+                    {filters.city === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'employmentType' && (
+              <FlatList
+                data={EMPLOYMENT_TYPES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, employmentType: item.id as any });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.employmentType === item.id && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.employmentType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'experience' && (
+              <FlatList
+                data={EXPERIENCES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, experience: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.experience === item.id && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.experience === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'licenseType' && (
+              <FlatList
+                data={LICENSE_TYPES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, licenseType: item.id as any });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.licenseType === item.id && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.licenseType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -183,7 +392,7 @@ export default function JobsBrowseScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.surface },
   loadWrap: { padding: Spacing.space5 },
-  list: { padding: Spacing.space5, paddingTop: 0 },
+  list: { paddingHorizontal: Spacing.space4, paddingBottom: Spacing.space5, paddingTop: 0 },
 
   // Compact Header Search
   compactSearch: {
@@ -209,30 +418,31 @@ const s = StyleSheet.create({
   // Tabs
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.border,
-    borderRadius: Radius.lg,
-    padding: 4,
-    marginHorizontal: Spacing.space5,
-    marginVertical: Spacing.space3,
+    marginHorizontal: Spacing.space4,
+    marginTop: Spacing.space3,
+    marginBottom: Spacing.space3,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 3,
   },
   tab: {
     flex: 1,
-    paddingVertical: Spacing.space2,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radius.md,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
   },
   tabActive: {
     backgroundColor: Colors.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
+      android: { elevation: 2 },
+    }),
   },
   tabTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.text2,
+    fontFamily: 'Almarai_700Bold', fontSize: 13,
+    color: '#64748B',
   },
   tabTxtActive: {
     color: Colors.primary,
@@ -282,4 +492,51 @@ const s = StyleSheet.create({
   retryTxt:     { fontFamily: 'Almarai_700Bold',  color: Colors.white, fontSize: 14, textAlign: 'center', writingDirection: 'rtl' },
   emptyTitle:   { fontFamily: 'Almarai_700Bold',  fontSize: 17, color: Colors.text, textAlign: 'center', writingDirection: 'rtl' },
   emptySubtitle:{ fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text2, textAlign: 'center', writingDirection: 'rtl' },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    maxHeight: '65%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: Spacing.space4,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+      android: { elevation: 10 },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.space3,
+    paddingBottom: Spacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 16, color: Colors.text,
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
+  },
+  modalOptionTxt: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 15, color: Colors.text2,
+  },
+  modalOptionTxtActive: {
+    color: Colors.primary,
+  },
 })

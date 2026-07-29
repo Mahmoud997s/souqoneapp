@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Alert, ActivityIndicator, Linking,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -26,6 +25,7 @@ import { uploadsApi } from '../../src/api/uploads'
 import { paymentsApi } from '../../src/api/payments'
 import { getPostGovLabel, getPostCityLabel } from '../../src/constants/locations'
 import { useQueryClient } from '@tanstack/react-query'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function PostStep5Screen() {
   const insets = useSafeAreaInsets()
@@ -36,7 +36,7 @@ export default function PostStep5Screen() {
 
   const handlePublish = async () => {
     if (!store.title.trim()) {
-      Alert.alert('تنبيه', 'يرجى إدخال عنوان الإعلان')
+      dialogService.alert('تنبيه', 'يرجى إدخال عنوان الإعلان')
       return
     }
 
@@ -77,7 +77,7 @@ export default function PostStep5Screen() {
       const numericFields = [
         'mileage', 'dailyPrice', 'monthlyPrice', 'depositAmount',
         'minRentalDays', 'kmLimitPerDay', 'experienceYears', 'horsepower', 'doors',
-        'year', 'hoursUsed', 'budgetMax'
+        'year', 'hoursUsed', 'budgetMax', 'capacity', 'contractMonthly', 'contractDuration'
       ];
       numericFields.forEach(field => {
         if (payload[field] != null && payload[field] !== '') {
@@ -139,9 +139,8 @@ export default function PostStep5Screen() {
 
       await queryClient.invalidateQueries()
       store.reset()
-      Alert.alert(store.editMode ? 'تم التعديل' : 'تم النشر', store.editMode ? 'تم تعديل إعلانك بنجاح!' : 'تم نشر إعلانك بنجاح!', [
-        { text: 'حسناً', onPress: () => router.replace('/(tabs)') },
-      ])
+      dialogService.alert(store.editMode ? 'تم التعديل' : 'تم النشر', store.editMode ? 'تم تعديل إعلانك بنجاح!' : 'تم نشر إعلانك بنجاح!', 'success')
+      router.replace('/(tabs)')
     } catch (err: any) {
       let msg = store.editMode ? 'حدث خطأ أثناء تعديل الإعلان' : 'حدث خطأ أثناء نشر الإعلان'
       if (err?.response?.data?.message) {
@@ -156,7 +155,7 @@ export default function PostStep5Screen() {
       } else if (err?.message) {
         msg = err.message;
       }
-      Alert.alert('خطأ', String(msg))
+      dialogService.alert('خطأ', String(msg))
     } finally {
       setLoading(false)
     }

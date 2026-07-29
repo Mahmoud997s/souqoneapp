@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform, Alert, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import { Radius } from '../../src/constants/radius';
 import CarrierStep1Info from '../../src/components/transport/carrier/CarrierStep1Info';
 import CarrierStep2Vehicles from '../../src/components/transport/carrier/CarrierStep2Vehicles';
 import CarrierStep3Location from '../../src/components/transport/carrier/CarrierStep3Location';
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function CarrierOnboardingScreen() {
   const insets = useSafeAreaInsets();
@@ -29,6 +30,8 @@ export default function CarrierOnboardingScreen() {
     serviceTypes,
     governorate,
     city,
+    baseLat,
+    baseLng,
     contactPhone,
     whatsapp,
     reset,
@@ -52,14 +55,13 @@ export default function CarrierOnboardingScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-carrier-profile'] });
       reset();
-      Alert.alert('تم بنجاح', 'تم تسجيلك كناقل في النظام بنجاح!', [
-        { text: 'انتقل للوحة التحكم', onPress: () => router.replace('/transport/carrier-dashboard' as any) }
-      ]);
+      dialogService.alert('تم بنجاح', 'تم تسجيلك كناقل في النظام بنجاح!', 'success')
+      router.replace('/transport/carrier-dashboard' as any)
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message;
       const errorText = Array.isArray(msg) ? msg.join('\n') : (msg || 'حدث خطأ أثناء إنشاء الحساب');
-      Alert.alert('خطأ', errorText);
+      dialogService.alert('خطأ', errorText);
     }
   });
 

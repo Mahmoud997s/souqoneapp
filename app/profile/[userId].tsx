@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +14,7 @@ import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
 import { usePublicProfile } from '../../src/hooks/useProfile'
 import { useAuthStore } from '../../src/store/authStore'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>()
@@ -43,7 +44,7 @@ export default function PublicProfileScreen() {
       return
     }
     if (user.id === userId) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك')
       return
     }
     try {
@@ -55,12 +56,12 @@ export default function PublicProfileScreen() {
       if (conversationId) {
         router.push(`/chat/${conversationId}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
       }
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg)
     }
   }
 

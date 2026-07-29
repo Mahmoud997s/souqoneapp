@@ -5,11 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
   Platform,
   ActivityIndicator,
-  ScrollView,
   FlatList,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,17 +18,18 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { useEquipment } from '../../src/hooks/useEquipment';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { useNavVisibility } from '../../src/context/NavVisibilityContext';
-import { AppHeader } from '../../src/components/ui/AppHeader';
-import { GOVERNORATE_OPTIONS } from '../../src/constants/filters';
+import { OMAN_LOCATIONS } from '../../src/constants/locations';
+import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 
 // Components
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
+import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { CarCard } from '../../src/components/cars/CarCard';
-import { EquipmentVisualFilters } from '../../src/components/equipment/EquipmentVisualFilters';
 import { EquipmentFilterBottomSheet } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 
@@ -44,8 +44,11 @@ interface FilterState {
   city?: string;
   priceMin?: string;
   priceMax?: string;
+  priceId?: string;
   condition?: string;
+  conditionId?: string;
   equipmentType?: string;
+  categoryId?: string;
   sortBy?: string;
   sortOrder?: string;
 }
@@ -53,17 +56,70 @@ interface FilterState {
 const LISTING_TYPES = [
   { id: 'EQUIPMENT_SALE', label: 'للبيع' },
   { id: 'EQUIPMENT_RENT', label: 'للإيجار' },
+  { id: 'EQUIPMENT_WANTED', label: 'مطلوب' },
+];
+
+const DROPDOWN_FILTERS = [
+  { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
+  { id: 'category', label: 'نوع المعدة', icon: 'hardware-chip-outline' },
+  { id: 'condition', label: 'الحالة', icon: 'construct-outline' },
+  { id: 'price', label: 'السعر', icon: 'wallet-outline' },
+  { id: 'year', label: 'سنة الصنع', icon: 'calendar-outline' },
+  { id: 'hours', label: 'ساعات العمل', icon: 'time-outline' },
+];
+
+const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
+  labelAr: g.labelAr,
+  value: g.labelAr
+}));
+
+const CATEGORIES_ARRAY = Object.entries(EQUIPMENT_TYPES).map(([key, value]) => ({
+  id: key,
+  name: value.label,
+}));
+
+const CONDITIONS = [
+  { id: 'NEW', name: 'جديدة' },
+  { id: 'USED', name: 'مستعملة' },
+  { id: 'LIKE_NEW', name: 'شبه جديدة' },
+  { id: 'REFURBISHED', name: 'مجددة' },
+];
+
+const PRICE_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'p1', label: 'أقل من 50 ر.ع', min: '0', max: '50' },
+  { id: 'p2', label: '50 - 100 ر.ع', min: '50', max: '100' },
+  { id: 'p3', label: '100 - 500 ر.ع', min: '100', max: '500' },
+  { id: 'p4', label: '500 - 1,000 ر.ع', min: '500', max: '1000' },
+  { id: 'p5', label: '1,000 - 5,000 ر.ع', min: '1000', max: '5000' },
+  { id: 'p6', label: '5,000 - 10,000 ر.ع', min: '5000', max: '10000' },
+  { id: 'p7', label: 'أكثر من 10,000 ر.ع', min: '10000', max: '9999999' },
+];
+
+const YEAR_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'y1', label: '2022 - 2024', min: '2022', max: '2024' },
+  { id: 'y2', label: '2019 - 2021', min: '2019', max: '2021' },
+  { id: 'y3', label: '2015 - 2018', min: '2015', max: '2018' },
+  { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
+];
+
+const HOURS_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'h1', label: 'أقل من 1,000 ساعة', min: '0', max: '1000' },
+  { id: 'h2', label: '1,000 - 3,000 ساعة', min: '1000', max: '3000' },
+  { id: 'h3', label: '3,000 - 5,000 ساعة', min: '3000', max: '5000' },
+  { id: 'h4', label: 'أكثر من 5,000 ساعة', min: '5000', max: '999999' },
 ];
 
 export default function EquipmentBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
-  const { navHidden } = useNavVisibility();
-
   const searchParams = useLocalSearchParams<{ type?: string }>();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   
   const [filters, setFilters] = useState<FilterState>(() => {
     const initialFilters: FilterState = {};
@@ -71,9 +127,11 @@ export default function EquipmentBrowseScreen() {
     
     if (t === 'used') {
       initialFilters.condition = 'USED';
+      initialFilters.conditionId = 'USED';
       initialFilters.listingType = 'EQUIPMENT_SALE';
     } else if (t === 'new') {
       initialFilters.condition = 'NEW';
+      initialFilters.conditionId = 'NEW';
       initialFilters.listingType = 'EQUIPMENT_SALE';
     } else if (t === 'rental' || t === 'rent') {
       initialFilters.listingType = 'EQUIPMENT_RENT';
@@ -85,6 +143,12 @@ export default function EquipmentBrowseScreen() {
   });
   
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Combine query parameters
   const queryParams = useMemo(() => {
@@ -92,17 +156,17 @@ export default function EquipmentBrowseScreen() {
       limit: 30,
     };
 
-    if (searchQuery.trim()) {
-      params.search = searchQuery;
+    if (debouncedSearch.trim()) {
+      params.search = debouncedSearch;
     }
 
-    const skipKeys = new Set(['priceId', 'categoryId', 'conditionId']);
+    const skipKeys = new Set(['priceId', 'categoryId', 'conditionId', 'yearId', 'hoursId']);
 
     // Apply all custom filters
     Object.entries(filters).forEach(([key, val]) => {
       if (skipKeys.has(key)) return;
       if (val !== undefined && val !== '') {
-        if (key === 'priceMin' || key === 'priceMax') {
+        if (key === 'priceMin' || key === 'priceMax' || key === 'yearMin' || key === 'yearMax' || key === 'hoursMin' || key === 'hoursMax') {
           const parsed = parseFloat(val as string);
           if (!isNaN(parsed)) {
             params[key] = parsed;
@@ -114,7 +178,7 @@ export default function EquipmentBrowseScreen() {
     });
 
     return params;
-  }, [searchQuery, filters]);
+  }, [debouncedSearch, filters]);
 
   // Fetch Listings
   const { data: listings, isLoading, isError, refetch } = useEquipment(queryParams);
@@ -122,34 +186,13 @@ export default function EquipmentBrowseScreen() {
   // Active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    const skipKeys = new Set(['priceId', 'categoryId', 'conditionId']);
+    const skipKeys = new Set(['priceId', 'categoryId', 'conditionId', 'yearId', 'hoursId']);
     Object.entries(filters).forEach(([key, val]) => {
       if (skipKeys.has(key)) return;
       if (val !== undefined && val !== '') count++;
     });
     return count;
   }, [filters]);
-
-  const headerStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(navHidden.value, [0, 1], [0, -150], Extrapolation.CLAMP);
-    const opacity = interpolate(navHidden.value, [0, 0.5, 1], [1, 0.5, 0], Extrapolation.CLAMP);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const handleSelectFilter = (type: 'category' | 'city' | 'price' | 'condition', valueId: string, valueName?: string, min?: number, max?: number) => {
-    if (type === 'category') {
-      setFilters(prev => ({ ...prev, equipmentType: valueId, categoryId: valueId }));
-    } else if (type === 'city') {
-      setFilters(prev => ({ ...prev, city: valueId }));
-    } else if (type === 'price') {
-      setFilters(prev => ({ ...prev, priceMin: min?.toString(), priceMax: max?.toString(), priceId: valueId }));
-    } else if (type === 'condition') {
-      setFilters(prev => ({ ...prev, condition: valueId, conditionId: valueId }));
-    }
-  };
 
   const handleApplyFilters = (appliedFilters: FilterState) => {
     setFilters(appliedFilters);
@@ -160,9 +203,93 @@ export default function EquipmentBrowseScreen() {
     setSearchQuery('');
   };
 
-  const renderEmptyState = () => {
-    if (isLoading) {
-      return (
+  const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'governorate') {
+      isActive = !!filters.governorate;
+      if (isActive) displayLabel = filters.governorate as string;
+    } else if (qf.id === 'category') {
+      isActive = !!filters.equipmentType;
+      if (isActive) displayLabel = CATEGORIES_ARRAY.find(t => t.id === filters.equipmentType)?.name || qf.label;
+    } else if (qf.id === 'condition') {
+      isActive = !!filters.condition;
+      if (isActive) displayLabel = CONDITIONS.find(t => t.id === filters.condition)?.name || qf.label;
+    } else if (qf.id === 'price') {
+      isActive = !!filters.priceMax || !!filters.priceMin;
+      if (isActive) {
+         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === (filters as any).priceId);
+         if (found) displayLabel = found.label;
+         else displayLabel = filters.priceMax ? `أقل من ${filters.priceMax}` : qf.label;
+      }
+    } else if (qf.id === 'year') {
+      isActive = !!(filters as any).yearMax || !!(filters as any).yearMin;
+      if (isActive) {
+         const found = YEAR_RANGES.find(b => b.max === (filters as any).yearMax?.toString() || b.id === (filters as any).yearId);
+         if (found) displayLabel = found.label;
+      }
+    } else if (qf.id === 'hours') {
+      isActive = !!(filters as any).hoursMax || !!(filters as any).hoursMin;
+      if (isActive) {
+         const found = HOURS_RANGES.find(b => b.max === (filters as any).hoursMax?.toString() || b.id === (filters as any).hoursId);
+         if (found) displayLabel = found.label;
+      }
+    }
+
+    return {
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive
+    };
+  });
+
+  const handleClearQuickFilter = (id: string) => {
+    const newFilters = { ...filters };
+    if (id === 'governorate') delete newFilters.governorate;
+    if (id === 'category') { delete newFilters.equipmentType; delete newFilters.categoryId; }
+    if (id === 'condition') { delete newFilters.condition; delete newFilters.conditionId; }
+    if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; delete newFilters.priceId; }
+    if (id === 'year') { delete (newFilters as any).yearMin; delete (newFilters as any).yearMax; delete (newFilters as any).yearId; }
+    if (id === 'hours') { delete (newFilters as any).hoursMin; delete (newFilters as any).hoursMax; delete (newFilters as any).hoursId; }
+    setFilters(newFilters);
+  };
+
+  return (
+    <View style={s.root}>
+      {/* ── HEADER ── */}
+      <BrowseHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث عن معدات..."
+        activeFiltersCount={activeFiltersCount}
+        onFilterPress={() => setIsFilterVisible(true)}
+      />
+
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={LISTING_TYPES}
+          activeTabId={filters.listingType || ''}
+          onChangeTab={(id) => {
+            if (id === filters.listingType) {
+               const newFilters = { ...filters };
+               delete newFilters.listingType;
+               setFilters(newFilters);
+            } else {
+               setFilters({ ...filters, listingType: id as string });
+            }
+          }}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
+
+      {/* ── LISTINGS LIST ── */}
+      {isLoading ? (
         <View style={s.skeletonGrid}>
           {[1, 2, 3, 4].map((i) => (
             <View key={i} style={s.fullCard}>
@@ -170,11 +297,7 @@ export default function EquipmentBrowseScreen() {
             </View>
           ))}
         </View>
-      );
-    }
-
-    if (isError) {
-      return (
+      ) : isError ? (
         <View style={s.emptyContainer}>
           <View style={s.emptyIconWrapError}>
             <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
@@ -185,142 +308,253 @@ export default function EquipmentBrowseScreen() {
             <Text style={s.retryBtnTxt}>إعادة المحاولة</Text>
           </TouchableOpacity>
         </View>
-      );
-    }
+      ) : (
+        <Animated.FlatList
+          data={listings || []}
+          keyExtractor={(item) => (item as any).id}
+          contentContainerStyle={[s.listContent, { paddingTop: Spacing.space2 }]}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isLoading && ((listings as any)?.length > 0)} onRefresh={refetch} tintColor={Colors.equipmentPrimary} />
+          }
+          ListHeaderComponent={
+            <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              {activeFiltersCount > 0 ? (
+                <TouchableOpacity onPress={handleClearAll}>
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                    مسح الفلاتر
+                  </Text>
+                </TouchableOpacity>
+              ) : <View />}
 
-    return (
-      <View style={s.emptyContainer}>
-        <View style={s.emptyIconWrap}>
-          <Ionicons name="search-outline" size={48} color={Colors.equipmentPrimary} />
-        </View>
-        <Text style={s.emptyTitle}>لا توجد معدات مطابقة</Text>
-        <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
-        {activeFiltersCount > 0 && (
-          <TouchableOpacity style={s.clearAllBtnInline} onPress={handleClearAll}>
-            <Ionicons name="refresh-outline" size={18} color="#fff" />
-            <Text style={s.clearAllBtnInlineTxt}>مسح الفلاتر</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
-
-  return (
-    <View style={s.root}>
-      {/* ── HEADER ── */}
-      <AppHeader
-        showBack
-        centerSlot={
-          <View style={s.compactSearch}>
-            <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
-            <TextInput
-              style={s.compactInput}
-              placeholder="ابحث عن معدات..."
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            )}
-          </View>
-        }
-        rightSlot={
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => setIsFilterVisible(!isFilterVisible)}
-          >
-            <Ionicons name="options-outline" size={20} color={Colors.white} />
-            {activeFiltersCount > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeTxt}>{activeFiltersCount}</Text>
+              <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                <Ionicons name="hardware-chip-outline" size={14} color="#64748b" />
+                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                  {listings?.length || 0} معدة متوفرة
+                </Text>
               </View>
-            )}
-          </TouchableOpacity>
-        }
-      />
-
-      {/* Listing Type Tabs */}
-      <View style={s.listingTypeTabs}>
-        {LISTING_TYPES.map(type => {
-          const isActive = filters.listingType === type.id;
-          return (
-            <TouchableOpacity
-              key={type.id}
-              style={[s.typeTab, isActive && s.typeTabActive]}
-              activeOpacity={0.8}
-              onPress={() => setFilters(prev => ({ 
-                ...prev, 
-                listingType: isActive ? undefined : type.id 
-              }))}
-            >
-              <Text style={[s.typeTabTxt, isActive && s.typeTabTxtActive]}>{type.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* ── LISTINGS LIST ── */}
-      <Animated.FlatList
-        data={listings || []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={s.listContent}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isLoading && ((listings as any)?.length > 0)} onRefresh={refetch} tintColor={Colors.equipmentPrimary} />
-        }
-        ListHeaderComponent={
-          <View style={{ marginBottom: 16 }}>
-            {/* Visual Grid Filters */}
-            <EquipmentVisualFilters
-              onSelectFilter={handleSelectFilter}
-              onViewAll={() => {}} // Could open advanced bottom sheet
-              selectedCategoryId={(filters as any).categoryId}
-              selectedCity={filters.city}
-              selectedPriceId={(filters as any).priceId}
-              selectedConditionId={(filters as any).conditionId}
-            />
-            
-            <View style={s.resultsHeader}>
-              <Text style={s.resultsCount}>
-                {isLoading ? 'جاري البحث...' : `${listings?.length || 0} معدة متوفرة`}
-              </Text>
             </View>
+          }
+          ListEmptyComponent={
+            <View style={s.emptyContainer}>
+              <View style={s.emptyIconWrap}>
+                <Ionicons name="search-outline" size={48} color={Colors.equipmentPrimary} />
+              </View>
+              <Text style={s.emptyTitle}>لا توجد معدات مطابقة</Text>
+              <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const raw = (item as any).raw || {};
+            return (
+            <View style={s.cardWrapper}>
+              <CarCard 
+                item={{
+                  ...(item as any),
+                  make: raw.equipmentType || raw.make,
+                  model: raw.model || '',
+                  price: (item as any).price || raw.dailyPrice || raw.monthlyPrice || 0,
+                  images: (item as any).images,
+                  currency: 'OMR',
+                  listingType: (item as any).listingType?.includes('RENT') ? 'RENTAL' : 'SALE',
+                  condition: (item as any).condition,
+                  year: raw.year,
+                  mileage: raw.hoursUsed,
+                  governorate: (item as any).governorate,
+                  city: raw.city
+                } as any} 
+                onPress={() => router.push(`/equipment/${(item as any).id}` as any)} 
+                fullWidth
+                showChips
+              />
+            </View>
+          )}}
+        />
+      )}
+
+      {/* DROPDOWNS */}
+      <Modal
+        visible={!!activeDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdown(null)}
+      >
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>
+                {activeDropdown === 'governorate' ? 'المدينة' :
+                 activeDropdown === 'category' ? 'نوع المعدة' :
+                 activeDropdown === 'condition' ? 'حالة المعدة' : 
+                 activeDropdown === 'price' ? 'السعر' : 
+                 activeDropdown === 'year' ? 'سنة الصنع' : 
+                 activeDropdown === 'hours' ? 'ساعات العمل' : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {activeDropdown === 'governorate' && (
+              <FlatList
+                data={GOVERNORATE_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, governorate: item.labelAr });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.governorate === item.labelAr && s.modalOptionTxtActive]}>
+                      {item.labelAr}
+                    </Text>
+                    {filters.governorate === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'category' && (
+              <FlatList
+                data={CATEGORIES_ARRAY}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, equipmentType: item.id, categoryId: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.equipmentType === item.id && s.modalOptionTxtActive]}>
+                      {item.name}
+                    </Text>
+                    {filters.equipmentType === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'condition' && (
+              <FlatList
+                data={CONDITIONS}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, condition: item.id, conditionId: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.condition === item.id && s.modalOptionTxtActive]}>
+                      {item.name}
+                    </Text>
+                    {filters.condition === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'price' && (
+              <FlatList
+                data={PRICE_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (item.id === 'all') {
+                        const newFilters = { ...filters };
+                        delete newFilters.priceMin;
+                        delete newFilters.priceMax;
+                        delete newFilters.priceId;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, priceMin: item.min, priceMax: item.max, priceId: item.id });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.priceMax === item.max || (!filters.priceMax && item.id === 'all')) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.priceMax === item.max || (!filters.priceMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'year' && (
+              <FlatList
+                data={YEAR_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (item.id === 'all') {
+                        const newFilters = { ...filters };
+                        delete (newFilters as any).yearMin;
+                        delete (newFilters as any).yearMax;
+                        delete (newFilters as any).yearId;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, yearMin: item.min, yearMax: item.max, yearId: item.id } as any);
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, ((filters as any).yearMax === item.max || (!(filters as any).yearMax && item.id === 'all')) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {((filters as any).yearMax === item.max || (!(filters as any).yearMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'hours' && (
+              <FlatList
+                data={HOURS_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (item.id === 'all') {
+                        const newFilters = { ...filters };
+                        delete (newFilters as any).hoursMin;
+                        delete (newFilters as any).hoursMax;
+                        delete (newFilters as any).hoursId;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, hoursMin: item.min, hoursMax: item.max, hoursId: item.id } as any);
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, ((filters as any).hoursMax === item.max || (!(filters as any).hoursMax && item.id === 'all')) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {((filters as any).hoursMax === item.max || (!(filters as any).hoursMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </View>
-        }
-        renderItem={({ item }) => {
-          const raw = item.raw || {};
-          return (
-          <View style={s.cardWrapper}>
-            {/* Re-use CarCard with adapted props since it works perfectly for UI */}
-            <CarCard 
-              item={{
-                ...item,
-                make: raw.equipmentType || raw.make,
-                model: raw.model || '',
-                price: item.price || raw.dailyPrice || raw.monthlyPrice || 0,
-                images: item.images,
-                currency: 'OMR',
-                listingType: item.listingType?.includes('RENT') ? 'RENTAL' : 'SALE',
-                condition: item.condition,
-                year: raw.year,
-                mileage: raw.hoursUsed,
-                governorate: item.governorate,
-                city: raw.city
-              } as any} 
-              onPress={() => router.push(`/equipment/${item.id}` as any)} 
-              fullWidth
-              showChips
-            />
-          </View>
-        )}}
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
-      />
+        </TouchableOpacity>
+      </Modal>
 
       {/* Filter Bottom Sheet */}
       <EquipmentFilterBottomSheet
@@ -339,66 +573,8 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  compactSearch: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 40, borderRadius: 20,
-    paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
-  },
-  compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
-  },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadge: {
-    position: 'absolute', top: -2, right: -2,
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: Colors.accent || '#e67e22', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadgeTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 10,
-    color: Colors.white,
-  },
-  listingTypeTabs: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.space4,
-    marginTop: Spacing.space3,
-    gap: Spacing.space2,
-  },
-  typeTab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#E2E8F0',
-  },
-  typeTabActive: {
-    backgroundColor: Colors.primary,
-  },
-  typeTabTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.textMuted,
-  },
-  typeTabTxtActive: {
-    color: Colors.white,
-  },
-  
   listContent: {
-    paddingTop: 16,
     paddingBottom: 100,
-  },
-  resultsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  resultsCount: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 16, color: '#0f172a',
   },
   cardWrapper: {
     paddingHorizontal: 16,
@@ -443,19 +619,6 @@ const s = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
-  clearAllBtnInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.equipmentPrimary,
-    paddingHorizontal: 24, paddingVertical: 14,
-    borderRadius: 12,
-  },
-  clearAllBtnInlineTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: '#fff',
-  },
   retryBtn: {
     backgroundColor: Colors.equipmentPrimary,
     paddingHorizontal: 32, paddingVertical: 14,
@@ -464,5 +627,52 @@ const s = StyleSheet.create({
   retryBtnTxt: {
     fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    maxHeight: '65%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: Spacing.space4,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+      android: { elevation: 10 },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.space3,
+    paddingBottom: Spacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 16, color: Colors.text,
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
+  },
+  modalOptionTxt: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 15, color: Colors.text2,
+  },
+  modalOptionTxtActive: {
+    color: Colors.equipmentPrimary,
   },
 });

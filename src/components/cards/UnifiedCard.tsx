@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, ScrollView, Platform, Linking, Alert } from 'react-native'
+﻿import { useState } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, ScrollView, Platform, Linking } from 'react-native'
 import { Spacing } from '../../constants/spacing'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
@@ -9,6 +9,7 @@ import { Radius } from '../../constants/radius'
 import { chatApi } from '../../api/chat'
 import { useAuthStore } from '../../store/authStore'
 import { LinearGradient } from 'expo-linear-gradient'
+import { dialogService } from '../../store/dialogStore'
 
 export interface UnifiedCardItem {
   id: string
@@ -279,7 +280,7 @@ export function UnifiedCard({ item, onPress, onFavorite, compact = false, imageH
               if (phone) {
                 Linking.openURL(`tel:${phone}`)
               } else {
-                Alert.alert('تنبيه', 'رقم الهاتف غير متوفر')
+                dialogService.alert('تنبيه', 'رقم الهاتف غير متوفر')
               }
             }}
           >
@@ -308,7 +309,7 @@ export function UnifiedCard({ item, onPress, onFavorite, compact = false, imageH
                   router.push(`/chat/${res.data.id}` as any)
                 }
               } catch (e) {
-                Alert.alert('خطأ', 'تعذر فتح المحادثة')
+                dialogService.alert('خطأ', 'تعذر فتح المحادثة')
               }
             }}
           >

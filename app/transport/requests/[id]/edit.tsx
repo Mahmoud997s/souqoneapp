@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { Colors } from '../../../../src/constants/colors';
 import { Radius } from '../../../../src/constants/radius';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../../src/store/authStore';
+import { dialogService } from '../../../../src/store/dialogStore'
 
 export default function EditTransportRequestScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,13 +50,12 @@ export default function EditTransportRequestScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transport-request', id] });
       queryClient.invalidateQueries({ queryKey: ['my-transport-requests'] });
-      Alert.alert('نجاح', 'تم تحديث الطلب بنجاح', [
-        { text: 'موافق', onPress: () => router.back() }
-      ]);
+      dialogService.alert('نجاح', 'تم تحديث الطلب بنجاح', 'success');
+      router.back();
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || 'حدث خطأ أثناء التحديث';
-      Alert.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg));
+      dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg));
     }
   });
 
@@ -109,7 +109,7 @@ export default function EditTransportRequestScreen() {
 
   const handleSave = () => {
     if (!cargoDescription.trim()) {
-      Alert.alert('تنبيه', 'وصف الحمولة مطلوب');
+      dialogService.alert('تنبيه', 'وصف الحمولة مطلوب');
       return;
     }
     

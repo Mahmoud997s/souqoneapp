@@ -6,7 +6,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useAuthStore } from '../../src/store/authStore'
-import { Alert } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 import { router } from 'expo-router'
 import { usersApi } from '../../src/api/users'
 
@@ -58,7 +58,7 @@ export default function SettingsScreen() {
         <View style={s.optionsGroup}>
           <Item icon="person-outline" title="تعديل الملف الشخصي" onPress={() => router.push('/profile/edit-profile' as any)} />
           <Item icon="lock-closed-outline" title="تغيير كلمة المرور" onPress={() => router.push('/profile/change-password' as any)} />
-          <Item icon="checkmark-circle-outline" title="التحقق من الهوية" onPress={() => Alert.alert('قريباً', 'التحقق من الهوية قريباً')} isLast />
+          <Item icon="checkmark-circle-outline" title="التحقق من الهوية" onPress={() => dialogService.alert('قريباً', 'التحقق من الهوية قريباً', 'info')} isLast />
         </View>
 
         <Text style={s.sectionTitle}>الإشعارات</Text>
@@ -69,20 +69,24 @@ export default function SettingsScreen() {
 
         <Text style={s.sectionTitle}>التطبيق</Text>
         <View style={s.optionsGroup}>
-          <Item icon="globe-outline" title="اللغة" value="العربية" onPress={() => Alert.alert('اللغة', 'التطبيق متاح باللغة العربية فقط')} />
+          <Item icon="globe-outline" title="اللغة" value="العربية" onPress={() => dialogService.alert('اللغة', 'التطبيق متاح باللغة العربية فقط', 'info')} />
           <Item icon="headset-outline" title="الدعم الفني" onPress={() => Linking.openURL('mailto:support@souqone.com')} />
           <Item icon="document-text-outline" title="سياسة الخصوصية" onPress={() => Linking.openURL('https://souqone.com/privacy')} />
           <Item icon="shield-checkmark-outline" title="شروط الاستخدام" onPress={() => Linking.openURL('https://souqone.com/terms')} isLast />
         </View>
 
         <TouchableOpacity style={s.logoutBtn} onPress={() => {
-          Alert.alert('تسجيل الخروج', 'هل أنت متأكد؟', [
-            { text: 'إلغاء', style: 'cancel' },
-            { text: 'تسجيل الخروج', style: 'destructive', onPress: async () => {
+          dialogService.confirm(
+            'تسجيل الخروج',
+            'هل أنت متأكد من تسجيل الخروج؟',
+            async () => {
               await logout()
               router.replace('/(auth)/login')
-            }},
-          ])
+            },
+            'تسجيل الخروج',
+            'إلغاء',
+            true,
+          )
         }}>
           <Ionicons name="log-out-outline" size={20} color={Colors.error} />
           <Text style={s.logoutTxt}>تسجيل الخروج</Text>

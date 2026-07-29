@@ -1,18 +1,18 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
-  FlatList,
-  Alert
+  FlatList
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { dialogService } from '../../store/dialogStore'
 
 interface AppSelectProps {
   label?: string
@@ -38,7 +38,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
         activeOpacity={0.7}
         onPress={() => {
           if (disabled) {
-            Alert.alert('تنبيه', 'الرجاء تحديد الخيار السابق أولاً')
+            dialogService.alert('تنبيه', 'الرجاء تحديد الخيار السابق أولاً')
             return
           }
           setModalVisible(true)

@@ -185,13 +185,24 @@ export const getWilayatsForGovernorate = (governorate: string) => {
 };
 
 export const getPostGovLabel = (value: string): string => {
-  const gov = POST_GOVERNORATES.find(g => g.value === value)
-  return gov ? gov.label : value
+  if (!value) return '';
+  const gov = OMAN_LOCATIONS.find(g => 
+    g.id === value || 
+    g.legacyId === value || 
+    g.altLegacyIds?.includes(value) || 
+    g.labelAr === value
+  );
+  return gov ? gov.labelAr : value;
 };
 
 export const getPostCityLabel = (govValue: string, cityValue: string): string => {
   if (!cityValue) return ''
-  const gov = OMAN_LOCATIONS.find(g => g.id === govValue || g.labelAr === govValue)
+  const gov = OMAN_LOCATIONS.find(g => 
+    g.id === govValue || 
+    g.legacyId === govValue || 
+    g.altLegacyIds?.includes(govValue) || 
+    g.labelAr === govValue
+  );
   if (!gov) return cityValue
   const city = gov.wilayats.find(w => w.id === cityValue || w.labelAr === cityValue)
   return city ? city.labelAr : cityValue

@@ -1,7 +1,7 @@
 import React from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, RefreshControl, ActivityIndicator, Alert, Platform,
+  TextInput, RefreshControl, ActivityIndicator, Platform,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -18,6 +18,7 @@ import { useChatRooms } from '../../src/hooks/useChat'
 import { useAuthStore } from '../../src/store/authStore'
 import { useArchiveStore } from '../../src/store/archiveStore'
 import { Config } from '../../src/constants/config'
+import { dialogService } from '../../src/store/dialogStore'
 
 function formatTime(iso: string) {
   if (!iso) return 'غير معروف'
@@ -88,7 +89,7 @@ export default function ChatListScreen() {
           end={{ x: 1, y: 1 }}
           style={[StyleSheet.absoluteFill, { borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }]}
         />
-        <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('قريباً', 'القائمة الجانبية قريباً')}>
+        <TouchableOpacity style={s.iconBtn} onPress={() => dialogService.alert('قريباً', 'القائمة الجانبية قريباً')}>
           <Ionicons name="menu" size={24} color={Colors.white} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>الرسائل</Text>
@@ -201,12 +202,10 @@ export default function ChatListScreen() {
                   activeOpacity={0.7}
                   onPress={() => router.push(`/chat/${room.id}` as any)}
                   onLongPress={() => {
-                    Alert.alert(
-                      name,
+                    dialogService.showOptions(
                       'خيارات المحادثة',
                       [
-                        { text: isArchived ? 'إلغاء الأرشفة' : 'أرشفة', onPress: () => toggleArchive(room.id) },
-                        { text: 'إلغاء', style: 'cancel' }
+                        { text: isArchived ? 'إلغاء الأرشفة' : 'أرشفة', onPress: () => toggleArchive(room.id) }
                       ]
                     )
                   }}

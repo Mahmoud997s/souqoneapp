@@ -14,7 +14,8 @@ export interface LocalMessage {
   content: string
   createdAt: string
   pending?: boolean
-  reactions?: { emoji: string; userId: string }[]
+  isRead?: boolean
+  reactions?: { emoji: string; userId: string; username?: string }[]
   type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
   mediaUrl?: string
 }
@@ -298,7 +299,21 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     try {
       let finalMediaUrl = undefined
       if (mediaUri) {
-        const uploadRes = await fileApi.uploadFile(mediaUri)
+        const filename = mediaUri.split('/').pop() || 'upload.jpg'
+        const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
+        let mime = 'image/jpeg'
+        if (ext === 'm4a') mime = 'audio/m4a'
+        if (ext === 'mp4') mime = 'video/mp4'
+        if (ext === 'pdf') mime = 'application/pdf'
+        
+        const formData = new FormData()
+        formData.append('file', {
+          uri: mediaUri,
+          type: mime,
+          name: filename,
+        } as any)
+        
+        const uploadRes = await uploadsApi.single(formData)
         finalMediaUrl = uploadRes.data.url
       }
 

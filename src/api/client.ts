@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
-import { Alert } from 'react-native'
+import { dialogService } from '../store/dialogStore'
 import { Config } from '../constants/config'
 
 export const apiClient = axios.create({
@@ -44,9 +44,9 @@ apiClient.interceptors.response.use(
       }
     }
     if (error.response?.status >= 500) {
-      Alert.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً')
+      dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
     } else if (error.message === 'Network Error') {
-      Alert.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت')
+      dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning')
     }
     return Promise.reject(error)
   }

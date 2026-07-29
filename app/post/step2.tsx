@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native'
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +14,7 @@ import { uploadsApi } from '../../src/api/uploads'
 import { LinearGradient } from 'expo-linear-gradient'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
+import { dialogService } from '../../src/store/dialogStore'
 
 const MAX_IMAGES = 10
 
@@ -34,13 +35,13 @@ export default function PostStep2Screen() {
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert('الإذن مطلوب', 'يرجى السماح بالوصول إلى مكتبة الصور')
+      dialogService.alert('الإذن مطلوب', 'يرجى السماح بالوصول إلى مكتبة الصور')
       return
     }
 
     const currentTotal = existingImages.length + images.length
     if (currentTotal >= MAX_IMAGES) {
-      Alert.alert('الحد الأقصى', `لا يمكنك إضافة أكثر من ${MAX_IMAGES} صور`)
+      dialogService.alert('الحد الأقصى', `لا يمكنك إضافة أكثر من ${MAX_IMAGES} صور`)
       return
     }
 
@@ -69,7 +70,7 @@ export default function PostStep2Screen() {
       }
       set({ images: [...images, ...uploaded] })
     } catch {
-      Alert.alert('خطأ', 'فشل رفع الصور، يرجى المحاولة مجدداً')
+      dialogService.alert('خطأ', 'فشل رفع الصور، يرجى المحاولة مجدداً')
     } finally {
       setUploading(false)
     }
@@ -110,7 +111,7 @@ export default function PostStep2Screen() {
          newImages[index] = temp
          set({ images: newImages })
        } else {
-         Alert.alert('تنبيه', 'لا يمكن تعيين صورة جديدة كصورة رئيسية أثناء التعديل حالياً إلا بعد الحفظ')
+         dialogService.alert('تنبيه', 'لا يمكن تعيين صورة جديدة كصورة رئيسية أثناء التعديل حالياً إلا بعد الحفظ')
        }
     }
   }
@@ -220,7 +221,7 @@ export default function PostStep2Screen() {
         <AppButton variant="outline" title="السابق" onPress={() => router.back()} style={{ flex: 1 }} />
         <AppButton title="التالي" onPress={() => {
           if (allDisplayImages.length === 0 && !SKIP_IMAGES_CATEGORIES.includes(category)) {
-            Alert.alert('تنبيه', 'يرجى إضافة صورة واحدة على الأقل للإعلان')
+            dialogService.alert('تنبيه', 'يرجى إضافة صورة واحدة على الأقل للإعلان')
             return
           }
           router.push('/post/step3')

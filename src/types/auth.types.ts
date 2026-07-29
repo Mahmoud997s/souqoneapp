@@ -9,6 +9,7 @@ export interface User {
   governorate?: string
   city?: string
   role: 'user' | 'admin'
+  accountType?: 'private' | 'company'
   isVerified: boolean
   avatar?: string
   avatarUrl?: string
@@ -36,6 +37,7 @@ export interface RegisterDto {
   country?: string
   governorate?: string
   city?: string
+  accountType?: 'private' | 'company'
 }
 
 export interface UserSummary {
@@ -45,4 +47,5 @@ export interface UserSummary {
   avatar?: string
   avatarUrl?: string
   isVerified?: boolean
+  accountType?: 'private' | 'company'
 }

@@ -5,7 +5,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Text,
   TouchableOpacity,
 } from 'react-native'
@@ -25,6 +24,7 @@ import { OMAN_GOVERNORATES, getWilayatsForGovernorate } from '../../src/constant
 import { usersApi } from '../../src/api/users'
 import { uploadsApi } from '../../src/api/uploads'
 import { Config } from '../../src/constants/config'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function EditProfileScreen() {
   const { user, setAuth } = useAuthStore()
@@ -71,7 +71,7 @@ export default function EditProfileScreen() {
         setAvatarUrl(result.assets[0].uri)
       }
     } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ أثناء اختيار الصورة')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء اختيار الصورة')
     }
   }
 
@@ -111,13 +111,12 @@ export default function EditProfileScreen() {
 
       if (res.data) {
         useAuthStore.setState({ user: { ...user, ...res.data } })
-        Alert.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', [
-          { text: 'حسناً', onPress: () => router.back() }
-        ])
+        dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')
+        router.back()
       }
     } catch (err: any) {
       const msg = err.response?.data?.message || 'حدث خطأ أثناء التحديث'
-      Alert.alert('خطأ', typeof msg === 'string' ? msg : msg[0])
+      dialogService.alert('خطأ', typeof msg === 'string' ? msg : msg[0])
     } finally {
       setLoading(false)
     }

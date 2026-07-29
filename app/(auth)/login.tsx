@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -22,6 +21,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function LoginScreen() {
   const { setAuth } = useAuthStore()
@@ -137,7 +137,7 @@ export default function LoginScreen() {
                   title="تسجيل بـ Google"
                   variant="outline"
                   icon="logo-google"
-                  onPress={() => Alert.alert('تنبيه', 'تسجيل الدخول عبر Google غير مفعل حالياً')}
+                  onPress={() => dialogService.alert('تنبيه', 'تسجيل الدخول عبر Google غير مفعل حالياً')}
                 />
               </View>
             </View>

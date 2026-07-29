@@ -82,7 +82,7 @@ export default function ChatRoomScreen() {
   const negoSheetRef = React.useRef<any>(null)
   
   // Dummy negotiation state for demo (until backend supports offers in mobile)
-  const dummyOffer = room?.listing ? { price: room.listing.price ? room.listing.price * 0.9 : 100, isCounter: false } : null
+  const dummyOffer = room?.listing ? { price: (room.listing as any).price ? (room.listing as any).price * 0.9 : 100, isCounter: false } : null
 
   return (
     <View style={s.root}>
@@ -223,7 +223,7 @@ export default function ChatRoomScreen() {
         <NegotiationBottomSheet 
           sheetRef={negoSheetRef}
           offerPrice={dummyOffer.price}
-          listingPrice={room.listing.price || 0}
+          listingPrice={(room.listing as any).price || 0}
           isCounter={dummyOffer.isCounter}
           onAccept={() => {
             negoSheetRef.current?.close()

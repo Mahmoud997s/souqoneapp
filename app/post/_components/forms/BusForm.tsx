@@ -23,6 +23,7 @@ export function BusForm() {
     transmission = 'MANUAL',
     fuelType = 'DIESEL',
     mileage = '',
+    plateNumber = '',
     features = [],
     dailyPrice = '',
     monthlyPrice = '',
@@ -52,12 +53,13 @@ export function BusForm() {
   const renderOptions = (field: string, options: any[], currentValue: string, style?: any) => (
     <View style={[s.optionsRow, style]}>
       {options.map((opt) => {
-        const active = currentValue === opt.id
+        const optKey = opt.id || opt.value
+        const active = currentValue === optKey
         return (
           <TouchableOpacity
-            key={opt.id}
+            key={optKey}
             style={[s.optionChip, active && s.optionChipActive]}
-            onPress={() => setDetail(field, opt.id)}
+            onPress={() => setDetail(field, optKey)}
           >
             <Text style={[s.optionTxt, active && s.optionTxtActive]}>{opt.label}</Text>
           </TouchableOpacity>
@@ -132,6 +134,16 @@ export function BusForm() {
               onChangeText={(t) => setDetail('capacity', t)}
             />
           </View>
+        </View>
+        
+        <View style={{ marginTop: Spacing.space4 }}>
+          <Text style={s.label}>رقم اللوحة</Text>
+          <TextInput
+            style={s.input}
+            placeholder="مثال: 1234 ص ب"
+            value={plateNumber}
+            onChangeText={(t) => setDetail('plateNumber', t)}
+          />
         </View>
         
         <View style={{ marginTop: Spacing.space4 }}>
@@ -216,6 +228,11 @@ export function BusForm() {
           {renderSectionTitle('عقد تشغيل')}
           <Text style={s.label}>نوع العقد</Text>
           {renderOptions('contractType', BUS_CONTRACT_TYPES, contractType, { flexWrap: 'wrap' })}
+          
+          <View style={[s.inputGroup, { marginTop: Spacing.space4 }]}>
+             <Text style={s.label}>الجهة المتعاقد معها</Text>
+             <TextInput style={s.input} placeholder="مثال: مدرسة مسقط الدولية" value={contractClient} onChangeText={(t) => setDetail('contractClient', t)} />
+          </View>
           
           <View style={s.inputGroup}>
              <Text style={s.label}>القيمة الشهرية للعقد (ر.ع.)</Text>

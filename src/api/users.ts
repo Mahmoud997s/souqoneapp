@@ -6,4 +6,6 @@ export const usersApi = {
   updatePushToken: (token: string) => apiClient.post('/users/push-token', { token }),
   updateProfile: (data: Partial<User>) => apiClient.patch<User>('/users/me', data),
   changePassword: (data: any) => apiClient.patch('/users/me/password', data),
+  blockUser: (userId: string, reason?: string) => apiClient.post(`/users/${userId}/block`, { reason }),
+  reportUser: (userId: string, reason?: string) => apiClient.post(`/users/${userId}/report`, { reason }),
 }

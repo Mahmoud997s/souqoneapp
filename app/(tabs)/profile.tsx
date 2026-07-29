@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -14,6 +14,7 @@ import { Typography } from '../../src/constants/typography'
 import { Gradients } from '../../src/constants/gradients'
 import { useAuthStore } from '../../src/store/authStore'
 import { useMyListings, useFavorites } from '../../src/hooks/useListings'
+import { dialogService } from '../../src/store/dialogStore'
 
 // ─── Menu items ───────────────────────────────────────────────────────────────
 const MENU_ITEMS = [
@@ -80,13 +81,17 @@ export default function ProfileScreen() {
     : null
 
   const handleLogout = () => {
-    Alert.alert('تسجيل الخروج', 'هل أنت متأكد من تسجيل الخروج؟', [
-      { text: 'إلغاء', style: 'cancel' },
-      { text: 'تسجيل الخروج', style: 'destructive', onPress: async () => {
+    dialogService.confirm(
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
+      async () => {
         await logout()
         router.replace('/(auth)/login')
-      }},
-    ])
+      },
+      'تسجيل الخروج',
+      'إلغاء',
+      true
+    )
   }
 
   return (
@@ -97,6 +102,13 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 60 }}
         bounces={false}
       >
+      {/* 🔴 TEMPORARY TEST BUTTON 🔴 */}
+      <TouchableOpacity 
+        style={{ backgroundColor: '#ea580c', padding: 12, margin: 16, marginTop: 60, borderRadius: 8, alignItems: 'center', zIndex: 999 }} 
+        onPress={() => router.push('/test-header')}
+      >
+        <Text style={{ color: '#fff', fontFamily: 'Almarai_700Bold' }}>تجربة الهيدر الموحد (بروفا)</Text>
+      </TouchableOpacity>
         {/* ── HEADER ────────────────────────────────────────────── */}
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <LinearGradient

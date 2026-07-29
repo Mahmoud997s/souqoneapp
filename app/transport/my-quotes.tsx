@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert, Platform } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -10,6 +10,7 @@ import { transportApi } from '../../src/api/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { getQuoteStatusLabel } from '../../src/constants/transport'
+import { dialogService } from '../../src/store/dialogStore'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -54,10 +55,14 @@ export default function MyQuotesScreen() {
   })
 
   const handleWithdraw = (id: string) => {
-    Alert.alert('سحب العرض', 'هل أنت متأكد من سحب هذا العرض؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم', style: 'destructive', onPress: () => withdrawMutation.mutate(id) },
-    ])
+    dialogService.confirm(
+      'سحب العرض',
+      'هل أنت متأكد من سحب هذا العرض؟',
+      () => withdrawMutation.mutate(id),
+      'نعم',
+      'لا',
+      true
+    )
   }
 
   if (!user) {

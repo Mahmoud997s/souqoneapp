@@ -8,7 +8,7 @@ import { useService } from '../../src/hooks/useServices'
 import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
 import { useAuthStore } from '../../src/store/authStore'
-import { Alert } from 'react-native'
+import { dialogService } from '../../src/store/dialogStore'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -55,7 +55,7 @@ export default function ServiceDetailScreen() {
       const conversationId = res.data?.id
       router.push(`/chat/${conversationId}` as any)
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر فتح المحادثة')
+      dialogService.alert('خطأ', 'تعذر فتح المحادثة')
     }
   }
 

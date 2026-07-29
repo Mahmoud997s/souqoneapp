@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { paymentsApi } from '../../src/api/payments'
+import { dialogService } from '../../src/store/dialogStore'
 
 type PlanId = 'FREE' | 'PRO' | 'ENTERPRISE'
 
@@ -21,10 +22,10 @@ export default function SubscriptionScreen() {
       if (url) {
         await Linking.openURL(url)
       } else {
-        Alert.alert('نجاح', 'تم الاشتراك بنجاح')
+        dialogService.alert('نجاح', 'تم الاشتراك بنجاح')
       }
     } catch (err: any) {
-      Alert.alert('خطأ', err?.response?.data?.message || 'حدث خطأ، حاول مرة أخرى')
+      dialogService.alert('خطأ', err?.response?.data?.message || 'حدث خطأ، حاول مرة أخرى')
     } finally {
       setLoadingPlan(null)
     }

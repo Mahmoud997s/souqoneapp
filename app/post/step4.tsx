@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, Modal, FlatList, ActivityIndicator, Platform, Alert
+  ScrollView, Modal, FlatList, ActivityIndicator, Platform
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -17,6 +17,7 @@ import { Stepper } from '../../src/components/ui/Stepper'
 import * as Location from 'expo-location'
 import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '../../src/constants/locations'
 import { LocationPicker } from '../../src/components/ui/LocationPicker'
+import { dialogService } from '../../src/store/dialogStore'
 
 let MapView: any = null;
 let PROVIDER_GOOGLE: any = null;
@@ -155,11 +156,11 @@ export default function PostStep4Screen() {
         <AppButton variant="outline" title="السابق" onPress={() => router.back()} style={{ flex: 1 }} />
         <AppButton title="التالي" onPress={() => {
           if (!governorate) {
-            Alert.alert('تنبيه', 'يرجى تحديد المحافظة')
+            dialogService.alert('تنبيه', 'يرجى تحديد المحافظة')
             return
           }
           if (!city) {
-            Alert.alert('تنبيه', 'يرجى تحديد الولاية')
+            dialogService.alert('تنبيه', 'يرجى تحديد الولاية')
             return
           }
           router.push('/post/step5')

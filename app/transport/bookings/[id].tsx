@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { Radius } from '../../../src/constants/radius';
 import { useAuthStore } from '../../../src/store/authStore';
 import { chatApi } from '../../../src/api/chat';
 import { getBookingStatusLabel } from '../../../src/constants/transport';
+import { dialogService } from '../../../src/store/dialogStore'
 
 const STATUS_ORDER = ['ACCEPTED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -67,17 +68,23 @@ export default function BookingDetailsScreen() {
   const otherPartyName = isShipper ? (booking.carrier?.companyName || otherParty?.displayName || 'الناقل') : (otherParty?.displayName || 'العميل');
 
   const handleStart = () => {
-    Alert.alert('بدء الرحلة', 'هل بدأت بالتحرك بالبضاعة؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، انطلقت', onPress: () => startMutation.mutate() }
-    ]);
+    dialogService.confirm(
+      'بدء الرحلة',
+      'هل بدأت بالتحرك بالبضاعة؟',
+      () => startMutation.mutate(),
+      'نعم، انطلقت',
+      'لا',
+    );
   };
 
   const handleComplete = () => {
-    Alert.alert('إتمام الرحلة', 'هل وصلت وتم تسليم البضاعة بنجاح؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، تم التسليم', onPress: () => completeMutation.mutate() }
-    ]);
+    dialogService.confirm(
+      'إتمام الرحلة',
+      'هل وصلت وتم تسليم البضاعة بنجاح؟',
+      () => completeMutation.mutate(),
+      'نعم، تم التسليم',
+      'لا',
+    );
   };
 
   const handleChat = async () => {
@@ -92,7 +99,7 @@ export default function BookingDetailsScreen() {
         router.push(`/chat/${res.data.id}` as any);
       }
     } catch (e: any) {
-      Alert.alert('خطأ', 'تعذر فتح المحادثة');
+      dialogService.alert('خطأ', 'تعذر فتح المحادثة');
     }
   };
 

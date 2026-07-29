@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useJob } from '../../../src/hooks/useJobs'
@@ -11,6 +11,7 @@ import { Spacing } from '../../../src/constants/spacing'
 import { Radius } from '../../../src/constants/radius'
 import { useAuthStore } from '../../../src/store/authStore'
 import { useAuthGuard } from '../../../src/hooks/useAuthGuard'
+import { dialogService } from '../../../src/store/dialogStore'
 
 export default function ApplyJobScreen() {
   const { id } = useLocalSearchParams()
@@ -39,7 +40,7 @@ export default function ApplyJobScreen() {
 
   const handleApply = async () => {
     if (!fullName.trim() || !phone.trim() || !cvFile) {
-      Alert.alert('تنبيه', 'يرجى إكمال الحقول المطلوبة ورفع السيرة الذاتية')
+      dialogService.alert('تنبيه', 'يرجى إكمال الحقول المطلوبة ورفع السيرة الذاتية')
       return
     }
     const formData = new FormData() as any
@@ -55,11 +56,10 @@ export default function ApplyJobScreen() {
     setSubmitting(true)
     try {
       await jobsApi.apply(id as string, formData)
-      Alert.alert('تم', 'تم إرسال طلبك بنجاح', [
-        { text: 'حسناً', onPress: () => router.back() }
-      ])
+      dialogService.alert('تم', 'تم إرسال طلبك بنجاح', 'success')
+      router.back()
     } catch {
-      Alert.alert('خطأ', 'تعذر إرسال الطلب')
+      dialogService.alert('خطأ', 'تعذر إرسال الطلب')
     } finally {
       setSubmitting(false)
     }

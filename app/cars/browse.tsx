@@ -25,7 +25,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useNavVisibility } from '../../src/context/NavVisibilityContext';
-import { AppHeader } from '../../src/components/ui/AppHeader';
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { useBrands } from '../../src/hooks/useCars';
 import { GOVERNORATE_OPTIONS } from '../../src/constants/filters';
 
@@ -67,6 +70,7 @@ const DROPDOWN_FILTERS = [
   { id: 'price', label: 'السعر', icon: 'wallet-outline' },
   { id: 'year', label: 'سنة الصنع', icon: 'calendar-outline' },
   { id: 'city', label: 'المدينة', icon: 'location-outline' },
+  { id: 'type', label: 'الشكل', icon: 'car-outline' },
 ];
 
 const PRICE_RANGES = [
@@ -84,6 +88,14 @@ const LISTING_TYPES = [
   { id: 'SALE', label: 'للبيع' },
   { id: 'RENTAL', label: 'للإيجار' },
   { id: 'WANTED', label: 'مطلوب' },
+];
+
+const CAR_TYPES = [
+  { id: 'sedan', name: 'سيدان' },
+  { id: 'suv', name: 'دفع رباعي' },
+  { id: 'hatchback', name: 'هاتشباك' },
+  { id: 'pickup', name: 'بيك أب' },
+  { id: 'coupe', name: 'كوبيه' },
 ];
 
 export default function CarsBrowseScreen() {
@@ -179,14 +191,47 @@ export default function CarsBrowseScreen() {
     return count;
   }, [selectedBrandId, filters]);
 
-  const headerStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(navHidden.value, [0, 1], [0, -150], Extrapolation.CLAMP);
-    const opacity = interpolate(navHidden.value, [0, 0.5, 1], [1, 0.5, 0], Extrapolation.CLAMP);
+  const quickFilterItems: QuickFilterItem[] = DROPDOWN_FILTERS.map(qf => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'make') {
+      isActive = !!filters.make;
+      if (isActive) displayLabel = filters.make as string;
+    } else if (qf.id === 'city') {
+      isActive = !!filters.city;
+      if (isActive) displayLabel = filters.city as string;
+    } else if (qf.id === 'year') {
+      isActive = !!filters.yearMin || !!filters.yearMax;
+      if (isActive) displayLabel = filters.yearMin ? String(filters.yearMin) : 'سنة الصنع';
+    } else if (qf.id === 'price') {
+      isActive = !!filters.priceMax;
+      if (isActive) displayLabel = PRICE_RANGES.find(p => p.max === Number(filters.priceMax))?.label || 'السعر';
+    } else if (qf.id === 'type') {
+      isActive = !!filters.bodyType;
+      if (isActive) {
+        const foundType = CAR_TYPES.find(t => t.id === filters.bodyType);
+        displayLabel = foundType ? foundType.name : (filters.bodyType as string);
+      }
+    }
+
     return {
-      transform: [{ translateY }],
-      opacity,
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive
     };
   });
+
+  const handleClearQuickFilter = (id: string) => {
+    const newFilters = { ...filters };
+    if (id === 'make') { delete newFilters.make; delete newFilters.makeId; }
+    if (id === 'city') delete newFilters.city;
+    if (id === 'year') { delete newFilters.yearMin; delete newFilters.yearMax; }
+    if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; }
+    if (id === 'type') { delete newFilters.bodyType; }
+    setFilters(newFilters);
+  };
 
   const handleSelectFilter = (type: 'make' | 'model' | 'city' | 'price' | 'type', valueId: string, valueName?: string, min?: number, max?: number) => {
     if (type === 'make') {
@@ -274,111 +319,39 @@ export default function CarsBrowseScreen() {
 
   return (
     <View style={s.root}>
-      <AppHeader
-        showBack
-        centerSlot={
-          <View style={s.compactSearch}>
-            <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
-            <TextInput
-              style={s.compactInput}
-              placeholder="ابحث في سوق السيارات..."
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        }
-        rightSlot={
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => setIsFilterVisible(!isFilterVisible)}
-          >
-            <Ionicons name="options-outline" size={20} color={Colors.white} />
-            {activeFiltersCount > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeText}>{activeFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        }
+      <BrowseHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث في سوق السيارات..."
+        activeFiltersCount={activeFiltersCount}
+        onFilterPress={() => setIsFilterVisible(!isFilterVisible)}
       />
 
-      <View style={s.listingTypeTabs}>
-        {LISTING_TYPES.map((type) => {
-          const isActive = filters.listingType === type.id;
-          return (
-            <TouchableOpacity
-              key={type.id}
-              style={[s.typeTab, isActive && s.typeTabActive]}
-              activeOpacity={0.8}
-              onPress={() => {
-                if (isActive) {
-                  const newFilters = { ...filters };
-                  delete newFilters.listingType;
-                  setFilters(newFilters);
-                } else {
-                  setFilters({ ...filters, listingType: type.id });
-                }
-              }}
-            >
-              <Text style={[s.typeTabTxt, isActive && s.typeTabTxtActive]}>
-                {type.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={s.quickFiltersContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.quickFiltersContent}>
-          {DROPDOWN_FILTERS.map((qf) => {
-            let isActive = false;
-            let displayLabel = qf.label;
-
-            if (qf.id === 'make') {
-              isActive = !!filters.make;
-              if (isActive) displayLabel = filters.make as string;
-            } else if (qf.id === 'city') {
-              isActive = !!filters.city;
-              if (isActive) displayLabel = filters.city as string;
-            } else if (qf.id === 'year') {
-              isActive = !!filters.yearMin || !!filters.yearMax;
-              if (isActive) displayLabel = filters.yearMin ? `${filters.yearMin}` : 'سنة الصنع';
-            } else if (qf.id === 'price') {
-              isActive = !!filters.priceMax;
-              if (isActive) displayLabel = PRICE_RANGES.find(p => p.max === Number(filters.priceMax))?.label || 'السعر';
+      <CollapsibleSubHeader>
+        <ListingTabs 
+          tabs={LISTING_TYPES}
+          activeTabId={filters.listingType}
+          onChangeTab={(id) => {
+            if (id === filters.listingType) {
+              const newFilters = { ...filters };
+              delete newFilters.listingType;
+              setFilters(newFilters);
+            } else {
+              setFilters({ ...filters, listingType: id });
             }
-
-            return (
-              <TouchableOpacity
-                key={qf.id}
-                style={[s.quickFilterChip, s.squareChip, isActive && s.quickFilterChipActive]}
-                activeOpacity={0.8}
-                onPress={() => setActiveDropdown(qf.id as any)}
-              >
-                {!isActive && <Ionicons name={qf.icon as any} size={16} color={Colors.textMuted} />}
-                <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
-                  {displayLabel}
-                </Text>
-                <Ionicons name={isActive ? "close-circle" : "chevron-down"} size={14} color={isActive ? Colors.white : Colors.textMuted} onPress={isActive ? () => {
-                  const newFilters = { ...filters };
-                  if (qf.id === 'make') { delete newFilters.make; delete newFilters.makeId; }
-                  if (qf.id === 'city') delete newFilters.city;
-                  if (qf.id === 'year') { delete newFilters.yearMin; delete newFilters.yearMax; }
-                  if (qf.id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; }
-                  setFilters(newFilters);
-                } : undefined} />
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      </View>
+          }}
+          onClearTab={() => {
+            const newFilters = { ...filters };
+            delete newFilters.listingType;
+            setFilters(newFilters);
+          }}
+        />
+        <QuickFilters 
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as any)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
 
       <Animated.FlatList
         key="list-1-column"
@@ -448,7 +421,8 @@ export default function CarsBrowseScreen() {
               <Text style={s.modalTitle}>
                 {activeDropdown === 'make' ? 'اختر الماركة' :
                  activeDropdown === 'city' ? 'اختر المدينة' :
-                 activeDropdown === 'year' ? 'سنة الصنع' : 'نطاق السعر'}
+                 activeDropdown === 'year' ? 'سنة الصنع' : 
+                 activeDropdown === 'type' ? 'الهيكل' : 'نطاق السعر'}
               </Text>
               <TouchableOpacity onPress={() => setActiveDropdown(null)}>
                 <Ionicons name="close" size={24} color={Colors.textMuted} />
@@ -542,6 +516,28 @@ export default function CarsBrowseScreen() {
                 )}
               />
             )}
+
+            {activeDropdown === 'type' && (
+              <FlatList
+                data={CAR_TYPES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, bodyType: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.bodyType === item.id && s.modalOptionTxtActive]}>
+                      {item.name}
+                    </Text>
+                    {filters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -576,24 +572,26 @@ const s = StyleSheet.create({
   },
   listingTypeTabs: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.space4,
+    marginHorizontal: Spacing.space4,
     marginTop: Spacing.space3,
-    gap: Spacing.space2,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 3,
   },
   typeTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#E2E8F0',
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
   },
   typeTabActive: {
     backgroundColor: Colors.primary,
   },
   typeTabTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.textMuted,
+    fontFamily: 'Almarai_700Bold', fontSize: 13,
+    color: '#64748B',
   },
   typeTabTxtActive: {
     color: Colors.white,

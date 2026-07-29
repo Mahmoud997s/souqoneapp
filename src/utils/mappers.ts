@@ -277,14 +277,35 @@ export function mapBusToCard(item: any): UnifiedCardItem {
   }
 
   const details: { icon: string; value: string }[] = []
+  
+  if (isRent) {
+    details.push({ icon: 'time-outline', value: 'تأجير' })
+  } else if (!isContract) {
+    details.push({ icon: 'pricetag-outline', value: 'للبيع' })
+  }
+  
+  if (item.busType) {
+    const types: Record<string, string> = {
+      'MINI_BUS': 'ميني باص', 'MEDIUM_BUS': 'حافلة متوسطة', 'LARGE_BUS': 'حافلة كبيرة',
+      'COASTER': 'كوستر', 'SCHOOL_BUS': 'حافلة مدرسية',
+    }
+    details.push({ icon: 'list-outline', value: types[item.busType] || item.busType })
+  }
+  
   if (item.capacity)
     details.push({ icon: 'people-outline', value: `${item.capacity} راكب` })
+  
   if (item.year)
     details.push({ icon: 'calendar-outline', value: String(item.year) })
+    
   if (item.mileage)
     details.push({ icon: 'speedometer-outline', value: `${(Number(item.mileage)/1000).toFixed(0)}k كم` })
   else if (item.make)
     details.push({ icon: 'bus-outline', value: item.make })
+    
+  if (isContract) {
+    details.push({ icon: 'document-text-outline', value: 'عقد تشغيل' })
+  }
 
   return {
     id: item.id,

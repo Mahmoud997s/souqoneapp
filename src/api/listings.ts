@@ -14,4 +14,5 @@ export const listingsApi = {
                apiClient.post(`/listings/${id}/images`, formData, {
                  headers: { 'Content-Type': 'multipart/form-data' },
                }),
+  report:    (id: string, reason?: string) => apiClient.post(`/listings/${id}/report`, { reason }),
 }

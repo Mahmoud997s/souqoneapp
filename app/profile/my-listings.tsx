@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -11,6 +11,7 @@ import { Radius } from '../../src/constants/radius'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useMyListings } from '../../src/hooks/useListings'
+import { dialogService } from '../../src/store/dialogStore'
 
 const FILTERS = ['الكل', 'نشط', 'منتهي', 'مسودة']
 
@@ -90,20 +91,20 @@ export default function MyListingsScreen() {
                       style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255, 255, 255, 0.95)', alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 }}
                       activeOpacity={0.8}
                       onPress={() => {
-                        Alert.alert(
+                        dialogService.confirm(
                           'حذف الإعلان',
                           'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-                          [
-                            { text: 'إلغاء', style: 'cancel' },
-                            { text: 'حذف', style: 'destructive', onPress: async () => {
-                              try {
-                                await listingsApi.remove(item.id)
-                                Alert.alert('تم', 'تم حذف الإعلان بنجاح')
-                              } catch (e) {
-                                Alert.alert('خطأ', 'حدث خطأ أثناء الحذف')
-                              }
-                            }}
-                          ]
+                          async () => {
+                            try {
+                              await listingsApi.remove(item.id)
+                              dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
+                            } catch (e) {
+                              dialogService.alert('خطأ', 'حدث خطأ أثناء الحذف')
+                            }
+                          },
+                          'حذف',
+                          'إلغاء',
+                          true
                         )
                       }}
                     >

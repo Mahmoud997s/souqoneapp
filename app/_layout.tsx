@@ -17,6 +17,7 @@ import { registerForPushNotifications } from '../src/services/notifications'
 import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
 import { GlobalSocketHandler } from '../src/components/GlobalSocketHandler'
+import { GlobalDialog } from '../src/components/ui/GlobalDialog'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
@@ -148,6 +149,7 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <GlobalSocketHandler />
             <Stack screenOptions={{ headerShown: false }} />
+            <GlobalDialog />
           </BottomSheetModalProvider>
         </NavVisibilityProvider>
       </QueryClientProvider>

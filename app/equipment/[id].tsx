@@ -13,8 +13,8 @@ import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
-import { Alert } from 'react-native'
 import { EQUIPMENT_CONDITIONS, EQUIPMENT_LISTING_TYPES } from '../../src/utils/equipment-mappers'
+import { dialogService } from '../../src/store/dialogStore'
 
 let MapView: any = null;
 let Marker: any = null;
@@ -94,7 +94,7 @@ export default function EquipmentDetailScreen() {
       return
     }
     if (user.id === seller?.id) {
-      Alert.alert('تنبيه', 'لا يمكنك محادثة نفسك')
+      dialogService.alert('تنبيه', 'لا يمكنك محادثة نفسك')
       return
     }
     try {
@@ -108,12 +108,12 @@ export default function EquipmentDetailScreen() {
         const initialText = encodeURIComponent(`مرحباً، بخصوص إعلان المعدة: ${raw.title}`)
         router.push(`/chat/${conversationId}?initialText=${initialText}` as any)
       } else {
-        Alert.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
       }
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message
       const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      Alert.alert('خطأ', parsedMsg)
+      dialogService.alert('خطأ', parsedMsg)
     }
   }
 

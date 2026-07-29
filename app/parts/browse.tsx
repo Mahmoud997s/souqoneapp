@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -282,14 +283,33 @@ const s = StyleSheet.create({
   },
   badgeTxt: { color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold' },
 
-  quickFilters: { paddingHorizontal: Spacing.space4, paddingVertical: Spacing.space3, gap: Spacing.space2 },
+  quickFilters: { paddingHorizontal: Spacing.space4, paddingVertical: 4, gap: 12 },
   quickChip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb',
+    height: 32,
+    flexDirection: 'row',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2 },
+      android: { elevation: 1 },
+    }),
   },
-  quickChipActive: { backgroundColor: '#fff7ed', borderColor: '#fdba74' },
-  quickChipTxt: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.text2 },
-  quickChipTxtActive: { fontFamily: 'Almarai_700Bold', color: '#ea580c' },
+  quickChipActive: {
+    backgroundColor: Colors.primary + '10',
+    borderColor: Colors.primary + '30',
+  },
+  quickChipTxt: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 12, 
+    color: '#475569'
+  },
+  quickChipTxtActive: { color: Colors.primary },
 
   listContent: { padding: Spacing.space4, paddingBottom: 100 },
   cardWrapper: { marginBottom: Spacing.space4 },

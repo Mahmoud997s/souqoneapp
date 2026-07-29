@@ -182,9 +182,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  statusInfo: { flex: 1 },
-  statusTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#0f172a', marginBottom: 4 },
-  statusSub: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: '#64748b' },
+  statusInfo: { flex: 1, alignItems: 'flex-start' },
+  statusTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#0f172a', marginBottom: 4, textAlign: 'left', writingDirection: 'rtl' },
+  statusSub: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
 
   statsGrid: {
     flexDirection: 'row',

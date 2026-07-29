@@ -1,12 +1,12 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, Share } from 'react-native'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { DriverJob } from '../../types/jobs.types'
-import { JobBadge } from '../jobs/JobBadge'
 import { StatusPill } from '../jobs/StatusPill'
+import { JobBadge } from '../jobs/JobBadge'
 import { LicenseChips } from '../jobs/LicenseChips'
 import RatingBadges from '../jobs/RatingBadges'
 import { formatDate, formatSalary, getInitials, getAvatarColor } from '../../utils/format'
@@ -19,6 +19,8 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, onPress }: JobCardProps) {
+  const [isFav, setIsFav] = useState(false)
+
   if (!job) return null
 
   const isHiring = job.jobType?.toUpperCase() === 'HIRING'
@@ -29,39 +31,119 @@ export function JobCard({ job, onPress }: JobCardProps) {
   const avatarColor = getAvatarColor(job.userId ?? '')
   const initials = getInitials(poster)
 
+  // Aesthetic colors based on job type
+  const iconConfig = isHiring
+    ? { icon: 'briefcase-outline' as any, color: '#3b82f6', bg: '#eff6ff' }
+    : { icon: 'account-hard-hat' as any, color: '#8b5cf6', bg: '#f5f3ff' }
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `اطلع على وظيفة: ${job.title}\nعبر تطبيق سوق ون`,
+      })
+    } catch (error) {
+      console.log('Error sharing:', error)
+    }
+  }
+
+  const handleFavorite = () => setIsFav(!isFav)
+
+  const viewCount = job.viewCount || 0
+  const applicationsCount = job._count?.applications || 0
+
   return (
     <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={onPress}>
-      {/* Top Row: Type Badge + Status Pill */}
-      <View style={s.topRow}>
-        <JobBadge type={job.jobType} />
-        <StatusPill status={job.status} />
-      </View>
-
-      {/* Title */}
-      <View>
-        <Text style={s.title} numberOfLines={2}>
-          {job.title}
-        </Text>
-      </View>
-
-      {/* Poster + Location Row */}
-      <View style={s.posterRow}>
-        {job.user?.avatarUrl ? (
-          <Image source={{ uri: job.user.avatarUrl }} style={s.avatar} />
-        ) : (
-          <View style={[s.avatar, s.initialsAvatar, { backgroundColor: avatarColor }]}>
-            <Text style={s.initialsText}>{initials}</Text>
+      {/* Header: Icon, Title, Date, Actions, Status */}
+      <View style={s.header}>
+        <View style={s.titleRow}>
+          <View style={[s.iconBox, { backgroundColor: iconConfig.bg }]}>
+            <MaterialCommunityIcons name={iconConfig.icon} size={22} color={iconConfig.color} />
           </View>
-        )}
-        <Text style={s.posterName} numberOfLines={1}>
-          {poster}
-        </Text>
-        <Text style={s.dot}>·</Text>
-        <Ionicons name="location-outline" size={13} color={Colors.text2} style={s.locationIcon} />
-        <Text style={s.locationText} numberOfLines={1}>
-          {formatLocation(job)}
-        </Text>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text style={s.serviceTitle} numberOfLines={1}>{job.title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              {job.jobType && <JobBadge type={job.jobType} />}
+              <Text style={[s.timeText, { marginTop: 0 }]}>{formatDate(job.createdAt)}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={s.headerRight}>
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            {job.status && <StatusPill status={job.status} />}
+          </View>
+          <View style={s.actionsRow}>
+            <TouchableOpacity onPress={handleShare} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="share-social-outline" size={20} color="#64748b" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleFavorite} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name={isFav ? "heart" : "heart-outline"} size={20} color={isFav ? '#ef4444' : '#64748b'} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
+
+      {/* Poster & Location Row */}
+      <View style={s.posterRow}>
+        <View style={s.posterInner}>
+          {job.user?.avatarUrl ? (
+            <Image source={{ uri: job.user.avatarUrl }} style={s.avatar} />
+          ) : (
+            <View style={[s.avatar, s.initialsAvatar, { backgroundColor: avatarColor }]}>
+              <Text style={s.initialsText}>{initials}</Text>
+            </View>
+          )}
+          <Text style={s.posterName} numberOfLines={1}>{poster}</Text>
+        </View>
+        
+        <View style={s.locationInner}>
+          <Ionicons name="location-outline" size={14} color="#64748b" />
+          <Text style={s.locationText} numberOfLines={1}>{formatLocation(job)}</Text>
+        </View>
+      </View>
+
+      {/* Description Box */}
+      {job.description ? (
+        <View style={s.descBox}>
+          <Text style={s.descText} numberOfLines={2}>{job.description}</Text>
+        </View>
+      ) : null}
+
+      {/* Divider */}
+      <View style={s.divider} />
+
+      {/* Details List (Pills) */}
+      <View style={s.detailsList}>
+        {job.employmentType ? (
+          <View style={[s.detailPill, s.pillNeutral]}>
+            <MaterialCommunityIcons name="clock-time-four-outline" size={14} color="#64748b" />
+            <Text style={s.detailText}>
+              {job.employmentType === 'FULL_TIME' ? 'دوام كامل' : job.employmentType === 'PART_TIME' ? 'دوام جزئي' : job.employmentType === 'CONTRACT' ? 'عقد' : 'عمل حر'}
+            </Text>
+          </View>
+        ) : null}
+
+        {job.experienceYears != null ? (
+          <View style={[s.detailPill, s.pillNeutral]}>
+            <MaterialCommunityIcons name="star-outline" size={14} color="#64748b" />
+            <Text style={s.detailText}>خبرة {job.experienceYears} سنوات</Text>
+          </View>
+        ) : null}
+
+        {viewCount >= 0 ? (
+          <View style={[s.detailPill, s.pillNeutral]}>
+            <Ionicons name="eye-outline" size={14} color="#64748b" />
+            <Text style={s.detailText}>{viewCount}</Text>
+          </View>
+        ) : null}
+      </View>
+
+      {/* License Chips embedded (if any) */}
+      {job.licenseTypes && job.licenseTypes.length > 0 && (
+        <View style={{ marginBottom: 12 }}>
+          <LicenseChips licenseTypes={job.licenseTypes} limit={3} />
+        </View>
+      )}
 
       {/* Rating Badges for Driver Offering (Service Offer) */}
       {!isHiring && job.driverProfile && (
@@ -76,89 +158,116 @@ export function JobCard({ job, onPress }: JobCardProps) {
         </View>
       )}
 
-      {/* Description Preview */}
-      <View>
-        <Text style={s.description} numberOfLines={2}>
-          {job.description}
-        </Text>
-      </View>
+      <View style={[s.divider, { marginTop: 0 }]} />
 
-      {/* Divider */}
-      <View style={s.divider} />
-
-      {/* Tags (License requirements, Employment type, Nationality) */}
-      <View style={s.tagsWrap}>
-        <LicenseChips
-          licenseTypes={job.licenseTypes}
-          employmentType={job.employmentType}
-          nationality={job.nationality}
-          limit={2}
-        />
-      </View>
-
-      {/* Divider */}
-      <View style={s.divider} />
-
-      {/* Bottom Row: Stats + Salary */}
-      <View style={s.bottomRow}>
-        <View style={s.statsRow}>
-          <View style={s.statItem}>
-            <Ionicons name="people-outline" size={12} color={Colors.textMuted} />
-            <Text style={s.statText}>
-              {STRINGS.APPLICATIONS_COUNT(job._count?.applications ?? 0)}
+      {/* Footer Row (Salary and Applications) */}
+      <View style={s.footerRow}>
+        <View style={[s.detailPill, s.pillGreen, { flex: 1, paddingVertical: 10 }]}>
+          <Ionicons name="wallet-outline" size={18} color="#059669" />
+          <Text style={[s.budgetValText, { color: '#059669' }]} numberOfLines={1}>
+             {job.salary ? formatSalary(job.salary, job.salaryPeriod, job.currency) : 'الراتب غير محدد'}
+          </Text>
+        </View>
+        
+        {applicationsCount >= 0 && (
+          <View style={[s.detailPill, applicationsCount > 0 ? s.pillOrange : s.pillNeutral, { paddingVertical: 10 }]}>
+            <Ionicons name={applicationsCount > 0 ? "people" : "people-outline"} size={16} color={applicationsCount > 0 ? '#ea580c' : '#64748b'} />
+            <Text style={[s.detailText, applicationsCount > 0 && { color: '#ea580c', fontFamily: 'Almarai_700Bold' }]}>
+              {applicationsCount} طلب
             </Text>
           </View>
-          <View style={s.statItem}>
-            <Ionicons name="eye-outline" size={12} color={Colors.textMuted} />
-            <Text style={s.statText}>{job.viewCount ?? 0}</Text>
-          </View>
-          <Text style={s.timeText}>{formatDate(job.createdAt)}</Text>
-        </View>
-
-        <Text style={s.salaryText} numberOfLines={1}>
-          {formatSalary(job.salary, job.salaryPeriod, job.currency)}
-        </Text>
+        )}
       </View>
     </TouchableOpacity>
   )
 }
 
+const softShadow = Platform.select({
+  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+  android: { elevation: 3 },
+});
+
 const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: Radius.lg,       // 16
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.space4,       // 16
-    marginBottom: Spacing.space4,
-    ...Platform.select({
-      ios:     { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
+    borderColor: 'rgba(0,0,0,0.04)',
+    ...softShadow,
   },
-  topRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,  // 12
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
-  title: {
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 16,
-    color: Colors.text,
+  headerRight: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceTitle: {
+    fontSize: 15,
+    fontFamily: 'Almarai_800ExtraBold',
+    color: '#0f172a',
     writingDirection: 'rtl',
-    marginBottom: Spacing.space1,  // 4
-    lineHeight: 24,
+    lineHeight: 22,
+  },
+  timeText: {
+    fontSize: 11,
+    fontFamily: 'Almarai_400Regular',
+    color: Colors.textMuted,
+    marginTop: 2,
+    writingDirection: 'rtl',
   },
   posterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space1,           // 4
-    marginBottom: Spacing.space2,  // 8
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  posterInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  locationInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 1,
   },
   avatar: {
-    width: 20,
-    height: 20,
-    borderRadius: Radius.pill,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   initialsAvatar: {
     alignItems: 'center',
@@ -166,71 +275,82 @@ const s = StyleSheet.create({
   },
   initialsText: {
     color: Colors.white,
-    fontSize: 9,
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, },
+    fontSize: 10,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, 
+  },
   posterName: {
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 13,
-    color: Colors.text,
+    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 12,
+    color: '#1e293b',
     writingDirection: 'rtl',
-    maxWidth: '40%',
-  },
-  dot: {
-    color: Colors.textMuted,
-    marginHorizontal: Spacing.space1, // 4
-  },
-  locationIcon: {
-    marginEnd: 2,
+    flexShrink: 1,
   },
   locationText: {
-    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 12,
-    color: Colors.text2,
+    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
+    color: '#64748b',
     writingDirection: 'rtl',
-    maxWidth: '40%',
+    flexShrink: 1,
   },
-  ratingWrap: {
-    marginBottom: Spacing.space2,  // 8
+  descBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 12,
   },
-  description: {
-    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 13,
-    color: Colors.text2,
-    writingDirection: 'rtl',
+  descText: {
+    fontSize: 12,
+    fontFamily: 'Almarai_400Regular',
+    color: '#475569',
     lineHeight: 20,
-    marginBottom: Spacing.space3,  // 12
+    writingDirection: 'rtl',
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
-    marginBottom: Spacing.space3,  // 12
+    backgroundColor: '#f1f5f9',
+    marginBottom: 12,
   },
-  tagsWrap: {
-    marginBottom: Spacing.space3,  // 12
-  },
-  bottomRow: {
+  detailsList: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
   },
-  statsRow: {
+  detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,           // 8
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  statItem: {
+  pillNeutral: {
+    backgroundColor: '#f8fafc',
+  },
+  pillGreen: {
+    backgroundColor: '#ecfdf5',
+  },
+  pillOrange: {
+    backgroundColor: '#fff7ed',
+  },
+  detailText: {
+    fontSize: 12,
+    fontFamily: 'Almarai_700Bold',
+    color: '#475569',
+  },
+  budgetValText: {
+    fontSize: 13,
+    fontFamily: 'Almarai_800ExtraBold',
+    color: '#64748b',
+    flexShrink: 1,
+  },
+  ratingWrap: {
+    marginBottom: 12,
+  },
+  footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space1,           // 4
-  },
-  statText: {
-    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
-    color: Colors.textMuted,
-  },
-  timeText: {
-    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
-    color: Colors.textMuted,
-  },
-  salaryText: {
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 15,
-    color: Colors.accent,
+    justifyContent: 'flex-start',
+    gap: 8,
   },
 })
 

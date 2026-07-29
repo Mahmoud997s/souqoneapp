@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert, Platform } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -10,6 +10,7 @@ import { transportApi } from '../../src/api/transport'
 import { getBookingStatusLabel } from '../../src/constants/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { AppHeader } from '../../src/components/ui/AppHeader'
+import { dialogService } from '../../src/store/dialogStore'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -59,24 +60,34 @@ export default function BookingsScreen() {
   })
 
   const handleStart = (id: string) => {
-    Alert.alert('بدء النقل', 'هل بدأت رحلة النقل؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، بدأت', onPress: () => startMutation.mutate(id) },
-    ])
+    dialogService.confirm(
+      'بدء النقل',
+      'هل بدأت رحلة النقل؟',
+      () => startMutation.mutate(id),
+      'نعم، بدأت',
+      'لا',
+    )
   }
 
   const handleComplete = (id: string) => {
-    Alert.alert('إتمام النقل', 'هل تم التسليم بنجاح؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، تم التسليم', onPress: () => completeMutation.mutate(id) },
-    ])
+    dialogService.confirm(
+      'إتمام النقل',
+      'هل تم التسليم بنجاح؟',
+      () => completeMutation.mutate(id),
+      'نعم، تم التسليم',
+      'لا',
+    )
   }
 
   const handleCancel = (id: string) => {
-    Alert.alert('إلغاء الحجز', 'هل أنت متأكد من إلغاء هذا الحجز؟', [
-      { text: 'لا', style: 'cancel' },
-      { text: 'نعم، إلغاء', style: 'destructive', onPress: () => cancelMutation.mutate(id) },
-    ])
+    dialogService.confirm(
+      'إلغاء الحجز',
+      'هل أنت متأكد من إلغاء هذا الحجز؟',
+      () => cancelMutation.mutate(id),
+      'نعم، إلغاء',
+      'لا',
+      true,
+    )
   }
 
   if (!user) {

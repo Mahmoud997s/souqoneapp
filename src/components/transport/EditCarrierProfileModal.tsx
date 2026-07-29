@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, TextInput, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -7,6 +7,8 @@ import { CarrierProfile } from '../../types/transport.types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { transportApi } from '../../api/transport';
 import { LocationPicker } from '../ui/LocationPicker';
+import { dialogService } from '../../store/dialogStore'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   visible: boolean;
@@ -16,10 +18,12 @@ interface Props {
 
 export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [companyName, setCompanyName] = useState('');
   const [bio, setBio] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [governorate, setGovernorate] = useState('');
+  const [city, setCity] = useState('');
 
   useEffect(() => {
     if (visible && profile) {
@@ -27,6 +31,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
       setBio(profile.bio || '');
       setContactPhone(profile.contactPhone || '');
       setGovernorate(profile.governorate || '');
+      setCity(profile.city || '');
     }
   }, [visible, profile]);
 
@@ -37,11 +42,11 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-carrier-profile'] });
-      Alert.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح');
+      dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح');
       onClose();
     },
     onError: (err: any) => {
-      Alert.alert('خطأ', err?.response?.data?.message || 'تعذر تحديث الملف الشخصي');
+      dialogService.alert('خطأ', err?.response?.data?.message || 'تعذر تحديث الملف الشخصي');
     }
   });
 
@@ -51,6 +56,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
       bio,
       contactPhone,
       governorate,
+      city,
     });
   };
 
@@ -66,7 +72,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
             <View style={{ width: 24 }} />
           </View>
 
-          <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
             <View style={s.field}>
               <Text style={s.label}>اسم الشركة / الناقل</Text>
               <TextInput
@@ -93,13 +99,16 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
             </View>
 
             <View style={[s.field, { zIndex: 50 }]}>
-              <Text style={s.label}>المحافظة الأساسية</Text>
               <LocationPicker
                 governorate={governorate}
-                onGovernorateChange={setGovernorate}
-                city=""
-                onCityChange={() => {}}
-                govLabelText="اختر المحافظة"
+                onGovernorateChange={(g) => {
+                  setGovernorate(g);
+                  setCity('');
+                }}
+                city={city}
+                onCityChange={setCity}
+                govLabelText="المحافظة الأساسية"
+                cityLabelText="الولاية / المدينة"
               />
             </View>
 
@@ -118,7 +127,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
             <View style={{ height: 40 }} />
           </ScrollView>
 
-          <View style={s.footer}>
+          <View style={[s.footer, { paddingBottom: Math.max(16, insets.bottom + 8) }]}>
             <TouchableOpacity 
               style={[s.saveBtn, updateMutation.isPending && s.saveBtnDisabled]} 
               onPress={handleSave}
@@ -160,9 +169,9 @@ const s = StyleSheet.create({
   title: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: '#0f172a' },
   closeBtn: { padding: 4 },
   
-  scroll: { padding: 16 },
+  scroll: { paddingHorizontal: 24, paddingVertical: 20 },
   field: { marginBottom: 16 },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: '#475569', marginBottom: 8, textAlign: 'right' },
+  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: '#475569', marginBottom: 8, textAlign: 'left', writingDirection: 'rtl' },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1, borderColor: '#e2e8f0',
@@ -170,6 +179,7 @@ const s = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     fontFamily: 'Almarai_400Regular', fontSize: 15, color: '#0f172a',
+    writingDirection: 'rtl',
   },
   textArea: {
     minHeight: 100,

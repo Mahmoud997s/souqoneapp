@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/colors';
@@ -18,6 +18,7 @@ import { TransportStep4Budget } from '../../src/components/transport/wizard/Tran
 import { TransportStep5Review } from '../../src/components/transport/wizard/TransportStep5Review';
 import { Ionicons } from '@expo/vector-icons';
 import { Radius } from '../../src/constants/radius';
+import { dialogService } from '../../src/store/dialogStore'
 
 const TOTAL_STEPS = 5;
 
@@ -112,10 +113,9 @@ export default function NewTransportRequest() {
       if (data.timingType === 'scheduled' && (!data.scheduledDateObj || !data.scheduledTimeObj)) missingFields.push('تاريخ ووقت النقل');
 
       if (missingFields.length > 0) {
-        Alert.alert(
+        dialogService.alert(
           'بيانات غير مكتملة',
-          'الرجاء التأكد من إدخال البيانات التالية لتتمكن من إرسال الطلب بنجاح:\n\n' + missingFields.map(f => `• ${f}`).join('\n'),
-          [{ text: 'موافق' }]
+          'الرجاء التأكد من إدخال البيانات التالية لتتمكن من إرسال الطلب بنجاح:\n\n' + missingFields.map(f => `• ${f}`).join('\n')
         );
         return;
       }
@@ -170,7 +170,7 @@ export default function NewTransportRequest() {
       } catch (err: any) {
         console.error('Failed to create request', err.response?.data || err);
         const msg = err.response?.data?.message || err.response?.data?.error || err.message;
-        Alert.alert(
+        dialogService.alert(
           'حدث خطأ أثناء الإرسال',
           `الوقت المرسل: ${payload.scheduledAt}\n\nرد الخادم: ${Array.isArray(msg) ? msg.join('\n') : String(msg)}`
         );

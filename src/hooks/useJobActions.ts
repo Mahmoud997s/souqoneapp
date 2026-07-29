@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { jobsApi } from '../api/jobs'
 import { ApplicationStatus } from '../types/jobs.types'
-import { Alert } from 'react-native'
+import { dialogService } from '../store/dialogStore'
 
 export function useCloseJob() {
   const qc = useQueryClient()
@@ -11,10 +11,10 @@ export function useCloseJob() {
       qc.invalidateQueries({ queryKey: ['job', id] })
       qc.invalidateQueries({ queryKey: ['myJobs'] })
       qc.invalidateQueries({ queryKey: ['jobs'] })
-      Alert.alert('نجاح', 'تم إغلاق الإعلان بنجاح')
+      dialogService.alert('نجاح', 'تم إغلاق الإعلان بنجاح', 'success')
     },
     onError: () => {
-      Alert.alert('خطأ', 'حدث خطأ أثناء إغلاق الإعلان')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء إغلاق الإعلان', 'error')
     }
   })
 }
@@ -26,10 +26,10 @@ export function useDeleteJob() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myJobs'] })
       qc.invalidateQueries({ queryKey: ['jobs'] })
-      Alert.alert('نجاح', 'تم حذف الإعلان بنجاح')
+      dialogService.alert('نجاح', 'تم حذف الإعلان بنجاح', 'success')
     },
     onError: () => {
-      Alert.alert('خطأ', 'حدث خطأ أثناء حذف الإعلان')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء حذف الإعلان', 'error')
     }
   })
 }
@@ -42,10 +42,10 @@ export function useUpdateApplicationStatus() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['jobApplications', res.data.jobId] })
       qc.invalidateQueries({ queryKey: ['myApplications'] })
-      Alert.alert('نجاح', 'تم تحديث حالة الطلب بنجاح')
+      dialogService.alert('نجاح', 'تم تحديث حالة الطلب بنجاح', 'success')
     },
     onError: () => {
-      Alert.alert('خطأ', 'حدث خطأ أثناء تحديث حالة الطلب')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء تحديث حالة الطلب', 'error')
     }
   })
 }
@@ -58,10 +58,10 @@ export function useWithdrawApplication() {
       qc.invalidateQueries({ queryKey: ['jobApplications', res.data.jobId] })
       qc.invalidateQueries({ queryKey: ['myApplications'] })
       qc.invalidateQueries({ queryKey: ['jobs'] })
-      Alert.alert('نجاح', 'تم سحب الطلب بنجاح')
+      dialogService.alert('نجاح', 'تم سحب الطلب بنجاح', 'success')
     },
     onError: () => {
-      Alert.alert('خطأ', 'حدث خطأ أثناء سحب الطلب')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء سحب الطلب', 'error')
     }
   })
 }

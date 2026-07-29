@@ -8,4 +8,6 @@ export const busesApi = {
   getById: (id: string) => apiClient.get<BusListing>(`/buses/${id}`),
   create:  (data: Partial<BusListing>) => apiClient.post<BusListing>('/buses', data),
   update:  (id: string, data: Partial<BusListing>) => apiClient.patch<BusListing>(`/buses/${id}`, data),
+  addImages: (id: string, urls: string[]) => apiClient.post(`/buses/${id}/images`, { urls }),
+  removeImage: (imageId: string) => apiClient.delete(`/buses/images/${imageId}`),
 }

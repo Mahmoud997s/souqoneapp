@@ -15,7 +15,6 @@ import {
   Platform,
   Modal,
   FlatList,
-  Alert,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'

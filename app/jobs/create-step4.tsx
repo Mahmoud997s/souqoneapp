@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, TextInput, KeyboardAvoidingView,
-  Platform, Alert, ActivityIndicator
+  Platform, ActivityIndicator
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -24,6 +24,7 @@ import {
 import { jobsApi } from '../../src/api/jobs'
 import { formatSalary } from '../../src/utils/format'
 import { normalizeJobType } from '../../src/utils/normalizeJobType'
+import { dialogService } from '../../src/store/dialogStore'
 
 const TOTAL_STEPS = 4
 
@@ -82,21 +83,26 @@ export default function CreateStep4() {
       qc.invalidateQueries({ queryKey: ['jobs'] })
       qc.invalidateQueries({ queryKey: ['myJobs'] })
       store.reset()
-      Alert.alert('🎉 تم النشر!', 'تم نشر إعلانك بنجاح', [
-        {
-          text: 'عرض الإعلان',
-          onPress: () => router.replace(`/jobs/${res.data.id}`),
-        },
-        {
-          text: 'لوحة التحكم',
-          onPress: () => router.replace('/jobs/dashboard'),
-        },
-      ])
+      dialogService.show({
+        type: 'success',
+        title: '🎉 تم النشر!',
+        message: 'تم نشر إعلانك بنجاح',
+        actions: [
+          {
+            text: 'عرض الإعلان',
+            onPress: () => router.replace(`/jobs/${res.data.id}`),
+          },
+          {
+            text: 'لوحة التحكم',
+            onPress: () => router.replace('/jobs/dashboard'),
+          },
+        ]
+      })
     },
     onError: (e: any) => {
       const msg = e?.response?.data?.message
       const errorText = Array.isArray(msg) ? msg[0] : (msg || STRINGS.ERROR_GENERIC)
-      Alert.alert('خطأ', String(errorText))
+      dialogService.alert('خطأ', String(errorText))
     },
   })
 
@@ -252,7 +258,7 @@ export default function CreateStep4() {
               size="sm"
               onPress={() => {
                 if (!contactPhone || contactPhone.trim() === '') {
-                  Alert.alert('تنبيه', 'الرجاء إدخال رقم الهاتف للتواصل')
+                  dialogService.alert('تنبيه', 'الرجاء إدخال رقم الهاتف للتواصل')
                   return
                 }
                 publishMutation.mutate()

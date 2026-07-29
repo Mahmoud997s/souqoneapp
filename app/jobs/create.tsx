@@ -6,7 +6,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { Alert } from 'react-native'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'

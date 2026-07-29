@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Dimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'

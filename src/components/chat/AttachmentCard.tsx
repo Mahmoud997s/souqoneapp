@@ -1,7 +1,8 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native'
+﻿import React from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { dialogService } from '../../store/dialogStore'
 
 interface Props {
   fileName: string
@@ -36,11 +37,11 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
         if (supported) {
           await Linking.openURL(url)
         } else {
-          Alert.alert('خطأ', 'لا يمكن فتح هذا الملف.')
+          dialogService.alert('خطأ', 'لا يمكن فتح هذا الملف.')
         }
       }
     } catch (e) {
-      Alert.alert('خطأ', 'حدث خطأ أثناء فتح الملف.')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الملف.')
     }
   }
 

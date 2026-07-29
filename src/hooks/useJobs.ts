@@ -14,6 +14,24 @@ export function useJobsRaw(params?: Record<string, unknown>) {
   })
 }
 
+import { useInfiniteQuery } from '@tanstack/react-query'
+
+export function useInfiniteJobsRaw(params?: Record<string, unknown>) {
+  return useInfiniteQuery({
+    queryKey: ['jobsRawInfinite', params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await jobsApi.getAll({ ...params, page: pageParam, limit: 10 });
+      return res.data as any; // Usually returns { items: DriverJob[], meta: { totalPages: number } }
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const totalPages = lastPage?.meta?.totalPages || 1;
+      const nextPage = allPages.length + 1;
+      return nextPage <= totalPages ? nextPage : undefined;
+    },
+    initialPageParam: 1,
+  });
+}
+
 export function useJob(id: string) {
   return useQuery({
     queryKey: ['job', id],

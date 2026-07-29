@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Alert, Image, ActivityIndicator, Modal
+  TouchableOpacity, Image, ActivityIndicator, Modal
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -16,6 +16,7 @@ import { useMyDriverProfile } from '../../src/hooks/useDriverProfile'
 import { uploadsApi } from '../../src/api/uploads'
 import { router } from 'expo-router'
 import { STRINGS } from '../../src/constants/jobs'
+import { dialogService } from '../../src/store/dialogStore'
 
 export default function VerificationScreen() {
   const insets = useSafeAreaInsets()
@@ -44,7 +45,7 @@ export default function VerificationScreen() {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول للكاميرا')
+        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول للكاميرا')
         setSheetVisible(false)
         return
       }
@@ -66,7 +67,7 @@ export default function VerificationScreen() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول للاستوديو')
+        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول للاستوديو')
         setSheetVisible(false)
         return
       }
@@ -118,11 +119,10 @@ export default function VerificationScreen() {
         idImageUrl: uploadedUrls[2].url,
         idBackImageUrl: uploadedUrls[3].url,
       })
-      Alert.alert('نجاح', STRINGS.VERIFICATION_SUBMIT_SUCCESS, [
-        { text: 'حسناً', onPress: () => router.back() }
-      ])
+      dialogService.alert('نجاح', STRINGS.VERIFICATION_SUBMIT_SUCCESS, 'success')
+      router.back()
     } catch (e: any) {
-      Alert.alert('خطأ', e?.response?.data?.message ?? e.message ?? 'حدث خطأ، حاول مرة أخرى')
+      dialogService.alert('خطأ', e?.response?.data?.message ?? e.message ?? 'حدث خطأ، حاول مرة أخرى')
     } finally {
       setIsUploading(false)
     }

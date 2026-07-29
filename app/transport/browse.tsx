@@ -1,15 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
   Platform,
   ActivityIndicator,
-  ScrollView,
   FlatList,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,13 +20,17 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { transportApi } from '../../src/api/transport';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useNavVisibility } from '../../src/context/NavVisibilityContext';
-import { AppHeader } from '../../src/components/ui/AppHeader';
+import { OMAN_LOCATIONS } from '../../src/constants/locations';
+
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
+import { QuickFilters } from '../../src/components/ui/QuickFilters';
 
 // Components
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard';
@@ -38,7 +41,6 @@ import { TransportSkeletonCard } from '../../src/components/transport/TransportS
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
-import { Gradients } from '../../src/constants/gradients';
 
 interface FilterState {
   serviceType?: string;
@@ -61,15 +63,63 @@ const LISTING_TYPES = [
   { id: 'EQUIPMENT', label: 'معدات' },
 ];
 
+const DROPDOWN_FILTERS = [
+  { id: 'fromGovernorate', label: 'من', icon: 'location-outline' },
+  { id: 'toGovernorate', label: 'إلى', icon: 'flag-outline' },
+  { id: 'status', label: 'الحالة', icon: 'options-outline' },
+  { id: 'timingType', label: 'الموعد', icon: 'calendar-outline' },
+  { id: 'budget', label: 'الميزانية', icon: 'cash-outline' },
+  { id: 'requiresHelper', label: 'عمال تحميل', icon: 'people-outline' },
+];
+
+const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
+  labelAr: g.labelAr,
+  value: g.labelAr
+}));
+
+const STATUS_OPTIONS = [
+  { label: 'الكل', value: '' },
+  { label: 'جديد', value: 'PENDING' },
+  { label: 'قيد التنفيذ', value: 'ACCEPTED' },
+  { label: 'مكتمل', value: 'COMPLETED' },
+];
+
+const TIMING_OPTIONS = [
+  { label: 'الكل', value: '' },
+  { label: 'فوري (أسرع وقت)', value: 'asap' },
+  { label: 'مجدول (تاريخ محدد)', value: 'scheduled' },
+];
+
+const BUDGET_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'b1', label: 'أقل من 50 ر.ع', min: '0', max: '50' },
+  { id: 'b2', label: '50 - 100 ر.ع', min: '50', max: '100' },
+  { id: 'b3', label: '100 - 300 ر.ع', min: '100', max: '300' },
+  { id: 'b4', label: '300 - 500 ر.ع', min: '300', max: '500' },
+  { id: 'b5', label: 'أكثر من 500 ر.ع', min: '500', max: '999999' },
+];
+
+const HELPER_OPTIONS = [
+  { label: 'الكل', value: null },
+  { label: 'يحتاج عمال تحميل', value: true },
+  { label: 'لا يحتاج عمال', value: false },
+];
+
 export default function TransportBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
-  const { navHidden } = useNavVisibility();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [filters, setFilters] = useState<FilterState>({});
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   
   // Combine query parameters
   const queryParams = useMemo(() => {
@@ -77,8 +127,8 @@ export default function TransportBrowseScreen() {
       limit: 30,
     };
 
-    if (searchQuery.trim()) {
-      params.search = searchQuery;
+    if (debouncedSearch.trim()) {
+      params.search = debouncedSearch;
     }
 
     if (filters.serviceType && filters.serviceType !== 'ALL') params.serviceType = filters.serviceType;
@@ -94,7 +144,7 @@ export default function TransportBrowseScreen() {
     if (filters.requiresHelper === true) params.requiresHelper = true;
 
     return params;
-  }, [searchQuery, filters]);
+  }, [debouncedSearch, filters]);
 
   // Fetch Listings with Infinite Scrolling
   const { 
@@ -139,25 +189,6 @@ export default function TransportBrowseScreen() {
     return count;
   }, [filters]);
 
-  const headerStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(navHidden.value, [0, 1], [0, -150], Extrapolation.CLAMP);
-    const opacity = interpolate(navHidden.value, [0, 0.5, 1], [1, 0.5, 0], Extrapolation.CLAMP);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const handleSelectFilter = (type: 'service' | 'city' | 'status', valueId: string, valueName?: string) => {
-    if (type === 'service') {
-      setFilters(prev => ({ ...prev, serviceType: valueId }));
-    } else if (type === 'city') {
-      setFilters(prev => ({ ...prev, city: valueId }));
-    } else if (type === 'status') {
-      setFilters(prev => ({ ...prev, status: valueId }));
-    }
-  };
-
   const handleApplyAdvancedFilters = (newFilters: Partial<FilterState>) => {
     setFilters(prev => ({
       ...prev,
@@ -170,9 +201,85 @@ export default function TransportBrowseScreen() {
     setSearchQuery('');
   };
 
-  const renderEmptyState = () => {
-    if (isLoading) {
-      return (
+  const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'fromGovernorate') {
+      isActive = !!filters.fromGovernorate;
+      if (isActive) displayLabel = filters.fromGovernorate as string;
+    } else if (qf.id === 'toGovernorate') {
+      isActive = !!filters.toGovernorate;
+      if (isActive) displayLabel = filters.toGovernorate as string;
+    } else if (qf.id === 'status') {
+      isActive = !!filters.status;
+      if (isActive) displayLabel = STATUS_OPTIONS.find(t => t.value === filters.status)?.label || qf.label;
+    } else if (qf.id === 'timingType') {
+      isActive = !!filters.timingType;
+      if (isActive) displayLabel = TIMING_OPTIONS.find(t => t.value === filters.timingType)?.label || qf.label;
+    } else if (qf.id === 'budget') {
+      isActive = !!filters.maxBudget || !!filters.budgetMax || !!filters.budgetMin;
+      if (isActive) {
+         const found = BUDGET_RANGES.find(b => b.max === (filters.budgetMax || filters.maxBudget)?.toString());
+         if (found) displayLabel = found.label;
+      }
+    } else if (qf.id === 'requiresHelper') {
+      isActive = filters.requiresHelper === true || filters.requiresHelper === false;
+      if (isActive) displayLabel = filters.requiresHelper ? 'يحتاج عمال' : 'لا يحتاج';
+    }
+
+    return {
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive
+    };
+  });
+
+  const handleClearQuickFilter = (id: string) => {
+    const newFilters = { ...filters };
+    if (id === 'fromGovernorate') delete newFilters.fromGovernorate;
+    if (id === 'toGovernorate') delete newFilters.toGovernorate;
+    if (id === 'status') delete newFilters.status;
+    if (id === 'timingType') delete newFilters.timingType;
+    if (id === 'budget') { delete newFilters.budgetMin; delete newFilters.budgetMax; }
+    if (id === 'requiresHelper') delete newFilters.requiresHelper;
+    setFilters(newFilters);
+  };
+
+  return (
+    <View style={s.root}>
+      <BrowseHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث عن حمولة..."
+        activeFiltersCount={activeFiltersCount}
+        onFilterPress={() => setFilterModalVisible(true)}
+      />
+
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={LISTING_TYPES}
+          activeTabId={filters.serviceType || 'ALL'}
+          onChangeTab={(id) => {
+            if (id === 'ALL') {
+              const newFilters = { ...filters };
+              delete newFilters.serviceType;
+              setFilters(newFilters);
+            } else {
+              setFilters({ ...filters, serviceType: id as string });
+            }
+          }}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
+
+      {/* ── LISTINGS LIST ── */}
+      {isLoading ? (
         <View style={s.skeletonGrid}>
           {[1, 2, 3, 4].map((i) => (
             <View key={i} style={s.fullCard}>
@@ -180,11 +287,7 @@ export default function TransportBrowseScreen() {
             </View>
           ))}
         </View>
-      );
-    }
-
-    if (isError) {
-      return (
+      ) : isError ? (
         <View style={s.emptyContainer}>
           <View style={s.emptyIconWrapError}>
             <Ionicons name="cloud-offline" size={56} color="#ef4444" />
@@ -195,132 +298,237 @@ export default function TransportBrowseScreen() {
             <Text style={s.retryBtnTxt}>إعادة المحاولة</Text>
           </TouchableOpacity>
         </View>
-      );
-    }
-
-    return (
-      <View style={s.emptyContainer}>
-        <View style={s.emptyIconWrap}>
-          <Ionicons name="cube-outline" size={56} color={Colors.primary} />
-        </View>
-        <Text style={s.emptyTitle}>لا توجد طلبات نقل مطابقة</Text>
-        <Text style={s.emptySub}>لم نتمكن من العثور على أي شحنات أو طلبات تتطابق مع معايير البحث الحالية الخاصة بك. جرب تغيير الفلاتر لتوسيع نطاق البحث.</Text>
-        {activeFiltersCount > 0 && (
-          <TouchableOpacity style={s.clearAllBtnInline} onPress={handleClearAll}>
-            <Ionicons name="options" size={20} color="#fff" />
-            <Text style={s.clearAllBtnInlineTxt}>مسح جميع الفلاتر</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
-
-  return (
-    <View style={s.root}>
-      <AppHeader
-        showBack
-        centerSlot={
-          <View style={s.compactSearch}>
-            <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
-            <TextInput
-              style={s.compactInput}
-              placeholder="ابحث عن حمولة..."
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        }
-        rightSlot={
-          <TouchableOpacity style={s.iconBtn} onPress={() => setFilterModalVisible(true)}>
-            <Ionicons name="options-outline" size={20} color="#fff" />
-            {activeFiltersCount > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeTxt}>{activeFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        }
-      />
-
-      <Animated.View style={[s.headerContainer, headerStyle]}>
-        {/* Listing Type Tabs (Quick Type Chips) */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={s.typeTabsScroll}
-          contentContainerStyle={s.typeTabsContent}
-        >
-          {LISTING_TYPES.map(type => {
-            const isActive = (filters.serviceType || 'ALL') === type.id;
-            return (
-              <TouchableOpacity
-                key={type.id}
-                style={[s.typeTab, isActive && s.typeTabActive]}
-                onPress={() => setFilters(prev => ({ 
-                  ...prev, 
-                  serviceType: type.id
-                }))}
-              >
-                <Text style={[s.typeTabTxt, isActive && s.typeTabTxtActive]}>{type.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </Animated.View>
-
-      {/* ── LISTINGS LIST ── */}
-      <Animated.FlatList
-        data={listings || []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={s.listContent}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isLoading && listings?.length > 0} onRefresh={refetch} tintColor={Colors.primary} />
-        }
-        ListHeaderComponent={
-          <View style={{ marginBottom: 8 }}>
-            <View style={s.resultsHeader}>
-              <Text style={s.resultsCount}>
-                {isLoading ? 'جاري البحث...' : `${rawMeta?.total ?? (listings?.length || 0)} طلب متاح`}
-              </Text>
-              {activeFiltersCount > 0 && (
-                <TouchableOpacity onPress={handleClearAll} style={s.clearAllSmallBtn}>
-                  <Text style={s.clearAllSmallBtnTxt}>مسح الكل</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <TransportRequestCard 
-              request={item} 
-              onPress={() => router.push(`/transport/${item.id}` as any)} 
-            />
-          </View>
-        )}
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
+      ) : (
+        <Animated.FlatList
+          data={listings || []}
+          keyExtractor={(item, index) => (item as any).id ?? (item as any)._id ?? `transport-${index}`}
+          contentContainerStyle={[s.listContent, { paddingTop: Spacing.space2 }]}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isLoading && listings?.length > 0} onRefresh={refetch} tintColor={Colors.primary} />
           }
-        }}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
-          ) : null
-        }
-      />
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
+            ) : null
+          }
+          ListHeaderComponent={
+            <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              {activeFiltersCount > 0 ? (
+                <TouchableOpacity onPress={handleClearAll}>
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                    مسح الفلاتر
+                  </Text>
+                </TouchableOpacity>
+              ) : <View />}
+
+              <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                <Ionicons name="cube-outline" size={14} color="#64748b" />
+                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                  {rawMeta?.total ?? (listings?.length || 0)} طلب متاح
+                </Text>
+              </View>
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={s.emptyContainer}>
+              <View style={s.emptyIconWrap}>
+                <Ionicons name="cube-outline" size={56} color={Colors.primary} />
+              </View>
+              <Text style={s.emptyTitle}>لا توجد طلبات نقل مطابقة</Text>
+              <Text style={s.emptySub}>لم نتمكن من العثور على أي شحنات أو طلبات تتطابق مع معايير البحث الحالية الخاصة بك. جرب تغيير الفلاتر لتوسيع نطاق البحث.</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View style={s.cardWrapper}>
+              <TransportRequestCard 
+                request={item as any} 
+                onPress={() => router.push(`/transport/${(item as any).id}` as any)} 
+              />
+            </View>
+          )}
+        />
+      )}
+
+      {/* DROPDOWNS */}
+      <Modal
+        visible={!!activeDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdown(null)}
+      >
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>
+                {activeDropdown === 'fromGovernorate' ? 'مدينة الانطلاق' :
+                 activeDropdown === 'toGovernorate' ? 'مدينة الوصول' :
+                 activeDropdown === 'status' ? 'حالة الطلب' : 
+                 activeDropdown === 'timingType' ? 'الموعد' : 
+                 activeDropdown === 'budget' ? 'الميزانية' : 
+                 activeDropdown === 'requiresHelper' ? 'عمال تحميل وتنزيل' : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {(activeDropdown === 'fromGovernorate' || activeDropdown === 'toGovernorate') && (
+              <FlatList
+                data={GOVERNORATE_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (activeDropdown === 'fromGovernorate') {
+                        setFilters({ ...filters, fromGovernorate: item.labelAr });
+                      } else {
+                        setFilters({ ...filters, toGovernorate: item.labelAr });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[
+                      s.modalOptionTxt, 
+                      ((activeDropdown === 'fromGovernorate' && filters.fromGovernorate === item.labelAr) || 
+                       (activeDropdown === 'toGovernorate' && filters.toGovernorate === item.labelAr)) 
+                       && s.modalOptionTxtActive
+                    ]}>
+                      {item.labelAr}
+                    </Text>
+                    {((activeDropdown === 'fromGovernorate' && filters.fromGovernorate === item.labelAr) || 
+                      (activeDropdown === 'toGovernorate' && filters.toGovernorate === item.labelAr)) 
+                      && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'status' && (
+              <FlatList
+                data={STATUS_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (!item.value) {
+                        const newFilters = { ...filters };
+                        delete newFilters.status;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, status: item.value });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.status === item.value || (!filters.status && !item.value)) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.status === item.value || (!filters.status && !item.value)) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'timingType' && (
+              <FlatList
+                data={TIMING_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (!item.value) {
+                        const newFilters = { ...filters };
+                        delete newFilters.timingType;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, timingType: item.value as any });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.timingType === item.value || (!filters.timingType && !item.value)) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.timingType === item.value || (!filters.timingType && !item.value)) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'budget' && (
+              <FlatList
+                data={BUDGET_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (item.id === 'all') {
+                        const newFilters = { ...filters };
+                        delete newFilters.budgetMin;
+                        delete newFilters.budgetMax;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, budgetMin: item.min, budgetMax: item.max });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.budgetMax === item.max || (!filters.budgetMax && item.id === 'all')) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.budgetMax === item.max || (!filters.budgetMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'requiresHelper' && (
+              <FlatList
+                data={HELPER_OPTIONS}
+                keyExtractor={(item) => String(item.value)}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      if (item.value === null) {
+                        const newFilters = { ...filters };
+                        delete newFilters.requiresHelper;
+                        setFilters(newFilters);
+                      } else {
+                        setFilters({ ...filters, requiresHelper: item.value });
+                      }
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.requiresHelper === item.value || (filters.requiresHelper === undefined && item.value === null)) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.requiresHelper === item.value || (filters.requiresHelper === undefined && item.value === null)) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <TransportFiltersModal
         visible={isFilterModalVisible}
@@ -337,106 +545,8 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FB',
   },
-  headerContainer: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    zIndex: 10,
-  },
-  compactSearch: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    height: 40,
-    marginHorizontal: 12,
-    gap: 8,
-  },
-  compactInput: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    color: '#fff',
-    textAlign: 'right',
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -2, right: -2,
-    backgroundColor: '#ef4444',
-    minWidth: 14, height: 14,
-    borderRadius: 7,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 0,
-  },
-  filterBadgeTxt: {
-    color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold', 
-  },
-  typeTabsScroll: {
-    flexGrow: 0,
-  },
-  typeTabsContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  typeTab: {
-    height: 36,
-    paddingHorizontal: 16,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'transparent',
-  },
-  typeTabActive: {
-    backgroundColor: Colors.primary + '15',
-    borderColor: Colors.primary + '30',
-  },
-  typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 14, color: '#64748b',
-    lineHeight: 20,
-  },
-  typeTabTxtActive: {
-    color: Colors.primary,
-  },
-  
   listContent: {
-    paddingTop: 16,
     paddingBottom: 120, // increased for safe area
-  },
-  resultsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  resultsCount: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 16, color: '#0f172a',
-  },
-  clearAllSmallBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#fee2e2',
-    borderRadius: 12,
-  },
-  clearAllSmallBtnTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: '#ef4444',
-    lineHeight: 18,
   },
   cardWrapper: {
     paddingHorizontal: 16,
@@ -482,25 +592,6 @@ const s = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 32,
   },
-  clearAllBtnInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 28, paddingVertical: 14,
-    borderRadius: 100, // pill
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  clearAllBtnInlineTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: '#fff',
-    lineHeight: 20,
-  },
   retryBtn: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 32, paddingVertical: 14,
@@ -515,5 +606,52 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
     lineHeight: 20,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    maxHeight: '65%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: Spacing.space4,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+      android: { elevation: 10 },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.space3,
+    paddingBottom: Spacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 16, color: Colors.text,
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
+  },
+  modalOptionTxt: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 15, color: Colors.text2,
+  },
+  modalOptionTxtActive: {
+    color: Colors.primary,
   },
 });

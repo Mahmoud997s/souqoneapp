@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,6 +8,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { reviewsApi } from '../../src/api/reviews'
+import { dialogService } from '../../src/store/dialogStore'
 
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
@@ -64,7 +65,7 @@ export default function ReviewsScreen() {
       setRating(0)
       setComment('')
     },
-    onError: () => Alert.alert('خطأ', 'تعذر إضافة التقييم'),
+    onError: () => dialogService.alert('خطأ', 'تعذر إضافة التقييم'),
   })
 
   return (
