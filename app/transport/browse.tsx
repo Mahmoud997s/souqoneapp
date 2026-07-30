@@ -218,9 +218,9 @@ export default function TransportBrowseScreen() {
       isActive = !!filters.timingType;
       if (isActive) displayLabel = TIMING_OPTIONS.find(t => t.value === filters.timingType)?.label || qf.label;
     } else if (qf.id === 'budget') {
-      isActive = !!filters.maxBudget || !!filters.budgetMax || !!filters.budgetMin;
+      isActive = !!filters.budgetMax || !!filters.budgetMin;
       if (isActive) {
-         const found = BUDGET_RANGES.find(b => b.max === (filters.budgetMax || filters.maxBudget)?.toString());
+         const found = BUDGET_RANGES.find(b => b.max === (filters.budgetMax)?.toString());
          if (found) displayLabel = found.label;
       }
     } else if (qf.id === 'requiresHelper') {

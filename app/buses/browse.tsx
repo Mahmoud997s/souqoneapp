@@ -1,13 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
   Platform,
-  ScrollView,
+  ActivityIndicator,
   Modal,
   FlatList,
 } from 'react-native';
@@ -18,8 +17,14 @@ import Animated from 'react-native-reanimated';
 
 import { useInfiniteBuses } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { AppHeader } from '../../src/components/ui/AppHeader';
+import { OMAN_LOCATIONS } from '../../src/constants/locations';
+import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../post/_constants/bus';
 
+// Components
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
+import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { BusCard } from '../../src/components/buses/BusCard';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
@@ -28,16 +33,28 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
 
-import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../post/_constants/bus';
+const CAPACITIES = [10, 15, 30, 45, 50];
+const CAPACITY_OPTIONS = CAPACITIES.map(c => ({ label: `+ ${c} مقعد`, value: c }));
+
+const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
+  labelAr: g.labelAr,
+  value: g.labelAr
+}));
 
 const DROPDOWN_FILTERS = [
+  { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
   { id: 'make', label: 'الماركة', icon: 'bus-outline' },
   { id: 'capacity', label: 'السعة', icon: 'people-outline' },
   { id: 'busType', label: 'الفئة', icon: 'list-outline' },
   { id: 'sort', label: 'الترتيب', icon: 'swap-vertical-outline' },
 ];
 
-const CAPACITIES = [10, 15, 30, 45, 50];
+const SORT_OPTIONS = [
+  { id: 'newest', label: 'الأحدث أولاً' },
+  { id: 'popular', label: 'الأكثر شيوعاً' },
+  { id: 'price_asc', label: 'السعر: الأقل للأعلى' },
+  { id: 'price_desc', label: 'السعر: الأعلى للأقل' }
+];
 
 export default function BusesBrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -46,20 +63,33 @@ export default function BusesBrowseScreen() {
 
   // State
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   
-  const [filters, setFilters] = useState<BusFilters>(() => {
-    const initialFilters: BusFilters = {};
+  const [filters, setFilters] = useState<BusFilters & { governorate?: string }>(() => {
+    const initialFilters: BusFilters & { governorate?: string } = {};
     if (searchParams.type) {
-      initialFilters.busListingType = searchParams.type.toUpperCase();
+      initialFilters.busListingType = searchParams.type.toUpperCase() as any;
     }
     return initialFilters;
   });
   
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [isSortModalVisible, setIsSortModalVisible] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<'make' | 'capacity' | 'busType' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Combine params
+  const queryFilters = useMemo(() => {
+    const params = { ...filters };
+    if (debouncedSearch.trim()) {
+      (params as any).search = debouncedSearch;
+    }
+    return params;
+  }, [debouncedSearch, filters]);
+
   const { 
     data, 
     isLoading, 
@@ -68,7 +98,7 @@ export default function BusesBrowseScreen() {
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage 
-  } = useInfiniteBuses(filters as any);
+  } = useInfiniteBuses(queryFilters as any);
 
   const listings = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
@@ -78,9 +108,46 @@ export default function BusesBrowseScreen() {
 
   const handleClearAll = () => setFilters(prev => ({ sort: prev.sort }));
 
-  const handleSortPress = () => {
-    setIsSortModalVisible(true);
-  }
+  const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'governorate') {
+      isActive = !!filters.governorate;
+      if (isActive) displayLabel = filters.governorate as string;
+    } else if (qf.id === 'make') {
+      isActive = !!filters.make;
+      if (isActive) displayLabel = BUS_MAKES.find(m => m.id === filters.make)?.label || filters.make as string;
+    } else if (qf.id === 'capacity') {
+      isActive = !!filters.capacityMin;
+      if (isActive) displayLabel = `+ ${filters.capacityMin} مقعد`;
+    } else if (qf.id === 'busType') {
+      isActive = !!filters.busType;
+      if (isActive) displayLabel = BUS_TYPES.find(b => b.id === filters.busType)?.label || filters.busType as string;
+    } else if (qf.id === 'sort') {
+      isActive = !!filters.sort && filters.sort !== 'newest';
+      if (isActive) {
+        displayLabel = SORT_OPTIONS.find(s => s.id === filters.sort)?.label || qf.label;
+      }
+    }
+
+    return {
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive
+    };
+  });
+
+  const handleClearQuickFilter = (id: string) => {
+    const newFilters = { ...filters };
+    if (id === 'governorate') delete newFilters.governorate;
+    if (id === 'make') delete newFilters.make;
+    if (id === 'capacity') { delete newFilters.capacityMin; }
+    if (id === 'busType') delete newFilters.busType;
+    if (id === 'sort') newFilters.sort = 'newest';
+    setFilters(newFilters);
+  };
 
   const renderEmptyState = () => {
     if (isLoading) {
@@ -109,52 +176,43 @@ export default function BusesBrowseScreen() {
         <Ionicons name="bus-outline" size={64} color={Colors.borderStrong || '#E2E8F0'} />
         <Text style={s.emptyTitle}>لا توجد حافلات مطابقة</Text>
         <Text style={s.emptySubtitle}>جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى</Text>
-        {activeFiltersCount > 0 && (
-          <TouchableOpacity onPress={handleClearAll} style={s.clearAllBtn}>
-            <Text style={s.clearAllBtnText}>إعادة تعيين الكل</Text>
-          </TouchableOpacity>
-        )}
       </View>
     );
   };
 
   return (
     <View style={s.root}>
-      <AppHeader
-        showBack
-        centerSlot={
-          <View style={s.compactSearch}>
-            <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
-            <TextInput
-              style={s.compactInput}
-              placeholder="ابحث في الحافلات..."
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        }
-        rightSlot={
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => setIsFilterVisible(!isFilterVisible)}
-          >
-            <Ionicons name="options-outline" size={20} color={Colors.white} />
-            {activeFiltersCount > 0 && (
-              <View style={s.filterBadge}>
-                <Text style={s.filterBadgeText}>{activeFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        }
+      {/* ── HEADER ── */}
+      <BrowseHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث في الحافلات..."
+        activeFiltersCount={activeFiltersCount}
+        onFilterPress={() => setIsFilterVisible(true)}
       />
 
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={BUS_LISTING_TYPES}
+          activeTabId={filters.busListingType || ''}
+          onChangeTab={(id) => {
+            if (id === filters.busListingType) {
+               const newFilters = { ...filters };
+               delete newFilters.busListingType;
+               setFilters(newFilters);
+            } else {
+               setFilters({ ...filters, busListingType: id as any });
+            }
+          }}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
+
+      {/* ── LISTINGS LIST ── */}
       <Animated.FlatList
         key="list-1-column"
         data={listings ?? []}
@@ -168,93 +226,27 @@ export default function BusesBrowseScreen() {
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
+            refreshing={isLoading && listings.length > 0}
             onRefresh={refetch}
             colors={[Colors.primary]}
           />
         }
         ListHeaderComponent={
-          <View>
-            <View style={s.listingTypeTabs}>
-              {BUS_LISTING_TYPES.map((type) => {
-                const isActive = filters.busListingType === type.id;
-                return (
-                  <TouchableOpacity
-                    key={type.id}
-                    style={[s.typeTab, isActive && s.typeTabActive]}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      if (isActive) {
-                        const newFilters = { ...filters };
-                        delete newFilters.busListingType;
-                        setFilters(newFilters);
-                      } else {
-                        setFilters({ ...filters, busListingType: type.id });
-                      }
-                    }}
-                  >
-                    <Text style={[s.typeTabTxt, isActive && s.typeTabTxtActive]}>
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+          <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            {activeFiltersCount > 0 ? (
+              <TouchableOpacity onPress={handleClearAll}>
+                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                  مسح الفلاتر
+                </Text>
+              </TouchableOpacity>
+            ) : <View />}
+
+            <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+              <Ionicons name="bus-outline" size={14} color="#64748b" />
+              <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                {listings?.length || 0} حافلة متاحة
+              </Text>
             </View>
-
-            <View style={s.quickFiltersContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.quickFiltersContent}>
-                {DROPDOWN_FILTERS.map((qf) => {
-                  let isActive = false;
-                  let displayLabel = qf.label;
-
-                  if (qf.id === 'make') {
-                    isActive = !!filters.make;
-                    if (isActive) displayLabel = BUS_MAKES.find(m => m.id === filters.make)?.label || filters.make as string;
-                  } else if (qf.id === 'capacity') {
-                    isActive = !!filters.capacityMin;
-                    if (isActive) displayLabel = `+ ${filters.capacityMin} مقعد`;
-                  } else if (qf.id === 'busType') {
-                    isActive = !!filters.busType;
-                    if (isActive) displayLabel = BUS_TYPES.find(b => b.id === filters.busType)?.label || filters.busType as string;
-                  } else if (qf.id === 'sort') {
-                    isActive = !!filters.sort && filters.sort !== 'newest';
-                    if (filters.sort === 'price_asc') displayLabel = 'الأقل سعراً';
-                    else if (filters.sort === 'price_desc') displayLabel = 'الأعلى سعراً';
-                    else if (filters.sort === 'popular') displayLabel = 'الأكثر شيوعاً';
-                    else if (filters.sort === 'newest') displayLabel = 'الأحدث';
-                  }
-
-                  return (
-                    <TouchableOpacity
-                      key={qf.id}
-                      style={[s.quickFilterCard, isActive && s.quickFilterCardActive]}
-                      activeOpacity={0.8}
-                      onPress={() => qf.id === 'sort' ? handleSortPress() : setIsFilterVisible(true)}
-                    >
-                      <View style={[s.iconWrapper, isActive && s.iconWrapperActive]}>
-                        <Ionicons name={qf.icon as any} size={18} color={isActive ? Colors.primary : Colors.textMuted} />
-                      </View>
-                      <Text style={[s.quickFilterCardTxt, isActive && s.quickFilterCardTxtActive]} numberOfLines={1}>
-                        {displayLabel}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                })}
-              </ScrollView>
-            </View>
-
-            <View style={s.listHeader}>
-              {listings && listings.length > 0 && (
-                <View style={s.resultsRow}>
-                <Text style={s.resultsCount}>{listings.length} حافلة متاحة</Text>
-                {activeFiltersCount > 0 && (
-                  <TouchableOpacity onPress={handleClearAll}>
-                    <Text style={s.clearAllText}>مسح التصفية</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-          </View>
           </View>
         }
         ListEmptyComponent={renderEmptyState}
@@ -278,55 +270,147 @@ export default function BusesBrowseScreen() {
         }
       />
 
+      {/* DROPDOWNS */}
+      <Modal
+        visible={!!activeDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdown(null)}
+      >
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>
+                {activeDropdown === 'governorate' ? 'المدينة' :
+                 activeDropdown === 'make' ? 'الماركة' :
+                 activeDropdown === 'capacity' ? 'سعة الحافلة' : 
+                 activeDropdown === 'busType' ? 'فئة الحافلة' : 
+                 activeDropdown === 'sort' ? 'الترتيب' : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {activeDropdown === 'governorate' && (
+              <FlatList
+                data={GOVERNORATE_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, governorate: item.labelAr });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.governorate === item.labelAr && s.modalOptionTxtActive]}>
+                      {item.labelAr}
+                    </Text>
+                    {filters.governorate === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'make' && (
+              <FlatList
+                data={BUS_MAKES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, make: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.make === item.id && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.make === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'capacity' && (
+              <FlatList
+                data={CAPACITY_OPTIONS}
+                keyExtractor={(item) => item.value.toString()}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, capacityMin: item.value });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.capacityMin === item.value && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.capacityMin === item.value && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'busType' && (
+              <FlatList
+                data={BUS_TYPES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, busType: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, filters.busType === item.id && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {filters.busType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {activeDropdown === 'sort' && (
+              <FlatList
+                data={SORT_OPTIONS}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, sort: item.id as any });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text style={[s.modalOptionTxt, (filters.sort === item.id || (!filters.sort && item.id === 'newest')) && s.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {(filters.sort === item.id || (!filters.sort && item.id === 'newest')) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <BusFilterBottomSheet
         visible={isFilterVisible}
         onClose={() => setIsFilterVisible(false)}
         currentFilters={filters}
         onApply={(appliedFilters) => setFilters(appliedFilters)}
       />
-
-      {/* Custom Sort Modal */}
-      <Modal
-        visible={isSortModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsSortModalVisible(false)}
-      >
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setIsSortModalVisible(false)}>
-          <View style={s.bottomSheetContent}>
-            <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>ترتيب حسب</Text>
-            
-            {[
-              { id: 'newest', label: 'الأحدث أولاً' },
-              { id: 'popular', label: 'الأكثر شيوعاً' },
-              { id: 'price_asc', label: 'السعر: الأقل للأعلى' },
-              { id: 'price_desc', label: 'السعر: الأعلى للأقل' }
-            ].map((option) => {
-              const isSelected = (filters.sort || 'newest') === option.id;
-              return (
-                <TouchableOpacity
-                  key={option.id}
-                  style={s.sortOptionBtn}
-                  onPress={() => {
-                    setFilters({ ...filters, sort: option.id });
-                    setIsSortModalVisible(false);
-                  }}
-                >
-                  <Text style={[s.sortOptionTxt, isSelected && s.sortOptionTxtActive]}>
-                    {option.label}
-                  </Text>
-                  <Ionicons 
-                    name={isSelected ? "radio-button-on" : "radio-button-off"} 
-                    size={24} 
-                    color={isSelected ? Colors.primary : Colors.textMuted} 
-                  />
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
     </View>
   );
@@ -337,120 +421,8 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  compactSearch: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 40, borderRadius: 20,
-    paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
-  },
-  compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
-  },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadge: {
-    position: 'absolute', top: -2, right: -2,
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: Colors.accent || '#e67e22', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadgeText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 10,
-    color: Colors.white,
-  },
-  listingTypeTabs: {
-    flexDirection: 'row',
-    marginHorizontal: Spacing.space4,
-    marginTop: Spacing.space3,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 3,
-  },
-  typeTab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-  },
-  typeTabActive: {
-    backgroundColor: Colors.white,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
-      android: { elevation: 3 },
-    }),
-  },
-  typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', fontSize: 13,
-    color: '#64748B',
-  },
-  typeTabTxtActive: {
-    color: Colors.primary,
-  },
-  quickFiltersContainer: {
-    marginTop: Spacing.space3,
-    marginBottom: Spacing.space2,
-  },
-  quickFiltersContent: {
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: 4,
-    gap: 12,
-  },
-  quickFilterCard: {
-    height: 38,
-    flexDirection: 'row',
-    backgroundColor: Colors.white,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
-      android: { elevation: 1 },
-    }),
-  },
-  quickFilterCardActive: {
-    backgroundColor: Colors.primary + '10',
-    borderColor: Colors.primary + '30',
-  },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapperActive: {
-  },
-  quickFilterCardTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 12, 
-    color: '#475569'
-  },
-  quickFilterCardTxtActive: {
-    color: Colors.primary
-  },
   listContent: {
     paddingBottom: Spacing.space6,
-  },
-  listHeader: {
-    marginBottom: Spacing.space2,
-  },
-  resultsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.space4,
-    marginTop: Spacing.space1,
-    marginBottom: Spacing.space2,
-  },
-  resultsCount: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 15,
-    color: Colors.text,
-  },
-  clearAllText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.primary,
   },
   cardWrapper: {
     paddingHorizontal: Spacing.space4,
@@ -500,60 +472,51 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space6,
     lineHeight: 22,
   },
-  clearAllBtn: {
-    marginTop: Spacing.space4,
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.space6,
-    borderRadius: Radius.pill,
-    backgroundColor: '#0B244710',
-  },
-  clearAllBtnText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.primary,
-  },
-  // Custom Sort Modal Styles
+
+  // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  bottomSheetContent: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    paddingTop: 12,
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E2E8F0',
-    alignSelf: 'center',
-    marginBottom: Spacing.space4,
-  },
-  sheetTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 18,
-    color: Colors.text,
-    marginBottom: Spacing.space4,
-    textAlign: 'left',
-  },
-  sortOptionBtn: {
-    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    maxHeight: '65%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: Spacing.space4,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+      android: { elevation: 10 },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: Spacing.space3,
+    paddingBottom: Spacing.space3,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.04)',
+    borderBottomColor: Colors.border,
   },
-  sortOptionTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    color: Colors.text,
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 16, color: Colors.text,
   },
-  sortOptionTxtActive: {
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
+  },
+  modalOptionTxt: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 15, color: Colors.text2,
+  },
+  modalOptionTxtActive: {
     color: Colors.primary,
   },
 });

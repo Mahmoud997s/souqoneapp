@@ -25,7 +25,7 @@ const TABS = [
   { id: 'models', label: 'أفضل الموديلات' },
   { id: 'cities', label: 'أهم المدن' },
   { id: 'prices', label: 'نطاقات الأسعار' },
-  { id: 'types', label: 'أنواع السيارات' },
+  { id: 'types', label: 'الهيكل' },
 ];
 
 // Static models removed since we fetch dynamically by brand
@@ -89,10 +89,21 @@ export function CarsVisualFilters({
   const renderHorizontalGrid = (items: any[], type: 'brands' | 'models' | 'cities' | 'prices' | 'types') => {
     if (!items || items.length === 0) return null;
 
-    // Chunk array into pairs (2 items per column)
-    const chunks = [];
-    for (let i = 0; i < items.length; i += 2) {
-      chunks.push(items.slice(i, i + 2));
+    const isPrice = type === 'prices';
+    const isCity = type === 'cities';
+    const isBrand = type === 'brands';
+    const isType = type === 'types';
+    
+    // 1 row for prices and cities to look cleaner and give text more space
+    const useSingleRow = isPrice || isCity;
+
+    let columns = [];
+    if (useSingleRow) {
+      columns = items.map(item => [item]); // Each column has 1 item
+    } else {
+      for (let i = 0; i < items.length; i += 2) {
+        columns.push(items.slice(i, i + 2));
+      }
     }
 
     return (
@@ -102,9 +113,17 @@ export function CarsVisualFilters({
         contentContainerStyle={s.horizontalGridContent}
         style={s.horizontalScroll}
       >
-        {chunks.map((chunk, index) => (
-          <View key={index} style={s.gridColumn}>
-            {chunk.map((item) => {
+        {columns.map((col, index) => (
+          <View 
+            key={index} 
+            style={[
+              s.gridColumn, 
+              isPrice && { width: 140 },
+              isCity && { width: 110 },
+              (!useSingleRow) && { width: (SCREEN_WIDTH - 48) / 4.2 }
+            ]}
+          >
+            {col.map((item: any) => {
               let isSelected = false;
               let icon = null;
               let text = '';
@@ -131,12 +150,12 @@ export function CarsVisualFilters({
                 onPress = () => onSelectFilter('model', item.id, item.name);
               } else if (type === 'cities') {
                 isSelected = selectedCity === item.name;
-                icon = <Ionicons name="location-outline" size={24} color={isSelected ? Colors.white : Colors.primary} />;
+                icon = <Ionicons name="location-outline" size={20} color={isSelected ? Colors.white : Colors.primary} />;
                 text = item.name;
                 onPress = () => onSelectFilter('city', item.name, item.name);
               } else if (type === 'prices') {
                 isSelected = selectedPriceId === item.id;
-                icon = <Ionicons name="wallet-outline" size={24} color={isSelected ? Colors.white : Colors.primary} />;
+                icon = <Ionicons name="wallet-outline" size={20} color={isSelected ? Colors.white : Colors.primary} />;
                 text = item.label;
                 onPress = () => onSelectFilter('price', item.id, item.label, item.min, item.max || undefined);
               } else if (type === 'types') {
@@ -149,13 +168,20 @@ export function CarsVisualFilters({
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={[s.gridItemPremium, isSelected && s.gridItemPremiumActive]}
+                  style={[
+                    s.gridItemPremium, 
+                    useSingleRow && s.gridItemSingleRow,
+                    isSelected && s.gridItemPremiumActive
+                  ]}
                   onPress={onPress}
                 >
-                  <View style={s.iconWrapper}>
+                  <View style={[s.iconWrapper, useSingleRow && { marginBottom: 0, marginLeft: 8, height: 'auto' }]}>
                     {icon}
                   </View>
-                  <Text style={[s.itemTextPremium, isSelected && s.itemTextPremiumActive]} numberOfLines={2}>
+                  <Text 
+                    style={[s.itemTextPremium, isSelected && s.itemTextPremiumActive, useSingleRow && { textAlign: 'left', flex: 1, fontSize: 12 }]} 
+                    numberOfLines={useSingleRow ? 1 : 2}
+                  >
                     {text}
                   </Text>
                 </TouchableOpacity>
@@ -317,31 +343,39 @@ const s = StyleSheet.create({
   },
   horizontalGridContent: {
     paddingHorizontal: Spacing.space4,
-    paddingTop: 4, // Added to ensure shadow doesn't clip at the very top
-    paddingBottom: Spacing.space2,
+    paddingTop: 8,
+    paddingBottom: Spacing.space3,
     flexGrow: 1,
     justifyContent: 'center', // Centers items when there are fewer than 4 columns
   },
   gridColumn: {
-    width: (SCREEN_WIDTH - (Spacing.space4 * 2)) / 4.8, // Slightly more columns to shrink item size
+    width: (SCREEN_WIDTH - (Spacing.space4 * 2)) / 4.5,
     alignItems: 'center',
-    paddingHorizontal: Spacing.space1,
+    paddingHorizontal: 6,
   },
   gridItemPremium: {
     width: '100%',
-    aspectRatio: 1, // Make it perfectly square to save height
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    minHeight: 82,
     backgroundColor: Colors.white,
     borderRadius: 16,
     marginBottom: Spacing.space2,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.space1,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 16 },
       android: { elevation: 4 },
     }),
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.02)',
+  },
+  gridItemSingleRow: {
+    minHeight: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
   },
   gridItemPremiumActive: {
     backgroundColor: Colors.primary,

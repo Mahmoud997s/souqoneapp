@@ -102,13 +102,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 60 }}
         bounces={false}
       >
-      {/* 🔴 TEMPORARY TEST BUTTON 🔴 */}
-      <TouchableOpacity 
-        style={{ backgroundColor: '#ea580c', padding: 12, margin: 16, marginTop: 60, borderRadius: 8, alignItems: 'center', zIndex: 999 }} 
-        onPress={() => router.push('/test-header')}
-      >
-        <Text style={{ color: '#fff', fontFamily: 'Almarai_700Bold' }}>تجربة الهيدر الموحد (بروفا)</Text>
-      </TouchableOpacity>
+
         {/* ── HEADER ────────────────────────────────────────────── */}
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <LinearGradient

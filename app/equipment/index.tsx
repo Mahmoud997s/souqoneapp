@@ -11,15 +11,10 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated'
-import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
@@ -35,7 +30,7 @@ import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { OperatorCard } from '../../src/components/cards/OperatorCard'
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
+import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 
 const MOCK_OPERATORS = [
   {
@@ -115,170 +110,46 @@ export default function EquipmentLandingScreen() {
     },
   })
 
-  // ─── Dynamic heights ───
-  const [heroContentH, setHeroContentH] = useState(160)
-  const COMPACT_HEIGHT = insets.top + 56
-  const HERO_HEIGHT    = insets.top + 44 + heroContentH 
-
-  const THRESHOLD  = 50
-  const ANIM_RANGE = 80
-  const ANIM_END   = THRESHOLD + ANIM_RANGE
-
-  // ─── Animated Styles (UI Thread) ───
-  const headerAnimStyle = useAnimatedStyle(() => ({
-    height: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
-      Extrapolation.CLAMP
-    ),
-    borderBottomLeftRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [32, 32, 0],
-      Extrapolation.CLAMP
-    ),
-    borderBottomRightRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [32, 32, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
-  const heroContentAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.5],
-      [1, 1, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
-  const heroSearchAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.6],
-      [1, 1, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
-  const navSearchAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, THRESHOLD + ANIM_RANGE * 0.4, ANIM_END],
-      [0, 0, 1],
-      Extrapolation.CLAMP
-    ),
-  }))
 
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
-      <AnimatedLinearGradient
-        colors={['#0B2447', '#1a3a6b', '#0d3060']}
-        locations={[0, 0.6, 1]}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={[
-          s.stickyHeader,
-          { paddingTop: insets.top + 4 },
-          headerAnimStyle,
-        ]}
-      >
-        {/* Grid Overlay */}
-        <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
-          <Svg width="100%" height="100%">
-            <Defs>
-              <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-              </Pattern>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#grid)" />
-          </Svg>
-        </View>
-
-        {/* ── TOP BAR (always visible) ── */}
-        <View style={s.heroTop}>
-          <TouchableOpacity
-            style={s.backBtn}
-            onPress={() => {
-              if (router.canGoBack()) router.back();
-              else router.push('/');
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-forward-outline" size={22} color={Colors.white} />
-          </TouchableOpacity>
-
-          {/* ── NAVBAR SEARCH (fades IN on scroll) ── */}
-          <Animated.View style={[s.navSearch, navSearchAnimStyle]}>
-            <TouchableOpacity
-              style={s.navSearchInner}
-              onPress={() => router.push('/equipment/browse')}
-              activeOpacity={0.9}
-            >
-              <Ionicons name="search" size={16} color={Colors.white} style={{ opacity: 0.8 }} />
-              <Text style={s.navSearchTxt}>ابحث عن معدة...</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          <TouchableOpacity style={s.dashBtn} onPress={() => {}} activeOpacity={0.7}>
-            <Ionicons name="heart-outline" size={22} color={Colors.white} />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── HERO EXPANDABLE CONTENT (fades OUT on scroll) ── */}
-        <Animated.View 
-          style={[s.heroCenter, heroContentAnimStyle]} 
-          pointerEvents="auto"
-          onLayout={(e) => setHeroContentH(e.nativeEvent.layout.height)}
-        >
-          <Text style={s.heroTitle}>
-             سوق المعدات{'\n'}
-            <Text style={s.heroTitleAccent}> الثقيلة والمشغلين</Text>
-          </Text>
-
-          {/* ── HERO SEARCH BAR (fades OUT on scroll) ── */}
-          <Animated.View style={[{ alignSelf: 'stretch' }, heroSearchAnimStyle]}>
-            <TouchableOpacity style={s.searchBar} onPress={() => router.push('/equipment/browse')} activeOpacity={0.9}>
-              <View style={s.searchInner}>
-                <Ionicons name="search" size={20} color={Colors.textMuted} />
-                <Text style={s.searchPlaceholder}>حفار، رافعة شوكية، لودر...</Text>
-              </View>
-              <View style={s.searchFilterBtn}>
-                <Ionicons name="options-outline" size={18} color={Colors.white} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* ── CTA BUTTONS (inside hero) ── */}
-          <View style={s.ctaRow}>
-            <TouchableOpacity style={[s.ctaBtn, s.ctaBtnPrimary]} onPress={() => router.push('/equipment/browse')} activeOpacity={0.8}>
-              <Ionicons name="search" size={18} color="#fff" />
-              <Text style={s.ctaBtnPrimaryTxt}>تصفح المعدات</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.ctaBtn, s.ctaBtnOutline]}
-              onPress={() => router.push('/equipment/operators/add')}
-              activeOpacity={0.8}
-            >
-              <Text style={s.ctaBtnOutlineTxt}>سجل كمشغل</Text>
-              <Ionicons name="person-add-outline" size={16} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </AnimatedLinearGradient>
+      <AnimatedHeroHeader
+        scrollY={scrollY}
+        gradientColors={['#0B2447', '#1a3a6b', '#0d3060']}
+        title="ســوق ون للمعدات الثقيلة"
+        titleAccent=" الثقيلة والمشغلين"
+        navSearchPlaceholder="ابحث عن معدة..."
+        onNavSearchPress={() => router.push('/equipment/browse' as any)}
+        heroSearchPlaceholder="حفار، رافعة شوكية، لودر..."
+        onHeroSearchPress={() => router.push('/equipment/browse' as any)}
+        onBackPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.push('/');
+        }}
+        headerIcon="notifications-outline"
+        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        primaryCta={{
+          label: 'تصفح المعدات',
+          icon: 'search',
+          onPress: () => router.push('/equipment/browse' as any),
+          textColor: '#ffffff'
+        }}
+        outlineCta={{
+          label: 'سجل كمشغل',
+          icon: 'person-add-outline',
+          onPress: () => router.push('/equipment/operators/add' as any)
+        }}
+      />
 
       {/* ═══════════════ MAIN CONTENT ═══════════════ */}
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: HERO_HEIGHT + Spacing.space4, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + 185 + 4 + Spacing.space4, paddingBottom: 100 }}
       >
         <View style={s.content}>
           <EquipmentPromoBanners />
@@ -437,66 +308,6 @@ export default function EquipmentLandingScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
   
-  // ─── Header ───
-  stickyHeader: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-    paddingHorizontal: Spacing.space5,
-    borderBottomLeftRadius: 32, borderBottomRightRadius: 32,
-    overflow: 'hidden',
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
-  },
-  heroTop: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    height: 44,
-  },
-  backBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  dashBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  navSearch: {
-    flex: 1, marginHorizontal: Spacing.space3,
-  },
-  navSearchInner: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)',
-    height: 38, borderRadius: 19, paddingHorizontal: Spacing.space3, gap: Spacing.space2,
-  },
-  navSearchTxt: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'left', flex: 1,
-  },
-
-  heroCenter: {
-    marginTop: -16,
-    zIndex: 1,
-  },
-  heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 22, color: Colors.white, lineHeight: 40, marginBottom: Spacing.space3, textAlign: 'center',
-  },
-  heroTitleAccent: {
-    color: '#d97706',
-  },
-
-  // ─── Search Bar ───
-  searchBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.white, height: 52, borderRadius: Radius.xl,
-    paddingStart: Spacing.space4, paddingEnd: Spacing.space1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
-    marginBottom: Spacing.space3,
-  },
-  searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
-  searchPlaceholder: {
-    fontFamily: 'Almarai_400Regular', 
-    color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left',
-  },
-  searchFilterBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#0B2447', alignItems: 'center', justifyContent: 'center',
-  },
 
   // ─── Eq Type Item ───
   eqTypeItem: {
@@ -527,25 +338,6 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space4,
   },
 
-  // ─── CTA Buttons ───
-  ctaRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.space3, width: '100%',
-  },
-  ctaBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 42, borderRadius: Radius.xl,
-  },
-  ctaBtnPrimary: {
-    backgroundColor: '#d97706',
-  },
-  ctaBtnPrimaryTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.white, marginLeft: 6,
-  },
-  ctaBtnOutline: {
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.8)', backgroundColor: 'rgba(0,0,0,0.1)', gap: Spacing.space1,
-  },
-  ctaBtnOutlineTxt: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 13, color: Colors.white,
-  },
 
   // ─── Content ───
   content: {

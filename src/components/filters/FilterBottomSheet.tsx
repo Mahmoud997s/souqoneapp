@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -133,13 +134,12 @@ export function FilterBottomSheet({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={s.overlay}>
-            <TouchableWithoutFeedback>
-              <View style={s.sheet}>
+        <View style={s.overlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+          <View style={s.sheet}>
               {/* Drag Handle Indicator */}
               <View style={s.dragHandle} />
 
@@ -594,11 +594,9 @@ export function FilterBottomSheet({
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
-  </Modal>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
@@ -637,6 +635,7 @@ const s = StyleSheet.create({
     color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'center',
+    includeFontPadding: false,
   },
   clearBtn: {
     padding: Spacing.space1,
@@ -645,6 +644,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.error || '#d9534f',
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   closeBtn: {
     padding: Spacing.space1,
@@ -662,6 +662,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space2,
     textAlign: 'left',
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   row: {
     flexDirection: 'row',
@@ -706,12 +707,16 @@ const s = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.space3,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   locationDropdownText: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 13,
+    lineHeight: 20,
     color: Colors.text,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   locationSeparator: {
     width: 1,
@@ -719,9 +724,9 @@ const s = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   chip: {
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space2,
-    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: 10,
+    borderRadius: Radius.md,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -734,13 +739,18 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   chipText: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 13,
+    lineHeight: 20,
     color: Colors.text2,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   activeChipText: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',  
+    color: Colors.primary,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   dropdown: {
     height: 48,
@@ -760,6 +770,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     flex: 1,
     marginStart: Spacing.space2,
+    includeFontPadding: false,
   },
   dropdownPlaceholder: {
     color: Colors.textMuted,
@@ -788,14 +799,18 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   dropdownItemText: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 14,
+    lineHeight: 22,
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   activeDropdownItemText: {
     fontFamily: 'Almarai_700Bold',  color: Colors.primary,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   inputRow: {
     flexDirection: 'row',
@@ -818,15 +833,19 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',  fontSize: 12,
     color: Colors.textMuted,
     writingDirection: 'rtl',
+    includeFontPadding: false,
   },
   input: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 14,
+    lineHeight: 20,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
     paddingVertical: 0,
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   inputSeparator: {
     width: 1,
@@ -841,10 +860,12 @@ const s = StyleSheet.create({
     minWidth: 36,
     paddingVertical: 0,
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   yearDash: {
     fontFamily: 'Almarai_700Bold',  fontSize: 13,
     color: Colors.textMuted,
+    includeFontPadding: false,
   },
   footer: {
     padding: Spacing.space4,

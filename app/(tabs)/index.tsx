@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Image } from 'expo-image'
+import { BlurView } from 'expo-blur'
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
@@ -21,7 +23,7 @@ import { useParts } from '../../src/hooks/useParts'
 import { useBuses } from '../../src/hooks/useBuses'
 import { useEquipment } from '../../src/hooks/useEquipment'
 import { useTransport } from '../../src/hooks/useTransport'
-import Animated, { interpolate, Extrapolation, useAnimatedStyle } from 'react-native-reanimated'
+import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown, FadeInRight } from 'react-native-reanimated'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
@@ -34,19 +36,13 @@ const CARD_W = 280
 const IMG_H = Math.round(CARD_W * 9 / 16)
 
 const CATEGORIES = [
-  { id: 'cars',      label: 'سيارات',   icon: 'car-sport-outline',     route: '/cars',        bg: '#E0F2FE', fg: '#0284C7' },
-  { id: 'jobs',      label: 'وظائف',    icon: 'briefcase-outline',     route: '/jobs',        bg: '#FEE2E2', fg: '#DC2626' },
-  { id: 'services',  label: 'خدمات',    icon: 'build-outline',         route: '/services',    bg: '#FEF3C7', fg: '#D97706' },
-  { id: 'parts',     label: 'قطع غيار', icon: 'construct-outline',     route: '/parts',       bg: '#F3E8FF', fg: '#9333EA' },
-  { id: 'buses',     label: 'حافلات',   icon: 'bus-outline',           route: '/buses',       bg: '#DCFCE7', fg: '#16A34A' },
-  { id: 'equipment', label: 'معدات',    icon: 'hardware-chip-outline', route: '/equipment',   bg: '#FFEDD5', fg: '#EA580C' },
-  { id: 'transport', label: 'نقل',      icon: 'navigate-outline',      route: '/transport',   bg: '#E0E7FF', fg: '#4F46E5' },
-  { id: 'auctions',  label: 'مزادات',   icon: 'pricetag-outline',      route: '/listings',    bg: '#FCE7F3', fg: '#DB2777' },
-]
-
-const BANNERS = [
-  { id: '1', title: 'أضف إعلانك الأول مجاناً!', subtitle: 'ابدأ بالبيع الآن بكل سهولة وسرعة', color1: '#E8781E', color2: '#F9A826', icon: 'megaphone' },
-  { id: '2', title: 'أفضل عروض السيارات', subtitle: 'تصفح السيارات المضافة حديثاً', color1: Colors.primary, color2: '#007BFF', icon: 'car-sport' },
+  { id: 'cars',      label: 'سيارات',    image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Automobile/3D/automobile_3d.png', route: '/cars', isMain: true },
+  { id: 'jobs',      label: 'وظائف',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Briefcase/3D/briefcase_3d.png', route: '/jobs', isMain: true },
+  { id: 'services',  label: 'خدمات',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrench/3D/wrench_3d.png', route: '/services', isMain: false },
+  { id: 'parts',     label: 'قطع غيار',  image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Nut%20and%20bolt/3D/nut_and_bolt_3d.png', route: '/parts', isMain: false },
+  { id: 'equipment', label: 'معدات',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Tractor/3D/tractor_3d.png', route: '/equipment', isMain: false },
+  { id: 'buses',     label: 'حافلات',    image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bus/3D/bus_3d.png', route: '/buses', isMain: false },
+  { id: 'transport', label: 'نقل',       image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Delivery%20truck/3D/delivery_truck_3d.png', route: '/transport', isMain: false },
 ]
 
 import { favoritesApi } from '../../src/api/favorites'
@@ -93,7 +89,7 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
   }
 
   return (
-    <View style={s.section}>
+    <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
       <View style={s.sectionHeader}>
         <View style={s.titleRow}>
           <View style={[s.sectionIconWrap, { backgroundColor: (iconColor || Colors.primary) + '15' }]}>
@@ -135,7 +131,7 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
           )}
         />
       )}
-    </View>
+    </Animated.View>
   )
 }
 
@@ -213,13 +209,25 @@ export default function HomeScreen() {
         end={{ x: 1, y: 1 }}
         style={[s.header, headerAnimStyle, { paddingTop: insets.top + 8, paddingHorizontal: 20 }]}
       >
+        <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
+          <Svg width="100%" height="100%">
+            <Defs>
+              <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              </Pattern>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#grid)" />
+          </Svg>
+        </View>
         
         {/* ── TOP BAR (Always Visible) ── */}
         <View style={s.heroTop}>
           <View style={s.heroTopLeft}>
             {/* User Info (Fades Out) */}
             <Animated.View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'flex-start' }, heroContentAnimStyle]} pointerEvents={scrollY.value > THRESHOLD + ANIM_RANGE * 0.5 ? 'none' : 'auto'}>
-              <Text style={s.greeting}>مرحباً بك،</Text>
+              <Text style={s.greeting}>
+                مرحباً بك في <Text style={{ fontFamily: 'Almarai_800ExtraBold', color: '#FFFFFF' }}>سوق <Text style={{ color: Colors.accent }}>ون</Text></Text>،
+              </Text>
               <Text style={s.userName}>{userName} 👋</Text>
             </Animated.View>
 
@@ -242,7 +250,7 @@ export default function HomeScreen() {
         <Animated.View style={[s.heroCenter, heroContentAnimStyle]} pointerEvents={scrollY.value > THRESHOLD + ANIM_RANGE * 0.5 ? 'none' : 'auto'}>
           <TouchableOpacity style={s.searchBar} onPress={() => router.push('/(tabs)/search')} activeOpacity={0.9}>
             <View style={s.searchInner}>
-              <Ionicons name="search" size={20} color={Colors.textMuted} />
+              <Ionicons name="search" size={20} color={Colors.white} style={{ opacity: 0.8 }} />
               <Text style={s.searchPlaceholder}>عن ماذا تبحث اليوم؟ (سيارات، وظائف...)</Text>
             </View>
             <View style={s.searchFilterBtn}>
@@ -258,42 +266,33 @@ export default function HomeScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
-        {/* ── HERO BANNERS ── */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={s.bannersList}
-          snapToInterval={SW * 0.85 + Spacing.space3}
-          decelerationRate="fast"
-        >
-          {BANNERS.map((banner) => (
-            <TouchableOpacity key={banner.id} activeOpacity={0.9} style={s.bannerCard}>
-              <LinearGradient
-                colors={[banner.color1, banner.color2]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={s.bannerGradient}
-              >
-                <View style={s.bannerTexts}>
-                  <Text style={s.bannerTitle}>{banner.title}</Text>
-                  <Text style={s.bannerSub}>{banner.subtitle}</Text>
-                </View>
-                <Ionicons name={banner.icon as any} size={64} color="rgba(255,255,255,0.2)" style={s.bannerIconBg} />
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
-        {/* ── CATEGORIES ── */}
-        <View style={s.catsGrid}>
-          {CATEGORIES.map(c => (
-            <TouchableOpacity key={c.id} style={s.catItem} onPress={() => router.push(c.route as any)}>
-              <View style={[s.catIconBox, { backgroundColor: c.bg }]}>
-                <Ionicons name={c.icon as any} size={28} color={c.fg} />
-              </View>
-              <Text style={s.catLabel}>{c.label}</Text>
-            </TouchableOpacity>
-          ))}
+
+        {/* ── CATEGORIES (Photographic Premium) ── */}
+        <View style={s.catsContainer}>
+          {/* Main Categories (Top 2) */}
+          <View style={s.mainCatsRow}>
+            {CATEGORIES.filter(c => c.isMain).map((cat, index) => (
+              <Animated.View key={cat.id} entering={FadeInDown.delay(index * 60).springify()} style={s.mainCatWrap}>
+                <TouchableOpacity onPress={() => router.push(cat.route as any)} style={s.mainCatCard} activeOpacity={0.8}>
+                  <Text style={s.mainCatLabel}>{cat.label}</Text>
+                  <Image source={{ uri: cat.image }} style={s.mainCatImage} contentFit="contain" />
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </View>
+
+          {/* Sub Categories (Grid) */}
+          <View style={s.subCatsGrid}>
+            {CATEGORIES.filter(c => !c.isMain).map((cat, index) => (
+              <Animated.View key={cat.id} entering={FadeInDown.delay(120 + index * 40).springify()} style={s.subCatWrap}>
+                <TouchableOpacity onPress={() => router.push(cat.route as any)} style={s.subCatCard} activeOpacity={0.8}>
+                  <Image source={{ uri: cat.image }} style={s.subCatImage} contentFit="contain" />
+                  <Text style={s.subCatLabel} numberOfLines={1}>{cat.label}</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </View>
         </View>
 
         {/* ── SECTIONS ── */}
@@ -331,18 +330,18 @@ const s = StyleSheet.create({
     flex: 1, height: 44, justifyContent: 'center'
   },
   
-  greeting: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'left' },
-  userName: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.white, textAlign: 'left' },
+  greeting: { fontFamily: 'Almarai_400Regular',  fontSize: 18, color: Colors.white, textAlign: 'left', lineHeight: 28, paddingVertical: 2 },
+  userName: { fontFamily: 'Almarai_400Regular',  fontSize: 17, color: 'rgba(255,255,255,0.85)', textAlign: 'left', lineHeight: 26, paddingBottom: 4 },
   
   navSearchInner: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.15)',
     height: 38, borderRadius: 19,
-    paddingHorizontal: Spacing.space3, gap: Spacing.space2,
+    paddingHorizontal: Spacing.space4, gap: 10,
   },
   navSearchTxt: {
     fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: 'rgba(255,255,255,0.85)', flex: 1, textAlign: 'left',
+    color: 'rgba(255,255,255,0.85)', flex: 1, textAlign: 'left', paddingTop: 2,
   },
 
   iconBtn: { 
@@ -356,14 +355,12 @@ const s = StyleSheet.create({
   },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.white, height: 52, borderRadius: Radius.xl,
-    paddingStart: Spacing.space4, paddingEnd: Spacing.space1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    backgroundColor: 'rgba(255,255,255,0.15)', height: 48, borderRadius: Radius.xl,
+    paddingStart: Spacing.space4, paddingEnd: 4,
   },
-  searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular',  color: Colors.textMuted, fontSize: 13, flex: 1, textAlign: 'left' },
-  searchFilterBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  searchInner: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, paddingHorizontal: 4 },
+  searchPlaceholder: { fontFamily: 'Almarai_400Regular',  color: 'rgba(255,255,255,0.85)', fontSize: 13, flex: 1, textAlign: 'left', paddingTop: 2 },
+  searchFilterBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
 
   content: { },
 
@@ -374,21 +371,34 @@ const s = StyleSheet.create({
   bannerTexts: { zIndex: 2, paddingEnd: 40 },
   bannerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.white, marginBottom: 4, writingDirection: 'rtl' },
   bannerSub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: 'rgba(255,255,255,0.9)', writingDirection: 'rtl' },
-  bannerIconBg: { position: 'absolute', left: -10, bottom: -15, transform: [{ rotate: '-15deg' }] },
+  bannerIconBgBlur: { position: 'absolute', left: -10, bottom: -15, transform: [{ rotate: '-15deg' }], width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
 
-  // Categories
-  catsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end',
-    paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6,
-    gap: 12,
+  // Categories (3D Talabat Style - Small)
+  catsContainer: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6, gap: Spacing.space3 },
+  
+  // Main Cards
+  mainCatsRow: { flexDirection: 'row', gap: Spacing.space3 },
+  mainCatWrap: { flex: 1 },
+  mainCatCard: { 
+    backgroundColor: Colors.white, height: 86, borderRadius: 16, 
+    padding: 12, justifyContent: 'flex-start',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+    overflow: 'hidden', borderWidth: 1, borderColor: '#F5F5F5'
   },
-  catItem: { alignItems: 'center', width: (SW - 32 - 36) / 4, gap: 8 },
-  catIconBox: {
-    width: 60, height: 60, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+  mainCatLabel: { fontFamily: 'Almarai_800ExtraBold', fontSize: 14, color: Colors.text, zIndex: 2 },
+  mainCatImage: { width: 56, height: 56, position: 'absolute', bottom: -5, left: -5, zIndex: 1, transform: [{ rotate: '-5deg' }] },
+
+  // Sub Cards
+  subCatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  subCatWrap: { width: (SW - 32 - 24) / 4 }, // 4 columns
+  subCatCard: { 
+    backgroundColor: Colors.white, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 4,
+    alignItems: 'center', gap: 6,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+    borderWidth: 1, borderColor: '#F5F5F5'
   },
-  catLabel: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text, textAlign: 'center' },
+  subCatImage: { width: 34, height: 34 },
+  subCatLabel: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: '#374151', textAlign: 'center' },
 
   // Section
   section: { marginBottom: 32 },

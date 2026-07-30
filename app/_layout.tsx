@@ -14,6 +14,7 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from '../src/store/authStore'
 import { registerForPushNotifications } from '../src/services/notifications'
+import { navigateFromNotification } from '../src/utils/notificationRouter'
 import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
 import { GlobalSocketHandler } from '../src/components/GlobalSocketHandler'
@@ -115,8 +116,7 @@ export default function RootLayout() {
     })
     const sub2 = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as any
-      if (data?.roomId) router.push(`/chat/${data.roomId}` as any)
-      else if (data?.listingId) router.push(`/listings/${data.listingId}` as any)
+      navigateFromNotification(data)
     })
     return () => { sub1.remove(); sub2.remove() }
   }, [isLoggedIn])

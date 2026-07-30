@@ -22,7 +22,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { useCarListings } from '../../src/hooks/useCarListings';
+import { useInfiniteCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useNavVisibility } from '../../src/context/NavVisibilityContext';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -71,6 +71,14 @@ const DROPDOWN_FILTERS = [
   { id: 'year', label: 'سنة الصنع', icon: 'calendar-outline' },
   { id: 'city', label: 'المدينة', icon: 'location-outline' },
   { id: 'type', label: 'الشكل', icon: 'car-outline' },
+  { id: 'sort', label: 'الترتيب', icon: 'swap-vertical-outline' },
+];
+
+const SORT_OPTIONS = [
+  { id: 'createdAt_desc', label: 'الأحدث أولاً', sortBy: 'createdAt', sortOrder: 'DESC' },
+  { id: 'price_asc', label: 'الأقل سعراً', sortBy: 'price', sortOrder: 'ASC' },
+  { id: 'price_desc', label: 'الأعلى سعراً', sortBy: 'price', sortOrder: 'DESC' },
+  { id: 'year_desc', label: 'سنة الصنع الأحدث', sortBy: 'year', sortOrder: 'DESC' },
 ];
 
 const PRICE_RANGES = [
@@ -137,7 +145,7 @@ export default function CarsBrowseScreen() {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   
   // Dropdown Modal State
-  const [activeDropdown, setActiveDropdown] = useState<'make' | 'city' | 'year' | 'price' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'make' | 'city' | 'year' | 'price' | 'type' | 'sort' | null>(null);
   const { data: brands } = useBrands();
 
   // Combine query parameters
@@ -177,7 +185,8 @@ export default function CarsBrowseScreen() {
   }, [searchQuery, selectedBrandName, filters]);
 
   // Fetch Listings
-  const { data: listings, isLoading, isError, refetch } = useCarListings(queryParams);
+  const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteCarListings(queryParams);
+  const listings = useMemo(() => infiniteData?.pages.flatMap(page => page.items) ?? [], [infiniteData]);
 
   // Active filters count
   const activeFiltersCount = useMemo(() => {
@@ -213,6 +222,12 @@ export default function CarsBrowseScreen() {
         const foundType = CAR_TYPES.find(t => t.id === filters.bodyType);
         displayLabel = foundType ? foundType.name : (filters.bodyType as string);
       }
+    } else if (qf.id === 'sort') {
+      isActive = !!filters.sortBy;
+      if (isActive) {
+        const foundSort = SORT_OPTIONS.find(s => s.sortBy === filters.sortBy && s.sortOrder === filters.sortOrder);
+        displayLabel = foundSort ? foundSort.label : 'الترتيب';
+      }
     }
 
     return {
@@ -230,6 +245,7 @@ export default function CarsBrowseScreen() {
     if (id === 'year') { delete newFilters.yearMin; delete newFilters.yearMax; }
     if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; }
     if (id === 'type') { delete newFilters.bodyType; }
+    if (id === 'sort') { delete newFilters.sortBy; delete newFilters.sortOrder; }
     setFilters(newFilters);
   };
 
@@ -371,6 +387,13 @@ export default function CarsBrowseScreen() {
             colors={[Colors.primary]}
           />
         }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} /> : null}
         ListHeaderComponent={
           <View style={s.listHeader}>
             <CarsVisualFilters
@@ -383,13 +406,21 @@ export default function CarsBrowseScreen() {
               onViewAll={(tabId) => setIsFilterVisible(true)}
             />
             {listings && listings.length > 0 && (
-              <View style={s.resultsRow}>
-                <Text style={s.resultsCount}>{listings.length} سيارة متاحة</Text>
-                {activeFiltersCount > 0 && (
+              <View style={{ paddingHorizontal: Spacing.space4, marginTop: Spacing.space3, marginBottom: Spacing.space2, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                {activeFiltersCount > 0 ? (
                   <TouchableOpacity onPress={handleClearAll}>
-                    <Text style={s.clearAllText}>مسح التصفية</Text>
+                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                      مسح الفلاتر
+                    </Text>
                   </TouchableOpacity>
-                )}
+                ) : <View />}
+
+                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                  <Ionicons name="car-sport-outline" size={14} color="#64748b" />
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                    {listings.length} سيارة متاحة
+                  </Text>
+                </View>
               </View>
             )}
           </View>
@@ -422,7 +453,8 @@ export default function CarsBrowseScreen() {
                 {activeDropdown === 'make' ? 'اختر الماركة' :
                  activeDropdown === 'city' ? 'اختر المدينة' :
                  activeDropdown === 'year' ? 'سنة الصنع' : 
-                 activeDropdown === 'type' ? 'الهيكل' : 'نطاق السعر'}
+                 activeDropdown === 'type' ? 'الهيكل' : 
+                 activeDropdown === 'sort' ? 'الترتيب' : 'نطاق السعر'}
               </Text>
               <TouchableOpacity onPress={() => setActiveDropdown(null)}>
                 <Ionicons name="close" size={24} color={Colors.textMuted} />
@@ -536,6 +568,31 @@ export default function CarsBrowseScreen() {
                     {filters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                   </TouchableOpacity>
                 )}
+              />
+            )}
+
+            {activeDropdown === 'sort' && (
+              <FlatList
+                data={SORT_OPTIONS}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => {
+                  const isSelected = filters.sortBy === item.sortBy && filters.sortOrder === item.sortOrder;
+                  return (
+                    <TouchableOpacity
+                      style={s.modalOptionRow}
+                      onPress={() => {
+                        setFilters({ ...filters, sortBy: item.sortBy, sortOrder: item.sortOrder });
+                        setActiveDropdown(null);
+                      }}
+                    >
+                      <Text style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}>
+                        {item.label}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                    </TouchableOpacity>
+                  );
+                }}
               />
             )}
           </View>
