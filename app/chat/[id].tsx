@@ -52,7 +52,7 @@ export default function ChatRoomScreen() {
   }, [id, setActiveRoomId])
   
   const {
-    messages, isLoading, otherUser, isOtherUserTyping, msgText,
+    messages, isLoading, otherUser, isOtherUserTyping, isOtherUserOnline, msgText,
     handleTextChange, handleSend, handleReact, activeReactMsgId,
     setActiveReactMsgId, scrollRef, user,
     fetchNextPage, hasNextPage, isFetchingNextPage
@@ -99,7 +99,7 @@ export default function ChatRoomScreen() {
                   <Text style={s.avatarLetter}>{displayName.charAt(0)}</Text>
                 </View>
               )}
-              <View style={s.onlineBadge} />
+              {isOtherUserOnline && <View style={s.onlineBadge} />}
             </View>
             <View style={s.headerTitleWrap}>
               <Text style={s.headerTitle} numberOfLines={1}>{displayName}</Text>

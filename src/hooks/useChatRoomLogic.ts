@@ -27,11 +27,12 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   
   const [msgText, setMsgText] = useState(initialText || '')
   const [messages, setMessages] = useState<LocalMessage[]>([])
-  const [otherUser, setOtherUser] = useState<{ name: string; avatar?: string } | null>(
+  const [otherUser, setOtherUser] = useState<{ id?: string; name: string; avatar?: string } | null>(
     otherUserName ? { name: otherUserName, avatar: otherUserAvatar } : null
   )
   const [activeReactMsgId, setActiveReactMsgId] = useState<string | null>(null)
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false)
+  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const otherTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -89,6 +90,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     })
     if (other?.sender) {
       setOtherUser({
+        id: other.sender.id,
         name: other.sender.displayName ?? other.sender.username ?? 'مجهول',
         avatar: other.sender.avatarUrl || other.sender.avatar || undefined,
       })
@@ -182,6 +184,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
         // Update other user if missing
         if (data.sender && data.senderId !== user?.id) {
           setOtherUser({
+            id: data.sender.id,
             name: data.sender.displayName ?? data.sender.username ?? 'مجهول',
             avatar: data.sender.avatarUrl || data.sender.avatar || undefined,
           })
@@ -212,6 +215,14 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
         }
       }
       socket.on('user-stop-typing', onUserStopTyping)
+
+      // Bug 2 fix: Listen for online-status response
+      const onOnlineStatus = (data: { userId: string; online: boolean }) => {
+        if (data.userId === otherUser?.id) {
+          setIsOtherUserOnline(data.online)
+        }
+      }
+      socket.on('online-status', onOnlineStatus)
 
       const onMessagesRead = () => {
         setMessages((prev) => prev.map((m) => m.senderId === user?.id ? { ...m, isRead: true } : m))
@@ -254,12 +265,21 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           s.off('user-stop-typing', onUserStopTyping)
           s.off('messages-read', onMessagesRead)
           s.off('message-deleted', onMessageDeleted)
+          s.off('online-status', onOnlineStatus)
           s.off('connect', onConnect)
           s.emit('leave-conversation', { conversationId: roomId })
         }
       }
     })
   }, [roomId, user?.id])
+
+  // Bug 2 fix: Emit check-online once when otherUser's id is known and socket is ready
+  useEffect(() => {
+    const socket = getSocket()
+    if (socket?.connected && otherUser?.id) {
+      socket.emit('check-online', { userId: otherUser.id })
+    }
+  }, [otherUser?.id])
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -281,7 +301,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     setMsgText('')
     
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
-    getSocket()?.emit('user-stop-typing', { conversationId: roomId })
+    getSocket()?.emit('stop-typing', { conversationId: roomId })
 
     const tempId = `temp-${Date.now()}`
     const optimistic: LocalMessage = {
@@ -392,7 +412,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
 
     // Auto-stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
-      getSocket()?.emit('user-stop-typing', { conversationId: roomId })
+      getSocket()?.emit('stop-typing', { conversationId: roomId })
       typingTimeoutRef.current = null
     }, 3000)
   }
@@ -402,6 +422,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     isLoading,
     otherUser,
     isOtherUserTyping,
+    isOtherUserOnline,
     msgText,
     handleTextChange,
     handleSend,
