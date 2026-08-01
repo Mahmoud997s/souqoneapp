@@ -31,7 +31,13 @@ export default function PostScreen() {
   const handleSelect = (id: string) => {
     reset()
     set({ category: id })
-    router.push('/post/step2')
+    if (id === 'equipment') {
+      router.push('/equipment/new')
+    } else if (id === 'transport') {
+      router.push('/transport/new')
+    } else {
+      router.push('/post/step2')
+    }
   }
 
   return (

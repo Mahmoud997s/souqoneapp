@@ -7,12 +7,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { useAuthStore } from '../../store/authStore'
 import { favoritesApi } from '../../api/favorites'
-import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
 import { Listing } from '../../types/listing.types'
 import { GOVERNORATE_OPTIONS } from '../../constants/filters'
-import { formatLocation } from '../../utils/mappers'
-import { formatTimeAgo } from '../../utils/formatTime'
+import { formatDate } from '../../utils/format'
 
 export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
@@ -54,7 +51,6 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   const year = yearData ? String(yearData) : 'N/A'
   const mileage = mileageData ? `${Number(mileageData).toLocaleString('en-US')} كم` : ''
   
-  // Mapping function to avoid hard dependency on BUS_TYPES
   const getBusTypeLabel = (type: string) => {
     if (!type) return ''
     const types: Record<string, string> = {
@@ -66,8 +62,9 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
     }
     return types[type] || type
   }
+  const busTypeLabel = getBusTypeLabel(busTypeRaw)
 
-  const busName = make ? `${make} ${busCapacity ? busCapacity + ' مقعد' : ''} ${year !== 'N/A' ? year : ''}`.trim() : item.title
+  const busName = item.title || (make ? `${make} ${busCapacity ? busCapacity + ' مقعد' : ''} ${year !== 'N/A' ? year : ''}`.trim() : 'إعلان حافلة')
   
   const getGovernorateLabel = (codeOrName: string) => {
     if (!codeOrName) return ''
@@ -75,10 +72,11 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
     return option ? option.labelAr : codeOrName
   }
   const govLabel = getGovernorateLabel(item.governorate)
+  const location = item.city ? `${govLabel}، ${item.city}` : govLabel
 
   const { isLoggedIn } = useAuthStore()
   const queryClient = useQueryClient()
-  const [isFav, setIsFav] = useState(false) // Or derive from item.isFavorite if available
+  const [isFav, setIsFav] = useState(false) 
   const [cardWidth, setCardWidth] = useState(0)
   const [activeImgIdx, setActiveImgIdx] = useState(0)
 
@@ -88,9 +86,7 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
       return
     }
     
-    // Optimistic UI toggle
     setIsFav(!isFav)
-    
     try {
       await favoritesApi.add('LISTING', item.id)
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
@@ -103,23 +99,16 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `شاهد هذه الحافلة المميزة: ${busName} على سوق ون\n\nالسعر: ${priceLabel}`,
-      });
+        message: `شاهد هذه الحافلة المعروضة على سوق ون: ${busName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`,
+      })
     } catch (error) {
-      console.log('Error sharing:', error);
+      console.log('Error sharing listing:', error)
     }
-  };
-
-  const createdAt = rawData.createdAt || item.createdAt;
-  const dateText = createdAt ? formatTimeAgo(createdAt) : '';
-  const isNegotiable = item.isPriceNegotiable ?? rawData.isPriceNegotiable ?? rawData.details?.isPriceNegotiable ?? false;
+  }
 
   return (
-    <View style={[s.busCard, fullWidth && { width: '100%' }, gridMode && { width: '100%', flex: 1 }]}>
-      <View 
-        style={s.imageContainer}
-        onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
-      >
+    <View style={[s.card, fullWidth && { width: '100%' }, gridMode && { width: '100%', flex: 1 }]}>
+      <View style={s.imageContainer} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
         {displayImages.length > 0 ? (
           cardWidth > 0 ? (
             <>
@@ -140,10 +129,11 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
                 ))}
               </ScrollView>
               
+              {/* Pagination Dots */}
               {displayImages.length > 1 && (
                 <View style={s.dotsWrapper}>
                   {displayImages.map((_, i) => (
-                    <View key={i} style={[s.dot, activeImgIdx === i && s.activeDot]} />
+                     <View key={i} style={[s.dot, activeImgIdx === i && s.activeDot]} />
                   ))}
                 </View>
               )}
@@ -155,24 +145,27 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
           </Pressable>
         )}
         
-        <TouchableOpacity style={s.favBtn} onPress={handleFavorite} activeOpacity={0.8}>
-          <Ionicons name={isFav ? "heart" : "heart-outline"} size={18} color={isFav ? "#ef4444" : Colors.white} />
-        </TouchableOpacity>
+        {/* Actions (Share & Favorite) */}
+        <View style={s.actionsContainer}>
+          <TouchableOpacity style={s.actionBtn} onPress={handleShare} activeOpacity={0.8}>
+            <Ionicons name="share-social" size={16} color={Colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity style={s.actionBtn} onPress={handleFavorite} activeOpacity={0.8}>
+            <Ionicons name={isFav ? "heart" : "heart-outline"} size={16} color={isFav ? "#ef4444" : Colors.white} />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={[s.favBtn, { right: 44 }]} onPress={handleShare} activeOpacity={0.8}>
-          <Ionicons name="share-social-outline" size={18} color={Colors.white} />
-        </TouchableOpacity>
-
+        {/* Badges Overlay */}
         <View style={s.badgesContainer}>
           {isRental && (
-            <View style={[s.badge, { backgroundColor: '#f59e0b' }]}>
-              <Text style={s.badgeTxt}>تأجير</Text>
+            <View style={[s.badge, { backgroundColor: '#fffbeb' }]}>
+              <Text style={[s.badgeTxt, { color: '#d97706' }]}>إيجار</Text>
             </View>
           )}
           {listingTypeStr === 'BUS_SALE_WITH_CONTRACT' && (
-            <View style={[s.badge, { backgroundColor: '#8b5cf6', paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]}>
-              <Ionicons name="document-text" size={12} color={Colors.white} style={{ marginRight: 4 }} />
-              <Text style={[s.badgeTxt, { fontSize: 11, fontFamily: 'Almarai_800ExtraBold' }]}>بيع مع عقد تشغيل</Text>
+            <View style={[s.badge, { backgroundColor: '#8b5cf6', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]}>
+              <Ionicons name="document-text" size={10} color={Colors.white} style={{ marginRight: 2 }} />
+              <Text style={s.badgeTxt}>بيع مع عقد تشغيل</Text>
             </View>
           )}
           {isRental && item.withDriver && (
@@ -183,12 +176,12 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
           )}
           {isSale && condition === 'NEW' && (
             <View style={[s.badge, { backgroundColor: '#3b82f6' }]}>
-              <Text style={s.badgeTxt}>جديد</Text>
+              <Text style={s.badgeTxt}>جديدة</Text>
             </View>
           )}
           {isSale && condition === 'USED' && (
             <View style={[s.badge, { backgroundColor: '#64748b' }]}>
-              <Text style={s.badgeTxt}>مستعمل</Text>
+              <Text style={s.badgeTxt}>مستعملة</Text>
             </View>
           )}
           {item.isPremium && (
@@ -199,276 +192,192 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
           )}
         </View>
 
+        {/* Action Menu (passed from outside) */}
         {actionMenu && (
           <View style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 30, elevation: 6 }}>
             {actionMenu}
           </View>
         )}
       </View>
-
-      <Pressable onPress={onPress} style={s.detailsContainer}>
-        {/* Title & Price Row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
-            <Text style={[s.title, { flexShrink: 1 }]} numberOfLines={1}>{busName}</Text>
-            {isSellerVerified && (
-              <View style={s.verifiedRow}>
-                <Ionicons name="checkmark-circle" size={12} color="#1877F2" />
-                <Text style={s.verifiedTxt}>موثق</Text>
-              </View>
-            )}
-          </View>
-          <Text style={s.price}>{priceLabel}</Text>
-        </View>
-
-        {/* Location, Date & Negotiable Row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 }}>
-            <View style={s.locationRow}>
-              <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.locationTxt} numberOfLines={1}>{formatLocation(item as any)}</Text>
-            </View>
-            {!!dateText && (
-              <View style={s.locationRow}>
-                <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
-                <Text style={[s.locationTxt, { fontSize: 11 }]}>{dateText}</Text>
-              </View>
-            )}
-          </View>
-          
-          {isNegotiable && (
-            <View style={s.negotiableBadge}>
-              <Ionicons name="chatbubbles-outline" size={12} color="#10b981" />
-              <Text style={s.negotiableTxt}>قابل للتفاوض</Text>
+      
+      <Pressable onPress={onPress} style={s.detailsCard}>
+        <View style={s.headerRow}>
+          <Text style={[s.titleTxt, { flex: 1 }]} numberOfLines={2}>{busName}</Text>
+          {isSellerVerified && (
+            <View style={s.verifiedRow}>
+              <Ionicons name="checkmark-circle" size={12} color="#1877F2" />
+              <Text style={s.verifiedTxt}>موثق</Text>
             </View>
           )}
         </View>
         
-        {showChips ? (
-          <>
-            <View style={s.chipsWrapper}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipsScroll}>
-                {(item as any).details && Array.isArray((item as any).details) && (item as any).details.length > 0 ? (
-                  (item as any).details.slice(0, maxChips).map((detail: any, idx: number) => {
-                    const isContractChip = detail.value === 'عقد تشغيل';
-                    const isSaleRentChip = detail.value === 'للبيع' || detail.value === 'تأجير';
-                    
-                    return (
-                      <View key={idx} style={[
-                        s.specChip,
-                        isContractChip && { backgroundColor: '#ede9fe', borderColor: '#c4b5fd', borderWidth: 1 },
-                        isSaleRentChip && { backgroundColor: '#e0f2fe', borderColor: '#bae6fd', borderWidth: 1 }
-                      ]}>
-                        <Ionicons name={detail.icon as any} size={12} color={isContractChip ? '#7c3aed' : (isSaleRentChip ? '#0284c7' : Colors.textMuted)} />
-                        <Text style={[
-                          s.specChipTxt,
-                          isContractChip && { color: '#7c3aed', fontFamily: 'Almarai_800ExtraBold' },
-                          isSaleRentChip && { color: '#0284c7', fontFamily: 'Almarai_800ExtraBold' }
-                        ]}>{detail.value}</Text>
-                      </View>
-                    )
-                  })
-                ) : (
-                  <>
-                    {make && (
-                      <View style={s.specChip}>
-                        <Ionicons name="bus-outline" size={10} color={Colors.textMuted} />
-                        <Text style={s.specChipTxt}>{make}</Text>
-                      </View>
-                    )}
-                    {busCapacity && (
-                      <View style={s.specChip}>
-                        <Ionicons name="people-outline" size={10} color={Colors.textMuted} />
-                        <Text style={s.specChipTxt}>{busCapacity} راكب</Text>
-                      </View>
-                    )}
-                    {busTypeRaw && (
-                      <View style={s.specChip}>
-                        <Ionicons name="list-outline" size={10} color={Colors.textMuted} />
-                        <Text style={s.specChipTxt}>{getBusTypeLabel(busTypeRaw)}</Text>
-                      </View>
-                    )}
-                    {year !== 'N/A' && (
-                      <View style={s.specChip}>
-                        <Ionicons name="calendar-outline" size={10} color={Colors.textMuted} />
-                        <Text style={s.specChipTxt}>{year}</Text>
-                      </View>
-                    )}
-                    {!!mileage && (
-                      <View style={s.specChip}>
-                        <Ionicons name="speedometer-outline" size={10} color={Colors.textMuted} />
-                        <Text style={s.specChipTxt}>{mileage}</Text>
-                      </View>
-                    )}
-                  </>
-                )}
-              </ScrollView>
-            </View>
-          </>
-        ) : (
-          <View style={s.metaRow}>
-            {(item as any).details && Array.isArray((item as any).details) && (item as any).details.length > 0 ? (
-              <>
-                <Ionicons name={(item as any).details[0].icon} size={12} color={Colors.textMuted} />
-                <Text style={s.metaTxt}>{(item as any).details[0].value}</Text>
-                
-                {(item as any).details[1] && (
-                  <>
-                    <Text style={s.metaDot}>•</Text>
-                    <Ionicons name={(item as any).details[1].icon} size={12} color={Colors.textMuted} />
-                    <Text style={s.metaTxt}>{(item as any).details[1].value}</Text>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <Ionicons name="bus-outline" size={12} color={Colors.textMuted} />
-                <Text style={s.metaTxt}>{make || 'حافلة'}</Text>
-                
-                {busCapacity && (
-                  <>
-                    <Text style={s.metaDot}>•</Text>
-                    <Ionicons name="people-outline" size={12} color={Colors.textMuted} />
-                    <Text style={s.metaTxt}>{busCapacity} راكب</Text>
-                  </>
-                )}
-              </>
-            )}
-
+        <View style={s.locationRow}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+            <Text style={[s.locationTxt, { marginLeft: 4 }]} numberOfLines={1}>{location}</Text>
           </View>
-        )}
+          {!!item.createdAt && (
+            <>
+              <Text style={{ fontSize: 10, color: '#cbd5e1' }}>•</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
+                <Ionicons name="time-outline" size={12} color={'#94a3b8'} />
+                <Text style={s.timeTxt}>{formatDate(item.createdAt)}</Text>
+              </View>
+            </>
+          )}
+        </View>
+
+        <View style={s.divider} />
+
+        {/* Details List (Info Pills) */}
+        <View style={s.detailsList}>
+          {(() => {
+            const pills = []
+            if (busTypeLabel) pills.push(
+              <View key="type" style={[s.detailPill, s.pillNeutral]}>
+                <Ionicons name="bus-outline" size={14} color="#64748b" />
+                <Text style={s.detailText}>{busTypeLabel}</Text>
+              </View>
+            )
+            if (busCapacity) pills.push(
+              <View key="cap" style={[s.detailPill, s.pillNeutral]}>
+                <Ionicons name="people-outline" size={14} color="#64748b" />
+                <Text style={s.detailText}>{busCapacity} مقعد</Text>
+              </View>
+            )
+            if (year !== 'N/A') pills.push(
+              <View key="year" style={[s.detailPill, s.pillBlue]}>
+                <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
+                <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
+              </View>
+            )
+            if (mileage) pills.push(
+              <View key="mileage" style={[s.detailPill, s.pillAmber]}>
+                <Ionicons name="speedometer-outline" size={14} color="#d97706" />
+                <Text style={[s.detailText, { color: '#d97706' }]}>{mileage}</Text>
+              </View>
+            )
+            return pills.slice(0, maxChips)
+          })()}
+        </View>
+
+        <View style={[s.divider, { marginTop: 4 }]} />
+
+        {/* Footer Row (Budget & Quotes style) */}
+        <View style={s.footerRow}>
+          <View style={[s.detailPill, isSale && item.isPriceNegotiable ? s.pillGreen : s.pillNeutral, { flex: 1 }]}>
+            <Ionicons name="wallet-outline" size={16} color={isSale && item.isPriceNegotiable ? '#059669' : '#64748b'} />
+            <Text style={[s.budgetValText, isSale && item.isPriceNegotiable && { color: '#059669' }]}>{priceLabel}</Text>
+          </View>
+          
+          {isSale && item.isPriceNegotiable && (
+            <View style={[s.detailPill, s.pillGreen]}>
+              <Text style={[s.detailText, { color: '#059669', fontFamily: 'Almarai_700Bold' }]}>
+                قابل للتفاوض
+              </Text>
+            </View>
+          )}
+        </View>
       </Pressable>
     </View>
   )
 }
 
+const softShadow = Platform.select({
+  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+  android: { elevation: 3 },
+});
+
 const s = StyleSheet.create({
-  busCard: {
+  card: {
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
     overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
-      android: { elevation: 1 },
-    }),
-    borderWidth: 1, borderColor: Colors.border,
+    ...softShadow,
   },
   imageContainer: {
     position: 'relative',
+    backgroundColor: '#F8F9FA',
   },
   imagePlaceholder: {
     width: '100%',
     height: 120,
-    backgroundColor: '#F8F9FA',
     justifyContent: 'center',
     alignItems: 'center',
   },
   swiperScrollView: {
     width: '100%',
-    height: 120,
-    backgroundColor: '#F8F9FA',
+    height: 140,
   },
   dotsWrapper: {
-    position: 'absolute',
-    bottom: 12,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
+    position: 'absolute', bottom: 12, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)' },
+  activeDot: { backgroundColor: '#fff', width: 16 },
+  actionsContainer: {
+    position: 'absolute', top: 12, right: 12, zIndex: 10,
+    flexDirection: 'row', gap: 8,
   },
-  activeDot: {
-    backgroundColor: '#fff',
-    width: 16,
-  },
-  favBtn: {
-    position: 'absolute', top: 8, right: 8, zIndex: 10,
+  actionBtn: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   badgesContainer: {
-    position: 'absolute', top: 8, left: 8, right: 80,
-    flexDirection: 'row', gap: 4, flexWrap: 'wrap',
+    position: 'absolute', top: 12, left: 12, right: 80,
+    flexDirection: 'row', gap: 6, flexWrap: 'wrap',
   },
   badge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 6, paddingVertical: 2,
-    borderRadius: Radius.sm,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 100,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2,
   },
   badgeTxt: {
-    fontFamily: 'Almarai_700Bold', 
+    fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 10, color: Colors.white,
+    letterSpacing: 0.2,
   },
-  detailsContainer: {
-    padding: 14,
-  },
-  title: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: Colors.text, textAlign: 'left',
-    paddingVertical: 2,
+  detailsCard: { padding: 14 },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  titleTxt: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 15, color: '#0f172a', textAlign: 'left',
+    lineHeight: 22,
   },
   verifiedRow: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#E7F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 100,
+    backgroundColor: '#eff6ff', 
+    paddingHorizontal: 8, paddingVertical: 4, 
+    borderRadius: 100, borderWidth: 1, borderColor: '#bfdbfe', marginTop: 2,
   },
   verifiedTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 9, color: '#1877F2',
-  },
-  price: {
     fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 16, color: Colors.primary, textAlign: 'left',
+    fontSize: 10, color: '#2563eb',
   },
-  negotiableBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#d1fae5', paddingHorizontal: 6, paddingVertical: 4, borderRadius: Radius.sm, overflow: 'hidden'
-  },
-  negotiableTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 10, color: '#10b981',
-  },
-  locationRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-  },
-  locationTxt: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 12, color: Colors.textMuted,
-  },
-  metaRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.space2,
-  },
-  metaTxt: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 11, color: Colors.textMuted,
-  },
-  metaDot: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 11, color: Colors.textMuted, marginHorizontal: 2,
-  },
-  chipsWrapper: {
-    marginTop: 12,
-    marginHorizontal: -14,
-  },
-  chipsScroll: {
-    paddingHorizontal: 14,
-    gap: 8,
-  },
-  specChip: {
+  locationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 6, marginTop: 4, marginBottom: 8 },
+  locationTxt: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.textMuted },
+  timeTxt: { fontFamily: 'Almarai_400Regular', fontSize: 11, color: '#94a3b8', marginLeft: 4 },
+  divider: { height: 1, backgroundColor: '#f1f5f9', marginBottom: 12 },
+  detailsList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  detailPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: Radius.md, borderWidth: 1, borderColor: '#e2e8f0',
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
   },
-  specChipTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, color: Colors.text2,
-  }
+  pillNeutral: { backgroundColor: '#f8fafc' },
+  pillBlue: { backgroundColor: '#eff6ff' },
+  pillAmber: { backgroundColor: '#fffbeb' },
+  pillGreen: { backgroundColor: '#ecfdf5' },
+  detailText: {
+    fontSize: 11, fontFamily: 'Almarai_700Bold', color: '#475569', lineHeight: 18,
+  },
+  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8 },
+  budgetValText: {
+    fontSize: 13, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 20,
+  },
 })

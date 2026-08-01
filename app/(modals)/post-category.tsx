@@ -24,7 +24,13 @@ export default function PostCategoryModal() {
 
   const handleSelect = (categoryId: string) => {
     set({ category: categoryId })
-    router.replace('/post/step2')
+    if (categoryId === 'equipment') {
+      router.replace('/equipment/new')
+    } else if (categoryId === 'transport') {
+      router.replace('/transport/new')
+    } else {
+      router.replace('/post/step2')
+    }
   }
 
   return (

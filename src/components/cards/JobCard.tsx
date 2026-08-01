@@ -16,9 +16,10 @@ import { STRINGS } from '../../constants/jobs'
 interface JobCardProps {
   job: DriverJob
   onPress?: () => void
+  maxChips?: number
 }
 
-export function JobCard({ job, onPress }: JobCardProps) {
+export function JobCard({ job, onPress, maxChips }: JobCardProps) {
   const [isFav, setIsFav] = useState(false)
 
   if (!job) return null
@@ -102,48 +103,54 @@ export function JobCard({ job, onPress }: JobCardProps) {
         </View>
       </View>
 
-      {/* Description Box */}
-      {job.description ? (
-        <View style={s.descBox}>
-          <Text style={s.descText} numberOfLines={2}>{job.description}</Text>
-        </View>
-      ) : null}
+      {/* Description Box (Always rendered with fixed height of 2 lines to maintain card size) */}
+      <View style={s.descBox}>
+        <Text style={[s.descText, { minHeight: 40 }]} numberOfLines={2}>
+          {job.description || 'لا يوجد وصف'}
+        </Text>
+      </View>
 
       {/* Divider */}
       <View style={s.divider} />
 
       {/* Details List (Pills) */}
       <View style={s.detailsList}>
-        {job.employmentType ? (
-          <View style={[s.detailPill, s.pillNeutral]}>
-            <MaterialCommunityIcons name="clock-time-four-outline" size={14} color="#64748b" />
-            <Text style={s.detailText}>
-              {job.employmentType === 'FULL_TIME' ? 'دوام كامل' : job.employmentType === 'PART_TIME' ? 'دوام جزئي' : job.employmentType === 'CONTRACT' ? 'عقد' : 'عمل حر'}
-            </Text>
-          </View>
-        ) : null}
-
-        {job.experienceYears != null ? (
-          <View style={[s.detailPill, s.pillNeutral]}>
-            <MaterialCommunityIcons name="star-outline" size={14} color="#64748b" />
-            <Text style={s.detailText}>خبرة {job.experienceYears} سنوات</Text>
-          </View>
-        ) : null}
-
-        {viewCount >= 0 ? (
-          <View style={[s.detailPill, s.pillNeutral]}>
-            <Ionicons name="eye-outline" size={14} color="#64748b" />
-            <Text style={s.detailText}>{viewCount}</Text>
-          </View>
-        ) : null}
+        {(() => {
+          const pills = []
+          if (job.employmentType) pills.push(
+            <View key="emp" style={[s.detailPill, s.pillNeutral]}>
+              <MaterialCommunityIcons name="clock-time-four-outline" size={14} color="#64748b" />
+              <Text style={s.detailText}>
+                {job.employmentType === 'FULL_TIME' ? 'دوام كامل' : job.employmentType === 'PART_TIME' ? 'دوام جزئي' : job.employmentType === 'CONTRACT' ? 'عقد' : 'عمل حر'}
+              </Text>
+            </View>
+          )
+          if (job.experienceYears != null) pills.push(
+            <View key="exp" style={[s.detailPill, s.pillNeutral]}>
+              <MaterialCommunityIcons name="star-outline" size={14} color="#64748b" />
+              <Text style={s.detailText}>خبرة {job.experienceYears} سنوات</Text>
+            </View>
+          )
+          if (viewCount >= 0) pills.push(
+            <View key="view" style={[s.detailPill, s.pillNeutral]}>
+              <Ionicons name="eye-outline" size={14} color="#64748b" />
+              <Text style={s.detailText}>{viewCount}</Text>
+            </View>
+          )
+          return pills.slice(0, maxChips ?? pills.length)
+        })()}
       </View>
 
-      {/* License Chips embedded (if any) */}
-      {job.licenseTypes && job.licenseTypes.length > 0 && (
-        <View style={{ marginBottom: 12 }}>
+      {/* License Chips embedded (Invisible placeholder ensures 100% accurate height) */}
+      <View style={{ marginBottom: 12 }}>
+        {job.licenseTypes && job.licenseTypes.length > 0 ? (
           <LicenseChips licenseTypes={job.licenseTypes} limit={3} />
-        </View>
-      )}
+        ) : (
+          <View style={{ opacity: 0 }} pointerEvents="none">
+            <LicenseChips licenseTypes={['PRIVATE' as any]} limit={1} />
+          </View>
+        )}
+      </View>
 
       {/* Rating Badges for Driver Offering (Service Offer) */}
       {!isHiring && job.driverProfile && (

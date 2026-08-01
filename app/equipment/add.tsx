@@ -14,9 +14,7 @@ export default function AddEquipmentScreen() {
   const { set, reset } = usePostStore()
 
   useEffect(() => {
-    reset()
-    set({ category: 'equipment' })
-    router.replace('/post/step2' as any)
+    router.replace('/equipment/new' as any)
   }, [])
 
   return (

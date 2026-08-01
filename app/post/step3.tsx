@@ -11,7 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 
 // Forms
 import { CarForm } from './_components/forms/CarForm'
-import { EquipmentForm } from './_components/forms/EquipmentForm'
 import { BusForm } from './_components/forms/BusForm'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
@@ -27,12 +26,7 @@ export default function PostStep3Screen() {
       return
     }
 
-    if (category === 'equipment') {
-      const { listingType, condition, equipmentType } = details || {}
-      if (!listingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!condition) return dialogService.alert('تنبيه', 'يرجى اختيار الحالة')
-      if (!equipmentType) return dialogService.alert('تنبيه', 'يرجى اختيار فئة المعدة')
-    }
+
 
     if (category === 'cars') {
       const { listingType, condition, make, model, year, mileage } = details || {}
@@ -61,8 +55,6 @@ export default function PostStep3Screen() {
     switch (category) {
       case 'cars':
         return <CarForm />
-      case 'equipment':
-        return <EquipmentForm />
       case 'buses':
         return <BusForm />
       case 'jobs':

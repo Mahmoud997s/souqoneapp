@@ -230,6 +230,7 @@ export function mapServiceToCard(item: any): UnifiedCardItem {
     images: extractImages(item.images),
     category: 'services',
     details: details.length > 0 ? details : undefined,
+    raw: item,
   }
 }
 
@@ -254,6 +255,7 @@ export function mapPartToCard(item: any): UnifiedCardItem {
     category: 'parts',
     listingType: (item.listingType || item.type)?.toUpperCase(),
     details: details.length > 0 ? details : undefined,
+    raw: item,
   }
 }
 
@@ -319,6 +321,7 @@ export function mapBusToCard(item: any): UnifiedCardItem {
     listingType: (item.busListingType || item.listingType || item.type)?.toUpperCase(),
     category: 'buses',
     details: details.length > 0 ? details : undefined,
+    raw: item,
   }
 }
 

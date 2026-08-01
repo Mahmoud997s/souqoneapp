@@ -27,7 +27,7 @@ import { EquipmentHorizontalList } from '../../src/components/equipment/Equipmen
 import { EquipmentHowItWorks } from '../../src/components/equipment/EquipmentHowItWorks'
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar'
 import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
-import { CarCard } from '../../src/components/cars/CarCard'
+import { EquipCard } from '../../src/components/cards/EquipCard'
 import { OperatorCard } from '../../src/components/cards/OperatorCard'
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
@@ -221,7 +221,7 @@ export default function EquipmentLandingScreen() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -Spacing.space5 }} contentContainerStyle={s.hList}>
               {latestEquipment.map((item, i) => (
-                <CarCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
+                <EquipCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
               ))}
             </ScrollView>
           </View>
@@ -242,7 +242,7 @@ export default function EquipmentLandingScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -Spacing.space5 }} contentContainerStyle={[s.hList, saleEquipment.length === 0 && { paddingHorizontal: Spacing.space5 }]}>
                   {saleEquipment.length > 0 ? (
                     saleEquipment.map((item, i) => (
-                      <CarCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
+                      <EquipCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
                     ))
                   ) : (
                     <Text style={s.emptyTxt}>لا يوجد معدات للبيع حالياً</Text>
@@ -264,7 +264,7 @@ export default function EquipmentLandingScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -Spacing.space5 }} contentContainerStyle={[s.hList, rentEquipment.length === 0 && { paddingHorizontal: Spacing.space5 }]}>
                   {rentEquipment.length > 0 ? (
                     rentEquipment.map((item, i) => (
-                      <CarCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
+                      <EquipCard key={i} item={item as any} onPress={() => router.push(`/equipment/${item.id}`)} />
                     ))
                   ) : (
                     <Text style={s.emptyTxt}>لا توجد معدات للإيجار حالياً</Text>

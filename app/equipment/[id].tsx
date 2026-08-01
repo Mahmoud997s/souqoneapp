@@ -441,7 +441,7 @@ export default function EquipmentDetailScreen() {
         {isOwner ? (
           <TouchableOpacity
             style={[s.callWideBtn, { backgroundColor: Colors.primary }]}
-            onPress={() => router.push(`/post/edit/${raw.id}?type=equipment` as any)}
+            onPress={() => router.push(`/equipment/edit/${raw.id}` as any)}
             activeOpacity={0.9}
           >
             <Ionicons name="create-outline" size={22} color={Colors.white} />

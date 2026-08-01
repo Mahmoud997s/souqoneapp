@@ -74,6 +74,17 @@ export default function PostStep5Screen() {
         payload.price = 0;
       }
 
+      // If images array is empty, do not send it (fixes "property images should not exist" for schemas that omit images)
+      if (Array.isArray(payload.images) && payload.images.length === 0) {
+        delete payload.images;
+      }
+      
+      // For WANTED listings, backend explicitly forbids images property
+      const listingTypeStr = String(payload.listingType || payload.type || store.details?.listingType || '').toUpperCase();
+      if (listingTypeStr.includes('WANTED')) {
+        delete payload.images;
+      }
+
       const numericFields = [
         'mileage', 'dailyPrice', 'monthlyPrice', 'depositAmount',
         'minRentalDays', 'kmLimitPerDay', 'experienceYears', 'horsepower', 'doors',

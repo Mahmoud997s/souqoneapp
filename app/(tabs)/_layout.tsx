@@ -10,6 +10,9 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
+import Svg, { Path, Pattern, Defs, Rect } from 'react-native-svg'
+import { Gradients } from '../../src/constants/gradients'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -244,13 +247,26 @@ function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
       </Animated.View>
 
       {/* ── Floating Capsule (Replaces Tab Bar when hidden) ── */}
-      <Animated.View style={[s.capsuleWrapper, { bottom: bottomPad }, capsuleStyle]} pointerEvents="box-none">
-        <Pressable onPress={handlePost} style={s.capsuleBtn}>
-          <BlurView intensity={90} tint="light" style={s.blurBackground} />
-          <View style={s.capsuleInner}>
-            <Ionicons name="add" size={24} color={T.white} />
-            <Text style={s.capsuleText}>أضف إعلان</Text>
-          </View>
+      <Animated.View style={[s.floatingFabWrap, { bottom: bottomPad + 4 }, capsuleStyle]} pointerEvents="box-none">
+        <Pressable onPress={handlePost} android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: true, radius: 26 }}>
+          <LinearGradient
+            colors={Gradients.hero as any}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.floatingFab}
+          >
+            <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
+              <Svg width="100%" height="100%">
+                <Defs>
+                  <Pattern id="fabGridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                  </Pattern>
+                </Defs>
+                <Rect width="100%" height="100%" fill="url(#fabGridPattern)" />
+              </Svg>
+            </View>
+            <Ionicons name="add" size={30} color={T.white} />
+          </LinearGradient>
         </Pressable>
       </Animated.View>
     </>
@@ -391,7 +407,7 @@ const s = StyleSheet.create({
   },
 
   // ── Floating Capsule ──
-  capsuleWrapper: {
+  floatingFabWrap: {
     position: 'absolute',
     alignSelf: 'center',
     zIndex: 100,
@@ -402,28 +418,15 @@ const s = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 16,
       },
-      android: { elevation: 16 },
+      android: { elevation: 12 },
     }),
   },
-  capsuleBtn: {
-    height: 50,
-    borderRadius: 25,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-  },
-  capsuleInner: {
-    flexDirection: 'row',
+  floatingFab: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
-    height: '100%',
-    paddingHorizontal: 20,
-    gap: 8,
-    backgroundColor: T.primary + 'E6', // slightly transparent primary
-  },
-  capsuleText: {
-    fontFamily: FONT_ACT,
-    fontSize: 15,
-    color: T.white,
-    
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
 })

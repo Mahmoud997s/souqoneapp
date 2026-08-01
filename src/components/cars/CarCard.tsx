@@ -60,7 +60,7 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   const eqCondition = rawData.condition || rawData.details?.condition || (item as any).details?.condition
   const equipmentConditionLabel = eqCondition === 'NEW' ? 'جديدة' : eqCondition === 'USED' ? 'مستعملة' : eqCondition === 'LIKE_NEW' ? 'شبه جديدة' : eqCondition === 'REFURBISHED' ? 'مجددة' : eqCondition
   
-  const carName = make && model && !isEquipment ? `${make} ${model} ${year !== 'N/A' ? year : ''}`.trim() : item.title
+  const carName = item.title || (make && model ? `${make} ${model} ${year !== 'N/A' ? year : ''}`.trim() : 'إعلان بدون عنوان')
   
   const getGovernorateLabel = (codeOrName: string) => {
     if (!codeOrName) return ''
@@ -237,61 +237,61 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
 
         {/* Details List (Info Pills) */}
         <View style={s.detailsList}>
-          {isEquipment ? (
-            <>
-              {make && (
-                <View style={[s.detailPill, s.pillNeutral]}>
+          {(() => {
+            const pills = []
+            if (isEquipment) {
+              if (make) pills.push(
+                <View key="make" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="construct-outline" size={14} color="#64748b" />
                   <Text style={s.detailText}>{make}</Text>
                 </View>
-              )}
-              {year !== 'N/A' && (
-                <View style={[s.detailPill, s.pillBlue]}>
+              )
+              if (year !== 'N/A') pills.push(
+                <View key="year" style={[s.detailPill, s.pillBlue]}>
                   <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
                   <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
                 </View>
-              )}
-              {!!hoursUsedData && (
-                <View style={[s.detailPill, s.pillNeutral]}>
+              )
+              if (hoursUsedData) pills.push(
+                <View key="hours" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="time-outline" size={14} color="#64748b" />
                   <Text style={s.detailText}>{hoursUsedData} س</Text>
                 </View>
-              )}
-              {!!equipmentConditionLabel && (
-                <View style={[s.detailPill, s.pillAmber]}>
+              )
+              if (equipmentConditionLabel) pills.push(
+                <View key="cond" style={[s.detailPill, s.pillAmber]}>
                   <Ionicons name="information-circle-outline" size={14} color="#d97706" />
                   <Text style={[s.detailText, { color: '#d97706' }]}>{equipmentConditionLabel}</Text>
                 </View>
-              )}
-            </>
-          ) : (
-            <>
-              {model && (
-                <View style={[s.detailPill, s.pillNeutral]}>
+              )
+            } else {
+              if (model) pills.push(
+                <View key="model" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="car-outline" size={14} color="#64748b" />
                   <Text style={s.detailText}>{model}</Text>
                 </View>
-              )}
-              {year !== 'N/A' && (
-                <View style={[s.detailPill, s.pillBlue]}>
+              )
+              if (year !== 'N/A') pills.push(
+                <View key="year" style={[s.detailPill, s.pillBlue]}>
                   <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
                   <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
                 </View>
-              )}
-              {transLabel && (
-                <View style={[s.detailPill, s.pillNeutral]}>
+              )
+              if (transLabel) pills.push(
+                <View key="trans" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="settings-outline" size={14} color="#64748b" />
                   <Text style={s.detailText}>{transLabel}</Text>
                 </View>
-              )}
-              {!!mileage && (
-                <View style={[s.detailPill, s.pillAmber]}>
+              )
+              if (mileage) pills.push(
+                <View key="mileage" style={[s.detailPill, s.pillAmber]}>
                   <Ionicons name="speedometer-outline" size={14} color="#d97706" />
                   <Text style={[s.detailText, { color: '#d97706' }]}>{mileage}</Text>
                 </View>
-              )}
-            </>
-          )}
+              )
+            }
+            return pills.slice(0, maxChips)
+          })()}
         </View>
 
         <View style={[s.divider, { marginTop: 4 }]} />

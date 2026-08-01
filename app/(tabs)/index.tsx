@@ -14,6 +14,8 @@ import { Gradients } from '../../src/constants/gradients'
 import { UnifiedCard, UnifiedCardItem } from '../../src/components/cards/UnifiedCard'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
+import { CarCard } from '../../src/components/cars/CarCard'
+import { BusCard } from '../../src/components/buses/BusCard'
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
@@ -32,7 +34,7 @@ import { useQueryClient } from '@tanstack/react-query'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
-const CARD_W = 280
+const CARD_W = 310
 const IMG_H = Math.round(CARD_W * 9 / 16)
 
 const CATEGORIES = [
@@ -92,14 +94,19 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
       <View style={s.sectionHeader}>
         <View style={s.titleRow}>
-          <View style={[s.sectionIconWrap, { backgroundColor: (iconColor || Colors.primary) + '15' }]}>
-            <Ionicons name={icon as any} size={18} color={iconColor ?? Colors.primary} />
-          </View>
+          <LinearGradient
+            colors={[iconColor || Colors.primary, (iconColor || Colors.primary) + '99']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.sectionIconWrap}
+          >
+            <Ionicons name={icon as any} size={14} color={Colors.white} />
+          </LinearGradient>
           <Text style={s.sectionTitle}>{title}</Text>
         </View>
-        <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push(seeAllRoute as any)}>
-          <Text style={s.seeAll}>الكل</Text>
-          <Ionicons name="chevron-back" size={14} color={Colors.primary} />
+        <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push(seeAllRoute as any)} activeOpacity={0.8}>
+          <Text style={s.seeAll}>عرض الكل</Text>
+          <Ionicons name="arrow-back-outline" size={14} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -296,12 +303,12 @@ export default function HomeScreen() {
         </View>
 
         {/* ── SECTIONS ── */}
-        <CategorySection title="سيارات مميزة" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" />
-        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} />} />
+        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
         <CategorySection title="خدمات" icon="build" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
         <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
-        <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" />
-        <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth />} />
+        <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
         <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
 
       </Animated.ScrollView>
@@ -401,13 +408,23 @@ const s = StyleSheet.create({
   subCatLabel: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: '#374151', textAlign: 'center' },
 
   // Section
-  section: { marginBottom: 32 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.space5, marginBottom: Spacing.space3 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionIconWrap: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text },
-  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: Colors.primary + '10', borderRadius: Radius.pill },
-  seeAll: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary },
+  section: { marginBottom: 36 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.space5, marginBottom: 16 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  sectionIconWrap: { 
+    width: 28, height: 28, borderRadius: 8, 
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 3
+  },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: '#1E293B', letterSpacing: -0.2 },
+  seeAllBtn: { 
+    flexDirection: 'row', alignItems: 'center', gap: 6, 
+    paddingVertical: 4, paddingHorizontal: 12, 
+    backgroundColor: Colors.primary + '0A', 
+    borderRadius: Radius.pill,
+    borderWidth: 1, borderColor: Colors.primary + '1A'
+  },
+  seeAll: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary, paddingTop: 2 },
 
   // Horizontal list
   hList: { },
