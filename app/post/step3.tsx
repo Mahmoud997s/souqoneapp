@@ -10,15 +10,14 @@ import { usePostStore } from '../../src/store/postStore'
 import { LinearGradient } from 'expo-linear-gradient'
 
 // Forms
-import { CarForm } from './_components/forms/CarForm'
-import { BusForm } from './_components/forms/BusForm'
+import { CarForm, BusForm, PartForm, ServiceForm } from '../../src/components/post/forms'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
 
 export default function PostStep3Screen() {
   const insets = useSafeAreaInsets()
-  const { category, title, description, price, details } = usePostStore()
+  const { category, title, description, price, details, editMode } = usePostStore()
 
   const validateAndNext = () => {
     if (!title || !title.trim()) {
@@ -26,7 +25,10 @@ export default function PostStep3Screen() {
       return
     }
 
-
+    if (!description || !description.trim()) {
+      dialogService.alert('تنبيه', 'يرجى إدخال وصف الإعلان')
+      return
+    }
 
     if (category === 'cars') {
       const { listingType, condition, make, model, year, mileage } = details || {}
@@ -48,6 +50,26 @@ export default function PostStep3Screen() {
       if (!busType) return dialogService.alert('تنبيه', 'يرجى اختيار فئة الحافلة')
     }
 
+    if (category === 'parts') {
+      const { partCategory } = details || {}
+      if (!partCategory && !details?.category) {
+        return dialogService.alert('تنبيه', 'يرجى اختيار قسم قطعة الغيار')
+      }
+      if (price === '' || price == null || isNaN(Number(price))) {
+        return dialogService.alert('تنبيه', 'يرجى إدخال سعر قطعة الغيار')
+      }
+    }
+
+    if (category === 'services') {
+      const { serviceType, providerName } = details || {}
+      if (!serviceType) {
+        return dialogService.alert('تنبيه', 'يرجى اختيار نوع الخدمة')
+      }
+      if (!providerName || !providerName.trim()) {
+        return dialogService.alert('تنبيه', 'يرجى إدخال اسم مقدم الخدمة أو الورشة')
+      }
+    }
+
     router.push('/post/step4')
   }
 
@@ -57,9 +79,11 @@ export default function PostStep3Screen() {
         return <CarForm />
       case 'buses':
         return <BusForm />
-      case 'jobs':
-      case 'services':
       case 'parts':
+        return <PartForm />
+      case 'services':
+        return <ServiceForm />
+      case 'jobs':
       default:
         return (
           <View style={{ padding: Spacing.space4, alignItems: 'center' }}>

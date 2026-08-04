@@ -62,30 +62,62 @@ export interface Job {
 
 export interface Service {
   id: string
-  serviceName: string
+  title: string
+  serviceName?: string
   serviceType: string
+  providerType?: 'WORKSHOP' | 'INDIVIDUAL' | 'MOBILE' | 'COMPANY'
+  providerName?: string
+  isHomeService?: boolean
+  specializations?: string[]
   description: string
+  price?: number
+  priceFrom?: number
+  priceTo?: number
   pricePerHour?: number
+  workingHoursOpen?: string
+  workingHoursClose?: string
+  workingDays?: string[]
+  address?: string
+  contactPhone?: string
+  whatsapp?: string
+  website?: string
   governorate: string
   city: string
-  user: UserSummary
+  latitude?: number
+  longitude?: number
+  user?: UserSummary
   images: ListingImage[]
   createdAt: string
+  isPremium?: boolean
 }
 
 export interface Part {
   id: string
-  partName: string
-  brand: string
-  compatibility: string
-  condition: 'NEW' | 'USED' | 'LIKE_NEW'
+  title: string
+  partName?: string
+  partCategory: 'ENGINE' | 'BODY' | 'ELECTRICAL' | 'SUSPENSION' | 'BRAKES' | 'INTERIOR' | 'TIRES' | 'BATTERIES' | 'OILS' | 'ACCESSORIES' | 'OTHER'
+  brand?: string
+  compatibility?: string
+  condition?: 'NEW' | 'USED' | 'REFURBISHED' | 'LIKE_NEW'
+  isOriginal?: boolean
+  partNumber?: string
+  compatibleMakes?: string[]
+  compatibleModels?: string[]
+  yearFrom?: number
+  yearTo?: number
   price: number
-  currency: 'OMR' | 'USD'
+  isPriceNegotiable?: boolean
+  currency?: 'OMR' | 'USD'
+  contactPhone?: string
+  whatsapp?: string
   governorate: string
   city: string
-  user: UserSummary
+  latitude?: number
+  longitude?: number
+  user?: UserSummary
   images: ListingImage[]
   createdAt: string
+  isPremium?: boolean
 }
 
 export interface Equipment {
@@ -129,5 +161,18 @@ export interface ChatRoom {
   lastMessage?: ChatMessage
   unreadCount: number
   updatedAt: string
-  listing?: { id: string; title: string; images: { url: string }[] }
+  listing?: {
+    id: string
+    title: string
+    price?: number
+    currency?: string
+    images?: { url: string }[]
+    listingType?: 'SALE' | 'RENTAL' | 'WANTED'
+    condition?: 'NEW' | 'USED' | 'LIKE_NEW'
+    governorate?: string
+    isPriceNegotiable?: boolean
+    make?: string
+    model?: string
+    year?: number
+  }
 }

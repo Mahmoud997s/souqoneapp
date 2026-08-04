@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { BUS_CONTRACT_TYPES } from '../../../app/post/_constants/bus';
+import { BUS_CONTRACT_TYPES } from '../../constants/buses';
 
 interface BusContractDashboardProps {
   contractMonthly?: number | null;

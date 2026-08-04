@@ -18,7 +18,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { dialogService } from '../../src/store/dialogStore'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/filters'
-import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../post/_constants/bus'
+import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses'
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
 
 let MapView: any = null;

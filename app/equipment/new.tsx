@@ -14,11 +14,11 @@ import { Radius } from '../../src/constants/radius';
 import { useCreateEquipment, useUpdateEquipment } from '../../src/hooks/useEquipment';
 import { dialogService } from '../../src/store/dialogStore';
 import { useEquipmentStore } from '../../src/store/equipmentPostStore';
-import { EquipmentStep1Type } from './_components/EquipmentStep1Type';
-import { EquipmentStep2Details } from './_components/EquipmentStep2Details';
-import { EquipmentStep3Images } from './_components/EquipmentStep3Images';
-import { EquipmentStep4Location } from './_components/EquipmentStep4Location';
-import { EquipmentStep5Review } from './_components/EquipmentStep5Review';
+import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type';
+import { EquipmentStep2Details } from '../../src/components/equipment/wizard/EquipmentStep2Details';
+import { EquipmentStep3Images } from '../../src/components/equipment/wizard/EquipmentStep3Images';
+import { EquipmentStep4Location } from '../../src/components/equipment/wizard/EquipmentStep4Location';
+import { EquipmentStep5Review } from '../../src/components/equipment/wizard/EquipmentStep5Review';
 
 const TOTAL_STEPS = 5;
 

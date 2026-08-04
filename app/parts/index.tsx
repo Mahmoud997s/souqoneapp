@@ -8,6 +8,7 @@ import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { useParts } from '../../src/hooks/useParts';
+import { usePostStore } from '../../src/store/postStore';
 
 import { PartsCategoriesGrid } from '../../src/components/parts/PartsCategoriesGrid';
 import { PartHorizontalList } from '../../src/components/parts/PartHorizontalList';
@@ -16,6 +17,13 @@ export default function PartsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const { set, reset } = usePostStore();
+
+  const handleAddPart = () => {
+    reset();
+    set({ category: 'parts' });
+    router.push('/post/step2' as any);
+  };
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -51,7 +59,7 @@ export default function PartsLandingScreen() {
         primaryCta={{
           label: 'أضف قطعة غيار',
           icon: 'add-circle-outline',
-          onPress: () => router.push('/post' as any), // Or '/parts/new' if exists
+          onPress: handleAddPart,
           bgColor: Colors.white,
           textColor: '#1f2937'
         }}

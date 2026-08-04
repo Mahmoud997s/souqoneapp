@@ -14,7 +14,7 @@ import { chatApi } from '../../src/api/chat'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES, BODY_TYPES, GOVERNORATE_OPTIONS } from '../../src/constants/filters'
-import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../post/_constants/car'
+import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../../src/constants/cars'
 import { dialogService } from '../../src/store/dialogStore'
 
 let MapView: any = null;

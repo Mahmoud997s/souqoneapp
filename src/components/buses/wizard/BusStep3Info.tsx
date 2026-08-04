@@ -7,8 +7,7 @@ import { Spacing } from '../../../constants/spacing';
 import { useBusWizardStore } from '../../../store/busWizardStore';
 import { InlineError } from '../../ui/InlineError';
 import { AppSelect } from '../../ui/AppSelect';
-
-import { BUS_MAKES, BUS_FEATURES } from '../../../../app/post/_constants/bus';
+import { BUS_MAKES, BUS_FEATURES } from '../../../constants/buses';
 
 const TRANSMISSION_TYPES = [
   { id: 'AUTOMATIC', label: 'أوتوماتيك' },

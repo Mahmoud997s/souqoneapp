@@ -6,8 +6,8 @@ import { Radius } from '../../../constants/radius';
 import { Spacing } from '../../../constants/spacing';
 import { useBusWizardStore } from '../../../store/busWizardStore';
 import { InlineError } from '../../ui/InlineError';
-import { BUS_CONTRACT_TYPES } from '../../../../app/post/_constants/bus';
-import { CONDITION_TYPES } from '../../../../app/post/_constants/car';
+import { BUS_CONTRACT_TYPES } from '../../../constants/buses';
+import { CONDITION_TYPES } from '../../../constants/cars';
 
 export function BusStep4Pricing() {
   const { data, setData, errors, setErrors } = useBusWizardStore();

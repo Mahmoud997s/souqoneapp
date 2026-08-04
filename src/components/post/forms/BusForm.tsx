@@ -2,12 +2,12 @@ import React, { useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import Animated, { SlideInDown } from 'react-native-reanimated'
-import { usePostStore } from '../../../../src/store/postStore'
-import { Colors } from '../../../../src/constants/colors'
-import { Spacing } from '../../../../src/constants/spacing'
-import { Radius } from '../../../../src/constants/radius'
-import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES, BUS_FEATURES, BUS_CONTRACT_TYPES } from '../../_constants/bus'
-import { CONDITION_TYPES } from '../../_constants/car'
+import { usePostStore } from '../../../store/postStore'
+import { Colors } from '../../../constants/colors'
+import { Spacing } from '../../../constants/spacing'
+import { Radius } from '../../../constants/radius'
+import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES, BUS_FEATURES, BUS_CONTRACT_TYPES } from '../../../constants/buses'
+import { CONDITION_TYPES } from '../../../constants/cars'
 
 export function BusForm() {
   const { title, description, price, isPriceNegotiable, details, set, setDetail } = usePostStore()
@@ -343,4 +343,3 @@ const s = StyleSheet.create({
   makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text,  },
   makeTxtActive: { color: Colors.white },
 })
-export default function Dummy() { return null; }

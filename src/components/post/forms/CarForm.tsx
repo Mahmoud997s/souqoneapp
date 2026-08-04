@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platfo
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import Animated, { SlideInDown } from 'react-native-reanimated'
-import { carsApi, CarBrand, CarModelItem, CarTrimItem } from '../../../../src/api/cars'
-import { usePostStore } from '../../../../src/store/postStore'
-import { Colors } from '../../../../src/constants/colors'
-import { Spacing } from '../../../../src/constants/spacing'
-import { Radius } from '../../../../src/constants/radius'
-import { CAR_LISTING_TYPES, CONDITION_TYPES, TRANSMISSION_TYPES, FUEL_TYPES, CAR_FEATURE_KEYS, BODY_TYPES, DRIVE_TYPES, CANCELLATION_POLICIES, CAR_COLORS } from '../../_constants/car'
+import { carsApi, CarBrand, CarModelItem, CarTrimItem } from '../../../api/cars'
+import { usePostStore } from '../../../store/postStore'
+import { Colors } from '../../../constants/colors'
+import { Spacing } from '../../../constants/spacing'
+import { Radius } from '../../../constants/radius'
+import { CAR_LISTING_TYPES, CONDITION_TYPES, TRANSMISSION_TYPES, FUEL_TYPES, CAR_FEATURE_KEYS, BODY_TYPES, DRIVE_TYPES, CANCELLATION_POLICIES, CAR_COLORS } from '../../../constants/cars'
 
 export function CarForm() {
   const { title, description, price, isPriceNegotiable, details, set, setDetail } = usePostStore()
@@ -646,4 +646,3 @@ const s = StyleSheet.create({
   selectItem: { paddingVertical: Spacing.space4, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
   selectItemTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text, writingDirection: 'rtl' },
 })
-export default function Dummy() { return null; }

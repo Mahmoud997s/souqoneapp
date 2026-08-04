@@ -1,11 +1,11 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { Colors } from '../../../src/constants/colors'
-import { Radius } from '../../../src/constants/radius'
-import { Spacing } from '../../../src/constants/spacing'
-import { useEquipmentStore } from '../../../src/store/equipmentPostStore'
-import { AppInput } from '../../../src/components/ui/AppInput'
+import { Colors } from '../../../constants/colors'
+import { Radius } from '../../../constants/radius'
+import { Spacing } from '../../../constants/spacing'
+import { useEquipmentStore } from '../../../store/equipmentPostStore'
+import { AppInput } from '../../ui/AppInput'
 
 const LISTING_TYPES = [
   { key: 'EQUIPMENT_SALE', label: 'للبيع', icon: 'tag-outline' },
@@ -27,7 +27,7 @@ const EQUIPMENT_TYPES = [
 ]
 
 export function EquipmentStep1Type() {
-  const { listingType, equipmentType, errors, set } = useEquipmentStore()
+  const { listingType, equipmentType, title, description, errors, set } = useEquipmentStore()
 
   return (
     <View style={styles.container}>

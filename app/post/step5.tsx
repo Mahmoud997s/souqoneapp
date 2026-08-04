@@ -88,7 +88,8 @@ export default function PostStep5Screen() {
       const numericFields = [
         'mileage', 'dailyPrice', 'monthlyPrice', 'depositAmount',
         'minRentalDays', 'kmLimitPerDay', 'experienceYears', 'horsepower', 'doors',
-        'year', 'hoursUsed', 'budgetMax', 'capacity', 'contractMonthly', 'contractDuration'
+        'year', 'hoursUsed', 'budgetMax', 'capacity', 'contractMonthly', 'contractDuration',
+        'priceFrom', 'priceTo', 'pricePerHour', 'yearFrom', 'yearTo'
       ];
       numericFields.forEach(field => {
         if (payload[field] != null && payload[field] !== '') {
@@ -97,6 +98,19 @@ export default function PostStep5Screen() {
           delete payload[field]; // Remove empty string numerics
         }
       });
+
+      // Format compatibleModels if string
+      if (typeof payload.compatibleModels === 'string' && payload.compatibleModels.trim()) {
+        payload.compatibleModels = (payload.compatibleModels as string)
+          .split(',')
+          .map((m: string) => m.trim())
+          .filter(Boolean);
+      }
+
+      // Format workingDays if string
+      if (typeof payload.workingDays === 'string' && payload.workingDays.trim()) {
+        payload.workingDays = [(payload.workingDays as string).trim()];
+      }
 
       let res;
       if (store.editMode && store.editListingId) {
@@ -115,7 +129,15 @@ export default function PostStep5Screen() {
         // Cleanup removed images from backend storage explicitly
         if (store.removedImageIds && store.removedImageIds.length > 0) {
           for (const imgId of store.removedImageIds) {
-            try { await uploadsApi.removeListingImage(store.editListingId, imgId); } catch { /* ignore */ }
+            try {
+              if (store.category === 'parts') {
+                await uploadsApi.removePartImage(imgId);
+              } else if (store.category === 'services') {
+                await uploadsApi.removeServiceImage(imgId);
+              } else {
+                await uploadsApi.removeListingImage(store.editListingId, imgId);
+              }
+            } catch { /* ignore */ }
           }
         }
       } else {
@@ -209,7 +231,11 @@ export default function PostStep5Screen() {
                 {store.title || 'عنوان الإعلان'}
               </Text>
               <Text style={s.previewPrice}>
-                {['RENTAL', 'EQUIPMENT_RENT'].includes(store.details?.listingType) && store.details?.dailyPrice
+                {store.category === 'services' && store.details?.priceFrom
+                  ? `يبدأ من ${parseFloat(String(store.details.priceFrom)).toLocaleString()} ر.ع`
+                  : store.category === 'services' && !store.price && !store.details?.priceFrom
+                  ? 'حسب الخدمة والمعاينة'
+                  : ['RENTAL', 'EQUIPMENT_RENT'].includes(store.details?.listingType) && store.details?.dailyPrice
                   ? `${parseFloat(String(store.details.dailyPrice)).toLocaleString()} ر.ع / يوم`
                   : ['WANTED', 'EQUIPMENT_WANTED'].includes(store.details?.listingType) && store.details?.budgetMax
                   ? `${parseFloat(String(store.details.budgetMax)).toLocaleString()} ر.ع (ميزانية)`

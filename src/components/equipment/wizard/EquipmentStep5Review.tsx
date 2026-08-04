@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { Colors } from '../../../src/constants/colors'
-import { Radius } from '../../../src/constants/radius'
-import { Spacing } from '../../../src/constants/spacing'
-import { useEquipmentStore } from '../../../src/store/equipmentPostStore'
+import { Colors } from '../../../constants/colors'
+import { Radius } from '../../../constants/radius'
+import { Spacing } from '../../../constants/spacing'
+import { useEquipmentStore } from '../../../store/equipmentPostStore'
 import { Ionicons } from '@expo/vector-icons'
 
 export function EquipmentStep5Review() {

@@ -2,11 +2,11 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../../src/constants/colors'
-import { Radius } from '../../../src/constants/radius'
-import { Spacing } from '../../../src/constants/spacing'
-import { useEquipmentStore } from '../../../src/store/equipmentPostStore'
-import { dialogService } from '../../../src/store/dialogStore'
+import { Colors } from '../../../constants/colors'
+import { Radius } from '../../../constants/radius'
+import { Spacing } from '../../../constants/spacing'
+import { useEquipmentStore } from '../../../store/equipmentPostStore'
+import { dialogService } from '../../../store/dialogStore'
 
 export function EquipmentStep3Images() {
   const { listingType, images, existingImages, errors, set } = useEquipmentStore()

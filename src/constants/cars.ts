@@ -162,4 +162,3 @@ export const CAR_COLORS = [
   { value: 'metallic_pink', label: 'وردي ميتاليك', hex: '#FFB6C1' },
   { value: 'rose', label: 'روز', hex: '#FF007F' },
 ]
-export default function DummyConst() { return null; }

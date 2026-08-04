@@ -12,6 +12,7 @@ import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
 import { Ionicons } from '@expo/vector-icons';
 import { useServices } from '../../src/hooks/useServices';
+import { usePostStore } from '../../src/store/postStore';
 
 const FILTERS = ['نوع الخدمة', 'الموقع', 'السعر', 'التوافر'];
 
@@ -19,6 +20,13 @@ export default function ServicesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const { set, reset } = usePostStore();
+
+  const handleAddService = () => {
+    reset();
+    set({ category: 'services' });
+    router.push('/post/step2' as any);
+  };
 
   const { data, isLoading, isError, refetch } = useServices();
 
@@ -51,7 +59,7 @@ export default function ServicesScreen() {
         primaryCta={{
           label: 'أضف خدمة',
           icon: 'add-circle-outline',
-          onPress: () => router.push('/post' as any),
+          onPress: handleAddService,
           bgColor: Colors.white,
           textColor: '#1f2937'
         }}

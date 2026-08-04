@@ -1,335 +1,430 @@
-import React from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, RefreshControl, ActivityIndicator, Platform,
+  View,
+  Text,
+  StyleSheet,
+  RefreshControl,
+  ListRenderItemInfo,
 } from 'react-native'
-import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import * as Haptics from 'expo-haptics'
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
-import { Radius } from '../../src/constants/radius'
 import { Typography } from '../../src/constants/typography'
-import { Gradients } from '../../src/constants/gradients'
 import { useChatRooms } from '../../src/hooks/useChat'
 import { useAuthStore } from '../../src/store/authStore'
 import { useArchiveStore } from '../../src/store/archiveStore'
-import { Config } from '../../src/constants/config'
+import { usePinStore } from '../../src/store/pinStore'
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
+import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { dialogService } from '../../src/store/dialogStore'
-
-function formatTime(iso: string) {
-  if (!iso) return 'غير معروف'
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return 'غير معروف'
-  
-  const diff = Date.now() - d.getTime()
-  const mins = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-  if (mins < 1) return 'الآن'
-  if (hours < 1) return `${mins}د`
-  if (days < 1) return `${hours}س`
-  if (days === 1) return 'أمس'
-  return `${days}ي`
-}
-
-function getAvatarUrl(url?: string | null) {
-  if (!url) return null
-  if (url.startsWith('http')) return url
-  if (url.startsWith('/')) return `${Config.socketUrl}${url}`
-  return `${Config.socketUrl}/${url}`
-}
+import { ChatHeader } from '../../src/components/chat/ChatHeader'
+import { ChatFilterTabs, ChatFilterTabType } from '../../src/components/chat/ChatFilterTabs'
+import { ChatItemCard } from '../../src/components/chat/ChatItemCard'
+import { ChatListSkeleton } from '../../src/components/chat/ChatListSkeleton'
+import { ChatRoom } from '../../src/types/listing.types'
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets()
+  const HERO_HEIGHT = insets.top + 120
+  const COMPACT_HEIGHT = insets.top + 54
+  const FILTER_BAR_HEIGHT = 44
+
   const { user } = useAuthStore()
   const { data: rooms, isLoading, refetch } = useChatRooms()
-  
-  const [activeTab, setActiveTab] = React.useState<'all' | 'buying' | 'selling' | 'archived'>('all')
-  const [searchText, setSearchText] = React.useState('')
-  const { archivedIds, toggleArchive } = useArchiveStore()
+  const { scrollHandler, scrollY } = useScrollAwareNav()
+  const { navHidden } = useNavVisibility()
 
-  const filteredRooms = React.useMemo(() => {
-    const text = searchText.toLowerCase().trim()
-    let filtered = rooms || []
-    
-    if (text) {
-      filtered = filtered.filter((r: any) => {
-        const other = r.participants?.find((p: any) => p.id !== user?.id) ?? r.participants?.[0]
-        const name = (other?.displayName ?? other?.username ?? 'مجهول').toLowerCase()
-        const msg = (r.lastMessage?.content ?? '').toLowerCase()
-        return name.includes(text) || msg.includes(text)
+  const [activeTab, setActiveTab] = useState<ChatFilterTabType>('all')
+  const [searchText, setSearchText] = useState('')
+  const { archivedIds, toggleArchive } = useArchiveStore()
+  const { pinnedIds, togglePin } = usePinStore()
+
+  // Compute live count badges for each filter tab
+  const isRoomSelling = useCallback(
+    (r: ChatRoom) => {
+      const listingUserId =
+        (r.listing as any)?.userId ||
+        (r.listing as any)?.user?.id ||
+        (r as any)?.sellerId ||
+        (r as any)?.creatorId
+      return !!user?.id && listingUserId === user?.id
+    },
+    [user?.id]
+  )
+
+  const counts = useMemo(() => {
+    const allRooms: ChatRoom[] = (rooms as ChatRoom[]) || []
+    let all = 0
+    let unread = 0
+    let buying = 0
+    let selling = 0
+    let archived = 0
+
+    allRooms.forEach((r) => {
+      const isArchived = archivedIds.includes(r.id)
+      if (isArchived) {
+        archived += 1
+      } else {
+        all += 1
+        if ((r.unreadCount ?? 0) > 0) {
+          unread += 1
+        }
+        if (isRoomSelling(r)) {
+          selling += 1
+        } else {
+          buying += 1
+        }
+      }
+    })
+
+    return { all, unread, buying, selling, archived }
+  }, [rooms, archivedIds, isRoomSelling])
+
+  const totalUnreadCount = counts.unread ?? 0
+
+  // Filter & Search Logic
+  const filteredRooms = useMemo(() => {
+    if (!rooms) return []
+
+    let result = rooms as ChatRoom[]
+
+    // 1. Filter by Active Tab
+    switch (activeTab) {
+      case 'unread':
+        result = result.filter(
+          (r) => !archivedIds.includes(r.id) && (r.unreadCount ?? 0) > 0
+        )
+        break
+      case 'buying':
+        result = result.filter(
+          (r) => !archivedIds.includes(r.id) && !isRoomSelling(r)
+        )
+        break
+      case 'selling':
+        result = result.filter(
+          (r) => !archivedIds.includes(r.id) && isRoomSelling(r)
+        )
+        break
+      case 'archived':
+        result = result.filter((r) => archivedIds.includes(r.id))
+        break
+      case 'all':
+      default:
+        result = result.filter((r) => !archivedIds.includes(r.id))
+        break
+    }
+
+    // 2. Search Text Filtering
+    if (searchText.trim()) {
+      const query = searchText.toLowerCase().trim()
+      result = result.filter((room) => {
+        const otherParticipant =
+          room.participants?.find((p) => p.id !== user?.id) ||
+          room.participants?.[0]
+        const nameMatch =
+          otherParticipant?.displayName?.toLowerCase().includes(query) ||
+          otherParticipant?.username?.toLowerCase().includes(query) ||
+          (otherParticipant as any)?.name?.toLowerCase().includes(query)
+        const listingMatch = room.listing?.title?.toLowerCase().includes(query)
+        const lastMsgMatch = room.lastMessage?.content?.toLowerCase().includes(query)
+
+        return !!(nameMatch || listingMatch || lastMsgMatch)
       })
     }
 
-    return filtered.filter((r: any) => {
-      const isArchived = archivedIds.includes(r.id)
-      if (activeTab === 'archived') return isArchived
-      if (isArchived) return false
-      
-      const isMyListing = r.listing?.userId === user?.id
-      if (activeTab === 'selling') return isMyListing
-      if (activeTab === 'buying') return !isMyListing
-      
-      return true
+    // 3. Sort Pinned items to the top, then by last message / update time
+    return [...result].sort((a, b) => {
+      const aPinned = pinnedIds.includes(a.id)
+      const bPinned = pinnedIds.includes(b.id)
+      if (aPinned && !bPinned) return -1
+      if (!aPinned && bPinned) return 1
+
+      const timeA = a.lastMessage?.createdAt
+        ? new Date(a.lastMessage.createdAt).getTime()
+        : a.updatedAt
+        ? new Date(a.updatedAt).getTime()
+        : 0
+      const timeB = b.lastMessage?.createdAt
+        ? new Date(b.lastMessage.createdAt).getTime()
+        : b.updatedAt
+        ? new Date(b.updatedAt).getTime()
+        : 0
+      return timeB - timeA
     })
-  }, [rooms, archivedIds, activeTab, searchText, user?.id])
+  }, [rooms, activeTab, searchText, archivedIds, pinnedIds, user?.id, isRoomSelling])
+
+  // Handlers
+  const handleRoomPress = useCallback((room: ChatRoom) => {
+    const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
+    const otherName = otherParticipant?.displayName || otherParticipant?.username || (room.listing ? room.listing.title : '')
+    const otherAvatar = otherParticipant?.avatarUrl || otherParticipant?.avatar || ''
+
+    router.push({
+      pathname: '/chat/[id]',
+      params: {
+        id: room.id,
+        otherUserName: otherName,
+        otherUserAvatar: otherAvatar,
+      },
+    })
+  }, [user?.id])
+
+  const handleRoomLongPress = useCallback(
+    (room: ChatRoom) => {
+      const isPinned = pinnedIds.includes(room.id)
+      const isArchived = archivedIds.includes(room.id)
+      const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
+      const participantName = otherParticipant?.displayName || otherParticipant?.username || 'المستخدم'
+
+      dialogService.confirm(
+        participantName,
+        room.listing?.title
+          ? `إعلان: ${room.listing.title}`
+          : 'خيارات المحادثة السريعة',
+        () => togglePin(room.id),
+        isPinned ? 'إلغاء التثبيت 📌' : 'تثبيت في الأعلى 📌',
+        isArchived ? 'إلغاء الأرشفة 📥' : 'أرشفة المحادثة 📦'
+      )
+    },
+    [pinnedIds, archivedIds, user?.id, togglePin]
+  )
+
+  const handleArchive = useCallback(
+    (room: ChatRoom) => {
+      toggleArchive(room.id)
+    },
+    [toggleArchive]
+  )
+
+  const handlePin = useCallback(
+    (room: ChatRoom) => {
+      togglePin(room.id)
+    },
+    [togglePin]
+  )
+
+  const handleDelete = useCallback(
+    (room: ChatRoom) => {
+      dialogService.confirm(
+        'حذف المحادثة',
+        'هل أنت متأكد من حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
+        () => toggleArchive(room.id),
+        'حذف نهائي',
+        'إلغاء',
+        true
+      )
+    },
+    [toggleArchive]
+  )
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<ChatRoom>) => (
+      <View style={styles.itemWrapper}>
+        <ChatItemCard
+          room={item}
+          currentUserId={user?.id}
+          isArchived={archivedIds.includes(item.id)}
+          isPinned={pinnedIds.includes(item.id)}
+          onPress={handleRoomPress}
+          onLongPress={handleRoomLongPress}
+          onArchive={handleArchive}
+          onPin={handlePin}
+          onDelete={handleDelete}
+        />
+      </View>
+    ),
+    [
+      user?.id,
+      archivedIds,
+      pinnedIds,
+      handleRoomPress,
+      handleRoomLongPress,
+      handleArchive,
+      handlePin,
+      handleDelete,
+    ]
+  )
+
+  const renderEmptyComponent = () => {
+    if (isLoading) {
+      return <ChatListSkeleton />
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons
+            name={
+              activeTab === 'archived'
+                ? 'archive-outline'
+                : activeTab === 'unread'
+                ? 'checkmark-done-circle-outline'
+                : searchText
+                ? 'search-outline'
+                : 'chatbubbles-outline'
+            }
+            size={38}
+            color={Colors.primary}
+          />
+        </View>
+        <Text style={styles.emptyTitle}>
+          {activeTab === 'archived'
+            ? 'لا توجد محادثات مؤرشفة'
+            : activeTab === 'unread'
+            ? 'لا توجد رسائل غير مقروءة'
+            : searchText
+            ? 'لم يتم العثور على نتائج'
+            : 'لا توجد محادثات حتى الآن'}
+        </Text>
+        <Text style={styles.emptySub}>
+          {activeTab === 'archived'
+            ? 'المحادثات التي تقوم بأرشفتها ستظهر هنا للرجوع إليها في أي وقت.'
+            : activeTab === 'unread'
+            ? 'رائع! لقد اطلعت على جميع رسائلك ومحادثاتك.'
+            : searchText
+            ? `لم نتمكن من العثور على ما يطابق "${searchText}". حاول البحث بكلمات أخرى.`
+            : 'ابدأ المحادثة الآن وتواصل مع أصحاب الإعلانات والمشترين!'}
+        </Text>
+      </View>
+    )
+  }
+
+  // ─── Filter Bar Animation (Follows header collapse & hides on scroll down / reveals on scroll up) ───
+  const filterBarAnimStyle = useAnimatedStyle(() => {
+    const currentHeaderBottom = interpolate(
+      scrollY.value,
+      [0, 15, 90],
+      [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
+      Extrapolation.CLAMP
+    )
+
+    const translateY = interpolate(
+      navHidden.value,
+      [0, 1],
+      [0, -FILTER_BAR_HEIGHT],
+      Extrapolation.CLAMP
+    )
+
+    const opacity = interpolate(
+      navHidden.value,
+      [0, 0.7, 1],
+      [1, 0.3, 0],
+      Extrapolation.CLAMP
+    )
+
+    return {
+      top: currentHeaderBottom,
+      transform: [{ translateY }],
+      opacity,
+    }
+  })
 
   return (
-    <View style={s.container}>
-      {/* ── HEADER ────────────────────────────────────────────── */}
-      <View style={[s.header, { paddingTop: insets.top + Spacing.space2 }]}>
-        <LinearGradient
-          colors={Gradients.hero as any}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill, { borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }]}
+    <View style={styles.container}>
+      {/* Dynamic Animated Collapsible Header */}
+      <ChatHeader
+        scrollY={scrollY}
+        searchText={searchText}
+        onSearchChange={setSearchText}
+        unreadCount={totalUnreadCount}
+        totalCount={counts.all}
+        onNotificationsPress={() => router.push('/profile/notifications' as any)}
+      />
+
+      {/* Floating Animated Filter Bar (Hides on scroll down, shows on scroll up) */}
+      <Animated.View style={[styles.filterBarWrapper, filterBarAnimStyle]}>
+        <ChatFilterTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          counts={counts}
         />
-        <TouchableOpacity style={s.iconBtn} onPress={() => dialogService.alert('قريباً', 'القائمة الجانبية قريباً')}>
-          <Ionicons name="menu" size={24} color={Colors.white} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>الرسائل</Text>
-        <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/profile/notifications' as any)}>
-          <Ionicons name="notifications-outline" size={24} color={Colors.white} />
-        </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      <ScrollView
-        contentContainerStyle={s.content}
+      {/* Conversations List with Reanimated FlatList and Scroll Handler */}
+      <Animated.FlatList
+        data={isLoading ? [] : filteredRooms}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        ListEmptyComponent={renderEmptyComponent}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: HERO_HEIGHT + FILTER_BAR_HEIGHT + 6 },
+        ]}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} colors={[Colors.primary]} />}
-      >
-        <View style={s.searchBar}>
-          <View style={s.searchInner}>
-            <Ionicons name="search" size={20} color={Colors.textMuted} style={s.searchIcon} />
-            <TextInput
-              style={s.searchInput}
-              placeholder="ابحث في الرسائل..."
-              placeholderTextColor={Colors.textMuted}
-              value={searchText}
-              onChangeText={setSearchText}
-              textAlign="right"
-            />
-          </View>
-        </View>
-
-        <View style={s.filterRow}>
-          <TouchableOpacity 
-            style={[s.filterChip, activeTab === 'all' && s.filterChipActive]}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setActiveTab('all')
-            }}
-          >
-            <Text style={[s.filterChipTxt, activeTab === 'all' && s.filterChipTxtActive]}>الكل</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[s.filterChip, activeTab === 'buying' && s.filterChipActive]}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setActiveTab('buying')
-            }}
-          >
-            <Text style={[s.filterChipTxt, activeTab === 'buying' && s.filterChipTxtActive]}>مشتريات</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[s.filterChip, activeTab === 'selling' && s.filterChipActive]}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setActiveTab('selling')
-            }}
-          >
-            <Text style={[s.filterChipTxt, activeTab === 'selling' && s.filterChipTxtActive]}>مبيعات</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[s.filterChip, activeTab === 'archived' && s.filterChipActive]}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setActiveTab('archived')
-            }}
-          >
-            <Text style={[s.filterChipTxt, activeTab === 'archived' && s.filterChipTxtActive]}>مؤرشفة</Text>
-          </TouchableOpacity>
-        </View>
-
-        {isLoading ? (
-          <ActivityIndicator color={Colors.primary} style={s.loader} />
-        ) : !filteredRooms || filteredRooms.length === 0 ? (
-          <View style={s.emptyState}>
-            <View style={s.emptyIconCircle}>
-              <Ionicons 
-                name={activeTab === 'archived' ? "archive" : searchText ? "search" : "chatbubbles-outline"} 
-                size={40} 
-                color={Colors.primary} 
-              />
-            </View>
-            <Text style={s.emptyTitle}>
-              {activeTab === 'archived' 
-                ? 'لا توجد محادثات مؤرشفة' 
-                : searchText 
-                ? 'لم يتم العثور على نتائج' 
-                : 'لا توجد رسائل'}
-            </Text>
-            <Text style={s.emptySub}>
-              {activeTab === 'archived' 
-                ? 'سيظهر هنا المحادثات المؤرشفة'
-                : searchText 
-                ? `لا توجد محادثات تطابق "${searchText}"`
-                : 'ابدأ المحادثة الآن بكلمة طيبة!'}
-            </Text>
-          </View>
-        ) : (
-          <View style={s.list}>
-            {filteredRooms.map((room: any) => {
-              const other = room.participants?.find((p: any) => p.id !== user?.id) ?? room.participants?.[0]
-              const hasUnread = (room.unreadCount ?? 0) > 0
-              const name = other?.displayName ?? other?.username ?? 'مجهول'
-              const isArchived = archivedIds.includes(room.id)
-              const avatar = getAvatarUrl(other?.avatarUrl || other?.avatar)
-
-              return (
-                <TouchableOpacity
-                  key={room.id}
-                  style={[s.chatItem, hasUnread && s.chatItemUnread]}
-                  activeOpacity={0.7}
-                  onPress={() => router.push(`/chat/${room.id}` as any)}
-                  onLongPress={() => {
-                    dialogService.showOptions(
-                      'خيارات المحادثة',
-                      [
-                        { text: isArchived ? 'إلغاء الأرشفة' : 'أرشفة', onPress: () => toggleArchive(room.id) }
-                      ]
-                    )
-                  }}
-                >
-                  <View style={s.avatarWrap}>
-                    {avatar ? (
-                      <Image source={{ uri: avatar }} style={s.avatar} contentFit="cover" />
-                    ) : (
-                      <View style={s.avatarPlaceholder}>
-                        <Text style={s.avatarLetter}>{name.charAt(0)}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={s.chatInfo}>
-                    <View style={s.chatRowTop}>
-                      <Text style={s.userName} numberOfLines={1}>{name}</Text>
-                      <Text style={s.timeTxt}>{formatTime(room.updatedAt)}</Text>
-                    </View>
-                    <Text style={[s.msgTxt, hasUnread && s.msgUnread]} numberOfLines={1}>
-                      {room.lastMessage?.content ?? 'ابدأ المحادثة'}
-                    </Text>
-                  </View>
-
-                  {hasUnread && (
-                    <View style={s.unreadBadge}>
-                      <Text style={s.unreadBadgeTxt}>{room.unreadCount}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        )}
-      </ScrollView>
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+            progressViewOffset={HERO_HEIGHT + FILTER_BAR_HEIGHT}
+          />
+        }
+      />
     </View>
   )
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 16 },
-  android: { elevation: 3 },
-})
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FB' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space4, paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12 },
-      android: { elevation: 8 },
-    }),
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FB',
   },
-  iconBtn: { 
-    width: 44, height: 44, 
-    alignItems: 'center', justifyContent: 'center', 
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.15)'
+  filterBarWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 90,
+    backgroundColor: '#F8F9FB',
+    paddingVertical: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.03)',
   },
-  headerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.headlineSm.fontSize, color: Colors.white },
-  
-  content: { padding: Spacing.space4, paddingBottom: 100 },
-  loader: { marginTop: 60 },
-  
-  searchBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.white, height: 52, borderRadius: Radius.xl,
-    paddingStart: Spacing.space4, paddingEnd: Spacing.space1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
-    marginBottom: Spacing.space6,
+  contentContainer: {
+    paddingBottom: 110,
   },
-  searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, flex: 1 },
-  searchIcon: { marginEnd: Spacing.space2 },
-  searchInput: { flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text, textAlign: 'right' },
-  
-  filterRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space5, paddingHorizontal: 2 },
-  filterChip: { 
-    paddingHorizontal: 20, paddingVertical: 12, 
-    borderRadius: Radius.pill, backgroundColor: Colors.white, 
-    borderWidth: 1.5, borderColor: '#E0E6F2',
-    ...softShadow,
+  itemWrapper: {
+    paddingHorizontal: Spacing.space4,
+    marginBottom: Spacing.space3,
   },
-  filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  filterChipTxt: { fontFamily: 'Almarai_700Bold',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2 },
-  filterChipTxtActive: { color: Colors.white },
-  
-  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 80, paddingHorizontal: 30 },
-  emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(0, 74, 198, 0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize, color: Colors.text, marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, textAlign: 'center', lineHeight: 22 },
-  
-  list: { gap: Spacing.space4 },
-  
-  chatItemUnread: { backgroundColor: '#F4F8FF', borderColor: 'rgba(0, 74, 198, 0.1)', borderWidth: 1 },
-  chatItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    padding: Spacing.space4, borderRadius: 20, gap: Spacing.space3,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 4,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 48,
+    paddingHorizontal: 28,
   },
-  
-  avatarWrap: { position: 'relative' },
-  avatar: { width: 56, height: 56, borderRadius: 28 },
-  avatarPlaceholder: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: 'rgba(0, 74, 198, 0.1)',
-    alignItems: 'center', justifyContent: 'center',
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(13, 48, 96, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  avatarLetter: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.titleMd.fontSize, color: Colors.primary },
-  
-  chatInfo: { flex: 1, alignItems: 'flex-start' },
-  chatRowTop: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 6, alignItems: 'center' },
-  timeTxt: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.caption.fontSize, color: Colors.textMuted },
-  userName: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.bodyLg.fontSize, color: Colors.text, writingDirection: 'rtl', flex: 1 },
-  msgTxt: { fontFamily: 'Almarai_400Regular',  fontSize: Typography.bodyMd.fontSize, color: Colors.text2, writingDirection: 'rtl', textAlign: 'right' },
-  msgUnread: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
-  
-  unreadBadge: {
-    minWidth: 24, height: 24, borderRadius: 12,
-    backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 6, marginStart: Spacing.space2,
+  emptyTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: Typography.titleMd.fontSize,
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
-  unreadBadgeTxt: { fontFamily: 'Almarai_800ExtraBold',  fontSize: Typography.caption.fontSize, color: Colors.white },
+  emptySub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: Typography.bodyMd.fontSize,
+    color: Colors.text2,
+    textAlign: 'center',
+    lineHeight: 22,
+    writingDirection: 'rtl',
+  },
 })

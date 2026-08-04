@@ -4,6 +4,8 @@ import { useLocalSearchParams, router } from 'expo-router'
 import { listingsApi } from '../../../src/api/listings'
 import { busesApi } from '../../../src/api/buses'
 import { equipmentApi } from '../../../src/api/equipment'
+import { partsApi } from '../../../src/api/parts'
+import { servicesApi } from '../../../src/api/services'
 import { usePostStore } from '../../../src/store/postStore'
 import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { Colors } from '../../../src/constants/colors'
@@ -25,11 +27,23 @@ export default function EditListingLoader() {
           res = await equipmentApi.getById(id)
         } else if (type === 'bus' || type === 'buses') {
           res = await busesApi.getById(id)
+        } else if (type === 'parts' || type === 'part') {
+          res = await partsApi.getById(id)
+        } else if (type === 'services' || type === 'service') {
+          res = await servicesApi.getById(id)
         } else {
           try {
             res = await listingsApi.getById(id)
           } catch {
-            res = await busesApi.getById(id)
+            try {
+              res = await partsApi.getById(id)
+            } catch {
+              try {
+                res = await servicesApi.getById(id)
+              } catch {
+                res = await busesApi.getById(id)
+              }
+            }
           }
         }
         const listing: any = res.data ?? res
@@ -94,8 +108,8 @@ export default function EditListingLoader() {
         else if (type === 'equipment' || listing.type === 'equipment' || ['EQUIPMENT_SALE', 'EQUIPMENT_RENT', 'EQUIPMENT_WANTED', 'EQUIPMENT_LISTING'].includes(listing.listingType)) category = 'equipment'
         else if (listing.type === 'transport' || listing.listingType === 'TRANSPORT_REQUEST') category = 'transport'
         else if (listing.type === 'job' || listing.listingType === 'JOB') category = 'jobs'
-        else if (listing.type === 'service' || listing.listingType === 'CAR_SERVICE') category = 'services'
-        else if (listing.type === 'part' || listing.listingType === 'SPARE_PART') category = 'parts'
+        else if (type === 'service' || type === 'services' || listing.type === 'service' || listing.listingType === 'CAR_SERVICE' || !!listing.serviceType) category = 'services'
+        else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
 
         // Populate store
         set({
@@ -104,7 +118,7 @@ export default function EditListingLoader() {
           category,
           title: listing.title || '',
           description: listing.description || '',
-          price: String(listing.price || listing.dailyPrice || listing.monthlyPrice || listing.basePrice || listing.dailyRate || listing.hourlyRate || ''),
+          price: String(listing.price || listing.priceFrom || listing.dailyPrice || listing.monthlyPrice || listing.basePrice || listing.dailyRate || listing.hourlyRate || ''),
           isPriceNegotiable: listing.isPriceNegotiable || false,
           governorate: listing.governorate || '',
           city: listing.city || '',

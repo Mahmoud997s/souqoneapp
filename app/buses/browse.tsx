@@ -18,7 +18,7 @@ import Animated from 'react-native-reanimated';
 import { useInfiniteBuses } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
-import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../post/_constants/bus';
+import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';

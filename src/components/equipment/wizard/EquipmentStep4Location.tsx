@@ -1,10 +1,10 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { Colors } from '../../../src/constants/colors'
-import { Spacing } from '../../../src/constants/spacing'
-import { useEquipmentStore } from '../../../src/store/equipmentPostStore'
-import { LocationPicker } from '../../../src/components/ui/LocationPicker'
-import { AppInput } from '../../../src/components/ui/AppInput'
+import { Colors } from '../../../constants/colors'
+import { Spacing } from '../../../constants/spacing'
+import { useEquipmentStore } from '../../../store/equipmentPostStore'
+import { LocationPicker } from '../../ui/LocationPicker'
+import { AppInput } from '../../ui/AppInput'
 
 export function EquipmentStep4Location() {
   const { 
