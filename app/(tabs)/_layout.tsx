@@ -44,9 +44,9 @@ const T = {
   badgeBorder:Colors.white,
 } as const
 
-const BAR_H      = 60
-const FAB_SIZE   = 52
-const ICON_SIZE  = 24
+const BAR_H      = 54
+const FAB_SIZE   = 48
+const ICON_SIZE  = 22
 const FONT_ACT   = Typography.labelMd.fontFamily
 const FONT_INACT = Typography.caption.fontFamily
 
@@ -295,24 +295,26 @@ const s = StyleSheet.create({
   wrapper: {
     position: 'absolute',
     left: 16, right: 16,
-    borderRadius: 32,
+    maxWidth: 480,
+    alignSelf: 'center',
+    borderRadius: 28,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
       },
-      android: { elevation: 12 },
+      android: { elevation: 10 },
     }),
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 32,
+    borderRadius: 28,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)', // fallback
+    backgroundColor: 'rgba(255, 255, 255, 0.82)', // fallback
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
 
   // ── Main row ──
@@ -320,7 +322,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     height: BAR_H,
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
 
   // ── Regular tab item ──
@@ -329,15 +331,15 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: BAR_H,
-    gap: 2,
-    paddingTop: 4, // reduced top padding
-    paddingBottom: 6, // increased bottom padding for text descenders
+    gap: 1,
+    paddingTop: 3,
+    paddingBottom: 4,
   },
 
   // Icon container holds the bg bubble + icon + badge
   iconContainer: {
-    width: 44,
-    height: 34,
+    width: 38,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -346,19 +348,19 @@ const s = StyleSheet.create({
   // Soft bg pill behind active icon
   iconBg: {
     position: 'absolute',
-    width: 44,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: T.primaryBg,
   },
 
   label: {
     fontFamily: FONT_INACT,
-    fontSize: 10,
+    fontSize: 9.5,
     color: T.inactive,
-     letterSpacing: 0.1,
-    lineHeight: 16, // added line height to prevent clipping
-    paddingBottom: 2, // explicit padding to protect Arabic font bottom
+    letterSpacing: 0.1,
+    lineHeight: 14,
+    paddingBottom: 1,
   },
   labelActive: {
     fontFamily: FONT_ACT,
@@ -367,21 +369,21 @@ const s = StyleSheet.create({
 
   // Small pill dot at the bottom
   dot: {
-    height: 3,
-    borderRadius: 2,
+    height: 2.5,
+    borderRadius: 1.5,
     backgroundColor: T.primary,
   },
 
   // Unread badge
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    top: 2,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: T.badgeBg,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: T.badgeBorder,
   },
 
@@ -402,7 +404,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       ios: Shadows.floating,
-      android: { elevation: 10 },
+      android: { elevation: 8 },
     }),
   },
 
@@ -414,17 +416,17 @@ const s = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: T.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
       },
-      android: { elevation: 12 },
+      android: { elevation: 10 },
     }),
   },
   floatingFab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

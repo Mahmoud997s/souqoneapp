@@ -5,17 +5,17 @@ export interface PartCategoryOption {
 }
 
 export const PART_CATEGORIES: PartCategoryOption[] = [
-  { id: 'ENGINE', label: 'محرك وملحقاته', icon: 'speedometer-outline' },
-  { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-outline' },
-  { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'flash-outline' },
-  { id: 'SUSPENSION', label: 'مساعدات ونظام تعليق', icon: 'git-compare-outline' },
-  { id: 'BRAKES', label: 'فرامل ومكابح', icon: 'disc-outline' },
-  { id: 'INTERIOR', label: 'مقصورة وداخلية', icon: 'hardware-chip-outline' },
-  { id: 'TIRES', label: 'إطارات وجنوط', icon: 'radio-button-on-outline' },
-  { id: 'BATTERIES', label: 'بطاريات', icon: 'battery-charging-outline' },
-  { id: 'OILS', label: 'زيوت وفلاتر', icon: 'water-outline' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات وزينة', icon: 'sparkles-outline' },
-  { id: 'OTHER', label: 'أخرى', icon: 'ellipsis-horizontal-outline' },
+  { id: 'ENGINE', label: 'محرك وملحقاته', icon: 'engine' },
+  { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-side' },
+  { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'car-electric' },
+  { id: 'SUSPENSION', label: 'مساعدات ونظام تعليق', icon: 'car-esp' },
+  { id: 'BRAKES', label: 'فرامل ومكابح', icon: 'car-brake-alert' },
+  { id: 'INTERIOR', label: 'مقصورة وداخلية', icon: 'car-seat' },
+  { id: 'TIRES', label: 'إطارات وجنوط', icon: 'tire' },
+  { id: 'BATTERIES', label: 'بطاريات', icon: 'car-battery' },
+  { id: 'OILS', label: 'زيوت وفلاتر', icon: 'oil' },
+  { id: 'ACCESSORIES', label: 'إكسسوارات وزينة', icon: 'car-cog' },
+  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal' },
 ]
 
 export const PART_CONDITIONS = [
@@ -53,4 +53,27 @@ export const POPULAR_PART_MAKES = [
   { id: 'geely', label: 'جيلي' },
   { id: 'mg', label: 'إم جي' },
   { id: 'isuzu', label: 'إيسوزو' },
-]
+];
+
+export const PARTS_PRICE_RANGES = [
+  { id: 'p1', label: 'أقل من 20 ر.ع', min: 0, max: 20 },
+  { id: 'p2', label: '20 - 50 ر.ع', min: 20, max: 50 },
+  { id: 'p3', label: '50 - 100 ر.ع', min: 50, max: 100 },
+  { id: 'p4', label: '100 - 250 ر.ع', min: 100, max: 250 },
+  { id: 'p5', label: '250 - 500 ر.ع', min: 250, max: 500 },
+  { id: 'p6', label: 'أكثر من 500 ر.ع', min: 500, max: null },
+];
+
+export const PARTS_SORT_OPTIONS = [
+  { id: 'createdAt_desc', label: 'الأحدث أولاً', sortBy: 'createdAt', sortOrder: 'DESC' },
+  { id: 'price_asc', label: 'الأقل سعراً', sortBy: 'price', sortOrder: 'ASC' },
+  { id: 'price_desc', label: 'الأعلى سعراً', sortBy: 'price', sortOrder: 'DESC' },
+];
+
+export const PARTS_LISTING_TABS = [
+  { id: 'ALL', label: 'الكل' },
+  { id: 'ORIGINAL', label: 'أصلي وكالة' },
+  { id: 'AFTERMARKET', label: 'تجاري معتمد' },
+  { id: 'SCRAP', label: 'تشليح وسكراب' },
+];
+

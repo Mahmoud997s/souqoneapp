@@ -125,107 +125,124 @@ export default function PostStep2Screen() {
     <View style={s.root}>
       <AppHeader title="إضافة إعلان" showBack />
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <View style={s.progressWrap}>
-
-          <Stepper currentStep={2} totalSteps={5} title="أضف صور الإعلان" />
-        </View>
-
-        <View style={s.headerBox}>
-          <Text style={s.title}>أضف صور الإعلان</Text>
-          <View style={s.infoBox}>
-            <View style={s.iconCircle}>
-              <Ionicons name="camera" size={24} color={Colors.primary} />
-            </View>
-            <Text style={s.infoTxt}>
-              أضف صوراً واضحة تزيد فرص البيع. الإعلانات التي تحتوي على صور أكثر تحظى باهتمام أكبر (حتى {MAX_IMAGES} صور).
-            </Text>
+      <ScrollView 
+        contentContainerStyle={s.content} 
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={s.centerWrap}>
+          <View style={s.progressWrap}>
+            <Stepper currentStep={2} totalSteps={5} title="أضف صور الإعلان" />
           </View>
-        </View>
 
-        {allDisplayImages.length === 0 ? (
-          <TouchableOpacity
-            style={[s.heroUploadBtn, uploading && s.uploadBtnDisabled]}
-            onPress={pickImages}
-            disabled={uploading}
-            activeOpacity={0.8}
-          >
-            {uploading ? (
-              <ActivityIndicator color={Colors.primary} size="large" />
-            ) : (
-              <>
-                <View style={s.heroIconWrap}>
-                  <Ionicons name="images" size={48} color={Colors.primary} />
-                </View>
-                <Text style={s.heroUploadTitle}>انقر هنا لإضافة الصور</Text>
-                <Text style={s.heroUploadSub}>يمكنك إضافة حتى {MAX_IMAGES} صور كحد أقصى</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <View style={s.imagesContainer}>
-            {/* Main Image */}
-            <View style={s.mainImageWrap}>
-              <Image source={{ uri: allDisplayImages[0] }} style={s.mainImage} contentFit="cover" />
-              <View style={s.mainBadgeOverlay}>
-                <Ionicons name="star" size={14} color="#FFF" />
-                <Text style={s.mainBadgeTxt}>الصورة الرئيسية</Text>
+          <View style={s.headerBox}>
+            <Text style={s.title}>أضف صور الإعلان</Text>
+            <View style={s.infoBox}>
+              <View style={s.iconCircle}>
+                <Ionicons name="camera" size={20} color={Colors.primary} />
               </View>
-              <TouchableOpacity style={s.glassRemoveBtn} onPress={() => removeImage(0)} activeOpacity={0.7}>
-                <Ionicons name="trash" size={20} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Thumbnails Grid */}
-            <View style={s.thumbnailGrid}>
-              {allDisplayImages.slice(1).map((uri, index) => {
-                const realIndex = index + 1
-                return (
-                  <View key={realIndex} style={s.thumbWrap}>
-                    <Image source={{ uri }} style={s.thumbImage} contentFit="cover" />
-                    
-                    <TouchableOpacity style={s.glassMainBtnSmall} onPress={() => makeMain(realIndex)} activeOpacity={0.7}>
-                      <Ionicons name="star" size={12} color="#FFF" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={s.glassRemoveBtnSmall} onPress={() => removeImage(realIndex)} activeOpacity={0.7}>
-                      <Ionicons name="trash" size={14} color="#FFF" />
-                    </TouchableOpacity>
-                  </View>
-                )
-              })}
-
-              {allDisplayImages.length < MAX_IMAGES && (
-                <TouchableOpacity
-                  style={[s.addThumbBtn, uploading && s.uploadBtnDisabled]}
-                  onPress={pickImages}
-                  disabled={uploading}
-                  activeOpacity={0.8}
-                >
-                  {uploading ? (
-                    <ActivityIndicator color={Colors.primary} />
-                  ) : (
-                    <>
-                      <Ionicons name="add" size={32} color={Colors.primary} />
-                      <Text style={s.addThumbTxt}>أضف المزيد</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              )}
+              <Text style={s.infoTxt}>
+                أضف صوراً واضحة تزيد فرص البيع (حتى {MAX_IMAGES} صور).
+              </Text>
             </View>
           </View>
-        )}
+
+          {allDisplayImages.length === 0 ? (
+            <TouchableOpacity
+              style={[s.heroUploadBtn, uploading && s.uploadBtnDisabled]}
+              onPress={pickImages}
+              disabled={uploading}
+              activeOpacity={0.8}
+            >
+              {uploading ? (
+                <ActivityIndicator color={Colors.primary} size="large" />
+              ) : (
+                <>
+                  <View style={s.heroIconWrap}>
+                    <Ionicons name="images" size={42} color={Colors.primary} />
+                  </View>
+                  <Text style={s.heroUploadTitle}>انقر هنا لإضافة الصور</Text>
+                  <Text style={s.heroUploadSub}>يمكنك إضافة حتى {MAX_IMAGES} صور كحد أقصى</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View style={s.imagesContainer}>
+              {/* Main Image */}
+              <View style={s.mainImageWrap}>
+                <Image source={{ uri: allDisplayImages[0] }} style={s.mainImage} contentFit="cover" />
+                <View style={s.mainBadgeOverlay}>
+                  <Ionicons name="star" size={14} color="#FFF" />
+                  <Text style={s.mainBadgeTxt}>الصورة الرئيسية</Text>
+                </View>
+                <TouchableOpacity style={s.glassRemoveBtn} onPress={() => removeImage(0)} activeOpacity={0.7}>
+                  <Ionicons name="trash" size={20} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Thumbnails Grid */}
+              <View style={s.thumbnailGrid}>
+                {allDisplayImages.slice(1).map((uri, index) => {
+                  const realIndex = index + 1
+                  return (
+                    <View key={realIndex} style={s.thumbWrap}>
+                      <Image source={{ uri }} style={s.thumbImage} contentFit="cover" />
+                      
+                      <TouchableOpacity style={s.glassMainBtnSmall} onPress={() => makeMain(realIndex)} activeOpacity={0.7}>
+                        <Ionicons name="star" size={12} color="#FFF" />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={s.glassRemoveBtnSmall} onPress={() => removeImage(realIndex)} activeOpacity={0.7}>
+                        <Ionicons name="trash" size={14} color="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+                  )
+                })}
+
+                {allDisplayImages.length < MAX_IMAGES && (
+                  <TouchableOpacity
+                    style={[s.addThumbBtn, uploading && s.uploadBtnDisabled]}
+                    onPress={pickImages}
+                    disabled={uploading}
+                    activeOpacity={0.8}
+                  >
+                    {uploading ? (
+                      <ActivityIndicator color={Colors.primary} />
+                    ) : (
+                      <>
+                        <Ionicons name="add" size={30} color={Colors.primary} />
+                        <Text style={s.addThumbTxt}>أضف المزيد</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
-      <View style={[s.bottomBar, { bottom: Math.max(insets.bottom, Spacing.space4) }]}>
-        <AppButton variant="outline" title="السابق" onPress={() => router.back()} style={{ flex: 1 }} />
-        <AppButton title="التالي" onPress={() => {
-          if (allDisplayImages.length === 0 && !SKIP_IMAGES_CATEGORIES.includes(category)) {
-            dialogService.alert('تنبيه', 'يرجى إضافة صورة واحدة على الأقل للإعلان')
-            return
-          }
-          router.push('/post/step3')
-        }} style={{ flex: 1 }} />
+      <View style={[s.bottomBarWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={s.bottomBarContent}>
+          <AppButton 
+            variant="outline" 
+            size="sm"
+            title="السابق" 
+            onPress={() => router.back()} 
+            style={{ flex: 1 }} 
+          />
+          <AppButton 
+            title="التالي" 
+            size="sm"
+            onPress={() => {
+              if (allDisplayImages.length === 0 && !SKIP_IMAGES_CATEGORIES.includes(category)) {
+                dialogService.alert('تنبيه', 'يرجى إضافة صورة واحدة على الأقل للإعلان')
+                return
+              }
+              router.push('/post/step3')
+            }} 
+            style={{ flex: 1 }} 
+          />
+        </View>
       </View>
     </View>
   )
@@ -233,15 +250,24 @@ export default function PostStep2Screen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
-  content: { padding: Spacing.space4, paddingBottom: 100 },
-  progressWrap: { marginBottom: Spacing.space6 },
+  content: { 
+    paddingHorizontal: Spacing.space3, 
+    paddingTop: Spacing.space3, 
+    paddingBottom: 90,
+  },
+  centerWrap: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  progressWrap: { marginBottom: Spacing.space3 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.space2 },
-  progressStepTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
-  progressTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.textMuted },
+  progressStepTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: Colors.primary },
+  progressTitle: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: Colors.textMuted },
   progressBarBg: { height: 10, backgroundColor: Colors.surface, borderRadius: 100, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 100 },
   headerBox: { marginBottom: Spacing.space5 },
-  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space3 },
+  title: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: Colors.text, writingDirection: 'rtl', textAlign: 'left', marginBottom: Spacing.space3 },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -254,7 +280,7 @@ const s = StyleSheet.create({
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center'
   },
-  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: '#1E3A8A', writingDirection: 'rtl', lineHeight: 20 },
+  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular', fontSize: 13, color: '#1E3A8A', writingDirection: 'rtl', textAlign: 'left', lineHeight: 20 },
   
   heroUploadBtn: {
     backgroundColor: '#F8FAFC',
@@ -270,8 +296,8 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginBottom: Spacing.space3,
   },
-  heroUploadTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, marginBottom: Spacing.space1 },
-  heroUploadSub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
+  heroUploadTitle: { fontFamily: 'Almarai_700Bold', fontSize: 18, color: Colors.text, writingDirection: 'rtl', textAlign: 'center', marginBottom: Spacing.space1 },
+  heroUploadSub: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl', textAlign: 'center' },
   uploadBtnDisabled: { opacity: 0.6 },
   
   imagesContainer: { gap: Spacing.space4 },
@@ -295,7 +321,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: 100,
   },
-  mainBadgeTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: '#FFF' },
+  mainBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#FFF', writingDirection: 'rtl' },
   glassRemoveBtn: {
     position: 'absolute', top: 12, end: 12,
     width: 40, height: 40, borderRadius: 20,
@@ -333,13 +359,27 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: '#CBD5E1', borderStyle: 'dashed',
     alignItems: 'center', justifyContent: 'center',
   },
-  addThumbTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.primary, marginTop: 4 },
-  bottomBar: {
+  addThumbTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.primary, writingDirection: 'rtl', marginTop: 4 },
+  bottomBarWrap: {
     position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: Spacing.space4,
+    backgroundColor: Colors.white,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#EEF2F6',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 10 },
+      android: { elevation: 6 },
+    }),
+  },
+  bottomBarContent: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     flexDirection: 'row',
     gap: Spacing.space3,
+    paddingHorizontal: Spacing.space4,
   },
 })

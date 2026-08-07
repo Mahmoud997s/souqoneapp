@@ -249,8 +249,28 @@ export default function CarsBrowseScreen() {
     setFilters(newFilters);
   };
 
-  const handleSelectFilter = (type: 'make' | 'model' | 'city' | 'price' | 'type', valueId: string, valueName?: string, min?: number, max?: number) => {
+  const handleSelectFilter = (
+    type: 'make' | 'model' | 'city' | 'price' | 'type',
+    valueId: string,
+    valueName?: string,
+    min?: number,
+    max?: number
+  ) => {
     if (type === 'make') {
+      if (!valueId || valueId === selectedBrandId) {
+        setSelectedBrandId(undefined);
+        setSelectedBrandName(undefined);
+        setFilters(prev => {
+          const next = { ...prev };
+          delete next.makeId;
+          delete next.make;
+          delete next.modelId;
+          delete next.model;
+          delete next.trim;
+          return next;
+        });
+        return;
+      }
       setSelectedBrandId(valueId);
       setSelectedBrandName(valueName);
       setFilters(prev => {
@@ -259,20 +279,61 @@ export default function CarsBrowseScreen() {
         next.make = valueName;
         // reset model if make changes
         if (valueId !== prev.makeId) {
-          next.modelId = undefined;
-          next.model = undefined;
-          next.trim = undefined;
+          delete next.modelId;
+          delete next.model;
+          delete next.trim;
         }
         return next;
       });
     } else if (type === 'model') {
+      if (!valueId || valueId === filters.modelId) {
+        setFilters(prev => {
+          const next = { ...prev };
+          delete next.modelId;
+          delete next.model;
+          return next;
+        });
+        return;
+      }
       setFilters(prev => ({ ...prev, modelId: valueId, model: valueName }));
     } else if (type === 'city') {
+      if (!valueId || valueId === filters.city) {
+        setFilters(prev => {
+          const next = { ...prev };
+          delete next.city;
+          return next;
+        });
+        return;
+      }
       setFilters(prev => ({ ...prev, city: valueId }));
     } else if (type === 'price') {
-      setFilters(prev => ({ ...prev, priceMin: min?.toString(), priceMax: max?.toString(), priceId: valueId }));
+      if (!valueId || valueId === (filters as any).priceId) {
+        setFilters(prev => {
+          const next = { ...prev };
+          delete next.priceMin;
+          delete next.priceMax;
+          delete (next as any).priceId;
+          return next;
+        });
+        return;
+      }
+      setFilters(prev => ({
+        ...prev,
+        priceMin: min !== undefined ? min.toString() : undefined,
+        priceMax: max !== undefined ? max.toString() : undefined,
+        priceId: valueId,
+      }));
     } else if (type === 'type') {
-      setFilters(prev => ({ ...prev, bodyType: valueId.toUpperCase() }));
+      const upper = valueId.toUpperCase();
+      if (!valueId || upper === filters.bodyType) {
+        setFilters(prev => {
+          const next = { ...prev };
+          delete next.bodyType;
+          return next;
+        });
+        return;
+      }
+      setFilters(prev => ({ ...prev, bodyType: upper }));
     }
   };
 
@@ -375,7 +436,7 @@ export default function CarsBrowseScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           s.listContent,
-          { paddingTop: Spacing.space2 },
+          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -406,18 +467,23 @@ export default function CarsBrowseScreen() {
               onViewAll={(tabId) => setIsFilterVisible(true)}
             />
             {listings && listings.length > 0 && (
-              <View style={{ paddingHorizontal: Spacing.space4, marginTop: Spacing.space3, marginBottom: Spacing.space2, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 {activeFiltersCount > 0 ? (
-                  <TouchableOpacity onPress={handleClearAll}>
-                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                  <TouchableOpacity 
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3.5, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#FEF2F2' }}
+                    onPress={handleClearAll}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
+                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: Colors.error, textAlign: 'left', writingDirection: 'rtl' }}>
                       مسح الفلاتر
                     </Text>
                   </TouchableOpacity>
                 ) : <View />}
 
-                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#f1f5f9' }}>
                   <Ionicons name="car-sport-outline" size={14} color="#64748b" />
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' }}>
                     {listings.length} سيارة متاحة
                   </Text>
                 </View>

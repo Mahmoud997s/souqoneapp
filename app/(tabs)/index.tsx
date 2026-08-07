@@ -16,6 +16,7 @@ import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { BusCard } from '../../src/components/buses/BusCard'
+import { PartCard } from '../../src/components/parts/PartCard'
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
@@ -306,7 +307,7 @@ export default function HomeScreen() {
         <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
         <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
         <CategorySection title="خدمات" icon="build" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
-        <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" />
+        <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
         <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
         <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
         <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />

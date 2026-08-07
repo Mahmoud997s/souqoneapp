@@ -64,7 +64,7 @@ export function ServiceForm() {
                 name={opt.icon}
                 size={16}
                 color={active ? Colors.primary : Colors.textMuted}
-                style={{ marginRight: 4 }}
+                style={{ marginLeft: 4 }}
               />
             )}
             <Text style={[s.optionTxt, active && s.optionTxtActive]}>{optLabel}</Text>
@@ -319,7 +319,7 @@ const s = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.space3,
     marginTop: Spacing.space4,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   subLabel: {
@@ -327,7 +327,7 @@ const s = StyleSheet.create({
     fontSize: 13,
     color: Colors.text,
     marginBottom: 6,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   typesGrid: {
@@ -395,7 +395,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 9,
-    borderRadius: Radius.pill,
+    minHeight: 40,
+    borderRadius: Radius.md,
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
     backgroundColor: '#F9FAFB',
@@ -424,7 +425,8 @@ const s = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: Radius.pill,
+    minHeight: 36,
+    borderRadius: Radius.md,
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
     backgroundColor: '#F9FAFB',
@@ -467,7 +469,7 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: Colors.textMuted,
     marginTop: 6,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   inputTitle: {

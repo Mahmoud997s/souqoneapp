@@ -49,31 +49,34 @@ const s = StyleSheet.create({
   listingTypeTabs: {
     flexDirection: 'row',
     marginHorizontal: Spacing.space4,
-    marginTop: Spacing.space2, // Reduced margin
-    backgroundColor: '#F1F5F9', // slightly lighter inner bg
-    borderRadius: 8, // slightly smaller border radius
-    padding: 2, // reduced padding
+    marginTop: Spacing.space2,
+    marginBottom: 2,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 7,
+    padding: 3,
   },
   typeTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6, // Reduced padding
-    borderRadius: 6,
+    paddingVertical: 6,
+    borderRadius: 5.5,
     backgroundColor: 'transparent',
   },
   typeTabActive: {
     backgroundColor: Colors.white,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
-      android: { elevation: 2 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
+      android: { elevation: 1 },
     })
   },
   typeTabTxt: {
     fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, // Reduced font size
-    lineHeight: 14, // Adjusted line height
+    fontSize: 11.5,
+    lineHeight: 15.5,
     color: '#64748B',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   typeTabTxtActive: {
     color: Colors.primary,

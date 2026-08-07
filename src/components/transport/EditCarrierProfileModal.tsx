@@ -179,6 +179,7 @@ const s = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     fontFamily: 'Almarai_400Regular', fontSize: 15, color: '#0f172a',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   textArea: {

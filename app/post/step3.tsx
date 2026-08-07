@@ -1,5 +1,13 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
@@ -18,6 +26,20 @@ import { dialogService } from '../../src/store/dialogStore'
 export default function PostStep3Screen() {
   const insets = useSafeAreaInsets()
   const { category, title, description, price, details, editMode } = usePostStore()
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false)
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true))
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false))
+
+    return () => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
 
   const validateAndNext = () => {
     if (!title || !title.trim()) {
@@ -87,7 +109,7 @@ export default function PostStep3Screen() {
       default:
         return (
           <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
-            <Text style={{ fontFamily: 'Almarai_700Bold',  color: Colors.textMuted }}>
+            <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>
               نموذج {category} قيد التطوير
             </Text>
           </View>
@@ -99,47 +121,91 @@ export default function PostStep3Screen() {
     <View style={s.root}>
       <AppHeader title="إضافة إعلان" showBack />
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={s.progressWrap}>
+      <KeyboardAvoidingView
+        style={s.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView
+          style={s.flex1}
+          contentContainerStyle={s.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          <View style={s.centerWrap}>
+            <View style={s.progressWrap}>
+              <Stepper currentStep={3} totalSteps={5} title="التفاصيل والمواصفات" />
+            </View>
 
-          <Stepper currentStep={3} totalSteps={5} title="التفاصيل والمواصفات" />
+            {renderForm()}
+          </View>
+        </ScrollView>
+
+        <View
+          style={[
+            s.bottomBarWrap,
+            { paddingBottom: isKeyboardVisible ? 10 : Math.max(insets.bottom, 12) },
+          ]}
+        >
+          <View style={s.bottomBarContent}>
+            <AppButton
+              variant="outline"
+              size="sm"
+              title="السابق"
+              onPress={() => router.back()}
+              style={{ flex: 1 }}
+            />
+            <AppButton
+              title="التالي"
+              size="sm"
+              onPress={validateAndNext}
+              style={{ flex: 1 }}
+            />
+          </View>
         </View>
-
-        <View style={s.headerBox}>
-          <Text style={s.title}>التفاصيل والمواصفات</Text>
-          <Text style={s.subtitle}>يرجى تعبئة التفاصيل بدقة لزيادة فرصة ظهور إعلانك للمهتمين.</Text>
-        </View>
-
-        {renderForm()}
-      </ScrollView>
-
-      <View style={[s.bottomBar, { bottom: Math.max(insets.bottom, Spacing.space4) }]}>
-        <AppButton variant="outline" title="السابق" onPress={() => router.back()} style={{ flex: 1 }} />
-        <AppButton 
-          title="التالي" 
-          onPress={validateAndNext}
-          style={{ flex: 1 }}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FA' },
-  content: { padding: Spacing.space4, paddingBottom: 100 },
-  progressWrap: { marginBottom: Spacing.space6 },
-  progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.space2 },
-  progressStepTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.textMuted },
-  progressTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
-  progressBarBg: { height: 10, backgroundColor: Colors.surface, borderRadius: 100, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 100 },
-  headerBox: { marginBottom: Spacing.space6 },
-  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2 },
-  subtitle: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.textMuted, writingDirection: 'rtl', lineHeight: 22 },
-  bottomBar: { 
-    position: 'absolute', left: 0, right: 0, 
-    paddingHorizontal: Spacing.space4, 
-    flexDirection: 'row', gap: Spacing.space3
+  flex1: { flex: 1 },
+  content: {
+    paddingHorizontal: Spacing.space3,
+    paddingTop: Spacing.space3,
+    paddingBottom: Spacing.space5,
+  },
+  centerWrap: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  progressWrap: {
+    marginBottom: Spacing.space3,
+  },
+  bottomBarWrap: {
+    backgroundColor: Colors.white,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#EEF2F6',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: { elevation: 6 },
+    }),
+  },
+  bottomBarContent: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    gap: Spacing.space3,
+    paddingHorizontal: Spacing.space4,
   },
 })

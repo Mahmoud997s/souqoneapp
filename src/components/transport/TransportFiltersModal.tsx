@@ -378,7 +378,8 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', 
     fontSize: 16, 
     color: '#0f172a',
-    textAlign: 'left',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   currency: {
     fontFamily: 'Almarai_700Bold', 

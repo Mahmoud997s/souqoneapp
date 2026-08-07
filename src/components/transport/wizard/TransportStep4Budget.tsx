@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     writingDirection: 'rtl',
-    textAlign: 'left',
+    textAlign: 'right',
   },
   switchRow: {
     flexDirection: 'row',
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     writingDirection: 'rtl',
-    textAlign: 'left',
+    textAlign: 'right',
     backgroundColor: 'transparent',
     borderWidth: 0,
   },

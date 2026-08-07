@@ -79,7 +79,7 @@ export function BusForm() {
       {renderSectionTitle('تفاصيل الحافلة الأساسية')}
       <View style={s.inputGroup}>
         <Text style={s.label}>الماركة *</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row', marginBottom: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} style={{ marginBottom: 12 }}>
            {BUS_MAKES.map(m => (
              <TouchableOpacity key={m.id} style={[s.makeBtn, make === m.id && s.makeBtnActive]} onPress={() => setDetail('make', m.id)}>
                <Text style={[s.makeTxt, make === m.id && s.makeTxtActive]}>{m.label}</Text>
@@ -299,8 +299,8 @@ const s = StyleSheet.create({
   root: { padding: Spacing.space4 },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text,
-    marginBottom: Spacing.space3, marginTop: Spacing.space4, textAlign: 'right',
-    
+    marginBottom: Spacing.space3, marginTop: Spacing.space4, textAlign: 'left',
+    writingDirection: 'rtl',
   },
   optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: Spacing.space3 },
   optionChip: {
@@ -308,22 +308,22 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.white,
   },
   optionChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
-  optionTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted,  },
+  optionTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
   optionTxtActive: { color: Colors.primary },
   inputGroup: { marginBottom: Spacing.space4 },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, marginBottom: 8, textAlign: 'right',  },
+  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, marginBottom: 8, textAlign: 'left', writingDirection: 'rtl' },
   input: {
     backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
     borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 12,
     fontFamily: 'Almarai_400Regular', fontSize: 15, color: Colors.text, textAlign: 'right',
-    
+    writingDirection: 'rtl',
   },
   inputTitle: { fontFamily: 'Almarai_700Bold', fontSize: 15 },
   inputDesc: { minHeight: 120, paddingTop: 16 },
   row: { flexDirection: 'row', alignItems: 'center' },
   flex1: { flex: 1 },
   toggleBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
-  toggleTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text,  },
+  toggleTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
   cardGroup: {
     backgroundColor: Colors.white, padding: Spacing.space3,
     borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border,
@@ -336,10 +336,10 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
   },
   featItemActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
-  featTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted,  },
+  featTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
   featTxtActive: { color: Colors.primary },
-  makeBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.white, marginRight: 8 },
+  makeBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.white },
   makeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primary },
-  makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text,  },
+  makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text, writingDirection: 'rtl' },
   makeTxtActive: { color: Colors.white },
 })

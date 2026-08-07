@@ -27,7 +27,7 @@ export function BrowseHeader({
       showBack
       centerSlot={
         <View style={s.compactSearch}>
-          <Ionicons name="search" size={16} color="rgba(255,255,255,0.7)" />
+          <Ionicons name="search" size={15} color="rgba(255,255,255,0.7)" />
           <TextInput
             style={s.compactInput}
             placeholder={searchPlaceholder}
@@ -36,17 +36,18 @@ export function BrowseHeader({
             onChangeText={onSearchChange}
             onSubmitEditing={onSubmitSearch}
             returnKeyType="search"
+            textAlign="right"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => onSearchChange('')}>
-              <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
+              <Ionicons name="close-circle" size={15} color="rgba(255,255,255,0.7)" />
             </TouchableOpacity>
           )}
         </View>
       }
       rightSlot={
         <TouchableOpacity style={s.iconBtn} onPress={onFilterPress}>
-          <Ionicons name="options-outline" size={20} color={Colors.white} />
+          <Ionicons name="options-outline" size={18} color={Colors.white} />
           {activeFiltersCount > 0 && (
             <View style={s.filterBadge}>
               <Text style={s.filterBadgeText}>{activeFiltersCount}</Text>
@@ -61,15 +62,20 @@ export function BrowseHeader({
 const s = StyleSheet.create({
   compactSearch: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 40, borderRadius: 20,
-    paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
+    backgroundColor: 'rgba(255,255,255,0.15)', height: 36, borderRadius: 18,
+    paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space2
   },
   compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', fontSize: 13, 
-    color: Colors.white, textAlign: 'right'
+    flex: 1, 
+    fontFamily: 'Almarai_400Regular', 
+    fontSize: 12, 
+    lineHeight: 16,
+    color: Colors.white, 
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', 
+    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', 
     alignItems: 'center', justifyContent: 'center'
   },
   filterBadge: {
@@ -79,6 +85,6 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center'
   },
   filterBadgeText: {
-    fontFamily: 'Almarai_700Bold', fontSize: 10, color: Colors.white,
+    fontFamily: 'Almarai_700Bold', fontSize: 9, lineHeight: 12, color: Colors.white, textAlign: 'center',
   }
 });

@@ -1,350 +1,1045 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  TextInput,
+  RefreshControl,
   ActivityIndicator,
   Modal,
-  ScrollView,
+  FlatList,
   Platform,
-} from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Colors } from '../../src/constants/colors'
-import { Spacing } from '../../src/constants/spacing'
-import { Radius } from '../../src/constants/radius'
-import { useParts } from '../../src/hooks/useParts'
-import { PartCard } from '../../src/components/parts/PartCard'
-import { formatLocation } from '../../src/utils/mappers'
+} from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 
-const CATEGORIES = [
-  { id: 'ENGINE', label: 'المحرك' },
-  { id: 'BODY', label: 'الهيكل' },
-  { id: 'ELECTRICAL', label: 'الكهرباء' },
-  { id: 'SUSPENSION', label: 'التعليق' },
-  { id: 'BRAKES', label: 'الفرامل' },
-  { id: 'INTERIOR', label: 'الداخلية' },
-  { id: 'TIRES', label: 'الإطارات' },
-]
+// Hooks & Navigation
+import { useInfiniteParts } from '../../src/hooks/useInfiniteParts';
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
+import { useBrands } from '../../src/hooks/useCars';
+import { useDebounce } from '../../src/hooks/useDebounce';
+import { usePostStore } from '../../src/store/postStore';
+import { useAuthStore } from '../../src/store/authStore';
 
-const CONDITIONS = [
-  { id: 'NEW', label: 'جديد' },
-  { id: 'LIKE_NEW', label: 'شبه جديد' },
-  { id: 'USED', label: 'مستعمل' },
-  { id: 'GOOD', label: 'جيد' },
-  { id: 'FAIR', label: 'مقبول' },
-  { id: 'REBUILT', label: 'معاد بناؤه' },
-  { id: 'REFURBISHED', label: 'مجدد' },
-]
+// UI Components
+import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
+import { EmptyState } from '../../src/components/ui/EmptyState';
+
+// Parts Components
+import { PartCard } from '../../src/components/parts/PartCard';
+import { PartSkeletonCard } from '../../src/components/parts/PartSkeletonCard';
+import { PartsVisualFilters } from '../../src/components/parts/PartsVisualFilters';
+import { PartsFilterBottomSheet, PartsFilterState } from '../../src/components/parts/PartsFilterBottomSheet';
+
+// Constants
+import { Colors } from '../../src/constants/colors';
+import { Spacing } from '../../src/constants/spacing';
+import { Radius } from '../../src/constants/radius';
+import { GOVERNORATE_OPTIONS } from '../../src/constants/filters';
+import {
+  PART_CATEGORIES,
+  PART_CONDITIONS,
+  POPULAR_PART_MAKES,
+  PARTS_PRICE_RANGES,
+  PARTS_SORT_OPTIONS,
+  PARTS_LISTING_TABS,
+} from '../../src/constants/parts';
+
+const DROPDOWN_FILTERS = [
+  { id: 'category', label: 'القسم', icon: 'grid-outline' },
+  { id: 'make', label: 'الماركة', icon: 'car-sport-outline' },
+  { id: 'condition', label: 'الحالة', icon: 'shield-checkmark-outline' },
+  { id: 'price', label: 'السعر', icon: 'wallet-outline' },
+  { id: 'city', label: 'المدينة', icon: 'location-outline' },
+  { id: 'sort', label: 'الترتيب', icon: 'swap-vertical-outline' },
+];
 
 export default function PartsBrowseScreen() {
-  const router = useRouter()
-  const insets = useSafeAreaInsets()
-  const params = useLocalSearchParams()
+  const insets = useSafeAreaInsets();
+  const { scrollHandler } = useScrollAwareNav();
 
-  const [searchQuery, setSearchQuery] = useState(params.q as string || '')
-  const [showFilters, setShowFilters] = useState(false)
-  const [selectedCat, setSelectedCat] = useState(params.category as string || '')
-  const [selectedCond, setSelectedCond] = useState(params.condition as string || '')
-  const [isOriginal, setIsOriginal] = useState(params.isOriginal === 'true')
-  const [minPrice, setMinPrice] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
+  const searchParams = useLocalSearchParams<{
+    q?: string;
+    category?: string;
+    condition?: string;
+    isOriginal?: string;
+    isScrap?: string;
+    make?: string;
+    city?: string;
+    priceMin?: string;
+    priceMax?: string;
+    partNumber?: string;
+  }>();
 
-  const activeFiltersCount = [selectedCat, selectedCond, isOriginal, minPrice, maxPrice].filter(Boolean).length
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState(searchParams.q || '');
+  const [selectedListingTab, setSelectedListingTab] = useState<string>('ALL');
 
-  // Build query params
+  const [filters, setFilters] = useState<PartsFilterState>(() => {
+    const initial: PartsFilterState = {};
+    if (searchParams.category) initial.category = searchParams.category;
+    if (searchParams.condition) initial.condition = searchParams.condition;
+    if (searchParams.isOriginal === 'true') initial.isOriginal = true;
+    if (searchParams.isOriginal === 'false') initial.isOriginal = false;
+    if (searchParams.isScrap === 'true') initial.isScrap = true;
+    if (searchParams.make) initial.make = searchParams.make;
+    if (searchParams.city) initial.city = searchParams.city;
+    if (searchParams.priceMin) initial.priceMin = searchParams.priceMin;
+    if (searchParams.priceMax) initial.priceMax = searchParams.priceMax;
+    if (searchParams.partNumber) initial.partNumber = searchParams.partNumber;
+    return initial;
+  });
+
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const { set: setPostStore, reset: resetPostStore } = usePostStore();
+  const { isLoggedIn } = useAuthStore();
+
+  const handleAddPart = useCallback(() => {
+    if (!isLoggedIn) {
+      router.push('/(auth)/login' as any);
+      return;
+    }
+    resetPostStore();
+    setPostStore({ category: 'parts' });
+    router.push('/post/step2' as any);
+  }, [isLoggedIn, resetPostStore, setPostStore]);
+
+  // Dropdown Modal State
+  const [activeDropdown, setActiveDropdown] = useState<'category' | 'make' | 'condition' | 'price' | 'city' | 'sort' | null>(null);
+  const { data: brands } = useBrands();
+
+  // Synchronize listing tabs with filter state
+  const handleTabChange = (tabId: string) => {
+    setSelectedListingTab(tabId);
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (tabId === 'ALL') {
+        delete next.isOriginal;
+        delete next.isScrap;
+      } else if (tabId === 'ORIGINAL') {
+        next.isOriginal = true;
+        delete next.isScrap;
+      } else if (tabId === 'AFTERMARKET') {
+        next.isOriginal = false;
+        delete next.isScrap;
+      } else if (tabId === 'SCRAP') {
+        next.isScrap = true;
+        delete next.isOriginal;
+      }
+      return next;
+    });
+  };
+
+  // Debounce search query to prevent lag and excessive API requests
+  const debouncedSearch = useDebounce(searchQuery, 400);
+
+  // Combine query parameters for API call
   const queryParams = useMemo(() => {
-    const q: any = {}
-    if (searchQuery) q.q = searchQuery
-    if (selectedCat) q.partCategory = selectedCat
-    if (selectedCond) q.condition = selectedCond
-    if (isOriginal) q.isOriginal = 'true'
-    if (minPrice) q.priceFrom = minPrice
-    if (maxPrice) q.priceTo = maxPrice
-    return q
-  }, [searchQuery, selectedCat, selectedCond, isOriginal, minPrice, maxPrice])
+    const params: Record<string, any> = {
+      limit: 30,
+    };
 
-  const { data: parts = [], isLoading, refetch, isRefetching } = useParts(queryParams)
+    if (debouncedSearch.trim()) {
+      params.search = debouncedSearch.trim();
+    }
 
-  const clearFilters = () => {
-    setSelectedCat('')
-    setSelectedCond('')
-    setIsOriginal(false)
-    setMinPrice('')
-    setMaxPrice('')
-    setSearchQuery('')
-    setShowFilters(false)
-  }
+    if (filters.category) {
+      params.partCategory = filters.category;
+    }
 
-  const applyFilters = () => {
-    setShowFilters(false)
-    refetch()
-  }
+    if (filters.make) {
+      params.make = filters.make;
+    }
 
-  const renderFilterModal = () => (
-    <Modal visible={showFilters} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowFilters(false)}>
-      <View style={[s.modalRoot, { paddingBottom: insets.bottom }]}>
-        <View style={s.modalHeader}>
-          <Text style={s.modalTitle}>تصفية النتائج</Text>
-          <TouchableOpacity onPress={() => setShowFilters(false)}>
-            <Ionicons name="close" size={24} color={Colors.text} />
-          </TouchableOpacity>
-        </View>
+    if (filters.condition) {
+      params.condition = filters.condition;
+    }
 
-        <ScrollView style={s.modalBody} showsVerticalScrollIndicator={false}>
-          {/* Category Filter */}
-          <Text style={s.filterLabel}>قسم القطعة</Text>
-          <View style={s.chipsRow}>
-            {CATEGORIES.map(c => (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.chip, selectedCat === c.id && s.chipActive]}
-                onPress={() => setSelectedCat(selectedCat === c.id ? '' : c.id)}
-              >
-                <Text style={[s.chipTxt, selectedCat === c.id && s.chipTxtActive]}>{c.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+    if (filters.isOriginal !== undefined) {
+      params.isOriginal = filters.isOriginal;
+    }
 
-          {/* Condition Filter */}
-          <Text style={s.filterLabel}>حالة القطعة</Text>
-          <View style={s.chipsRow}>
-            {CONDITIONS.map(c => (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.chip, selectedCond === c.id && s.chipActive]}
-                onPress={() => setSelectedCond(selectedCond === c.id ? '' : c.id)}
-              >
-                <Text style={[s.chipTxt, selectedCond === c.id && s.chipTxtActive]}>{c.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+    if (filters.isScrap) {
+      params.isScrap = true;
+    }
 
-          {/* Type */}
-          <Text style={s.filterLabel}>نوع القطعة</Text>
-          <TouchableOpacity
-            style={s.checkboxRow}
-            activeOpacity={0.7}
-            onPress={() => setIsOriginal(!isOriginal)}
-          >
-            <View style={[s.checkbox, isOriginal && s.checkboxChecked]}>
-              {isOriginal && <Ionicons name="checkmark" size={14} color="#fff" />}
+    if (filters.city) {
+      params.city = filters.city;
+    }
+
+    if (filters.governorate) {
+      params.governorate = filters.governorate;
+    }
+
+    if (filters.partNumber) {
+      params.partNumber = filters.partNumber;
+    }
+
+    if (filters.priceMin) {
+      const pMin = parseFloat(filters.priceMin);
+      if (!isNaN(pMin)) params.minPrice = String(pMin);
+    }
+
+    if (filters.priceMax) {
+      const pMax = parseFloat(filters.priceMax);
+      if (!isNaN(pMax)) params.maxPrice = String(pMax);
+    }
+
+    if (filters.sortBy) {
+      params.sortBy = filters.sortBy;
+      params.sortOrder = filters.sortOrder || 'DESC';
+    }
+
+    return params;
+  }, [debouncedSearch, filters]);
+
+  // Fetch infinite parts
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteParts(queryParams);
+
+  const listings = useMemo(
+    () => infiniteData?.pages.flatMap((page) => page.items) ?? [],
+    [infiniteData]
+  );
+
+  // Active filters count calculation
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    const skipKeys = new Set(['makeId', 'priceId']);
+    Object.entries(filters).forEach(([key, val]) => {
+      if (skipKeys.has(key)) return;
+      if (val !== undefined && val !== '') count++;
+    });
+    return count;
+  }, [filters]);
+
+  // Quick filter chips representation
+  const quickFilterItems: QuickFilterItem[] = DROPDOWN_FILTERS.map((qf) => {
+    let isActive = false;
+    let displayLabel = qf.label;
+
+    if (qf.id === 'category') {
+      isActive = !!filters.category;
+      if (isActive) {
+        const found = PART_CATEGORIES.find((c) => c.id === filters.category);
+        displayLabel = found ? found.label : (filters.category as string);
+      }
+    } else if (qf.id === 'make') {
+      isActive = !!filters.make;
+      if (isActive) displayLabel = filters.make as string;
+    } else if (qf.id === 'condition') {
+      isActive = !!filters.condition;
+      if (isActive) {
+        const found = PART_CONDITIONS.find((c) => c.id === filters.condition);
+        displayLabel = found ? found.label : (filters.condition as string);
+      }
+    } else if (qf.id === 'price') {
+      isActive = !!filters.priceMax || !!filters.priceMin;
+      if (isActive) {
+        const found = PARTS_PRICE_RANGES.find((p) => p.max === Number(filters.priceMax));
+        displayLabel = found ? found.label : (filters.priceMax ? `حتى ${filters.priceMax} ر.ع` : 'السعر');
+      }
+    } else if (qf.id === 'city') {
+      isActive = !!filters.city;
+      if (isActive) displayLabel = filters.city as string;
+    } else if (qf.id === 'sort') {
+      isActive = !!filters.sortBy;
+      if (isActive) {
+        const found = PARTS_SORT_OPTIONS.find(
+          (s) => s.sortBy === filters.sortBy && s.sortOrder === filters.sortOrder
+        );
+        displayLabel = found ? found.label : 'الترتيب';
+      }
+    }
+
+    return {
+      id: qf.id,
+      label: displayLabel,
+      icon: qf.icon as any,
+      isActive,
+    };
+  });
+
+  const handleClearQuickFilter = useCallback((id: string) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      if (id === 'category') delete newFilters.category;
+      if (id === 'make') {
+        delete newFilters.make;
+        delete newFilters.makeId;
+      }
+      if (id === 'condition') delete newFilters.condition;
+      if (id === 'price') {
+        delete newFilters.priceMin;
+        delete newFilters.priceMax;
+        delete newFilters.priceId;
+      }
+      if (id === 'city') {
+        delete newFilters.city;
+        delete newFilters.governorate;
+      }
+      if (id === 'sort') {
+        delete newFilters.sortBy;
+        delete newFilters.sortOrder;
+      }
+      return newFilters;
+    });
+  }, []);
+
+  const handleSelectVisualFilter = useCallback((
+    type: 'category' | 'make' | 'city' | 'price' | 'condition' | 'isOriginal',
+    valueId: string,
+    valueName?: string,
+    min?: number,
+    max?: number
+  ) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (type === 'category') {
+        next.category = next.category === valueId ? undefined : valueId;
+      } else if (type === 'make') {
+        if (next.make === valueName || next.makeId === valueId) {
+          next.make = undefined;
+          next.makeId = undefined;
+        } else {
+          next.makeId = valueId;
+          next.make = valueName;
+        }
+      } else if (type === 'city') {
+        next.city = next.city === valueId ? undefined : valueId;
+      } else if (type === 'price') {
+        if (next.priceId === valueId) {
+          next.priceMin = undefined;
+          next.priceMax = undefined;
+          next.priceId = undefined;
+        } else {
+          next.priceMin = min?.toString();
+          next.priceMax = max ? max.toString() : '999999';
+          next.priceId = valueId;
+        }
+      } else if (type === 'condition') {
+        next.condition = next.condition === valueId ? undefined : valueId;
+      } else if (type === 'isOriginal') {
+        if (valueId === 'true') {
+          next.isOriginal = next.isOriginal === true ? undefined : true;
+        } else {
+          next.isOriginal = next.isOriginal === false ? undefined : false;
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setFilters({});
+    setSearchQuery('');
+    setSelectedListingTab('ALL');
+  }, []);
+
+  const showSkeleton = isLoading || (isFetching && listings.length === 0);
+
+  const renderEmptyState = () => {
+    if (showSkeleton) {
+      return (
+        <View style={s.skeletonGrid}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={s.fullCard}>
+              <PartSkeletonCard fullWidth />
             </View>
-            <Text style={s.checkboxLabel}>قطعة أصلية فقط</Text>
-          </TouchableOpacity>
-
-          {/* Price Range */}
-          <Text style={s.filterLabel}>السعر (ر.ع)</Text>
-          <View style={s.priceInputs}>
-            <TextInput
-              style={s.priceInput}
-              placeholder="من"
-              keyboardType="numeric"
-              value={minPrice}
-              onChangeText={setMinPrice}
-            />
-            <Text style={{ marginHorizontal: 8 }}>-</Text>
-            <TextInput
-              style={s.priceInput}
-              placeholder="إلى"
-              keyboardType="numeric"
-              value={maxPrice}
-              onChangeText={setMaxPrice}
-            />
-          </View>
-        </ScrollView>
-
-        <View style={s.modalFooter}>
-          <TouchableOpacity style={s.clearBtn} onPress={clearFilters}>
-            <Text style={s.clearBtnTxt}>مسح الفلاتر</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.applyBtn} onPress={applyFilters}>
-            <Text style={s.applyBtnTxt}>تطبيق</Text>
-          </TouchableOpacity>
+          ))}
         </View>
-      </View>
-    </Modal>
-  )
+      );
+    }
+
+    if (isError) {
+      return (
+        <EmptyState
+          icon="alert-circle-outline"
+          iconColor={Colors.error}
+          title="حدث خطأ أثناء تحميل قطع الغيار"
+          subtitle="تعذر الاتصال بالخادم لجلب البيانات، يرجى المحاولة مرة أخرى."
+          actionLabel="إعادة المحاولة"
+          actionIcon="refresh-outline"
+          onAction={() => refetch()}
+        />
+      );
+    }
+
+    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
+
+    return (
+      <EmptyState
+        icon="car-cog"
+        iconType="material-community"
+        iconSize={40}
+        iconColor={Colors.primary}
+        title="لا توجد قطع غيار مطابقة"
+        subtitle={
+          hasActiveFiltersOrSearch
+            ? "لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر."
+            : "لا توجد قطع غيار متاحة في هذا القسم حالياً."
+        }
+        actionLabel={hasActiveFiltersOrSearch ? "إعادة تعيين الكل" : "تحديث الصفحة"}
+        actionIcon={hasActiveFiltersOrSearch ? "close-circle-outline" : "refresh-outline"}
+        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+      />
+    );
+  };
 
   return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
-      {/* Search Header */}
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        
-        <View style={s.searchWrap}>
-          <Ionicons name="search" size={20} color={Colors.textMuted} style={{ marginLeft: 12 }} />
-          <TextInput
-            style={s.searchInput}
-            placeholder="ابحث عن قطعة (محرك، مقص، فحمات...)"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={() => refetch()}
-            returnKeyType="search"
+    <View style={s.root}>
+      {/* Browse Header */}
+      <BrowseHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث عن قطعة غيار، رقم القطعة، أو الماركة..."
+        activeFiltersCount={activeFiltersCount}
+        onFilterPress={() => setIsFilterVisible(true)}
+      />
+
+      {/* Collapsible SubHeader with Listing Tabs & Quick Filter Chips */}
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={PARTS_LISTING_TABS}
+          activeTabId={selectedListingTab}
+          onChangeTab={handleTabChange}
+          onClearTab={() => handleTabChange('ALL')}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={(id) => setActiveDropdown(id as any)}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
+
+      {/* Main Animated List */}
+      <Animated.FlatList
+        key="parts-browse-list"
+        data={listings}
+        keyExtractor={(item, index) => (item as any)?.id || String(index)}
+        contentContainerStyle={[
+          s.listContent,
+          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !showSkeleton}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
           />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')} style={{ padding: 8 }}>
-              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          <View style={s.listHeader}>
+            <PartsVisualFilters
+              selectedCategory={filters.category}
+              selectedMake={filters.make}
+              onSelectFilter={handleSelectVisualFilter}
+              onViewAll={() => setIsFilterVisible(true)}
+            />
 
-        <TouchableOpacity style={s.filterBtn} onPress={() => setShowFilters(true)}>
-          <Ionicons name="options" size={24} color={Colors.primary} />
-          {activeFiltersCount > 0 && (
-            <View style={s.badge}>
-              <Text style={s.badgeTxt}>{activeFiltersCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+            {listings && listings.length > 0 && (
+              <View style={s.resultsCountBar}>
+                {activeFiltersCount > 0 ? (
+                  <TouchableOpacity 
+                    style={s.clearFiltersBtn} 
+                    onPress={handleClearAll}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
+                    <Text style={s.clearFiltersText}>مسح الفلاتر</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View />
+                )}
 
-      {/* Quick Filters Scroll */}
-      <View style={{ borderBottomWidth: 1, borderColor: Colors.border, backgroundColor: '#fff' }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.quickFilters}>
-          {CATEGORIES.map(c => (
-            <TouchableOpacity
-              key={c.id}
-              style={[s.quickChip, selectedCat === c.id && s.quickChipActive]}
-              onPress={() => setSelectedCat(selectedCat === c.id ? '' : c.id)}
-            >
-              <Text style={[s.quickChipTxt, selectedCat === c.id && s.quickChipTxtActive]}>{c.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+                <View style={s.countBadge}>
+                  <MaterialCommunityIcons name="car-cog" size={14} color="#64748b" />
+                  <Text style={s.countBadgeText}>
+                    {listings.length} قطعة غيار متاحة
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        }
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={() => (
+          <>
+            {isFetchingNextPage && (
+              <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
+            )}
+            {listings && listings.length > 0 && (
+              <View style={s.promoCardWrapper}>
+                <TouchableOpacity
+                  style={s.promoCard}
+                  activeOpacity={0.88}
+                  onPress={handleAddPart}
+                >
+                  <LinearGradient
+                    colors={['#0B2447', '#1a3a6b', '#0d3060']}
+                    locations={[0, 0.6, 1]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  {/* Grid overlay */}
+                  <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', pointerEvents: 'none' } as any]}>
+                    <Svg width="100%" height="100%">
+                      <Defs>
+                        <Pattern id="pgrid" width="36" height="36" patternUnits="userSpaceOnUse">
+                          <Path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                        </Pattern>
+                      </Defs>
+                      <Rect width="100%" height="100%" fill="url(#pgrid)" />
+                    </Svg>
+                  </View>
 
-      {/* List */}
-      {isLoading && !isRefetching ? (
-        <View style={s.center}>
-          <ActivityIndicator size="large" color="#ea580c" />
-        </View>
-      ) : (
-        <FlatList
-          data={parts}
-          keyExtractor={(i: any) => i.id}
-          contentContainerStyle={s.listContent}
-          showsVerticalScrollIndicator={false}
-          onRefresh={refetch}
-          refreshing={isRefetching}
-          ListEmptyComponent={
-            <View style={s.emptyState}>
-              <Ionicons name="construct-outline" size={64} color={Colors.borderStrong} />
-              <Text style={s.emptyTxt}>لا توجد قطع مطابقة لبحثك</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={clearFilters}>
-                <Text style={s.emptyBtnTxt}>مسح الفلاتر</Text>
+                  {/* Camera Icon */}
+                  <View style={s.promoCameraIcon}>
+                    <Ionicons name="camera-outline" size={26} color="rgba(255,255,255,0.55)" />
+                  </View>
+
+                  {/* Text */}
+                  <View style={s.promoTextBlock}>
+                    <Text style={s.promoTitle}>لديك قطعة للبيع؟</Text>
+                    <Text style={s.promoSubtitle}>انشر إعلانك الآن ووصل لآلاف المشترين</Text>
+                  </View>
+
+                  {/* CTA Button */}
+                  <TouchableOpacity
+                    style={s.promoCtaBtn}
+                    onPress={handleAddPart}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={s.promoCtaTxt}>انشر إعلانك</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
+        )}
+        renderItem={({ item }) => (
+          <View style={s.cardWrapper}>
+            <PartCard
+              item={item}
+              onPress={() => router.push(`/parts/${item.id}` as any)}
+              fullWidth
+              showChips
+            />
+          </View>
+        )}
+      />
+
+      {/* Comprehensive Filter Bottom Sheet */}
+      <PartsFilterBottomSheet
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        initialFilters={filters}
+        onApplyFilters={(appliedFilters) => setFilters(appliedFilters)}
+      />
+
+      {/* Quick Dropdown Modal */}
+      <Modal
+        visible={!!activeDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdown(null)}
+      >
+        <TouchableOpacity
+          style={s.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setActiveDropdown(null)}
+        >
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>
+                {activeDropdown === 'category'
+                  ? 'اختر القسم'
+                  : activeDropdown === 'make'
+                  ? 'اختر الماركة المتوافقة'
+                  : activeDropdown === 'condition'
+                  ? 'حالة القطعة'
+                  : activeDropdown === 'city'
+                  ? 'اختر المدينة'
+                  : activeDropdown === 'sort'
+                  ? 'ترتيب النتائج'
+                  : 'نطاق السعر'}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
-          }
-          renderItem={({ item }) => (
-            <View style={s.cardWrapper}>
-              <PartCard 
-                item={item} 
-                onPress={() => router.push(`/parts/${item.id}` as any)} 
-                fullWidth 
-                showChips
-              />
-            </View>
-          )}
-        />
-      )}
 
-      {renderFilterModal()}
+            {/* Category Options */}
+            {activeDropdown === 'category' && (
+              <FlatList
+                data={PART_CATEGORIES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, category: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.modalOptionTxt,
+                        filters.category === item.id && s.modalOptionTxtActive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {filters.category === item.id && (
+                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {/* Make Options */}
+            {activeDropdown === 'make' && (
+              <FlatList
+                data={brands && brands.length > 0 ? brands : POPULAR_PART_MAKES}
+                keyExtractor={(item: any) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }: any) => {
+                  const name = item.nameAr || item.name || item.label;
+                  const isSelected = filters.make === name || filters.makeId === item.id;
+                  return (
+                    <TouchableOpacity
+                      style={s.modalOptionRow}
+                      onPress={() => {
+                        setFilters({ ...filters, makeId: item.id, make: name });
+                        setActiveDropdown(null);
+                      }}
+                    >
+                      <Text
+                        style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}
+                      >
+                        {name}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+
+            {/* Condition Options */}
+            {activeDropdown === 'condition' && (
+              <FlatList
+                data={PART_CONDITIONS}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, condition: item.id });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.modalOptionTxt,
+                        filters.condition === item.id && s.modalOptionTxtActive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {filters.condition === item.id && (
+                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {/* City Options */}
+            {activeDropdown === 'city' && (
+              <FlatList
+                data={GOVERNORATE_OPTIONS}
+                keyExtractor={(item) => item.value}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({ ...filters, city: item.labelAr });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.modalOptionTxt,
+                        filters.city === item.labelAr && s.modalOptionTxtActive,
+                      ]}
+                    >
+                      {item.labelAr}
+                    </Text>
+                    {filters.city === item.labelAr && (
+                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {/* Price Options */}
+            {activeDropdown === 'price' && (
+              <FlatList
+                data={PARTS_PRICE_RANGES}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={s.modalOptionRow}
+                    onPress={() => {
+                      setFilters({
+                        ...filters,
+                        priceMin: item.min.toString(),
+                        priceMax: item.max ? item.max.toString() : '999999',
+                        priceId: item.id,
+                      });
+                      setActiveDropdown(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.modalOptionTxt,
+                        filters.priceId === item.id && s.modalOptionTxtActive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {filters.priceId === item.id && (
+                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            {/* Sort Options */}
+            {activeDropdown === 'sort' && (
+              <FlatList
+                data={PARTS_SORT_OPTIONS}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => {
+                  const isSelected =
+                    filters.sortBy === item.sortBy && filters.sortOrder === item.sortOrder;
+                  return (
+                    <TouchableOpacity
+                      style={s.modalOptionRow}
+                      onPress={() => {
+                        setFilters({
+                          ...filters,
+                          sortBy: item.sortBy,
+                          sortOrder: item.sortOrder,
+                        });
+                        setActiveDropdown(null);
+                      }}
+                    >
+                      <Text
+                        style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}
+                      >
+                        {item.label}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
-  )
+  );
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f9fafb' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  
-  header: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.space4,
-    paddingVertical: Spacing.space3, gap: Spacing.space3, backgroundColor: '#fff',
+  root: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  backBtn: { padding: Spacing.space1 },
-  searchWrap: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6',
-    borderRadius: Radius.lg, height: 44,
+  listContent: {
+    paddingBottom: Spacing.space4,
   },
-  searchInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text, textAlign: 'right', paddingHorizontal: 8,
+  listHeader: {
+    marginBottom: Spacing.space2,
   },
-  filterBtn: { position: 'relative', padding: Spacing.space1 },
-  badge: {
-    position: 'absolute', top: -4, right: -4, backgroundColor: '#ea580c',
-    width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
-  },
-  badgeTxt: { color: '#fff', fontSize: 10, fontFamily: 'Almarai_700Bold' },
-
-  quickFilters: { paddingHorizontal: Spacing.space4, paddingVertical: 4, gap: 12 },
-  quickChip: {
-    height: 32,
+  resultsCountBar: {
+    paddingHorizontal: Spacing.space4,
+    marginTop: Spacing.space2,
+    marginBottom: Spacing.space1,
     flexDirection: 'row',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  clearFiltersBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3.5,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: '#FEF2F2',
+  },
+  clearFiltersText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  countBadge: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  countBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#64748b',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  cardWrapper: {
+    paddingHorizontal: Spacing.space4,
+    marginBottom: Spacing.space3,
+  },
+  skeletonGrid: {
+    paddingHorizontal: Spacing.space4,
+    gap: Spacing.space3,
+    paddingTop: Spacing.space2,
+  },
+  fullCard: {
+    width: '100%',
+  },
+  center: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    paddingVertical: 40,
+    paddingHorizontal: Spacing.space4,
+  },
+  errorTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    color: Colors.error,
+    marginBottom: Spacing.space3,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+  },
+  retryTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.white,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: Spacing.space4,
+  },
+  emptyTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 15,
+    color: Colors.text,
+    marginTop: Spacing.space3,
+    marginBottom: Spacing.space1,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 280,
+  },
+  clearAllBtn: {
+    marginTop: Spacing.space3,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+  },
+  clearAllBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.white,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.space4,
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '70%',
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    padding: Spacing.space3,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2 },
-      android: { elevation: 1 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: { elevation: 4 },
     }),
   },
-  quickChipActive: {
-    backgroundColor: Colors.primary + '10',
-    borderColor: Colors.primary + '30',
-  },
-  quickChipTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 12, 
-    color: '#475569'
-  },
-  quickChipTxtActive: { color: Colors.primary },
-
-  listContent: { padding: Spacing.space4, paddingBottom: 100 },
-  cardWrapper: { marginBottom: Spacing.space4 },
-
-  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 100, gap: Spacing.space3 },
-  emptyTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text2 },
-  emptyBtn: { marginTop: 8, backgroundColor: '#ea580c', paddingHorizontal: 20, paddingVertical: 10, borderRadius: Radius.md },
-  emptyBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: '#fff' },
-
-  // Modal
-  modalRoot: { flex: 1, backgroundColor: '#fff' },
   modalHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: Spacing.space4, borderBottomWidth: 1, borderBottomColor: Colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: Spacing.space2,
+    marginBottom: Spacing.space2,
   },
-  modalTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text },
-  modalBody: { flex: 1, padding: Spacing.space4 },
-  filterLabel: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text, marginTop: Spacing.space5, marginBottom: Spacing.space3, textAlign: 'left' },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.space2 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.lg, backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb' },
-  chipActive: { backgroundColor: '#ea580c', borderColor: '#ea580c' },
-  chipTxt: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.text2 },
-  chipTxtActive: { color: '#fff', fontFamily: 'Almarai_700Bold' },
+  modalTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f8fafc',
+  },
+  modalOptionTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  modalOptionTxtActive: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+  },
 
-  checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space3, paddingVertical: Spacing.space2 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: Colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  checkboxChecked: { backgroundColor: '#ea580c', borderColor: '#ea580c' },
-  checkboxLabel: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text },
-
-  priceInputs: { flexDirection: 'row', alignItems: 'center' },
-  priceInput: { flex: 1, height: 44, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: '#f9fafb', textAlign: 'center', fontFamily: 'Almarai_700Bold' },
-
-  modalFooter: { flexDirection: 'row', padding: Spacing.space4, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.space3 },
-  clearBtn: { flex: 1, height: 48, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  clearBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.text },
-  applyBtn: { flex: 2, height: 48, borderRadius: Radius.lg, backgroundColor: '#ea580c', alignItems: 'center', justifyContent: 'center' },
-  applyBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: '#fff' },
-})
+  // Promo footer card
+  promoCardWrapper: {
+    paddingHorizontal: Spacing.space4,
+    paddingTop: Spacing.space3,
+    paddingBottom: Spacing.space2,
+  },
+  promoCard: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 10,
+    ...Platform.select({
+      ios: { shadowColor: '#0B2447', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 },
+      android: { elevation: 6 },
+    }),
+  },
+  promoCameraIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  promoTextBlock: {
+    flex: 1,
+    gap: 3,
+  },
+  promoTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    color: Colors.white,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  promoSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  promoCtaBtn: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+      android: { elevation: 2 },
+    }),
+  },
+  promoCtaTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.primaryDark,
+    textAlign: 'center',
+  },
+});

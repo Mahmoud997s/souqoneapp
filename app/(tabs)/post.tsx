@@ -54,11 +54,11 @@ export default function PostScreen() {
             activeOpacity={0.8}
             onPress={() => handleSelect(item.id)}
           >
-            <Ionicons name="chevron-back" size={20} color={Colors.textMuted} />
-            <Text style={s.itemTitle}>{item.title}</Text>
             <View style={s.iconCircle}>
               <Ionicons name={item.icon as any} size={24} color={Colors.primary} />
             </View>
+            <Text style={s.itemTitle}>{item.title}</Text>
+            <Ionicons name="chevron-back" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -83,9 +83,11 @@ const s = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   headerTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 22,
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 22,
     color: Colors.text,
     textAlign: 'center',
+    writingDirection: 'rtl',
     marginTop: Spacing.space4,
   },
   listContent: {
@@ -97,11 +99,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     padding: Spacing.space3,
-    paddingEnd: Spacing.space4,
     borderRadius: 20,
     marginBottom: Spacing.space3,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.02)',
+    gap: Spacing.space3,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
       android: { elevation: 3 },
@@ -109,10 +111,11 @@ const s = StyleSheet.create({
   },
   itemTitle: {
     flex: 1,
-    fontFamily: 'Almarai_700Bold',  fontSize: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
     color: Colors.text,
-    textAlign: 'right',
-    marginRight: Spacing.space4,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   iconCircle: {
     width: 52,
@@ -145,7 +148,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   closeBtnTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
     color: Colors.text2,
+    writingDirection: 'rtl',
   },
 })

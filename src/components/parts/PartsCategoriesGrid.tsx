@@ -1,23 +1,22 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 
-const { width: SW } = Dimensions.get('window')
-const ITEM_WIDTH = (SW - Spacing.space5 * 2 - Spacing.space3 * 3) / 4
-
 const CATEGORIES = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'settings-outline' as any, color: '#ea580c', bg: '#ffedd5' },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-sport-outline' as any, color: '#2563eb', bg: '#dbeafe' },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'flash-outline' as any, color: '#eab308', bg: '#fef9c3' },
-  { id: 'SUSPENSION', label: 'التعليق', icon: 'git-network-outline' as any, color: '#16a34a', bg: '#dcfce7' },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'disc-outline' as any, color: '#dc2626', bg: '#fee2e2' },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'tablet-landscape-outline' as any, color: '#9333ea', bg: '#f3e8ff' },
-  { id: 'TIRES', label: 'الإطارات', icon: 'aperture-outline' as any, color: '#4b5563', bg: '#f3f4f6' },
-  { id: 'all', label: 'عرض الكل', icon: 'grid-outline' as any, color: Colors.primary, bg: '#EFF6FF' },
+  { id: 'ENGINE', label: 'المحرك', icon: 'engine' as any, color: '#ea580c', bg: '#ffedd5' },
+  { id: 'BODY', label: 'الهيكل', icon: 'car-side' as any, color: '#2563eb', bg: '#dbeafe' },
+  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric' as any, color: '#eab308', bg: '#fef9c3' },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp' as any, color: '#16a34a', bg: '#dcfce7' },
+  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert' as any, color: '#dc2626', bg: '#fee2e2' },
+  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat' as any, color: '#9333ea', bg: '#f3e8ff' },
+  { id: 'TIRES', label: 'الإطارات', icon: 'tire' as any, color: '#4b5563', bg: '#f3f4f6' },
+  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery' as any, color: '#0891b2', bg: '#cffafe' },
+  { id: 'OILS', label: 'الزيوت', icon: 'oil' as any, color: '#b45309', bg: '#fef3c7' },
+  { id: 'all', label: 'عرض الكل', icon: 'view-grid' as any, color: Colors.primary, bg: '#EFF6FF' },
 ]
 
 export const PartsCategoriesGrid = () => {
@@ -33,9 +32,24 @@ export const PartsCategoriesGrid = () => {
 
   return (
     <View style={s.container}>
-      <Text style={s.title}>أقسام قطع الغيار</Text>
+      <View style={s.header}>
+        <Text style={s.title}>أقسام قطع الغيار</Text>
+        <TouchableOpacity 
+          style={s.seeAllBtn} 
+          onPress={() => router.push('/parts/browse' as any)}
+          activeOpacity={0.7}
+        >
+          <Text style={s.seeAllTxt}>الكل</Text>
+          <Ionicons name="chevron-back" size={14} color={Colors.primary} />
+        </TouchableOpacity>
+      </View>
       
-      <View style={s.grid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={s.scrollView}
+        contentContainerStyle={s.scrollContent}
+      >
         {CATEGORIES.map((cat, i) => (
           <TouchableOpacity 
             key={i} 
@@ -44,12 +58,12 @@ export const PartsCategoriesGrid = () => {
             onPress={() => handlePress(cat.id)}
           >
             <View style={[s.iconBox, { backgroundColor: cat.bg }]}>
-              <Ionicons name={cat.icon} size={24} color={cat.color} />
+              <MaterialCommunityIcons name={cat.icon} size={28} color={cat.color} />
             </View>
             <Text style={s.label} numberOfLines={1}>{cat.label}</Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -58,23 +72,68 @@ const s = StyleSheet.create({
   container: {
     marginBottom: Spacing.space6,
   },
-  title: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 18, color: Colors.text, textAlign: 'left',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: Spacing.space3,
   },
-  grid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.space3,
+  title: {
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 18,
+    color: Colors.text,
+    textAlign: 'left',
+    lineHeight: 26,
+    writingDirection: 'rtl',
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.pill,
+  },
+  seeAllTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.primary,
+    lineHeight: 16,
+    paddingTop: 1,
+  },
+  scrollView: {
+    marginHorizontal: -Spacing.space5,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.space5,
+    paddingVertical: 6,
+    gap: 15,
   },
   item: {
-    width: ITEM_WIDTH, alignItems: 'center', gap: 6,
+    width: 68,
+    alignItems: 'center',
+    gap: 8,
   },
   iconBox: {
-    width: ITEM_WIDTH, height: ITEM_WIDTH, borderRadius: Radius.xl,
-    alignItems: 'center', justifyContent: 'center',
+    width: 62,
+    height: 62,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   label: {
     fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, color: Colors.text2, textAlign: 'center',
+    fontSize: 11.5,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 16,
+    paddingTop: 2,
   },
 })

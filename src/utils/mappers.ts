@@ -236,22 +236,91 @@ export function mapServiceToCard(item: any): UnifiedCardItem {
 
 // ── Parts ────────────────────────────────────────────────────────────────────
 export function mapPartToCard(item: any): UnifiedCardItem {
+  if (!item || typeof item !== 'object') {
+    return {
+      id: '',
+      title: 'قطعة غيار',
+      category: 'parts',
+      images: [],
+    } as UnifiedCardItem;
+  }
   const price = safePrice(item.price)
   const details: { icon: string; value: string }[] = []
-  if (item.brand)
+
+  const CATEGORY_MAP: Record<string, string> = {
+    ENGINE: 'محرك وملحقاته',
+    BODY: 'الهيكل والبودي',
+    ELECTRICAL: 'كهرباء وإلكترونيات',
+    SUSPENSION: 'مساعدات وتعليق',
+    BRAKES: 'فرامل ومكابح',
+    INTERIOR: 'مقصورة وداخلية',
+    TIRES: 'إطارات وجنوط',
+    BATTERIES: 'بطاريات',
+    OILS: 'زيوت وفلاتر',
+    ACCESSORIES: 'إكسسوارات وزينة',
+    OTHER: 'أخرى',
+  }
+
+  const CONDITION_MAP: Record<string, string> = {
+    NEW: 'جديد',
+    LIKE_NEW: 'شبه جديد',
+    USED: 'مستعمل',
+    REFURBISHED: 'مجدد',
+    GOOD: 'جيد',
+    FAIR: 'مقبول',
+  }
+
+  const rawCat = item.partCategory || item.category
+  if (rawCat && CATEGORY_MAP[rawCat]) {
+    details.push({ icon: 'grid-outline', value: CATEGORY_MAP[rawCat] })
+  }
+
+  if (item.partNumber) {
+    details.push({ icon: 'barcode-outline', value: item.partNumber })
+  }
+
+  if (Array.isArray(item.compatibleMakes) && item.compatibleMakes.length > 0) {
+    const makesStr = item.compatibleMakes.filter((m: string) => m !== 'all').join('، ')
+    if (makesStr) {
+      details.push({ icon: 'car-outline', value: makesStr })
+    } else if (item.compatibleMakes.includes('all')) {
+      details.push({ icon: 'car-outline', value: 'متوافق مع الجميع' })
+    }
+  } else if (item.brand) {
     details.push({ icon: 'car-outline', value: item.brand })
-  if (item.compatibility)
-    details.push({ icon: 'settings-outline', value: item.compatibility })
+  }
+
+  if (item.compatibleModels) {
+    const modelsStr = Array.isArray(item.compatibleModels)
+      ? item.compatibleModels.join('، ')
+      : String(item.compatibleModels)
+    if (modelsStr) {
+      details.push({ icon: 'car-sport-outline', value: modelsStr })
+    }
+  }
+
+  if (item.yearFrom && item.yearTo) {
+    details.push({ icon: 'calendar-outline', value: `${item.yearFrom} - ${item.yearTo}` })
+  } else if (item.yearFrom) {
+    details.push({ icon: 'calendar-outline', value: `من ${item.yearFrom}` })
+  } else if (item.yearTo) {
+    details.push({ icon: 'calendar-outline', value: `حتى ${item.yearTo}` })
+  }
+
+  const rawCond = String(item.condition || '').toUpperCase()
+  const conditionLabel = CONDITION_MAP[rawCond] || item.condition
 
   return {
     id: item.id,
-    title: item.partName ?? item.title ?? '',
+    title: item.partName ?? item.title ?? (item.brand ? `قطعة ${item.brand}` : 'قطعة غيار'),
     price: price > 0 ? price : undefined,
     priceText: price <= 0 ? 'تواصل للسعر' : undefined,
     currency: item.currency ?? 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
-    condition: item.condition?.toUpperCase(),
+    isPremium: item.isPremium ?? false,
+    isVerified: item.seller?.isVerified ?? item.user?.isVerified ?? false,
+    condition: conditionLabel,
     category: 'parts',
     listingType: (item.listingType || item.type)?.toUpperCase(),
     details: details.length > 0 ? details : undefined,

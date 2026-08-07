@@ -29,25 +29,32 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
           return (
             <TouchableOpacity
               key={qf.id}
-              style={[s.quickFilterChip, s.squareChip, isActive && s.quickFilterChipActive]}
+              style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
               activeOpacity={0.8}
               onPress={() => onFilterPress(qf.id)}
             >
-              {!isActive && qf.icon && <Ionicons name={qf.icon} size={16} color={Colors.textMuted} />}
+              {!isActive && qf.icon && (
+                <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
+              )}
               <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
                 {qf.label}
               </Text>
-              <Ionicons 
-                name={isActive ? "close-circle" : "chevron-down"} 
-                size={14} 
-                color={isActive ? Colors.white : Colors.textMuted} 
-                onPress={isActive ? (e) => {
-                  e.stopPropagation();
-                  onClearFilter(qf.id);
-                } : undefined} 
-              />
+              {isActive ? (
+                <TouchableOpacity
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    onClearFilter(qf.id);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close-circle" size={12.5} color={Colors.white} />
+                </TouchableOpacity>
+              ) : (
+                <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
+              )}
             </TouchableOpacity>
-          )
+          );
         })}
       </ScrollView>
     </View>
@@ -56,47 +63,60 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
 
 const s = StyleSheet.create({
   quickFiltersContainer: {
-    marginTop: 4, // Moved up by another 2px (total 4px up from 8px)
-    marginBottom: Spacing.space1,
+    marginVertical: 4,
   },
   quickFiltersContent: {
     paddingHorizontal: Spacing.space4,
-    paddingVertical: 6, // Reduced padding
-    gap: Spacing.space2,
+    paddingVertical: 2,
+    gap: 6,
+    alignItems: 'center',
   },
   quickFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12, // Reduced padding
-    paddingVertical: 6, // Reduced padding
-    borderRadius: 100,
+    justifyContent: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 6,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    gap: 4, // Reduced gap
+    gap: 5,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
-      android: { elevation: 1 },
+      ios: { 
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 1 }, 
+        shadowOpacity: 0.05, 
+        shadowRadius: 2 
+      },
+      android: { 
+        elevation: 1 
+      },
     }),
-  },
-  squareChip: {
-    borderRadius: 6,
-    paddingVertical: 6, // Reduced padding
-    paddingHorizontal: 10,
   },
   quickFilterChipActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
     ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4 },
-      android: { elevation: 2 },
+      ios: { 
+        shadowColor: Colors.primary, 
+        shadowOffset: { width: 0, height: 1 }, 
+        shadowOpacity: 0.15, 
+        shadowRadius: 3 
+      },
+      android: { 
+        elevation: 1 
+      },
     }),
   },
   quickFilterTxt: {
     fontFamily: 'Almarai_700Bold',  
-    fontSize: 11, // Reduced font size
-    lineHeight: 14, // Adjusted line height
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    flexShrink: 1,
   },
   quickFilterTxtActive: {
     color: Colors.white,
