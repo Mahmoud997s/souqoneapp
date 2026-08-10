@@ -7,8 +7,8 @@ import { Radius } from '../../constants/radius'
 
 export const HowItWorks = () => {
   return (
-    <>
-      <View style={[s.sectionHeader, { marginTop: Spacing.space5, marginBottom: Spacing.space4 }]}>
+    <View style={s.container}>
+      <View style={[s.sectionHeader, { marginBottom: Spacing.space4 }]}>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[s.sectionTitleHeader, { textAlign: 'center' }]}>كيف تستخدم سوق وان للسيارات؟</Text>
           <Text style={[s.sectionSubHeader, { textAlign: 'center' }]}>3 خطوات بسيطة لبيع وشراء سيارتك</Text>
@@ -49,22 +49,36 @@ export const HowItWorks = () => {
           </View>
         </View>
       </View>
-    </>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  container: {},
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
+  sectionTitleHeader: { 
+    fontFamily: 'Almarai_800ExtraBold',  
+    fontSize: 15, 
+    color: Colors.text,
+    lineHeight: 24,
+    paddingTop: 4,
+    writingDirection: 'rtl'
+  },
+  sectionSubHeader: { 
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 13, 
+    color: Colors.textMuted,
+    lineHeight: 20,
+    paddingTop: 2,
+    writingDirection: 'rtl'
+  },
   stepsContainer: {
     backgroundColor: Colors.white,
     borderRadius: Radius.xl,
     padding: Spacing.space4,
     gap: Spacing.space4,
-    marginBottom: Spacing.space4,
     borderWidth: 1, borderColor: Colors.border,
   },
   stepItem: {
@@ -83,6 +97,8 @@ const s = StyleSheet.create({
   stepNumberTxt: {
     fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 10, color: Colors.white,
+    lineHeight: 14,
+    paddingTop: 1.5,
   },
   stepTextContent: {
     flex: 1,
@@ -90,9 +106,14 @@ const s = StyleSheet.create({
   stepTitle: {
     fontFamily: 'Almarai_800ExtraBold', 
     fontSize: 14, color: Colors.text, textAlign: 'left',
+    lineHeight: 20,
+    paddingTop: 2,
+    marginBottom: 2,
+    writingDirection: 'rtl',
   },
   stepDesc: {
     fontFamily: 'Almarai_400Regular', 
     fontSize: 12, color: Colors.textMuted, textAlign: 'left', lineHeight: 18,
+    writingDirection: 'rtl',
   },
 })

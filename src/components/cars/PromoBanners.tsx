@@ -7,7 +7,7 @@ import { Radius } from '../../constants/radius'
 
 export const PromoBanners = () => {
   return (
-    <>
+    <View style={s.container}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
@@ -49,11 +49,14 @@ export const PromoBanners = () => {
 
 
       </ScrollView>
-    </>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  container: {
+    marginBottom: Spacing.space6,
+  },
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: Spacing.space3, marginTop: Spacing.space2,
@@ -62,7 +65,6 @@ const s = StyleSheet.create({
   sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
   promoContainer: {
     gap: Spacing.space3,
-    marginBottom: Spacing.space6,
     paddingRight: Spacing.space5,
   },
   promoCard: {

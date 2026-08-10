@@ -47,7 +47,7 @@ export function BrowseHeader({
       }
       rightSlot={
         <TouchableOpacity style={s.iconBtn} onPress={onFilterPress}>
-          <Ionicons name="options-outline" size={18} color={Colors.white} />
+          <Ionicons name="options-outline" size={17} color={Colors.white} />
           {activeFiltersCount > 0 && (
             <View style={s.filterBadge}>
               <Text style={s.filterBadgeText}>{activeFiltersCount}</Text>
@@ -62,7 +62,7 @@ export function BrowseHeader({
 const s = StyleSheet.create({
   compactSearch: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)', height: 32, borderRadius: 16,
     paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space2
   },
   compactInput: {
@@ -75,7 +75,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   iconBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', 
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', 
     alignItems: 'center', justifyContent: 'center'
   },
   filterBadge: {

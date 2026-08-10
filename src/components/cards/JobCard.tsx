@@ -12,6 +12,7 @@ import RatingBadges from '../jobs/RatingBadges'
 import { formatDate, formatSalary, getInitials, getAvatarColor } from '../../utils/format'
 import { formatLocation } from '../../utils/mappers'
 import { STRINGS } from '../../constants/jobs'
+import { CardSystem } from '../../constants/cardSystem'
 
 interface JobCardProps {
   job: DriverJob
@@ -189,20 +190,14 @@ export function JobCard({ job, onPress, maxChips }: JobCardProps) {
   )
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-  android: { elevation: 3 },
-});
-
 const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: CardSystem.radius.outer,
+    padding: CardSystem.padding.dense,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
-    ...softShadow,
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
   header: {
     flexDirection: 'row',
@@ -212,7 +207,7 @@ const s = StyleSheet.create({
   },
   headerRight: {
     alignItems: 'center',
-    gap: 8,
+    gap: CardSystem.gap.primary,
   },
   titleRow: {
     flexDirection: 'row',
@@ -229,20 +224,17 @@ const s = StyleSheet.create({
   iconBox: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: CardSystem.radius.inner,
     alignItems: 'center',
     justifyContent: 'center',
   },
   serviceTitle: {
-    fontSize: 15,
-    fontFamily: 'Almarai_800ExtraBold',
+    ...CardSystem.typography.title,
     color: '#0f172a',
     writingDirection: 'rtl',
-    lineHeight: 22,
   },
   timeText: {
-    fontSize: 11,
-    fontFamily: 'Almarai_400Regular',
+    ...CardSystem.typography.subtitle,
     color: Colors.textMuted,
     marginTop: 2,
     writingDirection: 'rtl',
@@ -255,7 +247,7 @@ const s = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    borderRadius: 12,
+    borderRadius: CardSystem.radius.inner,
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
@@ -282,17 +274,16 @@ const s = StyleSheet.create({
   },
   initialsText: {
     color: Colors.white,
-    fontSize: 10,
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, 
+    ...CardSystem.typography.badgeText,
   },
   posterName: {
-    fontFamily: 'Almarai_700Bold',  paddingTop: 4, paddingBottom: 4, fontSize: 12,
+    fontFamily: 'Almarai_700Bold', fontSize: 12,
     color: '#1e293b',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   locationText: {
-    fontFamily: 'Almarai_400Regular',  paddingTop: 4, paddingBottom: 4, fontSize: 11,
+    ...CardSystem.typography.subtitle,
     color: '#64748b',
     writingDirection: 'rtl',
     flexShrink: 1,
@@ -319,29 +310,22 @@ const s = StyleSheet.create({
   detailsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: CardSystem.gap.secondary,
     marginBottom: 12,
   },
   detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    borderRadius: CardSystem.radius.inner,
   },
-  pillNeutral: {
-    backgroundColor: '#f8fafc',
-  },
-  pillGreen: {
-    backgroundColor: '#ecfdf5',
-  },
-  pillOrange: {
-    backgroundColor: '#fff7ed',
-  },
+  pillNeutral: CardSystem.styles.pillNeutral,
+  pillGreen: CardSystem.styles.pillGreen,
+  pillOrange: CardSystem.styles.pillOrange,
   detailText: {
-    fontSize: 12,
-    fontFamily: 'Almarai_700Bold',
+    ...CardSystem.typography.pillText,
     color: '#475569',
   },
   budgetValText: {
@@ -357,7 +341,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 8,
+    gap: CardSystem.gap.secondary,
   },
 })
 

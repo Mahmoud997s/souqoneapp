@@ -32,18 +32,6 @@ export const PartsCategoriesGrid = () => {
 
   return (
     <View style={s.container}>
-      <View style={s.header}>
-        <Text style={s.title}>أقسام قطع الغيار</Text>
-        <TouchableOpacity 
-          style={s.seeAllBtn} 
-          onPress={() => router.push('/parts/browse' as any)}
-          activeOpacity={0.7}
-        >
-          <Text style={s.seeAllTxt}>الكل</Text>
-          <Ionicons name="chevron-back" size={14} color={Colors.primary} />
-        </TouchableOpacity>
-      </View>
-      
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -69,39 +57,7 @@ export const PartsCategoriesGrid = () => {
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space6,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.space3,
-  },
-  title: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 18,
-    color: Colors.text,
-    textAlign: 'left',
-    lineHeight: 26,
-    writingDirection: 'rtl',
-  },
-  seeAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: Radius.pill,
-  },
-  seeAllTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.primary,
-    lineHeight: 16,
-    paddingTop: 1,
-  },
+  container: {},
   scrollView: {
     marginHorizontal: -Spacing.space5,
   },

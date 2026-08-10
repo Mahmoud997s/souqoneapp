@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Pressable, ScrollView, Platform, Linking } from 'react-native'
 import { Spacing } from '../../constants/spacing'
 import { Image } from 'expo-image'
@@ -10,6 +10,7 @@ import { chatApi } from '../../api/chat'
 import { useAuthStore } from '../../store/authStore'
 import { LinearGradient } from 'expo-linear-gradient'
 import { dialogService } from '../../store/dialogStore'
+import { CardSystem } from '../../constants/cardSystem'
 
 export interface UnifiedCardItem {
   id: string
@@ -324,113 +325,112 @@ export function UnifiedCard({ item, onPress, onFavorite, compact = false, imageH
   )
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 16 },
-  android: { elevation: 4 },
-})
-
 const styles = StyleSheet.create({
   pressed: { opacity: 0.97, transform: [{ scale: 0.99 }] },
 
   // ── Vertical card ──
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
+    borderRadius: CardSystem.radius.outer,
+    ...CardSystem.styles.border,
     overflow: 'hidden',
-    ...softShadow,
+    ...CardSystem.styles.softShadow,
   },
   imgWrapperRatio: {
     aspectRatio: 5 / 3,
     backgroundColor: Colors.surface,
     overflow: 'hidden',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: CardSystem.radius.outer,
+    borderTopRightRadius: CardSystem.radius.outer,
   },
   imgWrapperFixed: {
     width: '100%',
     backgroundColor: Colors.surface,
     overflow: 'hidden',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: CardSystem.radius.outer,
+    borderTopRightRadius: CardSystem.radius.outer,
   },
   imgFallback: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   img: { width: '100%', height: '100%' },
   premiumBadge: {
     position: 'absolute', top: Spacing.space2, left: Spacing.space2,
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.space1,
-    backgroundColor: Colors.accent, paddingHorizontal: 10, paddingVertical: 5,
-    borderRadius: 100,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.accent, paddingHorizontal: 7, paddingVertical: 2.5,
+    borderRadius: CardSystem.radius.badge,
+    ...CardSystem.styles.badgeShadow,
   },
-  premiumText: { fontSize: 11, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.white },
+  premiumText: { ...CardSystem.typography.badgeText, color: Colors.white },
   typeBadge: {
     position: 'absolute', bottom: Spacing.space2, left: Spacing.space2,
-    backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 100,
+    backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 7, paddingVertical: 2.5,
+    borderRadius: CardSystem.radius.badge,
+    ...CardSystem.styles.badgeShadow,
   },
-  typeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.white },
+  typeText: { ...CardSystem.typography.badgeText, color: Colors.white },
   heartBtn: {
     position: 'absolute', top: Spacing.space2, right: Spacing.space2,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center',
   },
-  body: { padding: Spacing.space3, gap: 8 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
-  priceLocationRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
-  price: { fontSize: 20, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.primary, writingDirection: 'rtl' },
-  priceContact: { fontSize: 14, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.text2, writingDirection: 'rtl' },
+  body: { padding: CardSystem.padding.dense, gap: CardSystem.gap.primary },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  title: { ...CardSystem.typography.title, color: Colors.text, writingDirection: 'rtl' },
+  priceLocationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  price: { fontSize: 16, fontFamily: 'Almarai_800ExtraBold', color: Colors.primary, writingDirection: 'rtl' },
+  priceContact: { fontSize: 13, fontFamily: 'Almarai_700Bold', color: Colors.text2, writingDirection: 'rtl' },
   locRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locText: { fontSize: 12, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.textMuted, writingDirection: 'rtl' },
+  locText: { ...CardSystem.typography.subtitle, color: Colors.textMuted, writingDirection: 'rtl' },
   divider: { height: 1, backgroundColor: Colors.surface, marginVertical: 4 },
-  detailsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  detailsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: CardSystem.gap.secondary },
   detailPill: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.surface, paddingHorizontal: 10, paddingVertical: 5,
-    borderRadius: 100,
+    backgroundColor: Colors.surface, paddingHorizontal: 7, paddingVertical: 3.5,
+    borderRadius: CardSystem.radius.inner,
   },
-  detailText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
+  detailText: { ...CardSystem.typography.pillText, color: Colors.text2 },
 
   cardActionsRow: { flexDirection: 'row', gap: 8, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.surface },
-  actionBtnCall: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: 100, borderWidth: 1, borderColor: Colors.primary, backgroundColor: '#eff6ff' },
-  actionBtnCallText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 13, color: Colors.primary },
-  actionBtnChat: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: 100 },
-  actionBtnChatText: { fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  fontSize: 13, color: Colors.white },
+  actionBtnCall: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: 100, borderWidth: 1, borderColor: Colors.primary, backgroundColor: '#eff6ff' },
+  actionBtnCallText: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.primary },
+  actionBtnChat: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: 100 },
+  actionBtnChatText: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.white },
 
   // ── Compact (horizontal) card ──
   compactCard: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: Spacing.space3,
-    gap: Spacing.space3,
-    ...softShadow,
+    borderRadius: CardSystem.radius.outer,
+    padding: CardSystem.padding.dense,
+    gap: CardSystem.gap.primary,
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
   compactImg: {
-    width: 100, height: 100,
-    borderRadius: Radius.lg,
+    width: 90, height: 90,
+    borderRadius: CardSystem.radius.inner,
     overflow: 'hidden',
     flexShrink: 0,
     backgroundColor: Colors.surface,
   },
   compactHeart: {
-    position: 'absolute', top: Spacing.space1, right: Spacing.space1,
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center',
+    position: 'absolute', top: 6, right: 6,
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center',
   },
   compactContent: {
     flex: 1,
     justifyContent: 'space-between',
   },
   compactTitle: {
-    fontSize: 15, fontFamily: 'Almarai_800ExtraBold', paddingTop: 4, paddingBottom: 4,  color: Colors.text,
-    writingDirection: 'rtl', lineHeight: 22,
+    ...CardSystem.typography.title, color: Colors.text,
+    writingDirection: 'rtl',
   },
   compactTypePill: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.surface, paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 100, marginTop: 4,
+    backgroundColor: Colors.surface, paddingHorizontal: 7, paddingVertical: 2.5,
+    borderRadius: CardSystem.radius.badge, marginTop: 4,
   },
-  compactTypeText: { fontSize: 11, fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
+  compactTypeText: { ...CardSystem.typography.badgeText, color: Colors.text2 },
   compactBottom: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -438,48 +438,27 @@ const styles = StyleSheet.create({
   },
   compactLoc: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: Colors.surface, paddingHorizontal: 8, paddingVertical: 4,
+    backgroundColor: Colors.surface, paddingHorizontal: 6, paddingVertical: 2,
     borderRadius: 100,
   },
-  compactLocText: { fontSize: 11, fontFamily: 'Almarai_400Regular', paddingTop: 4, paddingBottom: 4,  color: Colors.text2 },
+  compactLocText: { ...CardSystem.typography.subtitle, color: Colors.textMuted },
   verifiedPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primary + '15',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 100,
-    gap: 4,
+    borderWidth: 1, borderColor: Colors.primary + '30',
+    gap: 3,
   },
   verifiedText: {
-    fontSize: 10,
-    fontFamily: 'Almarai_700Bold', paddingTop: 4, paddingBottom: 4,  color: Colors.primary,
+    ...CardSystem.typography.badgeText, color: Colors.primary,
   },
   dotsWrapper: {
-    position: 'absolute',
-    bottom: Spacing.space2,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
+    position: 'absolute', bottom: 12, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  activeDot: {
-    backgroundColor: Colors.white,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-  },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255, 255, 255, 0.4)' },
+  activeDot: { backgroundColor: Colors.white, width: 16 },
 })

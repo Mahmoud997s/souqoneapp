@@ -31,12 +31,14 @@ import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { ActionBanner } from '../../src/components/ui/ActionBanner';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
 import { PartSkeletonCard } from '../../src/components/parts/PartSkeletonCard';
 import { PartsVisualFilters } from '../../src/components/parts/PartsVisualFilters';
-import { PartsFilterBottomSheet, PartsFilterState } from '../../src/components/parts/PartsFilterBottomSheet';
+import { PartsFilterBottomSheet } from '../../src/components/parts/PartsFilterBottomSheet';
+import { PartsFilterState } from '../../src/types/filters.types';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -118,7 +120,7 @@ export default function PartsBrowseScreen() {
   // Synchronize listing tabs with filter state
   const handleTabChange = (tabId: string) => {
     setSelectedListingTab(tabId);
-    setFilters((prev) => {
+    setFilters((prev: PartsFilterState) => {
       const next = { ...prev };
       if (tabId === 'ALL') {
         delete next.isOriginal;
@@ -276,7 +278,7 @@ export default function PartsBrowseScreen() {
   });
 
   const handleClearQuickFilter = useCallback((id: string) => {
-    setFilters((prev) => {
+    setFilters((prev: PartsFilterState) => {
       const newFilters = { ...prev };
       if (id === 'category') delete newFilters.category;
       if (id === 'make') {
@@ -308,7 +310,7 @@ export default function PartsBrowseScreen() {
     min?: number,
     max?: number
   ) => {
-    setFilters((prev) => {
+    setFilters((prev: PartsFilterState) => {
       const next = { ...prev };
       if (type === 'category') {
         next.category = next.category === valueId ? undefined : valueId;
@@ -493,52 +495,13 @@ export default function PartsBrowseScreen() {
               <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
             )}
             {listings && listings.length > 0 && (
-              <View style={s.promoCardWrapper}>
-                <TouchableOpacity
-                  style={s.promoCard}
-                  activeOpacity={0.88}
-                  onPress={handleAddPart}
-                >
-                  <LinearGradient
-                    colors={['#0B2447', '#1a3a6b', '#0d3060']}
-                    locations={[0, 0.6, 1]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={StyleSheet.absoluteFill}
-                  />
-                  {/* Grid overlay */}
-                  <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', pointerEvents: 'none' } as any]}>
-                    <Svg width="100%" height="100%">
-                      <Defs>
-                        <Pattern id="pgrid" width="36" height="36" patternUnits="userSpaceOnUse">
-                          <Path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                        </Pattern>
-                      </Defs>
-                      <Rect width="100%" height="100%" fill="url(#pgrid)" />
-                    </Svg>
-                  </View>
-
-                  {/* Camera Icon */}
-                  <View style={s.promoCameraIcon}>
-                    <Ionicons name="camera-outline" size={26} color="rgba(255,255,255,0.55)" />
-                  </View>
-
-                  {/* Text */}
-                  <View style={s.promoTextBlock}>
-                    <Text style={s.promoTitle}>لديك قطعة للبيع؟</Text>
-                    <Text style={s.promoSubtitle}>انشر إعلانك الآن ووصل لآلاف المشترين</Text>
-                  </View>
-
-                  {/* CTA Button */}
-                  <TouchableOpacity
-                    style={s.promoCtaBtn}
-                    onPress={handleAddPart}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={s.promoCtaTxt}>انشر إعلانك</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              </View>
+              <ActionBanner
+                title="لديك قطعة للبيع؟"
+                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+                buttonText="انشر إعلانك"
+                iconName="camera-outline"
+                onPress={handleAddPart}
+              />
             )}
           </>
         )}
@@ -604,7 +567,7 @@ export default function PartsBrowseScreen() {
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, category: item.id });
+                      setFilters((prev: PartsFilterState) => ({ ...prev, category: item.id }));
                       setActiveDropdown(null);
                     }}
                   >
@@ -637,7 +600,7 @@ export default function PartsBrowseScreen() {
                     <TouchableOpacity
                       style={s.modalOptionRow}
                       onPress={() => {
-                        setFilters({ ...filters, makeId: item.id, make: name });
+                        setFilters((prev: PartsFilterState) => ({ ...prev, makeId: item.id, make: name }));
                         setActiveDropdown(null);
                       }}
                     >
@@ -665,7 +628,7 @@ export default function PartsBrowseScreen() {
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, condition: item.id });
+                      setFilters((prev: PartsFilterState) => ({ ...prev, condition: item.id }));
                       setActiveDropdown(null);
                     }}
                   >
@@ -695,7 +658,7 @@ export default function PartsBrowseScreen() {
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, city: item.labelAr });
+                      setFilters((prev: PartsFilterState) => ({ ...prev, city: item.labelAr }));
                       setActiveDropdown(null);
                     }}
                   >
@@ -725,12 +688,12 @@ export default function PartsBrowseScreen() {
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({
-                        ...filters,
+                      setFilters((prev: PartsFilterState) => ({
+                        ...prev,
                         priceMin: item.min.toString(),
                         priceMax: item.max ? item.max.toString() : '999999',
                         priceId: item.id,
-                      });
+                      }));
                       setActiveDropdown(null);
                     }}
                   >
@@ -763,11 +726,11 @@ export default function PartsBrowseScreen() {
                     <TouchableOpacity
                       style={s.modalOptionRow}
                       onPress={() => {
-                        setFilters({
-                          ...filters,
+                        setFilters((prev: PartsFilterState) => ({
+                          ...prev,
                           sortBy: item.sortBy,
                           sortOrder: item.sortOrder,
-                        });
+                        }));
                         setActiveDropdown(null);
                       }}
                     >
@@ -978,68 +941,4 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
 
-  // Promo footer card
-  promoCardWrapper: {
-    paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space3,
-    paddingBottom: Spacing.space2,
-  },
-  promoCard: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 10,
-    ...Platform.select({
-      ios: { shadowColor: '#0B2447', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 },
-      android: { elevation: 6 },
-    }),
-  },
-  promoCameraIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-  },
-  promoTextBlock: {
-    flex: 1,
-    gap: 3,
-  },
-  promoTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    color: Colors.white,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  promoSubtitle: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: 16,
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  promoCtaBtn: {
-    backgroundColor: Colors.white,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-      android: { elevation: 2 },
-    }),
-  },
-  promoCtaTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.primaryDark,
-    textAlign: 'center',
-  },
 });

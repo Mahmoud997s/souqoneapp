@@ -78,7 +78,7 @@ export function AppHeader({
           </View>
         </>
       )}
-      <View style={[s.row, isLight && { height: 50 }]}>
+      <View style={[s.row, isLight && { height: 42 }]}>
         {/* Left slot (physical RIGHT on screen due to forceRTL) */}
         {leftSlot ? (
           leftSlot
@@ -88,7 +88,7 @@ export function AppHeader({
             onPress={onLeftPress || (() => router.back())}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-forward-outline" size={24} color={isLight ? Colors.text : Colors.white} />
+            <Ionicons name="arrow-forward-outline" size={18} color={isLight ? Colors.text : Colors.white} />
           </TouchableOpacity>
         ) : leftIcon ? (
           <TouchableOpacity
@@ -96,7 +96,7 @@ export function AppHeader({
             onPress={onLeftPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={leftIcon as any} size={24} color={isLight ? Colors.text : Colors.white} />
+            <Ionicons name={leftIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -122,7 +122,7 @@ export function AppHeader({
             onPress={onRightPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={rightIcon as any} size={24} color={isLight ? Colors.text : Colors.white} />
+            <Ionicons name={rightIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -134,38 +134,38 @@ export function AppHeader({
 
 const s = StyleSheet.create({
   header: {
-    paddingBottom: 8,
+    paddingBottom: 0,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12 },
-      android: { elevation: 8 },
+      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4 },
+      android: { elevation: 3 },
     }),
   },
   row: {
-    height: 56,
+    height: 42,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
+    paddingHorizontal: Spacing.space4,
   },
   iconBtn: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   title: {
     flex: 1,
-    fontFamily: 'Almarai_800ExtraBold',  
-    fontSize: Typography.headlineSm.fontSize,
-    lineHeight: 26,
+    fontFamily: 'Almarai_700Bold',  
+    fontSize: 16,
+    lineHeight: 21,
     color: Colors.white,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginTop: Platform.OS === 'android' ? 2 : 0, // Slight optical adjustment for Arabic font baseline
+    marginTop: Platform.OS === 'android' ? 1 : 0,
   },
   titleLight: {
     color: Colors.text,
@@ -173,5 +173,5 @@ const s = StyleSheet.create({
   iconBtnLight: {
     backgroundColor: '#F1F5F9',
   },
-  spacer: { width: 40 },
+  spacer: { width: 32 },
 })

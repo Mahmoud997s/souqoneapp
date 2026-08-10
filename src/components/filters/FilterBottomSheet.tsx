@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-} from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
-import { Radius } from '../../constants/radius';
 import {
   GOVERNORATE_OPTIONS,
   WILAYAT_BY_GOVERNORATE,
@@ -25,36 +10,24 @@ import {
   FUEL_TYPES,
   LISTING_TYPES,
   SORT_OPTIONS,
-  FilterOption,
 } from '../../constants/filters';
 import { useBrands, useCarModels, useCarTrims } from '../../hooks/useCars';
-
-interface FilterState {
-  listingType?: string;
-  governorate?: string;
-  city?: string;
-  priceMin?: string;
-  priceMax?: string;
-  bodyType?: string;
-  transmission?: string;
-  condition?: string;
-  fuelType?: string;
-  yearMin?: string;
-  yearMax?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  makeId?: string;
-  make?: string;
-  modelId?: string;
-  model?: string;
-  trim?: string;
-}
+import { FilterChip } from '../ui/FilterChip';
+import { FilterSection } from '../ui/FilterSection';
+import { DropdownSelector } from '../ui/DropdownSelector';
+import { RangeSlider } from '../ui/RangeSlider';
+import { NestedSearchableList } from '../ui/NestedSearchableList';
+import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { getBrandLogo } from '../../constants/brandLogos';
+import { FilterState } from '../../types/filters.types';
+import { Colors } from '../../constants/colors';
 
 interface FilterBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   initialFilters: FilterState;
   onApplyFilters: (filters: FilterState) => void;
+  resultsCount?: number;
 }
 
 export function FilterBottomSheet({
@@ -62,22 +35,23 @@ export function FilterBottomSheet({
   onClose,
   initialFilters,
   onApplyFilters,
+  resultsCount,
 }: FilterBottomSheetProps) {
   const [filters, setFilters] = useState<FilterState>({ ...initialFilters });
-  const [govOpen, setGovOpen] = useState(false);
-  const [cityOpen, setCityOpen] = useState(false);
-  const [makeOpen, setMakeOpen] = useState(false);
-  const [modelOpen, setModelOpen] = useState(false);
-  const [trimOpen, setTrimOpen] = useState(false);
+  const [activeSelector, setActiveSelector] = useState<'make' | 'model' | 'trim' | 'gov' | 'city' | 'listingType' | 'condition' | 'transmission' | 'bodyType' | 'fuelType' | 'sort' | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
   const { data: brands } = useBrands();
   const { data: models } = useCarModels(filters.makeId || '');
   const { data: trims } = useCarTrims(filters.modelId || '');
 
-  // Sync state when initialFilters change or modal becomes visible
+  const hasActiveFilters = Object.keys(filters).length > 0;
+
   useEffect(() => {
     if (visible) {
       setFilters({ ...initialFilters });
+      setShowMore(false);
+      setActiveSelector(null);
     }
   }, [visible, initialFilters]);
 
@@ -95,7 +69,6 @@ export function FilterBottomSheet({
     });
   };
 
-  // Batch-update multiple keys atomically (avoids double-setState race)
   const updateFilters = (updates: Partial<FilterState>) => {
     setFilters((prev) => {
       const next = { ...prev, ...updates };
@@ -111,783 +84,387 @@ export function FilterBottomSheet({
   };
 
   const handleApply = () => {
-    onApplyFilters(filters);
+    // Strip range values that are still at defaults (no real filter applied)
+    const cleaned: FilterState = { ...filters };
+
+    if (cleaned.priceMin === '0') delete cleaned.priceMin;
+    if (cleaned.priceMax === '30000') delete cleaned.priceMax;
+    if (cleaned.yearMin === '1990') delete cleaned.yearMin;
+    if (cleaned.yearMax === String(new Date().getFullYear())) delete cleaned.yearMax;
+    if (cleaned.mileageMin === '0') delete cleaned.mileageMin;
+    if (cleaned.mileageMax === '500000') delete cleaned.mileageMax;
+
+    // Remove any undefined/empty string values
+    (Object.keys(cleaned) as (keyof FilterState)[]).forEach((k) => {
+      if (cleaned[k] === undefined || cleaned[k] === '') delete cleaned[k];
+    });
+
+    onApplyFilters(cleaned);
     onClose();
   };
 
-  const handleClear = () => {
+  const onClearFilters = () => {
     const cleared: FilterState = {};
     setFilters(cleared);
-    onApplyFilters(cleared);
-    onClose();
+    setActiveSelector(null); // also exit any nested selector
   };
 
   const selectedGov = GOVERNORATE_OPTIONS.find((g) => g.value === filters.governorate);
-  const availableCities = filters.governorate ? WILAYAT_BY_GOVERNORATE[filters.governorate] || [] : [];
+  const availableCities = filters.governorate 
+    ? WILAYAT_BY_GOVERNORATE[filters.governorate] || [] 
+    : Object.values(WILAYAT_BY_GOVERNORATE).flat();
+
+  const makeData = brands?.map(b => ({ id: b.id, label: b.nameAr || b.name, value: b.name, image: getBrandLogo(b.slug) })) || [];
+  const modelData = models?.map(m => ({ id: m.id, label: m.nameAr || m.name, value: m.name })) || [];
+  const trimData = trims?.map(t => ({ id: t.name, label: t.nameAr || t.name, value: t.name })) || [];
+  const govData = GOVERNORATE_OPTIONS.map(g => ({ id: g.value, label: g.labelAr }));
+  const cityData = availableCities.map(c => ({ id: c.value, label: c.labelAr }));
+  
+  const listingTypeData = LISTING_TYPES.map(t => ({ id: t.value, label: t.labelAr }));
+  const conditionData = CONDITIONS.map(c => ({ id: c.value, label: c.labelAr }));
+  const transmissionData = TRANSMISSION_TYPES.map(t => ({ id: t.value, label: t.labelAr }));
+  const bodyTypeData = BODY_TYPES.map(b => ({ id: b.value, label: b.labelAr }));
+  const fuelTypeData = FUEL_TYPES.map(f => ({ id: f.value, label: f.labelAr }));
+  const sortData = SORT_OPTIONS.map(s => ({ id: s.value, label: s.labelAr }));
+
+  let nestedContent = null;
+  let title = "تصفية النتائج";
+
+  if (activeSelector === 'make') {
+    title = "اختر الماركة";
+    nestedContent = (
+      <NestedSearchableList
+        data={makeData}
+        selectedValue={filters.makeId}
+        onSelect={(option: any) => {
+          if (option) updateFilters({ makeId: option.id, make: option.value });
+          else updateFilters({ makeId: undefined, make: undefined });
+          setActiveSelector(null);
+        }}
+        placeholder="ابحث عن ماركة..."
+      />
+    );
+  } else if (activeSelector === 'model') {
+    title = "اختر الموديل";
+    nestedContent = (
+      <NestedSearchableList
+        data={modelData}
+        selectedValue={filters.modelId}
+        onSelect={(option: any) => {
+          if (option) updateFilters({ modelId: option.id, model: option.value });
+          else updateFilters({ modelId: undefined, model: undefined });
+          setActiveSelector(null);
+        }}
+        placeholder="ابحث عن موديل..."
+      />
+    );
+  } else if (activeSelector === 'trim') {
+    title = "اختر الفئة";
+    nestedContent = (
+      <NestedSearchableList
+        data={trimData}
+        selectedValue={filters.trim}
+        onSelect={(option: any) => {
+          if (option) updateFilters({ trim: option.value });
+          else updateFilters({ trim: undefined });
+          setActiveSelector(null);
+        }}
+        placeholder="ابحث عن فئة..."
+      />
+    );
+  } else if (activeSelector === 'gov') {
+    title = "اختر المحافظة";
+    nestedContent = (
+      <NestedSearchableList
+        data={govData}
+        selectedValue={filters.governorate}
+        onSelect={(option) => {
+          if (option) updateFilter('governorate', option.id);
+          else updateFilter('governorate', undefined);
+          setActiveSelector(null);
+        }}
+        placeholder="ابحث عن محافظة..."
+      />
+    );
+  } else if (activeSelector === 'city') {
+    title = "اختر الولاية";
+    nestedContent = (
+      <NestedSearchableList
+        data={cityData}
+        selectedValue={filters.city}
+        onSelect={(option) => {
+          if (option) updateFilter('city', option.id);
+          else updateFilter('city', undefined);
+          setActiveSelector(null);
+        }}
+        placeholder="ابحث عن ولاية..."
+      />
+    );
+  } else if (activeSelector === 'listingType') {
+    title = "نوع الإعلان";
+    nestedContent = (
+      <NestedSearchableList
+        data={listingTypeData}
+        selectedValue={filters.listingType}
+        onSelect={(opt) => { updateFilter('listingType', opt?.id); setActiveSelector(null); }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'condition') {
+    title = "حالة السيارة";
+    nestedContent = (
+      <NestedSearchableList
+        data={conditionData}
+        selectedValue={filters.condition}
+        onSelect={(opt) => { updateFilter('condition', opt?.id); setActiveSelector(null); }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'transmission') {
+    title = "ناقل الحركة";
+    nestedContent = (
+      <NestedSearchableList
+        data={transmissionData}
+        selectedValue={filters.transmission}
+        onSelect={(opt) => { updateFilter('transmission', opt?.id); setActiveSelector(null); }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'bodyType') {
+    title = "نوع الهيكل";
+    nestedContent = (
+      <NestedSearchableList
+        data={bodyTypeData}
+        selectedValue={filters.bodyType}
+        onSelect={(opt) => { updateFilter('bodyType', opt?.id); setActiveSelector(null); }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'fuelType') {
+    title = "نوع الوقود";
+    nestedContent = (
+      <NestedSearchableList
+        data={fuelTypeData}
+        selectedValue={filters.fuelType}
+        onSelect={(opt) => { updateFilter('fuelType', opt?.id); setActiveSelector(null); }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'sort') {
+    title = "ترتيب النتائج";
+    nestedContent = (
+      <NestedSearchableList
+        data={sortData}
+        selectedValue={filters.sortBy ? `${filters.sortBy}_${filters.sortOrder}` : undefined}
+        onSelect={(opt) => {
+          if (opt) {
+            const [sBy, sOrder] = opt.id.split('_');
+            updateFilters({ sortBy: sBy, sortOrder: sOrder });
+          } else {
+            updateFilters({ sortBy: undefined, sortOrder: undefined });
+          }
+          setActiveSelector(null);
+        }}
+        hideSearch
+      />
+    );
+  }
+
+  const mainContent = (
+    <>
+      <FilterSection title="ترتيب النتائج">
+        <DropdownSelector
+          value={SORT_OPTIONS.find(s => s.value === `${filters.sortBy}_${filters.sortOrder}`)?.labelAr}
+          placeholder="الترتيب الافتراضي"
+          onPress={() => setActiveSelector('sort')}
+        />
+      </FilterSection>
+
+      <FilterSection title="السيارة">
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+          <View style={{ flex: 1 }}>
+            <DropdownSelector
+              value={filters.makeId ? brands?.find(b => b.id === filters.makeId)?.nameAr || filters.make : filters.make}
+              placeholder="الماركة"
+              onPress={() => setActiveSelector('make')}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <DropdownSelector
+              value={filters.modelId ? models?.find(m => m.id === filters.modelId)?.nameAr || filters.model : filters.model}
+              placeholder="الموديل"
+              onPress={() => setActiveSelector('model')}
+            />
+          </View>
+        </View>
+        <DropdownSelector
+          value={filters.trim ? trims?.find(t => t.name === filters.trim)?.nameAr || filters.trim : undefined}
+          placeholder={filters.modelId ? (trims && trims.length > 0 ? 'الفئة' : 'لا توجد فئات') : 'اختر الموديل أولاً'}
+          onPress={() => {
+            if (!filters.modelId) return;
+            setActiveSelector('trim');
+          }}
+          disabled={!filters.modelId || !(trims && trims.length > 0)}
+        />
+      </FilterSection>
+
+      <FilterSection title="الموقع">
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={{ flex: 1 }}>
+            <DropdownSelector
+              value={selectedGov ? selectedGov.labelAr : undefined}
+              placeholder="المحافظة"
+              onPress={() => setActiveSelector('gov')}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <DropdownSelector
+              value={filters.city}
+              placeholder="الولاية"
+              onPress={() => setActiveSelector('city')}
+            />
+          </View>
+        </View>
+      </FilterSection>
+
+      <FilterSection title="نطاق السعر (ر.ع)">
+        <RangeSlider
+          min={0}
+          max={30000}
+          step={500}
+          initialLow={filters.priceMin ? parseInt(filters.priceMin) : 0}
+          initialHigh={filters.priceMax ? parseInt(filters.priceMax) : 30000}
+          onValuesChangeFinish={(vals) => {
+            updateFilter('priceMin', vals[0].toString());
+            updateFilter('priceMax', vals[1].toString());
+          }}
+          suffix="ر.ع"
+        />
+      </FilterSection>
+
+      <FilterSection title="سنة الصنع">
+        <RangeSlider
+          min={1990}
+          max={new Date().getFullYear()}
+          step={1}
+          initialLow={filters.yearMin ? parseInt(filters.yearMin) : 1990}
+          initialHigh={filters.yearMax ? parseInt(filters.yearMax) : new Date().getFullYear()}
+          onValuesChangeFinish={(vals) => {
+            updateFilter('yearMin', vals[0].toString());
+            updateFilter('yearMax', vals[1].toString());
+          }}
+        />
+      </FilterSection>
+
+      {!showMore ? (
+        <TouchableOpacity style={s.moreBtn} onPress={() => setShowMore(true)} activeOpacity={0.7}>
+          <Text style={s.moreBtnText}>المزيد من الفلاتر</Text>
+          <Ionicons name="chevron-down-outline" size={20} color={Colors.primary} />
+        </TouchableOpacity>
+      ) : (
+        <>
+          <FilterSection title="الممشى (كم)">
+            <RangeSlider
+              min={0}
+              max={500000}
+              step={10000}
+              initialLow={filters.mileageMin ? parseInt(filters.mileageMin) : 0}
+              initialHigh={filters.mileageMax ? parseInt(filters.mileageMax) : 500000}
+              onValuesChangeFinish={(vals) => {
+                updateFilter('mileageMin', vals[0].toString());
+                updateFilter('mileageMax', vals[1].toString());
+              }}
+              suffix="كم"
+            />
+          </FilterSection>
+
+          <FilterSection title="نوع الإعلان">
+            <DropdownSelector
+              value={LISTING_TYPES.find(t => t.value === filters.listingType)?.labelAr}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('listingType')}
+            />
+          </FilterSection>
+
+          <FilterSection title="حالة السيارة">
+            <DropdownSelector
+              value={CONDITIONS.find(c => c.value === filters.condition)?.labelAr}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('condition')}
+            />
+          </FilterSection>
+
+          <FilterSection title="ناقل الحركة">
+            <DropdownSelector
+              value={TRANSMISSION_TYPES.find(t => t.value === filters.transmission)?.labelAr}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('transmission')}
+            />
+          </FilterSection>
+
+          <FilterSection title="نوع الهيكل">
+            <DropdownSelector
+              value={BODY_TYPES.find(b => b.value === filters.bodyType)?.labelAr}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('bodyType')}
+            />
+          </FilterSection>
+
+          <FilterSection title="نوع الوقود">
+            <DropdownSelector
+              value={FUEL_TYPES.find(f => f.value === filters.fuelType)?.labelAr}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('fuelType')}
+            />
+          </FilterSection>
+        </>
+      )}
+    </>
+  );
 
   return (
-    <Modal
+    <FilterBottomSheetLayout
       visible={visible}
-      animationType="slide"
-      transparent
-      statusBarTranslucent
-      onRequestClose={onClose}
+      onClose={onClose}
+      title={title}
+      hasActiveFilters={hasActiveFilters}
+      onClear={onClearFilters}
+      onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
+      applyLabel={
+        activeSelector
+          ? 'تأكيد الاختيار'
+          : resultsCount !== undefined
+          ? `عرض ${resultsCount} نتيجة`
+          : 'تطبيق الفلتر'
+      }
+      isNested={!!activeSelector}
+      onBack={() => setActiveSelector(null)}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <View style={s.overlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-          <View style={s.sheet}>
-              {/* Drag Handle Indicator */}
-              <View style={s.dragHandle} />
-
-              {/* Header */}
-              <View style={s.header}>
-                <TouchableOpacity onPress={handleClear} style={s.clearBtn}>
-                  <Text style={s.clearText}>إعادة تعيين</Text>
-                </TouchableOpacity>
-                <Text style={s.title}>تصفية النتائج</Text>
-                <TouchableOpacity onPress={onClose} style={s.closeBtn}>
-                  <Ionicons name="close-outline" size={24} color={Colors.text} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <ScrollView 
-                  showsVerticalScrollIndicator={false} 
-                  contentContainerStyle={s.scrollContent}
-                  keyboardShouldPersistTaps="handled"
-                >
-                  {/* نوع الإعلان */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>نوع الإعلان</Text>
-                    <View style={s.row}>
-                      {LISTING_TYPES.map((type) => (
-                        <TouchableOpacity
-                          key={type.value}
-                          style={[s.chip, filters.listingType === type.value && s.activeChip]}
-                          onPress={() => updateFilter('listingType', type.value)}
-                        >
-                          <Text style={[s.chipText, filters.listingType === type.value && s.activeChipText]}>
-                            {type.labelAr}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* الترتيب */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>ترتيب النتائج</Text>
-                    <View style={s.row}>
-                    {/* Sort - batch update */}
-                      {SORT_OPTIONS.map((sort) => {
-                        const [sBy, sOrder] = sort.value.split('_');
-                        const isActive = filters.sortBy === sBy && filters.sortOrder === sOrder;
-                        return (
-                          <TouchableOpacity
-                            key={sort.value}
-                            style={[s.chip, isActive && s.activeChip]}
-                            onPress={() => updateFilters({ sortBy: sBy, sortOrder: sOrder })}
-                          >
-                            <Text style={[s.chipText, isActive && s.activeChipText]}>
-                              {sort.labelAr}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  {/* السيارة: الماركة + النوع */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>السيارة</Text>
-
-                    {/* Row 1: الماركة | النوع */}
-                    <View style={s.locationRow}>
-                      <TouchableOpacity
-                        style={[s.locationDropdown, s.locationDropdownLeft, filters.make && s.locationDropdownActive]}
-                        onPress={() => { setMakeOpen(!makeOpen); setModelOpen(false); setTrimOpen(false); }}
-                      >
-                        <Ionicons name="car-outline" size={16} color={filters.make ? Colors.primary : Colors.textMuted} />
-                        <Text style={[s.locationDropdownText, !filters.make && s.dropdownPlaceholder]} numberOfLines={1}>
-                          {filters.make || 'الماركة'}
-                        </Text>
-                        <Ionicons name={makeOpen ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={filters.make ? Colors.primary : Colors.textMuted} />
-                      </TouchableOpacity>
-
-                      <View style={s.locationSeparator} />
-
-                      <TouchableOpacity
-                        style={[s.locationDropdown, s.locationDropdownRight, filters.model && s.locationDropdownActive]}
-                        onPress={() => { setModelOpen(!modelOpen); setMakeOpen(false); setTrimOpen(false); }}
-                      >
-                        <Ionicons name="car-sport-outline" size={16} color={filters.model ? Colors.primary : Colors.textMuted} />
-                        <Text style={[s.locationDropdownText, !filters.model && s.dropdownPlaceholder]} numberOfLines={1}>
-                          {filters.model || 'النوع'}
-                        </Text>
-                        <Ionicons name={modelOpen ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={filters.model ? Colors.primary : Colors.textMuted} />
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Make list - rendered outside locationRow to avoid clipping */}
-                    {makeOpen && brands && brands.length > 0 && (
-                      <View style={s.dropdownList}>
-                        <ScrollView style={s.dropdownScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                          {brands.map((b) => (
-                            <TouchableOpacity
-                              key={b.id}
-                              style={[s.dropdownItem, filters.makeId === b.id && s.activeDropdownItem]}
-                              onPress={() => { updateFilters({ makeId: b.id, make: b.nameAr || b.name }); setMakeOpen(false); }}
-                            >
-                              <Text style={[s.dropdownItemText, filters.makeId === b.id && s.activeDropdownItemText]}>
-                                {b.nameAr || b.name}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
-                    {makeOpen && brands && brands.length === 0 && (
-                      <View style={s.dropdownList}>
-                        <Text style={s.dropdownEmpty}>لا توجد ماركات</Text>
-                      </View>
-                    )}
-
-                    {/* Model list - rendered outside locationRow to avoid clipping */}
-                    {modelOpen && !filters.makeId && (
-                      <View style={s.dropdownList}>
-                        <Text style={s.dropdownEmpty}>اختر الماركة أولاً</Text>
-                      </View>
-                    )}
-                    {modelOpen && filters.makeId && models && models.length > 0 && (
-                      <View style={s.dropdownList}>
-                        <ScrollView style={s.dropdownScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                          {models.map((m) => (
-                            <TouchableOpacity
-                              key={m.id}
-                              style={[s.dropdownItem, filters.modelId === m.id && s.activeDropdownItem]}
-                              onPress={() => { updateFilters({ modelId: m.id, model: m.nameAr || m.name }); setModelOpen(false); }}
-                            >
-                              <Text style={[s.dropdownItemText, filters.modelId === m.id && s.activeDropdownItemText]}>
-                                {m.nameAr || m.name}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
-                    {modelOpen && filters.makeId && models && models.length === 0 && (
-                      <View style={s.dropdownList}>
-                        <Text style={s.dropdownEmpty}>لا توجد موديلات لهذه الماركة</Text>
-                      </View>
-                    )}
-
-                    {/* Row 2: الفئة | السنة — always visible */}
-                    <View style={[s.locationRow, { marginTop: Spacing.space2 }]}>
-                      {/* الفئة */}
-                      <TouchableOpacity
-                        style={[
-                          s.locationDropdown,
-                          s.locationDropdownLeft,
-                          filters.trim && s.locationDropdownActive,
-                          !filters.modelId && s.locationDropdownDisabled,
-                        ]}
-                        onPress={() => {
-                          if (!filters.modelId) return;
-                          setTrimOpen(!trimOpen);
-                          setMakeOpen(false);
-                          setModelOpen(false);
-                        }}
-                      >
-                        <Ionicons
-                          name="list-outline"
-                          size={16}
-                          color={filters.trim ? Colors.primary : Colors.textMuted}
-                        />
-                        <Text
-                          style={[
-                            s.locationDropdownText,
-                            !filters.trim && s.dropdownPlaceholder,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {filters.trim
-                            ? filters.trim
-                            : filters.modelId
-                            ? (trims && trims.length > 0 ? 'الفئة' : 'لا توجد فئات')
-                            : 'اختر النوع أولاً'}
-                        </Text>
-                        {filters.modelId && trims && trims.length > 0 && (
-                          <Ionicons
-                            name={trimOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
-                            size={14}
-                            color={filters.trim ? Colors.primary : Colors.textMuted}
-                          />
-                        )}
-                      </TouchableOpacity>
-
-                      <View style={s.locationSeparator} />
-
-                      {/* السنة: من - إلى */}
-                      <View style={[s.locationDropdown, s.locationDropdownRight, { gap: 4 }]}>
-                        <Ionicons name="calendar-outline" size={16} color={Colors.textMuted} />
-                        <TextInput
-                          placeholder="من"
-                          keyboardType="numeric"
-                          maxLength={4}
-                          style={s.yearInput}
-                          value={filters.yearMin}
-                          onChangeText={(val) => updateFilter('yearMin', val)}
-                        />
-                        <Text style={s.yearDash}>-</Text>
-                        <TextInput
-                          placeholder="إلى"
-                          keyboardType="numeric"
-                          maxLength={4}
-                          style={s.yearInput}
-                          value={filters.yearMax}
-                          onChangeText={(val) => updateFilter('yearMax', val)}
-                        />
-                      </View>
-                    </View>
-
-                    {/* Trim list */}
-                    {trimOpen && trims && trims.length > 0 && (
-                      <View style={s.dropdownList}>
-                        <ScrollView style={s.dropdownScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                          {trims.map((t) => (
-                            <TouchableOpacity
-                              key={t.id}
-                              style={[s.dropdownItem, filters.trim === (t.nameAr || t.name) && s.activeDropdownItem]}
-                              onPress={() => { updateFilter('trim', t.nameAr || t.name); setTrimOpen(false); }}
-                            >
-                              <Text style={[s.dropdownItemText, filters.trim === (t.nameAr || t.name) && s.activeDropdownItemText]}>
-                                {t.nameAr || t.name}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
-
-                  </View>
-
-                  {/* الموقع */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>الموقع</Text>
-
-                    <View style={s.locationRow}>
-                      {/* المدينة */}
-                      <TouchableOpacity
-                        style={[s.locationDropdown, filters.governorate && s.locationDropdownActive]}
-                        onPress={() => { setGovOpen(!govOpen); setCityOpen(false); }}
-                      >
-                        <Ionicons name="location-outline" size={16} color={filters.governorate ? Colors.primary : Colors.textMuted} />
-                        <Text style={[s.locationDropdownText, !filters.governorate && s.dropdownPlaceholder]} numberOfLines={1}>
-                          {selectedGov ? selectedGov.labelAr : 'المدينة'}
-                        </Text>
-                        <Ionicons name="chevron-down-outline" size={14} color={filters.governorate ? Colors.primary : Colors.textMuted} />
-                      </TouchableOpacity>
-
-                      <View style={s.locationSeparator} />
-
-                      {/* الولاية */}
-                      <TouchableOpacity
-                        style={[s.locationDropdown, filters.city && s.locationDropdownActive]}
-                        onPress={() => { setCityOpen(!cityOpen); setGovOpen(false); }}
-                      >
-                        <Ionicons name="map-outline" size={16} color={filters.city ? Colors.primary : Colors.textMuted} />
-                        <Text style={[s.locationDropdownText, !filters.city && s.dropdownPlaceholder]} numberOfLines={1}>
-                          {filters.city || 'الولاية'}
-                        </Text>
-                        <Ionicons name="chevron-down-outline" size={14} color={filters.city ? Colors.primary : Colors.textMuted} />
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* City list */}
-                    {govOpen && (
-                      <View style={s.dropdownList}>
-                        <ScrollView style={s.dropdownScroll} nestedScrollEnabled>
-                          {GOVERNORATE_OPTIONS.map((g) => (
-                            <TouchableOpacity
-                              key={g.value}
-                              style={[s.dropdownItem, filters.governorate === g.value && s.activeDropdownItem]}
-                              onPress={() => { updateFilter('governorate', g.value); setGovOpen(false); }}
-                            >
-                              <Text style={[s.dropdownItemText, filters.governorate === g.value && s.activeDropdownItemText]}>
-                                {g.labelAr}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
-
-                    {/* Wilayat list */}
-                    {cityOpen && (
-                      <View style={s.dropdownList}>
-                        <ScrollView style={s.dropdownScroll} nestedScrollEnabled>
-                          {(filters.governorate
-                            ? WILAYAT_BY_GOVERNORATE[filters.governorate] || []
-                            : Object.values(WILAYAT_BY_GOVERNORATE).flat()
-                          ).map((c) => (
-                            <TouchableOpacity
-                              key={c.value}
-                              style={[s.dropdownItem, filters.city === c.value && s.activeDropdownItem]}
-                              onPress={() => { updateFilter('city', c.value); setCityOpen(false); }}
-                            >
-                              <Text style={[s.dropdownItemText, filters.city === c.value && s.activeDropdownItemText]}>
-                                {c.labelAr}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
-                  </View>
-
-
-
-                  {/* نطاق السعر */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>نطاق السعر (ر.ع)</Text>
-                    <View style={s.inputRow}>
-                      <View style={s.inputContainer}>
-                        <Text style={s.inputLabel}>من</Text>
-                        <TextInput
-                          placeholder="الحد الأدنى"
-                          keyboardType="numeric"
-                          style={s.input}
-                          value={filters.priceMin}
-                          onChangeText={(val) => updateFilter('priceMin', val.replace(/[^0-9]/g, ''))}
-                        />
-                      </View>
-                      <View style={s.inputSeparator} />
-                      <View style={s.inputContainer}>
-                        <Text style={s.inputLabel}>إلى</Text>
-                        <TextInput
-                          placeholder="الحد الأقصى"
-                          keyboardType="numeric"
-                          style={s.input}
-                          value={filters.priceMax}
-                          onChangeText={(val) => updateFilter('priceMax', val.replace(/[^0-9]/g, ''))}
-                        />
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* نوع الهيكل */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>نوع الهيكل</Text>
-                    <View style={[s.row, { flexWrap: 'wrap' }]}>
-                      {BODY_TYPES.map((body) => (
-                        <TouchableOpacity
-                          key={body.value}
-                          style={[s.chip, filters.bodyType === body.value && s.activeChip]}
-                          onPress={() => updateFilter('bodyType', body.value)}
-                        >
-                          <Text style={[s.chipText, filters.bodyType === body.value && s.activeChipText]}>
-                            {body.labelAr}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* ناقل الحركة */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>ناقل الحركة</Text>
-                    <View style={s.row}>
-                      {TRANSMISSION_TYPES.map((trans) => (
-                        <TouchableOpacity
-                          key={trans.value}
-                          style={[s.chip, filters.transmission === trans.value && s.activeChip]}
-                          onPress={() => updateFilter('transmission', trans.value)}
-                        >
-                          <Text style={[s.chipText, filters.transmission === trans.value && s.activeChipText]}>
-                            {trans.labelAr}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* حالة السيارة */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>حالة السيارة</Text>
-                    <View style={s.row}>
-                      {CONDITIONS.map((cond) => (
-                        <TouchableOpacity
-                          key={cond.value}
-                          style={[s.chip, filters.condition === cond.value && s.activeChip]}
-                          onPress={() => updateFilter('condition', cond.value)}
-                        >
-                          <Text style={[s.chipText, filters.condition === cond.value && s.activeChipText]}>
-                            {cond.labelAr}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* نوع الوقود */}
-                  <View style={s.section}>
-                    <Text style={s.sectionTitle}>نوع الوقود</Text>
-                    <View style={[s.row, { flexWrap: 'wrap' }]}>
-                      {FUEL_TYPES.map((fuel) => (
-                        <TouchableOpacity
-                          key={fuel.value}
-                          style={[s.chip, filters.fuelType === fuel.value && s.activeChip]}
-                          onPress={() => updateFilter('fuelType', fuel.value)}
-                        >
-                          <Text style={[s.chipText, filters.fuelType === fuel.value && s.activeChipText]}>
-                            {fuel.labelAr}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* سنة الصنع (when no makeId - standalone) */}
-                  {!filters.makeId && (
-                    <View style={s.section}>
-                      <Text style={s.sectionTitle}>سنة الصنع</Text>
-                      <View style={s.locationRow}>
-                        <View style={[s.locationDropdown, { gap: 4 }]}>
-                          <Ionicons name="calendar-outline" size={16} color={Colors.textMuted} />
-                          <Text style={s.inputLabel}>من</Text>
-                          <TextInput
-                            placeholder="2010"
-                            keyboardType="numeric"
-                            maxLength={4}
-                            style={s.yearInput}
-                            value={filters.yearMin}
-                            onChangeText={(val) => updateFilter('yearMin', val.replace(/[^0-9]/g, ''))}
-                          />
-                        </View>
-                        <View style={s.locationSeparator} />
-                        <View style={[s.locationDropdown, { gap: 4 }]}>
-                          <Ionicons name="calendar-outline" size={16} color={Colors.textMuted} />
-                          <Text style={s.inputLabel}>إلى</Text>
-                          <TextInput
-                            placeholder="2025"
-                            keyboardType="numeric"
-                            maxLength={4}
-                            style={s.yearInput}
-                            value={filters.yearMax}
-                            onChangeText={(val) => updateFilter('yearMax', val.replace(/[^0-9]/g, ''))}
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </ScrollView>
-              </View>
-
-              {/* Action Buttons */}
-              <View style={s.footer}>
-                <TouchableOpacity style={s.applyBtn} onPress={handleApply}>
-                  <Text style={s.applyBtnText}>تطبيق الفلاتر</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      {nestedContent ? nestedContent : mainContent}
+    </FilterBottomSheetLayout>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    height: '85%',
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    paddingTop: Spacing.space2,
-  },
-  dragHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: Radius.pill,
-    alignSelf: 'center',
-    marginBottom: Spacing.space2,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
-  },
-  title: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    color: Colors.text,
-    writingDirection: 'rtl',
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-  clearBtn: {
-    padding: Spacing.space1,
-  },
-  clearText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.error || '#d9534f',
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  closeBtn: {
-    padding: Spacing.space1,
-  },
-  scrollContent: {
-    padding: Spacing.space4,
-    paddingBottom: 40,
-  },
-  section: {
-    marginBottom: Spacing.space4,
-  },
-  sectionTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.text,
-    marginBottom: Spacing.space2,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  row: {
+  wrapRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.space2,
+    gap: 8,
   },
-  locationRow: {
+  moreBtn: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    // NO overflow:hidden — it clips the dropdown list
-  },
-  locationDropdown: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space3,
-    backgroundColor: Colors.white,
-  },
-  locationDropdownLeft: {
-    borderTopStartRadius: Radius.lg,
-    borderBottomStartRadius: Radius.lg,
-  },
-  locationDropdownRight: {
-    borderTopEndRadius: Radius.lg,
-    borderBottomEndRadius: Radius.lg,
-  },
-  locationDropdownActive: {
-    backgroundColor: Colors.primary + '08',
-  },
-  locationDropdownDisabled: {
-    backgroundColor: '#f9fafb',
-    opacity: 0.6,
-  },
-  dropdownEmpty: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    paddingVertical: Spacing.space3,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  locationDropdownText: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular',  
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.text,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  locationSeparator: {
-    width: 1,
-    height: 28,
-    backgroundColor: Colors.border,
-  },
-  chip: {
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.space1,
+    paddingVertical: 12,
+    gap: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  activeChip: {
-    backgroundColor: Colors.primary + '10',
-    borderColor: Colors.primary,
-  },
-  chipText: {
-    fontFamily: 'Almarai_400Regular',  
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.text2,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  activeChipText: {
-    fontFamily: 'Almarai_700Bold',  
+  moreBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
     color: Colors.primary,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  dropdown: {
-    height: 48,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space3,
-    backgroundColor: Colors.white,
-  },
-  dropdownText: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flex: 1,
-    marginStart: Spacing.space2,
-    includeFontPadding: false,
-  },
-  dropdownPlaceholder: {
-    color: Colors.textMuted,
-  },
-  dropdownList: {
-    maxHeight: 180,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.white,
-    marginTop: Spacing.space1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  dropdownScroll: {
-    paddingVertical: Spacing.space1,
-  },
-  dropdownItem: {
-    paddingVertical: Spacing.space2,
-    paddingHorizontal: Spacing.space4,
-  },
-  activeDropdownItem: {
-    backgroundColor: Colors.surface,
-  },
-  dropdownItemText: {
-    fontFamily: 'Almarai_400Regular',  
-    fontSize: 14,
-    lineHeight: 22,
-    color: Colors.text2,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  activeDropdownItemText: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.space2,
-  },
-  inputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.space3,
-    backgroundColor: Colors.white,
-    gap: Spacing.space1,
-  },
-  inputLabel: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
-    color: Colors.textMuted,
-    writingDirection: 'rtl',
-    includeFontPadding: false,
-  },
-  input: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular',  
-    fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    paddingVertical: 0,
-    textAlignVertical: 'center',
-    includeFontPadding: false,
-  },
-  inputSeparator: {
-    width: 1,
-    height: 24,
-    backgroundColor: Colors.border,
-  },
-  yearInput: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: Colors.text,
-    textAlign: 'center',
-    minWidth: 36,
-    paddingVertical: 0,
-    textAlignVertical: 'center',
-    includeFontPadding: false,
-  },
-  yearDash: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.textMuted,
-    includeFontPadding: false,
-  },
-  footer: {
-    padding: Spacing.space4,
-    borderTopWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.white,
-    paddingBottom: Platform.OS === 'ios' ? 34 : Spacing.space4,
-  },
-  applyBtn: {
-    height: 48,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  applyBtnText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 16,
-    color: Colors.white,
-  },
+  }
 });

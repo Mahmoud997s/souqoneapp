@@ -65,9 +65,7 @@ export const PartHorizontalList = ({
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space6,
-  },
+  container: {},
   header: {
     flexDirection: 'row', 
     alignItems: 'center', 

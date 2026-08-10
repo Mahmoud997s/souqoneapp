@@ -3,6 +3,7 @@ import { View, ViewStyle, StyleSheet, Animated } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
+import { CardSystem } from '../../constants/cardSystem'
 
 export function SkeletonCard({ style }: { style?: ViewStyle }) {
   const anim = useRef(new Animated.Value(0)).current
@@ -51,14 +52,14 @@ const s = StyleSheet.create({
   card: {
     width: '100%',
     backgroundColor: Colors.white,
-    borderRadius: Radius.md,
+    borderRadius: CardSystem.radius.outer,
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
   },
   image: {
     width: '100%',
-    aspectRatio: 4 / 3,
+    height: CardSystem.aspectRatioHeight,
   },
   body: {
     padding: Spacing.space3,

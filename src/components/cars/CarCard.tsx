@@ -13,6 +13,7 @@ import { Listing } from '../../types/listing.types'
 import { GOVERNORATE_OPTIONS } from '../../constants/filters'
 import { formatLocation } from '../../utils/mappers'
 import { formatDate } from '../../utils/format'
+import { CardSystem } from '../../constants/cardSystem'
 
 export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
@@ -316,21 +317,15 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   )
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-  android: { elevation: 3 },
-});
-
 const s = StyleSheet.create({
   card: {
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
-    borderRadius: 16,
+    borderRadius: CardSystem.radius.outer,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    ...CardSystem.styles.border,
     overflow: 'hidden',
-    ...softShadow,
+    ...CardSystem.styles.softShadow,
   },
   imageContainer: {
     position: 'relative',
@@ -338,33 +333,23 @@ const s = StyleSheet.create({
   },
   carImagePlaceholder: {
     width: '100%',
-    height: 120,
+    height: CardSystem.aspectRatioHeight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   swiperScrollView: {
     width: '100%',
-    height: 140, // Increased slightly for better look
+    height: CardSystem.aspectRatioHeight, 
   },
   dotsWrapper: {
-    position: 'absolute',
-    bottom: 12,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
+    position: 'absolute', bottom: 12, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)',
   },
   activeDot: {
-    backgroundColor: '#fff',
-    width: 16,
+    backgroundColor: '#fff', width: 16,
   },
   actionsContainer: {
     position: 'absolute', top: 12, right: 12, zIndex: 10,
@@ -376,107 +361,74 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   badgesContainer: {
-    position: 'absolute', top: 12, left: 12, right: 80, // leave space for actions
+    position: 'absolute', top: 12, left: 12, right: 80,
     flexDirection: 'row', gap: 6, flexWrap: 'wrap',
   },
   badge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 100, // fully rounded like pills
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2, // premium shadow
+    paddingHorizontal: 7, paddingVertical: 2.5,
+    borderRadius: CardSystem.radius.badge, 
+    ...CardSystem.styles.badgeShadow,
   },
   badgeTxt: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 10, color: Colors.white,
-    letterSpacing: 0.2,
+    ...CardSystem.typography.badgeText,
+    color: Colors.white,
+    writingDirection: 'rtl',
   },
   carDetails: {
-    padding: 14,
+    padding: CardSystem.padding.dense,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
+    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: CardSystem.gap.primary,
   },
   carTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 15, color: '#0f172a', textAlign: 'left',
-    lineHeight: 22,
+    ...CardSystem.typography.title,
+    color: '#0f172a', textAlign: 'left', writingDirection: 'rtl',
   },
   verifiedRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: '#eff6ff', 
-    paddingHorizontal: 8, 
-    paddingVertical: 4, 
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    marginTop: 2,
+    paddingHorizontal: 6, paddingVertical: 2, 
+    borderRadius: 100, borderWidth: 1, borderColor: '#bfdbfe', marginTop: 2,
   },
   verifiedTxt: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 10, color: '#2563eb',
+    ...CardSystem.typography.badgeText,
+    color: '#2563eb', writingDirection: 'rtl',
   },
   locationRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 6, marginTop: 4, marginBottom: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 5, marginTop: 3, marginBottom: 6,
   },
   locationTxt: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 12, color: Colors.textMuted,
+    ...CardSystem.typography.subtitle,
+    color: Colors.textMuted, writingDirection: 'rtl',
   },
   timeTxt: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 11, color: '#94a3b8',
-    marginLeft: 4,
+    ...CardSystem.typography.subtitle,
+    color: '#94a3b8', marginStart: 4, writingDirection: 'rtl',
   },
   divider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
-    marginBottom: 12,
+    height: 1, backgroundColor: '#f1f5f9', marginBottom: 8,
   },
   detailsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 8,
+    flexDirection: 'row', flexWrap: 'wrap', gap: CardSystem.gap.secondary, marginBottom: 6,
   },
   detailPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 7, paddingVertical: 3.5,
+    borderRadius: CardSystem.radius.inner,
   },
-  pillNeutral: {
-    backgroundColor: '#f8fafc', // slate-50
-  },
-  pillBlue: {
-    backgroundColor: '#eff6ff', // blue-50
-  },
-  pillAmber: {
-    backgroundColor: '#fffbeb', // amber-50
-  },
-  pillGreen: {
-    backgroundColor: '#ecfdf5', // emerald-50
-  },
+  pillNeutral: CardSystem.styles.pillNeutral,
+  pillBlue: CardSystem.styles.pillBlue,
+  pillAmber: CardSystem.styles.pillAmber,
+  pillGreen: CardSystem.styles.pillGreen,
   detailText: {
-    fontSize: 11,
-    fontFamily: 'Almarai_700Bold',
-    color: '#475569',
-    lineHeight: 18,
+    ...CardSystem.typography.pillText,
+    color: '#475569', writingDirection: 'rtl',
   },
   footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: CardSystem.gap.secondary,
   },
   budgetValText: {
-    fontSize: 13,
-    fontFamily: 'Almarai_800ExtraBold',
-    color: '#64748b',
-    lineHeight: 20,
+    fontSize: 12, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 16, writingDirection: 'rtl',
   },
 })

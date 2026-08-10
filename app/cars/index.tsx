@@ -10,10 +10,10 @@ import { Spacing } from '../../src/constants/spacing';
 
 import { useCarListings } from '../../src/hooks/useCarListings';
 import { CategoriesGrid } from '../../src/components/cars/CategoriesGrid';
-import { PromoBanners } from '../../src/components/cars/PromoBanners';
 import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
+import { ActionBanner } from '../../src/components/ui/ActionBanner';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function CarsLandingScreen() {
   });
 
   // Data fetching logic
-  const { data: baseFeaturedData = [], isLoading: loadingFeatured } = useCarListings({ limit: 20 });
+  const { data: baseFeaturedData = [], isLoading: loadingFeatured, isError, refetch } = useCarListings({ limit: 20 });
   const featuredCars = useMemo(() => baseFeaturedData.filter(car => car.isPremium).slice(0, 10), [baseFeaturedData]);
   
   const [loadRest, setLoadRest] = useState(false);
@@ -64,10 +64,10 @@ export default function CarsLandingScreen() {
         onHeaderIconPress={() => router.push('/profile/notifications' as any)}
         primaryCta={{
           label: 'اعرض سيارتك',
-          icon: 'add-circle-outline',
+          icon: 'add',
           onPress: () => router.push('/post' as any),
-          bgColor: Colors.white,
-          textColor: '#0B2447'
+          bgColor: Colors.accent,
+          textColor: Colors.white
         }}
         outlineCta={{
           label: 'تصفح المعارض',
@@ -81,53 +81,65 @@ export default function CarsLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 185 + Spacing.space4, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
-          <PromoBanners />
           <CategoriesGrid />
 
-          <CarHorizontalList
-            title="إعلانات مميزة"
-            subTitle="أفضل السيارات المتاحة حالياً"
-            data={featuredCars}
-            isLoading={loadingFeatured}
-            emptyText="لا توجد إعلانات مميزة حالياً"
-            onSeeAll={() => router.push('/cars/browse?featured=true' as any)}
-            onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-          />
-
-          {loadRest && (
+          {isError && !loadingFeatured ? (
+            <ActionBanner 
+              title="تعذر الاتصال بالشبكة"
+              subtitle="حدث خطأ أثناء جلب البيانات، يرجى المحاولة مرة أخرى."
+              buttonText="إعادة المحاولة"
+              iconName="cloud-offline"
+              onPress={() => refetch()}
+              gradientColors={['#ef4444', '#b91c1c', '#7f1d1d']}
+            />
+          ) : (
             <>
               <CarHorizontalList
-                title="سيارات للبيع"
-                subTitle="تصفح أحدث عروض البيع"
-                data={saleCars}
-                isLoading={loadingSale}
-                emptyText="لا توجد سيارات للبيع حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
+                title="إعلانات مميزة"
+                subTitle="أفضل السيارات المتاحة حالياً"
+                data={featuredCars}
+                isLoading={loadingFeatured}
+                emptyText="لا توجد إعلانات مميزة حالياً"
+                onSeeAll={() => router.push('/cars/browse?featured=true' as any)}
                 onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
               />
 
-              <CarHorizontalList
-                title="سيارات للإيجار"
-                subTitle="خيارات تأجير مرنة ومتنوعة"
-                data={rentCars}
-                isLoading={loadingRent}
-                emptyText="لا توجد سيارات للإيجار حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
-                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-              />
+              {loadRest && (
+                <>
+                  <CarHorizontalList
+                    title="سيارات للبيع"
+                    subTitle="تصفح أحدث عروض البيع"
+                    data={saleCars}
+                    isLoading={loadingSale}
+                    emptyText="لا توجد سيارات للبيع حالياً"
+                    onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
+                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                  />
 
-              <CarHorizontalList
-                title="سيارات مطلوبة"
-                subTitle="طلبات شراء سيارات من المستخدمين"
-                data={wantedCars}
-                isLoading={loadingWanted}
-                emptyText="لا توجد سيارات مطلوبة حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
-                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-              />
+                  <CarHorizontalList
+                    title="سيارات للإيجار"
+                    subTitle="خيارات تأجير مرنة ومتنوعة"
+                    data={rentCars}
+                    isLoading={loadingRent}
+                    emptyText="لا توجد سيارات للإيجار حالياً"
+                    onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
+                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                  />
+
+                  <CarHorizontalList
+                    title="سيارات مطلوبة"
+                    subTitle="طلبات شراء سيارات من المستخدمين"
+                    data={wantedCars}
+                    isLoading={loadingWanted}
+                    emptyText="لا توجد سيارات مطلوبة حالياً"
+                    onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
+                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                  />
+                </>
+              )}
             </>
           )}
 
@@ -142,5 +154,5 @@ export default function CarsLandingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
-  content: { paddingHorizontal: Spacing.space5, paddingTop: Spacing.space2 },
+  content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: Spacing.space4 },
 });

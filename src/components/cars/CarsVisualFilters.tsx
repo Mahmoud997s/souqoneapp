@@ -9,7 +9,13 @@ import {
   Platform,
   Dimensions,
   ActivityIndicator,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { Ionicons } from '@expo/vector-icons';
 import { useBrands, useCarModels } from '../../hooks/useCars';
 import { getBrandLogo } from '../../constants/brandLogos';
@@ -96,36 +102,19 @@ export function CarsVisualFilters({
   ) => {
     if (!items || items.length === 0) return null;
 
-    const isPrice = type === 'prices';
-    const isCity = type === 'cities';
-    const useSingleRow = isPrice || isCity;
-
     let columns = [];
-    if (useSingleRow) {
-      columns = items.map((item) => [item]);
-    } else {
-      for (let i = 0; i < items.length; i += 2) {
-        columns.push(items.slice(i, i + 2));
-      }
+    for (let i = 0; i < items.length; i += 2) {
+      columns.push(items.slice(i, i + 2));
     }
 
     return (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.horizontalGridContent}
-        style={s.horizontalScroll}
+        contentContainerStyle={s.scrollContainer}
       >
         {columns.map((col, colIdx) => (
-          <View
-            key={colIdx}
-            style={[
-              s.gridColumn,
-              isPrice && { width: 160 },
-              isCity && { width: 120 },
-              !useSingleRow && { width: (SCREEN_WIDTH - (Spacing.space4 * 2)) / 4.2 },
-            ]}
-          >
+          <View key={colIdx} style={s.column}>
             {col.map((item: any) => {
               let isSelected = false;
               let icon: React.ReactNode = null;
@@ -135,18 +124,14 @@ export function CarsVisualFilters({
               if (type === 'brands') {
                 isSelected = selectedBrandId === item.id;
                 const logo = getBrandLogo(item.slug || item.id);
-                icon = logo ? (
-                  <Image
-                    source={logo}
-                    style={[s.brandLogo, isSelected && s.brandLogoActive]}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Ionicons
-                    name="car-sport"
-                    size={22}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
+                icon = (
+                  <View style={s.logoBox}>
+                    {logo ? (
+                      <Image source={logo} style={s.brandLogo} resizeMode="contain" />
+                    ) : (
+                      <Ionicons name="car-outline" size={16} color={Colors.primary} />
+                    )}
+                  </View>
                 );
                 text = item.nameAr || item.name;
                 onPress = () => {
@@ -154,16 +139,16 @@ export function CarsVisualFilters({
                     onSelectFilter('make', '', undefined);
                   } else {
                     onSelectFilter('make', item.id, item.name);
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setActiveTab('models');
                   }
                 };
               } else if (type === 'models') {
                 isSelected = selectedModelId === item.id;
                 icon = (
-                  <Ionicons
-                    name="car-outline"
-                    size={22}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons name="car-sport-outline" size={14} color={isSelected ? Colors.white : Colors.primary} />
+                  </View>
                 );
                 text = item.nameAr || item.name;
                 onPress = () => {
@@ -176,11 +161,9 @@ export function CarsVisualFilters({
               } else if (type === 'cities') {
                 isSelected = selectedCity === item.name;
                 icon = (
-                  <Ionicons
-                    name={isSelected ? 'location' : 'location-outline'}
-                    size={18}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons name={isSelected ? 'location' : 'location-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
+                  </View>
                 );
                 text = item.name;
                 onPress = () => {
@@ -193,34 +176,24 @@ export function CarsVisualFilters({
               } else if (type === 'prices') {
                 isSelected = selectedPriceId === item.id;
                 icon = (
-                  <Ionicons
-                    name={isSelected ? 'wallet' : 'wallet-outline'}
-                    size={18}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons name={isSelected ? 'wallet' : 'wallet-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
+                  </View>
                 );
                 text = item.label;
                 onPress = () => {
                   if (isSelected) {
                     onSelectFilter('price', '', undefined);
                   } else {
-                    onSelectFilter(
-                      'price',
-                      item.id,
-                      item.label,
-                      item.min,
-                      item.max || undefined
-                    );
+                    onSelectFilter('price', item.id, item.label, item.min, item.max || undefined);
                   }
                 };
               } else if (type === 'types') {
                 isSelected = selectedTypeId?.toUpperCase() === item.id?.toUpperCase();
                 icon = (
-                  <Ionicons
-                    name={item.icon || 'car-sport-outline'}
-                    size={22}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons name={item.icon || 'car-sport-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
+                  </View>
                 );
                 text = item.name;
                 onPress = () => {
@@ -236,29 +209,11 @@ export function CarsVisualFilters({
                 <TouchableOpacity
                   key={item.id}
                   activeOpacity={0.7}
-                  style={[
-                    s.gridItemPremium,
-                    useSingleRow && s.gridItemSingleRow,
-                    isSelected && s.gridItemPremiumActive,
-                  ]}
+                  style={[s.itemCard, isSelected && s.itemCardSelected]}
                   onPress={onPress}
                 >
-                  <View
-                    style={[
-                      s.iconWrapper,
-                      useSingleRow && { marginBottom: 0, marginEnd: 8, height: 'auto' },
-                    ]}
-                  >
-                    {icon}
-                  </View>
-                  <Text
-                    style={[
-                      s.itemTextPremium,
-                      isSelected && s.itemTextPremiumActive,
-                      useSingleRow && s.itemTextSingleRow,
-                    ]}
-                    numberOfLines={useSingleRow ? 1 : 2}
-                  >
+                  {icon}
+                  <Text style={[s.itemLabel, isSelected && s.itemLabelSelected]} numberOfLines={1}>
                     {text}
                   </Text>
                 </TouchableOpacity>
@@ -266,17 +221,49 @@ export function CarsVisualFilters({
             })}
           </View>
         ))}
+        {/* View All Card */}
+        <View style={s.column}>
+          <TouchableOpacity
+            style={[s.itemCard, s.viewAllCard]}
+            onPress={() => onViewAll(activeTab)}
+            activeOpacity={0.7}
+          >
+            <View style={s.viewAllIconBox}>
+              <Ionicons name="apps-outline" size={15} color={Colors.primary} />
+            </View>
+            <Text style={s.viewAllText}>عرض الكل</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  };
+
+  const renderSkeletonGrid = () => {
+    return (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.scrollContainer}>
+        <View style={s.column}>
+          <View style={[s.itemCard, s.skeletonPill, { width: 110 }]} />
+          <View style={[s.itemCard, s.skeletonPill, { width: 130 }]} />
+        </View>
+        <View style={s.column}>
+          <View style={[s.itemCard, s.skeletonPill, { width: 120 }]} />
+          <View style={[s.itemCard, s.skeletonPill, { width: 95 }]} />
+        </View>
+        <View style={s.column}>
+          <View style={[s.itemCard, s.skeletonPill, { width: 105 }]} />
+          <View style={[s.itemCard, s.skeletonPill, { width: 115 }]} />
+        </View>
+        <View style={s.column}>
+          <View style={[s.itemCard, s.skeletonPill, { width: 100 }]} />
+          <View style={[s.itemCard, s.skeletonPill, { width: 125 }]} />
+        </View>
       </ScrollView>
     );
   };
 
   const renderBrandsGrid = () => {
     if (loadingBrands) {
-      return (
-        <View style={s.loader}>
-          <ActivityIndicator size="small" color={Colors.primary} />
-        </View>
-      );
+      return renderSkeletonGrid();
     }
     return renderHorizontalGrid(brands || [], 'brands');
   };
@@ -284,35 +271,38 @@ export function CarsVisualFilters({
   const renderModelsGrid = () => {
     if (!selectedBrandId) {
       return (
-        <View style={s.placeholderContainer}>
-          <Ionicons
-            name="information-circle-outline"
-            size={32}
-            color={Colors.textMuted}
-            style={{ marginBottom: 10 }}
-          />
-          <Text style={s.placeholderText}>الرجاء اختيار الماركة أولاً لعرض الموديلات</Text>
+        <View style={s.inlineEmptyBox}>
+          <View style={s.inlineEmptyIcon}>
+            <Ionicons name="car-sport-outline" size={20} color={Colors.primary} />
+          </View>
+          <View style={s.inlineEmptyTextContainer}>
+            <Text style={s.inlineEmptyTitle}>لم تقم باختيار ماركة</Text>
+            <Text style={s.inlineEmptySub}>اختر الماركة أولاً لتتمكن من تصفح الموديلات الخاصة بها</Text>
+          </View>
           <TouchableOpacity
-            style={s.switchTabBtn}
+            style={s.inlineEmptyBtn}
             onPress={() => setActiveTab('brands')}
             activeOpacity={0.7}
           >
-            <Text style={s.switchTabTxt}>العودة للماركات</Text>
+            <Text style={s.inlineEmptyBtnText}>الماركات</Text>
+            <Ionicons name="arrow-back-outline" size={14} color={Colors.primary} />
           </TouchableOpacity>
         </View>
       );
     }
     if (loadingModels) {
-      return (
-        <View style={s.loader}>
-          <ActivityIndicator size="small" color={Colors.primary} />
-        </View>
-      );
+      return renderSkeletonGrid();
     }
     if (!models || models.length === 0) {
       return (
-        <View style={s.placeholderContainer}>
-          <Text style={s.placeholderText}>لا توجد موديلات لهذه الماركة</Text>
+        <View style={s.inlineEmptyBox}>
+          <View style={[s.inlineEmptyIcon, { backgroundColor: '#fef2f2' }]}>
+            <Ionicons name="alert-circle-outline" size={20} color="#ef4444" />
+          </View>
+          <View style={s.inlineEmptyTextContainer}>
+            <Text style={s.inlineEmptyTitle}>لا توجد موديلات</Text>
+            <Text style={s.inlineEmptySub}>عذراً، لا تتوفر موديلات مسجلة لهذه الماركة حالياً</Text>
+          </View>
         </View>
       );
     }
@@ -353,42 +343,41 @@ export function CarsVisualFilters({
   return (
     <View style={s.container}>
       {/* ── TABS ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.tabsContent}
-        style={s.tabsScroll}
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              style={[s.tabButton, isActive && s.tabButtonActive]}
-              onPress={() => setActiveTab(tab.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <View style={s.segmentedWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.segmentedContainer}
+        >
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                activeOpacity={0.8}
+                style={[s.segmentTab, isActive && s.segmentTabActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Ionicons
+                  name={tab.icon as any}
+                  size={14}
+                  color={isActive ? Colors.primary : '#64748b'}
+                  style={s.tabIcon}
+                />
+                <Text style={[s.segmentTabText, isActive && s.segmentTabTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* ── GRID AREA ── */}
       <View style={s.contentArea}>
         {renderActiveGrid()}
 
-        {/* View All Button */}
-        <TouchableOpacity
-          style={s.viewAllBtn}
-          onPress={() => onViewAll(activeTab)}
-          activeOpacity={0.7}
-        >
-          <Text style={s.viewAllBtnText}>{getActiveTabViewAllText()}</Text>
-          <Ionicons name="chevron-down" size={16} color={Colors.primary} />
-        </TouchableOpacity>
+        {/* Button removed since we now use View All Card in the ScrollView */}
       </View>
     </View>
   );
@@ -401,175 +390,191 @@ const s = StyleSheet.create({
     borderBottomColor: '#f1f5f9',
     paddingBottom: Spacing.space2,
   },
-  tabsScroll: {
-    paddingVertical: Spacing.space2,
+  segmentedWrapper: {
+    marginHorizontal: Spacing.space4,
+    marginBottom: Spacing.space2,
+    marginTop: Spacing.space2,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 3,
   },
-  tabsContent: {
-    paddingHorizontal: Spacing.space3,
+  segmentedContainer: {
     flexDirection: 'row',
-    gap: Spacing.space2,
+    alignItems: 'center',
+    gap: 4,
   },
-  tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 100,
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  segmentTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 5,
   },
-  tabButtonActive: {
-    backgroundColor: Colors.primary + '15',
-    borderColor: Colors.primary + '40',
+  segmentTabActive: {
+    backgroundColor: '#ffffff',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
-  tabText: {
+  tabIcon: {
+    marginEnd: 2,
+  },
+  segmentTabText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: Colors.textMuted,
+    fontSize: 11.5,
+    lineHeight: 15.5,
+    color: '#64748b',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
-  tabTextActive: {
-    fontFamily: 'Almarai_800ExtraBold',
+  segmentTabTextActive: {
     color: Colors.primary,
+    fontFamily: 'Almarai_800ExtraBold',
   },
   contentArea: {
     paddingTop: Spacing.space2,
   },
-  horizontalScroll: {},
-  horizontalGridContent: {
+  scrollContainer: {
     paddingHorizontal: Spacing.space4,
-    paddingTop: 6,
-    paddingBottom: Spacing.space2,
+    gap: 6,
+  },
+  column: {
+    gap: 6,
+  },
+  itemCard: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  gridColumn: {
     alignItems: 'center',
-    gap: 8,
-  },
-  gridItemPremium: {
-    width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    minHeight: 84,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 5.5,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+    minWidth: 95,
+    gap: 6,
   },
-  gridItemSingleRow: {
-    minHeight: 48,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gridItemPremiumActive: {
-    backgroundColor: Colors.primary,
+  itemCardSelected: {
+    backgroundColor: '#EFF6FF',
     borderColor: Colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
-  iconWrapper: {
-    marginBottom: 4,
-    height: 32,
-    justifyContent: 'center',
+  iconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoBox: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandLogo: {
-    width: 32,
-    height: 32,
+    width: 20,
+    height: 20,
   },
-  brandLogoActive: {
-    tintColor: Colors.white,
-  },
-  itemTextPremium: {
+  itemLabel: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#334155',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
-  itemTextSingleRow: {
-    fontSize: 12.5,
-    textAlign: 'center',
-    lineHeight: 18,
-    writingDirection: 'rtl',
+  itemLabelSelected: {
+    color: Colors.primary,
   },
-  itemTextPremiumActive: {
-    color: Colors.white,
+  viewAllCard: {
+    backgroundColor: '#f8fafc',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    minWidth: 75,
   },
-
-  viewAllBtn: {
-    flexDirection: 'row',
+  viewAllIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#eff6ff',
-    paddingVertical: 8,
-    borderRadius: 100,
+  },
+  viewAllText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.primary,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  inlineEmptyBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
     marginHorizontal: Spacing.space4,
-    marginTop: Spacing.space1,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    gap: 12,
+  },
+  inlineEmptyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inlineEmptyTextContainer: {
+    flex: 1,
+  },
+  inlineEmptyTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: '#334155',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+    textAlign: 'left',
+  },
+  inlineEmptySub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 10.5,
+    color: '#64748b',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    lineHeight: 14,
+  },
+  inlineEmptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#dbeafe',
     gap: 4,
   },
-  viewAllBtnText: {
+  inlineEmptyBtnText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
+    fontSize: 11,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
-  loader: {
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderContainer: {
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  placeholderText: {
-    fontFamily: 'Almarai_400Regular',
-    color: Colors.textMuted,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  switchTabBtn: {
-    marginTop: Spacing.space3,
-    paddingVertical: Spacing.space2,
-    paddingHorizontal: Spacing.space4,
-    backgroundColor: '#F0F5FF',
-    borderRadius: Radius.md,
-  },
-  switchTabTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: Colors.primary,
-    writingDirection: 'rtl',
+  skeletonPill: {
+    backgroundColor: '#f1f5f9',
+    borderColor: 'transparent',
+    minWidth: 95,
   },
 });

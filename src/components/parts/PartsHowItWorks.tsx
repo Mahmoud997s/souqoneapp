@@ -61,10 +61,7 @@ export const PartsHowItWorks = () => {
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space6,
-    marginTop: Spacing.space2,
-  },
+  container: {},
   header: {
     marginBottom: Spacing.space4,
   },

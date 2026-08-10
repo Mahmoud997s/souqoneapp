@@ -88,7 +88,7 @@ export default function PartsLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 185 + Spacing.space4, paddingBottom: 110 }}
+        contentContainerStyle={{ paddingTop: insets.top + 159 + Spacing.space4, paddingBottom: 110 }}
       >
         <View style={s.content}>
           <PartsCategoriesGrid />
@@ -135,5 +135,5 @@ export default function PartsLandingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
-  content: { paddingHorizontal: Spacing.space5 },
+  content: { paddingHorizontal: Spacing.space5, gap: 28, paddingBottom: Spacing.space4 },
 });

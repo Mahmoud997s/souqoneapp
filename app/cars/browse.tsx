@@ -24,6 +24,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useInfiniteCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
+import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import {
+  DROPDOWN_FILTERS,
+  SORT_OPTIONS,
+  PRICE_RANGES,
+  YEARS,
+  LISTING_TYPES,
+  CAR_TYPES,
+} from '../../src/constants/browseFilters';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { useNavVisibility } from '../../src/context/NavVisibilityContext';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
@@ -64,47 +75,6 @@ interface FilterState {
   isPremium?: boolean;
   trim?: string;
 }
-
-const DROPDOWN_FILTERS = [
-  { id: 'make', label: 'الماركة', icon: 'car-sport-outline' },
-  { id: 'price', label: 'السعر', icon: 'wallet-outline' },
-  { id: 'year', label: 'سنة الصنع', icon: 'calendar-outline' },
-  { id: 'city', label: 'المدينة', icon: 'location-outline' },
-  { id: 'type', label: 'الشكل', icon: 'car-outline' },
-  { id: 'sort', label: 'الترتيب', icon: 'swap-vertical-outline' },
-];
-
-const SORT_OPTIONS = [
-  { id: 'createdAt_desc', label: 'الأحدث أولاً', sortBy: 'createdAt', sortOrder: 'DESC' },
-  { id: 'price_asc', label: 'الأقل سعراً', sortBy: 'price', sortOrder: 'ASC' },
-  { id: 'price_desc', label: 'الأعلى سعراً', sortBy: 'price', sortOrder: 'DESC' },
-  { id: 'year_desc', label: 'سنة الصنع الأحدث', sortBy: 'year', sortOrder: 'DESC' },
-];
-
-const PRICE_RANGES = [
-  { id: 'p1', label: 'أقل من 1,000 ر.ع', min: 0, max: 1000 },
-  { id: 'p2', label: '1,000 - 3,000 ر.ع', min: 1000, max: 3000 },
-  { id: 'p3', label: '3,000 - 6,000 ر.ع', min: 3000, max: 6000 },
-  { id: 'p4', label: '6,000 - 10,000 ر.ع', min: 6000, max: 10000 },
-  { id: 'p5', label: '10,000 - 15,000 ر.ع', min: 10000, max: 15000 },
-  { id: 'p6', label: 'أكثر من 15,000 ر.ع', min: 15000, max: null },
-];
-
-const YEARS = Array.from({ length: 35 }, (_, i) => new Date().getFullYear() - i);
-
-const LISTING_TYPES = [
-  { id: 'SALE', label: 'للبيع' },
-  { id: 'RENTAL', label: 'للإيجار' },
-  { id: 'WANTED', label: 'مطلوب' },
-];
-
-const CAR_TYPES = [
-  { id: 'sedan', name: 'سيدان' },
-  { id: 'suv', name: 'دفع رباعي' },
-  { id: 'hatchback', name: 'هاتشباك' },
-  { id: 'pickup', name: 'بيك أب' },
-  { id: 'coupe', name: 'كوبيه' },
-];
 
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -147,6 +117,10 @@ export default function CarsBrowseScreen() {
   // Dropdown Modal State
   const [activeDropdown, setActiveDropdown] = useState<'make' | 'city' | 'year' | 'price' | 'type' | 'sort' | null>(null);
   const { data: brands } = useBrands();
+
+  const handleAddCar = () => {
+    router.push('/add-listing' as any);
+  };
 
   // Combine query parameters
   const queryParams = useMemo(() => {
@@ -454,7 +428,22 @@ export default function CarsBrowseScreen() {
           }
         }}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} /> : null}
+        ListFooterComponent={() => (
+          <>
+            {isFetchingNextPage && (
+              <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
+            )}
+            {listings && listings.length > 0 && (
+              <ActionBanner
+                title="لديك سيارة للبيع؟"
+                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+                buttonText="أضف إعلانك"
+                iconName="car-sport-outline"
+                onPress={handleAddCar}
+              />
+            )}
+          </>
+        )}
         ListHeaderComponent={
           <View style={s.listHeader}>
             <CarsVisualFilters
@@ -481,9 +470,9 @@ export default function CarsBrowseScreen() {
                   </TouchableOpacity>
                 ) : <View />}
 
-                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                <View style={s.resultsCountBadge}>
                   <Ionicons name="car-sport-outline" size={14} color="#64748b" />
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' }}>
+                  <Text style={s.resultsCountTxt}>
                     {listings.length} سيارة متاحة
                   </Text>
                 </View>
@@ -491,7 +480,15 @@ export default function CarsBrowseScreen() {
             )}
           </View>
         }
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={() => (
+          <BrowseEmptyState
+            isLoading={isLoading}
+            isError={isError}
+            activeFiltersCount={activeFiltersCount}
+            onRetry={refetch}
+            onClearAll={handleClearAll}
+          />
+        )}
         renderItem={({ item }) => (
           <View style={s.cardWrapper}>
             <CarCard item={item as any} onPress={() => router.push(`/listings/${item.id}` as any)} fullWidth showChips />
@@ -506,164 +503,14 @@ export default function CarsBrowseScreen() {
         onApplyFilters={(appliedFilters) => setFilters(appliedFilters)}
       />
 
-      <Modal
+      <QuickFilterModal
         visible={!!activeDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActiveDropdown(null)}
-      >
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
-          <View style={s.modalContent}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>
-                {activeDropdown === 'make' ? 'اختر الماركة' :
-                 activeDropdown === 'city' ? 'اختر المدينة' :
-                 activeDropdown === 'year' ? 'سنة الصنع' : 
-                 activeDropdown === 'type' ? 'الهيكل' : 
-                 activeDropdown === 'sort' ? 'الترتيب' : 'نطاق السعر'}
-              </Text>
-              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {activeDropdown === 'make' && (
-              <FlatList
-                data={brands || []}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, makeId: item.id, make: item.name });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.makeId === item.id && s.modalOptionTxtActive]}>
-                      {item.nameAr || item.name}
-                    </Text>
-                    {filters.makeId === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'city' && (
-              <FlatList
-                data={GOVERNORATE_OPTIONS}
-                keyExtractor={(item) => item.value}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, city: item.labelAr });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.city === item.labelAr && s.modalOptionTxtActive]}>
-                      {item.labelAr}
-                    </Text>
-                    {filters.city === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'year' && (
-              <FlatList
-                data={YEARS}
-                keyExtractor={(item) => item.toString()}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, yearMin: item.toString(), yearMax: item.toString() });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.yearMin === item.toString() && s.modalOptionTxtActive]}>
-                      {item}
-                    </Text>
-                    {filters.yearMin === item.toString() && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'price' && (
-              <FlatList
-                data={PRICE_RANGES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, priceMin: item.min.toString(), priceMax: item.max ? item.max.toString() : '9999999' });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.priceMax === (item.max ? item.max.toString() : '9999999') && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {filters.priceMax === (item.max ? item.max.toString() : '9999999') && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'type' && (
-              <FlatList
-                data={CAR_TYPES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, bodyType: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.bodyType === item.id && s.modalOptionTxtActive]}>
-                      {item.name}
-                    </Text>
-                    {filters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'sort' && (
-              <FlatList
-                data={SORT_OPTIONS}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => {
-                  const isSelected = filters.sortBy === item.sortBy && filters.sortOrder === item.sortOrder;
-                  return (
-                    <TouchableOpacity
-                      style={s.modalOptionRow}
-                      onPress={() => {
-                        setFilters({ ...filters, sortBy: item.sortBy, sortOrder: item.sortOrder });
-                        setActiveDropdown(null);
-                      }}
-                    >
-                      <Text style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}>
-                        {item.label}
-                      </Text>
-                      {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        activeDropdown={activeDropdown}
+        onClose={() => setActiveDropdown(null)}
+        filters={filters}
+        setFilters={setFilters}
+        brands={brands || []}
+      />
     </View>
   );
 }
@@ -766,6 +613,12 @@ const s = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.space6,
   },
+
+  loader: { margin: 20 },
+  resultsCountWrapper: { paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
+  resultsCountBadge: { backgroundColor: '#f8fafc', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#f1f5f9' },
+  resultsCountTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
+
   listHeader: {
     marginBottom: Spacing.space2,
   },
@@ -845,49 +698,5 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',  fontSize: 14,
     color: Colors.primary,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    maxHeight: '65%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space4,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 16, color: Colors.text,
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: Colors.text2,
-  },
-  modalOptionTxtActive: {
-    color: Colors.primary,
-  },
+
 });
