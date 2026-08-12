@@ -7,6 +7,7 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
+import { Gradients } from '../../src/constants/gradients';
 
 import { useCarListings } from '../../src/hooks/useCarListings';
 import { CategoriesGrid } from '../../src/components/cars/CategoriesGrid';
@@ -14,11 +15,19 @@ import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { usePostStore } from '../../src/store/postStore';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const { set, reset } = usePostStore();
+
+  const handleAddCar = () => {
+    reset();
+    set({ category: 'vehicles' });
+    router.push('/post/step2' as any);
+  };
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -49,7 +58,7 @@ export default function CarsLandingScreen() {
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={['#0B2447', '#1a3a6b', '#0d3060']}
+        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للسيارات"
         titleAccent="بيع واشترِ بكل ثقة وأمان"
         navSearchPlaceholder="ابحث عن سيارة..."

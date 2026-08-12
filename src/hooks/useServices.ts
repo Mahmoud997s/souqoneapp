@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { servicesApi } from '../api/services'
 import { mapServiceToCard } from '../utils/mappers'
+import { UnifiedCardItem } from '../components/cards/UnifiedCard'
 
-export function useServices(params?: Record<string, unknown>) {
-  return useQuery({
+export function useServices(params?: Record<string, unknown>, options?: any) {
+  return useQuery<UnifiedCardItem[]>({
     queryKey: ['services', params],
     queryFn: async () => {
       const res = await servicesApi.getAll(params)
@@ -11,6 +12,7 @@ export function useServices(params?: Record<string, unknown>) {
       const arr = Array.isArray(raw) ? raw : []
       return arr.map(mapServiceToCard)
     },
+    ...options
   })
 }
 

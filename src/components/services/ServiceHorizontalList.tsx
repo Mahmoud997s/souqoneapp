@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { PartCard } from './PartCard'
-import { PartSkeletonCard } from './PartSkeletonCard'
+import { ServiceCard } from './ServiceCard'
+import { ServiceSkeletonCard } from './ServiceSkeletonCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
 
-export const PartHorizontalList = ({ 
+export const ServiceHorizontalList = ({ 
   title, 
   subTitle, 
   data, 
@@ -46,11 +46,11 @@ export const PartHorizontalList = ({
       >
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <PartSkeletonCard key={i} />
+            <ServiceSkeletonCard key={i} />
           ))
         ) : data.length > 0 ? (
           data.map((item, idx) => (
-            <PartCard 
+            <ServiceCard 
               key={item.id ?? idx} 
               item={item} 
               onPress={() => onPressItem(item)} 
@@ -60,7 +60,7 @@ export const PartHorizontalList = ({
           <View style={s.emptyCard}>
             <EmptyState 
               title={emptyText} 
-              icon="construct-outline"
+              icon="document-text-outline"
               compact 
             />
           </View>
@@ -110,11 +110,6 @@ const s = StyleSheet.create({
     color: Colors.primary,
     lineHeight: 16,
     paddingTop: 1,
-  },
-  loaderWrap: {
-    height: 220, 
-    alignItems: 'center', 
-    justifyContent: 'center',
   },
   scrollView: {
     marginHorizontal: -Spacing.space5,

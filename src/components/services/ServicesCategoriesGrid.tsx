@@ -7,26 +7,25 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 
 const CATEGORIES = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine' as any, color: '#ea580c', bg: '#ffedd5' },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side' as any, color: '#2563eb', bg: '#dbeafe' },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric' as any, color: '#eab308', bg: '#fef9c3' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp' as any, color: '#16a34a', bg: '#dcfce7' },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert' as any, color: '#dc2626', bg: '#fee2e2' },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat' as any, color: '#9333ea', bg: '#f3e8ff' },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire' as any, color: '#4b5563', bg: '#f3f4f6' },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery' as any, color: '#0891b2', bg: '#cffafe' },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil' as any, color: '#b45309', bg: '#fef3c7' },
+  { id: 'MAINTENANCE', label: 'صيانة', icon: 'wrench' as any, color: '#16a34a', bg: '#dcfce7' },
+  { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water' as any, color: '#2563eb', bg: '#dbeafe' },
+  { id: 'INSPECTION', label: 'فحص', icon: 'magnify' as any, color: '#9333ea', bg: '#f3e8ff' },
+  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: 'spray' as any, color: '#ea580c', bg: '#ffedd5' },
+  { id: 'MODIFICATION', label: 'تعديل', icon: 'tune' as any, color: '#eab308', bg: '#fef9c3' },
+  { id: 'TOWING', label: 'ونش وإنقاذ', icon: 'tow-truck' as any, color: '#dc2626', bg: '#fee2e2' },
+  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: 'key' as any, color: '#0891b2', bg: '#cffafe' },
+  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: 'car-shift-pattern' as any, color: '#b45309', bg: '#fef3c7' },
   { id: 'all', label: 'عرض الكل', icon: 'view-grid' as any, color: Colors.primary, bg: '#EFF6FF' },
 ]
 
-export const PartsCategoriesGrid = () => {
+export const ServicesCategoriesGrid = () => {
   const router = useRouter()
 
   const handlePress = (id: string) => {
     if (id === 'all') {
-      router.push('/parts/browse' as any)
+      router.push('/services/browse' as any)
     } else {
-      router.push(`/parts/browse?category=${id}` as any)
+      router.push(`/services/browse?serviceType=${id}` as any)
     }
   }
 

@@ -6,6 +6,8 @@ import { Spacing } from '../../constants/spacing'
 import { Listing } from '../../types/listing.types'
 import { SkeletonCard } from '../ui/SkeletonCard'
 import { CarCard } from './CarCard'
+import { EmptyState } from '../ui/EmptyState'
+import { CardSystem } from '../../constants/cardSystem'
 
 interface CarHorizontalListProps {
   title: string
@@ -49,7 +51,13 @@ export const CarHorizontalList = ({
         ) : data.length > 0 ? (
           data.map(item => <CarCard key={item.id} item={item} onPress={() => onPressItem(item)} />)
         ) : (
-          <Text style={s.emptyListTxt}>{emptyText}</Text>
+          <View style={s.emptyCard}>
+            <EmptyState 
+              title={emptyText} 
+              icon="car-sport-outline"
+              compact 
+            />
+          </View>
         )}
       </ScrollView>
     </View>
@@ -98,5 +106,20 @@ const s = StyleSheet.create({
   emptyListTxt: {
     fontFamily: 'Almarai_400Regular', 
     fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginTop: Spacing.space3, width: '100%'
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.space5, 
+    gap: Spacing.space3,
+    paddingVertical: 4,
+  },
+  emptyCard: {
+    width: Dimensions.get('window').width * 0.6,
+    height: 250,
+    backgroundColor: Colors.white,
+    borderRadius: CardSystem.radius.outer,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
 })

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView, Pressable, Platform, Share } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
@@ -280,7 +280,7 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
               )
               if (transLabel) pills.push(
                 <View key="trans" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="settings-outline" size={14} color="#64748b" />
+                  <MaterialCommunityIcons name="car-shift-pattern" size={12} color="#64748b" />
                   <Text style={s.detailText}>{transLabel}</Text>
                 </View>
               )

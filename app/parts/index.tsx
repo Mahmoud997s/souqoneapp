@@ -75,6 +75,8 @@ export default function PartsLandingScreen() {
           label: 'أضف قطعة غيار',
           icon: 'add-circle-outline',
           onPress: handleAddPart,
+          bgColor: Colors.accent,
+          textColor: Colors.white
         }}
         outlineCta={{
           label: 'تصفح القطع',
@@ -88,7 +90,7 @@ export default function PartsLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 159 + Spacing.space4, paddingBottom: 110 }}
+        contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
           <PartsCategoriesGrid />
@@ -135,5 +137,5 @@ export default function PartsLandingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
-  content: { paddingHorizontal: Spacing.space5, gap: 28, paddingBottom: Spacing.space4 },
+  content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: Spacing.space4 },
 });

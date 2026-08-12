@@ -39,3 +39,15 @@ export interface PartsFilterState {
   isScrap?: boolean;
 }
 
+export interface ServicesFilterState {
+  serviceType?: string;
+  providerType?: string;
+  governorate?: string;
+  city?: string;
+  isHomeService?: boolean;
+  specializations?: string[];
+  isOpenNow?: boolean;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+}

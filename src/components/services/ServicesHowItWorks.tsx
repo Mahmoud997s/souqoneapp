@@ -8,36 +8,36 @@ import { Radius } from '../../constants/radius'
 const STEPS = [
   {
     num: '1',
-    icon: 'barcode-outline',
-    title: 'ابحث برقم القطعة أو الماركة',
-    desc: 'ابحث بسهولة بالاسم، رقم القطعة، الموديل أو تصفح الأقسام للعثور على القطعة المطابقة.',
+    icon: 'search-outline',
+    title: 'ابحث عن الخدمة المناسبة',
+    desc: 'تصفح أقسام الخدمات مثل الصيانة، الغسيل، والتعديل للعثور على ما تحتاجه سيارتك.',
     color: '#ea580c',
     bg: '#ffedd5',
   },
   {
     num: '2',
-    icon: 'shield-checkmark-outline',
-    title: 'تأكد من الأصالة والمطابقة',
-    desc: 'راجع تفاصيل القطعة (أصلية وكالة، تجارية، أو سكراب) وتأكد من توافقها مع سنة وموديل سيارتك.',
+    icon: 'briefcase-outline',
+    title: 'اختر مقدم الخدمة',
+    desc: 'قارن بين الورش والأفراد والخدمات المتنقلة، وتحقق من الموثوقية والأسعار.',
     color: '#2563eb',
     bg: '#dbeafe',
   },
   {
     num: '3',
     icon: 'chatbubbles-outline',
-    title: 'تواصل مباشرة واستلم قطعتك',
-    desc: 'تواصل فوراً مع البائع أو السكراب عبر الاتصال أو الواتساب واستلم قطعتك بأفضل سعر.',
+    title: 'تواصل مباشرة',
+    desc: 'تواصل مع مقدم الخدمة لحجز موعدك أو طلب خدمة منزلية تصلك أينما كنت.',
     color: '#16a34a',
     bg: '#dcfce7',
   },
 ]
 
-export const PartsHowItWorks = () => {
+export const ServicesHowItWorks = () => {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.title}>كيف يعمل سوق قطع الغيار؟</Text>
-        <Text style={s.subTitle}>3 خطوات بسيطة للحصول على قطعة الغيار المناسبة لسيارتك</Text>
+        <Text style={s.title}>كيف يعمل قسم الخدمات؟</Text>
+        <Text style={s.subTitle}>3 خطوات بسيطة لإنجاز خدمات سيارتك</Text>
       </View>
 
       <View style={s.stepsContainer}>

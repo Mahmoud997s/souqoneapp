@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useListing } from '../../src/hooks/useListings'
@@ -155,10 +155,10 @@ export default function ListingDetailScreen() {
     y && { icon: 'calendar-outline',    label: 'الموديل',     value: String(y) },
     m && { icon: 'speedometer-outline', label: 'المسافة',     value: `${Number(m).toLocaleString('ar')} كم` },
     f && { icon: 'flame-outline',       label: 'الوقود',      value: translateEnum(f, FUEL_TYPES) },
-    t && { icon: 'settings-outline',   label: 'القير', value: translateEnum(t, TRANSMISSION_TYPES) },
+    t && { icon: 'car-shift-pattern',   label: 'القير',       value: translateEnum(t, TRANSMISSION_TYPES), isMaterial: true },
     e && { icon: 'hardware-chip-outline',label: 'المحرك',    value: `${e}L` },
     hp && { icon: 'flash-outline',       label: 'القوة',      value: `${hp} حصان` },
-  ].filter(Boolean) as { icon: string; label: string; value: string }[]
+  ].filter(Boolean) as { icon: string; label: string; value: string; isMaterial?: boolean }[]
 
   const vehicleDetailsTable = [
     raw.make && { label: 'العلامة التجارية', value: raw.make },
@@ -372,7 +372,11 @@ export default function ListingDetailScreen() {
                 {specs.map((sItem, i) => (
                   <View key={i} style={s.specItem}>
                     <View style={s.specIconWrap}>
-                      <Ionicons name={sItem.icon as any} size={18} color={Colors.primary} />
+                      {sItem.isMaterial ? (
+                        <MaterialCommunityIcons name={sItem.icon as any} size={16} color={Colors.primary} />
+                      ) : (
+                        <Ionicons name={sItem.icon as any} size={18} color={Colors.primary} />
+                      )}
                     </View>
                     <Text style={s.specVal} numberOfLines={1}>{sItem.value}</Text>
                     <Text style={s.specLbl} numberOfLines={1}>{sItem.label}</Text>
