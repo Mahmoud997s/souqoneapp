@@ -63,6 +63,8 @@ export default function PostStep5Screen() {
         description: store.description || store.details?.description,
         governorate: store.governorate || store.details?.governorate,
         city: store.city || store.details?.city,
+        governorateId: store.governorateId || store.details?.governorateId,
+        wilayaId: store.wilayaId || store.details?.wilayaId,
         latitude: store.latitude || store.details?.latitude,
         longitude: store.longitude || store.details?.longitude,
         exteriorColor: store.details?.color || store.details?.exteriorColor,
@@ -115,6 +117,19 @@ export default function PostStep5Screen() {
         delete payload.images
       }
 
+      // Category-specific payload cleanup
+      if (store.category === 'services') {
+        delete payload.price
+        delete payload.isPriceNegotiable
+        delete payload.governorate
+        delete payload.city
+        
+        // Ensure providerType has a valid default if missing
+        if (!payload.providerType) {
+          payload.providerType = 'WORKSHOP'
+        }
+      }
+
       const numericFields = [
         'mileage',
         'dailyPrice',
@@ -136,6 +151,8 @@ export default function PostStep5Screen() {
         'pricePerHour',
         'yearFrom',
         'yearTo',
+        'governorateId',
+        'wilayaId',
       ]
       numericFields.forEach((field) => {
         if (payload[field] != null && payload[field] !== '') {
