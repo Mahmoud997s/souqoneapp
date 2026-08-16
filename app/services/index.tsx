@@ -2,13 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 
 import { useServices } from '../../src/hooks/useServices';
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { usePostStore } from '../../src/store/postStore';
 
 import { ServicesCategoriesGrid } from '../../src/components/services/ServicesCategoriesGrid';
@@ -17,11 +18,12 @@ import { ServicesHowItWorks } from '../../src/components/services/ServicesHowItW
 import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
 import { Gradients } from '../../src/constants/gradients';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 export default function ServicesLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollY = useSharedValue(0);
+  const { scrollHandler, scrollY } = useScrollAwareNav();
   const { set, reset } = usePostStore();
 
   const handleAddService = () => {
@@ -30,11 +32,6 @@ export default function ServicesLandingScreen() {
     router.push('/post/step2' as any);
   };
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   // Data fetching logic
   const { data: baseData = [], isLoading: loadingData, isError, refetch } = useServices({ limit: 20 });
@@ -154,6 +151,9 @@ export default function ServicesLandingScreen() {
           )}
 
           <ServicesHowItWorks />
+
+          {/* Need Help / Support Button */}
+          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
         </View>
       </Animated.ScrollView>
 

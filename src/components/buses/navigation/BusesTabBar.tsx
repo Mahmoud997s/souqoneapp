@@ -34,11 +34,11 @@ const T = {
   badgeBorder:Colors.white,
 } as const;
 
-const BAR_H      = 60;
-const FAB_SIZE   = 52;
-const ICON_SIZE  = 24;
-const FONT_ACT   = Typography.labelMd.fontFamily;
-const FONT_INACT = Typography.caption.fontFamily;
+const BAR_H      = 56;
+const FAB_SIZE   = 44;
+const ICON_SIZE  = 21;
+const FONT_ACT   = 'Almarai_700Bold';
+const FONT_INACT = 'Almarai_400Regular';
 
 const TABS = [
   { name: 'index',     label: 'الرئيسية', icon: 'home'       as const, iconO: 'home-outline'       as const },
@@ -220,64 +220,114 @@ export function BusesTabBar({ state, navigation, descriptors }: BottomTabBarProp
 const s = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: 16, right: 16,
-    borderRadius: 32,
+    left: 16,
+    right: 16,
+    maxWidth: 480,
+    alignSelf: 'center',
+    borderRadius: 28,
+    zIndex: 100,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16 },
-      android: { elevation: 12 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
+      },
+      android: { elevation: 8 },
     }),
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 32,
+    borderRadius: 28,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   bar: {
     flexDirection: 'row',
     height: BAR_H,
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     height: BAR_H,
-    gap: 2,
-    paddingTop: 4,
-    paddingBottom: 6,
+    gap: 1,
+    paddingTop: 3,
+    paddingBottom: 4,
   },
   iconContainer: {
-    width: 44, height: 34,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   iconBg: {
-    position: 'absolute', width: 44, height: 30, borderRadius: 15, backgroundColor: T.primaryBg,
+    position: 'absolute',
+    width: 36,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: T.primaryBg,
   },
   label: {
-    fontFamily: FONT_INACT, fontSize: 10, color: T.inactive,
-    letterSpacing: 0.1, lineHeight: 16, paddingBottom: 2,
+    fontFamily: FONT_INACT,
+    fontSize: 10,
+    lineHeight: 14,
+    color: T.inactive,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    paddingTop: 1,
   },
   labelActive: {
-    fontFamily: FONT_ACT, color: T.primary,
+    fontFamily: FONT_ACT,
+    color: T.primary,
   },
   dot: {
-    height: 3, borderRadius: 2, backgroundColor: T.primary,
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: T.primary,
+    marginTop: 1,
   },
   badge: {
-    position: 'absolute', top: 4, right: 6, width: 7, height: 7,
-    borderRadius: 4, backgroundColor: T.badgeBg, borderWidth: 1.5, borderColor: T.badgeBorder,
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    backgroundColor: T.badgeBg,
+    minWidth: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: T.badgeBorder,
   },
   fabItem: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', height: BAR_H,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: BAR_H,
   },
   fabCircle: {
-    width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
-    backgroundColor: T.fabBg, alignItems: 'center', justifyContent: 'center',
-    ...Platform.select({ ios: Shadows.floating, android: { elevation: 10 } }),
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    backgroundColor: T.fabBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2563eb',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: { elevation: 6 },
+    }),
   },
 });

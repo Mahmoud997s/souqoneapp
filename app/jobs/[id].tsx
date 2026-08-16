@@ -15,6 +15,7 @@ import { formatLocation } from '../../src/utils/mappers'
 import { formatSalary } from '../../src/utils/format'
 import { LICENSE_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from '../../src/constants/jobs'
 import { dialogService } from '../../src/store/dialogStore'
+import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
 const { width: SW } = Dimensions.get('window')
 
@@ -141,7 +142,7 @@ export default function JobDetailScreen() {
               )}
 
               {/* Location Badge */}
-              {(raw.city || raw.governorate) && (
+              {(formatOmanLocation(raw.governorate, raw.city)) && (
                 <View style={s.locationWrap}>
                   <Ionicons name="location-outline" size={14} color="#475569" />
                   <Text style={s.locationTxtMeta}>{formatLocation(raw)}</Text>
@@ -407,3 +408,4 @@ const s = StyleSheet.create({
   callWideBtn: { flex: 1, height: 56, backgroundColor: '#EFF6FF', borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   callWideTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 16 },
 })
+

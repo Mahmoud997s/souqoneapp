@@ -25,6 +25,10 @@ export interface Listing {
   currency: 'OMR' | 'USD'
   listingType: 'SALE' | 'RENTAL' | 'WANTED'
   condition: 'NEW' | 'USED' | 'LIKE_NEW'
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   governorate: string
   city: string
   isPremium: boolean
@@ -54,6 +58,10 @@ export interface Job {
   salary?: number
   requirements?: string
   jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'HIRING' | 'OFFERING'
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   governorate: string
   city: string
   user: UserSummary
@@ -81,6 +89,10 @@ export interface Service {
   contactPhone?: string
   whatsapp?: string
   website?: string
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   governorate: string
   city: string
   latitude?: number
@@ -110,6 +122,10 @@ export interface Part {
   currency?: 'OMR' | 'USD'
   contactPhone?: string
   whatsapp?: string
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   governorate: string
   city: string
   latitude?: number
@@ -126,6 +142,10 @@ export interface Equipment {
   description: string
   price: number
   currency: 'OMR' | 'USD'
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   governorate: string
   city: string
   isPremium: boolean

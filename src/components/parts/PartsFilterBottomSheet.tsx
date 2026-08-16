@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  GOVERNORATE_OPTIONS,
-  WILAYAT_BY_GOVERNORATE,
-} from '../../constants/filters';
+import { locationsApi } from '../../api/locations';
+import { GovernorateRef, WilayaRef } from '../../types/location.types';
 import { 
   POPULAR_PART_MAKES, 
   PART_CONDITIONS, 
@@ -40,6 +38,8 @@ export function PartsFilterBottomSheet({
   const [filters, setFilters] = useState<PartsFilterState>({ ...initialFilters });
   const [activeSelector, setActiveSelector] = useState<'make' | 'gov' | 'city' | 'category' | 'condition' | 'originality' | 'sort' | null>(null);
   const [showMore, setShowMore] = useState(false);
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
 
   const { data: brands } = useBrands();
   const hasActiveFilters = Object.keys(filters).length > 0;
@@ -49,13 +49,22 @@ export function PartsFilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
+      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
     }
   }, [visible, initialFilters]);
+
+  useEffect(() => {
+    if (filters.governorateId) {
+      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(console.warn);
+    } else {
+      setWilayas([]);
+    }
+  }, [filters.governorateId]);
 
   const updateFilter = (key: keyof PartsFilterState, value: any) => {
     setFilters((prev) => {
       const next = { ...prev, [key]: value };
-      if (key === 'governorate') next.city = undefined;
+      if (key === 'governorateId') next.wilayaId = undefined;
       return next;
     });
   };
@@ -63,7 +72,7 @@ export function PartsFilterBottomSheet({
   const updateFilters = (updates: Partial<PartsFilterState>) => {
     setFilters((prev) => {
       const next = { ...prev, ...updates };
-      if ('governorate' in updates) next.city = undefined;
+      if ('governorateId' in updates) next.wilayaId = undefined;
       return next;
     });
   };
@@ -87,10 +96,11 @@ export function PartsFilterBottomSheet({
     setActiveSelector(null);
   };
 
-  const selectedGov = GOVERNORATE_OPTIONS.find((g) => g.value === filters.governorate);
-  const availableCities = filters.governorate 
-    ? WILAYAT_BY_GOVERNORATE[filters.governorate] || [] 
-    : Object.values(WILAYAT_BY_GOVERNORATE).flat();
+
+
+  const selectedGov = governorates.find((g) => g.id === filters.governorateId);
+  const govData = governorates.map(g => ({ id: String(g.id), label: g.nameAr }));
+  const cityData = wilayas.map(c => ({ id: String(c.id), label: c.nameAr }));
 
   const makeData = (brands && brands.length > 0 ? brands : POPULAR_PART_MAKES).map((b: any) => ({
     id: b.id,
@@ -98,8 +108,7 @@ export function PartsFilterBottomSheet({
     value: b.name || b.label,
     image: getBrandLogo(b.slug || b.id),
   }));
-  const govData = GOVERNORATE_OPTIONS.map(g => ({ id: g.value, label: g.labelAr }));
-  const cityData = availableCities.map(c => ({ id: c.value || c.labelAr, label: c.labelAr }));
+
 
   const categoryData = PART_CATEGORIES.map(c => ({ id: c.id, label: c.label }));
   const conditionData = PART_CONDITIONS.map(c => ({ id: c.id, label: c.label }));
@@ -128,10 +137,15 @@ export function PartsFilterBottomSheet({
     nestedContent = (
       <NestedSearchableList
         data={govData}
-        selectedValue={filters.governorate}
+        selectedValue={filters.governorateId ? String(filters.governorateId) : undefined}
         onSelect={(option) => {
-          if (option) updateFilter('governorate', option.id);
-          else updateFilter('governorate', undefined);
+          if (option) {
+            updateFilter('governorateId', parseInt(option.id, 10));
+            updateFilter('governorate', option.label);
+          } else {
+            updateFilter('governorateId', undefined);
+            updateFilter('governorate', undefined);
+          }
           setActiveSelector(null);
         }}
         placeholder="ابحث عن محافظة..."
@@ -142,10 +156,15 @@ export function PartsFilterBottomSheet({
     nestedContent = (
       <NestedSearchableList
         data={cityData}
-        selectedValue={filters.city}
+        selectedValue={filters.wilayaId ? String(filters.wilayaId) : undefined}
         onSelect={(option) => {
-          if (option) updateFilter('city', option.label);
-          else updateFilter('city', undefined);
+          if (option) {
+            updateFilter('wilayaId', parseInt(option.id, 10));
+            updateFilter('city', option.label);
+          } else {
+            updateFilter('wilayaId', undefined);
+            updateFilter('city', undefined);
+          }
           setActiveSelector(null);
         }}
         placeholder="ابحث عن ولاية..."
@@ -239,14 +258,14 @@ export function PartsFilterBottomSheet({
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <View style={{ flex: 1 }}>
             <DropdownSelector
-              value={selectedGov ? selectedGov.labelAr : undefined}
+              value={selectedGov ? selectedGov.nameAr : undefined}
               placeholder="المحافظة"
               onPress={() => setActiveSelector('gov')}
             />
           </View>
           <View style={{ flex: 1 }}>
             <DropdownSelector
-              value={filters.city}
+              value={wilayas.find(w => w.id === filters.wilayaId)?.nameAr}
               placeholder="الولاية"
               onPress={() => setActiveSelector('city')}
             />

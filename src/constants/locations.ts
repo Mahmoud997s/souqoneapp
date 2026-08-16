@@ -1,6 +1,7 @@
 export interface WilayatNode {
   id: string;
   labelAr: string;
+  labelEn?: string;
 }
 
 export interface GovernorateNode {
@@ -8,6 +9,7 @@ export interface GovernorateNode {
   legacyId: string;
   altLegacyIds?: string[];
   labelAr: string;
+  labelEn?: string;
   wilayats: WilayatNode[];
 }
 
@@ -16,119 +18,119 @@ export interface GovernorateNode {
 // ============================================================================
 export const OMAN_LOCATIONS: GovernorateNode[] = [
   {
-    id: 'muscat', legacyId: 'OM_MUS', labelAr: 'مسقط',
+    id: 'muscat', legacyId: 'OM_MUS', labelAr: 'مسقط', labelEn: 'Muscat',
     wilayats: [
-      { id: 'seeb', labelAr: 'السيب' },
-      { id: 'bousher', labelAr: 'بوشر' },
-      { id: 'muttrah', labelAr: 'مطرح' },
-      { id: 'amerat', labelAr: 'العامرات' },
-      { id: 'muscat_city', labelAr: 'مسقط' },
-      { id: 'qurayyat', labelAr: 'قريات' },
+      { id: 'seeb', labelAr: 'السيب', labelEn: 'Al Seeb' },
+      { id: 'bousher', labelAr: 'بوشر', labelEn: 'Bawshar' },
+      { id: 'muttrah', labelAr: 'مطرح', labelEn: 'Muttrah' },
+      { id: 'amerat', labelAr: 'العامرات', labelEn: 'Al Amerat' },
+      { id: 'muscat_city', labelAr: 'مسقط', labelEn: 'Muscat City' },
+      { id: 'qurayyat', labelAr: 'قريات', labelEn: 'Qurayyat' },
     ]
   },
   {
-    id: 'dhofar', legacyId: 'OM_DHO', altLegacyIds: ['OM_DHL'], labelAr: 'ظفار',
+    id: 'dhofar', legacyId: 'OM_DHO', altLegacyIds: ['OM_DHL'], labelAr: 'ظفار', labelEn: 'Dhofar',
     wilayats: [
-      { id: 'salalah', labelAr: 'صلالة' },
-      { id: 'taqah', labelAr: 'طاقة' },
-      { id: 'mirbat', labelAr: 'مرباط' },
-      { id: 'thumrait', labelAr: 'ثمريت' },
-      { id: 'sadah', labelAr: 'سدح' },
-      { id: 'dhalkut', labelAr: 'ضلكوت' },
-      { id: 'rakhyut', labelAr: 'رخيوت' },
-      { id: 'muqshin', labelAr: 'مقشن' },
-      { id: 'shalim', labelAr: 'شليم وجزر الحلانيات' },
-      { id: 'mazyunah', labelAr: 'المزيونة' },
+      { id: 'salalah', labelAr: 'صلالة', labelEn: 'Salalah' },
+      { id: 'taqah', labelAr: 'طاقة', labelEn: 'Taqah' },
+      { id: 'mirbat', labelAr: 'مرباط', labelEn: 'Mirbat' },
+      { id: 'thumrait', labelAr: 'ثمريت', labelEn: 'Thumrait' },
+      { id: 'sadah', labelAr: 'سدح', labelEn: 'Sadah' },
+      { id: 'dhalkut', labelAr: 'ضلكوت', labelEn: 'Dhalkut' },
+      { id: 'rakhyut', labelAr: 'رخيوت', labelEn: 'Rakhyut' },
+      { id: 'muqshin', labelAr: 'مقشن', labelEn: 'Muqshin' },
+      { id: 'shalim', labelAr: 'شليم وجزر الحلانيات', labelEn: 'Shalim and the Hallaniyat Islands' },
+      { id: 'mazyunah', labelAr: 'المزيونة', labelEn: 'Al Mazyunah' },
     ]
   },
   {
-    id: 'batinah_north', legacyId: 'OM_BAN', altLegacyIds: ['OM_BAT'], labelAr: 'شمال الباطنة',
+    id: 'batinah_north', legacyId: 'OM_BAN', altLegacyIds: ['OM_BAT'], labelAr: 'شمال الباطنة', labelEn: 'Al Batinah North',
     wilayats: [
-      { id: 'sohar', labelAr: 'صحار' },
-      { id: 'suwaiq', labelAr: 'السويق' },
-      { id: 'khaburah', labelAr: 'الخابورة' },
-      { id: 'saham', labelAr: 'صحم' },
-      { id: 'liwa', labelAr: 'لوى' },
-      { id: 'shinas', labelAr: 'شناص' },
+      { id: 'sohar', labelAr: 'صحار', labelEn: 'Sohar' },
+      { id: 'suwaiq', labelAr: 'السويق', labelEn: 'Al Suwaiq' },
+      { id: 'khaburah', labelAr: 'الخابورة', labelEn: 'Al Khaburah' },
+      { id: 'saham', labelAr: 'صحم', labelEn: 'Saham' },
+      { id: 'liwa', labelAr: 'لوى', labelEn: 'Liwa' },
+      { id: 'shinas', labelAr: 'شناص', labelEn: 'Shinas' },
     ]
   },
   {
-    id: 'batinah_south', legacyId: 'OM_BAS', altLegacyIds: ['OM_BSS'], labelAr: 'جنوب الباطنة',
+    id: 'batinah_south', legacyId: 'OM_BAS', altLegacyIds: ['OM_BSS'], labelAr: 'جنوب الباطنة', labelEn: 'Al Batinah South',
     wilayats: [
-      { id: 'rustaq', labelAr: 'الرستاق' },
-      { id: 'barka', labelAr: 'بركاء' },
-      { id: 'mussanah', labelAr: 'المصنعة' },
-      { id: 'nakhal', labelAr: 'نخل' },
-      { id: 'awabi', labelAr: 'العوابي' },
-      { id: 'wadi_maawil', labelAr: 'وادي المعاول' },
+      { id: 'rustaq', labelAr: 'الرستاق', labelEn: 'Al Rustaq' },
+      { id: 'barka', labelAr: 'بركاء', labelEn: 'Barka' },
+      { id: 'mussanah', labelAr: 'المصنعة', labelEn: 'Al Mussanah' },
+      { id: 'nakhal', labelAr: 'نخل', labelEn: 'Nakhal' },
+      { id: 'awabi', labelAr: 'العوابي', labelEn: 'Al Awabi' },
+      { id: 'wadi_maawil', labelAr: 'وادي المعاول', labelEn: 'Wadi Al Maawil' },
     ]
   },
   {
-    id: 'dakhiliyah', legacyId: 'OM_DAK', labelAr: 'الداخلية',
+    id: 'dakhiliyah', legacyId: 'OM_DAK', labelAr: 'الداخلية', labelEn: 'Al Dakhiliyah',
     wilayats: [
-      { id: 'nizwa', labelAr: 'نزوى' },
-      { id: 'samail', labelAr: 'سمائل' },
-      { id: 'bahla', labelAr: 'بهلاء' },
-      { id: 'adam', labelAr: 'أدم' },
-      { id: 'izki', labelAr: 'إزكي' },
-      { id: 'bidbid', labelAr: 'بدبد' },
-      { id: 'hamra', labelAr: 'الحمراء' },
-      { id: 'manah', labelAr: 'منح' },
+      { id: 'nizwa', labelAr: 'نزوى', labelEn: 'Nizwa' },
+      { id: 'samail', labelAr: 'سمائل', labelEn: 'Samail' },
+      { id: 'bahla', labelAr: 'بهلاء', labelEn: 'Bahla' },
+      { id: 'adam', labelAr: 'أدم', labelEn: 'Adam' },
+      { id: 'izki', labelAr: 'إزكي', labelEn: 'Izki' },
+      { id: 'bidbid', labelAr: 'بدبد', labelEn: 'Bidbid' },
+      { id: 'hamra', labelAr: 'الحمراء', labelEn: 'Al Hamra' },
+      { id: 'manah', labelAr: 'منح', labelEn: 'Manah' },
     ]
   },
   {
-    id: 'sharqiyah_north', legacyId: 'OM_SHN', altLegacyIds: ['OM_SHA'], labelAr: 'شمال الشرقية',
+    id: 'sharqiyah_north', legacyId: 'OM_SHN', altLegacyIds: ['OM_SHA'], labelAr: 'شمال الشرقية', labelEn: 'Al Sharqiyah North',
     wilayats: [
-      { id: 'ibra', labelAr: 'إبراء' },
-      { id: 'mudhaibi', labelAr: 'المضيبي' },
-      { id: 'bidiya', labelAr: 'بدية' },
-      { id: 'qabil', labelAr: 'القابل' },
-      { id: 'wadi_bani_khalid', labelAr: 'وادي بني خالد' },
-      { id: 'dima_w_tayeen', labelAr: 'دماء والطائيين' },
+      { id: 'ibra', labelAr: 'إبراء', labelEn: 'Ibra' },
+      { id: 'mudhaibi', labelAr: 'المضيبي', labelEn: 'Al Mudhaibi' },
+      { id: 'bidiya', labelAr: 'بدية', labelEn: 'Bidiya' },
+      { id: 'qabil', labelAr: 'القابل', labelEn: 'Al Qabil' },
+      { id: 'wadi_bani_khalid', labelAr: 'وادي بني خالد', labelEn: 'Wadi Bani Khalid' },
+      { id: 'dima_w_tayeen', labelAr: 'دماء والطائيين', labelEn: 'Dima W\'attayeen' },
     ]
   },
   {
-    id: 'sharqiyah_south', legacyId: 'OM_SHS', labelAr: 'جنوب الشرقية',
+    id: 'sharqiyah_south', legacyId: 'OM_SHS', labelAr: 'جنوب الشرقية', labelEn: 'Al Sharqiyah South',
     wilayats: [
-      { id: 'sur', labelAr: 'صور' },
-      { id: 'jalan_bani_bu_ali', labelAr: 'جعلان بني بو علي' },
-      { id: 'kamil_wafi', labelAr: 'الكامل والوافي' },
-      { id: 'jalan_bani_bu_hassan', labelAr: 'جعلان بني بو حسن' },
-      { id: 'masirah', labelAr: 'مصيرة' },
+      { id: 'sur', labelAr: 'صور', labelEn: 'Sur' },
+      { id: 'jalan_bani_bu_ali', labelAr: 'جعلان بني بو علي', labelEn: 'Jalan Bani Bu Ali' },
+      { id: 'kamil_wafi', labelAr: 'الكامل والوافي', labelEn: 'Al Kamil W\'al Wafi' },
+      { id: 'jalan_bani_bu_hassan', labelAr: 'جعلان بني بو حسن', labelEn: 'Jalan Bani Bu Hassan' },
+      { id: 'masirah', labelAr: 'مصيرة', labelEn: 'Masirah' },
     ]
   },
   {
-    id: 'dhahirah', legacyId: 'OM_DHA', altLegacyIds: ['OM_ZAH'], labelAr: 'الظاهرة',
+    id: 'dhahirah', legacyId: 'OM_DHA', altLegacyIds: ['OM_ZAH'], labelAr: 'الظاهرة', labelEn: 'Al Dhahirah',
     wilayats: [
-      { id: 'ibri', labelAr: 'عبري' },
-      { id: 'yanqul', labelAr: 'ينقل' },
-      { id: 'dhank', labelAr: 'ضنك' },
+      { id: 'ibri', labelAr: 'عبري', labelEn: 'Ibri' },
+      { id: 'yanqul', labelAr: 'ينقل', labelEn: 'Yanqul' },
+      { id: 'dhank', labelAr: 'ضنك', labelEn: 'Dhank' },
     ]
   },
   {
-    id: 'buraimi', legacyId: 'OM_BUR', labelAr: 'البريمي',
+    id: 'buraimi', legacyId: 'OM_BUR', labelAr: 'البريمي', labelEn: 'Al Buraimi',
     wilayats: [
-      { id: 'buraimi_city', labelAr: 'البريمي' },
-      { id: 'mahdha', labelAr: 'محضة' },
-      { id: 'sunaynah', labelAr: 'السنينة' },
+      { id: 'buraimi_city', labelAr: 'البريمي', labelEn: 'Al Buraimi City' },
+      { id: 'mahdha', labelAr: 'محضة', labelEn: 'Mahdha' },
+      { id: 'sunaynah', labelAr: 'السنينة', labelEn: 'Al Sunaynah' },
     ]
   },
   {
-    id: 'wusta', legacyId: 'OM_WUS', labelAr: 'الوسطى',
+    id: 'wusta', legacyId: 'OM_WUS', labelAr: 'الوسطى', labelEn: 'Al Wusta',
     wilayats: [
-      { id: 'haima', labelAr: 'هيماء' },
-      { id: 'duqm', labelAr: 'الدقم' },
-      { id: 'mahout', labelAr: 'محوت' },
-      { id: 'jazir', labelAr: 'الجازر' },
+      { id: 'haima', labelAr: 'هيماء', labelEn: 'Haima' },
+      { id: 'duqm', labelAr: 'الدقم', labelEn: 'Duqm' },
+      { id: 'mahout', labelAr: 'محوت', labelEn: 'Mahout' },
+      { id: 'jazir', labelAr: 'الجازر', labelEn: 'Al Jazir' },
     ]
   },
   {
-    id: 'musandam', legacyId: 'OM_MSN', labelAr: 'مسندم',
+    id: 'musandam', legacyId: 'OM_MSN', labelAr: 'مسندم', labelEn: 'Musandam',
     wilayats: [
-      { id: 'khasab', labelAr: 'خصب' },
-      { id: 'bukha', labelAr: 'بخا' },
-      { id: 'dibba', labelAr: 'دبا' },
-      { id: 'madha', labelAr: 'مدحاء' },
+      { id: 'khasab', labelAr: 'خصب', labelEn: 'Khasab' },
+      { id: 'bukha', labelAr: 'بخا', labelEn: 'Bukha' },
+      { id: 'dibba', labelAr: 'دبا', labelEn: 'Dibba' },
+      { id: 'madha', labelAr: 'مدحاء', labelEn: 'Madha' },
     ]
   },
 ];
@@ -184,26 +186,44 @@ export const getWilayatsForGovernorate = (governorate: string) => {
   return found.wilayats.map(w => ({ label: w.labelAr, value: w.labelAr })); // maintain expected format
 };
 
+const normalizeLoc = (val: string) => {
+  if (!val) return '';
+  return val.toLowerCase().replace(/^(al|ad|as|ar|ash|az)[\s-]/, '').replace(/[^a-z0-9\u0600-\u06FF]/g, '').trim();
+}
+
 export const getPostGovLabel = (value: string): string => {
   if (!value) return '';
-  const gov = OMAN_LOCATIONS.find(g => 
-    g.id === value || 
-    g.legacyId === value || 
-    g.altLegacyIds?.includes(value) || 
-    g.labelAr === value
+  
+  let gov = OMAN_LOCATIONS.find(g => 
+    g.id === value || g.legacyId === value || g.altLegacyIds?.includes(value) || g.labelAr === value
   );
-  return gov ? gov.labelAr : value;
+  if (gov) return gov.labelAr;
+
+  const valNorm = normalizeLoc(value);
+  gov = OMAN_LOCATIONS.find(g => normalizeLoc(g.labelEn || '') === valNorm || normalizeLoc(g.id) === valNorm || normalizeLoc(g.labelAr) === valNorm);
+  
+  return gov ? gov.labelAr : '';
 };
 
 export const getPostCityLabel = (govValue: string, cityValue: string): string => {
-  if (!cityValue) return ''
+  if (!cityValue) return '';
+  
+  const govValNorm = normalizeLoc(govValue);
+  const cityValNorm = normalizeLoc(cityValue);
+
   const gov = OMAN_LOCATIONS.find(g => 
-    g.id === govValue || 
-    g.legacyId === govValue || 
-    g.altLegacyIds?.includes(govValue) || 
-    g.labelAr === govValue
+    g.id === govValue || g.legacyId === govValue || g.altLegacyIds?.includes(govValue) || 
+    g.labelAr === govValue || normalizeLoc(g.labelEn || '') === govValNorm || normalizeLoc(g.id) === govValNorm
   );
-  if (!gov) return cityValue
-  const city = gov.wilayats.find(w => w.id === cityValue || w.labelAr === cityValue)
-  return city ? city.labelAr : cityValue
+
+  if (!gov) {
+    for (const g of OMAN_LOCATIONS) {
+      const city = g.wilayats.find(w => w.id === cityValue || w.labelAr === cityValue || normalizeLoc(w.labelEn || '') === cityValNorm || normalizeLoc(w.id) === cityValNorm || normalizeLoc(w.labelAr) === cityValNorm);
+      if (city) return city.labelAr;
+    }
+    return '';
+  }
+
+  const city = gov.wilayats.find(w => w.id === cityValue || w.labelAr === cityValue || normalizeLoc(w.labelEn || '') === cityValNorm || normalizeLoc(w.id) === cityValNorm || normalizeLoc(w.labelAr) === cityValNorm);
+  return city ? city.labelAr : '';
 };

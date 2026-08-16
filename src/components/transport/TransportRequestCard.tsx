@@ -1,27 +1,27 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
+import { CardSystem } from '../../constants/cardSystem';
 import { TransportRequest } from '../../types/transport.types';
 import { TransportStatusBadge } from './TransportStatusBadge';
 import { getServiceLabel } from '../../constants/transport';
 import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 
 function PulsingDot({ color }: { color: string }) {
-  const scale = useSharedValue(0.8);
+  const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0.8);
 
   useEffect(() => {
     scale.value = withRepeat(
-      withTiming(2.5, { duration: 1800, easing: Easing.linear }),
+      withTiming(2.2, { duration: 1500, easing: Easing.out(Easing.ease) }),
       -1,
       false
     );
     opacity.value = withRepeat(
-      withTiming(0, { duration: 1800, easing: Easing.linear }),
+      withTiming(0, { duration: 1500, easing: Easing.out(Easing.ease) }),
       -1,
       false
     );
@@ -41,11 +41,11 @@ function PulsingDot({ color }: { color: string }) {
 }
 
 function AnimatedTruck() {
-  const translateX = useSharedValue(8);
+  const translateX = useSharedValue(12);
 
   useEffect(() => {
     translateX.value = withRepeat(
-      withTiming(-6, { duration: 1200, easing: Easing.inOut(Easing.sin) }),
+      withTiming(-12, { duration: 1600, easing: Easing.inOut(Easing.quad) }),
       -1,
       true
     );
@@ -58,7 +58,7 @@ function AnimatedTruck() {
   return (
     <View style={styles.truckIconContainer}>
       <Animated.View style={animatedStyle}>
-        <MaterialCommunityIcons name="truck-fast" size={20} color="#94a3b8" />
+        <MaterialCommunityIcons name="truck-fast" size={15} color={Colors.primary} />
       </Animated.View>
     </View>
   );
@@ -69,6 +69,7 @@ interface Props {
   onPress?: () => void;
   showStatus?: boolean;
   onDelete?: () => void;
+  maxPills?: number;
 }
 
 const SERVICE_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
@@ -104,7 +105,13 @@ function formatDateShort(dateString?: string) {
   }
 }
 
-export function TransportRequestCard({ request, onPress, showStatus = true, onDelete }: Props) {
+export function TransportRequestCard({
+  request,
+  onPress,
+  showStatus = true,
+  onDelete,
+  maxPills = 3,
+}: Props) {
   const config = SERVICE_CONFIG[request.serviceType] || { icon: 'truck-outline', color: Colors.primary, bg: Colors.primary + '15' };
   const serviceLabelText = getServiceLabel(request.serviceType);
   
@@ -126,7 +133,70 @@ export function TransportRequestCard({ request, onPress, showStatus = true, onDe
   }
 
   const hasQuotes = request.quotesCount != null && request.quotesCount > 0;
-  const viewCount = request.viewCount || 0;
+
+  // Prioritized pills system (Configurable maxPills with +N remainder for landing)
+  const detailPills: React.ReactNode[] = [];
+  if (request.timingType === 'asap') {
+    detailPills.push(
+      <View key="asap" style={[styles.detailPill, styles.pillOrange]}>
+        <MaterialCommunityIcons name="lightning-bolt" size={12} color="#ea580c" />
+        <Text style={[styles.detailText, { color: '#ea580c' }]} numberOfLines={1}>فوري</Text>
+      </View>
+    );
+  }
+  if (request.scheduledAt || request.scheduledDate) {
+    detailPills.push(
+      <View key="sched" style={[styles.detailPill, styles.pillBlue]}>
+        <MaterialCommunityIcons name="calendar-clock-outline" size={12} color="#3b82f6" />
+        <Text style={[styles.detailText, { color: '#3b82f6' }]} numberOfLines={1}>
+          {formatDateShort(request.scheduledAt || request.scheduledDate)}
+        </Text>
+      </View>
+    );
+  }
+  if (request.weightTons) {
+    detailPills.push(
+      <View key="weight" style={[styles.detailPill, styles.pillNeutral]}>
+        <MaterialCommunityIcons name="weight-kilogram" size={12} color="#64748b" />
+        <Text style={styles.detailText} numberOfLines={1}>{request.weightTons} طن</Text>
+      </View>
+    );
+  }
+  if (request.requiresHelper) {
+    detailPills.push(
+      <View key="helper" style={[styles.detailPill, styles.pillAmber]}>
+        <MaterialCommunityIcons name="account-hard-hat" size={12} color="#d97706" />
+        <Text style={[styles.detailText, { color: '#d97706' }]} numberOfLines={1}>مع عمال</Text>
+      </View>
+    );
+  }
+  if (request.isFlexible) {
+    detailPills.push(
+      <View key="flex" style={[styles.detailPill, styles.pillGreen]}>
+        <Ionicons name="time-outline" size={12} color="#059669" />
+        <Text style={[styles.detailText, { color: '#059669' }]} numberOfLines={1}>مرن</Text>
+      </View>
+    );
+  }
+
+  // Fallback pills if no specific details are set (guarantees identical card height across all cards)
+  if (detailPills.length === 0) {
+    detailPills.push(
+      <View key="direct" style={[styles.detailPill, styles.pillNeutral]}>
+        <MaterialCommunityIcons name="cube-send" size={12} color="#64748b" />
+        <Text style={styles.detailText} numberOfLines={1}>طلب مباشر</Text>
+      </View>
+    );
+    detailPills.push(
+      <View key="ready" style={[styles.detailPill, styles.pillGreen]}>
+        <Ionicons name="checkmark-circle-outline" size={12} color="#059669" />
+        <Text style={[styles.detailText, { color: '#059669' }]} numberOfLines={1}>متاح للشحن</Text>
+      </View>
+    );
+  }
+
+  const visiblePills = detailPills.slice(0, maxPills);
+  const extraCount = detailPills.length > maxPills ? detailPills.length - maxPills : 0;
 
   return (
     <Pressable 
@@ -137,115 +207,103 @@ export function TransportRequestCard({ request, onPress, showStatus = true, onDe
       <View style={styles.header}>
         <View style={styles.serviceTypeRow}>
           <View style={[styles.iconBox, { backgroundColor: config.bg }]}>
-            <MaterialCommunityIcons name={config.icon} size={22} color={config.color} />
+            <MaterialCommunityIcons name={config.icon} size={18} color={config.color} />
           </View>
           <View>
-            <Text style={styles.serviceTitle}>{serviceLabelText}</Text>
-            <Text style={styles.timeText}>{formatRelativeTime(request.createdAt)}</Text>
+            <Text style={styles.serviceTitle} numberOfLines={1}>{serviceLabelText}</Text>
+            <Text style={styles.timeText} numberOfLines={1}>{formatRelativeTime(request.createdAt)}</Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {showStatus && <TransportStatusBadge status={request.status} />}
           {onDelete && (
             <Pressable 
               style={styles.deleteBtn}
               onPress={(e) => {
-                e.stopPropagation(); // Prevent triggering card onPress
+                e.stopPropagation();
                 onDelete();
               }}
             >
-              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+              <Ionicons name="trash-outline" size={14} color="#ef4444" />
             </Pressable>
           )}
         </View>
       </View>
 
-      {/* Cargo Description (If any) */}
+      {/* Cargo Description (Single line strictly) */}
       {request.cargoDescription ? (
         <View style={styles.cargoBox}>
-          <Text style={styles.cargoText} numberOfLines={2}>
+          <Text style={styles.cargoText} numberOfLines={1}>
             {request.cargoDescription}
           </Text>
         </View>
       ) : null}
 
-      {/* Locations - Premium Horizontal Path */}
+      {/* Locations - Compact Route Path */}
       <View style={styles.locationsContainerHorizontal}>
-        
-        {/* From (Right) */}
+        {/* From (Right in RTL) */}
         <View style={styles.locationCol}>
           <PulsingDot color={Colors.primary} />
-          <Text style={styles.locationLabel}>نقطة التحميل</Text>
+          <Text style={styles.locationLabel}>التحميل</Text>
           <Text style={styles.locationTextHorizontal} numberOfLines={1}>{fromLoc}</Text>
         </View>
 
         {/* Connecting Line (Middle) */}
         <View style={styles.connectingLineContainer}>
           <View style={styles.horizontalLine} />
-          {/* Animated truck pointing Left and moving */}
           <AnimatedTruck />
         </View>
 
-        {/* To (Left) */}
+        {/* To (Left in RTL) */}
         <View style={styles.locationCol}>
           <View style={styles.destinationPinHorizontal}>
-            <MaterialCommunityIcons name="map-marker" size={20} color={Colors.accent} />
+            <MaterialCommunityIcons name="map-marker" size={12} color={Colors.accent} />
           </View>
           <Text style={styles.locationLabel}>الوجهة</Text>
           <Text style={styles.locationTextHorizontal} numberOfLines={1}>{toLoc}</Text>
         </View>
-
-        {/* Subtle background icon for aesthetic */}
-        <MaterialCommunityIcons name="map-marker-path" size={80} color="#f8fafc" style={styles.bgMapIcon} />
       </View>
 
       <View style={styles.divider} />
 
-      {/* Details Row (Info Pills) */}
-      <View style={styles.detailsList}>
-        {request.scheduledAt ? (
-          <View style={[styles.detailPill, styles.pillBlue]}>
-            <MaterialCommunityIcons name="calendar-clock-outline" size={14} color="#3b82f6" />
-            <Text style={[styles.detailText, { color: '#3b82f6' }]}>{formatDateShort(request.scheduledAt)}</Text>
-          </View>
-        ) : null}
-
-        {request.weightTons ? (
+      {/* Details Row (Always rendered to guarantee identical card height) */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.detailsList}
+        style={styles.detailsScroll}
+      >
+        {visiblePills}
+        {extraCount > 0 && (
           <View style={[styles.detailPill, styles.pillNeutral]}>
-            <MaterialCommunityIcons name="weight-kilogram" size={14} color="#64748b" />
-            <Text style={styles.detailText}>{request.weightTons} طن</Text>
+            <Text style={styles.detailText}>+{extraCount}</Text>
           </View>
-        ) : null}
+        )}
+      </ScrollView>
 
-        {request.requiresHelper ? (
-          <View style={[styles.detailPill, styles.pillAmber]}>
-            <MaterialCommunityIcons name="account-hard-hat" size={14} color="#d97706" />
-            <Text style={[styles.detailText, { color: '#d97706' }]}>مع عمال</Text>
-          </View>
-        ) : null}
+      <View style={styles.divider} />
 
-        {viewCount > 0 ? (
-          <View style={[styles.detailPill, styles.pillNeutral]}>
-            <Ionicons name="eye-outline" size={14} color="#64748b" />
-            <Text style={styles.detailText}>{viewCount}</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={[styles.divider, { marginTop: 4 }]} />
-
-      {/* Footer Row (Budget and Quotes) */}
+      {/* Footer Row (Budget, Quotes, and Views) */}
       <View style={styles.footerRow}>
         <View style={[styles.detailPill, isNegotiable ? styles.pillNeutral : styles.pillGreen, { flex: 1 }]}>
-          <Ionicons name="wallet-outline" size={18} color={isNegotiable ? '#64748b' : '#059669'} />
-          <Text style={[styles.budgetValText, !isNegotiable && { color: '#059669' }]}>{budgetText}</Text>
+          <Ionicons name="wallet-outline" size={14} color={isNegotiable ? '#64748b' : '#059669'} />
+          <Text style={[styles.budgetValText, !isNegotiable && { color: '#059669' }]} numberOfLines={1}>{budgetText}</Text>
         </View>
         
-        {request.quotesCount != null && (
-          <View style={[styles.detailPill, hasQuotes ? styles.pillOrange : styles.pillNeutral]}>
-            <Ionicons name={hasQuotes ? "chatbubbles" : "chatbubbles-outline"} size={16} color={hasQuotes ? '#ea580c' : '#64748b'} />
-            <Text style={[styles.detailText, hasQuotes && { color: '#ea580c', fontFamily: 'Almarai_700Bold' }]}>
+        {request.quotesCount != null && request.quotesCount > 0 && (
+          <View style={[styles.detailPill, styles.pillOrange]}>
+            <Ionicons name="chatbubbles" size={13} color="#ea580c" />
+            <Text style={[styles.detailText, { color: '#ea580c', fontFamily: 'Almarai_700Bold' }]} numberOfLines={1}>
               {request.quotesCount} {request.quotesCount === 1 ? 'عرض' : 'عروض'}
+            </Text>
+          </View>
+        )}
+
+        {request.viewCount != null && request.viewCount > 0 && (
+          <View style={[styles.detailPill, styles.pillNeutral]}>
+            <Ionicons name="eye-outline" size={13} color="#64748b" />
+            <Text style={styles.detailText} numberOfLines={1}>
+              {request.viewCount}
             </Text>
           </View>
         )}
@@ -254,20 +312,15 @@ export function TransportRequestCard({ request, onPress, showStatus = true, onDe
   );
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-  android: { elevation: 3 },
-});
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
-    ...softShadow,
+    borderRadius: CardSystem.radius.outer,
+    padding: CardSystem.padding.dense,
+    minHeight: 215,
+    justifyContent: 'space-between',
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
   pressed: {
     opacity: 0.96,
@@ -276,13 +329,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   deleteBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#fee2e2',
     alignItems: 'center',
     justifyContent: 'center',
@@ -290,195 +343,170 @@ const styles = StyleSheet.create({
   serviceTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   serviceTitle: {
-    fontSize: 15,
-    fontFamily: 'Almarai_800ExtraBold',
+    ...CardSystem.typography.title,
+    fontSize: 13.5,
     color: '#0f172a',
     writingDirection: 'rtl',
-    lineHeight: 22,
+    lineHeight: 19,
   },
   timeText: {
-    fontSize: 11,
-    fontFamily: 'Almarai_400Regular',
+    ...CardSystem.typography.subtitle,
     color: Colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
     writingDirection: 'rtl',
-    lineHeight: 18,
   },
   locationsContainerHorizontal: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginBottom: 12,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    marginBottom: 8,
+    height: 48,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
     overflow: 'hidden',
   },
-  bgMapIcon: {
-    position: 'absolute',
-    left: -15,
-    top: -10,
-    opacity: 0.8,
-    transform: [{ rotate: '-10deg' }]
-  },
   pulseContainer: {
-    width: 20,
-    height: 20,
+    width: 14,
+    height: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
   },
   pulseRing: {
     position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  pulseCore: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    borderWidth: 1.5,
+  },
+  pulseCore: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    borderWidth: 1,
     borderColor: '#fff',
   },
   locationCol: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 2,
   },
   destinationPinHorizontal: {
-    width: 20,
-    height: 20,
+    width: 14,
+    height: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   locationLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontFamily: 'Almarai_400Regular',
     color: '#64748b',
-    marginTop: 8,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 1,
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 13,
   },
   locationTextHorizontal: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontFamily: 'Almarai_700Bold',
     color: '#1e293b',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 16,
   },
   connectingLineContainer: {
     flex: 1,
-    height: 20,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: 2,
   },
   horizontalLine: {
     position: 'absolute',
     width: '100%',
-    height: 1.5,
+    height: 1,
     backgroundColor: '#e2e8f0',
     top: '50%',
   },
   truckIconContainer: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 8,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cargoBox: {
     backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 12,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    height: 26,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   cargoText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Almarai_400Regular',
     color: '#475569',
-    lineHeight: 20,
+    lineHeight: 16,
     writingDirection: 'rtl',
   },
   divider: {
     height: 1,
     backgroundColor: '#f1f5f9',
-    marginBottom: 12,
+    marginVertical: 6,
+  },
+  detailsScroll: {
+    marginVertical: 2,
   },
   detailsList: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 8,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 1,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 8,
-  },
-  cargoPill: {
-    flex: 1,
-  },
-  cargoPillText: {
-    fontSize: 12,
-    fontFamily: 'Almarai_400Regular',
-    color: '#475569',
-    flex: 1,
-    writingDirection: 'rtl',
-    lineHeight: 18,
+    gap: CardSystem.gap.secondary,
   },
   detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    borderRadius: CardSystem.radius.inner,
   },
-  pillNeutral: {
-    backgroundColor: '#f8fafc', // slate-50
-  },
-  pillBlue: {
-    backgroundColor: '#eff6ff', // blue-50
-  },
-  pillAmber: {
-    backgroundColor: '#fffbeb', // amber-50
-  },
-  pillGreen: {
-    backgroundColor: '#ecfdf5', // emerald-50
-  },
-  pillOrange: {
-    backgroundColor: '#fff7ed', // orange-50
-  },
+  pillNeutral: CardSystem.styles.pillNeutral,
+  pillBlue: CardSystem.styles.pillBlue,
+  pillAmber: CardSystem.styles.pillAmber,
+  pillGreen: CardSystem.styles.pillGreen,
+  pillOrange: CardSystem.styles.pillOrange,
   detailText: {
-    fontSize: 12,
-    fontFamily: 'Almarai_700Bold',
+    ...CardSystem.typography.pillText,
     color: '#475569',
-    lineHeight: 18,
+    writingDirection: 'rtl',
   },
   budgetValText: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: '#64748b',
-    lineHeight: 20,
+    lineHeight: 16,
+    writingDirection: 'rtl',
   },
 });
+
 

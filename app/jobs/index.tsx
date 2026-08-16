@@ -29,6 +29,9 @@ import { DriverCard } from '../../src/components/cards/DriverCard'
 import { normalizeJobType } from '../../src/utils/normalizeJobType'
 import VerificationBanner from '../../src/components/jobs/VerificationBanner'
 import { useVerificationStatus } from '../../src/hooks/useVerification'
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
+import { JobsBottomBar } from '../../src/components/jobs/JobsBottomBar'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -144,13 +147,7 @@ export default function JobsLandingScreen() {
   const [activeBanner, setActiveBanner] = useState(0)
 
   // ─── Scroll animation (Reanimated ─ runs on UI thread) ───
-  const scrollY = useSharedValue(0)
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-    },
-  })
+  const { scrollHandler, scrollY } = useScrollAwareNav()
 
   const totalJobs = (jobs?.length ?? 0)
   const totalDrivers = (driversPage as any)?.total ?? (driversPage as any)?.count ?? 0
@@ -342,7 +339,12 @@ export default function JobsLandingScreen() {
              </View>
            )}
         </View>
+
+        {/* Need Help / Support Button */}
+        <SupportHelpButton style={{ marginHorizontal: 10, marginTop: 4, marginBottom: Spacing.space6 }} />
       </Animated.ScrollView>
+
+      <JobsBottomBar />
     </View>
   )
 }

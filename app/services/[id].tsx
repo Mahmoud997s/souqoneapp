@@ -9,6 +9,7 @@ import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
+import { formatLocation } from '../../src/utils/mappers';
 
 const { width: SW } = Dimensions.get('window')
 
@@ -101,10 +102,10 @@ export default function ServiceDetailScreen() {
                 {price > 0 ? `${price.toLocaleString('en-US')} ر.ع.` : 'تواصل للسعر'}
               </Text>
             </View>
-            {(raw.city || raw.governorate) && (
+            {(formatLocation(raw)) && (
               <View style={s.locationPill}>
                 <Ionicons name="location-outline" size={14} color={Colors.primary} />
-                <Text style={s.locationTxt}>{raw.city || raw.governorate}</Text>
+                <Text style={s.locationTxt}>{formatLocation(raw)}</Text>
               </View>
             )}
           </View>

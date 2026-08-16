@@ -44,12 +44,12 @@ export const CarHorizontalList = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         style={{ marginHorizontal: -Spacing.space5 }}
-        contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: Spacing.space3, paddingVertical: 4 }}
+        contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: Spacing.space3, paddingVertical: 4, alignItems: 'flex-start' }}
       >
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} style={{ width: Dimensions.get('window').width * 0.6 }} />)
         ) : data.length > 0 ? (
-          data.map(item => <CarCard key={item.id} item={item} onPress={() => onPressItem(item)} />)
+          data.map(item => <CarCard key={item.id} item={item} onPress={() => onPressItem(item)} maxChips={3} />)
         ) : (
           <View style={s.emptyCard}>
             <EmptyState 

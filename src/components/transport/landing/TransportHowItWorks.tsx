@@ -1,145 +1,143 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../constants/colors';
 import { Spacing } from '../../../constants/spacing';
 import { Radius } from '../../../constants/radius';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.55;
-
-const STEPS = [
-  { id: '1', bgNum: '01', icon: 'file-document-edit-outline', color: '#3b82f6', bg: '#eff6ff', title: 'أضف طلبك', desc: 'حدد مسارك وتفاصيل حمولتك لنشر الطلب.' },
-  { id: '2', bgNum: '02', icon: 'bell-ring-outline', color: '#8b5cf6', bg: '#f5f3ff', title: 'تلقَ العروض', desc: 'استقبل عروض أسعار من نخبة الناقلين.' },
-  { id: '3', bgNum: '03', icon: 'handshake-outline', color: '#10b981', bg: '#ecfdf5', title: 'اختر الأنسب', desc: 'قارن الأسعار والتقييمات واقبل الأفضل.' },
-  { id: '4', bgNum: '04', icon: 'map-marker-path', color: '#f59e0b', bg: '#fffbeb', title: 'تتبع وقيّم', desc: 'تابع سير شحنتك وقيّم التجربة بالنهاية.' },
-];
-
 export function TransportHowItWorks() {
   return (
     <View style={s.container}>
-      <Text style={s.headerTitle}>كيف يعمل قسم النقل؟</Text>
-      
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.scrollContent}
-        snapToInterval={CARD_WIDTH + 16}
-        decelerationRate="fast"
-      >
-        {STEPS.map((step) => (
-          <View key={step.id} style={[s.card, { width: CARD_WIDTH }]}>
-            {/* Huge faded background number */}
-            <Text style={s.bgNumber}>{step.bgNum}</Text>
+      <View style={[s.sectionHeader, { marginBottom: Spacing.space4 }]}>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={[s.sectionTitleHeader, { textAlign: 'center' }]}>كيف تستخدم سوق ون للنقل؟</Text>
+          <Text style={[s.sectionSubHeader, { textAlign: 'center' }]}>3 خطوات بسيطة لنقل حمولتك بأمان وسرعة</Text>
+        </View>
+      </View>
 
-            <View style={s.topRow}>
-              <View style={[s.iconBox, { backgroundColor: step.bg }]}>
-                <MaterialCommunityIcons name={step.icon as any} size={28} color={step.color} />
-              </View>
-              
-              <View style={s.stepPill}>
-                <Text style={s.stepPillText}>الخطوة {step.id}</Text>
-              </View>
-            </View>
-
-            <View style={s.textContainer}>
-              <Text style={s.title}>{step.title}</Text>
-              <Text style={s.desc}>{step.desc}</Text>
-            </View>
+      <View style={s.stepsContainer}>
+        <View style={s.stepItem}>
+          <View style={s.stepIconBox}>
+            <Ionicons name="cube-outline" size={24} color={Colors.primary} />
+            <View style={s.stepNumberBadge}><Text style={s.stepNumberTxt}>1</Text></View>
           </View>
-        ))}
-      </ScrollView>
+          <View style={s.stepTextContent}>
+            <Text style={s.stepTitle}>حدد حمولتك ومسارك</Text>
+            <Text style={s.stepDesc}>اختر نقطة التحميل والوجهة وتفاصيل الشحنة لنشر طلبك في ثوانٍ.</Text>
+          </View>
+        </View>
+
+        <View style={s.stepItem}>
+          <View style={s.stepIconBox}>
+            <Ionicons name="shield-checkmark" size={24} color={Colors.primary} />
+            <View style={s.stepNumberBadge}><Text style={s.stepNumberTxt}>2</Text></View>
+          </View>
+          <View style={s.stepTextContent}>
+            <Text style={s.stepTitle}>استقبل وقارن العروض</Text>
+            <Text style={s.stepDesc}>احصل على عروض أسعار تنافسية من ناقلين موثوقين ومصنفين بسلطنة عُمان.</Text>
+          </View>
+        </View>
+
+        <View style={s.stepItem}>
+          <View style={s.stepIconBox}>
+            <Ionicons name="navigate-outline" size={24} color={Colors.primary} />
+            <View style={s.stepNumberBadge}><Text style={s.stepNumberTxt}>3</Text></View>
+          </View>
+          <View style={s.stepTextContent}>
+            <Text style={s.stepTitle}>تواصل وتابع شحنتك</Text>
+            <Text style={s.stepDesc}>اتفق مع الناقل الأنسب وتابع وصول حمولتك بأمان وسلاسة حتى نقطة التسليم.</Text>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space6,
-    paddingVertical: Spacing.space2,
-  },
-  headerTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 18,
-    color: Colors.text,
-    writingDirection: 'rtl',
-    textAlign: 'left',
-    marginBottom: Spacing.space4,
-    paddingHorizontal: Spacing.space5,
-    lineHeight: 26,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.space5,
-    gap: 16,
-    paddingBottom: 24, // extra padding for shadow
-  },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    padding: 20,
-    position: 'relative',
-    overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    minHeight: 190,
-    justifyContent: 'space-between',
-  },
-  bgNumber: {
-    position: 'absolute',
-    right: -15,
-    bottom: -25,
-    fontSize: 110,
-    fontFamily: 'Almarai_800ExtraBold',
-    color: '#f8fafc',
-    zIndex: 0,
-  },
-  topRow: {
+  container: {},
+  sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    zIndex: 1,
-    marginBottom: 16,
-  },
-  iconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  stepPill: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  stepPillText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    color: '#64748b',
-    lineHeight: 16,
-  },
-  textContainer: {
-    zIndex: 1,
-  },
-  title: {
+  sectionTitleHeader: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    color: '#0f172a',
-    marginBottom: 8,
-    writingDirection: 'rtl',
+    fontSize: 15,
+    color: Colors.text,
     lineHeight: 24,
+    paddingTop: 4,
+    writingDirection: 'rtl',
   },
-  desc: {
+  sectionSubHeader: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 20,
+    paddingTop: 2,
+    writingDirection: 'rtl',
+  },
+  stepsContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    padding: Spacing.space4,
+    gap: Spacing.space4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space3,
+  },
+  stepIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f0f9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  stepNumberBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#0ea5e9',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+  stepNumberTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 10,
+    color: Colors.white,
+    lineHeight: 14,
+    paddingTop: 1.5,
+  },
+  stepTextContent: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    color: Colors.text,
+    textAlign: 'left',
+    lineHeight: 20,
+    paddingTop: 2,
+    marginBottom: 2,
+    writingDirection: 'rtl',
+  },
+  stepDesc: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    lineHeight: 18,
     writingDirection: 'rtl',
   },
 });
+

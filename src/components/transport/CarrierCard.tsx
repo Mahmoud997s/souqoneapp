@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -10,14 +10,16 @@ import RatingBadges from '../jobs/RatingBadges'
 import { getInitials, getAvatarColor } from '../../utils/format'
 import { getPostGovLabel, getPostCityLabel } from '../../constants/locations'
 import { getServiceLabel } from '../../constants/transport'
+import { CardSystem } from '../../constants/cardSystem'
 
 interface CarrierCardProps {
   carrier: CarrierProfile & { user?: any } 
   onPress?: () => void
   compact?: boolean
+  maxChips?: number
 }
 
-export function CarrierCard({ carrier, onPress, compact = false }: CarrierCardProps) {
+export function CarrierCard({ carrier, onPress, compact = false, maxChips = 3 }: CarrierCardProps) {
   const name = carrier.companyName || carrier.user?.displayName || carrier.user?.username || 'ناقل في سوق ون'
   const initials = getInitials(name)
   const avatarColor = getAvatarColor(carrier.userId)
@@ -64,21 +66,25 @@ export function CarrierCard({ carrier, onPress, compact = false }: CarrierCardPr
         </View>
       </View>
 
-      {/* Services Area */}
+      {/* Services Area (Configurable maxChips with +N remainder) */}
       {!compact && carrier.serviceTypes && carrier.serviceTypes.length > 0 && (
         <View style={s.servicesWrap}>
-           <View style={s.chipsRow}>
-            {carrier.serviceTypes.slice(0, 3).map((svc, i) => (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.chipsRow}
+          >
+            {carrier.serviceTypes.slice(0, maxChips).map((svc, i) => (
               <View key={i} style={s.chip}>
-                <Text style={s.chipText}>{getServiceLabel(svc)}</Text>
+                <Text style={s.chipText} numberOfLines={1}>{getServiceLabel(svc)}</Text>
               </View>
             ))}
-            {carrier.serviceTypes.length > 3 && (
+            {carrier.serviceTypes.length > maxChips && (
               <View style={s.chipExtra}>
-                <Text style={s.chipExtraText}>+{carrier.serviceTypes.length - 3}</Text>
+                <Text style={s.chipExtraText}>+{carrier.serviceTypes.length - maxChips}</Text>
               </View>
             )}
-           </View>
+          </ScrollView>
         </View>
       )}
 
@@ -103,29 +109,25 @@ export function CarrierCard({ carrier, onPress, compact = false }: CarrierCardPr
 const s = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    ...Platform.select({
-      ios: { shadowColor: '#1e293b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
-      android: { elevation: 3 },
-    }),
+    borderRadius: CardSystem.radius.outer,
+    padding: CardSystem.padding.dense,
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 12,
+    marginRight: 10,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
     borderColor: '#f8fafc',
   },
   initialsAvatar: {
@@ -134,17 +136,17 @@ const s = StyleSheet.create({
   },
   initialsText: {
     color: '#ffffff',
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Almarai_800ExtraBold',
-    lineHeight: 28,
+    lineHeight: 22,
   },
   statusDot: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     borderWidth: 2,
     borderColor: '#ffffff',
   },
@@ -158,82 +160,84 @@ const s = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+    gap: 4,
+    marginBottom: 2,
   },
   nameText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
+    ...CardSystem.typography.title,
+    fontSize: 13.5,
     color: '#0f172a',
     textAlign: 'left',
-    lineHeight: 24,
+    lineHeight: 19,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   locationText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
+    ...CardSystem.typography.subtitle,
+    fontSize: 10.5,
     color: '#64748b',
     textAlign: 'left',
-    lineHeight: 20,
+    lineHeight: 15,
   },
   
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fffbeb',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: CardSystem.radius.badge,
+    gap: 3,
   },
   ratingText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 12,
+    ...CardSystem.typography.badgeText,
+    fontSize: 10.5,
     color: '#d97706',
-    lineHeight: 18,
+    lineHeight: 14,
   },
 
   servicesWrap: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   chipsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    alignItems: 'center',
+    gap: CardSystem.gap.secondary,
+    height: 22,
+    overflow: 'hidden',
   },
   chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 3.5,
+    paddingHorizontal: 7,
     backgroundColor: '#f1f5f9',
-    borderRadius: 8,
+    borderRadius: CardSystem.radius.inner,
   },
   chipText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
+    ...CardSystem.typography.pillText,
+    fontSize: 10,
     color: '#475569',
-    lineHeight: 16,
+    lineHeight: 14,
   },
   chipExtra: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 3.5,
+    paddingHorizontal: 7,
     backgroundColor: '#e2e8f0',
-    borderRadius: 8,
+    borderRadius: CardSystem.radius.inner,
   },
   chipExtraText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 11,
+    ...CardSystem.typography.pillText,
+    fontSize: 10,
     color: '#334155',
-    lineHeight: 16,
+    lineHeight: 14,
   },
 
   footerDivider: {
     height: 1,
     backgroundColor: '#f1f5f9',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   footerRow: {
     flexDirection: 'row',
@@ -243,23 +247,24 @@ const s = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   statsText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
+    ...CardSystem.typography.subtitle,
+    fontSize: 11,
     color: '#64748b',
-    lineHeight: 18,
+    lineHeight: 16,
   },
   ctaWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   ctaText: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
+    fontSize: 11.5,
     color: Colors.primary,
-    lineHeight: 18,
+    lineHeight: 16,
   },
-})
+});
+

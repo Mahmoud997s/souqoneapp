@@ -2,13 +2,14 @@ import React from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { Colors } from '../../src/constants/colors';
 import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
 import { useParts } from '../../src/hooks/useParts';
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { usePostStore } from '../../src/store/postStore';
 import { useAuthStore } from '../../src/store/authStore';
 
@@ -16,11 +17,12 @@ import { PartsCategoriesGrid } from '../../src/components/parts/PartsCategoriesG
 import { PartHorizontalList } from '../../src/components/parts/PartHorizontalList';
 import { PartsHowItWorks } from '../../src/components/parts/PartsHowItWorks';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 export default function PartsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollY = useSharedValue(0);
+  const { scrollHandler, scrollY } = useScrollAwareNav();
   const { set, reset } = usePostStore();
   const { isLoggedIn } = useAuthStore();
 
@@ -34,11 +36,6 @@ export default function PartsLandingScreen() {
     router.push('/post/step2' as any);
   };
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   // Fetch Parts Data
   const { data: allParts = [], isLoading: loadingParts } = useParts({ limit: 15 });
@@ -126,6 +123,9 @@ export default function PartsLandingScreen() {
           />
 
           <PartsHowItWorks />
+
+          {/* Need Help / Support Button */}
+          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
         </View>
       </Animated.ScrollView>
 

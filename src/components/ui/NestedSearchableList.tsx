@@ -41,9 +41,11 @@ export function NestedSearchableList({
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
     const query = searchQuery.toLowerCase().trim();
-    return data.filter((item) =>
-      item.label.toLowerCase().includes(query)
-    );
+    return data.filter((item) => {
+      const labelMatch = item.label ? item.label.toLowerCase().includes(query) : false;
+      const valueMatch = item.value ? String(item.value).toLowerCase().includes(query) : false;
+      return labelMatch || valueMatch;
+    });
   }, [data, searchQuery]);
 
   const renderItem = ({ item }: { item: SelectOption }) => {

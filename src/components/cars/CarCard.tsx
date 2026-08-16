@@ -10,10 +10,56 @@ import { favoritesApi } from '../../api/favorites'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Listing } from '../../types/listing.types'
-import { GOVERNORATE_OPTIONS } from '../../constants/filters'
-import { formatLocation } from '../../utils/mappers'
 import { formatDate } from '../../utils/format'
+import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
 import { CardSystem } from '../../constants/cardSystem'
+
+function resolveCardLocation(item: any, rawData: any): string {
+  const govRef = rawData.governorateRef || item.governorateRef
+  const wilRef = rawData.wilayaRef || item.wilayaRef
+
+  if (govRef || wilRef) {
+    const govName = govRef?.nameAr || govRef?.name || govRef?.nameEn || ''
+    const wilName = wilRef ? (wilRef.nameAr || wilRef.name || wilRef.nameEn || '') : ''
+    if (govName && wilName && govName !== wilName) {
+      return `${govName}، ${wilName}`
+    }
+    return wilName || govName || ''
+  }
+
+  const rawGov = rawData.governorateName || rawData.details?.governorateName || item.governorate || rawData.governorate
+  const rawWil = rawData.wilayaName || rawData.details?.wilayaName || rawData.city || item.city || rawData.wilaya || item.wilaya
+
+  let govLabel = ''
+  if (typeof rawGov === 'string' && !rawGov.startsWith('OM_') && !rawGov.startsWith('OM-') && isNaN(Number(rawGov))) {
+    govLabel = rawGov
+  } else if (rawGov) {
+    const strGov = String(rawGov).toUpperCase()
+    const foundOpt = GOVERNORATE_OPTIONS.find(
+      (o) => o.value.toUpperCase() === strGov || o.value.replace('_', '-').toUpperCase() === strGov.replace('_', '-')
+    )
+    if (foundOpt) {
+      govLabel = foundOpt.labelAr
+    } else {
+      const foundLoc = OMAN_LOCATIONS.find(
+        (l) => l.id.toUpperCase() === strGov || l.legacyId.toUpperCase() === strGov
+      )
+      if (foundLoc) govLabel = foundLoc.labelAr
+    }
+  }
+
+  let wilLabel = ''
+  if (typeof rawWil === 'string') {
+    wilLabel = rawWil
+  } else if (rawWil?.nameAr) {
+    wilLabel = rawWil.nameAr
+  }
+
+  if (govLabel && wilLabel && govLabel !== wilLabel) {
+    return `${govLabel}، ${wilLabel}`
+  }
+  return wilLabel || govLabel || rawData.location || item.location || ''
+}
 
 export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
@@ -63,13 +109,7 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   
   const carName = item.title || (make && model ? `${make} ${model} ${year !== 'N/A' ? year : ''}`.trim() : 'إعلان بدون عنوان')
   
-  const getGovernorateLabel = (codeOrName: string) => {
-    if (!codeOrName) return ''
-    const option = GOVERNORATE_OPTIONS.find(opt => opt.value === codeOrName)
-    return option ? option.labelAr : codeOrName
-  }
-  const govLabel = getGovernorateLabel(item.governorate)
-  const location = item.city ? `${govLabel}، ${item.city}` : govLabel
+  const location = resolveCardLocation(item, rawData)
 
   const { isLoggedIn } = useAuthStore()
   const queryClient = useQueryClient()
@@ -291,16 +331,34 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
                 </View>
               )
             }
-            return pills.slice(0, maxChips)
+            if (pills.length <= maxChips) {
+              return pills
+            }
+
+            const visiblePills = pills.slice(0, maxChips)
+            const remainingCount = pills.length - maxChips
+
+            return (
+              <>
+                {visiblePills}
+                {remainingCount > 0 && (
+                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 5, flexShrink: 0 }]}>
+                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]}>
+                      +{remainingCount}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )
           })()}
         </View>
 
-        <View style={[s.divider, { marginTop: 4 }]} />
+        <View style={[s.divider, { marginTop: 2, marginBottom: 6 }]} />
 
         {/* Footer Row (Budget & Quotes style) */}
         <View style={s.footerRow}>
           <View style={[s.detailPill, isSale && item.isPriceNegotiable ? s.pillGreen : s.pillNeutral, { flex: 1 }]}>
-            <Ionicons name="wallet-outline" size={16} color={isSale && item.isPriceNegotiable ? '#059669' : '#64748b'} />
+            <Ionicons name="wallet-outline" size={15} color={isSale && item.isPriceNegotiable ? '#059669' : '#64748b'} />
             <Text style={[s.budgetValText, isSale && item.isPriceNegotiable && { color: '#059669' }]}>{priceLabel}</Text>
           </View>
           
@@ -322,7 +380,7 @@ const s = StyleSheet.create({
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
-    marginBottom: 12,
+    alignSelf: 'flex-start',
     ...CardSystem.styles.border,
     overflow: 'hidden',
     ...CardSystem.styles.softShadow,
@@ -342,31 +400,31 @@ const s = StyleSheet.create({
     height: CardSystem.aspectRatioHeight, 
   },
   dotsWrapper: {
-    position: 'absolute', bottom: 12, left: 0, right: 0,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
+    position: 'absolute', bottom: 10, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5,
   },
   dot: {
-    width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)',
+    width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.5)',
   },
   activeDot: {
-    backgroundColor: '#fff', width: 16,
+    backgroundColor: '#fff', width: 14,
   },
   actionsContainer: {
-    position: 'absolute', top: 12, right: 12, zIndex: 10,
-    flexDirection: 'row', gap: 8,
+    position: 'absolute', top: 10, right: 10, zIndex: 10,
+    flexDirection: 'row', gap: 6,
   },
   actionBtn: {
-    width: 28, height: 28, borderRadius: 14,
+    width: 26, height: 26, borderRadius: 13,
     backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   badgesContainer: {
-    position: 'absolute', top: 12, left: 12, right: 80,
-    flexDirection: 'row', gap: 6, flexWrap: 'wrap',
+    position: 'absolute', top: 10, left: 10, right: 75,
+    flexDirection: 'row', gap: 5, flexWrap: 'wrap',
   },
   badge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 7, paddingVertical: 2.5,
+    paddingHorizontal: 6, paddingVertical: 2,
     borderRadius: CardSystem.radius.badge, 
     ...CardSystem.styles.badgeShadow,
   },
@@ -376,7 +434,9 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   carDetails: {
-    padding: CardSystem.padding.dense,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   headerRow: {
     flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: CardSystem.gap.primary,
@@ -388,7 +448,7 @@ const s = StyleSheet.create({
   verifiedRow: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: '#eff6ff', 
-    paddingHorizontal: 6, paddingVertical: 2, 
+    paddingHorizontal: 5, paddingVertical: 1.5, 
     borderRadius: 100, borderWidth: 1, borderColor: '#bfdbfe', marginTop: 2,
   },
   verifiedTxt: {
@@ -396,7 +456,7 @@ const s = StyleSheet.create({
     color: '#2563eb', writingDirection: 'rtl',
   },
   locationRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 5, marginTop: 3, marginBottom: 6,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 4, marginTop: 2, marginBottom: 5,
   },
   locationTxt: {
     ...CardSystem.typography.subtitle,
@@ -404,18 +464,19 @@ const s = StyleSheet.create({
   },
   timeTxt: {
     ...CardSystem.typography.subtitle,
-    color: '#94a3b8', marginStart: 4, writingDirection: 'rtl',
+    color: '#94a3b8', marginStart: 3, writingDirection: 'rtl',
   },
   divider: {
-    height: 1, backgroundColor: '#f1f5f9', marginBottom: 8,
+    height: 1, backgroundColor: '#f1f5f9', marginBottom: 6,
   },
   detailsList: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: CardSystem.gap.secondary, marginBottom: 6,
+    flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 4, marginBottom: 4, overflow: 'hidden',
   },
   detailPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 7, paddingVertical: 3.5,
+    flexDirection: 'row', alignItems: 'center', gap: 3.5,
+    paddingHorizontal: 6, paddingVertical: 3,
     borderRadius: CardSystem.radius.inner,
+    flexShrink: 1,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
@@ -426,9 +487,9 @@ const s = StyleSheet.create({
     color: '#475569', writingDirection: 'rtl',
   },
   footerRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: CardSystem.gap.secondary,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 5,
   },
   budgetValText: {
-    fontSize: 12, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 16, writingDirection: 'rtl',
+    fontSize: 11.5, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 15, writingDirection: 'rtl',
   },
 })

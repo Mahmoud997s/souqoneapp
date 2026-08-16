@@ -9,6 +9,7 @@ export { PriceBadge } from './PriceBadge'
 export { LocationRow } from './LocationRow'
 export { StatusBadge } from './StatusBadge'
 export { ActionBanner } from './ActionBanner'
+export { SupportHelpButton } from './SupportHelpButton'
 
 export { AppSelect } from './AppSelect'
 export { SkeletonCard } from './SkeletonCard'

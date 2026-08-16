@@ -10,7 +10,6 @@ import { JobBadge } from '../jobs/JobBadge'
 import { LicenseChips } from '../jobs/LicenseChips'
 import RatingBadges from '../jobs/RatingBadges'
 import { formatDate, formatSalary, getInitials, getAvatarColor } from '../../utils/format'
-import { formatLocation } from '../../utils/mappers'
 import { STRINGS } from '../../constants/jobs'
 import { CardSystem } from '../../constants/cardSystem'
 
@@ -100,7 +99,7 @@ export function JobCard({ job, onPress, maxChips }: JobCardProps) {
         
         <View style={s.locationInner}>
           <Ionicons name="location-outline" size={14} color="#64748b" />
-          <Text style={s.locationText} numberOfLines={1}>{formatLocation(job)}</Text>
+          <Text style={s.locationText} numberOfLines={1}>{(job as any).governorate || ''}</Text>
         </View>
       </View>
 

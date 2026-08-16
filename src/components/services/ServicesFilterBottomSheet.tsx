@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Switch, Text, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
-import { GOVERNORATE_OPTIONS, WILAYAT_BY_GOVERNORATE } from '../../constants/filters';
 import { SERVICE_TYPES, PROVIDER_TYPES, COMMON_SPECIALIZATIONS } from '../../constants/services';
 import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
@@ -14,6 +13,8 @@ import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { FilterChip } from '../ui/FilterChip';
 import { AppButton } from '../ui/AppButton';
+import { locationsApi } from '../../api/locations';
+import { GovernorateRef, WilayaRef } from '../../types/location.types';
 
 interface ServicesFilterBottomSheetProps {
   visible: boolean;
@@ -33,6 +34,9 @@ export function ServicesFilterBottomSheet({
   const [filters, setFilters] = useState<ServicesFilterState>({ ...initialFilters });
   const [activeSelector, setActiveSelector] = useState<'gov' | 'city' | 'serviceType' | 'providerType' | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
 
   const hasActiveFilters = Object.keys(filters).length > 0;
 
@@ -40,8 +44,17 @@ export function ServicesFilterBottomSheet({
     if (visible) {
       setFilters({ ...initialFilters });
       setActiveSelector(null);
+      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
     }
   }, [visible, initialFilters]);
+
+  useEffect(() => {
+    if (filters.governorateId) {
+      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(console.warn);
+    } else {
+      setWilayas([]);
+    }
+  }, [filters.governorateId]);
 
   const updateFilter = (key: keyof ServicesFilterState, value: any) => {
     setFilters(prev => {
@@ -51,8 +64,10 @@ export function ServicesFilterBottomSheet({
       }
       
       // If changing governorate, clear the city
-      if (key === 'governorate' && prev.governorate !== value) {
+      if (key === 'governorateId' && prev.governorateId !== value) {
+        delete next.wilayaId;
         delete next.city;
+        delete next.governorate;
       }
 
       // If changing service type, clear specializations
@@ -97,6 +112,8 @@ export function ServicesFilterBottomSheet({
       updateFilter('radiusKm', 10);
       
       // Clear gov/city since we are using Near Me
+      updateFilter('governorateId', undefined);
+      updateFilter('wilayaId', undefined);
       updateFilter('governorate', undefined);
       updateFilter('city', undefined);
 
@@ -117,9 +134,9 @@ export function ServicesFilterBottomSheet({
   };
 
   // Build list data
-  const govData = GOVERNORATE_OPTIONS.map(g => ({
-    id: g.value,
-    label: g.labelAr,
+  const govData = governorates.map(g => ({
+    id: String(g.id),
+    label: g.nameAr,
   }));
 
   const serviceTypeData = SERVICE_TYPES.map(s => ({
@@ -132,12 +149,10 @@ export function ServicesFilterBottomSheet({
     label: p.label,
   }));
 
-  const cityData = (filters.governorate && WILAYAT_BY_GOVERNORATE[filters.governorate])
-    ? WILAYAT_BY_GOVERNORATE[filters.governorate].map(city => ({
-        id: city.value,
-        label: city.labelAr,
-      }))
-    : [];
+  const cityData = wilayas.map(city => ({
+    id: String(city.id),
+    label: city.nameAr,
+  }));
 
   const currentSpecializations = filters.serviceType ? COMMON_SPECIALIZATIONS[filters.serviceType] || [] : [];
 
@@ -150,8 +165,12 @@ export function ServicesFilterBottomSheet({
     nestedContent = (
       <NestedSearchableList
         data={govData}
-        selectedValue={filters.governorate}
-        onSelect={(opt) => { updateFilter('governorate', opt?.id); setActiveSelector(null); }}
+        selectedValue={filters.governorateId ? String(filters.governorateId) : undefined}
+        onSelect={(opt) => { 
+          updateFilter('governorateId', opt ? parseInt(opt.id, 10) : undefined);
+          updateFilter('governorate', opt?.label);
+          setActiveSelector(null); 
+        }}
         placeholder="ابحث عن محافظة..."
       />
     );
@@ -160,8 +179,12 @@ export function ServicesFilterBottomSheet({
     nestedContent = (
       <NestedSearchableList
         data={cityData}
-        selectedValue={filters.city}
-        onSelect={(opt) => { updateFilter('city', opt?.id); setActiveSelector(null); }}
+        selectedValue={filters.wilayaId ? String(filters.wilayaId) : undefined}
+        onSelect={(opt) => { 
+          updateFilter('wilayaId', opt ? parseInt(opt.id, 10) : undefined); 
+          updateFilter('city', opt?.label);
+          setActiveSelector(null); 
+        }}
         placeholder="ابحث عن ولاية..."
       />
     );
@@ -265,17 +288,17 @@ export function ServicesFilterBottomSheet({
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <View style={{ flex: 1 }}>
                 <DropdownSelector
-                  value={GOVERNORATE_OPTIONS.find(g => g.value === filters.governorate)?.labelAr}
+                  value={governorates.find(g => g.id === filters.governorateId)?.nameAr || filters.governorate}
                   placeholder="المحافظة"
                   onPress={() => setActiveSelector('gov')}
                 />
               </View>
               <View style={{ flex: 1 }}>
                 <DropdownSelector
-                  value={filters.city}
+                  value={wilayas.find(w => w.id === filters.wilayaId)?.nameAr || filters.city}
                   placeholder="الولاية"
                   onPress={() => {
-                    if (filters.governorate) {
+                    if (filters.governorateId || filters.governorate) {
                       setActiveSelector('city');
                     } else {
                       setActiveSelector('gov'); // Force select gov first

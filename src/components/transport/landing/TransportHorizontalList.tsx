@@ -1,22 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../constants/colors';
 import { Spacing } from '../../../constants/spacing';
-import { Radius } from '../../../constants/radius';
+import { CardSystem } from '../../../constants/cardSystem';
+import { TransportRequest } from '../../../types/transport.types';
 import { TransportRequestCard } from '../TransportRequestCard';
 import { SkeletonCard } from '../../ui/SkeletonCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 const { width: SW } = Dimensions.get('window');
 
-interface Props {
+interface TransportHorizontalListProps {
   title: string;
-  subTitle?: string;
-  data: any[];
+  subTitle: string;
+  data: TransportRequest[];
   isLoading: boolean;
   emptyText: string;
   onSeeAll: () => void;
-  onPressItem: (item: any) => void;
+  onPressItem: (item: TransportRequest) => void;
 }
 
 export function TransportHorizontalList({
@@ -27,47 +29,49 @@ export function TransportHorizontalList({
   emptyText,
   onSeeAll,
   onPressItem,
-}: Props) {
+}: TransportHorizontalListProps) {
   return (
     <View style={s.container}>
-      <View style={s.headerRow}>
-        <View style={s.titleWrap}>
-          <Text style={s.title}>{title}</Text>
-          {subTitle && <Text style={s.subTitle}>{subTitle}</Text>}
+      <View style={s.sectionHeader}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.sectionTitleHeader}>{title}</Text>
+          <Text style={s.sectionSubHeader}>{subTitle}</Text>
         </View>
-
-        <TouchableOpacity style={s.seeAllBtn} onPress={onSeeAll}>
-          <Text style={s.seeAllTxt}>عرض الكل</Text>
-          <Ionicons name="chevron-back" size={16} color={Colors.primary} />
+        <TouchableOpacity onPress={onSeeAll} style={s.seeAllBtn} activeOpacity={0.8}>
+          <Text style={s.seeAllTxt}>الكل</Text>
+          <Ionicons name="chevron-back" size={14} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -Spacing.space5 }}
         contentContainerStyle={s.scrollContent}
-        snapToInterval={(SW * 0.85) + Spacing.space4}
-        snapToAlignment="start"
-        decelerationRate="fast"
       >
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <View key={i} style={s.cardWrapper}>
-              <SkeletonCard />
-            </View>
+            <SkeletonCard
+              key={i}
+              style={{ width: SW * 0.62, height: 190 }}
+            />
           ))
         ) : data.length > 0 ? (
           data.map((item) => (
-            <View key={item.id} style={s.cardWrapper}>
-              <TransportRequestCard 
-                request={item} 
-                onPress={() => onPressItem(item)} 
+            <View key={item.id} style={{ width: SW * 0.62 }}>
+              <TransportRequestCard
+                request={item}
+                onPress={() => onPressItem(item)}
               />
             </View>
           ))
         ) : (
-          <View style={s.emptyWrap}>
-            <Text style={s.emptyTxt}>{emptyText}</Text>
+          <View style={s.emptyCard}>
+            <EmptyState
+              title={emptyText}
+              icon="cube-outline"
+              compact
+            />
           </View>
         )}
       </ScrollView>
@@ -76,63 +80,60 @@ export function TransportHorizontalList({
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space5,
-  },
-  headerRow: {
+  container: {},
+  sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: Spacing.space3,
-    paddingHorizontal: Spacing.space5,
   },
-  titleWrap: {
-    alignItems: 'flex-start',
-  },
-  title: {
+  sectionTitleHeader: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
     color: Colors.text,
-    paddingVertical: 4,
+    textAlign: 'left',
+    lineHeight: 23,
+    writingDirection: 'rtl',
+    marginBottom: 2,
   },
-  subTitle: {
+  sectionSubHeader: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textMuted,
-    marginTop: 2,
-    paddingBottom: 4,
+    textAlign: 'left',
+    lineHeight: 18,
+    writingDirection: 'rtl',
   },
   seeAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
   seeAllTxt: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.primary,
+    lineHeight: 16,
+    paddingTop: 1,
   },
   scrollContent: {
     paddingHorizontal: Spacing.space5,
-    gap: Spacing.space4,
+    gap: Spacing.space3,
+    paddingVertical: 4,
   },
-  cardWrapper: {
-    width: SW * 0.85,
-  },
-  emptyWrap: {
-    width: SW * 0.85,
-    height: 120,
-    backgroundColor: 'rgba(0,0,0,0.02)',
-    borderRadius: Radius.xl,
-    alignItems: 'center',
+  emptyCard: {
+    width: SW * 0.62,
+    height: 160,
+    backgroundColor: Colors.white,
+    borderRadius: CardSystem.radius.outer,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-    borderStyle: 'dashed',
-  },
-  emptyTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    color: Colors.textMuted,
+    alignItems: 'center',
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
   },
 });
+

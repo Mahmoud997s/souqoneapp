@@ -7,117 +7,231 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { Radius } from '../../constants/radius';
-import { Dimensions } from 'react-native';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-import { getServiceLabel, getRequestStatusLabel } from '../../constants/transport';
 
 // ─── STATIC DATA ───
 const TABS = [
-  { id: 'services', label: 'نوع الشحن' },
-  { id: 'cities', label: 'أهم المحافظات' },
-  { id: 'statuses', label: 'الحالة' },
+  { id: 'services', label: 'نوع الشحن', icon: 'cube-outline' as const },
+  { id: 'governorates', label: 'أهم المحافظات', icon: 'location-outline' as const },
+  { id: 'timing', label: 'الموعد والتوقيت', icon: 'calendar-outline' as const },
+  { id: 'budget', label: 'نطاقات الميزانية', icon: 'wallet-outline' as const },
+  { id: 'helper', label: 'عمال التحميل', icon: 'people-outline' as const },
 ];
 
-const SERVICE_TYPES = [
-  { id: 'GOODS', name: getServiceLabel('GOODS'), icon: 'cube-outline' },
-  { id: 'FURNITURE', name: getServiceLabel('FURNITURE'), icon: 'home-outline' },
-  { id: 'CONSTRUCTION', name: getServiceLabel('CONSTRUCTION'), icon: 'hammer-outline' },
-  { id: 'HEAVY', name: getServiceLabel('HEAVY'), icon: 'car-outline' },
-  { id: 'BACKLOAD', name: getServiceLabel('BACKLOAD'), icon: 'swap-horizontal-outline' },
-  { id: 'EQUIPMENT', name: getServiceLabel('EQUIPMENT'), icon: 'construct-outline' },
+const SERVICE_TYPES_DATA = [
+  { id: 'GOODS', label: 'بضائع عامة', icon: 'cube-send', color: '#2563eb', bg: '#dbeafe' },
+  { id: 'FURNITURE', label: 'عفش وأثاث', icon: 'truck-cargo-container', color: '#0891b2', bg: '#cffafe' },
+  { id: 'VEHICLES', label: 'سيارات ومركبات', icon: 'car-multiple', color: '#ea580c', bg: '#ffedd5' },
+  { id: 'HEAVY', label: 'معدات وثقيل', icon: 'excavator', color: '#d97706', bg: '#fef3c7' },
+  { id: 'CONSTRUCTION', label: 'مواد بناء', icon: 'hammer-wrench', color: '#dc2626', bg: '#fee2e2' },
+  { id: 'FOOD_COLD', label: 'شحن مبرد', icon: 'snowflake', color: '#0284c7', bg: '#e0f2fe' },
+  { id: 'LIVESTOCK', label: 'مواشي وحيوانات', icon: 'cow', color: '#16a34a', bg: '#dcfce7' },
+  { id: 'EXPRESS', label: 'شحن مستعجل', icon: 'flash', color: '#eab308', bg: '#fef9c3' },
+  { id: 'BACKLOAD', label: 'نقل راجع', icon: 'swap-horizontal', color: '#9333ea', bg: '#f3e8ff' },
 ];
 
-const TOP_CITIES = [
-  { id: 'OM_MUS', name: 'مسقط' },
-  { id: 'OM_DHO', name: 'ظفار' },
-  { id: 'OM_BAT', name: 'شمال الباطنة' },
-  { id: 'OM_BSS', name: 'جنوب الباطنة' },
-  { id: 'OM_DAK', name: 'الداخلية' },
-  { id: 'OM_SHA', name: 'شمال الشرقية' },
-  { id: 'OM_SHS', name: 'جنوب الشرقية' },
-  { id: 'OM_BUR', name: 'البريمي' },
+const GOVERNORATES_DATA = [
+  { id: 'مسقط', name: 'مسقط' },
+  { id: 'ظفار', name: 'ظفار' },
+  { id: 'شمال الباطنة', name: 'شمال الباطنة' },
+  { id: 'جنوب الباطنة', name: 'جنوب الباطنة' },
+  { id: 'الداخلية', name: 'الداخلية' },
+  { id: 'شمال الشرقية', name: 'شمال الشرقية' },
+  { id: 'جنوب الشرقية', name: 'جنوب الشرقية' },
+  { id: 'البريمي', name: 'البريمي' },
+  { id: 'الظاهرة', name: 'الظاهرة' },
+  { id: 'مسندم', name: 'مسندم' },
+  { id: 'الوسطى', name: 'الوسطى' },
 ];
 
-const STATUSES = [
-  { id: 'OPEN', name: getRequestStatusLabel('OPEN'), icon: 'radio-button-on' },
-  { id: 'QUOTED', name: getRequestStatusLabel('QUOTED'), icon: 'pricetag' },
-  { id: 'IN_PROGRESS', name: getRequestStatusLabel('IN_PROGRESS'), icon: 'sync-outline' },
+const TIMING_DATA = [
+  { id: 'asap', label: 'فوري (أسرع وقت)', icon: 'timer-sand-full', color: '#ef4444', bg: '#fee2e2' },
+  { id: 'scheduled', label: 'مجدول بموعد', icon: 'calendar-clock', color: '#2563eb', bg: '#dbeafe' },
+  { id: 'flexible', label: 'مرن في التوقيت', icon: 'check-decagram-outline', color: '#16a34a', bg: '#dcfce7' },
 ];
 
-interface TransportVisualFiltersProps {
-  onSelectFilter: (type: 'service' | 'city' | 'status', valueId: string, valueName?: string) => void;
+const BUDGET_DATA = [
+  { id: 'b1', label: 'أقل من 50 ر.ع', min: 0, max: 50 },
+  { id: 'b2', label: '50 - 100 ر.ع', min: 50, max: 100 },
+  { id: 'b3', label: '100 - 300 ر.ع', min: 100, max: 300 },
+  { id: 'b4', label: '300 - 500 ر.ع', min: 300, max: 500 },
+  { id: 'b5', label: 'أكثر من 500 ر.ع', min: 500, max: null },
+];
+
+const HELPER_DATA = [
+  { id: 'helper_yes', label: 'يحتاج عمال تحميل', value: true, icon: 'account-multiple-plus', color: '#2563eb', bg: '#dbeafe' },
+  { id: 'helper_no', label: 'بدون عمال تحميل', value: false, icon: 'account-off-outline', color: '#64748b', bg: '#f1f5f9' },
+];
+
+export interface TransportVisualFiltersProps {
+  onSelectFilter: (
+    type: 'serviceType' | 'governorate' | 'timingType' | 'budget' | 'requiresHelper',
+    valueId: any,
+    valueName?: string,
+    min?: number,
+    max?: number
+  ) => void;
   onViewAll: (tabId: string) => void;
-  selectedServiceId?: string;
-  selectedCity?: string;
-  selectedStatusId?: string;
+  selectedServiceType?: string;
+  selectedGovernorate?: string;
+  selectedTimingType?: string;
+  selectedBudgetMin?: string | number;
+  selectedBudgetMax?: string | number;
+  selectedRequiresHelper?: boolean | null;
 }
 
 export function TransportVisualFilters({
   onSelectFilter,
   onViewAll,
-  selectedServiceId,
-  selectedCity,
-  selectedStatusId,
+  selectedServiceType,
+  selectedGovernorate,
+  selectedTimingType,
+  selectedBudgetMin,
+  selectedBudgetMax,
+  selectedRequiresHelper,
 }: TransportVisualFiltersProps) {
   const [activeTab, setActiveTab] = useState<string>('services');
 
-  const renderHorizontalGrid = (items: any[], type: 'services' | 'cities' | 'statuses') => {
+  const renderHorizontalGrid = (
+    items: any[],
+    type: 'services' | 'governorates' | 'timing' | 'budget' | 'helper',
+    rows: 1 | 2 = 2
+  ) => {
     if (!items || items.length === 0) return null;
 
-    // Chunk array into pairs (2 items per column)
-    const chunks = [];
-    for (let i = 0; i < items.length; i += 2) {
-      chunks.push(items.slice(i, i + 2));
+    const columns: any[][] = [];
+    const chunkSize = rows === 1 ? 1 : 2;
+    for (let i = 0; i < items.length; i += chunkSize) {
+      columns.push(items.slice(i, i + chunkSize));
     }
 
     return (
-      <ScrollView 
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.horizontalGridContent}
-        style={s.horizontalScroll}
+        contentContainerStyle={s.scrollContainer}
       >
-        {chunks.map((chunk, index) => (
-          <View key={index} style={s.gridColumn}>
-            {chunk.map((item) => {
+        {columns.map((col, colIdx) => (
+          <View key={colIdx} style={rows === 2 ? s.column : undefined}>
+            {col.map((item: any) => {
               let isSelected = false;
-              let icon = null;
+              let icon: React.ReactNode = null;
               let text = '';
               let onPress = () => {};
 
               if (type === 'services') {
-                isSelected = selectedServiceId === item.id;
-                icon = <Ionicons name={item.icon as any} size={24} color={isSelected ? Colors.white : Colors.primary} />;
+                isSelected = selectedServiceType?.toUpperCase() === item.id.toUpperCase();
+                icon = (
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+                    <MaterialCommunityIcons
+                      name={item.icon as any}
+                      size={14}
+                      color={isSelected ? Colors.white : item.color}
+                    />
+                  </View>
+                );
+                text = item.label;
+                onPress = () => {
+                  if (isSelected) {
+                    onSelectFilter('serviceType', '', undefined);
+                  } else {
+                    onSelectFilter('serviceType', item.id, item.label);
+                  }
+                };
+              } else if (type === 'governorates') {
+                isSelected = selectedGovernorate === item.name || selectedGovernorate === item.id;
+                icon = (
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons
+                      name={isSelected ? 'location' : 'location-outline'}
+                      size={14}
+                      color={isSelected ? Colors.white : Colors.primary}
+                    />
+                  </View>
+                );
                 text = item.name;
-                onPress = () => onSelectFilter('service', item.id, item.name);
-              } else if (type === 'cities') {
-                isSelected = selectedCity === item.name;
-                icon = <Ionicons name="location-outline" size={24} color={isSelected ? Colors.white : Colors.primary} />;
-                text = item.name;
-                onPress = () => onSelectFilter('city', item.name, item.name);
-              } else if (type === 'statuses') {
-                isSelected = selectedStatusId === item.id;
-                icon = <Ionicons name={item.icon as any} size={24} color={isSelected ? Colors.white : Colors.primary} />;
-                text = item.name;
-                onPress = () => onSelectFilter('status', item.id, item.name);
+                onPress = () => {
+                  if (isSelected) {
+                    onSelectFilter('governorate', '', undefined);
+                  } else {
+                    onSelectFilter('governorate', item.name, item.name);
+                  }
+                };
+              } else if (type === 'timing') {
+                isSelected = selectedTimingType === item.id;
+                icon = (
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+                    <MaterialCommunityIcons
+                      name={item.icon as any}
+                      size={14}
+                      color={isSelected ? Colors.white : item.color}
+                    />
+                  </View>
+                );
+                text = item.label;
+                onPress = () => {
+                  if (isSelected) {
+                    onSelectFilter('timingType', '', undefined);
+                  } else {
+                    onSelectFilter('timingType', item.id, item.label);
+                  }
+                };
+              } else if (type === 'budget') {
+                isSelected =
+                  Number(selectedBudgetMin) === item.min &&
+                  (item.max === null ? !selectedBudgetMax : Number(selectedBudgetMax) === item.max);
+                icon = (
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+                    <Ionicons
+                      name={isSelected ? 'wallet' : 'wallet-outline'}
+                      size={14}
+                      color={isSelected ? Colors.white : Colors.primary}
+                    />
+                  </View>
+                );
+                text = item.label;
+                onPress = () => {
+                  if (isSelected) {
+                    onSelectFilter('budget', '', undefined);
+                  } else {
+                    onSelectFilter('budget', item.id, item.label, item.min, item.max);
+                  }
+                };
+              } else if (type === 'helper') {
+                isSelected = selectedRequiresHelper === item.value;
+                icon = (
+                  <View style={[s.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+                    <MaterialCommunityIcons
+                      name={item.icon as any}
+                      size={14}
+                      color={isSelected ? Colors.white : item.color}
+                    />
+                  </View>
+                );
+                text = item.label;
+                onPress = () => {
+                  if (isSelected) {
+                    onSelectFilter('requiresHelper', null, undefined);
+                  } else {
+                    onSelectFilter('requiresHelper', item.value, item.label);
+                  }
+                };
               }
 
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={[s.gridItemPremium, isSelected && s.gridItemPremiumActive]}
+                  activeOpacity={0.7}
+                  style={[s.itemCard, isSelected && s.itemCardSelected]}
                   onPress={onPress}
                 >
-                  <View style={s.iconWrapper}>
-                    {icon}
-                  </View>
-                  <Text style={[s.itemTextPremium, isSelected && s.itemTextPremiumActive]} numberOfLines={2}>
+                  {icon}
+                  <Text
+                    style={[s.itemLabel, isSelected && s.itemLabelSelected]}
+                    numberOfLines={1}
+                  >
                     {text}
                   </Text>
                 </TouchableOpacity>
@@ -125,63 +239,79 @@ export function TransportVisualFilters({
             })}
           </View>
         ))}
+
+        {/* View All Card */}
+        <View style={rows === 2 ? s.column : undefined}>
+          <TouchableOpacity
+            style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
+            onPress={() => onViewAll(activeTab)}
+            activeOpacity={0.7}
+          >
+            <View style={s.viewAllIconBox}>
+              <Ionicons name="apps-outline" size={14} color={Colors.primary} />
+            </View>
+            <Text style={s.viewAllText}>عرض الكل</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     );
   };
 
   const renderActiveGrid = () => {
     switch (activeTab) {
-      case 'services': return renderHorizontalGrid(SERVICE_TYPES, 'services');
-      case 'cities': return renderHorizontalGrid(TOP_CITIES, 'cities');
-      case 'statuses': return renderHorizontalGrid(STATUSES, 'statuses');
-      default: return null;
+      case 'services':
+        return renderHorizontalGrid(SERVICE_TYPES_DATA, 'services', 2);
+      case 'governorates':
+        return renderHorizontalGrid(GOVERNORATES_DATA, 'governorates', 2);
+      case 'timing':
+        return renderHorizontalGrid(TIMING_DATA, 'timing', 1);
+      case 'budget':
+        return renderHorizontalGrid(BUDGET_DATA, 'budget', 2);
+      case 'helper':
+        return renderHorizontalGrid(HELPER_DATA, 'helper', 1);
+      default:
+        return null;
     }
-  };
-
-  const getActiveTabLabel = () => TABS.find(t => t.id === activeTab)?.label || 'العناصر';
-  const getActiveTabViewAllText = () => {
-    if (activeTab === 'services') return 'عرض جميع أنواع الشحن';
-    if (activeTab === 'cities') return 'عرض جميع المحافظات';
-    return `عرض جميع ${getActiveTabLabel()}`;
   };
 
   return (
     <View style={s.container}>
-      {/* ── TABS ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.tabsContent}
-        style={s.tabsScroll}
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              style={[s.tabButton, isActive && s.tabButtonActive]}
-              onPress={() => setActiveTab(tab.id)}
-            >
-              <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {/* ── SEGMENTED TABS ── */}
+      <View style={s.segmentedWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.segmentedContainer}
+        >
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                activeOpacity={0.8}
+                style={[s.segmentTab, isActive && s.segmentTabActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Ionicons
+                  name={tab.icon as any}
+                  size={13.5}
+                  color={isActive ? Colors.primary : '#64748b'}
+                  style={s.tabIcon}
+                />
+                <Text
+                  style={[s.segmentTabText, isActive && s.segmentTabTextActive]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* ── GRID AREA ── */}
       <View style={s.contentArea}>
         {renderActiveGrid()}
-
-        {/* View All Button */}
-        <TouchableOpacity
-          style={s.viewAllBtn}
-          onPress={() => onViewAll(activeTab)}
-        >
-          <Text style={s.viewAllBtnText}>{getActiveTabViewAllText()}</Text>
-          <Ionicons name="chevron-down" size={16} color={Colors.primary} />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -191,100 +321,126 @@ const s = StyleSheet.create({
   container: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#f1f5f9',
     paddingBottom: Spacing.space2,
   },
-  tabsScroll: {
-    paddingVertical: Spacing.space2,
-  },
-  tabsContent: {
-    paddingHorizontal: Spacing.space3,
-    flexDirection: 'row', 
-    gap: Spacing.space2,
-  },
-  tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 100,
-    backgroundColor: '#F8F9FA',
-  },
-  tabButtonActive: {
-    backgroundColor: Colors.primary + '15',
-  },
-  tabText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.textMuted,
-  },
-  tabTextActive: {
-    fontFamily: 'Almarai_800ExtraBold',  color: Colors.primary,
-  },
-  contentArea: {
-    paddingTop: Spacing.space3,
-  },
-  horizontalScroll: {},
-  horizontalGridContent: {
-    paddingHorizontal: Spacing.space4,
-    paddingTop: 4,
-    paddingBottom: Spacing.space2,
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  gridColumn: {
-    width: (SCREEN_WIDTH - (Spacing.space4 * 2)) / 4.8,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.space1,
-  },
-  gridItemPremium: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
+  segmentedWrapper: {
+    marginHorizontal: Spacing.space4,
     marginBottom: Spacing.space2,
+    marginTop: Spacing.space1,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 3,
+  },
+  segmentedContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.space1,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 16 },
-      android: { elevation: 4 },
-    }),
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.02)',
+    gap: 4,
   },
-  gridItemPremiumActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 },
-      android: { elevation: 6 },
-    }),
-  },
-  iconWrapper: {
-    marginBottom: 2,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemTextPremium: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 11,
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  itemTextPremiumActive: {
-    color: Colors.white,
-  },
-  viewAllBtn: {
+  segmentTab: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#eff6ff',
-    paddingVertical: 8,
-    borderRadius: 100,
-    marginHorizontal: Spacing.space4,
-    marginTop: Spacing.space1,
+    paddingVertical: 5.5,
+    paddingHorizontal: 11,
+    borderRadius: 6,
+    gap: 4.5,
   },
-  viewAllBtnText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
+  segmentTabActive: {
+    backgroundColor: '#ffffff',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
+  },
+  tabIcon: {
+    marginEnd: 2,
+  },
+  segmentTabText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  segmentTabTextActive: {
     color: Colors.primary,
-    marginStart: Spacing.space1,
+    fontFamily: 'Almarai_800ExtraBold',
+  },
+  contentArea: {
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  scrollContainer: {
+    paddingHorizontal: Spacing.space4,
+    gap: 6,
+  },
+  column: {
+    gap: 6,
+  },
+  itemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 8.5,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    minWidth: 92,
+    height: 38,
+    gap: 6,
+  },
+  itemCardSelected: {
+    backgroundColor: '#EFF6FF',
+    borderColor: Colors.primary,
+  },
+  iconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemLabel: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#334155',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  itemLabelSelected: {
+    color: Colors.primary,
+  },
+  viewAllCard: {
+    backgroundColor: '#f8fafc',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    minWidth: 72,
+  },
+  viewAllIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewAllText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.primary,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
 });

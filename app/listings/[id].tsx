@@ -16,6 +16,7 @@ import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES, BODY_TYPES, GOVERNORATE_OPTIONS } from '../../src/constants/filters'
 import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../../src/constants/cars'
 import { dialogService } from '../../src/store/dialogStore'
+import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -148,7 +149,7 @@ export default function ListingDetailScreen() {
   const t = raw.transmission
   const e = raw.engineSize
   const hp = raw.horsepower
-  const governorate = raw.governorate
+  const governorate = formatLocation(raw)
   const city = raw.city
 
   const specs = [
@@ -775,3 +776,4 @@ const s = StyleSheet.create({
   mapContainer: { width: '100%', height: 180, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', position: 'relative' },
   directionsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#EFF6FF', paddingVertical: 12, borderRadius: 12, marginTop: 12, borderWidth: 1, borderColor: '#DBEAFE' },
   directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 } })
+

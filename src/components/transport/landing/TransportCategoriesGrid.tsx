@@ -1,93 +1,92 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../../constants/colors';
-import { Spacing } from '../../../constants/spacing';
 import { Radius } from '../../../constants/radius';
 
-const CATEGORIES = [
-  { id: 'GOODS', icon: 'package-variant-closed', label: 'بضائع عامة', color: '#10b981', bgColor: '#ecfdf5' },
-  { id: 'FURNITURE', icon: 'sofa-outline', label: 'أثاث وعفش', color: '#8b5cf6', bgColor: '#f5f3ff' },
-  { id: 'CARS', icon: 'tow-truck', label: 'نقل سيارات', color: '#3b82f6', bgColor: '#eff6ff' },
-  { id: 'LIVESTOCK', icon: 'cow', label: 'نقل مواشي', color: '#ec4899', bgColor: '#fdf2f8' },
-  { id: 'CONSTRUCTION', icon: 'crane', label: 'مواد بناء', color: '#64748b', bgColor: '#f8fafc' },
-  { id: 'HEAVY', icon: 'truck-trailer', label: 'نقل ثقيل', color: '#ef4444', bgColor: '#fef2f2' },
-  { id: 'BACKLOAD', icon: 'truck-check-outline', label: 'شحنات مجمعة', color: '#d946ef', bgColor: '#fdf4ff' },
-  { id: 'EQUIPMENT', icon: 'excavator', label: 'معدات وآليات', color: '#f59e0b', bgColor: '#fffbeb' },
+const CATEGORIES_ROW_1 = [
+  { id: 'GOODS', icon: 'package-variant-closed', label: 'بضائع عامة', color: '#0ea5e9', bg: '#e0f2fe' },
+  { id: 'FURNITURE', icon: 'sofa-outline', label: 'أثاث وعفش', color: '#8b5cf6', bg: '#ede9fe' },
+  { id: 'CARS', icon: 'tow-truck', label: 'نقل سيارات', color: '#3b82f6', bg: '#eff6ff' },
+  { id: 'BACKLOAD', icon: 'truck-check-outline', label: 'شحنات مجمعة', color: '#10b981', bg: '#d1fae5' },
+];
+
+const CATEGORIES_ROW_2 = [
+  { id: 'CONSTRUCTION', icon: 'crane', label: 'مواد بناء', color: '#64748b', bg: '#f1f5f9' },
+  { id: 'HEAVY', icon: 'truck-trailer', label: 'نقل ثقيل', color: '#ef4444', bg: '#fef2f2' },
+  { id: 'EQUIPMENT', icon: 'excavator', label: 'معدات وآليات', color: '#f59e0b', bg: '#fef3c7' },
+  { id: 'LIVESTOCK', icon: 'cow', label: 'نقل مواشي', color: '#ec4899', bg: '#fdf2f8' },
 ];
 
 export function TransportCategoriesGrid() {
   const router = useRouter();
 
+  const renderItem = (item: typeof CATEGORIES_ROW_1[0]) => (
+    <TouchableOpacity
+      key={item.id}
+      style={s.catItem}
+      activeOpacity={0.8}
+      onPress={() => router.push(`/transport/browse?type=${item.id}` as any)}
+    >
+      <View style={[s.catIconBox, { backgroundColor: item.bg }]}>
+        <MaterialCommunityIcons name={item.icon as any} size={20} color={item.color} />
+      </View>
+      <Text style={s.catLabel} numberOfLines={1}>
+        {item.label}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={s.container}>
-      <View style={s.header}>
-        <Text style={s.title}>ماذا تريد أن تنقل؟</Text>
+      <View style={s.catsGrid}>
+        {CATEGORIES_ROW_1.map(renderItem)}
       </View>
-      <FlatList
-        data={CATEGORIES}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.listContent}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={s.item}
-            activeOpacity={0.7}
-            onPress={() => router.push(`/transport/browse?type=${item.id}` as any)}
-          >
-            <View style={[s.iconWrap, { backgroundColor: item.bgColor }]}>
-              <MaterialCommunityIcons name={item.icon as any} size={30} color={item.color} />
-            </View>
-            <Text style={s.label}>{item.label}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={[s.catsGrid, { marginTop: 10 }]}>
+        {CATEGORIES_ROW_2.map(renderItem)}
+      </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space5,
-    marginTop: Spacing.space2,
-  },
-  header: {
+  container: {},
+  catsGrid: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: Spacing.space3,
-    paddingHorizontal: Spacing.space5,
+    gap: 10,
   },
-  title: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    color: Colors.text,
-    writingDirection: 'rtl',
-    paddingVertical: 4,
-  },
-  listContent: {
-    paddingHorizontal: Spacing.space5,
-    gap: Spacing.space3,
-  },
-  item: {
-    alignItems: 'center',
-    width: 72,
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.pill,
+  catItem: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency matching Cars
+    paddingVertical: 10,
+    borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.space2,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF', // 3D edge light reflection
+    shadowColor: '#94A3B8',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 3, // 3D floating shadow
   },
-  label: {
+  catIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  catLabel: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     color: Colors.text,
     textAlign: 'center',
+    lineHeight: 18,
+    paddingTop: 2,
+    writingDirection: 'rtl',
   },
 });
+

@@ -1,8 +1,8 @@
 import React from 'react';
 import { UnifiedBottomBar } from '../navigation/UnifiedBottomBar';
-import { usePartsBottomBar } from '../../hooks/useDepartmentBottomBar';
+import { useBusesBottomBar } from '../../hooks/useDepartmentBottomBar';
 
-export const PartsBottomBar = () => {
+export const BusesBottomBar = () => {
   const {
     tabs,
     activeTab,
@@ -11,7 +11,7 @@ export const PartsBottomBar = () => {
     activeColor,
     activeBgColor,
     scrollAware,
-  } = usePartsBottomBar();
+  } = useBusesBottomBar();
 
   return (
     <UnifiedBottomBar

@@ -31,11 +31,14 @@ import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
+import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 // Components
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard';
 import { TransportFiltersModal } from '../../src/components/transport/TransportFiltersModal';
 import { TransportSkeletonCard } from '../../src/components/transport/TransportSkeletonCard';
+import { TransportVisualFilters } from '../../src/components/transport/TransportVisualFilters';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -201,6 +204,47 @@ export default function TransportBrowseScreen() {
     setSearchQuery('');
   };
 
+  const handleSelectVisualFilter = (
+    type: 'serviceType' | 'governorate' | 'timingType' | 'budget' | 'requiresHelper',
+    valueId: any,
+    valueName?: string,
+    min?: number,
+    max?: number
+  ) => {
+    setFilters((prev) => {
+      const updated = { ...prev };
+      if (type === 'serviceType') {
+        if (!valueId) delete updated.serviceType;
+        else updated.serviceType = valueId;
+      } else if (type === 'governorate') {
+        if (!valueId) {
+          delete updated.fromGovernorate;
+          delete updated.toGovernorate;
+        } else {
+          updated.fromGovernorate = valueId;
+        }
+      } else if (type === 'timingType') {
+        if (!valueId) delete updated.timingType;
+        else updated.timingType = valueId;
+      } else if (type === 'budget') {
+        if (!valueId) {
+          delete updated.budgetMin;
+          delete updated.budgetMax;
+        } else {
+          updated.budgetMin = min !== undefined ? String(min) : undefined;
+          updated.budgetMax = max !== undefined ? String(max) : undefined;
+        }
+      } else if (type === 'requiresHelper') {
+        if (valueId === null || valueId === undefined) {
+          delete updated.requiresHelper;
+        } else {
+          updated.requiresHelper = valueId;
+        }
+      }
+      return updated;
+    });
+  };
+
   const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
     let isActive = false;
     let displayLabel = qf.label;
@@ -315,26 +359,60 @@ export default function TransportBrowseScreen() {
             }
           }}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isFetchingNextPage ? (
-              <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
-            ) : null
-          }
+          ListFooterComponent={() => (
+            <>
+              {isFetchingNextPage && (
+                <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
+              )}
+              {listings && listings.length > 0 && (
+                <>
+                  <ActionBanner
+                    title="لديك شحنة أو بضاعة للنقل؟"
+                    subtitle="أضف طلبك الآن وتلق عروض أسعار مباشرة من الناقلين"
+                    buttonText="أضف طلبك"
+                    iconName="cube-outline"
+                    onPress={() => router.push('/transport/new' as any)}
+                  />
+                  <SupportHelpButton />
+                </>
+              )}
+            </>
+          )}
           ListHeaderComponent={
-            <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              {activeFiltersCount > 0 ? (
-                <TouchableOpacity onPress={handleClearAll}>
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
-                    مسح الفلاتر
-                  </Text>
-                </TouchableOpacity>
-              ) : <View />}
+            <View style={s.listHeader}>
+              <TransportVisualFilters
+                selectedServiceType={filters.serviceType}
+                selectedGovernorate={filters.fromGovernorate || filters.toGovernorate}
+                selectedTimingType={filters.timingType}
+                selectedBudgetMin={filters.budgetMin ? Number(filters.budgetMin) : undefined}
+                selectedBudgetMax={filters.budgetMax ? Number(filters.budgetMax) : undefined}
+                selectedRequiresHelper={filters.requiresHelper}
+                onSelectFilter={handleSelectVisualFilter}
+                onViewAll={() => setFilterModalVisible(true)}
+              />
 
-              <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
-                <Ionicons name="cube-outline" size={14} color="#64748b" />
-                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
-                  {rawMeta?.total ?? (listings?.length || 0)} طلب متاح
-                </Text>
+              <View style={s.resultsCountBar}>
+                {activeFiltersCount > 0 ? (
+                  <TouchableOpacity
+                    onPress={handleClearAll}
+                    style={s.clearFiltersBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
+                    <Text style={s.clearFiltersText}>
+                      مسح الفلاتر
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View />
+                )}
+
+                <View style={s.countBadge}>
+                  <Ionicons name="cube-outline" size={13.5} color="#64748b" />
+                  <Text style={s.countBadgeText}>
+                    {rawMeta?.total ?? (listings?.length || 0)} طلب متاح
+                  </Text>
+                </View>
               </View>
             </View>
           }
@@ -351,6 +429,7 @@ export default function TransportBrowseScreen() {
             <View style={s.cardWrapper}>
               <TransportRequestCard 
                 request={item as any} 
+                maxPills={5}
                 onPress={() => router.push(`/transport/${(item as any).id}` as any)} 
               />
             </View>
@@ -544,6 +623,54 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#F8F9FB',
+  },
+  listHeader: {
+    backgroundColor: '#ffffff',
+    marginBottom: Spacing.space2,
+  },
+  resultsCountBar: {
+    paddingHorizontal: Spacing.space4,
+    marginTop: Spacing.space2,
+    marginBottom: Spacing.space1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  clearFiltersBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3.5,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: '#FEF2F2',
+  },
+  clearFiltersText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  countBadge: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  countBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#64748b',
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   listContent: {
     paddingBottom: 120, // increased for safe area

@@ -11,21 +11,20 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useEquipment, useOperatorsInfinite } from '../../src/hooks/useEquipment'
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 
 import { EquipmentCategoriesGrid } from '../../src/components/equipment/EquipmentCategoriesGrid'
 import { EquipmentPromoBanners } from '../../src/components/equipment/EquipmentPromoBanners'
 import { EquipmentHorizontalList } from '../../src/components/equipment/EquipmentHorizontalList'
 import { EquipmentHowItWorks } from '../../src/components/equipment/EquipmentHowItWorks'
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
 import { OperatorCard } from '../../src/components/cards/OperatorCard'
@@ -82,7 +81,7 @@ const EQUIPMENT_TYPES = [
 export default function EquipmentLandingScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const scrollY = useSharedValue(0)
+  const { scrollHandler, scrollY } = useScrollAwareNav()
 
   // Fetch Data
   const { data: latestEquipment = [], isLoading: loadingEq } = useEquipment({ limit: 10 })
@@ -104,11 +103,6 @@ export default function EquipmentLandingScreen() {
   const fetchedOperators = opData?.pages.flatMap(p => p.items)?.slice(0, 10) || []
   const operators = fetchedOperators.length > 0 ? fetchedOperators : MOCK_OPERATORS
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-    },
-  })
 
 
   return (
@@ -132,10 +126,11 @@ export default function EquipmentLandingScreen() {
         headerIcon="notifications-outline"
         onHeaderIconPress={() => router.push('/profile/notifications' as any)}
         primaryCta={{
-          label: 'تصفح المعدات',
-          icon: 'search',
-          onPress: () => router.push('/equipment/browse' as any),
-          textColor: '#ffffff'
+          label: 'أضف إعلانك',
+          icon: 'add',
+          onPress: () => router.push('/equipment/add' as any),
+          bgColor: Colors.accent,
+          textColor: Colors.white
         }}
         outlineCta={{
           label: 'سجل كمشغل',
@@ -149,29 +144,21 @@ export default function EquipmentLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 185 + 4 + Spacing.space4, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
-          <EquipmentPromoBanners />
-
-          <View style={s.sectionHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.sectionTitleHeader}>تصفّح حسب القسم</Text>
-              <Text style={s.sectionSubHeader}>اختر ما يناسبك من بين أقسامنا المتنوعة</Text>
-            </View>
-          </View>
 
           <View style={s.sectionsGrid}>
             <TouchableOpacity style={s.sectionItem} onPress={() => router.push('/equipment/browse?type=sale')}>
               <View style={[s.sectionItemIconBox, { backgroundColor: '#fffbeb' }]}>
-                <Ionicons name="cube-outline" size={24} color="#f59e0b" />
+                <Ionicons name="cube-outline" size={20} color="#f59e0b" />
               </View>
               <Text style={s.sectionItemTitle}>للبيع</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.sectionItem} onPress={() => router.push('/equipment/browse?type=rental')}>
               <View style={[s.sectionItemIconBox, { backgroundColor: '#ecfdf5' }]}>
-                <Ionicons name="construct-outline" size={24} color="#10b981" />
+                <Ionicons name="construct-outline" size={20} color="#10b981" />
               </View>
               <Text style={s.sectionItemTitle}>للإيجار</Text>
             </TouchableOpacity>
@@ -180,7 +167,7 @@ export default function EquipmentLandingScreen() {
 
             <TouchableOpacity style={s.sectionItem} onPress={() => router.push('/equipment/operators/browse')}>
               <View style={[s.sectionItemIconBox, { backgroundColor: '#f5f3ff' }]}>
-                <Ionicons name="people-outline" size={24} color="#8b5cf6" />
+                <Ionicons name="people-outline" size={20} color="#8b5cf6" />
               </View>
               <Text style={s.sectionItemTitle}>المشغلين</Text>
             </TouchableOpacity>
@@ -297,6 +284,9 @@ export default function EquipmentLandingScreen() {
           )}
 
           <EquipmentHowItWorks />
+
+          {/* Need Help / Support Button */}
+          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
         </View>
       </Animated.ScrollView>
 
@@ -355,41 +345,60 @@ const s = StyleSheet.create({
     fontSize: 18,
     color: Colors.text,
   },
-  sectionTitleHeader: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, textAlign: 'left' },
-  sectionSubHeader: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, textAlign: 'left' },
-  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAllTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.primary },
-  sectionHeaderCenter: {
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: Spacing.space4, marginTop: Spacing.space3,
+  sectionTitleHeader: { 
+    fontFamily: 'Almarai_800ExtraBold', 
+    fontSize: 16, 
+    color: Colors.text, 
+    textAlign: 'left',
+    lineHeight: 23,
+    writingDirection: 'rtl',
+    marginBottom: 2,
   },
-  sectionTitleHeaderCenter: { 
-    fontFamily: 'Almarai_800ExtraBold',  
-    fontSize: 20, color: Colors.text, textAlign: 'center' 
+  sectionSubHeader: { 
+    fontFamily: 'Almarai_400Regular', 
+    fontSize: 12, 
+    color: Colors.textMuted, 
+    textAlign: 'left',
+    lineHeight: 18,
+    writingDirection: 'rtl',
   },
-  sectionSubHeaderCenter: { 
-    fontFamily: 'Almarai_400Regular',  
-    fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginTop: 2 
+  seeAllBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 4,
+    backgroundColor: '#EFF6FF', 
+    paddingHorizontal: 12, 
+    paddingVertical: 5, 
+    borderRadius: 20,
+  },
+  seeAllTxt: { 
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 12, 
+    color: Colors.primary,
+    lineHeight: 16,
+    paddingTop: 1,
   },
   sectionsGrid: {
-    flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.space2,
+    flexDirection: 'row', gap: 10,
     marginBottom: Spacing.space6,
   },
   sectionItem: {
-    width: '31%',
-    backgroundColor: Colors.white,
-    paddingVertical: Spacing.space3, paddingHorizontal: 0, borderRadius: Radius.lg,
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency
+    paddingVertical: 10, borderRadius: Radius.lg,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
+    borderWidth: 1.5, borderColor: '#FFFFFF', // 3D edge light reflection
+    shadowColor: '#94A3B8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 3, // 3D floating shadow
   },
   sectionItemIconBox: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: Spacing.space2,
+    marginBottom: 6,
   },
   sectionItemTitle: {
     fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, color: Colors.text, textAlign: 'center',
+    fontSize: 12, color: Colors.text, textAlign: 'center',
+    lineHeight: 18, paddingTop: 2, writingDirection: 'rtl'
   },
   hList: {
     paddingHorizontal: Spacing.space5,

@@ -58,6 +58,8 @@ interface FilterState {
   listingType?: string;
   governorate?: string;
   city?: string;
+  governorateId?: number;
+  wilayaId?: number;
   priceMin?: string;
   priceMax?: string;
   bodyType?: string;
@@ -137,8 +139,8 @@ export default function CarsBrowseScreen() {
       params.make = selectedBrandName;
     }
 
-    // Internal keys not sent to API
-    const skipKeys = new Set(['makeId', 'modelId', 'trim', 'priceId']);
+    // Internal/UI-only keys not sent to API
+    const skipKeys = new Set(['makeId', 'modelId', 'trim', 'priceId', 'governorate', 'city']);
 
     // Apply all custom filters
     Object.entries(filters).forEach(([key, val]) => {
@@ -147,6 +149,11 @@ export default function CarsBrowseScreen() {
         if (key === 'priceMin' || key === 'priceMax' || key === 'yearMin' || key === 'yearMax') {
           const parsed = parseFloat(val as string);
           if (!isNaN(parsed)) {
+            params[key] = parsed;
+          }
+        } else if (key === 'governorateId' || key === 'wilayaId') {
+          const parsed = parseInt(String(val), 10);
+          if (!isNaN(parsed) && parsed > 0) {
             params[key] = parsed;
           }
         } else {
@@ -215,7 +222,7 @@ export default function CarsBrowseScreen() {
   const handleClearQuickFilter = (id: string) => {
     const newFilters = { ...filters };
     if (id === 'make') { delete newFilters.make; delete newFilters.makeId; }
-    if (id === 'city') delete newFilters.city;
+    if (id === 'city') { delete newFilters.city; delete newFilters.wilayaId; delete newFilters.governorateId; delete newFilters.governorate; }
     if (id === 'year') { delete newFilters.yearMin; delete newFilters.yearMax; }
     if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; }
     if (id === 'type') { delete newFilters.bodyType; }
@@ -228,7 +235,8 @@ export default function CarsBrowseScreen() {
     valueId: string,
     valueName?: string,
     min?: number,
-    max?: number
+    max?: number,
+    extraId?: number
   ) => {
     if (type === 'make') {
       if (!valueId || valueId === selectedBrandId) {
@@ -271,15 +279,18 @@ export default function CarsBrowseScreen() {
       }
       setFilters(prev => ({ ...prev, modelId: valueId, model: valueName }));
     } else if (type === 'city') {
-      if (!valueId || valueId === filters.city) {
+      if (!valueId || valueId === String(filters.wilayaId)) {
         setFilters(prev => {
           const next = { ...prev };
+          delete next.wilayaId;
+          delete next.governorateId;
           delete next.city;
+          delete next.governorate;
           return next;
         });
         return;
       }
-      setFilters(prev => ({ ...prev, city: valueId }));
+      setFilters(prev => ({ ...prev, wilayaId: Number(valueId), governorateId: extraId, city: valueName }));
     } else if (type === 'price') {
       if (!valueId || valueId === (filters as any).priceId) {
         setFilters(prev => {

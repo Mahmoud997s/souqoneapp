@@ -16,6 +16,7 @@ import { useDrivers } from '../../../src/hooks/useDrivers';
 import { DriverProfile } from '../../../src/types/jobs.types';
 import { DriverCard } from '../../../src/components/cards/DriverCard';
 import { DriversFilterBottomSheet, DriverFilterState } from '../../../src/components/filters/DriversFilterBottomSheet';
+import { SupportHelpButton } from '../../../src/components/ui/SupportHelpButton';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -59,10 +60,7 @@ function DirectoryFAQ() {
         ))}
       </View>
 
-      <View style={s.supportBanner}>
-        <Ionicons name="headset-outline" size={20} color="#fff" />
-        <Text style={s.supportText}>تحتاج للمساعدة؟ تواصل مع الدعم الفني</Text>
-      </View>
+      <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 20, marginBottom: 0 }} />
     </View>
   );
 }

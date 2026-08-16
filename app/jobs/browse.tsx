@@ -18,6 +18,7 @@ import { useState, useMemo, useEffect } from 'react'
 
 import { Modal, ActivityIndicator } from 'react-native'
 import { QuickFilters } from '../../src/components/ui/QuickFilters'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
 
 const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
@@ -211,13 +212,18 @@ export default function JobsBrowseScreen() {
             if (hasNextPage) fetchNextPage();
           }}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isFetchingNextPage ? (
-              <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={Colors.primary} />
-              </View>
-            ) : null
-          }
+          ListFooterComponent={() => (
+            <>
+              {isFetchingNextPage && (
+                <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                </View>
+              )}
+              {displayData && displayData.length > 0 && (
+                <SupportHelpButton />
+              )}
+            </>
+          )}
           ListHeaderComponent={
             <View style={{ paddingBottom: Spacing.space3, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               {activeFilters > 0 ? (

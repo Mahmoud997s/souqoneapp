@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platform, Modal, FlatList } from 'react-native'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platform, Modal, FlatList, Pressable } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import Animated, { SlideInDown } from 'react-native-reanimated'
 import { carsApi, CarBrand, CarModelItem, CarTrimItem } from '../../../api/cars'
@@ -12,6 +13,11 @@ import { CAR_LISTING_TYPES, CONDITION_TYPES, TRANSMISSION_TYPES, FUEL_TYPES, CAR
 
 export function CarForm() {
   const { title, description, price, isPriceNegotiable, details, set, setDetail } = usePostStore()
+
+  const priceInputRef = useRef<TextInput>(null)
+  const dailyPriceInputRef = useRef<TextInput>(null)
+  const monthlyPriceInputRef = useRef<TextInput>(null)
+  const depositAmountInputRef = useRef<TextInput>(null)
 
   // Details extraction
   const {
@@ -210,12 +216,12 @@ export function CarForm() {
     return (
       <View style={s.chipRow}>
         {visibleOptions.map(opt => (
-          <TouchableOpacity key={opt.value} style={[s.chipRound, selectedValue === opt.value && s.chipRoundActive, { flex: 0, paddingHorizontal: 16 }]} onPress={() => onSelect(opt.value)}>
+          <TouchableOpacity key={opt.value} style={[s.chip, selectedValue === opt.value && s.chipActive, { flex: 0, paddingHorizontal: 16 }]} onPress={() => onSelect(opt.value)}>
             <Text style={[s.chipTxt, selectedValue === opt.value && s.chipTxtActive]}>{opt.label}</Text>
           </TouchableOpacity>
         ))}
         {options.length > 3 && (
-          <TouchableOpacity style={[s.chipRound, { flex: 0, paddingHorizontal: 16, backgroundColor: Colors.text, borderColor: Colors.text }]} onPress={() => {
+          <TouchableOpacity style={[s.chip, { flex: 0, paddingHorizontal: 16, backgroundColor: Colors.inputBg }]} onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
             setSelectModal({
               visible: true,
@@ -224,125 +230,108 @@ export function CarForm() {
               onSelect: (val) => onSelect(val)
             })
           }}>
-            <Text style={[s.chipTxt, { color: Colors.white }]}>المزيد +</Text>
+            <Text style={[s.chipTxt, { color: Colors.textMuted }]}>المزيد +</Text>
           </TouchableOpacity>
         )}
       </View>
     )
   }
 
-  const renderColorChipsWithMore = (
-    options: { label: string; value: string; hex: string }[],
-    selectedValue: string,
-    onSelect: (val: string) => void,
-    title: string
-  ) => {
-    let visibleOptions = options.slice(0, 5)
-    const isSelectedInMore = selectedValue && !visibleOptions.find(o => o.value === selectedValue)
-    
-    if (isSelectedInMore) {
-      const selectedOpt = options.find(o => o.value === selectedValue)
-      if (selectedOpt) {
-        visibleOptions = [...options.slice(0,4), selectedOpt]
-      }
-    }
 
-    return (
-      <View style={s.chipRow}>
-        {visibleOptions.map(opt => (
-          <TouchableOpacity key={opt.value} style={[s.colorCircle, selectedValue === opt.value && s.colorActive, { backgroundColor: opt.hex }]} onPress={() => onSelect(opt.value)} />
-        ))}
-        {options.length > 5 && (
-          <TouchableOpacity style={[s.colorCircle, { backgroundColor: Colors.text, borderColor: Colors.text }]} onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-            setSelectModal({
-              visible: true,
-              title,
-              items: options.map(o => ({ label: o.label, value: o.value, data: o })),
-              onSelect: (val) => onSelect(val)
-            })
-          }}>
-            <Ionicons name="add" size={24} color={Colors.white} />
-          </TouchableOpacity>
-        )}
-      </View>
-    )
-  }
 
   return (
     <View style={s.container}>
-      {/* Basic */}
+      {/* Basic Info */}
       <View style={s.card}>
-        <Text style={s.cardTitle}>المعلومات الأساسية</Text>
-
-        <Text style={s.label}>نوع الإعلان *</Text>
-        <View style={s.chipRow}>
-          {CAR_LISTING_TYPES.map(opt => (
-            <TouchableOpacity
-              key={opt.value}
-              style={[s.chip, listingType === opt.value && s.chipActive]}
-              onPress={() => setDetail('listingType', opt.value)}
-            >
-              <Text style={[s.chipTxt, listingType === opt.value && s.chipTxtActive]}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={s.cardHeaderRow}>
+          <View style={s.cardIconBadge}>
+            <Ionicons name="car" size={16} color={Colors.primary} />
+          </View>
+          <Text style={s.cardTitle}>المعلومات الأساسية</Text>
         </View>
 
-        <Text style={s.label}>عنوان الإعلان</Text>
-        <TextInput
-          style={[s.textInput, focusedField === 'title' && s.textInputFocused]}
-          placeholder="مثال: تويوتا لاندكروزر 2023 نظيف جداً"
-          placeholderTextColor={Colors.textMuted}
-          value={title}
-          onChangeText={(v) => set({ title: v })}
-          textAlign="right"
-          onFocus={() => setFocusedField('title')}
-          onBlur={() => setFocusedField('')}
-        />
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>نوع الإعلان *</Text>
+          <View style={s.chipRow}>
+            {CAR_LISTING_TYPES.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[s.chip, listingType === opt.value && s.chipActive]}
+                onPress={() => setDetail('listingType', opt.value)}
+              >
+                <Text style={[s.chipTxt, listingType === opt.value && s.chipTxtActive]}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
-        <Text style={s.label}>الوصف</Text>
-        <TextInput
-          style={[s.textInput, s.textArea, focusedField === 'desc' && s.textInputFocused]}
-          placeholder="اكتب تفاصيل إضافية عن حالة السيارة، وتاريخ الصيانة..."
-          placeholderTextColor={Colors.textMuted}
-          value={description}
-          onChangeText={(v) => set({ description: v })}
-          textAlign="right"
-          multiline
-          textAlignVertical="top"
-          onFocus={() => setFocusedField('desc')}
-          onBlur={() => setFocusedField('')}
-        />
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>عنوان الإعلان</Text>
+          <TextInput
+            style={[s.textInput, focusedField === 'title' && s.textInputFocused]}
+            placeholder="مثال: تويوتا لاندكروزر 2023 نظيف جداً"
+            placeholderTextColor={Colors.textMuted}
+            value={title}
+            onChangeText={(v) => set({ title: v })}
+            textAlign="right"
+            onFocus={() => setFocusedField('title')}
+            onBlur={() => setFocusedField('')}
+          />
+        </View>
 
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>الوصف</Text>
+          <TextInput
+            style={[s.textInput, s.textArea, focusedField === 'desc' && s.textInputFocused]}
+            placeholder="اكتب تفاصيل إضافية عن حالة السيارة، وتاريخ الصيانة..."
+            placeholderTextColor={Colors.textMuted}
+            value={description}
+            onChangeText={(v) => set({ description: v })}
+            textAlign="right"
+            multiline
+            textAlignVertical="top"
+            onFocus={() => setFocusedField('desc')}
+            onBlur={() => setFocusedField('')}
+          />
+        </View>
 
-
-        <Text style={s.label}>الحالة *</Text>
-        <View style={s.chipRow}>
-          {CONDITION_TYPES.map(opt => (
-            <TouchableOpacity
-              key={opt.value}
-              style={[s.chip, condition === opt.value && s.chipActive]}
-              onPress={() => setDetail('condition', opt.value)}
-            >
-              <Text style={[s.chipTxt, condition === opt.value && s.chipTxtActive]}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>الحالة *</Text>
+          <View style={s.chipRow}>
+            {CONDITION_TYPES.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[s.chip, condition === opt.value && s.chipActive]}
+                onPress={() => setDetail('condition', opt.value)}
+              >
+                <Text style={[s.chipTxt, condition === opt.value && s.chipTxtActive]}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <Text style={s.label}>الماركة *</Text>
-            <TouchableOpacity style={s.selectWrap} onPress={openBrandModal}>
-              <Text style={[s.selectText, !make && s.placeholder]} numberOfLines={1}>{make || 'اختر الماركة'}</Text>
-              <Ionicons name="chevron-down" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
+            <Pressable style={s.selectorButton} onPress={openBrandModal}>
+              <View style={s.selectorContent}>
+                <Text style={[s.selectorText, !make && s.placeholder]} numberOfLines={1}>{make || 'اختر الماركة'}</Text>
+              </View>
+              <View style={s.selectorIconWrap}>
+                <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+              </View>
+            </Pressable>
           </View>
           <View style={s.flex1}>
             <Text style={s.label}>الموديل *</Text>
-            <TouchableOpacity style={s.selectWrap} onPress={openModelModal} disabled={!brandId}>
-              <Text style={[s.selectText, !model && s.placeholder]} numberOfLines={1}>{model || 'اختر الموديل'}</Text>
-              <Ionicons name="chevron-down" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
+            <Pressable style={[s.selectorButton, !brandId && s.selectorButtonDisabled]} onPress={openModelModal} disabled={!brandId}>
+              <View style={s.selectorContent}>
+                <Text style={[s.selectorText, !model && s.placeholder]} numberOfLines={1}>{model || 'اختر الموديل'}</Text>
+              </View>
+              <View style={s.selectorIconWrap}>
+                <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+              </View>
+            </Pressable>
           </View>
         </View>
 
@@ -350,54 +339,123 @@ export function CarForm() {
           {trims.length > 0 && (
             <View style={s.flex1}>
               <Text style={s.label}>الفئة</Text>
-              <TouchableOpacity style={s.selectWrap} onPress={openTrimModal}>
-                <Text style={[s.selectText, !trim && s.placeholder]} numberOfLines={1}>{trim || 'اختر الفئة'}</Text>
-                <Ionicons name="chevron-down" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
+              <Pressable style={s.selectorButton} onPress={openTrimModal}>
+                <View style={s.selectorContent}>
+                  <Text style={[s.selectorText, !trim && s.placeholder]} numberOfLines={1}>{trim || 'اختر الفئة'}</Text>
+                </View>
+                <View style={s.selectorIconWrap}>
+                  <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+                </View>
+              </Pressable>
             </View>
           )}
           <View style={s.flex1}>
             <Text style={s.label}>سنة الصنع *</Text>
-            <TouchableOpacity style={s.selectWrap} onPress={openYearModal} disabled={!modelId}>
-              <Text style={[s.selectText, !year && s.placeholder]}>{year || 'اختر السنة'}</Text>
-              <Ionicons name="chevron-down" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
+            <Pressable style={[s.selectorButton, !modelId && s.selectorButtonDisabled]} onPress={openYearModal} disabled={!modelId}>
+              <View style={s.selectorContent}>
+                <Text style={[s.selectorText, !year && s.placeholder]}>{year || 'اختر السنة'}</Text>
+              </View>
+              <View style={s.selectorIconWrap}>
+                <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+              </View>
+            </Pressable>
           </View>
         </View>
 
-        <Text style={s.label}>الممشى (كم) *</Text>
-        <TextInput style={[s.textInput, focusedField === 'mileage' && s.textInputFocused]} placeholder="مثال: 120,000" keyboardType="numeric" placeholderTextColor={Colors.textMuted} value={mileage != null ? String(mileage) : ''} onChangeText={v => setDetail('mileage', v)} onFocus={() => setFocusedField('mileage')} onBlur={() => setFocusedField('')} />
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>الممشى (كم) *</Text>
+          <TextInput style={[s.textInput, focusedField === 'mileage' && s.textInputFocused]} placeholder="مثال: 120,000" keyboardType="numeric" placeholderTextColor={Colors.textMuted} value={mileage != null ? String(mileage) : ''} onChangeText={v => setDetail('mileage', v)} onFocus={() => setFocusedField('mileage')} onBlur={() => setFocusedField('')} />
+        </View>
       </View>
-
-
 
       {/* Specs */}
       <View style={s.card}>
-        <Text style={s.cardTitle}>المواصفات الفنية</Text>
-
-        <Text style={s.label}>نوع الوقود</Text>
-        {renderChipsWithMore(FUEL_TYPES, fuelType, (v) => setDetail('fuelType', v), 'نوع الوقود')}
-
-        <Text style={s.label}>شكل السيارة</Text>
-        {renderChipsWithMore(BODY_TYPES, bodyType, (v) => setDetail('bodyType', v), 'شكل السيارة')}
-
-        <Text style={s.label}>نظام الدفع</Text>
-        {renderChipsWithMore(DRIVE_TYPES, driveType, (v) => setDetail('driveType', v), 'نظام الدفع')}
-
-        <Text style={s.label}>ناقل الحركة</Text>
-        <View style={s.chipRow}>
-          {TRANSMISSION_TYPES.map(opt => (
-            <TouchableOpacity key={opt.value} style={[s.chip, transmission === opt.value && s.chipActive]} onPress={() => setDetail('transmission', opt.value)}>
-              <Text style={[s.chipTxt, transmission === opt.value && s.chipTxtActive]}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={s.cardHeaderRow}>
+          <View style={s.cardIconBadge}>
+            <Ionicons name="options" size={16} color={Colors.primary} />
+          </View>
+          <Text style={s.cardTitle}>المواصفات الفنية</Text>
         </View>
 
-        <Text style={s.label}>اللون الخارجي</Text>
-        {renderColorChipsWithMore(CAR_COLORS, exteriorColor, (v) => setDetail('exteriorColor', v), 'اللون الخارجي')}
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>نوع الوقود</Text>
+          {renderChipsWithMore(FUEL_TYPES, fuelType, (v) => setDetail('fuelType', v), 'نوع الوقود')}
+        </View>
 
-        <Text style={s.label}>اللون الداخلي</Text>
-        {renderColorChipsWithMore(CAR_COLORS, interior, (v) => setDetail('interior', v), 'اللون الداخلي')}
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>شكل السيارة</Text>
+          {renderChipsWithMore(BODY_TYPES, bodyType, (v) => setDetail('bodyType', v), 'شكل السيارة')}
+        </View>
+
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>نظام الدفع</Text>
+          {renderChipsWithMore(DRIVE_TYPES, driveType, (v) => setDetail('driveType', v), 'نظام الدفع')}
+        </View>
+
+        <View style={s.inputWrapper}>
+          <Text style={s.label}>ناقل الحركة</Text>
+          <View style={s.chipRow}>
+            {TRANSMISSION_TYPES.map(opt => (
+              <TouchableOpacity key={opt.value} style={[s.chip, transmission === opt.value && s.chipActive]} onPress={() => setDetail('transmission', opt.value)}>
+                <Text style={[s.chipTxt, transmission === opt.value && s.chipTxtActive]}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={s.rowFields}>
+          <View style={s.flex1}>
+            <Text style={s.label}>اللون الخارجي</Text>
+            <Pressable style={s.selectorButton} onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setSelectModal({
+                visible: true,
+                title: 'اللون الخارجي',
+                items: CAR_COLORS.map(o => ({ label: o.label, value: o.value, data: o })),
+                onSelect: (val) => setDetail('exteriorColor', val)
+              })
+            }}>
+              <View style={s.selectorContent}>
+                <Text style={[s.selectorText, !exteriorColor && s.placeholder]} numberOfLines={1}>
+                  {CAR_COLORS.find(c => c.value === exteriorColor)?.label || 'اختر اللون'}
+                </Text>
+              </View>
+              <View style={s.selectorIconWrap}>
+                {exteriorColor ? (
+                  <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: CAR_COLORS.find(c => c.value === exteriorColor)?.hex, borderWidth: 1, borderColor: Colors.border }} />
+                ) : (
+                  <Ionicons name="color-palette-outline" size={18} color={Colors.textMuted} />
+                )}
+              </View>
+            </Pressable>
+          </View>
+
+          <View style={s.flex1}>
+            <Text style={s.label}>اللون الداخلي</Text>
+            <Pressable style={s.selectorButton} onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setSelectModal({
+                visible: true,
+                title: 'اللون الداخلي',
+                items: CAR_COLORS.map(o => ({ label: o.label, value: o.value, data: o })),
+                onSelect: (val) => setDetail('interior', val)
+              })
+            }}>
+              <View style={s.selectorContent}>
+                <Text style={[s.selectorText, !interior && s.placeholder]} numberOfLines={1}>
+                  {CAR_COLORS.find(c => c.value === interior)?.label || 'اختر اللون'}
+                </Text>
+              </View>
+              <View style={s.selectorIconWrap}>
+                {interior ? (
+                  <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: CAR_COLORS.find(c => c.value === interior)?.hex, borderWidth: 1, borderColor: Colors.border }} />
+                ) : (
+                  <Ionicons name="color-palette-outline" size={18} color={Colors.textMuted} />
+                )}
+              </View>
+            </Pressable>
+          </View>
+        </View>
 
         <View style={s.rowFields}>
           <View style={s.flex1}>
@@ -417,7 +475,12 @@ export function CarForm() {
 
       {/* Features */}
       <View style={s.card}>
-        <Text style={s.cardTitle}>المميزات والإضافات</Text>
+        <View style={s.cardHeaderRow}>
+          <View style={s.cardIconBadge}>
+            <Ionicons name="sparkles" size={16} color={Colors.primary} />
+          </View>
+          <Text style={s.cardTitle}>المميزات والإضافات</Text>
+        </View>
         <View style={s.featuresGrid}>
           {CAR_FEATURE_KEYS.map(feat => {
             const isActive = features.includes(feat.id)
@@ -427,8 +490,8 @@ export function CarForm() {
                 style={[s.featureItem, isActive && s.featureItemActive]}
                 onPress={() => toggleFeature(feat.id)}
               >
-                <Ionicons name={feat.icon as any} size={20} color={isActive ? Colors.primary : Colors.textMuted} />
-                <Text style={[s.featureTxt, isActive && s.featureTxtActive]}>{feat.label}</Text>
+                <Ionicons name={feat.icon as any} size={16} color={isActive ? Colors.primary : Colors.textMuted} />
+                <Text style={[s.featureTxt, isActive && s.featureTxtActive]} numberOfLines={1} adjustsFontSizeToFit>{feat.label}</Text>
               </TouchableOpacity>
             )
           })}
@@ -437,38 +500,123 @@ export function CarForm() {
 
       {/* Price */}
       <View style={s.card}>
-        <Text style={s.cardTitle}>السعر</Text>
+        <View style={s.cardHeaderRow}>
+          <View style={s.cardIconBadge}>
+            <Ionicons name="pricetag" size={16} color={Colors.primary} />
+          </View>
+          <Text style={s.cardTitle}>السعر</Text>
+        </View>
 
         {listingType === 'SALE' || listingType === 'WANTED' ? (
-          <>
+          <View style={s.inputWrapper}>
             <Text style={s.label}>السعر المطلوب (ر.ع)</Text>
-            <View style={[s.priceWrap, focusedField === 'price' && s.textInputFocused]}>
-              <TextInput style={s.priceInput} placeholder="مثال: 5500" placeholderTextColor={Colors.textMuted} keyboardType="numeric" textAlign="right" value={price} onChangeText={(v) => set({ price: v })} onFocus={() => setFocusedField('price')} onBlur={() => setFocusedField('')} />
-              <Text style={s.currencyTxt}>ر.ع</Text>
-            </View>
-            <TouchableOpacity style={s.negotiableRow} onPress={() => set({ isPriceNegotiable: !isPriceNegotiable })}>
+            <Pressable
+              style={[s.priceWrap, focusedField === 'price' && s.priceWrapFocused]}
+              onPress={() => priceInputRef.current?.focus()}
+            >
+              <TextInput
+                ref={priceInputRef}
+                style={s.priceInput}
+                placeholder="مثال: 5500"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="numeric"
+                textAlign="right"
+                value={price != null ? String(price) : ''}
+                onChangeText={(v) => set({ price: v })}
+                onFocus={() => setFocusedField('price')}
+                onBlur={() => setFocusedField('')}
+              />
+              <View style={s.currencyBadge} pointerEvents="none">
+                <Text style={s.currencyTxt}>ر.ع</Text>
+              </View>
+            </Pressable>
+            <TouchableOpacity
+              style={s.negotiableRow}
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {})
+                set({ isPriceNegotiable: !isPriceNegotiable })
+              }}
+              activeOpacity={0.7}
+            >
               <View style={[s.checkbox, isPriceNegotiable && s.checkboxActive]}>
                 {isPriceNegotiable && <Ionicons name="checkmark" size={14} color={Colors.white} />}
               </View>
               <Text style={s.negotiableTxt}>السعر قابل للتفاوض</Text>
             </TouchableOpacity>
-          </>
+          </View>
         ) : (
           <>
             <View style={s.rowFields}>
               <View style={s.flex1}>
                 <Text style={s.label}>الإيجار اليومي</Text>
-                <TextInput style={[s.textInput, focusedField === 'dailyPrice' && s.textInputFocused]} placeholder="مثال: 15" placeholderTextColor={Colors.textMuted} keyboardType="numeric" value={dailyPrice != null ? String(dailyPrice) : ''} onChangeText={v => setDetail('dailyPrice', v)} textAlign="right" onFocus={() => setFocusedField('dailyPrice')} onBlur={() => setFocusedField('')} />
+                <Pressable
+                  style={[s.priceWrap, focusedField === 'dailyPrice' && s.priceWrapFocused]}
+                  onPress={() => dailyPriceInputRef.current?.focus()}
+                >
+                  <TextInput
+                    ref={dailyPriceInputRef}
+                    style={s.priceInput}
+                    placeholder="مثال: 15"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numeric"
+                    value={dailyPrice != null ? String(dailyPrice) : ''}
+                    onChangeText={v => setDetail('dailyPrice', v)}
+                    textAlign="right"
+                    onFocus={() => setFocusedField('dailyPrice')}
+                    onBlur={() => setFocusedField('')}
+                  />
+                  <View style={s.currencyBadge} pointerEvents="none">
+                    <Text style={s.currencyTxt}>ر.ع</Text>
+                  </View>
+                </Pressable>
               </View>
               <View style={s.flex1}>
                 <Text style={s.label}>الإيجار الشهري</Text>
-                <TextInput style={[s.textInput, focusedField === 'monthlyPrice' && s.textInputFocused]} placeholder="مثال: 350" placeholderTextColor={Colors.textMuted} keyboardType="numeric" value={monthlyPrice != null ? String(monthlyPrice) : ''} onChangeText={v => setDetail('monthlyPrice', v)} textAlign="right" onFocus={() => setFocusedField('monthlyPrice')} onBlur={() => setFocusedField('')} />
+                <Pressable
+                  style={[s.priceWrap, focusedField === 'monthlyPrice' && s.priceWrapFocused]}
+                  onPress={() => monthlyPriceInputRef.current?.focus()}
+                >
+                  <TextInput
+                    ref={monthlyPriceInputRef}
+                    style={s.priceInput}
+                    placeholder="مثال: 350"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numeric"
+                    value={monthlyPrice != null ? String(monthlyPrice) : ''}
+                    onChangeText={v => setDetail('monthlyPrice', v)}
+                    textAlign="right"
+                    onFocus={() => setFocusedField('monthlyPrice')}
+                    onBlur={() => setFocusedField('')}
+                  />
+                  <View style={s.currencyBadge} pointerEvents="none">
+                    <Text style={s.currencyTxt}>ر.ع</Text>
+                  </View>
+                </Pressable>
               </View>
             </View>
             <View style={s.rowFields}>
               <View style={s.flex1}>
                 <Text style={s.label}>مبلغ التأمين (اختياري)</Text>
-                <TextInput style={[s.textInput, focusedField === 'depositAmount' && s.textInputFocused]} placeholder="مثال: 100" placeholderTextColor={Colors.textMuted} keyboardType="numeric" value={depositAmount != null ? String(depositAmount) : ''} onChangeText={v => setDetail('depositAmount', v)} textAlign="right" onFocus={() => setFocusedField('depositAmount')} onBlur={() => setFocusedField('')} />
+                <Pressable
+                  style={[s.priceWrap, focusedField === 'depositAmount' && s.priceWrapFocused]}
+                  onPress={() => depositAmountInputRef.current?.focus()}
+                >
+                  <TextInput
+                    ref={depositAmountInputRef}
+                    style={s.priceInput}
+                    placeholder="مثال: 100"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numeric"
+                    value={depositAmount != null ? String(depositAmount) : ''}
+                    onChangeText={v => setDetail('depositAmount', v)}
+                    textAlign="right"
+                    onFocus={() => setFocusedField('depositAmount')}
+                    onBlur={() => setFocusedField('')}
+                  />
+                  <View style={s.currencyBadge} pointerEvents="none">
+                    <Text style={s.currencyTxt}>ر.ع</Text>
+                  </View>
+                </Pressable>
               </View>
             </View>
           </>
@@ -477,7 +625,12 @@ export function CarForm() {
 
       {listingType === 'RENTAL' && (
         <View style={s.card}>
-          <Text style={s.cardTitle}>تفاصيل الإيجار</Text>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardIconBadge}>
+              <Ionicons name="calendar" size={16} color={Colors.primary} />
+            </View>
+            <Text style={s.cardTitle}>تفاصيل الإيجار</Text>
+          </View>
           <View style={s.rowFields}>
             <View style={s.flex1}>
               <Text style={s.label}>أقل عدد أيام</Text>
@@ -489,14 +642,16 @@ export function CarForm() {
             </View>
           </View>
           
-          <Text style={s.label}>سياسة الإلغاء</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.scrollChips}>
-            {CANCELLATION_POLICIES.map(opt => (
-              <TouchableOpacity key={opt.value} style={[s.chipRound, cancellationPolicy === opt.value && s.chipRoundActive]} onPress={() => setDetail('cancellationPolicy', opt.value)}>
-                <Text style={[s.chipTxt, cancellationPolicy === opt.value && s.chipTxtActive]}>{opt.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <View style={s.inputWrapper}>
+            <Text style={s.label}>سياسة الإلغاء</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+              {CANCELLATION_POLICIES.map(opt => (
+                <TouchableOpacity key={opt.value} style={[s.chip, cancellationPolicy === opt.value && s.chipActive, { flex: 0 }]} onPress={() => setDetail('cancellationPolicy', opt.value)}>
+                  <Text style={[s.chipTxt, cancellationPolicy === opt.value && s.chipTxtActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
 
           <View style={{ marginTop: Spacing.space4, gap: Spacing.space3 }}>
             <TouchableOpacity style={s.negotiableRow} onPress={() => setDetail('withDriver', !withDriver)}>
@@ -524,65 +679,105 @@ export function CarForm() {
       )}
 
       {/* Select Modal */}
-      <Modal visible={selectModal.visible} animationType="slide" transparent onRequestClose={() => setSelectModal({ ...selectModal, visible: false })}>
+      <Modal visible={selectModal.visible} transparent animationType="slide" onRequestClose={() => setSelectModal({ ...selectModal, visible: false })}>
         <View style={s.modalOverlay}>
-          {selectModal.visible && (
-            <View style={s.modalSheet}>
-              <View style={s.modalHandle} />
-              <View style={s.modalHeader}>
-                <Text style={s.modalTitle}>{selectModal.title}</Text>
-                <TouchableOpacity onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                  setSelectModal({ ...selectModal, visible: false })
-                }}>
-                  <Ionicons name="close-circle" size={28} color={'#E5E7EB'} />
-                </TouchableOpacity>
-              </View>
+          {/* Use Pressable to close when tapping outside */}
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setSelectModal({ ...selectModal, visible: false })} />
+          <SafeAreaView style={s.modalSheet}>
+            {/* Handle bar */}
+            <View style={s.handleBar} />
             
+            {/* Header */}
+            <View style={s.modalHeader}>
+              <View>
+                <Text style={s.modalTitle}>{selectModal.title}</Text>
+                <Text style={s.modalSubtitle}>اختر الخيار المناسب من القائمة</Text>
+              </View>
+              <TouchableOpacity onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setSelectModal({ ...selectModal, visible: false })
+              }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={s.modalCloseBtn}>
+                <Ionicons name="close-circle" size={28} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Search Input */}
             {selectModal.items.length > 10 && (
-              <View style={s.modalSearchWrap}>
-                <Ionicons name="search" size={20} color={Colors.textMuted} />
+              <View style={s.searchBox}>
+                <Ionicons name="search" size={18} color={Colors.textMuted} style={{ marginEnd: 8 }} />
                 <TextInput 
-                  style={s.modalSearchInput} 
+                  style={s.searchInput} 
                   placeholder="ابحث هنا..." 
                   placeholderTextColor={Colors.textMuted} 
                   value={modalSearch} 
                   onChangeText={setModalSearch} 
+                  autoCorrect={false}
                 />
+                {modalSearch.length > 0 && (
+                  <TouchableOpacity onPress={() => setModalSearch('')}>
+                    <Ionicons name="close" size={18} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                )}
               </View>
             )}
 
+            {/* List */}
             <FlatList
               data={filteredModalItems}
               keyExtractor={(item) => item.value}
-              contentContainerStyle={{ paddingBottom: Spacing.space6 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[s.selectItem, { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 12 }]}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                    selectModal.onSelect(item.value, item.data)
-                    setSelectModal({ ...selectModal, visible: false })
-                  }}
-                >
-                  {(item as any).data?.hex ? (
-                    <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: (item as any).data.hex, borderWidth: 1, borderColor: '#E5E7EB', marginLeft: 12 }} />
-                  ) : selectModal.title === 'اختر الماركة' ? (
-                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F4FC', alignItems: 'center', justifyContent: 'center', marginLeft: 12 }}>
-                      <Text style={{ fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 }}>{item.label.charAt(0)}</Text>
+              contentContainerStyle={s.listContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => {
+                // Determine if this item is selected based on the detail
+                let isSelected = false;
+                if (selectModal.title === 'اختر الماركة') isSelected = brandId === item.value;
+                else if (selectModal.title === 'اختر الموديل') isSelected = modelId === item.value;
+                else if (selectModal.title === 'اختر الفئة') isSelected = trim === item.label;
+                else if (selectModal.title === 'سنة الصنع') isSelected = year === item.value;
+                else if (selectModal.title === 'نوع الوقود') isSelected = fuelType === item.value;
+                else if (selectModal.title === 'شكل السيارة') isSelected = bodyType === item.value;
+                else if (selectModal.title === 'نظام الدفع') isSelected = driveType === item.value;
+                else if (selectModal.title === 'اللون الخارجي') isSelected = exteriorColor === item.value;
+                else if (selectModal.title === 'اللون الداخلي') isSelected = interior === item.value;
+
+                return (
+                  <TouchableOpacity
+                    style={[s.modalListItem, isSelected && s.modalListItemSelected]}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                      selectModal.onSelect(item.value, item.data)
+                      setSelectModal({ ...selectModal, visible: false })
+                    }}
+                  >
+                    <View style={s.modalItemLeft}>
+                      {/* Show Checkbox for standard selections */}
+                      {(!item.data?.hex && selectModal.title !== 'اختر الماركة') ? (
+                        <View style={[s.checkboxRound, isSelected && s.checkboxRoundSelected]}>
+                          {isSelected && <Ionicons name="checkmark" size={14} color={Colors.white} />}
+                        </View>
+                      ) : (item as any).data?.hex ? (
+                        <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: (item as any).data.hex, borderWidth: 1, borderColor: '#E5E7EB' }} />
+                      ) : selectModal.title === 'اختر الماركة' ? (
+                        <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F4FC', alignItems: 'center', justifyContent: 'center' }}>
+                          <Text style={{ fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 }}>{item.label.charAt(0)}</Text>
+                        </View>
+                      ) : null}
                     </View>
-                  ) : null}
-                  <Text style={s.selectItemTxt}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
+                    <View style={s.modalItemContent}>
+                      <Text style={[s.modalItemTitle, isSelected && s.modalItemTitleSelected]}>{item.label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }}
               ListEmptyComponent={() => (
                 <View style={{ padding: Spacing.space6, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: 'Almarai_400Regular',  color: Colors.textMuted }}>لا توجد نتائج مطابقة</Text>
+                  <Text style={{ fontFamily: 'Almarai_400Regular', color: Colors.textMuted, fontSize: 14 }}>لا توجد نتائج مطابقة</Text>
                 </View>
               )}
             />
-            </View>
-          )}
+          </SafeAreaView>
         </View>
       </Modal>
     </View>
@@ -590,58 +785,409 @@ export function CarForm() {
 }
 
 const s = StyleSheet.create({
-  container: { paddingBottom: Spacing.space8 },
+  container: {
+    paddingBottom: Spacing.space4,
+  },
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space6,
-    marginBottom: Spacing.space6,
-    borderWidth: 1, borderColor: '#F3F4F6',
+    borderRadius: Radius.lg,
+    padding: Spacing.space3,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
-      android: { elevation: 3 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      android: { elevation: 1 },
     }),
   },
-  cardTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 17, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space4 },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl', marginBottom: Spacing.space2, marginTop: Spacing.space4, textAlign: 'left' },
-  textInput: { height: 52, borderRadius: 14, paddingHorizontal: Spacing.space4, fontFamily: 'Almarai_400Regular', fontSize: 15, color: Colors.text, backgroundColor: '#F8F9FA', textAlign: 'right', writingDirection: 'rtl', borderWidth: 1.5, borderColor: '#E5E7EB' },
-  textInputFocused: { borderColor: Colors.primary, backgroundColor: '#FFFFFF', ...Platform.select({ ios: { shadowColor: Colors.primary, shadowOffset: {width:0, height:2}, shadowOpacity:0.1, shadowRadius:4}, android: {elevation: 2} }) },
-  textArea: { height: 110, paddingTop: Spacing.space4, textAlign: 'right', writingDirection: 'rtl' },
-  rowFields: { flexDirection: 'row', gap: Spacing.space4, marginTop: Spacing.space2 },
-  flex1: { flex: 1 },
-  chipRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space3, flexWrap: 'wrap' },
-  scrollChips: { gap: Spacing.space3, paddingBottom: Spacing.space2 },
-  chip: { paddingHorizontal: 16, minWidth: 80, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F9FA' },
-  chipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  chipTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text2, writingDirection: 'rtl' },
-  chipTxtActive: { color: Colors.primary },
-  chipRound: { paddingHorizontal: 16, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F9FA' },
-  chipRoundActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
-  colorScroll: { gap: Spacing.space3, paddingBottom: Spacing.space2 },
-  colorCircle: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.surface },
-  colorActive: { borderWidth: 1.5, borderColor: Colors.primary },
-  priceWrap: { flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 14, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space4 },
-  priceInput: { flex: 1, height: '100%', fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: Colors.primary, textAlign: 'right', writingDirection: 'rtl' },
-  currencyTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.textMuted, marginStart: Spacing.space2, writingDirection: 'rtl' },
-  negotiableRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, alignSelf: 'flex-start' },
-  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: '#9CA3AF', alignItems: 'center', justifyContent: 'center' },
-  checkboxActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  negotiableTxt: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text2, writingDirection: 'rtl' },
-  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.space3 },
-  featureItem: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, paddingHorizontal: Spacing.space3, paddingVertical: Spacing.space3, borderRadius: 12, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', width: '48%' },
-  featureItemActive: { backgroundColor: '#EFF6FF', borderColor: Colors.primary },
-  featureTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text2, writingDirection: 'rtl' },
-  featureTxtActive: { color: Colors.primary },
-  selectWrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 52, borderRadius: 14, backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E5E7EB', paddingHorizontal: Spacing.space4, marginBottom: Spacing.space2 },
-  selectText: { fontFamily: 'Almarai_400Regular', fontSize: 15, color: Colors.text, flex: 1, writingDirection: 'rtl', textAlign: 'left' },
-  placeholder: { color: Colors.textMuted },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet: { width: '100%', backgroundColor: Colors.white, borderTopStartRadius: 28, borderTopEndRadius: 28, paddingHorizontal: Spacing.space5, paddingBottom: 40, maxHeight: '85%' },
-  modalHandle: { width: 44, height: 5, backgroundColor: '#E5E7EB', borderRadius: 3, alignSelf: 'center', marginTop: Spacing.space3, marginBottom: Spacing.space3 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: Spacing.space3, borderBottomWidth: 1, borderBottomColor: '#F1F3F5', marginBottom: Spacing.space4 },
-  modalTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text, writingDirection: 'rtl' },
-  modalSearchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 12, paddingHorizontal: Spacing.space4, height: 56, marginBottom: Spacing.space4, borderWidth: 1.5, borderColor: '#E5E7EB' },
-  modalSearchInput: { flex: 1, height: '100%', fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text, paddingHorizontal: Spacing.space2, textAlign: 'right', writingDirection: 'rtl' },
-  selectItem: { paddingVertical: Spacing.space4, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
-  selectItemTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text, writingDirection: 'rtl' },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  cardIconBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    lineHeight: 18,
+    color: Colors.text,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  inputWrapper: {
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  label: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text2,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    marginBottom: 4,
+    marginTop: 4,
+  },
+  textInput: {
+    minHeight: 44,
+    borderRadius: Radius.md,
+    paddingHorizontal: 10,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.text,
+    backgroundColor: Colors.inputBg,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  textInputFocused: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+    ...Platform.select({
+      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4 },
+      android: {},
+    }),
+  },
+  textArea: {
+    minHeight: 85,
+    paddingTop: 8,
+    paddingBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textAlignVertical: 'top',
+    lineHeight: 20,
+  },
+  rowFields: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  flex1: {
+    flex: 1,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minHeight: 36,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.inputBg,
+    flexDirection: 'row',
+  },
+  chipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EFF6FF',
+  },
+  chipTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text2,
+    writingDirection: 'rtl',
+    textAlign: 'center',
+  },
+  chipTxtActive: {
+    color: Colors.primary,
+  },
+  selectorButton: {
+    height: 44,
+    backgroundColor: Colors.inputBg,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    gap: 6,
+  },
+  selectorButtonActive: {
+    borderColor: Colors.primary,
+    backgroundColor: '#FAFCFF',
+  },
+  selectorButtonDisabled: {
+    opacity: 0.45,
+    backgroundColor: '#F8FAFC',
+  },
+  selectorIconWrap: {
+    width: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectorContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  selectorText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  placeholder: {
+    color: Colors.textMuted,
+    fontFamily: 'Almarai_400Regular',
+  },
+  priceWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    paddingHorizontal: 10,
+    marginBottom: 4,
+  },
+  priceWrapFocused: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+    ...Platform.select({
+      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4 },
+      android: {},
+    }),
+  },
+  priceInput: {
+    flex: 1,
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 16,
+    color: Colors.primary,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textAlignVertical: 'center',
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+  },
+  currencyBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    marginStart: 6,
+  },
+  currencyTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 11,
+    lineHeight: 14,
+    color: Colors.primary,
+    writingDirection: 'rtl',
+  },
+  negotiableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#9CA3AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+  },
+  checkboxActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  negotiableTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text,
+    writingDirection: 'rtl',
+  },
+  colorCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.inputBg,
+  },
+  colorActive: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    width: '31.8%',
+  },
+  featureItemActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: Colors.primary,
+  },
+  featureTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 10.5,
+    lineHeight: 14,
+    color: Colors.text2,
+    writingDirection: 'rtl',
+    textAlign: 'center',
+    flexShrink: 1,
+  },
+  featureTxtActive: {
+    color: Colors.primary,
+  },
+  /* ── Bottom Sheet Modal Styles ── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: Colors.white,
+    borderTopStartRadius: Radius.xl,
+    borderTopEndRadius: Radius.xl,
+    maxHeight: '85%',
+  },
+  handleBar: {
+    width: 36,
+    height: 4,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 15.5,
+    lineHeight: 22,
+    color: Colors.text,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  modalSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  searchBox: {
+    marginHorizontal: Spacing.space3,
+    marginVertical: 8,
+    height: 42,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    color: Colors.text,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  listContent: {
+    paddingBottom: Spacing.space4,
+  },
+  modalListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: 11,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  modalListItemSelected: {
+    backgroundColor: '#EFF6FF',
+  },
+  modalItemLeft: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalItemContent: {
+    flex: 1,
+    marginStart: 8,
+  },
+  modalItemTitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Colors.text,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  modalItemTitleSelected: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+  },
+  checkboxRound: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+  },
+  checkboxRoundSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
 })

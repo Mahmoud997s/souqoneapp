@@ -15,6 +15,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { EQUIPMENT_CONDITIONS, EQUIPMENT_LISTING_TYPES } from '../../src/utils/equipment-mappers'
 import { dialogService } from '../../src/store/dialogStore'
+import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -119,7 +120,7 @@ export default function EquipmentDetailScreen() {
 
   const y = raw.year
   const h = raw.hoursUsed
-  const governorate = raw.governorate
+  const governorate = formatOmanLocation(raw.governorate, raw.city)
   const city = raw.city
 
   const specs = [
@@ -653,3 +654,4 @@ const s = StyleSheet.create({
   directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 },
 
 })
+

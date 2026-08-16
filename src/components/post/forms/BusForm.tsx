@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import Animated, { SlideInDown } from 'react-native-reanimated'
 import { usePostStore } from '../../../store/postStore'
@@ -296,50 +296,55 @@ export function BusForm() {
 }
 
 const s = StyleSheet.create({
-  root: { padding: Spacing.space4 },
+  root: { padding: 0 },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text,
-    marginBottom: Spacing.space3, marginTop: Spacing.space4, textAlign: 'left',
+    fontFamily: 'Almarai_700Bold', fontSize: 13.5, lineHeight: 18, color: Colors.text,
+    marginBottom: 6, marginTop: 10, textAlign: 'left',
     writingDirection: 'rtl',
   },
-  optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: Spacing.space3 },
+  optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   optionChip: {
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.pill,
-    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.white,
+    paddingHorizontal: 12, paddingVertical: 6, minHeight: 36, borderRadius: Radius.md,
+    borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.inputBg,
+    alignItems: 'center', justifyContent: 'center',
   },
-  optionChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
-  optionTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
+  optionChipActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
+  optionTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, lineHeight: 16, color: Colors.text2, writingDirection: 'rtl' },
   optionTxtActive: { color: Colors.primary },
-  inputGroup: { marginBottom: Spacing.space4 },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, marginBottom: 8, textAlign: 'left', writingDirection: 'rtl' },
+  inputGroup: { marginBottom: 8 },
+  label: { fontFamily: 'Almarai_700Bold', fontSize: 12, lineHeight: 16, color: Colors.text2, marginBottom: 4, textAlign: 'left', writingDirection: 'rtl' },
   input: {
-    backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 12,
-    fontFamily: 'Almarai_400Regular', fontSize: 15, color: Colors.text, textAlign: 'right',
-    writingDirection: 'rtl',
+    backgroundColor: Colors.inputBg, borderWidth: 1.5, borderColor: Colors.border,
+    borderRadius: Radius.md, paddingHorizontal: 10, paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    fontFamily: 'Almarai_400Regular', fontSize: 13, lineHeight: 18, color: Colors.text, textAlign: 'right',
+    writingDirection: 'rtl', minHeight: 44,
   },
-  inputTitle: { fontFamily: 'Almarai_700Bold', fontSize: 15 },
-  inputDesc: { minHeight: 120, paddingTop: 16 },
+  inputTitle: { fontFamily: 'Almarai_700Bold', fontSize: 13 },
+  inputDesc: { minHeight: 85, paddingTop: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
   flex1: { flex: 1 },
-  toggleBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
-  toggleTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
+  toggleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6 },
+  toggleTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, lineHeight: 16, color: Colors.text, writingDirection: 'rtl' },
   cardGroup: {
     backgroundColor: Colors.white, padding: Spacing.space3,
-    borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border,
-    marginTop: Spacing.space2,
+    borderRadius: Radius.lg, borderWidth: 1, borderColor: '#EEF2F6',
+    marginTop: 6, marginBottom: 10,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      android: { elevation: 1 },
+    }),
   },
-  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   featItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.pill,
-    backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.md,
+    backgroundColor: Colors.inputBg, borderWidth: 1.5, borderColor: Colors.border,
   },
-  featItemActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
-  featTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted, writingDirection: 'rtl' },
+  featItemActive: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
+  featTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: Colors.text2, writingDirection: 'rtl' },
   featTxtActive: { color: Colors.primary },
-  makeBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.white },
+  makeBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.inputBg },
   makeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primary },
-  makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text, writingDirection: 'rtl' },
+  makeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: Colors.text, writingDirection: 'rtl' },
   makeTxtActive: { color: Colors.white },
 })

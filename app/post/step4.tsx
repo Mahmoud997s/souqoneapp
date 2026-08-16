@@ -16,7 +16,8 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import * as Location from 'expo-location'
 import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '../../src/constants/locations'
-import { LocationPicker } from '../../src/components/ui/LocationPicker'
+
+import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { dialogService } from '../../src/store/dialogStore'
 
 let MapView: any = null;
@@ -38,7 +39,7 @@ const OMAN_CENTER = {
 
 export default function PostStep4Screen() {
   const insets = useSafeAreaInsets()
-  const { governorate, city, locationNote, latitude, longitude, set } = usePostStore()
+  const { category, governorate, city, governorateId, wilayaId, locationNote, latitude, longitude, set } = usePostStore()
   
   const mapRef = useRef<typeof MapView>(null);
   const [loadingLocation, setLoadingLocation] = useState(false)
@@ -142,14 +143,17 @@ export default function PostStep4Screen() {
 
           <View style={s.card}>
             <Text style={s.title}>المدينة والمنطقة</Text>
-            <LocationPicker
-              governorate={governorate}
-              onGovernorateChange={(val) => {
-                set({ governorate: val, city: '' })
-              }}
-              city={city}
-              onCityChange={(val) => {
-                set({ city: val })
+            <GovernorateWilayaSelect
+              governorateId={governorateId}
+              wilayaId={wilayaId}
+              onLocationChange={(govId, wilId, govNameAr, wilNameAr) => {
+                set({
+                  governorateId: govId,
+                  wilayaId: wilId || undefined,
+                  // Temporarily keep string fields populated as well
+                  governorate: govNameAr,
+                  city: wilNameAr
+                })
               }}
             />
           </View>
@@ -169,11 +173,11 @@ export default function PostStep4Screen() {
             title="التالي" 
             size="sm"
             onPress={() => {
-              if (!governorate) {
+              if (!governorateId) {
                 dialogService.alert('تنبيه', 'يرجى تحديد المحافظة')
                 return
               }
-              if (!city) {
+              if (!wilayaId) {
                 dialogService.alert('تنبيه', 'يرجى تحديد الولاية')
                 return
               }
@@ -210,23 +214,23 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    marginBottom: Spacing.space3,
+    padding: Spacing.space3,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#EEF2F6',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.03, shadowRadius: 8 },
-      android: { elevation: 2 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      android: { elevation: 1 },
     }),
   },
   
-  mapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.space2 },
-  title: { fontFamily: 'Almarai_800ExtraBold', fontSize: 15.5, lineHeight: 22, color: Colors.text, writingDirection: 'rtl', textAlign: 'left', marginBottom: Spacing.space2 },
-  myLocBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100 },
-  myLocTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11.5, color: Colors.primary, writingDirection: 'rtl' },
-  infoTxt: { fontFamily: 'Almarai_400Regular', fontSize: 12.5, lineHeight: 18, color: Colors.textMuted, writingDirection: 'rtl', textAlign: 'left', marginBottom: Spacing.space3 },
+  mapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  title: { fontFamily: 'Almarai_700Bold', fontSize: 13.5, lineHeight: 18, color: Colors.text, writingDirection: 'rtl', textAlign: 'left', marginBottom: 4 },
+  myLocBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EFF6FF', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
+  myLocTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.primary, writingDirection: 'rtl' },
+  infoTxt: { fontFamily: 'Almarai_400Regular', fontSize: 11.5, lineHeight: 16, color: Colors.textMuted, writingDirection: 'rtl', textAlign: 'left', marginBottom: 8 },
   
-  mapContainer: { width: '100%', height: 200, borderRadius: 14, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: '#E5E7EB' },
+  mapContainer: { width: '100%', height: 180, borderRadius: 12, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: '#E5E7EB' },
   map: { width: '100%', height: '100%' },
   mapPinOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
   pinShadow: { width: 14, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.15)', marginTop: 2 },

@@ -19,6 +19,7 @@ import { Radius } from '../../../src/constants/radius';
 import { transportApi } from '../../../src/api/transport';
 import { CarrierCard } from '../../../src/components/transport/CarrierCard';
 import { CarrierProfile } from '../../../src/types/transport.types';
+import { SupportHelpButton } from '../../../src/components/ui/SupportHelpButton';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -93,10 +94,7 @@ function DirectoryFAQ() {
         ))}
       </View>
 
-      <View style={s.supportBanner}>
-        <Ionicons name="headset-outline" size={20} color="#fff" />
-        <Text style={s.supportText}>تحتاج للمساعدة؟ تواصل مع الدعم الفني</Text>
-      </View>
+      <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 20, marginBottom: 0 }} />
     </View>
   );
 }
@@ -273,6 +271,7 @@ export default function CarriersDirectoryScreen() {
         renderItem={({ item }) => (
           <CarrierCard
             carrier={item}
+            maxChips={5}
             onPress={() => router.push(`/transport/carriers/${item.id}` as any)}
           />
         )}

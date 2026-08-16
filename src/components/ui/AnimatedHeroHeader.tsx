@@ -193,13 +193,7 @@ export function AnimatedHeroHeader({
           {/* ABSOLUTE TITLE (Overlaps nav search gracefully, fades out on scroll) */}
           <Animated.View style={[s.absoluteTitleContainer, heroContentAnimStyle]} pointerEvents="none">
             <Text style={s.heroTitle} numberOfLines={1}>
-              {title.split(/(ون)/).map((part, index) => (
-                part === 'ون' ? (
-                  <Text key={index} style={{ color: primaryCta.bgColor || Colors.accent }}>{part}</Text>
-                ) : (
-                  <Text key={index}>{part}</Text>
-                )
-              ))}
+              {title}
             </Text>
             {titleAccent && <Text style={s.heroTitleAccent} numberOfLines={1}>{titleAccent}</Text>}
           </Animated.View>
@@ -244,8 +238,10 @@ const s = StyleSheet.create({
     height: 50, zIndex: 10,
   },
   iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
   },
   badge: {
     position: 'absolute', top: 0, right: 0,

@@ -57,10 +57,11 @@ export function ActiveFiltersRow({ filters, onRemoveFilter, onClearAll }: Active
     activeChips.push({ key: 'yearMin', label: `سنة: ${min} - ${max}` });
   }
 
-  if (filters.governorate) activeChips.push({ key: 'governorate', label: getLabel(filters.governorate, GOVERNORATE_OPTIONS) });
-  if (filters.city && filters.governorate) {
-    const cities = WILAYAT_BY_GOVERNORATE[filters.governorate] || [];
-    activeChips.push({ key: 'city', label: getLabel(filters.city, cities) });
+  if (filters.governorate) {
+    activeChips.push({ key: 'governorate', label: filters.governorate });
+  }
+  if (filters.city && filters.city !== filters.governorate) {
+    activeChips.push({ key: 'city', label: filters.city });
   }
 
   if (filters.listingType) activeChips.push({ key: 'listingType', label: getLabel(filters.listingType, LISTING_TYPES) });
@@ -101,6 +102,12 @@ export function ActiveFiltersRow({ filters, onRemoveFilter, onClearAll }: Active
                 } else if (chip.key === 'model') {
                   onRemoveFilter('model');
                   onRemoveFilter('modelId');
+                } else if (chip.key === 'governorate') {
+                  onRemoveFilter('governorate');
+                  onRemoveFilter('governorateId');
+                } else if (chip.key === 'city') {
+                  onRemoveFilter('city');
+                  onRemoveFilter('wilayaId');
                 } else {
                   onRemoveFilter(chip.key);
                 }

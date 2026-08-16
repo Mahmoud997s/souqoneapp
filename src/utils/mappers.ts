@@ -65,14 +65,10 @@ function formatBudget(min: any, max: any): string {
   return 'تواصل للسعر'
 }
 
+import { getStrictGovernorate } from './omanLocationMapper';
+
 export function resolveLocationGov(code: string | undefined): string {
-  if (!code) return ''
-  const gov = OMAN_LOCATIONS.find(g => 
-    g.id === code || 
-    g.legacyId === code || 
-    (g.altLegacyIds && g.altLegacyIds.includes(code))
-  )
-  return gov ? gov.labelAr : code
+  return getStrictGovernorate(code);
 }
 
 function extractImages(images: any): string[] {
@@ -86,31 +82,21 @@ function safePrice(val: any): number {
   return isNaN(n) ? 0 : n
 }
 
-export function formatLocation(item: any): string {
-  let gov = String(item.governorate || '').trim()
-  const govLower = gov.toLowerCase()
-  const govOption = GOVERNORATE_OPTIONS.find(o => o.value.toLowerCase() === govLower)
-  if (govOption) {
-    gov = govOption.labelAr
-  } else {
-    const postGov = POST_GOVERNORATES.find(g => g.value.toLowerCase() === govLower)
-    if (postGov) gov = postGov.label
-  }
+import { formatOmanLocation } from './omanLocationMapper';
 
-  let city = String(item.region || item.city || '').trim()
-  const cityLower = city.toLowerCase()
-  if (cityLower) {
-    for (const govKey in POST_CITIES_BY_GOVERNORATE) {
-      const cityOption = POST_CITIES_BY_GOVERNORATE[govKey].find(c => c.value.toLowerCase() === cityLower)
-      if (cityOption) {
-        city = cityOption.label
-        break
-      }
-    }
+/**
+ * Translates raw API governorate/city codes into Arabic labels.
+ * ⚠️ IMPORTANT: This function should ONLY be called inside mapper functions
+ * (mapListingToCard, mapEquipmentToCard, etc.) — NEVER inside Card components.
+ * Card components should read the pre-translated `item.governorate` field directly.
+ */
+export const formatLocation = (item: any): string => {
+  if (item.governorateRef) {
+    const govName = item.governorateRef.nameAr || item.governorateRef.name;
+    const wilName = item.wilayaRef ? (item.wilayaRef.nameAr || item.wilayaRef.name) : '';
+    return wilName ? `${govName}، ${wilName}` : govName;
   }
-
-  if (gov && city && gov !== city) return `${gov}، ${city}`
-  return gov || city || ''
+  return formatOmanLocation(item.governorate, item.region || item.city);
 }
 
 export function formatSpec(value: any, prefix: string): string {
@@ -448,7 +434,13 @@ export function mapEquipmentToCard(item: any): UnifiedCardItem {
 
   return {
     id: item.id,
-    title: item.title ?? '',
+    title: (() => {
+      if (item.title) return item.title
+      const { getEquipmentTypeLabel } = require('./equipment-mappers')
+      const typeLabel = getEquipmentTypeLabel(item.equipmentType || item.details?.equipmentType)
+      const parts = [typeLabel, item.make || item.details?.make, item.model || item.details?.model, item.year || item.details?.year].filter(Boolean)
+      return parts.length > 0 ? parts.join(' ') : 'إعلان معدة'
+    })(),
     price,
     priceText,
     priceLabel,

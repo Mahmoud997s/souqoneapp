@@ -19,6 +19,7 @@ import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobsRaw } from '../../src/hooks/useJobs'
 import { useServices } from '../../src/hooks/useServices'
@@ -46,6 +47,11 @@ const CATEGORIES = [
   { id: 'equipment', label: 'معدات',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Tractor/3D/tractor_3d.png', route: '/equipment', isMain: false },
   { id: 'buses',     label: 'حافلات',    image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bus/3D/bus_3d.png', route: '/buses', isMain: false },
   { id: 'transport', label: 'نقل',       image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Delivery%20truck/3D/delivery_truck_3d.png', route: '/transport', isMain: false },
+]
+
+const PROMO_BANNERS = [
+  { id: '1', title: 'خصم 20% على قطع الغيار', sub: 'استخدم كود خصم SOUQ20', icon: 'pricetag', colors: ['#E8781E', '#FBBF24'] },
+  { id: '2', title: 'أضف إعلانك مجاناً', sub: 'لفترة محدودة، اعرض سيارتك بدون رسوم', icon: 'megaphone', colors: ['#3B82F6', '#8B5CF6'] },
 ]
 
 import { favoritesApi } from '../../src/api/favorites'
@@ -275,6 +281,24 @@ export default function HomeScreen() {
         scrollEventThrottle={16}
       >
 
+        {/* ── BANNERS ── */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.bannersList} style={{ flexGrow: 0 }}>
+          {PROMO_BANNERS.map((banner, index) => (
+            <Animated.View key={banner.id} entering={FadeInRight.delay(index * 100).springify()}>
+              <TouchableOpacity style={s.bannerCard} activeOpacity={0.9}>
+                <LinearGradient colors={banner.colors as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.bannerGradient}>
+                  <View style={s.bannerTexts}>
+                    <Text style={s.bannerTitle}>{banner.title}</Text>
+                    <Text style={s.bannerSub}>{banner.sub}</Text>
+                  </View>
+                  <View style={s.bannerIconBgBlur}>
+                    <Ionicons name={banner.icon as any} size={45} color="rgba(255,255,255,0.3)" />
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+        </ScrollView>
 
         {/* ── CATEGORIES (Photographic Premium) ── */}
         <View style={s.catsContainer}>
@@ -304,14 +328,16 @@ export default function HomeScreen() {
         </View>
 
         {/* ── SECTIONS ── */}
-        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor={Colors.accent} seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="وظائف" icon="briefcase" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
-        <CategorySection title="خدمات" icon="build" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
-        <CategorySection title="قطع غيار" icon="construct" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="حافلات" icon="bus" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="معدات" icon="hardware-chip" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="طلبات نقل" icon="navigate" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
+        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="وظائف" icon="briefcase" iconColor="#10B981" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
+        <CategorySection title="خدمات" icon="build" iconColor="#3B82F6" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
+        <CategorySection title="قطع غيار" icon="construct" iconColor="#8B5CF6" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="حافلات" icon="bus" iconColor="#F59E0B" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="معدات" icon="hardware-chip" iconColor="#64748B" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="طلبات نقل" icon="navigate" iconColor="#EC4899" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
 
+        {/* Need Help / Support Button */}
+        <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space2, marginBottom: Spacing.space6 }} />
       </Animated.ScrollView>
     </View>
   )

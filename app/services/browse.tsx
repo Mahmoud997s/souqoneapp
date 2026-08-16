@@ -23,6 +23,7 @@ import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 // Services Components
 import { ServiceCard } from '../../src/components/services/ServiceCard';
@@ -96,8 +97,8 @@ export default function ServicesBrowseScreen() {
 
     if (filters.serviceType) params.serviceType = filters.serviceType;
     if (filters.providerType) params.providerType = filters.providerType;
-    if (filters.governorate) params.governorate = filters.governorate;
-    if (filters.city) params.city = filters.city;
+    if (filters.governorateId) params.governorateId = filters.governorateId;
+    if (filters.wilayaId) params.wilayaId = filters.wilayaId;
     if (filters.isHomeService) params.isHomeService = true;
     if (filters.isOpenNow) params.isOpenNow = true;
     if (filters.specializations && filters.specializations.length > 0) {
@@ -185,12 +186,11 @@ export default function ServicesBrowseScreen() {
       icon: 'location' as any,
       isActive: true,
     });
-  } else if (filters.governorate || filters.city) {
-    const govFound = GOVERNORATE_OPTIONS.find((g) => g.value === filters.governorate);
-    const displayLabel = filters.city ? filters.city : (govFound ? govFound.labelAr : filters.governorate as string);
+  } else if (filters.governorateId || filters.governorate) {
+    const displayLabel = filters.city ? filters.city : filters.governorate;
     quickFilterItems.push({
       id: 'gov',
-      label: displayLabel,
+      label: displayLabel || 'موقع',
       icon: 'location-outline' as any,
       isActive: true,
     });
@@ -221,6 +221,8 @@ export default function ServicesBrowseScreen() {
         delete next.radiusKm;
       }
       if (filterId === 'gov') {
+        delete next.governorateId;
+        delete next.wilayaId;
         delete next.governorate;
         delete next.city;
       }
@@ -312,13 +314,18 @@ export default function ServicesBrowseScreen() {
             )}
           </>
         }
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-            </View>
-          ) : null
-        }
+        ListFooterComponent={() => (
+          <>
+            {isFetchingNextPage && (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
+            )}
+            {!isLoading && listings && listings.length > 0 && (
+              <SupportHelpButton />
+            )}
+          </>
+        )}
         ListEmptyComponent={
           !isLoading && !isError ? (
             <EmptyState

@@ -46,16 +46,23 @@ export function FilterBottomSheetLayout({
 }: FilterBottomSheetLayoutProps) {
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = React.useState(false);
+  const [keyboardHeight, setKeyboardHeight] = React.useState(0);
 
   React.useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
-    const keyboardShowListener = Keyboard.addListener(showEvent, () => {
+    const keyboardShowListener = Keyboard.addListener(showEvent, (e) => {
       setKeyboardVisible(true);
+      if (Platform.OS === 'android') {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
     });
     const keyboardHideListener = Keyboard.addListener(hideEvent, () => {
       setKeyboardVisible(false);
+      if (Platform.OS === 'android') {
+        setKeyboardHeight(0);
+      }
     });
 
     return () => {
@@ -65,7 +72,7 @@ export function FilterBottomSheetLayout({
   }, []);
 
   const content = (
-    <View style={s.sheet}>
+    <View style={[s.sheet, Platform.OS === 'android' && isKeyboardVisible ? { paddingBottom: keyboardHeight } : {}]}>
       <View style={s.dragHandle} />
 
       {/* Header */}
@@ -117,9 +124,9 @@ export function FilterBottomSheetLayout({
       transparent={true}
       onRequestClose={onClose}
     >
-      {useKeyboardAvoiding ? (
+      {useKeyboardAvoiding && Platform.OS === 'ios' ? (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           style={s.overlay}
         >
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />

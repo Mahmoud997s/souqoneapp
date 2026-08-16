@@ -32,6 +32,7 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
@@ -172,12 +173,12 @@ export default function PartsBrowseScreen() {
       params.isScrap = true;
     }
 
-    if (filters.city) {
-      params.city = filters.city;
+    if (filters.governorateId) {
+      params.governorateId = String(filters.governorateId);
     }
 
-    if (filters.governorate) {
-      params.governorate = filters.governorate;
+    if (filters.wilayaId) {
+      params.wilayaId = String(filters.wilayaId);
     }
 
     if (filters.partNumber) {
@@ -495,13 +496,16 @@ export default function PartsBrowseScreen() {
               <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
             )}
             {listings && listings.length > 0 && (
-              <ActionBanner
-                title="لديك قطعة للبيع؟"
-                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
-                buttonText="انشر إعلانك"
-                iconName="camera-outline"
-                onPress={handleAddPart}
-              />
+              <>
+                <ActionBanner
+                  title="لديك قطعة للبيع؟"
+                  subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+                  buttonText="انشر إعلانك"
+                  iconName="camera-outline"
+                  onPress={handleAddPart}
+                />
+                <SupportHelpButton />
+              </>
             )}
           </>
         )}

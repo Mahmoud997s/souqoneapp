@@ -32,6 +32,7 @@ import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { CarCard } from '../../src/components/cars/CarCard';
 import { EquipmentFilterBottomSheet } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -337,6 +338,7 @@ export default function EquipmentBrowseScreen() {
               </View>
             </View>
           }
+          ListFooterComponent={() => (!isLoading && listings && listings.length > 0 ? <SupportHelpButton /> : null)}
           ListEmptyComponent={
             <View style={s.emptyContainer}>
               <View style={s.emptyIconWrap}>

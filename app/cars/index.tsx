@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { Colors } from '../../src/constants/colors';
@@ -10,17 +10,19 @@ import { Spacing } from '../../src/constants/spacing';
 import { Gradients } from '../../src/constants/gradients';
 
 import { useCarListings } from '../../src/hooks/useCarListings';
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { CategoriesGrid } from '../../src/components/cars/CategoriesGrid';
 import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { usePostStore } from '../../src/store/postStore';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollY = useSharedValue(0);
+  const { scrollHandler, scrollY } = useScrollAwareNav();
   const { set, reset } = usePostStore();
 
   const handleAddCar = () => {
@@ -29,11 +31,6 @@ export default function CarsLandingScreen() {
     router.push('/post/step2' as any);
   };
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   // Data fetching logic
   const { data: baseFeaturedData = [], isLoading: loadingFeatured, isError, refetch } = useCarListings({ limit: 20 });
@@ -60,7 +57,6 @@ export default function CarsLandingScreen() {
         scrollY={scrollY}
         gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للسيارات"
-        titleAccent="بيع واشترِ بكل ثقة وأمان"
         navSearchPlaceholder="ابحث عن سيارة..."
         onNavSearchPress={() => router.push('/cars/browse' as any)}
         heroSearchPlaceholder="عن أي سيارة تبحث؟"
@@ -75,7 +71,7 @@ export default function CarsLandingScreen() {
           label: 'اعرض سيارتك',
           icon: 'add',
           onPress: () => router.push('/post' as any),
-          bgColor: Colors.accent,
+          bgColor: 'rgba(255,255,255,0.2)',
           textColor: Colors.white
         }}
         outlineCta={{
@@ -153,6 +149,9 @@ export default function CarsLandingScreen() {
           )}
 
           <HowItWorks />
+
+          {/* Need Help / Support Button */}
+          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
         </View>
       </Animated.ScrollView>
 

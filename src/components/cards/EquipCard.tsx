@@ -8,7 +8,6 @@ import { Colors } from '../../constants/colors'
 import { useAuthStore } from '../../store/authStore'
 import { favoritesApi } from '../../api/favorites'
 import { Listing } from '../../types/listing.types'
-import { GOVERNORATE_OPTIONS } from '../../constants/filters'
 import { formatDate } from '../../utils/format'
 import { CardSystem } from '../../constants/cardSystem'
 
@@ -54,13 +53,7 @@ export const EquipCard = ({ item, onPress, fullWidth = false, gridMode = false, 
   
   const equipName = item.title || (make && model ? `${make} ${model} ${year !== 'N/A' ? year : ''}`.trim() : 'إعلان معدة')
   
-  const getGovernorateLabel = (codeOrName: string) => {
-    if (!codeOrName) return ''
-    const option = GOVERNORATE_OPTIONS.find(opt => opt.value === codeOrName)
-    return option ? option.labelAr : codeOrName
-  }
-  const govLabel = getGovernorateLabel(item.governorate)
-  const location = item.city ? `${govLabel}، ${item.city}` : govLabel
+  const location = (item as any).governorate || ''
 
   const { isLoggedIn } = useAuthStore()
   const queryClient = useQueryClient()

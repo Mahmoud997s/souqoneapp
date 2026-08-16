@@ -35,14 +35,14 @@ const TABS = [
 ];
 
 const TOP_CITIES = [
-  { id: 'OM_MUS', name: 'مسقط' },
-  { id: 'OM_BAN', name: 'صحار' },
-  { id: 'OM_SHS', name: 'صور' },
-  { id: 'OM_DAK', name: 'نزوى' },
-  { id: 'OM_DHO', name: 'صلالة' },
-  { id: 'OM_DHA', name: 'عبري' },
-  { id: 'OM_BUR', name: 'البريمي' },
-  { id: 'OM_BAT', name: 'الرستاق' },
+  { id: '1', extraId: 1, name: 'مسقط' },
+  { id: '33', extraId: 6, name: 'صحار' },
+  { id: '45', extraId: 8, name: 'صور' },
+  { id: '24', extraId: 5, name: 'نزوى' },
+  { id: '7', extraId: 2, name: 'صلالة' },
+  { id: '57', extraId: 10, name: 'عبري' },
+  { id: '21', extraId: 4, name: 'البريمي' },
+  { id: '39', extraId: 7, name: 'الرستاق' },
 ];
 
 const CAR_TYPES = [
@@ -73,7 +73,8 @@ export interface CarsVisualFiltersProps {
     valueId: string,
     valueName?: string,
     min?: number,
-    max?: number
+    max?: number,
+    extraId?: number
   ) => void;
   onViewAll: (tabId: string) => void;
   selectedBrandId?: string;
@@ -170,7 +171,7 @@ export function CarsVisualFilters({
                   if (isSelected) {
                     onSelectFilter('city', '', undefined);
                   } else {
-                    onSelectFilter('city', item.name, item.name);
+                    onSelectFilter('city', item.id, item.name, undefined, undefined, item.extraId);
                   }
                 };
               } else if (type === 'prices') {

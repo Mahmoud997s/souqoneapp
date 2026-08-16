@@ -8,8 +8,55 @@ import { Colors } from '../../constants/colors'
 import { useAuthStore } from '../../store/authStore'
 import { favoritesApi } from '../../api/favorites'
 import { Listing } from '../../types/listing.types'
-import { GOVERNORATE_OPTIONS } from '../../constants/filters'
+import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
 import { formatDate } from '../../utils/format'
+
+function resolveBusLocation(item: any, rawData: any): string {
+  const govRef = rawData.governorateRef || item.governorateRef
+  const wilRef = rawData.wilayaRef || item.wilayaRef
+
+  if (govRef || wilRef) {
+    const govName = govRef?.nameAr || govRef?.name || govRef?.nameEn || ''
+    const wilName = wilRef ? (wilRef.nameAr || wilRef.name || wilRef.nameEn || '') : ''
+    if (govName && wilName && govName !== wilName) {
+      return `${govName}، ${wilName}`
+    }
+    return wilName || govName || ''
+  }
+
+  const rawGov = rawData.governorateName || rawData.details?.governorateName || item.governorate || rawData.governorate
+  const rawWil = rawData.wilayaName || rawData.details?.wilayaName || rawData.city || item.city || rawData.wilaya || item.wilaya
+
+  let govLabel = ''
+  if (typeof rawGov === 'string' && !rawGov.startsWith('OM_') && !rawGov.startsWith('OM-') && isNaN(Number(rawGov))) {
+    govLabel = rawGov
+  } else if (rawGov) {
+    const strGov = String(rawGov).toUpperCase()
+    const foundOpt = GOVERNORATE_OPTIONS.find(
+      (o) => o.value.toUpperCase() === strGov || o.value.replace('_', '-').toUpperCase() === strGov.replace('_', '-')
+    )
+    if (foundOpt) {
+      govLabel = foundOpt.labelAr
+    } else {
+      const foundLoc = OMAN_LOCATIONS.find(
+        (l) => l.id.toUpperCase() === strGov || l.legacyId.toUpperCase() === strGov
+      )
+      if (foundLoc) govLabel = foundLoc.labelAr
+    }
+  }
+
+  let wilLabel = ''
+  if (typeof rawWil === 'string') {
+    wilLabel = rawWil
+  } else if (rawWil?.nameAr) {
+    wilLabel = rawWil.nameAr
+  }
+
+  if (govLabel && wilLabel && govLabel !== wilLabel) {
+    return `${govLabel}، ${wilLabel}`
+  }
+  return wilLabel || govLabel || rawData.location || item.location || ''
+}
 
 export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
@@ -66,13 +113,7 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
 
   const busName = item.title || (make ? `${make} ${busCapacity ? busCapacity + ' مقعد' : ''} ${year !== 'N/A' ? year : ''}`.trim() : 'إعلان حافلة')
   
-  const getGovernorateLabel = (codeOrName: string) => {
-    if (!codeOrName) return ''
-    const option = GOVERNORATE_OPTIONS.find(opt => opt.value === codeOrName)
-    return option ? option.labelAr : codeOrName
-  }
-  const govLabel = getGovernorateLabel(item.governorate)
-  const location = item.city ? `${govLabel}، ${item.city}` : govLabel
+  const location = resolveBusLocation(item, rawData)
 
   const { isLoggedIn } = useAuthStore()
   const queryClient = useQueryClient()

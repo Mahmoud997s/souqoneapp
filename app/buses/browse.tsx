@@ -28,6 +28,7 @@ import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { BusCard } from '../../src/components/buses/BusCard';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
@@ -261,13 +262,18 @@ export default function BusesBrowseScreen() {
           }
         }}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-              <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>جاري تحميل المزيد...</Text>
-            </View>
-          ) : null
-        }
+        ListFooterComponent={() => (
+          <>
+            {isFetchingNextPage && (
+              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>جاري تحميل المزيد...</Text>
+              </View>
+            )}
+            {listings && listings.length > 0 && (
+              <SupportHelpButton />
+            )}
+          </>
+        )}
       />
 
       {/* DROPDOWNS */}

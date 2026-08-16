@@ -15,6 +15,8 @@ export interface FilterState {
   trim?: string;
   governorate?: string;
   city?: string;
+  governorateId?: number;
+  wilayaId?: number;
   transmission?: string;
   condition?: string;
   bodyType?: string;
@@ -33,6 +35,8 @@ export interface PartsFilterState {
   priceId?: string;
   governorate?: string;
   city?: string;
+  governorateId?: number;
+  wilayaId?: number;
   partNumber?: string;
   sortBy?: string;
   sortOrder?: string;
@@ -44,6 +48,8 @@ export interface ServicesFilterState {
   providerType?: string;
   governorate?: string;
   city?: string;
+  governorateId?: number;
+  wilayaId?: number;
   isHomeService?: boolean;
   specializations?: string[];
   isOpenNow?: boolean;

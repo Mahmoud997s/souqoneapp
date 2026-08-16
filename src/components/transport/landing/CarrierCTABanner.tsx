@@ -13,7 +13,7 @@ export function CarrierCTABanner() {
     <View style={s.container}>
       <View style={s.content}>
         <View style={s.iconWrap}>
-          <Ionicons name="shield-checkmark" size={32} color={Colors.white} />
+          <Ionicons name="shield-checkmark" size={28} color={Colors.white} />
         </View>
         <Text style={s.title}>هل تملك مركبة نقل؟</Text>
         <Text style={s.desc}>
@@ -22,7 +22,7 @@ export function CarrierCTABanner() {
         
         <TouchableOpacity 
           style={s.button}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
           onPress={() => router.push('/transport/carrier-register' as any)}
         >
           <Text style={s.buttonText}>سجل كناقل الآن</Text>
@@ -35,8 +35,6 @@ export function CarrierCTABanner() {
 
 const s = StyleSheet.create({
   container: {
-    marginHorizontal: Spacing.space2,
-    marginBottom: Spacing.space6,
     borderRadius: Radius.xl,
     backgroundColor: '#0f172a',
     overflow: 'hidden',
@@ -47,31 +45,35 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   content: {
-    padding: Spacing.space5,
+    padding: Spacing.space4,
     alignItems: 'center',
   },
   iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.pill,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.space3,
+    marginBottom: Spacing.space2,
   },
   title: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 20,
+    fontSize: 17,
+    lineHeight: 24,
     color: Colors.white,
-    marginBottom: Spacing.space2,
+    marginBottom: Spacing.space1,
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   desc: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
+    fontSize: 13,
+    lineHeight: 20,
     color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
     marginBottom: Spacing.space4,
+    writingDirection: 'rtl',
   },
   button: {
     flexDirection: 'row',
@@ -86,7 +88,10 @@ const s = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 20,
     color: '#0f172a',
+    writingDirection: 'rtl',
   },
 });
+

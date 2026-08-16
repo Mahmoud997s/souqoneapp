@@ -20,6 +20,7 @@ import { dialogService } from '../../src/store/dialogStore'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/filters'
 import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses'
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
+import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -152,7 +153,7 @@ export default function ListingDetailScreen() {
   const cap = raw.capacity
   const bType = raw.busType
   const cond = raw.condition
-  const governorate = raw.governorate
+  const governorate = formatOmanLocation(raw.governorate, raw.city)
   const city = raw.city
 
   const translatedBusType = BUS_TYPES.find(b => b.id === bType)?.label || bType
@@ -975,3 +976,4 @@ const s = StyleSheet.create({
   directionsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#EFF6FF', paddingVertical: 12, borderRadius: 12, marginTop: 12, borderWidth: 1, borderColor: '#DBEAFE' },
   directionsTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.primary, fontSize: 14 }
 })
+

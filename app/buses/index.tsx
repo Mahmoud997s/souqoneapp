@@ -6,15 +6,14 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  useAnimatedScrollHandler, useSharedValue,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { Colors } from '../../src/constants/colors';
 import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
 import { useBuses } from '../../src/hooks/useBuses';
+import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 
 // Feature Components
 import { BusActionCards } from '../../src/components/buses/landing/BusActionCards';
@@ -22,6 +21,8 @@ import { BusCategoriesGrid } from '../../src/components/buses/landing/BusCategor
 import { BusLandingSection } from '../../src/components/buses/landing/BusLandingSection';
 import { BusPromoBanner } from '../../src/components/buses/landing/BusPromoBanner';
 import { BusesHowItWorks } from '../../src/components/buses/landing/BusesHowItWorks';
+import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 
@@ -73,13 +74,7 @@ const act = StyleSheet.create({
 export default function BusesLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollY = useSharedValue(0);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
+  const { scrollHandler, scrollY } = useScrollAwareNav();
 
   const [loadRest, setLoadRest] = useState(false);
   React.useEffect(() => {
@@ -176,8 +171,13 @@ export default function BusesLandingScreen() {
           )}
 
           <BusesHowItWorks />
+
+          {/* Need Help / Support Button */}
+          <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space3, marginBottom: Spacing.space4 }} />
         </View>
       </Animated.ScrollView>
+
+      <BusesBottomBar />
     </View>
   );
 }

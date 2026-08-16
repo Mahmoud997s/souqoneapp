@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { GOVERNORATE_OPTIONS } from '../../constants/filters';
+import { locationsApi } from '../../api/locations';
+import { GovernorateRef } from '../../types/location.types';
 import { PRICE_RANGES, SORT_OPTIONS, YEARS, CAR_TYPES } from '../../constants/browseFilters';
 
 interface QuickFilterModalProps {
@@ -23,6 +24,14 @@ export function QuickFilterModal({
   setFilters,
   brands
 }: QuickFilterModalProps) {
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+
+  useEffect(() => {
+    if (visible && activeDropdown === 'city') {
+      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+    }
+  }, [visible, activeDropdown]);
+
   if (!visible) return null;
 
   return (
@@ -37,7 +46,7 @@ export function QuickFilterModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {activeDropdown === 'make' ? 'اختر الماركة' :
-               activeDropdown === 'city' ? 'اختر المدينة' :
+               activeDropdown === 'city' ? 'اختر المحافظة' :
                activeDropdown === 'year' ? 'سنة الصنع' : 
                activeDropdown === 'type' ? 'الهيكل' : 
                activeDropdown === 'sort' ? 'الترتيب' : 'نطاق السعر'}
@@ -71,21 +80,27 @@ export function QuickFilterModal({
 
           {activeDropdown === 'city' && (
             <FlatList
-              data={GOVERNORATE_OPTIONS}
-              keyExtractor={(item) => item.value}
+              data={governorates}
+              keyExtractor={(item) => String(item.id)}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, city: item.labelAr });
+                    setFilters({
+                      ...filters,
+                      governorateId: item.id,
+                      governorate: item.nameAr,
+                      city: item.nameAr,
+                      wilayaId: undefined,
+                    });
                     onClose();
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.city === item.labelAr && styles.modalOptionTxtActive]}>
-                    {item.labelAr}
+                  <Text style={[styles.modalOptionTxt, filters.governorateId === item.id && styles.modalOptionTxtActive]}>
+                    {item.nameAr}
                   </Text>
-                  {filters.city === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {filters.governorateId === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />

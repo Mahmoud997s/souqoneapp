@@ -10,6 +10,8 @@ interface PostState {
   isPriceNegotiable: boolean
   governorate: string
   city: string
+  governorateId?: number
+  wilayaId?: number
   locationNote: string
   latitude?: number
   longitude?: number

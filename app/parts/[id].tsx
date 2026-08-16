@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePart } from '../../src/hooks/useParts'
 import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
+import { formatLocation } from '../../src/utils/mappers'
+import { useBrands } from '../../src/hooks/useCars'
+import { POPULAR_PART_MAKES } from '../../src/constants/parts'
 
 const ACCENT = '#ea580c' // Orange Accent
 
@@ -27,6 +30,7 @@ export default function PartDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
   const { data: item, isLoading, isError } = usePart(id)
+  const { data: brands } = useBrands()
   const [imgIdx, setImgIdx] = useState(0)
 
   if (isLoading) {
@@ -108,12 +112,12 @@ export default function PartDetailScreen() {
               {price > 0 ? price.toLocaleString('en-US') : 'تواصل للسعر'}
               {price > 0 && <Text style={s.currency}> ر.ع.</Text>}
             </Text>
-            {(raw.city || raw.governorate) && (
+            {formatLocation(raw) ? (
               <View style={s.locationPill}>
                 <Ionicons name="location-outline" size={14} color={ACCENT} />
-                <Text style={s.locationTxt}>{raw.city || raw.governorate}</Text>
+                <Text style={s.locationTxt}>{formatLocation(raw)}</Text>
               </View>
-            )}
+            ) : null}
           </View>
 
           <View style={s.tagsRow}>
@@ -138,7 +142,15 @@ export default function PartDetailScreen() {
             {raw.compatibleMakes && raw.compatibleMakes.length > 0 && (
               <View style={s.tag}>
                 <Ionicons name="car-outline" size={14} color={ACCENT} />
-                <Text style={s.tagTxt}>{raw.compatibleMakes.join(', ')}</Text>
+                <Text style={s.tagTxt}>
+                  {raw.compatibleMakes.map((m: string) => {
+                    if (m === 'all') return 'متوافق مع الجميع'
+                    const foundApi = brands?.find((b) => b.id === m)
+                    if (foundApi) return foundApi.nameAr || foundApi.name
+                    const foundLocal = POPULAR_PART_MAKES.find((pm) => pm.id === m)
+                    return foundLocal ? foundLocal.label : m
+                  }).join('، ')}
+                </Text>
               </View>
             )}
           </View>
