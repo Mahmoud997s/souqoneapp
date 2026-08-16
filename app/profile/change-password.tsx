@@ -7,17 +7,19 @@ import {
   Platform,
   Text,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { Colors } from '../../src/constants/colors'
-import { Spacing } from '../../src/constants/spacing'
-import { Radius } from '../../src/constants/radius'
 import { usersApi } from '../../src/api/users'
 import { dialogService } from '../../src/store/dialogStore'
+import { ChangePasswordNavBar } from '../../src/components/profile/ChangePasswordNavBar'
+import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
+import { PasswordRequirements } from '../../src/components/profile/PasswordRequirements'
 
 export default function ChangePasswordScreen() {
+  const insets = useSafeAreaInsets()
+
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -61,21 +63,41 @@ export default function ChangePasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: '#F8FAFC' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <View style={s.root}>
-        <AppHeader title="تغيير كلمة المرور" showBack />
+        {/* ── Fixed Navigation Bar ── */}
+        <ChangePasswordNavBar
+          paddingTop={insets.top}
+          onBackPress={() => router.back()}
+        />
+
         <ScrollView
-          contentContainerStyle={s.content}
+          style={{ flex: 1 }}
+          contentContainerStyle={[
+            s.content,
+            {
+              paddingTop: insets.top + 66,
+              paddingBottom: 24,
+            },
+          ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={s.sectionTitle}>بيانات الأمان</Text>
-          <View style={s.card}>
-            <View style={s.form}>
+          {/* ── Security Info Banner ── */}
+          <SecurityInfoBanner />
+
+          {/* ── Password Fields Form Card ── */}
+          <View style={s.sectionWrap}>
+            <Text style={s.sectionHeaderTitle}>بيانات كلمة المرور</Text>
+            <View style={s.cardGroup}>
+              {/* Current Password Field */}
               <AppInput
                 label="كلمة المرور الحالية"
-                placeholder="أدخل كلمة المرور القديمة"
+                placeholder="أدخل كلمة المرور الحالية"
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
                 iconRight="lock-closed-outline"
@@ -84,6 +106,7 @@ export default function ChangePasswordScreen() {
                 secureTextEntry={!showCurrent}
               />
 
+              {/* New Password Field */}
               <AppInput
                 label="كلمة المرور الجديدة"
                 placeholder="أدخل كلمة المرور الجديدة"
@@ -95,6 +118,13 @@ export default function ChangePasswordScreen() {
                 secureTextEntry={!showNew}
               />
 
+              {/* Password Requirements Indicator */}
+              <PasswordRequirements
+                newPassword={newPassword}
+                confirmPassword={confirmPassword}
+              />
+
+              {/* Confirm Password Field */}
               <AppInput
                 label="تأكيد كلمة المرور الجديدة"
                 placeholder="أعد كتابة كلمة المرور الجديدة"
@@ -109,7 +139,8 @@ export default function ChangePasswordScreen() {
           </View>
         </ScrollView>
 
-        <View style={s.footer}>
+        {/* ── Fixed Bottom Footer Action Button ── */}
+        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <AppButton
             title="حفظ التغييرات"
             onPress={handleSave}
@@ -121,41 +152,61 @@ export default function ChangePasswordScreen() {
   )
 }
 
+const softShadow = Platform.select({
+  ios: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+  },
+  android: { elevation: 1.5 },
+})
+
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#f7f9fc',
+    backgroundColor: '#F8FAFC',
   },
   content: {
-    padding: Spacing.space4,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: Spacing.space4,
-    marginBottom: 24,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
+  sectionWrap: {
+    marginBottom: 14,
   },
-  sectionTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    color: Colors.primary,
-    marginBottom: Spacing.space3,
-    writingDirection: 'rtl',
+  sectionHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: '#64748B',
+    marginBottom: 7,
+    paddingHorizontal: 4,
     textAlign: 'left',
-    paddingHorizontal: 8,
+    writingDirection: 'rtl',
   },
-  form: {
-    gap: Spacing.space4,
+  cardGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 14,
+    ...softShadow,
   },
   footer: {
-    padding: Spacing.space4,
-    paddingBottom: Platform.OS === 'ios' ? Spacing.space6 : Spacing.space4,
-    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: '#E2E8F0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: { elevation: 4 },
+    }),
   },
 })
