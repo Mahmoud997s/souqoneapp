@@ -8,6 +8,10 @@ export interface User {
   country?: string
   governorate?: string
   city?: string
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn?: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn?: string }
   role: 'user' | 'admin'
   accountType?: 'private' | 'company'
   isVerified: boolean

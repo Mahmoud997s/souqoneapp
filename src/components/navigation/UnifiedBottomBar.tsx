@@ -21,7 +21,7 @@ import { Colors } from '../../constants/colors';
 import { Gradients } from '../../constants/gradients';
 import { useNavVisibility } from '../../context/NavVisibilityContext';
 
-export const UNIFIED_BOTTOM_BAR_HEIGHT = 56;
+export const UNIFIED_BOTTOM_BAR_HEIGHT = 52;
 
 export type IconFamily = 'Ionicons' | 'MaterialCommunityIcons';
 
@@ -65,60 +65,24 @@ function DynamicTabIcon({
 
 function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: boolean }) {
   const pressScale = useSharedValue(1);
-  const breathScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.35);
 
   React.useEffect(() => {
     if (isHovered) {
-      pressScale.value = withSpring(1.12, { damping: 10, stiffness: 300 });
+      pressScale.value = withSpring(1.08, { damping: 10, stiffness: 300 });
     } else {
       pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
     }
   }, [isHovered, pressScale]);
 
-  React.useEffect(() => {
-    // Subtle, elegant breathing micro-animation for "أضف إعلان"
-    breathScale.value = withRepeat(
-      withSequence(
-        withTiming(1.04, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-    pulseOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.12, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.4, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, [breathScale, pulseOpacity]);
-
   const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pressScale.value * breathScale.value }],
-  }));
-
-  const pulseRingStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: interpolate(
-          breathScale.value,
-          [1, 1.04],
-          [1, 1.18],
-          Extrapolation.CLAMP
-        ),
-      },
-    ],
-    opacity: pulseOpacity.value,
+    transform: [{ scale: pressScale.value }],
   }));
 
   const handlePress = useCallback(() => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {}
-    pressScale.value = withSpring(0.84, { damping: 9, stiffness: 350 }, () => {
+    pressScale.value = withSpring(0.85, { damping: 9, stiffness: 350 }, () => {
       pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
     });
     onPress();
@@ -133,10 +97,6 @@ function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: bool
         accessibilityLabel="إضافة إعلان جديد"
       >
         <View style={s.fabCenterWrapper}>
-          {/* Subtle Ambient Pulse Ring */}
-          <Animated.View style={[s.fabPulseRing, pulseRingStyle]} />
-
-          {/* Modern Rounded Squircle Button with Clean Edges */}
           <Animated.View style={[s.fabSquircleWrap, fabAnimStyle]}>
             <LinearGradient
               colors={Gradients.hero}
@@ -144,7 +104,7 @@ function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: bool
               end={{ x: 1, y: 1 }}
               style={s.fabSquircle}
             >
-              <Ionicons name="add" size={26} color={Colors.white} />
+              <Ionicons name="add" size={20} color={Colors.white} />
             </LinearGradient>
           </Animated.View>
         </View>
@@ -597,34 +557,27 @@ const s = StyleSheet.create({
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
   },
   fabCenterWrapper: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  fabPulseRing: {
-    position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 15,
-    backgroundColor: Colors.primary,
-  },
   fabSquircleWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 15,
-    borderWidth: 2,
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    borderWidth: 1.5,
     borderColor: '#ffffff',
     overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
       },
-      android: { elevation: 8 },
+      android: { elevation: 4 },
     }),
   },
   fabSquircle: {

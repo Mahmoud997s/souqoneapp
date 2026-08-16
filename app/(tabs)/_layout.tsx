@@ -44,9 +44,9 @@ const T = {
   badgeBorder:Colors.white,
 } as const
 
-const BAR_H      = 54
-const FAB_SIZE   = 48
-const ICON_SIZE  = 22
+const BAR_H      = 52
+const FAB_SIZE   = 38
+const ICON_SIZE  = 20
 const FONT_ACT   = Typography.labelMd.fontFamily
 const FONT_INACT = Typography.caption.fontFamily
 
@@ -166,7 +166,7 @@ function FABItem({ onPress }: { onPress: () => void }) {
       accessibilityLabel="إضافة إعلان"
     >
       <Animated.View style={[s.fabCircle, fabAnimStyle]}>
-        <Ionicons name="add" size={30} color={T.fabIcon} />
+        <Ionicons name="add" size={22} color={T.fabIcon} />
       </Animated.View>
     </Pressable>
   )
