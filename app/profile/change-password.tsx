@@ -18,31 +18,34 @@ import { usersApi } from '../../src/api/users'
 import { dialogService } from '../../src/store/dialogStore'
 
 export default function ChangePasswordScreen() {
-  const [oldPassword, setOldPassword] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   
-  const [showOld, setShowOld] = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
-    if (!oldPassword || !newPassword || !confirmPassword) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
       return dialogService.alert('تنبيه', 'يرجى ملء جميع الحقول')
     }
     if (newPassword !== confirmPassword) {
       return dialogService.alert('تنبيه', 'كلمة المرور الجديدة غير متطابقة مع التأكيد')
     }
-    if (newPassword.length < 6) {
-      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل')
+    if (newPassword.length < 8) {
+      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة يجب أن تكون ٨ أحرف على الأقل')
+    }
+    if (!/[A-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      return dialogService.alert('تنبيه', 'كلمة المرور يجب أن تحتوي على حرف كبير ورقم على الأقل')
     }
 
     try {
       setLoading(true)
       await usersApi.changePassword({
-        oldPassword,
+        currentPassword,
         newPassword,
       })
 
@@ -50,7 +53,7 @@ export default function ChangePasswordScreen() {
       router.back()
     } catch (err: any) {
       const msg = err.response?.data?.message || 'كلمة المرور الحالية غير صحيحة أو حدث خطأ'
-      dialogService.alert('خطأ', typeof msg === 'string' ? msg : msg[0])
+      dialogService.alert('خطأ', typeof msg === 'string' ? msg : Array.isArray(msg) ? msg[0] : 'حدث خطأ')
     } finally {
       setLoading(false)
     }
@@ -73,12 +76,12 @@ export default function ChangePasswordScreen() {
               <AppInput
                 label="كلمة المرور الحالية"
                 placeholder="أدخل كلمة المرور القديمة"
-                value={oldPassword}
-                onChangeText={setOldPassword}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
                 iconRight="lock-closed-outline"
-                iconLeft={showOld ? "eye-off-outline" : "eye-outline"}
-                onIconLeftPress={() => setShowOld(!showOld)}
-                secureTextEntry={!showOld}
+                iconLeft={showCurrent ? "eye-off-outline" : "eye-outline"}
+                onIconLeftPress={() => setShowCurrent(!showCurrent)}
+                secureTextEntry={!showCurrent}
               />
 
               <AppInput
