@@ -8,7 +8,7 @@ export interface UpdateProfilePayload {
   country?: string
   governorateId?: number
   wilayaId?: number
-  avatarUrl?: string
+  avatarUrl?: string | null
   latitude?: number
   longitude?: number
 }

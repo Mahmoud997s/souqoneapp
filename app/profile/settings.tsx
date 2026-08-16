@@ -1,168 +1,466 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Linking, Platform } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Linking,
+  Platform,
+  StatusBar,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { AppHeader } from '../../src/components/ui/AppHeader'
+import { router } from 'expo-router'
 import { Colors } from '../../src/constants/colors'
-import { Spacing } from '../../src/constants/spacing'
-import { Radius } from '../../src/constants/radius'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
-import { router } from 'expo-router'
 import { usersApi } from '../../src/api/users'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets()
   const { logout, user } = useAuthStore()
   const [msgNotif, setMsgNotif] = useState((user as any)?.preferences?.msgNotif ?? true)
   const [adNotif, setAdNotif] = useState((user as any)?.preferences?.adNotif ?? true)
 
   const handleToggleMsg = async (val: boolean) => {
     setMsgNotif(val)
-    try { await usersApi.updateProfile({ preferences: { msgNotif: val, adNotif } } as any) } catch {}
+    try {
+      await usersApi.updateProfile({ preferences: { msgNotif: val, adNotif } } as any)
+    } catch {}
   }
 
   const handleToggleAd = async (val: boolean) => {
     setAdNotif(val)
-    try { await usersApi.updateProfile({ preferences: { msgNotif, adNotif: val } } as any) } catch {}
+    try {
+      await usersApi.updateProfile({ preferences: { msgNotif, adNotif: val } } as any)
+    } catch {}
   }
 
-  const Item = ({ icon, title, value, hasSwitch, switchVal, onSwitch, onPress, isLast }: any) => (
-    <TouchableOpacity style={s.optionRow} disabled={hasSwitch} onPress={onPress} activeOpacity={0.6}>
+  const handleLogout = () => {
+    dialogService.confirm(
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
+      async () => {
+        await logout()
+        router.replace('/(auth)/login')
+      },
+      'تسجيل الخروج',
+      'إلغاء',
+      true
+    )
+  }
+
+  const SettingItem = ({
+    icon,
+    iconColor = '#334155',
+    title,
+    value,
+    hasSwitch,
+    switchVal,
+    onSwitch,
+    onPress,
+    isLast,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap
+    iconColor?: string
+    title: string
+    value?: string
+    hasSwitch?: boolean
+    switchVal?: boolean
+    onSwitch?: (val: boolean) => void
+    onPress?: () => void
+    isLast?: boolean
+  }) => (
+    <TouchableOpacity
+      style={s.optionRow}
+      disabled={hasSwitch}
+      onPress={onPress}
+      activeOpacity={0.6}
+    >
       <View style={s.optionRight}>
         <View style={s.optionIconWrap}>
-          <Ionicons name={icon} size={20} color={Colors.text2} />
+          <Ionicons name={icon} size={18} color={iconColor} />
         </View>
-        <Text style={s.optionTitle} numberOfLines={1}>{title}</Text>
+        <Text style={s.optionTitle} numberOfLines={1}>
+          {title}
+        </Text>
       </View>
 
       {hasSwitch ? (
-        <Switch value={switchVal} onValueChange={onSwitch} trackColor={{ true: Colors.primary }} />
+        <Switch
+          value={switchVal}
+          onValueChange={onSwitch}
+          trackColor={{ false: '#CBD5E1', true: Colors.primary }}
+          thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : '#F1F5F9') : undefined}
+        />
       ) : value ? (
         <View style={s.valRow}>
-          <Text style={s.valTxt}>{value}</Text>
-          <Ionicons name="chevron-back" size={16} color={Colors.borderStrong} />
+          <View style={s.badgePill}>
+            <Text style={s.badgeText}>{value}</Text>
+          </View>
+          <Ionicons name="chevron-back" size={15} color="#94A3B8" />
         </View>
       ) : (
-        <Ionicons name="chevron-back" size={16} color={Colors.borderStrong} />
+        <Ionicons name="chevron-back" size={15} color="#94A3B8" />
       )}
-      
+
       {!isLast && <View style={s.optionDivider} />}
     </TouchableOpacity>
   )
 
   return (
     <View style={s.root}>
-      <AppHeader title="الإعدادات" showBack />
-      <ScrollView contentContainerStyle={s.content}>
-        
-        <Text style={s.sectionTitle}>الحساب</Text>
-        <View style={s.optionsGroup}>
-          <Item icon="person-outline" title="تعديل الملف الشخصي" onPress={() => router.push('/profile/edit-profile' as any)} />
-          <Item icon="lock-closed-outline" title="تغيير كلمة المرور" onPress={() => router.push('/profile/change-password' as any)} />
-          <Item icon="checkmark-circle-outline" title="التحقق من الهوية" onPress={() => dialogService.alert('قريباً', 'التحقق من الهوية قريباً', 'info')} isLast />
+      <StatusBar barStyle="dark-content" />
+
+      {/* ── Fixed Top Navigation Bar ── */}
+      <View style={[s.navBarFixed, { paddingTop: insets.top }]}>
+        <View style={s.navBarRow}>
+          {/* Back Button (Right in RTL) */}
+          <TouchableOpacity
+            style={s.navBtn}
+            activeOpacity={0.75}
+            onPress={() => router.back()}
+            accessibilityLabel="رجوع"
+          >
+            <Ionicons name="arrow-forward-outline" size={18} color="#1E293B" />
+          </TouchableOpacity>
+
+          {/* Title Badge */}
+          <View style={s.navTitleBadge}>
+            <Text style={s.navTitle} numberOfLines={1}>
+              إعدادات الحساب
+            </Text>
+          </View>
+
+          {/* Spacer for symmetry */}
+          <View style={s.navBtnPlaceholder} />
+        </View>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+          s.content,
+          {
+            paddingTop: insets.top + 66,
+            paddingBottom: Math.max(insets.bottom, 16) + 17,
+          },
+        ]}
+      >
+        {/* ── Section 1: Account ── */}
+        <View style={s.sectionWrap}>
+          <Text style={s.sectionHeaderTitle}>الحساب والأمان</Text>
+          <View style={s.cardGroup}>
+            <SettingItem
+              icon="person-outline"
+              iconColor={Colors.primary}
+              title="تعديل الملف الشخصي"
+              onPress={() => router.push('/profile/edit-profile' as any)}
+            />
+            <SettingItem
+              icon="lock-closed-outline"
+              iconColor="#2563EB"
+              title="تغيير كلمة المرور"
+              onPress={() => router.push('/profile/change-password' as any)}
+            />
+            <SettingItem
+              icon="shield-checkmark-outline"
+              iconColor="#059669"
+              title="التحقق من الهوية"
+              onPress={() => dialogService.alert('قريباً', 'ميزة التحقق من الهوية ستكون متاحة قريباً', 'info')}
+              isLast
+            />
+          </View>
         </View>
 
-        <Text style={s.sectionTitle}>الإشعارات</Text>
-        <View style={s.optionsGroup}>
-          <Item icon="chatbubble-outline" title="إشعارات الرسائل" hasSwitch switchVal={msgNotif} onSwitch={handleToggleMsg} />
-          <Item icon="megaphone-outline" title="إشعارات الإعلانات" hasSwitch switchVal={adNotif} onSwitch={handleToggleAd} isLast />
+        {/* ── Section 2: Notifications ── */}
+        <View style={s.sectionWrap}>
+          <Text style={s.sectionHeaderTitle}>تفضيلات الإشعارات</Text>
+          <View style={s.cardGroup}>
+            <SettingItem
+              icon="chatbubble-outline"
+              iconColor="#7C3AED"
+              title="إشعارات الرسائل والمحادثات"
+              hasSwitch
+              switchVal={msgNotif}
+              onSwitch={handleToggleMsg}
+            />
+            <SettingItem
+              icon="notifications-outline"
+              iconColor="#D97706"
+              title="إشعارات الإعلانات والعروض"
+              hasSwitch
+              switchVal={adNotif}
+              onSwitch={handleToggleAd}
+              isLast
+            />
+          </View>
         </View>
 
-        <Text style={s.sectionTitle}>التطبيق</Text>
-        <View style={s.optionsGroup}>
-          <Item icon="globe-outline" title="اللغة" value="العربية" onPress={() => dialogService.alert('اللغة', 'التطبيق متاح باللغة العربية فقط', 'info')} />
-          <Item icon="headset-outline" title="الدعم الفني" onPress={() => Linking.openURL('mailto:support@souqone.com')} />
-          <Item icon="document-text-outline" title="سياسة الخصوصية" onPress={() => Linking.openURL('https://souqone.com/privacy')} />
-          <Item icon="shield-checkmark-outline" title="شروط الاستخدام" onPress={() => Linking.openURL('https://souqone.com/terms')} isLast />
+        {/* ── Section 3: App & Legal ── */}
+        <View style={s.sectionWrap}>
+          <Text style={s.sectionHeaderTitle}>معلومات التطبيق والدعم</Text>
+          <View style={s.cardGroup}>
+            <SettingItem
+              icon="globe-outline"
+              iconColor="#0284C7"
+              title="اللغة"
+              value="العربية"
+              onPress={() => dialogService.alert('اللغة', 'التطبيق متاح باللغة العربية حالياً', 'info')}
+            />
+            <SettingItem
+              icon="headset-outline"
+              iconColor="#059669"
+              title="الدعم الفني والمساعدة"
+              onPress={() => Linking.openURL('mailto:support@souqone.com').catch(() => {})}
+            />
+            <SettingItem
+              icon="document-text-outline"
+              iconColor="#64748B"
+              title="سياسة الخصوصية"
+              onPress={() => Linking.openURL('https://souqone.com/privacy').catch(() => {})}
+            />
+            <SettingItem
+              icon="information-circle-outline"
+              iconColor="#64748B"
+              title="شروط الاستخدام"
+              onPress={() => Linking.openURL('https://souqone.com/terms').catch(() => {})}
+              isLast
+            />
+          </View>
         </View>
 
-        <TouchableOpacity style={s.logoutBtn} onPress={() => {
-          dialogService.confirm(
-            'تسجيل الخروج',
-            'هل أنت متأكد من تسجيل الخروج؟',
-            async () => {
-              await logout()
-              router.replace('/(auth)/login')
-            },
-            'تسجيل الخروج',
-            'إلغاء',
-            true,
-          )
-        }}>
-          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-          <Text style={s.logoutTxt}>تسجيل الخروج</Text>
-        </TouchableOpacity>
-        <Text style={s.version}>الإصدار: v1.0.0</Text>
+        {/* ── Support & Help Button ── */}
+        <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 10 }} />
 
+        {/* ── Logout Button ── */}
+        <View style={s.logoutWrap}>
+          <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.75}>
+            <Ionicons name="log-out-outline" size={19} color="#DC2626" style={{ marginEnd: 8 }} />
+            <Text style={s.logoutTxt}>تسجيل الخروج</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Version Info ── */}
+        <Text style={s.version}>سوق ون © الإصدار 1.0.0</Text>
       </ScrollView>
     </View>
   )
 }
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
-  content: { padding: Spacing.space4, paddingBottom: 100 },
-  sectionTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    color: Colors.primary,
-    marginBottom: Spacing.space3,
-    writingDirection: 'rtl',
-    textAlign: 'right',
-    paddingHorizontal: 8,
+
+const softShadow = Platform.select({
+  ios: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
   },
-  optionsGroup: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    marginBottom: 24,
-    paddingVertical: 4,
+  android: { elevation: 1.5 },
+})
+
+const s = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  content: {
+    paddingHorizontal: 16,
+  },
+
+  /* Fixed Top Navigation Bar */
+  navBarFixed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
-      android: { elevation: 2 },
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: { elevation: 3 },
     }),
+  },
+  navBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    height: 44,
+    gap: 8,
+  },
+  navBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...softShadow,
+  },
+  navBtnPlaceholder: {
+    width: 38,
+    height: 38,
+  },
+  navTitleBadge: {
+    flex: 1,
+    height: 38,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...softShadow,
+  },
+  navTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    lineHeight: 19,
+    color: '#1E293B',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+
+  /* Section Styles */
+  sectionWrap: {
+    marginBottom: 14,
+  },
+  sectionHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: '#64748B',
+    marginBottom: 7,
+    paddingHorizontal: 4,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  cardGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...softShadow,
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
   },
   optionRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
   },
   optionIconWrap: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: 10,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.text,
-    textAlign: 'right',
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: '#1E293B',
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   optionDivider: {
     position: 'absolute',
     bottom: 0,
-    right: 60,
-    left: 16,
+    end: 14,
+    start: 60,
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: '#F1F5F9',
   },
-  valRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  valTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.textMuted },
+  valRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badgePill: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  badgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#334155',
+    writingDirection: 'rtl',
+  },
+
+  /* Logout */
+  logoutWrap: {
+    marginTop: 2,
+    marginBottom: 10,
+  },
   logoutBtn: {
-    height: 52,
-    borderRadius: Radius.xl,
-    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1.5,
+    borderColor: '#FECACA',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.space2,
-    marginBottom: Spacing.space4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      android: { elevation: 2 },
+    }),
   },
-  logoutTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.error },
-  version: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.borderStrong, textAlign: 'center' }
+  logoutTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#DC2626',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+
+  /* Version */
+  version: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 4,
+    writingDirection: 'rtl',
+  },
 })
+

@@ -12,15 +12,16 @@ import {
   FlatList,
   TextInput,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { useAuthStore } from '../../src/store/authStore'
-import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { usersApi } from '../../src/api/users'
 import { uploadsApi } from '../../src/api/uploads'
@@ -56,8 +57,10 @@ export default function EditProfileScreen() {
   const [wilayaId, setWilayaId] = useState<number | null>(null)
   const [wilayaName, setWilayaName] = useState('')
 
-  const [avatarUrl, setAvatarUrl] = useState('')
+  // null = not yet loaded, '' = explicitly cleared, string = URL/URI
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showAvatarSheet, setShowAvatarSheet] = useState(false)
 
   // Location Selector Modal State
   const [modalType, setModalType] = useState<'governorate' | 'wilaya' | null>(null)
@@ -77,7 +80,7 @@ export default function EditProfileScreen() {
       setWilayaId(user.wilayaId || null)
       setGovernorateName(user.governorateRef?.nameAr || user.governorate || '')
       setWilayaName(user.wilayaRef?.nameAr || user.city || '')
-      setAvatarUrl(user.avatarUrl || user.avatar || '')
+      setAvatarUrl(user.avatarUrl || user.avatar || null)
     }
   }, [user])
 
@@ -101,29 +104,79 @@ export default function EditProfileScreen() {
     }
   }, [governorateId, wilayaId, wilayaName])
 
-  const rawAvatar = avatarUrl || user?.avatarUrl || user?.avatar
-  const displayAvatar = rawAvatar
-    ? rawAvatar.startsWith('http') || rawAvatar.startsWith('file')
-      ? rawAvatar
-      : `${Config.apiUrl}${rawAvatar.startsWith('/') ? '' : '/'}${rawAvatar}`
+  // avatarUrl === null → not loaded yet (use user fallback)
+  // avatarUrl === '' → user explicitly cleared it
+  // avatarUrl === string → new URI or existing URL
+  const resolvedAvatar =
+    avatarUrl === null
+      ? (user?.avatarUrl || user?.avatar || null)
+      : avatarUrl || null
+
+  const displayAvatar = resolvedAvatar
+    ? resolvedAvatar.startsWith('http') || resolvedAvatar.startsWith('file')
+      ? resolvedAvatar
+      : `${Config.apiUrl}${resolvedAvatar.startsWith('/') ? '' : '/'}${resolvedAvatar}`
     : null
 
-  const handlePickImage = async () => {
+  const pickFromGallery = async () => {
+    console.log('🟢 [pickFromGallery] Clicked')
     try {
+      console.log('🟢 [pickFromGallery] Requesting permissions...')
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      console.log('🟢 [pickFromGallery] Permission status:', status)
+      if (status !== 'granted') {
+        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز')
+        return
+      }
+
+      console.log('🟢 [pickFromGallery] Launching ImageLibrary...')
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
+        mediaTypes: ['images'],
         quality: 0.8,
       })
+      console.log('🟢 [pickFromGallery] Result:', result)
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets?.[0]?.uri) {
         setAvatarUrl(result.assets[0].uri)
       }
-    } catch {
-      dialogService.alert('خطأ', 'حدث خطأ أثناء اختيار الصورة')
+    } catch (err: any) {
+      console.error('❌ [pickFromGallery] Error:', err)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح المعرض: ' + (err?.message || ''))
+    } finally {
+      setShowAvatarSheet(false)
     }
   }
+
+  const pickFromCamera = async () => {
+    console.log('🟢 [pickFromCamera] Clicked')
+    try {
+      console.log('🟢 [pickFromCamera] Requesting camera permissions...')
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      console.log('🟢 [pickFromCamera] Camera permission status:', status)
+      if (status !== 'granted') {
+        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى الكاميرا من إعدادات الجهاز')
+        return
+      }
+
+      console.log('🟢 [pickFromCamera] Launching Camera...')
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      })
+      console.log('🟢 [pickFromCamera] Result:', result)
+
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setAvatarUrl(result.assets[0].uri)
+      }
+    } catch (err: any) {
+      console.error('❌ [pickFromCamera] Error:', err)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الكاميرا: ' + (err?.message || ''))
+    } finally {
+      setShowAvatarSheet(false)
+    }
+  }
+
+  const handlePickImage = () => setShowAvatarSheet(true)
 
   // Open Governorates Modal
   const openGovernoratePicker = async () => {
@@ -208,10 +261,13 @@ export default function EditProfileScreen() {
 
     try {
       setLoading(true)
-      let finalAvatarUrl = avatarUrl
+      let avatarPayload: string | null | undefined = undefined
 
-      // If avatarUrl is a local file URI, upload it first
-      if (avatarUrl && !avatarUrl.startsWith('http')) {
+      if (avatarUrl === '') {
+        // User explicitly deleted avatar -> send null to delete from DB
+        avatarPayload = null
+      } else if (avatarUrl && !avatarUrl.startsWith('http')) {
+        // Local file URI -> upload first
         const filename = avatarUrl.split('/').pop() || 'avatar.jpg'
         const match = /\.(\w+)$/.exec(filename)
         const type = match ? `image/${match[1]}` : `image/jpeg`
@@ -225,9 +281,16 @@ export default function EditProfileScreen() {
 
         const uploadRes = await uploadsApi.single(formData)
         if (uploadRes.data?.url) {
-          finalAvatarUrl = uploadRes.data.url
+          avatarPayload = uploadRes.data.url
         }
+      } else if (avatarUrl) {
+        avatarPayload = avatarUrl
+      } else {
+        // avatarUrl === null -> no local override -> do not modify
+        avatarPayload = undefined
       }
+
+      console.log('📤 [handleSave] avatarPayload:', avatarPayload)
 
       const res = await usersApi.updateProfile({
         displayName: displayName.trim(),
@@ -235,18 +298,30 @@ export default function EditProfileScreen() {
         bio: bio.trim() || undefined,
         governorateId: governorateId ?? undefined,
         wilayaId: wilayaId ?? undefined,
-        avatarUrl: finalAvatarUrl || undefined,
+        avatarUrl: avatarPayload,
       })
 
+      console.log('📥 [handleSave] API updateProfile response:', res.data)
+
       if (res.data) {
-        useAuthStore.setState((state) => ({
-          user: state.user ? {
+        useAuthStore.setState((state) => {
+          if (!state.user) return { user: res.data }
+          const updatedUser = {
             ...state.user,
             ...res.data,
+            avatarUrl: avatarPayload === null ? undefined : (res.data.avatarUrl ?? state.user.avatarUrl),
+            avatar: avatarPayload === null ? undefined : (res.data.avatar ?? state.user.avatar),
             governorateRef: governorateId && governorateName ? { id: governorateId, nameAr: governorateName } : state.user.governorateRef,
             wilayaRef: wilayaId && wilayaName ? { id: wilayaId, nameAr: wilayaName } : state.user.wilayaRef,
-          } : res.data,
-        }))
+          }
+          if (avatarPayload === null) {
+            delete (updatedUser as any).avatar
+            delete (updatedUser as any).avatarUrl
+          }
+          return { user: updatedUser }
+        })
+
+        console.log('💾 [handleSave] useAuthStore user after save:', useAuthStore.getState().user)
         dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')
         router.back()
       }
@@ -258,10 +333,60 @@ export default function EditProfileScreen() {
     }
   }
 
+  // Check for unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (!user) return false
+    const origDisplayName = user.displayName || ''
+    const origPhone = user.phone || ''
+    const origBio = user.bio || ''
+    const origGovernorateId = user.governorateId || null
+    const origWilayaId = user.wilayaId || null
+    const origAvatar = user.avatarUrl || user.avatar || null
+
+    return (
+      displayName.trim() !== origDisplayName.trim() ||
+      phone.trim() !== origPhone.trim() ||
+      bio.trim() !== origBio.trim() ||
+      governorateId !== origGovernorateId ||
+      wilayaId !== origWilayaId ||
+      (avatarUrl !== null && avatarUrl !== origAvatar)
+    )
+  }, [user, displayName, phone, bio, governorateId, wilayaId, avatarUrl])
+
+  const handleBackPress = () => {
+    if (hasUnsavedChanges) {
+      dialogService.confirm(
+        'تغييرات غير محفوظة',
+        'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
+        () => router.back(),
+        'تجاهل والخروج',
+        'متابعة التعديل',
+        true
+      )
+    } else {
+      router.back()
+    }
+  }
+
+  // Intercept Android hardware back button
+  useEffect(() => {
+    const backAction = () => {
+      if (hasUnsavedChanges) {
+        handleBackPress()
+        return true
+      }
+      return false
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', backAction)
+    return () => subscription.remove()
+  }, [hasUnsavedChanges])
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: '#F8FAFC' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <View style={s.root}>
         {/* ── Nav Bar (matches profile.tsx exactly) ── */}
@@ -271,7 +396,7 @@ export default function EditProfileScreen() {
             <TouchableOpacity
               style={s.navBtn}
               activeOpacity={0.75}
-              onPress={() => router.back()}
+              onPress={handleBackPress}
               accessibilityLabel="رجوع"
             >
               <Ionicons name="arrow-forward-outline" size={18} color="#1E293B" />
@@ -306,8 +431,15 @@ export default function EditProfileScreen() {
         </View>
 
         <ScrollView
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 56 }]}
+          contentContainerStyle={[
+            s.content,
+            {
+              paddingTop: insets.top + 66,
+              paddingBottom: Math.max(insets.bottom, 16) + 21,
+            },
+          ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           {/* Avatar Section */}
@@ -316,9 +448,15 @@ export default function EditProfileScreen() {
               {displayAvatar ? (
                 <Image source={{ uri: displayAvatar }} style={s.avatar} contentFit="cover" />
               ) : (
-                <View style={[s.avatar, s.avatarFallback]}>
-                  <Ionicons name="person" size={32} color={Colors.white} />
-                </View>
+                <LinearGradient
+                  colors={['#1e3a6e', '#0f2952', '#0B2447']}
+                  start={{ x: 0.1, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[s.avatar, s.avatarFallback]}
+                >
+                  <View style={s.avatarGlassShimmer} />
+                  <Ionicons name="person" size={30} color="rgba(255,255,255,0.85)" />
+                </LinearGradient>
               )}
               <View style={s.cameraBadge}>
                 <Ionicons name="camera" size={13} color={Colors.white} />
@@ -355,7 +493,6 @@ export default function EditProfileScreen() {
                     onFocus={() => setFocusedField('displayName')}
                     onBlur={() => setFocusedField(null)}
                     textAlign="right"
-                    writingDirection="rtl"
                   />
                 </View>
               </View>
@@ -385,7 +522,6 @@ export default function EditProfileScreen() {
                     onBlur={() => setFocusedField(null)}
                     multiline
                     textAlign="right"
-                    writingDirection="rtl"
                   />
                 </View>
               </View>
@@ -418,7 +554,6 @@ export default function EditProfileScreen() {
                     onFocus={() => setFocusedField('phone')}
                     onBlur={() => setFocusedField(null)}
                     textAlign="left"
-                    writingDirection="ltr"
                   />
                 </View>
               </View>
@@ -442,7 +577,6 @@ export default function EditProfileScreen() {
                     value={email}
                     editable={false}
                     textAlign="left"
-                    writingDirection="ltr"
                   />
                 </View>
               </View>
@@ -525,16 +659,121 @@ export default function EditProfileScreen() {
               </View>
             </View>
           </View>
+
+          {/* ── Save Changes Button ── */}
+          <View style={s.saveWrap}>
+            <TouchableOpacity
+              style={[s.saveBtn, loading && s.saveBtnDisabled]}
+              onPress={handleSave}
+              activeOpacity={0.8}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={19} color="#FFFFFF" style={{ marginEnd: 8 }} />
+                  <Text style={s.saveTxt}>حفظ التعديلات</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </ScrollView>
 
-        {/* Footer */}
-        <View style={s.footer}>
-          <AppButton
-            title="حفظ التعديلات"
-            onPress={handleSave}
-            loading={loading}
-          />
-        </View>
+        {/* ── Avatar Options Bottom Sheet ── */}
+        <Modal
+          visible={showAvatarSheet}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowAvatarSheet(false)}
+        >
+          <View style={s.modalOverlay}>
+            {/* Top area touchable to dismiss */}
+            <TouchableOpacity
+              style={s.modalBackdropTop}
+              activeOpacity={1}
+              onPress={() => setShowAvatarSheet(false)}
+            />
+
+            <View style={[s.avatarSheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+              <View style={s.handleBar} />
+
+              <View style={s.avatarSheetHeader}>
+                <View style={s.avatarSheetPreview}>
+                  {displayAvatar ? (
+                    <Image source={{ uri: displayAvatar }} style={s.avatarSheetImg} contentFit="cover" />
+                  ) : (
+                    <LinearGradient
+                      colors={['#1e3a6e', '#0f2952', '#0B2447']}
+                      start={{ x: 0.1, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={s.avatarSheetImg}
+                    >
+                      <Ionicons name="person" size={22} color="rgba(255,255,255,0.85)" />
+                    </LinearGradient>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.avatarSheetTitle}>الصورة الشخصية</Text>
+                  <Text style={s.avatarSheetSub}>اختر الإجراء الذي تريد تنفيذه</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowAvatarSheet(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={s.modalCloseBtn}
+                >
+                  <Ionicons name="close-circle" size={24} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={s.avatarSheetOptions}>
+                <TouchableOpacity style={s.avatarOption} activeOpacity={0.7} onPress={pickFromCamera}>
+                  <View style={[s.avatarOptionIcon, { backgroundColor: '#EFF6FF' }]}>
+                    <Ionicons name="camera" size={20} color={Colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.avatarOptionTitle}>التقاط صورة</Text>
+                    <Text style={s.avatarOptionSub}>افتح الكاميرا والتقط صورة جديدة</Text>
+                  </View>
+                  <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                <View style={s.optionDivider} />
+
+                <TouchableOpacity style={s.avatarOption} activeOpacity={0.7} onPress={pickFromGallery}>
+                  <View style={[s.avatarOptionIcon, { backgroundColor: '#F0FDF4' }]}>
+                    <Ionicons name="images" size={20} color="#16A34A" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.avatarOptionTitle}>اختيار من المعرض</Text>
+                    <Text style={s.avatarOptionSub}>اختر صورة من ألبوم الصور</Text>
+                  </View>
+                  <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                {displayAvatar ? (
+                  <>
+                    <View style={s.optionDivider} />
+                    <TouchableOpacity
+                      style={s.avatarOption}
+                      activeOpacity={0.7}
+                      onPress={() => { setAvatarUrl(''); setShowAvatarSheet(false) }}
+                    >
+                      <View style={[s.avatarOptionIcon, { backgroundColor: '#FFF1F2' }]}>
+                        <Ionicons name="trash-outline" size={20} color="#E11D48" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.avatarOptionTitle, { color: '#E11D48' }]}>حذف الصورة</Text>
+                        <Text style={s.avatarOptionSub}>إزالة الصورة الشخصية الحالية</Text>
+                      </View>
+                      <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                    </TouchableOpacity>
+                  </>
+                ) : null}
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Location Picker Modal */}
         <Modal
@@ -543,8 +782,11 @@ export default function EditProfileScreen() {
           animationType="slide"
           onRequestClose={() => setModalType(null)}
         >
-          <View style={s.modalOverlay}>
-            <SafeAreaView style={s.modalSheet}>
+          <KeyboardAvoidingView
+            style={s.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <View style={[s.modalSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
               <View style={s.handleBar} />
 
               <View style={s.modalHeader}>
@@ -577,7 +819,6 @@ export default function EditProfileScreen() {
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   textAlign="right"
-                  writingDirection="rtl"
                   clearButtonMode="while-editing"
                 />
               </View>
@@ -642,8 +883,8 @@ export default function EditProfileScreen() {
                   }
                 />
               )}
-            </SafeAreaView>
-          </View>
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </KeyboardAvoidingView>
@@ -754,9 +995,19 @@ const s = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   avatarFallback: {
-    backgroundColor: Colors.primaryMid,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarGlassShimmer: {
+    position: 'absolute',
+    top: 0,
+    start: 0,
+    end: 0,
+    height: '50%',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderTopStartRadius: 40,
+    borderTopEndRadius: 40,
   },
   cameraBadge: {
     position: 'absolute',
@@ -956,14 +1207,38 @@ const s = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  /* Footer */
-  footer: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+  /* Save Button */
+  saveWrap: {
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  saveBtn: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Colors.primaryDark,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  saveBtnDisabled: {
+    opacity: 0.7,
+  },
+  saveTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 
   /* Bottom Sheet Modal */
@@ -971,6 +1246,9 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.55)',
     justifyContent: 'flex-end',
+  },
+  modalBackdropTop: {
+    flex: 1,
   },
   modalSheet: {
     backgroundColor: '#FFFFFF',
@@ -1120,5 +1398,94 @@ const s = StyleSheet.create({
     lineHeight: 18,
     color: '#94A3B8',
     writingDirection: 'rtl',
+  },
+
+  /* Avatar Options Bottom Sheet */
+  avatarSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopStartRadius: 22,
+    borderTopEndRadius: 22,
+  },
+  avatarSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  avatarSheetPreview: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
+  avatarSheetImg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarSheetTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 15,
+    lineHeight: 21,
+    color: '#1E293B',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  avatarSheetSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#94A3B8',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    marginTop: 2,
+  },
+  avatarSheetOptions: {
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  optionDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginHorizontal: 4,
+  },
+  avatarOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 4,
+  },
+  avatarOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarOptionTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: '#1E293B',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  avatarOptionSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#94A3B8',
+    writingDirection: 'rtl',
+    textAlign: 'left',
+    marginTop: 1,
   },
 })
