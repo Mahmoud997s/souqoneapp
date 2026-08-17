@@ -8,6 +8,9 @@ import {
   TextInputProps,
   StyleSheet,
   TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+  Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -20,26 +23,33 @@ interface AppInputProps extends TextInputProps {
   onIconLeftPress?: () => void
   error?: string
   ltr?: boolean
+  size?: 'default' | 'sm'
+  containerStyle?: StyleProp<ViewStyle>
+  inputWrapStyle?: StyleProp<ViewStyle>
 }
 
 export const AppInput = forwardRef<TextInput, AppInputProps>(
-  ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, ...rest }, ref) => {
+  ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
+    const isSm = size === 'sm'
+    const inputHeight = isSm ? 42 : 48
 
     return (
-      <View style={s.container}>
+      <View style={[s.container, containerStyle]}>
         {label ? <Text style={s.label}>{label}</Text> : null}
         <View style={[
           s.inputWrap, 
-          rest.multiline && { height: 'auto', minHeight: 80, paddingVertical: 12 },
+          { minHeight: inputHeight, height: rest.multiline ? 'auto' : inputHeight },
+          rest.multiline && { minHeight: 92, paddingVertical: Platform.OS === 'ios' ? 10 : 6 },
           focused && s.inputFocused, 
           error ? s.inputError : null,
-          rest.editable === false && { opacity: 0.6, backgroundColor: '#e2e4e8' }
+          rest.editable === false && { opacity: 0.6, backgroundColor: '#e2e4e8' },
+          inputWrapStyle,
         ]}>
-          {/* Leading icon – physical RIGHT (left: Spacing.space4 due to forceRTL) */}
+          {/* Leading icon – physical RIGHT */}
           {iconRight ? (
-            <View style={s.iconRight}>
-              <Ionicons name={iconRight as any} size={20} color={Colors.textMuted} />
+            <View style={[s.iconRight, { height: inputHeight, width: isSm ? 32 : 38 }]}>
+              <Ionicons name={iconRight as any} size={isSm ? 17 : 19} color={Colors.textMuted} />
             </View>
           ) : null}
 
@@ -47,9 +57,18 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             ref={ref}
             style={[
               s.input,
-              rest.multiline && { height: 'auto', textAlignVertical: 'top' },
-              iconRight ? s.inputWithIconRight : null,
-              iconLeft ? s.inputWithIconLeft : null,
+              { 
+                fontSize: isSm ? 13 : 14,
+                lineHeight: isSm ? 18 : 21,
+                minHeight: rest.multiline ? 76 : (inputHeight - 4),
+                paddingVertical: rest.multiline 
+                  ? (Platform.OS === 'ios' ? 8 : 6)
+                  : (Platform.OS === 'ios' ? 10 : 6),
+                paddingHorizontal: 14,
+                textAlignVertical: rest.multiline ? 'top' : 'center',
+              },
+              iconRight ? { paddingStart: isSm ? 40 : 46 } : null,
+              iconLeft ? { paddingEnd: isSm ? 40 : 46 } : null,
               ltr ? { textAlign: 'left', writingDirection: 'ltr' } : null,
               style,
             ]}
@@ -60,19 +79,19 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             {...rest}
           />
 
-          {/* Trailing icon – physical LEFT (right: Spacing.space4 due to forceRTL) */}
+          {/* Trailing icon – physical LEFT */}
           {iconLeft ? (
             onIconLeftPress ? (
               <TouchableOpacity
-                style={s.iconLeft}
+                style={[s.iconLeft, { height: inputHeight, width: isSm ? 32 : 38 }]}
                 onPress={onIconLeftPress}
                 activeOpacity={0.7}
               >
-                <Ionicons name={iconLeft as any} size={20} color={Colors.textMuted} />
+                <Ionicons name={iconLeft as any} size={isSm ? 17 : 19} color={Colors.textMuted} />
               </TouchableOpacity>
             ) : (
-              <View style={s.iconLeft}>
-                <Ionicons name={iconLeft as any} size={20} color={Colors.textMuted} />
+              <View style={[s.iconLeft, { height: inputHeight, width: isSm ? 32 : 38 }]}>
+                <Ionicons name={iconLeft as any} size={isSm ? 17 : 19} color={Colors.textMuted} />
               </View>
             )
           ) : null}
@@ -84,67 +103,61 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
 )
 
 const s = StyleSheet.create({
-  container: { gap: Spacing.space2, width: '100%' },
+  container: { gap: 5, width: '100%' },
   label: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
-    lineHeight: 16,
-    color: Colors.text2,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#334155',
     alignSelf: 'stretch',
     writingDirection: 'rtl',
+    marginBottom: 1,
   },
   inputWrap: {
-    height: 52,
-    backgroundColor: Colors.inputBg,
+    backgroundColor: '#F8FAFC',
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
   },
   inputFocused: {
     borderColor: Colors.primary,
+    backgroundColor: Colors.white,
   },
   inputError: {
     borderColor: Colors.error,
   },
   iconRight: {
     position: 'absolute',
-    start: Spacing.space4,
+    start: Spacing.space3,
     top: 0,
     bottom: 0,
-    width: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconLeft: {
     position: 'absolute',
-    end: Spacing.space4,
+    end: Spacing.space3,
     top: 0,
     bottom: 0,
-    width: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   input: {
     flex: 1,
-    height: 52,
-    paddingVertical: 0,
-    paddingStart: Spacing.space4,
-    paddingEnd: Spacing.space4,
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    color: Colors.text,
+    fontFamily: 'Almarai_400Regular',
+    color: '#0F172A',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  inputWithIconRight: {
-    paddingStart: 52,
-  },
-  inputWithIconLeft: {
-    paddingEnd: 52,
-  },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 12,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
     color: Colors.error,
     writingDirection: 'rtl',
+    marginTop: 2,
   },
 })
+

@@ -89,11 +89,11 @@ const s = StyleSheet.create({
   },
   bannerTitle: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
+    fontSize: 17,
+    lineHeight: 23,
     color: Colors.white,
     textAlign: 'center',
     marginBottom: Spacing.space4,
-    
   },
   stepperContainer: {
     flexDirection: 'row',
@@ -101,9 +101,9 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
   },
   circle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.15)',
@@ -128,21 +128,21 @@ const s = StyleSheet.create({
   },
   stepText: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 19,
     color: 'rgba(255,255,255,0.4)',
-    
-    paddingTop: 2,
+    textAlign: 'center',
   },
   stepTextActive: {
     color: Colors.white,
   },
   line: {
     flex: 1,
-    height: 3,
+    height: 4,
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginHorizontal: -2,
     zIndex: 1,
-    borderRadius: 1.5,
+    borderRadius: 2,
   },
   lineActive: {
     backgroundColor: Colors.accent,

@@ -109,6 +109,18 @@ export function useUpdateEquipment() {
   })
 }
 
+export function useMyOperators(enabled = true) {
+  return useQuery({
+    queryKey: ['my-operators'],
+    queryFn: async () => {
+      const res = await equipmentApi.getMyOperators()
+      const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data
+      return Array.isArray(raw) ? (raw as OperatorListing[]) : []
+    },
+    enabled,
+  })
+}
+
 // Operator Mutations
 export function useCreateOperator() {
   const queryClient = useQueryClient()
@@ -116,6 +128,7 @@ export function useCreateOperator() {
     mutationFn: (data: Partial<OperatorListing>) => equipmentApi.createOperator(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operators-infinite'] })
+      queryClient.invalidateQueries({ queryKey: ['my-operators'] })
     },
   })
 }
@@ -127,6 +140,7 @@ export function useUpdateOperator() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['operators-infinite'] })
       queryClient.invalidateQueries({ queryKey: ['operator-item', id] })
+      queryClient.invalidateQueries({ queryKey: ['my-operators'] })
     },
   })
 }

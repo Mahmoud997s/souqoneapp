@@ -25,6 +25,8 @@ interface LocationPickerProps {
   showCity?: boolean
   govLabelText?: string
   cityLabelText?: string
+  govError?: string
+  cityError?: string
 }
 
 // Normalize Arabic text for easier search matching
@@ -45,6 +47,8 @@ export function LocationPicker({
   showCity = true,
   govLabelText = 'المحافظة',
   cityLabelText = 'الولاية / المدينة',
+  govError,
+  cityError,
 }: LocationPickerProps) {
   const [modalType, setModalType] = useState<'governorate' | 'city' | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -102,7 +106,11 @@ export function LocationPicker({
       <View style={s.fieldWrapper}>
         <Text style={s.label}>{govLabelText}</Text>
         <TouchableOpacity
-          style={[s.inputBox, activeGov && s.inputBoxActive]}
+          style={[
+            s.inputBox,
+            activeGov && s.inputBoxActive,
+            govError ? s.inputBoxError : null,
+          ]}
           activeOpacity={0.7}
           onPress={() => setModalType('governorate')}
         >
@@ -110,7 +118,7 @@ export function LocationPicker({
             <Ionicons
               name="location-outline"
               size={20}
-              color={activeGov ? Colors.primary : Colors.textMuted}
+              color={govError ? Colors.error : activeGov ? Colors.primary : Colors.textMuted}
             />
           </View>
           <View style={s.inputContent}>
@@ -120,10 +128,11 @@ export function LocationPicker({
             <Ionicons
               name="chevron-down"
               size={18}
-              color={activeGov ? Colors.primary : Colors.textMuted}
+              color={govError ? Colors.error : activeGov ? Colors.primary : Colors.textMuted}
             />
           </View>
         </TouchableOpacity>
+        {govError ? <Text style={s.errorTxt}>{govError}</Text> : null}
       </View>
 
       {/* ── City / Wilayat Field ── */}
@@ -135,6 +144,7 @@ export function LocationPicker({
               s.inputBox,
               !activeGov && s.inputBoxDisabled,
               activeCity && s.inputBoxActive,
+              cityError ? s.inputBoxError : null,
             ]}
             activeOpacity={0.7}
             onPress={() => {
@@ -146,7 +156,7 @@ export function LocationPicker({
               <Ionicons
                 name="business-outline"
                 size={20}
-                color={!activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
+                color={cityError ? Colors.error : !activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
               />
             </View>
             <View style={s.inputContent}>
@@ -164,10 +174,11 @@ export function LocationPicker({
               <Ionicons
                 name="chevron-down"
                 size={18}
-                color={!activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
+                color={cityError ? Colors.error : !activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
               />
             </View>
           </TouchableOpacity>
+          {cityError ? <Text style={s.errorTxt}>{cityError}</Text> : null}
         </View>
       )}
 
@@ -282,29 +293,45 @@ const s = StyleSheet.create({
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13.5,
-    color: Colors.text,
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#334155',
     textAlign: 'left',
     writingDirection: 'rtl',
+    marginBottom: 1,
   },
   inputBox: {
-    height: 52,
-    backgroundColor: Colors.inputBg,
+    height: 48,
+    minHeight: 48,
+    backgroundColor: '#F8FAFC',
     borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.space4,
+    paddingHorizontal: 14,
   },
   inputBoxActive: {
     borderColor: Colors.primary,
     backgroundColor: Colors.white,
   },
+  inputBoxError: {
+    borderColor: Colors.error,
+    backgroundColor: '#FEF2F2',
+  },
   inputBoxDisabled: {
     backgroundColor: '#F1F5F9',
     borderColor: '#E2E8F0',
     opacity: 0.6,
+  },
+  errorTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginTop: 2,
   },
   iconWrapStart: {
     width: 28,
@@ -322,15 +349,18 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   inputText: {
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: Colors.text,
+    lineHeight: 20,
+    color: '#0F172A',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   placeholder: {
     fontFamily: 'Almarai_400Regular',
-    color: Colors.textMuted,
+    fontSize: 13.5,
+    lineHeight: 20,
+    color: Colors.placeholder,
   },
 
   /* ── Bottom Sheet Styles ── */
@@ -365,14 +395,16 @@ const s = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 18,
+    fontSize: 17,
+    lineHeight: 23,
     color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
   modalSubtitle: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
+    fontSize: 11.5,
+    lineHeight: 16,
     color: Colors.textMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
@@ -384,23 +416,24 @@ const s = StyleSheet.create({
   searchBox: {
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space3,
-    height: 46,
+    height: 44,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.inputBg,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.space4,
+    paddingHorizontal: 14,
   },
   searchInput: {
     flex: 1,
-    height: '100%',
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
-    color: Colors.text,
+    fontSize: 13.5,
+    lineHeight: 20,
+    color: '#0F172A',
     textAlign: 'right',
     writingDirection: 'rtl',
+    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
   },
   listContent: {
     paddingBottom: Spacing.space6,

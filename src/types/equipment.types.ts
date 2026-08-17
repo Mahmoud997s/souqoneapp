@@ -92,37 +92,50 @@ export interface EquipmentListing {
 export interface OperatorListing {
   id: string
   userId: string
-  user?: UserSummary
+  user?: UserSummary & {
+    isVerified?: boolean
+    phone?: string
+    avatarUrl?: string
+    avatar?: string
+    displayName?: string
+    name?: string
+  }
 
   operatorType: OperatorType
   title: string
+  slug?: string
   description: string
 
-  experienceYears: number
-  specializations: string[]
-  certifications: string[]
-  equipmentTypes: string[]
+  experienceYears?: number
+  specializations?: string[]
+  certifications?: string[]
+  equipmentTypes?: (EquipmentType | string)[]
 
   dailyRate?: number
   hourlyRate?: number
-  currency: string
-  isNegotiable: boolean
+  currency?: string
+  isPriceNegotiable?: boolean
+  isNegotiable?: boolean
 
   governorate?: string
   city?: string
+  governorateId?: number
+  wilayaId?: number
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   latitude?: number
   longitude?: number
 
   contactPhone?: string
   whatsapp?: string
 
-  status: ListingStatus
-  isPremium: boolean
+  status?: ListingStatus
+  isPremium?: boolean
   featuredUntil?: string
-  viewCount: number
+  viewCount?: number
 
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface EquipmentBid {

@@ -57,3 +57,20 @@ export interface ServicesFilterState {
   longitude?: number;
   radiusKm?: number;
 }
+
+export interface OperatorFilterState {
+  operatorType?: string;
+  equipmentType?: string;
+  governorateId?: number;
+  wilayaId?: number;
+  governorateName?: string;
+  wilayaName?: string;
+  experienceLevel?: string;
+  minExperience?: number;
+  maxExperience?: number;
+  dailyRateMin?: number;
+  dailyRateMax?: number;
+  isPriceNegotiable?: boolean;
+  certification?: string;
+  sortBy?: string;
+}
