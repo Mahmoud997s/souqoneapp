@@ -61,7 +61,7 @@ function resolveCardLocation(item: any, rawData: any): string {
   return wilLabel || govLabel || rawData.location || item.location || ''
 }
 
-export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
+export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 3, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
   const displayImages = (item.images || []).map((img: any) => typeof img === 'string' ? img : img?.url).filter(Boolean) as string[]
   const imageUrl = displayImages[0]
@@ -283,51 +283,51 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
             if (isEquipment) {
               if (make) pills.push(
                 <View key="make" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="construct-outline" size={14} color="#64748b" />
-                  <Text style={s.detailText}>{make}</Text>
+                  <Ionicons name="construct-outline" size={13} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{make}</Text>
                 </View>
               )
               if (year !== 'N/A') pills.push(
                 <View key="year" style={[s.detailPill, s.pillBlue]}>
-                  <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
+                  <Ionicons name="calendar-outline" size={13} color="#3b82f6" />
+                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{year}</Text>
                 </View>
               )
               if (hoursUsedData) pills.push(
                 <View key="hours" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="time-outline" size={14} color="#64748b" />
-                  <Text style={s.detailText}>{hoursUsedData} س</Text>
+                  <Ionicons name="time-outline" size={13} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1}>{hoursUsedData} س</Text>
                 </View>
               )
               if (equipmentConditionLabel) pills.push(
                 <View key="cond" style={[s.detailPill, s.pillAmber]}>
-                  <Ionicons name="information-circle-outline" size={14} color="#d97706" />
-                  <Text style={[s.detailText, { color: '#d97706' }]}>{equipmentConditionLabel}</Text>
+                  <Ionicons name="information-circle-outline" size={13} color="#d97706" />
+                  <Text style={[s.detailText, { color: '#d97706' }]} numberOfLines={1} ellipsizeMode="tail">{equipmentConditionLabel}</Text>
                 </View>
               )
             } else {
               if (model) pills.push(
                 <View key="model" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="car-outline" size={14} color="#64748b" />
-                  <Text style={s.detailText}>{model}</Text>
+                  <Ionicons name="car-outline" size={13} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{model}</Text>
                 </View>
               )
               if (year !== 'N/A') pills.push(
                 <View key="year" style={[s.detailPill, s.pillBlue]}>
-                  <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
+                  <Ionicons name="calendar-outline" size={13} color="#3b82f6" />
+                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{year}</Text>
                 </View>
               )
               if (transLabel) pills.push(
                 <View key="trans" style={[s.detailPill, s.pillNeutral]}>
                   <MaterialCommunityIcons name="car-shift-pattern" size={12} color="#64748b" />
-                  <Text style={s.detailText}>{transLabel}</Text>
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{transLabel}</Text>
                 </View>
               )
               if (mileage) pills.push(
                 <View key="mileage" style={[s.detailPill, s.pillAmber]}>
-                  <Ionicons name="speedometer-outline" size={14} color="#d97706" />
-                  <Text style={[s.detailText, { color: '#d97706' }]}>{mileage}</Text>
+                  <Ionicons name="speedometer-outline" size={13} color="#d97706" />
+                  <Text style={[s.detailText, { color: '#d97706' }]} numberOfLines={1}>{mileage}</Text>
                 </View>
               )
             }
@@ -342,8 +342,8 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
               <>
                 {visiblePills}
                 {remainingCount > 0 && (
-                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 5, flexShrink: 0 }]}>
-                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]}>
+                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 4.5, flexShrink: 0 }]}>
+                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]} numberOfLines={1}>
                       +{remainingCount}
                     </Text>
                   </View>
@@ -470,11 +470,11 @@ const s = StyleSheet.create({
     height: 1, backgroundColor: '#f1f5f9', marginBottom: 6,
   },
   detailsList: {
-    flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 4, marginBottom: 4, overflow: 'hidden',
+    flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 3.5, marginBottom: 4, overflow: 'hidden',
   },
   detailPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 3.5,
-    paddingHorizontal: 6, paddingVertical: 3,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 5, paddingVertical: 2.5,
     borderRadius: CardSystem.radius.inner,
     flexShrink: 1,
   },
@@ -485,6 +485,7 @@ const s = StyleSheet.create({
   detailText: {
     ...CardSystem.typography.pillText,
     color: '#475569', writingDirection: 'rtl',
+    flexShrink: 1,
   },
   footerRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 5,

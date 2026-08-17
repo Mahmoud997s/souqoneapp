@@ -6,6 +6,9 @@ export const partsApi = {
   getAll:  (params?: Record<string, unknown>) =>
              apiClient.get<PaginatedResponse<Part>>('/parts', { params }),
   getById: (id: string) => apiClient.get<Part>(`/parts/${id}`),
+  getMy:   () => apiClient.get<Part[]>('/parts/my'),
   create:  (data: Partial<Part>) => apiClient.post<Part>('/parts', data),
   update:  (id: string, data: Partial<Part>) => apiClient.patch<Part>(`/parts/${id}`, data),
+  remove:  (id: string) => apiClient.delete(`/parts/${id}`),
 }
+

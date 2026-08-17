@@ -11,7 +11,7 @@ import { Listing } from '../../types/listing.types'
 import { formatDate } from '../../utils/format'
 import { CardSystem } from '../../constants/cardSystem'
 
-export const EquipCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 4, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
+export const EquipCard = ({ item, onPress, fullWidth = false, gridMode = false, showChips = false, maxChips = 3, actionMenu }: { item: Listing, onPress: () => void, fullWidth?: boolean, gridMode?: boolean, showChips?: boolean, maxChips?: number, actionMenu?: React.ReactNode }) => {
   const router = useRouter()
   const displayImages = (item.images || []).map((img: any) => typeof img === 'string' ? img : img?.url).filter(Boolean) as string[]
   const listingTypeStr = String(item.listingType || (item as any).type || '')
@@ -210,29 +210,41 @@ export const EquipCard = ({ item, onPress, fullWidth = false, gridMode = false, 
             const pills = []
             if (make) pills.push(
               <View key="make" style={[s.detailPill, s.pillNeutral]}>
-                <Ionicons name="construct-outline" size={14} color="#64748b" />
-                <Text style={s.detailText}>{make}</Text>
+                <Ionicons name="construct-outline" size={13} color="#64748b" />
+                <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{make}</Text>
               </View>
             )
             if (year !== 'N/A') pills.push(
               <View key="year" style={[s.detailPill, s.pillBlue]}>
-                <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
-                <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
+                <Ionicons name="calendar-outline" size={13} color="#3b82f6" />
+                <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{year}</Text>
               </View>
             )
             if (hoursUsedData) pills.push(
               <View key="hours" style={[s.detailPill, s.pillNeutral]}>
-                <Ionicons name="time-outline" size={14} color="#64748b" />
-                <Text style={s.detailText}>{hoursUsedData} س</Text>
+                <Ionicons name="time-outline" size={13} color="#64748b" />
+                <Text style={s.detailText} numberOfLines={1}>{hoursUsedData} س</Text>
               </View>
             )
-            if (equipmentConditionLabel) pills.push(
-              <View key="cond" style={[s.detailPill, s.pillAmber]}>
-                <Ionicons name="information-circle-outline" size={14} color="#d97706" />
-                <Text style={[s.detailText, { color: '#d97706' }]}>{equipmentConditionLabel}</Text>
-              </View>
+            if (pills.length <= maxChips) {
+              return pills
+            }
+
+            const visiblePills = pills.slice(0, maxChips)
+            const remainingCount = pills.length - maxChips
+
+            return (
+              <>
+                {visiblePills}
+                {remainingCount > 0 && (
+                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 4.5, flexShrink: 0 }]}>
+                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]} numberOfLines={1}>
+                      +{remainingCount}
+                    </Text>
+                  </View>
+                )}
+              </>
             )
-            return pills.slice(0, maxChips)
           })()}
         </View>
 
@@ -263,7 +275,7 @@ const s = StyleSheet.create({
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
-    marginBottom: 12,
+    alignSelf: 'flex-start',
     ...CardSystem.styles.border,
     overflow: 'hidden',
     ...CardSystem.styles.softShadow,
@@ -332,10 +344,11 @@ const s = StyleSheet.create({
   locationTxt: { ...CardSystem.typography.subtitle, color: Colors.textMuted, writingDirection: 'rtl' },
   timeTxt: { ...CardSystem.typography.subtitle, color: '#94a3b8', marginStart: 4, writingDirection: 'rtl' },
   divider: { height: 1, backgroundColor: '#f1f5f9', marginBottom: 8 },
-  detailsList: { flexDirection: 'row', flexWrap: 'wrap', gap: CardSystem.gap.secondary, marginBottom: 6 },
+  detailsList: { flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 3.5, marginBottom: 4, overflow: 'hidden' },
   detailPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 7, paddingVertical: 3.5, borderRadius: CardSystem.radius.inner,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 5, paddingVertical: 2.5, borderRadius: CardSystem.radius.inner,
+    flexShrink: 1,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
@@ -344,6 +357,7 @@ const s = StyleSheet.create({
   detailText: {
     ...CardSystem.typography.pillText,
     color: '#475569', writingDirection: 'rtl',
+    flexShrink: 1,
   },
   footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: CardSystem.gap.secondary },
   budgetValText: {

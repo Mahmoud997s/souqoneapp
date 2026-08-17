@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView, Pressable, Platform, Share } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,6 +10,7 @@ import { favoritesApi } from '../../api/favorites'
 import { Listing } from '../../types/listing.types'
 import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
 import { formatDate } from '../../utils/format'
+import { CardSystem } from '../../constants/cardSystem'
 
 function resolveBusLocation(item: any, rawData: any): string {
   const govRef = rawData.governorateRef || item.governorateRef
@@ -88,12 +89,15 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
     }
   }
 
-  const make = rawData.make || rawData.details?.make
-  const yearData = rawData.year || rawData.details?.year
-  const mileageData = rawData.mileage || rawData.details?.mileage
-  const busCapacity = rawData.capacity || rawData.details?.capacity || (item as any).details?.capacity
-  const busTypeRaw = rawData.busType || rawData.details?.busType || (item as any).details?.busType
-  const condition = rawData.condition || rawData.details?.condition || (item as any).details?.condition
+  const make = rawData.make || rawData.bus?.make || rawData.details?.make
+  const yearData = rawData.year || rawData.bus?.year || rawData.details?.year
+  const mileageData = rawData.mileage || rawData.bus?.mileage || rawData.details?.mileage
+  const busCapacity = rawData.capacity || rawData.bus?.capacity || rawData.details?.capacity || (item as any).details?.capacity
+  const busTypeRaw = rawData.busType || rawData.bus?.busType || rawData.details?.busType || (item as any).details?.busType
+  const condition = rawData.condition || rawData.bus?.condition || rawData.details?.condition || (item as any).details?.condition
+
+  const transRaw = rawData.transmission || rawData.bus?.transmission || rawData.details?.transmission
+  const transLabel = transRaw === 'AUTOMATIC' ? 'أوتوماتيك' : transRaw === 'MANUAL' ? 'عادي' : transRaw
 
   const year = yearData ? String(yearData) : 'N/A'
   const mileage = mileageData ? `${Number(mileageData).toLocaleString('en-US')} كم` : ''
@@ -270,44 +274,89 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
 
         <View style={s.divider} />
 
-        {/* Details List (Info Pills) */}
+        {/* Details List (Info Pills matching Cars conditions) */}
         <View style={s.detailsList}>
           {(() => {
             const pills = []
-            if (busTypeLabel) pills.push(
-              <View key="type" style={[s.detailPill, s.pillNeutral]}>
-                <Ionicons name="bus-outline" size={14} color="#64748b" />
-                <Text style={s.detailText}>{busTypeLabel}</Text>
-              </View>
+            
+            // 1. Bus Type (e.g. Coaster / Mini Bus)
+            if (busTypeLabel) {
+              pills.push(
+                <View key="type" style={[s.detailPill, s.pillNeutral]}>
+                  <Ionicons name="bus-outline" size={13} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{busTypeLabel}</Text>
+                </View>
+              )
+            }
+
+            // 2. Year (Blue pill)
+            if (year !== 'N/A') {
+              pills.push(
+                <View key="year" style={[s.detailPill, s.pillBlue]}>
+                  <Ionicons name="calendar-outline" size={13} color="#3b82f6" />
+                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{year}</Text>
+                </View>
+              )
+            }
+
+            // 3. Transmission (Neutral pill with shift pattern icon)
+            if (transLabel) {
+              pills.push(
+                <View key="trans" style={[s.detailPill, s.pillNeutral]}>
+                  <MaterialCommunityIcons name="car-shift-pattern" size={12} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">{transLabel}</Text>
+                </View>
+              )
+            }
+
+            // 4. Mileage (Amber pill with speedometer icon)
+            if (mileage) {
+              pills.push(
+                <View key="mileage" style={[s.detailPill, s.pillAmber]}>
+                  <Ionicons name="speedometer-outline" size={13} color="#d97706" />
+                  <Text style={[s.detailText, { color: '#d97706' }]} numberOfLines={1}>{mileage}</Text>
+                </View>
+              )
+            }
+
+            // 5. Capacity (Seats count)
+            if (busCapacity) {
+              pills.push(
+                <View key="cap" style={[s.detailPill, s.pillNeutral]}>
+                  <Ionicons name="people-outline" size={13} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1}>{busCapacity} مقعد</Text>
+                </View>
+              )
+            }
+
+            if (pills.length <= maxChips) {
+              return pills
+            }
+
+            const visiblePills = pills.slice(0, maxChips)
+            const remainingCount = pills.length - maxChips
+
+            return (
+              <>
+                {visiblePills}
+                {remainingCount > 0 && (
+                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 4.5, flexShrink: 0 }]}>
+                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]} numberOfLines={1}>
+                      +{remainingCount}
+                    </Text>
+                  </View>
+                )}
+              </>
             )
-            if (busCapacity) pills.push(
-              <View key="cap" style={[s.detailPill, s.pillNeutral]}>
-                <Ionicons name="people-outline" size={14} color="#64748b" />
-                <Text style={s.detailText}>{busCapacity} مقعد</Text>
-              </View>
-            )
-            if (year !== 'N/A') pills.push(
-              <View key="year" style={[s.detailPill, s.pillBlue]}>
-                <Ionicons name="calendar-outline" size={14} color="#3b82f6" />
-                <Text style={[s.detailText, { color: '#3b82f6' }]}>{year}</Text>
-              </View>
-            )
-            if (mileage) pills.push(
-              <View key="mileage" style={[s.detailPill, s.pillAmber]}>
-                <Ionicons name="speedometer-outline" size={14} color="#d97706" />
-                <Text style={[s.detailText, { color: '#d97706' }]}>{mileage}</Text>
-              </View>
-            )
-            return pills.slice(0, maxChips)
           })()}
         </View>
 
-        <View style={[s.divider, { marginTop: 4 }]} />
+        <View style={[s.divider, { marginTop: 2, marginBottom: 6 }]} />
 
         {/* Footer Row (Budget & Quotes style) */}
         <View style={s.footerRow}>
           <View style={[s.detailPill, isSale && item.isPriceNegotiable ? s.pillGreen : s.pillNeutral, { flex: 1 }]}>
-            <Ionicons name="wallet-outline" size={16} color={isSale && item.isPriceNegotiable ? '#059669' : '#64748b'} />
+            <Ionicons name="wallet-outline" size={15} color={isSale && item.isPriceNegotiable ? '#059669' : '#64748b'} />
             <Text style={[s.budgetValText, isSale && item.isPriceNegotiable && { color: '#059669' }]}>{priceLabel}</Text>
           </View>
           
@@ -324,21 +373,15 @@ export const BusCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   )
 }
 
-const softShadow = Platform.select({
-  ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-  android: { elevation: 3 },
-});
-
 const s = StyleSheet.create({
   card: {
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    borderRadius: CardSystem.radius.outer,
+    alignSelf: 'flex-start',
+    ...CardSystem.styles.border,
     overflow: 'hidden',
-    ...softShadow,
+    ...CardSystem.styles.softShadow,
   },
   imageContainer: {
     position: 'relative',
@@ -346,79 +389,102 @@ const s = StyleSheet.create({
   },
   imagePlaceholder: {
     width: '100%',
-    height: 120,
+    height: CardSystem.aspectRatioHeight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   swiperScrollView: {
     width: '100%',
-    height: 140,
+    height: CardSystem.aspectRatioHeight,
   },
   dotsWrapper: {
-    position: 'absolute', bottom: 12, left: 0, right: 0,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
+    position: 'absolute', bottom: 10, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5,
   },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)' },
-  activeDot: { backgroundColor: '#fff', width: 16 },
+  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.5)' },
+  activeDot: { backgroundColor: '#fff', width: 14 },
   actionsContainer: {
-    position: 'absolute', top: 12, right: 12, zIndex: 10,
-    flexDirection: 'row', gap: 8,
+    position: 'absolute', top: 10, right: 10, zIndex: 10,
+    flexDirection: 'row', gap: 6,
   },
   actionBtn: {
-    width: 28, height: 28, borderRadius: 14,
+    width: 26, height: 26, borderRadius: 13,
     backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   badgesContainer: {
-    position: 'absolute', top: 12, left: 12, right: 80,
-    flexDirection: 'row', gap: 6, flexWrap: 'wrap',
+    position: 'absolute', top: 10, left: 10, right: 75,
+    flexDirection: 'row', gap: 5, flexWrap: 'wrap',
   },
   badge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 100,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2,
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: CardSystem.radius.badge,
+    ...CardSystem.styles.badgeShadow,
   },
   badgeTxt: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 10, color: Colors.white,
-    letterSpacing: 0.2,
+    ...CardSystem.typography.badgeText,
+    color: Colors.white,
+    writingDirection: 'rtl',
   },
-  detailsCard: { padding: 14 },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  detailsCard: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  headerRow: {
+    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: CardSystem.gap.primary,
+  },
   titleTxt: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 15, color: '#0f172a', textAlign: 'left',
-    lineHeight: 22,
+    ...CardSystem.typography.title,
+    color: '#0f172a', textAlign: 'left', writingDirection: 'rtl',
   },
   verifiedRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: '#eff6ff', 
-    paddingHorizontal: 8, paddingVertical: 4, 
+    paddingHorizontal: 5, paddingVertical: 1.5, 
     borderRadius: 100, borderWidth: 1, borderColor: '#bfdbfe', marginTop: 2,
   },
   verifiedTxt: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 10, color: '#2563eb',
+    ...CardSystem.typography.badgeText,
+    color: '#2563eb', writingDirection: 'rtl',
   },
-  locationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 6, marginTop: 4, marginBottom: 8 },
-  locationTxt: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.textMuted },
-  timeTxt: { fontFamily: 'Almarai_400Regular', fontSize: 11, color: '#94a3b8', marginLeft: 4 },
-  divider: { height: 1, backgroundColor: '#f1f5f9', marginBottom: 12 },
-  detailsList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  locationRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 4, marginTop: 2, marginBottom: 5,
+  },
+  locationTxt: {
+    ...CardSystem.typography.subtitle,
+    color: Colors.textMuted, writingDirection: 'rtl',
+  },
+  timeTxt: {
+    ...CardSystem.typography.subtitle,
+    color: '#94a3b8', marginStart: 3, writingDirection: 'rtl',
+  },
+  divider: {
+    height: 1, backgroundColor: '#f1f5f9', marginBottom: 6,
+  },
+  detailsList: {
+    flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 3.5, marginBottom: 4, overflow: 'hidden',
+  },
   detailPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 5, paddingVertical: 2.5,
+    borderRadius: CardSystem.radius.inner,
+    flexShrink: 1,
   },
-  pillNeutral: { backgroundColor: '#f8fafc' },
-  pillBlue: { backgroundColor: '#eff6ff' },
-  pillAmber: { backgroundColor: '#fffbeb' },
-  pillGreen: { backgroundColor: '#ecfdf5' },
+  pillNeutral: CardSystem.styles.pillNeutral,
+  pillBlue: CardSystem.styles.pillBlue,
+  pillAmber: CardSystem.styles.pillAmber,
+  pillGreen: CardSystem.styles.pillGreen,
   detailText: {
-    fontSize: 11, fontFamily: 'Almarai_700Bold', color: '#475569', lineHeight: 18,
+    ...CardSystem.typography.pillText,
+    color: '#475569', writingDirection: 'rtl',
+    flexShrink: 1,
   },
-  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8 },
+  footerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 5,
+  },
   budgetValText: {
-    fontSize: 13, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 20,
+    fontSize: 11.5, fontFamily: 'Almarai_800ExtraBold', color: '#64748b', lineHeight: 15, writingDirection: 'rtl',
   },
 })

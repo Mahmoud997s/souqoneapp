@@ -12,6 +12,8 @@ import {
   CreateEmployerProfileDto,
   ApplicationStatus
 } from '../types/jobs.types'
+import { PaginationMeta } from '../types/my-listings.types'
+
 
 export const jobsApi = {
   // Job Listings
@@ -70,8 +72,11 @@ export const jobsApi = {
     apiClient.patch<EmployerProfile>('/jobs/employer-profile', data),
 
   // My listings (Dashboard)
+  getMy: (params?: { page?: number; limit?: number; status?: string }) =>
+    apiClient.get<{ items: DriverJob[]; meta: PaginationMeta }>('/jobs/my', { params }),
   getMyJobs: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<DriverJob>>('/jobs/my', { params }),
+
 
   // Driver Directory
   getAllDrivers: (params?: Record<string, unknown>) =>

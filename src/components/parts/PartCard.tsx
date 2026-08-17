@@ -110,7 +110,7 @@ export const PartCard: React.FC<PartCardProps> = ({
   fullWidth = false,
   gridMode = false,
   showChips = false,
-  maxChips = 4,
+  maxChips = 3,
   actionMenu,
 }) => {
   const router = useRouter()
@@ -459,7 +459,7 @@ export const PartCard: React.FC<PartCardProps> = ({
               pills.push(
                 <View key="models" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="car-sport-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText} numberOfLines={1}>
+                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">
                     {compatibleModels}
                   </Text>
                 </View>
@@ -471,7 +471,7 @@ export const PartCard: React.FC<PartCardProps> = ({
               pills.push(
                 <View key="year" style={[s.detailPill, s.pillBlue]}>
                   <Ionicons name="calendar-outline" size={12} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]}>{yearRange}</Text>
+                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{yearRange}</Text>
                 </View>
               )
             }
@@ -481,12 +481,30 @@ export const PartCard: React.FC<PartCardProps> = ({
               pills.push(
                 <View key="cond" style={[s.detailPill, s.pillAmber]}>
                   <Ionicons name="information-circle-outline" size={12} color="#d97706" />
-                  <Text style={[s.detailText, { color: '#d97706' }]}>{conditionLabel}</Text>
+                  <Text style={[s.detailText, { color: '#d97706' }]} numberOfLines={1} ellipsizeMode="tail">{conditionLabel}</Text>
                 </View>
               )
             }
 
-            return pills.slice(0, maxChips)
+            if (pills.length <= maxChips) {
+              return pills
+            }
+
+            const visiblePills = pills.slice(0, maxChips)
+            const remainingCount = pills.length - maxChips
+
+            return (
+              <>
+                {visiblePills}
+                {remainingCount > 0 && (
+                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 5, flexShrink: 0 }]}>
+                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]}>
+                      +{remainingCount}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )
           })()}
         </View>
 
@@ -549,7 +567,7 @@ const s = StyleSheet.create({
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.white,
     borderRadius: 16,
-    marginBottom: 12,
+    alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.04)',
     overflow: 'hidden',
@@ -699,17 +717,20 @@ const s = StyleSheet.create({
   },
   detailsList: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 6,
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    gap: 3.5,
+    marginBottom: 4,
+    overflow: 'hidden',
   },
   detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 3.5,
+    gap: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 2.5,
     borderRadius: 6,
+    flexShrink: 1,
   },
   pillNeutral: {
     backgroundColor: '#f8fafc',
@@ -724,11 +745,12 @@ const s = StyleSheet.create({
     backgroundColor: '#ecfdf5',
   },
   detailText: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontFamily: 'Almarai_700Bold',
     color: '#475569',
-    lineHeight: 14.5,
+    lineHeight: 14,
     writingDirection: 'rtl',
+    flexShrink: 1,
   },
   footerRow: {
     flexDirection: 'row',
