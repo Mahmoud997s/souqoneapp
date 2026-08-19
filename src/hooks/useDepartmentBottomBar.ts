@@ -237,6 +237,7 @@ export function usePartsBottomBar() {
 export function useEquipmentBottomBar() {
   return useDepartmentBottomBar({
     category: 'equipment',
+    postRoute: '/equipment/new',
     activeColor: '#d97706',
     activeBgColor: '#FEF3C7',
     customTabs: [

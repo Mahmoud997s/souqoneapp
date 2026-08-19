@@ -33,9 +33,11 @@ export const EQUIPMENT_LISTING_TYPES: Record<EquipmentListingType, { label: stri
 
 export const EQUIPMENT_CONDITIONS: Record<string, { label: string }> = {
   NEW: { label: 'جديدة' },
-  USED: { label: 'مستعملة' },
   LIKE_NEW: { label: 'شبه جديدة' },
-  REFURBISHED: { label: 'مجددة' },
+  USED: { label: 'مستعملة' },
+  GOOD: { label: 'بحالة جيدة' },
+  FAIR: { label: 'بحالة متوسطة' },
+  POOR: { label: 'تحتاج صيانة' },
 }
 
 export const getEquipmentTypeLabel = (type?: string | null): string => {

@@ -128,7 +128,7 @@ export default function EquipmentLandingScreen() {
         primaryCta={{
           label: 'أضف إعلانك',
           icon: 'add',
-          onPress: () => router.push('/equipment/add' as any),
+          onPress: () => router.push('/equipment/new' as any),
           bgColor: Colors.accent,
           textColor: Colors.white
         }}

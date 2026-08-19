@@ -25,10 +25,12 @@ export default function PostStep2Screen() {
   const { images, existingImages = [], removedImageIds = [], category, set } = usePostStore()
   const [uploading, setUploading] = useState(false)
 
-  // Skip images step for transport
+  // Redirect dedicated category flows
   React.useEffect(() => {
-    if (SKIP_IMAGES_CATEGORIES.includes(category)) {
-      router.replace('/post/step3')
+    if (category === 'equipment') {
+      router.replace('/equipment/new')
+    } else if (category === 'transport') {
+      router.replace('/transport/new')
     }
   }, [category])
 

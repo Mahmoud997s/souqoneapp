@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { validateOperatorStep } from '../hooks/useOperatorValidation'
 
 export interface OperatorWizardFormData {
   operatorType: string
@@ -107,51 +108,9 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
 
       validateStep: (step: number) => {
         const { formData } = get()
-        const newErrors: Record<string, string> = {}
-
-        if (step === 1) {
-          if (!formData.operatorType) {
-            newErrors.operatorType = 'يرجى اختيار نوع الدور أو التخصص المهني'
-          }
-          if (!formData.title || formData.title.trim().length < 5) {
-            newErrors.title = 'عنوان الإعلان مطلوب (5 أحرف على الأقل)'
-          }
-          if (!formData.experienceYears || isNaN(Number(formData.experienceYears)) || Number(formData.experienceYears) < 0) {
-            newErrors.experienceYears = 'سنوات الخبرة الإجمالية مطلوبة'
-          }
-          if (!formData.description || formData.description.trim().length < 10) {
-            newErrors.description = 'يرجى كتابة نبذة تفصيلية عن خبراتك ومهامك (10 أحرف على الأقل)'
-          }
-        } else if (step === 2) {
-          if (!formData.equipmentTypes || formData.equipmentTypes.length === 0) {
-            newErrors.equipmentTypes = 'يرجى تحديد معدة واحدة على الأقل تجيد تشغيلها'
-          }
-          if (!formData.certifications || formData.certifications.length === 0) {
-            newErrors.certifications = 'يرجى إرفاق صورة الرخصة / شهادة الكفاءة أو كتابتها نصياً'
-          }
-        } else if (step === 3) {
-          if (!formData.dailyRate || isNaN(Number(formData.dailyRate)) || Number(formData.dailyRate) <= 0) {
-            newErrors.dailyRate = 'الأجر اليومي الاسترشادي مطلوب'
-          }
-          if (!formData.hourlyRate || isNaN(Number(formData.hourlyRate)) || Number(formData.hourlyRate) <= 0) {
-            newErrors.hourlyRate = 'الأجر بالساعة مطلوب'
-          }
-          if (!formData.governorateId) {
-            newErrors.governorate = 'يرجى اختيار المحافظة'
-          }
-          if (!formData.wilayaId) {
-            newErrors.city = 'يرجى اختيار الولاية'
-          }
-          if (!formData.contactPhone || formData.contactPhone.trim().length < 8) {
-            newErrors.contactPhone = 'رقم هاتف الاتصال مطلوب ومكون من 8 أرقام على الأقل'
-          }
-          if (!formData.whatsapp || formData.whatsapp.trim().length < 8) {
-            newErrors.whatsapp = 'رقم الواتساب للتواصل السريع مطلوب'
-          }
-        }
-
+        const { isValid, errors: newErrors } = validateOperatorStep(step, formData)
         set({ errors: newErrors })
-        return Object.keys(newErrors).length === 0
+        return isValid
       },
 
       resetDraft: () =>

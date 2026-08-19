@@ -29,6 +29,14 @@ export default function PostStep3Screen() {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false)
 
   useEffect(() => {
+    if (category === 'equipment') {
+      router.replace('/equipment/new')
+    } else if (category === 'transport') {
+      router.replace('/transport/new')
+    }
+  }, [category])
+
+  useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
 

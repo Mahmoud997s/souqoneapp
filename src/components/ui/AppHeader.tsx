@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -49,14 +49,16 @@ export function AppHeader({
         { paddingTop: insets.top },
         isLight && { 
           backgroundColor: Colors.white, 
-          paddingBottom: 0, // Remove asymmetrical padding to perfectly center items
+          paddingBottom: 0,
           ...Platform.select({ ios: { shadowOpacity: 0.03, shadowRadius: 3 }, android: { elevation: 1 } }) 
         }
       ]}
     >
-      {isLight && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: '#0B2447' }} />
-      )}
+      <StatusBar
+        barStyle={isLight ? 'dark-content' : 'light-content'}
+        backgroundColor="transparent"
+        translucent
+      />
       {!isLight && (
         <>
           <LinearGradient

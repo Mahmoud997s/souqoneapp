@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -8,13 +8,13 @@ import {
   FlatList,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
-import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
@@ -49,18 +49,19 @@ export function GovernorateWilayaSelect({
   govError,
   cityError,
 }: GovernorateWilayaSelectProps) {
+  const insets = useSafeAreaInsets()
   const [modalType, setModalType] = useState<'governorate' | 'city' | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
-  
+
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([])
   const [wilayas, setWilayas] = useState<WilayaRef[]>([])
   const [isLoadingGovs, setIsLoadingGovs] = useState(false)
   const [isLoadingWilayas, setIsLoadingWilayas] = useState(false)
 
   // Derived labels for UI
-  const activeGov = governorates.find(g => g.id === governorateId)
-  const activeCity = wilayas.find(w => w.id === wilayaId)
-  
+  const activeGov = governorates.find((g) => g.id === governorateId)
+  const activeCity = wilayas.find((w) => w.id === wilayaId)
+
   const govDisplayLabel = activeGov?.nameAr || 'اختر المحافظة'
   const cityDisplayLabel = activeCity?.nameAr || 'اختر الولاية'
 
@@ -100,52 +101,54 @@ export function GovernorateWilayaSelect({
     }
   }
 
-  useEffect(() => {
+  const handleOpenGovernorate = () => {
     setSearchQuery('')
-  }, [modalType])
+    setModalType('governorate')
+  }
 
-  const currentList = useMemo(() => {
-    const rawList = modalType === 'governorate' ? governorates : wilayas
-    if (!searchQuery.trim()) return rawList
+  const handleOpenCity = () => {
+    if (!governorateId) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      setSearchQuery('')
+      setModalType('governorate')
+      return
+    }
+    setSearchQuery('')
+    setModalType('city')
+  }
 
-    const q = normalizeArabic(searchQuery)
-    return rawList.filter((item: any) => {
-      const nameAr = normalizeArabic(item.nameAr || '')
-      const nameEn = (item.nameEn || '').toLowerCase()
-      return nameAr.includes(q) || nameEn.includes(searchQuery.toLowerCase().trim())
-    })
-  }, [modalType, searchQuery, governorates, wilayas])
-
-  const handleSelect = (item: any) => {
-    Haptics.selectionAsync().catch(() => {})
+  const handleSelect = (item: GovernorateRef | WilayaRef) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     if (modalType === 'governorate') {
-      const newGovId = item.id
-      // Clear city selection visually, but we need to pass a valid city ID eventually, 
-      // passing 0 or keeping previous doesn't make sense. We pass 0 as temporary clearing flag if needed, 
-      // but the component API expects both. Let's just pass 0 for wilId indicating it needs selection.
-      onLocationChange(newGovId, 0, item.nameAr, '')
-      
-      if (showCity) {
-        setTimeout(() => {
-          setModalType('city')
-        }, 250)
-      } else {
-        setModalType(null)
-      }
-    } else {
-      // Selecting Wilaya
-      if (activeGov) {
-        onLocationChange(activeGov.id, item.id, activeGov.nameAr, item.nameAr)
-      }
+      const g = item as GovernorateRef
+      onLocationChange(g.id, 0, g.nameAr, '')
+      setModalType('city')
+    } else if (modalType === 'city') {
+      const w = item as WilayaRef
+      const parentGov = activeGov || governorates.find((g) => g.id === governorateId)
+      const govName = parentGov?.nameAr || ''
+      const govId = governorateId || 0
+      onLocationChange(govId, w.id, govName, w.nameAr)
       setModalType(null)
     }
   }
 
+  const currentList = React.useMemo(() => {
+    const list = modalType === 'governorate' ? governorates : wilayas
+    if (!searchQuery.trim()) return list
+    const q = normalizeArabic(searchQuery)
+    return list.filter((item) => {
+      const nameArNorm = normalizeArabic(item.nameAr || '')
+      const nameEnNorm = (item.nameEn || '').toLowerCase()
+      return nameArNorm.includes(q) || nameEnNorm.includes(searchQuery.toLowerCase().trim())
+    })
+  }, [modalType, governorates, wilayas, searchQuery])
+
   return (
     <View style={s.container}>
-      {/* ── Governorate Field ── */}
+      {/* ── 1. Governorate Field ── */}
       <View style={s.fieldWrapper}>
-        <Text style={s.label}>{govLabelText}</Text>
+        <Text style={s.label}>{govLabelText} *</Text>
         <TouchableOpacity
           style={[
             s.inputBox,
@@ -153,7 +156,7 @@ export function GovernorateWilayaSelect({
             govError ? s.inputBoxError : null,
           ]}
           activeOpacity={0.7}
-          onPress={() => setModalType('governorate')}
+          onPress={handleOpenGovernorate}
         >
           <View style={s.iconWrapStart}>
             {isLoadingGovs ? (
@@ -161,29 +164,31 @@ export function GovernorateWilayaSelect({
             ) : (
               <Ionicons
                 name="location-outline"
-                size={20}
-                color={govError ? Colors.error : activeGov ? Colors.primary : Colors.textMuted}
+                size={18}
+                color={govError ? Colors.error : activeGov ? Colors.primary : '#94A3B8'}
               />
             )}
           </View>
           <View style={s.inputContent}>
-            <Text style={[s.inputText, !activeGov && s.placeholder]}>{govDisplayLabel}</Text>
+            <Text style={[s.inputText, !governorateId && s.placeholder]} numberOfLines={1}>
+              {govDisplayLabel}
+            </Text>
           </View>
           <View style={s.iconWrapEnd}>
             <Ionicons
               name="chevron-down"
-              size={18}
-              color={govError ? Colors.error : activeGov ? Colors.primary : Colors.textMuted}
+              size={16}
+              color={govError ? Colors.error : activeGov ? Colors.primary : '#94A3B8'}
             />
           </View>
         </TouchableOpacity>
         {govError ? <Text style={s.errorTxt}>{govError}</Text> : null}
       </View>
 
-      {/* ── City / Wilayat Field ── */}
+      {/* ── 2. Wilaya / City Field ── */}
       {showCity && (
         <View style={s.fieldWrapper}>
-          <Text style={s.label}>{cityLabelText}</Text>
+          <Text style={s.label}>{cityLabelText} *</Text>
           <TouchableOpacity
             style={[
               s.inputBox,
@@ -192,10 +197,7 @@ export function GovernorateWilayaSelect({
               cityError ? s.inputBoxError : null,
             ]}
             activeOpacity={0.7}
-            onPress={() => {
-              if (activeGov) setModalType('city')
-            }}
-            disabled={!activeGov}
+            onPress={handleOpenCity}
           >
             <View style={s.iconWrapStart}>
               {isLoadingWilayas ? (
@@ -203,8 +205,16 @@ export function GovernorateWilayaSelect({
               ) : (
                 <Ionicons
                   name="business-outline"
-                  size={20}
-                  color={cityError ? Colors.error : !activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
+                  size={18}
+                  color={
+                    cityError
+                      ? Colors.error
+                      : !activeGov
+                      ? '#CBD5E1'
+                      : activeCity
+                      ? Colors.primary
+                      : '#94A3B8'
+                  }
                 />
               )}
             </View>
@@ -213,8 +223,9 @@ export function GovernorateWilayaSelect({
                 style={[
                   s.inputText,
                   !wilayaId && s.placeholder,
-                  !activeGov && { color: Colors.textMuted + '80' },
+                  !activeGov && { color: '#94A3B8' },
                 ]}
+                numberOfLines={1}
               >
                 {cityDisplayLabel}
               </Text>
@@ -222,8 +233,16 @@ export function GovernorateWilayaSelect({
             <View style={s.iconWrapEnd}>
               <Ionicons
                 name="chevron-down"
-                size={18}
-                color={cityError ? Colors.error : !activeGov ? Colors.border : activeCity ? Colors.primary : Colors.textMuted}
+                size={16}
+                color={
+                  cityError
+                    ? Colors.error
+                    : !activeGov
+                    ? '#CBD5E1'
+                    : activeCity
+                    ? Colors.primary
+                    : '#94A3B8'
+                }
               />
             </View>
           </TouchableOpacity>
@@ -231,21 +250,24 @@ export function GovernorateWilayaSelect({
         </View>
       )}
 
-      {/* ── Bottom Sheet Modal ── */}
+      {/* ── Bottom Sheet Modal (Profile Unified Scale) ── */}
       <Modal
         visible={modalType !== null}
         transparent
         animationType="slide"
         onRequestClose={() => setModalType(null)}
       >
-        <View style={s.modalOverlay}>
-          <SafeAreaView style={s.modalSheet}>
+        <KeyboardAvoidingView
+          style={s.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={[s.modalSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             {/* Handle Bar */}
             <View style={s.handleBar} />
 
             {/* Header */}
             <View style={s.modalHeader}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={s.modalTitle}>
                   {modalType === 'governorate' ? 'اختر المحافظة' : `اختر الولاية (${govDisplayLabel})`}
                 </Text>
@@ -258,26 +280,29 @@ export function GovernorateWilayaSelect({
               <TouchableOpacity
                 style={s.modalCloseBtn}
                 onPress={() => setModalType(null)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close-circle" size={28} color={Colors.textMuted} />
+                <Ionicons name="close-circle" size={24} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 
             {/* Search Input */}
             <View style={s.searchBox}>
-              <Ionicons name="search" size={18} color={Colors.textMuted} style={{ marginEnd: 8 }} />
+              <Ionicons name="search" size={17} color="#94A3B8" style={{ marginEnd: 8 }} />
               <TextInput
                 style={s.searchInput}
-                placeholder={modalType === 'governorate' ? 'ابحث عن اسم المحافظة...' : 'ابحث عن اسم الولاية...'}
-                placeholderTextColor={Colors.textMuted}
+                placeholder={
+                  modalType === 'governorate' ? 'ابحث عن اسم المحافظة...' : 'ابحث عن اسم الولاية...'
+                }
+                placeholderTextColor="#94A3B8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                textAlign="right"
                 autoCorrect={false}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close" size={18} color={Colors.textMuted} />
+                  <Ionicons name="close" size={16} color="#94A3B8" />
                 </TouchableOpacity>
               )}
             </View>
@@ -304,7 +329,7 @@ export function GovernorateWilayaSelect({
                   >
                     <View style={s.listItemLeft}>
                       <View style={[s.radioCircle, isSelected && s.radioCircleSelected]}>
-                        {isSelected && <Ionicons name="checkmark" size={14} color={Colors.white} />}
+                        {isSelected && <Ionicons name="checkmark" size={12} color="#ffffff" />}
                       </View>
                     </View>
 
@@ -321,13 +346,13 @@ export function GovernorateWilayaSelect({
               }}
               ListEmptyComponent={
                 <View style={s.emptyBox}>
-                  <Ionicons name="search-outline" size={36} color={Colors.textMuted} />
+                  <Ionicons name="search-outline" size={32} color="#94A3B8" />
                   <Text style={s.emptyText}>لم يتم العثور على نتائج مطابقة</Text>
                 </View>
               }
             />
-          </SafeAreaView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   )
@@ -335,30 +360,28 @@ export function GovernorateWilayaSelect({
 
 const s = StyleSheet.create({
   container: {
-    gap: Spacing.space4,
+    gap: 12,
   },
   fieldWrapper: {
-    gap: 6,
+    gap: 5,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 17,
     color: '#334155',
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: 1,
   },
   inputBox: {
-    height: 48,
-    minHeight: 48,
+    height: 46,
     backgroundColor: '#F8FAFC',
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
   },
   inputBoxActive: {
     borderColor: Colors.primary,
@@ -374,87 +397,87 @@ const s = StyleSheet.create({
     opacity: 0.6,
   },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11.5,
-    lineHeight: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.error,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: 2,
   },
   iconWrapStart: {
-    width: 28,
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrapEnd: {
-    width: 24,
+    width: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inputContent: {
     flex: 1,
-    marginStart: Spacing.space2,
+    marginStart: 8,
     justifyContent: 'center',
   },
   inputText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
-    lineHeight: 20,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
     color: '#0F172A',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   placeholder: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: Colors.placeholder,
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: '#94A3B8',
   },
 
-  /* ── Bottom Sheet Styles ── */
+  /* ── Bottom Sheet Styles (Matching Profile Location Modal) ── */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: Colors.white,
-    borderTopStartRadius: Radius.xl,
-    borderTopEndRadius: Radius.xl,
-    maxHeight: '85%',
+    backgroundColor: '#FFFFFF',
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
+    maxHeight: '80%',
   },
   handleBar: {
-    width: 44,
-    height: 5,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
+    width: 38,
+    height: 4,
+    backgroundColor: '#CBD5E1',
+    borderRadius: 2,
     alignSelf: 'center',
-    marginTop: 12,
+    marginTop: 10,
     marginBottom: 4,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: Spacing.space3,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   modalTitle: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 17,
-    lineHeight: 23,
-    color: Colors.text,
+    fontSize: 15,
+    lineHeight: 21,
+    color: '#0F172A',
     writingDirection: 'rtl',
     textAlign: 'left',
   },
   modalSubtitle: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.textMuted,
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#64748B',
     writingDirection: 'rtl',
     textAlign: 'left',
     marginTop: 2,
@@ -463,36 +486,36 @@ const s = StyleSheet.create({
     padding: 4,
   },
   searchBox: {
-    marginHorizontal: Spacing.space4,
-    marginVertical: Spacing.space3,
-    height: 44,
-    borderRadius: Radius.pill,
+    marginHorizontal: 14,
+    marginVertical: 8,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
   },
   searchInput: {
     flex: 1,
+    height: '100%',
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13.5,
-    lineHeight: 20,
+    fontSize: 12.5,
+    lineHeight: 18,
     color: '#0F172A',
     textAlign: 'right',
     writingDirection: 'rtl',
-    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
   },
   listContent: {
-    paddingBottom: Spacing.space6,
+    paddingBottom: 24,
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
     borderBottomWidth: 1,
     borderBottomColor: '#F8FAFC',
   },
@@ -500,18 +523,19 @@ const s = StyleSheet.create({
     backgroundColor: '#EFF6FF',
   },
   listItemLeft: {
-    width: 32,
+    width: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
   listItemContent: {
     flex: 1,
-    marginStart: Spacing.space2,
+    marginStart: 8,
   },
   listItemText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 15.5,
-    color: Colors.text,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: '#1E293B',
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -521,21 +545,22 @@ const s = StyleSheet.create({
   },
   listItemSubText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    color: Colors.textMuted,
+    fontSize: 10.5,
+    lineHeight: 14,
+    color: '#94A3B8',
     writingDirection: 'ltr',
     textAlign: 'left',
-    marginTop: 2,
+    marginTop: 1,
   },
   radioCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: '#CBD5E1',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: '#FFFFFF',
   },
   radioCircleSelected: {
     backgroundColor: Colors.primary,
@@ -544,13 +569,14 @@ const s = StyleSheet.create({
   emptyBox: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.space8,
-    gap: Spacing.space2,
+    paddingVertical: 28,
+    gap: 6,
   },
   emptyText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    color: Colors.textMuted,
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: '#94A3B8',
     writingDirection: 'rtl',
   },
 })

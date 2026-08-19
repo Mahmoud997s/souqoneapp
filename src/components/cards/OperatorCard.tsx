@@ -27,10 +27,12 @@ export function OperatorCard({ item, onPress }: Props) {
   const experienceYears = raw?.experienceYears
   const experienceText = experienceYears ? `${experienceYears} سنوات خبرة` : null
 
-  // Equipment tags
+  // Equipment & Certification tags
   const equipmentTags = (raw?.equipmentTypes && raw.equipmentTypes.length > 0)
     ? raw.equipmentTypes.map((t: string) => getEquipmentTypeLabel(t))
     : ['معدات ثقيلة']
+
+  const hasCertifications = Boolean(raw?.certifications && raw.certifications.length > 0)
 
   const displayTags = equipmentTags.slice(0, 3)
   const extraCount = equipmentTags.length - 3
@@ -69,14 +71,14 @@ export function OperatorCard({ item, onPress }: Props) {
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
-      {/* ── Top Row: Compact Avatar + Title & Badges ── */}
+      {/* ── Top Row: Scaled Avatar (+2px) + Title & Badges ── */}
       <View style={s.topRow}>
         <View style={s.avatarContainer}>
           {userAvatar ? (
             <Image source={{ uri: userAvatar }} style={s.avatar} contentFit="cover" />
           ) : (
             <View style={s.avatarPlaceholder}>
-              <MaterialCommunityIcons name="hard-hat" size={22} color={Colors.primary} />
+              <MaterialCommunityIcons name="hard-hat" size={24} color={Colors.primary} />
             </View>
           )}
           {isVerified && (
@@ -91,12 +93,12 @@ export function OperatorCard({ item, onPress }: Props) {
             <Text style={s.title} numberOfLines={1}>{title}</Text>
           </View>
 
-          {/* Role & Experience Pills (CarCard style) */}
+          {/* Role & Experience Pills (Soft & Balanced) */}
           <View style={s.badgesRow}>
             {operatorType ? (
               <View style={[s.detailPill, s.pillBlue]}>
-                <Ionicons name="person-outline" size={11} color="#2563eb" />
-                <Text style={[s.detailText, { color: '#2563eb' }]} numberOfLines={1}>
+                <Ionicons name="person-outline" size={10.5} color="#3B82F6" />
+                <Text style={[s.detailText, { color: '#2563EB' }]} numberOfLines={1}>
                   {operatorType}
                 </Text>
               </View>
@@ -104,7 +106,7 @@ export function OperatorCard({ item, onPress }: Props) {
 
             {experienceText ? (
               <View style={[s.detailPill, s.pillGreen]}>
-                <Ionicons name="shield-checkmark-outline" size={11} color="#059669" />
+                <Ionicons name="shield-checkmark-outline" size={10.5} color="#10B981" />
                 <Text style={[s.detailText, { color: '#059669' }]} numberOfLines={1}>
                   {experienceText}
                 </Text>
@@ -112,24 +114,38 @@ export function OperatorCard({ item, onPress }: Props) {
             ) : null}
           </View>
 
-          {description ? (
-            <Text style={s.subtitle} numberOfLines={2}>{description}</Text>
-          ) : null}
         </View>
       </View>
 
-      {/* ── Details List: Equipment Pills (CarCard Style) ── */}
-      {displayTags && displayTags.length > 0 && (
+      {/* ── Description Container: Balanced Full Width under Avatar & Title ── */}
+      {description ? (
+        <View style={s.descContainer}>
+          <Text style={s.descText} numberOfLines={2}>
+            {description}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* ── Details List: Equipment & Certification Badge ── */}
+      {((displayTags && displayTags.length > 0) || hasCertifications) && (
         <View style={s.detailsList}>
           {displayTags.map((tag: string, i: number) => (
-            <View key={i} style={[s.detailPill, s.pillNeutral]}>
-              <Ionicons name="construct-outline" size={11} color="#64748b" />
+            <View key={`eq-${i}`} style={[s.detailPill, s.pillNeutral]}>
+              <Ionicons name="construct-outline" size={10.5} color="#64748B" />
               <Text style={s.detailText} numberOfLines={1}>{tag}</Text>
             </View>
           ))}
+          {hasCertifications && (
+            <View style={[s.detailPill, s.pillAmber]}>
+              <Ionicons name="ribbon-outline" size={10.5} color="#D97706" />
+              <Text style={[s.detailText, { color: '#B45309', fontFamily: 'Almarai_700Bold' }]} numberOfLines={1}>
+                شهادة معتمدة
+              </Text>
+            </View>
+          )}
           {extraCount > 0 && (
             <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 4.5, flexShrink: 0 }]}>
-              <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]}>
+              <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748B', fontSize: 9.5 }]}>
                 +{extraCount}
               </Text>
             </View>
@@ -140,7 +156,7 @@ export function OperatorCard({ item, onPress }: Props) {
       {/* ── Footer: Location & Price ── */}
       <View style={s.footer}>
         <View style={s.locationRow}>
-          <Ionicons name="location-outline" size={12} color={Colors.textMuted} />
+          <Ionicons name="location-outline" size={12} color="#94A3B8" />
           <Text style={s.locationTxt} numberOfLines={1}>
             {governorate || 'سلطنة عمان'}
           </Text>
@@ -148,21 +164,21 @@ export function OperatorCard({ item, onPress }: Props) {
 
         {displayPrice ? (
           <View style={[s.detailPill, s.pillOrange]}>
-            <Ionicons name="wallet-outline" size={12} color="#ea580c" />
-            <Text style={[s.detailText, { color: '#ea580c', fontFamily: 'Almarai_800ExtraBold' }]}>
+            <Ionicons name="wallet-outline" size={11} color="#EA580C" />
+            <Text style={[s.detailText, { color: '#C2410C', fontFamily: 'Almarai_800ExtraBold' }]}>
               {displayPrice}
             </Text>
           </View>
         ) : (
           <View style={[s.detailPill, s.pillNeutral]}>
-            <Text style={[s.detailText, { color: '#64748b', fontFamily: 'Almarai_700Bold' }]}>
+            <Text style={[s.detailText, { color: '#64748B', fontFamily: 'Almarai_700Bold' }]}>
               قابل للتفاوض
             </Text>
           </View>
         )}
       </View>
 
-      {/* ── Quick Actions Row (Compact) ── */}
+      {/* ── Quick Actions Row ── */}
       <View style={s.actionRow}>
         <TouchableOpacity style={s.callBtn} onPress={handleCall} activeOpacity={0.8}>
           <Ionicons name="call" size={12} color={Colors.primary} />
@@ -183,40 +199,53 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
-    ...CardSystem.styles.border,
-    ...CardSystem.styles.softShadow,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
     width: '100%',
     marginBottom: Spacing.space3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: Spacing.space3,
+    gap: 10,
     marginBottom: Spacing.space2,
   },
   avatarContainer: {
     position: 'relative',
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F1F5F9',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
   },
   avatarPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#EFF6FF',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#F0F7FF',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: '#E0EDFD',
   },
   verifiedIconBadge: {
     position: 'absolute',
-    bottom: -2,
-    end: -2,
+    bottom: -1,
+    end: -1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
   },
@@ -230,8 +259,10 @@ const s = StyleSheet.create({
     marginBottom: 3,
   },
   title: {
-    ...CardSystem.typography.title,
-    color: '#0f172a',
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 13.5,
+    lineHeight: 18.5,
+    color: '#0F172A',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -242,9 +273,20 @@ const s = StyleSheet.create({
     gap: 4,
     marginBottom: 4,
   },
-  subtitle: {
-    ...CardSystem.typography.subtitle,
-    color: Colors.textMuted,
+  descContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    paddingHorizontal: 9,
+    paddingVertical: 5.5,
+    marginBottom: Spacing.space2,
+  },
+  descText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 16.5,
+    color: '#475569',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -264,11 +306,31 @@ const s = StyleSheet.create({
     borderRadius: CardSystem.radius.inner,
     flexShrink: 1,
   },
-  pillNeutral: CardSystem.styles.pillNeutral,
-  pillBlue: CardSystem.styles.pillBlue,
-  pillAmber: CardSystem.styles.pillAmber,
-  pillGreen: CardSystem.styles.pillGreen,
-  pillOrange: CardSystem.styles.pillOrange,
+  pillNeutral: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  pillBlue: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  pillGreen: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  pillOrange: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+  },
+  pillAmber: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
   detailText: {
     ...CardSystem.typography.pillText,
     color: '#475569',
@@ -281,7 +343,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.space2,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F8FAFC',
     marginBottom: Spacing.space2,
   },
   locationRow: {
@@ -292,7 +354,7 @@ const s = StyleSheet.create({
   },
   locationTxt: {
     ...CardSystem.typography.subtitle,
-    color: Colors.textMuted,
+    color: '#94A3B8',
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -307,9 +369,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: '#E2E8F0',
     paddingVertical: 6,
     borderRadius: Radius.md,
   },
