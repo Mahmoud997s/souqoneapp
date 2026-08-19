@@ -6,6 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
+import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
 import { EquipmentStep3Props } from '../../../types/equipmentForm.types'
 
@@ -42,6 +43,7 @@ export function EquipmentStep3Details({
               placeholder="مثال: CAT / Komatsu"
               value={formData.make}
               onChangeText={(val) => onUpdateField('make', val)}
+              maxLength={50}
               error={errors.make}
             />
           </View>
@@ -51,6 +53,7 @@ export function EquipmentStep3Details({
               placeholder="مثال: PC200-8 / WA900"
               value={formData.model}
               onChangeText={(val) => onUpdateField('model', val)}
+              maxLength={50}
               error={errors.model}
             />
           </View>
@@ -58,12 +61,10 @@ export function EquipmentStep3Details({
 
         <View style={s.row}>
           <View style={{ flex: 1 }}>
-            <AppInput
+            <YearSelect
               label="سنة الصنع *"
-              placeholder="مثال: 2020"
-              keyboardType="numeric"
               value={formData.year}
-              onChangeText={(val) => onUpdateField('year', val)}
+              onChange={(val) => onUpdateField('year', val)}
               error={errors.year}
             />
           </View>
@@ -139,6 +140,7 @@ export function EquipmentStep3Details({
               placeholder="مثال: 1.2 م³ أو 25 طن"
               value={formData.capacity}
               onChangeText={(val) => onUpdateField('capacity', val)}
+              maxLength={50}
               error={errors.capacity}
             />
           </View>
@@ -148,6 +150,7 @@ export function EquipmentStep3Details({
               placeholder="مثال: 160 HP"
               value={formData.power}
               onChangeText={(val) => onUpdateField('power', val)}
+              maxLength={50}
               error={errors.power}
             />
           </View>
@@ -158,6 +161,7 @@ export function EquipmentStep3Details({
           placeholder="مثال: 21,500 كجم"
           value={formData.weight}
           onChangeText={(val) => onUpdateField('weight', val)}
+          maxLength={50}
           error={errors.weight}
         />
       </View>
@@ -202,6 +206,7 @@ export function EquipmentStep3Details({
               placeholder="أو اكتب ميزة إضافية (مثال: جاك همر، بوم طويل)"
               value={customFeatureInput}
               onChangeText={onChangeCustomFeatureInput}
+              maxLength={50}
             />
           </View>
           <TouchableOpacity

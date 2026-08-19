@@ -42,10 +42,15 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(errors.title).toBeDefined()
     })
 
-    it('should fail if title is empty', () => {
-      const { isValid, errors } = validateOperatorStep(1, { ...baseValidForm, title: '' })
-      expect(isValid).toBe(false)
-      expect(errors.title).toBeDefined()
+    it('should fail if title is empty or too long', () => {
+      const { isValid: invalid, errors: e1 } = validateOperatorStep(1, { ...baseValidForm, title: '' })
+      expect(invalid).toBe(false)
+      expect(e1.title).toBeDefined()
+
+      const longTitle = 'a'.repeat(101)
+      const { isValid: invalidLong, errors: e2 } = validateOperatorStep(1, { ...baseValidForm, title: longTitle })
+      expect(invalidLong).toBe(false)
+      expect(e2.title).toBeDefined()
     })
 
     it('should fail if experienceYears is missing or invalid', () => {
@@ -100,6 +105,17 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       const { isValid, errors } = validateOperatorStep(2, { ...baseValidForm, equipmentTypes: [] })
       expect(isValid).toBe(false)
       expect(errors.equipmentTypes).toBeDefined()
+    })
+
+    it('should fail if description is empty or too long', () => {
+      const { isValid: invalid, errors: e1 } = validateOperatorStep(1, { ...baseValidForm, description: '' })
+      expect(invalid).toBe(false)
+      expect(e1.description).toBeDefined()
+
+      const longDesc = 'a'.repeat(2001)
+      const { isValid: invalidLong, errors: e2 } = validateOperatorStep(1, { ...baseValidForm, description: longDesc })
+      expect(invalidLong).toBe(false)
+      expect(e2.description).toBeDefined()
     })
 
     it('should fail if certifications is empty', () => {

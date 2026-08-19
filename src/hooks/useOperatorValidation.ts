@@ -12,12 +12,16 @@ export function validateOperatorStep(step: number, formData: Partial<OperatorFor
     }
     if (!formData.title || formData.title.trim().length < 5) {
       errors.title = 'عنوان الإعلان مطلوب (5 أحرف على الأقل)'
+    } else if (formData.title.length > 100) {
+      errors.title = 'يجب ألا يتجاوز العنوان 100 حرف'
     }
     if (!formData.experienceYears || isNaN(Number(formData.experienceYears)) || Number(formData.experienceYears) < 0) {
       errors.experienceYears = 'سنوات الخبرة الإجمالية مطلوبة'
     }
     if (!formData.description || formData.description.trim().length < 10) {
       errors.description = 'يرجى كتابة نبذة تفصيلية عن خبراتك ومهامك (10 أحرف على الأقل)'
+    } else if (formData.description.length > 2000) {
+      errors.description = 'يجب ألا تتجاوز النبذة 2000 حرف'
     }
   } else if (step === 2) {
     if (!formData.equipmentTypes || formData.equipmentTypes.length === 0) {

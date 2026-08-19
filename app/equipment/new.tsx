@@ -126,6 +126,7 @@ export default function NewEquipmentListingScreen() {
 
     // 1. Process existing images + upload any local image files
     let finalImageUrls: string[] = []
+    let newImageUrls: string[] = []
     try {
       // Add existing images from previous upload
       if (formData.existingImages && formData.existingImages.length > 0) {
@@ -155,7 +156,10 @@ export default function NewEquipmentListingScreen() {
                   } as any)
                   const res = await uploadsApi.single(data)
                   const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
-                  if (url) finalImageUrls.push(url)
+                  if (url) {
+                    finalImageUrls.push(url)
+                    newImageUrls.push(url)
+                  }
                 } catch (uploadErr) {
                   console.warn('Image upload error:', uploadErr)
                 }
@@ -198,7 +202,7 @@ export default function NewEquipmentListingScreen() {
 
       contactPhone: formData.contactPhone.trim() || undefined,
       whatsapp: formData.whatsapp.trim() || undefined,
-      images: finalImageUrls.length > 0 ? finalImageUrls : undefined,
+      ...(formData.editMode ? {} : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
     }
 
     if (formData.listingType === 'EQUIPMENT_SALE') {
@@ -218,8 +222,31 @@ export default function NewEquipmentListingScreen() {
       updateMutation.mutate(
         { id: formData.editListingId, data: payload },
         {
-          onSuccess: () => {
-            dialogService.alert('تم بنجاح', 'تم تحديث بيانات إعلان المعدة بنجاح')
+          onSuccess: async () => {
+            let imagesSuccess = true
+            try {
+              if (newImageUrls.length > 0) {
+                await equipmentApi.addImages(formData.editListingId!, newImageUrls)
+              }
+              if (formData.removedImageIds && formData.removedImageIds.length > 0) {
+                for (const imgId of formData.removedImageIds) {
+                  await equipmentApi.removeImage(imgId)
+                }
+              }
+            } catch (err) {
+              imagesSuccess = false
+              console.warn('Error updating images in edit mode:', err)
+            }
+
+            if (imagesSuccess) {
+              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الإعلان والصور بنجاح', 'success')
+            } else {
+              dialogService.alert(
+                'تنبيه',
+                'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يرجى المحاولة مرة أخرى.',
+                'warning'
+              )
+            }
             resetDraft()
             router.back()
           },

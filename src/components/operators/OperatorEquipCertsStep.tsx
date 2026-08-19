@@ -145,9 +145,10 @@ export function OperatorEquipCertsStep({
         <View style={s.addInputRow}>
           <View style={{ flex: 1 }}>
             <AppInput
-              placeholder="أو اكتب اسم الرخصة (مثال: رخصة ثقيلة سارية)"
+              placeholder="مثال: رخصة قيادة ثقيلة (عمان)"
               value={tempCert}
               onChangeText={setTempCert}
+              maxLength={50}
               onSubmitEditing={handleAddCert}
               returnKeyType="done"
             />
@@ -189,9 +190,10 @@ export function OperatorEquipCertsStep({
         <View style={s.addInputRow}>
           <View style={{ flex: 1 }}>
             <AppInput
-              placeholder="مثال: صيانة هيدروليك موقعية، تشغيل ليلي"
+              placeholder="مثال: حفر الخنادق العميقة"
               value={tempSpec}
               onChangeText={setTempSpec}
+              maxLength={50}
               onSubmitEditing={handleAddSpec}
               returnKeyType="done"
             />

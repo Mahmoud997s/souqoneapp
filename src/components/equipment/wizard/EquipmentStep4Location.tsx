@@ -160,6 +160,7 @@ export function EquipmentStep4Location({
                   placeholder="مثال: 3 أشهر"
                   value={formData.rentalDuration}
                   onChangeText={(val) => onUpdateField('rentalDuration', val)}
+                  maxLength={50}
                 />
               </View>
             </View>

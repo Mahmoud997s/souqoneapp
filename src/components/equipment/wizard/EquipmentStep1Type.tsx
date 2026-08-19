@@ -97,6 +97,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
           placeholder="مثال: حفار كوماتسو PC200 بحالة ممتازة للبيع أو الإيجار"
           value={formData.title}
           onChangeText={(val) => onUpdateField('title', val)}
+          maxLength={100}
           error={errors.title}
         />
 
@@ -107,6 +108,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
           onChangeText={(val) => onUpdateField('description', val)}
           multiline
           numberOfLines={4}
+          maxLength={2000}
           error={errors.description}
         />
       </View>

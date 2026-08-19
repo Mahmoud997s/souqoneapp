@@ -11,6 +11,8 @@ export const equipmentApi = {
   create: (data: Partial<EquipmentListing>) => apiClient.post<EquipmentListing>('/equipment', data),
   update: (id: string, data: Partial<EquipmentListing>) => apiClient.patch<EquipmentListing>(`/equipment/${id}`, data),
   delete: (id: string) => apiClient.delete(`/equipment/${id}`),
+  addImages: (id: string, urls: string[]) => apiClient.post(`/equipment/${id}/images`, { urls }),
+  removeImage: (imageId: string) => apiClient.delete(`/equipment/images/${imageId}`),
 
   // Operators
   getOperators: (params?: Record<string, unknown>) =>

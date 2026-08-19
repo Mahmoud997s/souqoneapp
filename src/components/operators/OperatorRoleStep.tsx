@@ -66,6 +66,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
           placeholder="مثال: مشغل معدات ثقيلة وبلدوزر خبرة 10 سنوات"
           value={formData.title}
           onChangeText={(val) => onUpdateField('title', val)}
+          maxLength={100}
           error={errors.title}
         />
 
@@ -85,6 +86,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
           onChangeText={(val) => onUpdateField('description', val)}
           multiline
           numberOfLines={3}
+          maxLength={2000}
           error={errors.description}
         />
       </View>

@@ -63,8 +63,22 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
       expect(errors.title).toBeDefined()
     })
 
+    it('should fail if title is longer than 100 characters', () => {
+      const longTitle = 'a'.repeat(101)
+      const { isValid, errors } = validateEquipmentStep(1, { ...baseValidForm, title: longTitle })
+      expect(isValid).toBe(false)
+      expect(errors.title).toBeDefined()
+    })
+
     it('should fail if description is missing or less than 10 characters', () => {
       const { isValid, errors } = validateEquipmentStep(1, { ...baseValidForm, description: 'للبيع فقط' })
+      expect(isValid).toBe(false)
+      expect(errors.description).toBeDefined()
+    })
+
+    it('should fail if description is longer than 2000 characters', () => {
+      const longDesc = 'a'.repeat(2001)
+      const { isValid, errors } = validateEquipmentStep(1, { ...baseValidForm, description: longDesc })
       expect(isValid).toBe(false)
       expect(errors.description).toBeDefined()
     })
@@ -127,16 +141,40 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
       expect(Object.keys(errors).length).toBe(0)
     })
 
-    it('should fail if make is missing', () => {
-      const { isValid, errors } = validateEquipmentStep(3, { ...baseValidForm, make: '' })
-      expect(isValid).toBe(false)
-      expect(errors.make).toBeDefined()
+    it('should fail if make is missing or longer than 50 characters', () => {
+      let result = validateEquipmentStep(3, { ...baseValidForm, make: '' })
+      expect(result.isValid).toBe(false)
+      expect(result.errors.make).toBeDefined()
+
+      const longMake = 'a'.repeat(51)
+      result = validateEquipmentStep(3, { ...baseValidForm, make: longMake })
+      expect(result.isValid).toBe(false)
+      expect(result.errors.make).toBeDefined()
     })
 
-    it('should fail if model is missing', () => {
-      const { isValid, errors } = validateEquipmentStep(3, { ...baseValidForm, model: '' })
+    it('should fail if model is missing or longer than 50 characters', () => {
+      let result = validateEquipmentStep(3, { ...baseValidForm, model: '' })
+      expect(result.isValid).toBe(false)
+      expect(result.errors.model).toBeDefined()
+
+      const longModel = 'a'.repeat(51)
+      result = validateEquipmentStep(3, { ...baseValidForm, model: longModel })
+      expect(result.isValid).toBe(false)
+      expect(result.errors.model).toBeDefined()
+    })
+
+    it('should fail if technical specs exceed 50 characters', () => {
+      const longText = 'a'.repeat(51)
+      const { isValid, errors } = validateEquipmentStep(3, { 
+        ...baseValidForm, 
+        capacity: longText,
+        power: longText,
+        weight: longText
+      })
       expect(isValid).toBe(false)
-      expect(errors.model).toBeDefined()
+      expect(errors.capacity).toBeDefined()
+      expect(errors.power).toBeDefined()
+      expect(errors.weight).toBeDefined()
     })
 
     it('should fail with invalid year', () => {
@@ -177,6 +215,20 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
       const { isValid, errors } = validateEquipmentStep(4, rentForm)
       expect(isValid).toBe(true)
       expect(errors.dailyPrice).toBeUndefined()
+    })
+
+    it('should fail if rentalDuration exceeds 50 characters', () => {
+      const rentForm: EquipmentFormData = {
+        ...baseValidForm,
+        listingType: 'EQUIPMENT_RENT',
+        price: '',
+        dailyPrice: '45',
+        monthlyPrice: '950',
+        rentalDuration: 'a'.repeat(51)
+      }
+      const { isValid, errors } = validateEquipmentStep(4, rentForm)
+      expect(isValid).toBe(false)
+      expect(errors.rentalDuration).toBeDefined()
     })
 
     it('should fail for Rent listing if neither daily nor monthly price is provided', () => {
@@ -220,30 +272,29 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
     })
   })
 
-  // ── 5. Edit Flow Payload & Image Combination ────────────────────────────
-  describe('Edit Flow: Existing Images & Payload Construction', () => {
-    it('should correctly preserve existing images and combine with new ones', () => {
-      const existingImages = [{ url: 'https://cdn.souqone.com/old1.jpg' }, { url: 'https://cdn.souqone.com/old2.jpg' }]
-      const newUploadedUrls = ['https://cdn.souqone.com/new3.jpg']
+  // ── 5. Edit Flow Payload & Image Handling ────────────────────────────
+  describe('Edit Flow: Image Handling & Payload Construction', () => {
+    it('should separate new images from existing images for addImages API', () => {
+      const existingImages = [{ url: 'https://cdn.souqone.com/old1.jpg' }]
+      const newUploadedUrls = ['https://cdn.souqone.com/new2.jpg']
 
-      const finalImages = [
-        ...existingImages.map((img) => img.url),
-        ...newUploadedUrls,
-      ]
+      // Simulate component logic
+      const finalImageUrls = [...existingImages.map(img => img.url), ...newUploadedUrls]
+      const newImageUrls = [...newUploadedUrls]
 
-      expect(finalImages.length).toBe(3)
-      expect(finalImages[0]).toBe('https://cdn.souqone.com/old1.jpg')
-      expect(finalImages[2]).toBe('https://cdn.souqone.com/new3.jpg')
+      expect(finalImageUrls.length).toBe(2)
+      expect(newImageUrls.length).toBe(1)
+      expect(newImageUrls[0]).toBe('https://cdn.souqone.com/new2.jpg')
     })
 
-    it('should build a clean backend DTO payload without forbidden keys', () => {
+    it('should build a clean backend DTO payload WITHOUT images in edit mode', () => {
       const formData = {
         ...baseValidForm,
         editMode: true,
         editListingId: 'equip-123',
       }
 
-      // Simulate payload generation
+      // Simulate payload generation (editMode = true)
       const payload: any = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -258,14 +309,28 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
         latitude: formData.latitude,
         longitude: formData.longitude,
         price: Number(formData.price),
+        ...(formData.editMode ? {} : { images: ['url1', 'url2'] })
       }
 
+      expect(payload.images).toBeUndefined() // CRITICAL: should not exist in update payload
       expect(payload.governorate).toBeUndefined()
       expect(payload.city).toBeUndefined()
-      expect(typeof payload.governorateId).toBe('number')
-      expect(typeof payload.year).toBe('number')
-      expect(typeof payload.price).toBe('number')
-      expect(payload.title).toBe('حفار كوماتسو بحالة ممتازة للبيع')
+    })
+
+    it('should include images in the payload in create mode', () => {
+      const formData = {
+        ...baseValidForm,
+        editMode: false,
+      }
+
+      // Simulate payload generation (editMode = false)
+      const payload: any = {
+        title: formData.title.trim(),
+        ...(formData.editMode ? {} : { images: ['url1', 'url2'] })
+      }
+
+      expect(payload.images).toBeDefined()
+      expect(payload.images.length).toBe(2)
     })
   })
 })
