@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -17,6 +17,7 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { ResetFilterButton } from './ResetFilterButton';
+import { AppButton } from './AppButton';
 
 export interface SelectOption {
   id: string;
@@ -45,6 +46,14 @@ export function SearchableSelectModal({
   placeholder = 'ابحث هنا...',
 }: SearchableSelectModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [localSelectedValue, setLocalSelectedValue] = useState<string | undefined>(selectedValue);
+
+  useEffect(() => {
+    if (visible) {
+      setLocalSelectedValue(selectedValue);
+      setSearchQuery('');
+    }
+  }, [visible, selectedValue]);
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
@@ -54,21 +63,23 @@ export function SearchableSelectModal({
     );
   }, [data, searchQuery]);
 
-  // Reset search when modal closes
   const handleClose = () => {
     setSearchQuery('');
     onClose();
   };
 
+  const handleConfirm = () => {
+    const selectedItem = data.find(i => i.id === localSelectedValue) || null;
+    onSelect(selectedItem);
+    handleClose();
+  };
+
   const renderItem = ({ item }: { item: SelectOption }) => {
-    const isSelected = item.id === selectedValue;
+    const isSelected = item.id === localSelectedValue;
     return (
       <TouchableOpacity
         style={[s.itemRow, isSelected && s.itemRowSelected]}
-        onPress={() => {
-          onSelect(item);
-          handleClose();
-        }}
+        onPress={() => setLocalSelectedValue(item.id)}
         activeOpacity={0.7}
       >
         {item.image && (
@@ -106,13 +117,10 @@ export function SearchableSelectModal({
               <Ionicons name="close" size={24} color={Colors.text} />
             </TouchableOpacity>
             <Text style={s.title}>{title}</Text>
-            {selectedValue ? (
+            {localSelectedValue ? (
               <ResetFilterButton
                 label="مسح"
-                onPress={() => {
-                  onSelect(null);
-                  handleClose();
-                }}
+                onPress={() => setLocalSelectedValue(undefined)}
               />
             ) : (
               <View style={{ width: 80 }} />
@@ -153,6 +161,17 @@ export function SearchableSelectModal({
               </View>
             }
           />
+
+          {/* Footer Action */}
+          <View style={s.footer}>
+            <AppButton
+              title="تأكيد الاختيار"
+              onPress={handleConfirm}
+              disabled={!localSelectedValue && !selectedValue} // If nothing is selected, button disabled (unless it's just meant to clear)
+              icon="checkmark-circle-outline"
+              size="sm"
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -166,7 +185,7 @@ const s = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    height: '85%',
+    height: '67%',
     backgroundColor: Colors.white,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
@@ -275,5 +294,13 @@ const s = StyleSheet.create({
     lineHeight: 20,
     color: Colors.textMuted,
     writingDirection: 'rtl',
+  },
+  footer: {
+    paddingHorizontal: Spacing.space4,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.white,
+    paddingBottom: Platform.OS === 'ios' ? 19 : 11,
   },
 });

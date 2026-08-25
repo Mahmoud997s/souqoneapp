@@ -113,20 +113,34 @@ export default function EditListingLoader() {
         else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
 
         if (category === 'cars') {
+          const brandId = listing.brandId || ''
+          const carModelId = listing.carModelId || listing.modelId || ''
+          
+          if (!brandId || !carModelId) {
+            Alert.alert(
+              'تحديث مطلوب',
+              'هذا الإعلان قديم ويحتاج إلى تحديث الماركة والموديل للمتابعة',
+              [{ text: 'حسناً' }]
+            )
+          }
+
           useCarWizardStore.getState().setEditMode(id, {
             listingType: listing.listingType || '',
+            version: listing.version || 1,
             title: listing.title || '',
             description: listing.description || '',
             price: listing.price ? String(listing.price) : '',
             isPriceNegotiable: listing.isPriceNegotiable || false,
-            governorateId: (listing.governorateId || (typeof listing.governorate === 'object' ? listing.governorate?.id : listing.governorate)) ? Number(listing.governorateId || (typeof listing.governorate === 'object' ? listing.governorate?.id : listing.governorate)) : null,
-            wilayaId: (listing.wilayaId || (typeof listing.city === 'object' ? listing.city?.id : listing.city)) ? Number(listing.wilayaId || (typeof listing.city === 'object' ? listing.city?.id : listing.city)) : null,
-            governorateName: listing.governorateName || listing.governorate?.nameAr || '',
-            wilayaName: listing.wilayaName || listing.city?.nameAr || '',
+            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
+            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
+            governorateName: listing.governorateRef?.nameAr || '',
+            wilayaName: listing.wilayaRef?.nameAr || '',
             latitude: listing.latitude ?? null,
             longitude: listing.longitude ?? null,
-            brandId: listing.brandId || listing.make || '',
-            carModelId: listing.carModelId || listing.modelId || listing.model || '',
+            brandId: brandId,
+            carModelId: carModelId,
+            originalBrandId: brandId,
+            originalCarModelId: carModelId,
             carTrimId: listing.carTrimId || listing.trimId || listing.trim || '',
             year: listing.year ? String(listing.year) : '',
             condition: listing.condition || '',

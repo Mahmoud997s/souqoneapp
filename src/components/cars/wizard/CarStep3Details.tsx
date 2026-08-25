@@ -6,18 +6,16 @@ import {
   TouchableOpacity,
   Platform,
   Pressable,
-  Modal,
-  FlatList,
   TextInput,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
+import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { CarStep3Props } from '../../../types/carForm.types'
 import {
   CONDITION_TYPES,
@@ -47,22 +45,10 @@ export function CarStep3Details({
   const [selectModal, setSelectModal] = useState<{
     visible: boolean
     title: string
-    items: { label: string; value: string; data?: any }[]
-    onSelect: (val: string, data?: any) => void
-  }>({ visible: false, title: '', items: [], onSelect: () => {} })
-
-  const [modalSearch, setModalSearch] = useState('')
-
-  const filteredModalItems = useMemo(() => {
-    if (!modalSearch) return selectModal.items
-    return selectModal.items.filter((i) =>
-      i.label.toLowerCase().includes(modalSearch.toLowerCase())
-    )
-  }, [modalSearch, selectModal.items])
-
-  useEffect(() => {
-    if (!selectModal.visible) setModalSearch('')
-  }, [selectModal.visible])
+    data: SelectOption[]
+    selectedValue?: string
+    onSelect: (opt: SelectOption | null) => void
+  }>({ visible: false, title: '', data: [], selectedValue: undefined, onSelect: () => {} })
 
   useEffect(() => {
     carsApi.getBrands().then(setBrands).catch(console.error)
@@ -95,8 +81,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الماركة',
-      items: brands.map((b) => ({ label: (b as any).nameAr || b.name, value: b.id, data: b })),
-      onSelect: async (val, data) => {
+      data: brands.map((b) => ({ id: b.id, label: (b as any).nameAr || b.name, payload: b })),
+      selectedValue: formData.brandId,
+      onSelect: async (opt) => {
+        if (!opt) return
+        const val = opt.id
+        const data = opt.payload
         onUpdateField('brandId', val)
         onUpdateField('make', data.nameAr || data.name)
         onUpdateField('carModelId', '')
@@ -113,8 +103,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الموديل',
-      items: models.map((m) => ({ label: m.name, value: m.id, data: m })),
-      onSelect: async (val, data) => {
+      data: models.map((m) => ({ id: m.id, label: m.name, payload: m })),
+      selectedValue: formData.carModelId,
+      onSelect: async (opt) => {
+        if (!opt) return
+        const val = opt.id
+        const data = opt.payload
         onUpdateField('carModelId', val)
         onUpdateField('model', data.name)
         onUpdateField('carTrimId', '')
@@ -129,10 +123,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الفئة',
-      items: trims.map((t) => ({ label: t.name, value: t.id, data: t })),
-      onSelect: (val, data) => {
-        onUpdateField('carTrimId', val)
-        onUpdateField('trim', data.name)
+      data: trims.map((t) => ({ id: t.id, label: t.name, payload: t })),
+      selectedValue: formData.carTrimId,
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField('carTrimId', opt.id)
+        onUpdateField('trim', opt.payload.name)
       },
     })
   }
@@ -142,8 +138,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'سنة الصنع',
-      items: yearOptions,
-      onSelect: (val) => onUpdateField('year', val),
+      data: yearOptions.map(y => ({ id: y.value, label: y.label })),
+      selectedValue: formData.year,
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField('year', opt.id)
+      },
     })
   }
 
@@ -152,8 +152,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: field === 'exteriorColor' ? 'اللون الخارجي' : 'اللون الداخلي',
-      items: CAR_COLORS.map((o) => ({ label: o.label, value: o.value, data: o })),
-      onSelect: (val) => onUpdateField(field, val),
+      data: CAR_COLORS.map((o) => ({ id: o.value, label: o.label })),
+      selectedValue: formData[field],
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField(field, opt.id)
+      },
     })
   }
 
@@ -162,8 +166,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'نوع الوقود',
-      items: FUEL_TYPES.map(o => ({ label: o.label, value: o.value })),
-      onSelect: (val) => onUpdateField('fuelType', val),
+      data: FUEL_TYPES.map(o => ({ id: o.value, label: o.label })),
+      selectedValue: formData.fuelType,
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField('fuelType', opt.id)
+      },
     })
   }
 
@@ -172,8 +180,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'شكل السيارة',
-      items: BODY_TYPES.map(o => ({ label: o.label, value: o.value })),
-      onSelect: (val) => onUpdateField('bodyType', val),
+      data: BODY_TYPES.map(o => ({ id: o.value, label: o.label })),
+      selectedValue: formData.bodyType,
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField('bodyType', opt.id)
+      },
     })
   }
 
@@ -182,8 +194,12 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'نظام الدفع',
-      items: DRIVE_TYPES.map(o => ({ label: o.label, value: o.value })),
-      onSelect: (val) => onUpdateField('driveType', val),
+      data: DRIVE_TYPES.map(o => ({ id: o.value, label: o.label })),
+      selectedValue: formData.driveType,
+      onSelect: (opt) => {
+        if (!opt) return
+        onUpdateField('driveType', opt.id)
+      },
     })
   }
 
@@ -549,135 +565,14 @@ export function CarStep3Details({
           ))}
       </View>
 
-      {/* Reusable Select Modal */}
-      <Modal
+      <SearchableSelectModal
         visible={selectModal.visible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectModal({ ...selectModal, visible: false })}
-      >
-        <View style={s.modalOverlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setSelectModal({ ...selectModal, visible: false })}
-          />
-          <SafeAreaView style={s.modalSheet}>
-            <View style={s.handleBar} />
-            <View style={s.modalHeader}>
-              <View>
-                <Text style={s.modalTitle}>{selectModal.title}</Text>
-                <Text style={s.modalSubtitle}>اختر الخيار المناسب من القائمة</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                  setSelectModal({ ...selectModal, visible: false })
-                }}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="close-circle" size={28} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {selectModal.items.length > 10 && (
-              <View style={s.searchBox}>
-                <Ionicons name="search" size={18} color={Colors.textMuted} style={{ marginEnd: 8 }} />
-                <TextInput
-                  style={s.searchInput}
-                  placeholder="ابحث هنا..."
-                  placeholderTextColor={Colors.textMuted}
-                  value={modalSearch}
-                  onChangeText={setModalSearch}
-                  autoCorrect={false}
-                />
-                {modalSearch.length > 0 && (
-                  <TouchableOpacity onPress={() => setModalSearch('')}>
-                    <Ionicons name="close" size={18} color={Colors.textMuted} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-
-            <FlatList
-              data={filteredModalItems}
-              keyExtractor={(item) => item.value}
-              contentContainerStyle={s.listContent}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => {
-                let isSelected = false
-                if (selectModal.title === 'اختر الماركة') isSelected = formData.brandId === item.value
-                else if (selectModal.title === 'اختر الموديل') isSelected = formData.carModelId === item.value
-                else if (selectModal.title === 'اختر الفئة') isSelected = formData.carTrimId === item.value
-                else if (selectModal.title === 'سنة الصنع') isSelected = formData.year === item.value
-                else if (selectModal.title === 'نوع الوقود') isSelected = formData.fuelType === item.value
-                else if (selectModal.title === 'شكل السيارة') isSelected = formData.bodyType === item.value
-                else if (selectModal.title === 'نظام الدفع') isSelected = formData.driveType === item.value
-                else if (selectModal.title === 'اللون الخارجي') isSelected = formData.exteriorColor === item.value
-                else if (selectModal.title === 'اللون الداخلي') isSelected = formData.interior === item.value
-
-                return (
-                  <TouchableOpacity
-                    style={[s.modalListItem, isSelected && s.modalListItemSelected]}
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      selectModal.onSelect(item.value, item.data)
-                      setSelectModal({ ...selectModal, visible: false })
-                    }}
-                  >
-                    <View style={s.modalItemLeft}>
-                      {!item.data?.hex && selectModal.title !== 'اختر الماركة' ? (
-                        <View style={[s.checkboxRound, isSelected && s.checkboxRoundSelected]}>
-                          {isSelected && <Ionicons name="checkmark" size={14} color={Colors.white} />}
-                        </View>
-                      ) : item.data?.hex ? (
-                        <View
-                          style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: 12,
-                            backgroundColor: item.data.hex,
-                            borderWidth: 1,
-                            borderColor: '#E5E7EB',
-                          }}
-                        />
-                      ) : selectModal.title === 'اختر الماركة' ? (
-                        <View
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 16,
-                            backgroundColor: '#F0F4FC',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.primary, fontSize: 14 }}>
-                            {item.label.charAt(0)}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-                    <View style={s.modalItemContent}>
-                      <Text style={[s.modalItemTitle, isSelected && s.modalItemTitleSelected]}>
-                        {item.label}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )
-              }}
-              ListEmptyComponent={() => (
-                <View style={{ padding: Spacing.space6, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: 'Almarai_400Regular', color: Colors.textMuted, fontSize: 14 }}>
-                    لا توجد نتائج مطابقة
-                  </Text>
-                </View>
-              )}
-            />
-          </SafeAreaView>
-        </View>
-      </Modal>
+        onClose={() => setSelectModal({ ...selectModal, visible: false })}
+        title={selectModal.title}
+        data={selectModal.data}
+        selectedValue={selectModal.selectedValue}
+        onSelect={selectModal.onSelect}
+      />
     </View>
   )
 }
@@ -867,120 +762,5 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#991B1B',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#CBD5E1',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalSubtitle: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 17,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: 2,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    marginHorizontal: Spacing.space4,
-    marginVertical: Spacing.space3,
-    paddingHorizontal: 12,
-    height: 44,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    color: '#0F172A',
-    height: 40,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  listContent: {
-    paddingHorizontal: Spacing.space3,
-    paddingBottom: Spacing.space4,
-  },
-  modalListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.space3,
-    borderRadius: Radius.md,
-    marginBottom: 4,
-  },
-  modalListItemSelected: {
-    backgroundColor: '#EFF6FF',
-  },
-  modalItemLeft: {
-    width: 40,
-    alignItems: 'center',
-  },
-  checkboxRound: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxRoundSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  modalItemContent: {
-    flex: 1,
-  },
-  modalItemTitle: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 14,
-    lineHeight: 19.5,
-    color: '#1E293B',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalItemTitleSelected: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
   },
 })

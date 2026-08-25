@@ -43,6 +43,7 @@ export const clearAllUserData = async () => {
     import('../store/pinStore').then(m => m.usePinStore.getState().reset?.()),
     import('../store/chatMessagesStore').then(m => m.useChatMessagesStore.getState().reset?.()),
     import('../store/archiveStore').then(m => m.useArchiveStore.getState().reset?.()),
+    import('../store/carWizardStore').then(m => m.useCarWizardStore.getState().resetForm?.()),
   ]
 
   await Promise.allSettled(resetPromises)

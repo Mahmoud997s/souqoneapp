@@ -227,11 +227,14 @@ export default function NewCarListingScreen() {
       latitude: formData.latitude || undefined,
       longitude: formData.longitude || undefined,
 
-      brandId: formData.brandId,
-      carModelId: formData.carModelId,
-      carTrimId: formData.carTrimId || undefined,
+      ...(formData.editMode 
+        ? (formData.brandId !== formData.originalBrandId || formData.carModelId !== formData.originalCarModelId 
+           ? { brandId: formData.brandId, carModelId: formData.carModelId, carTrimId: formData.carTrimId || undefined } 
+           : {}) 
+        : { brandId: formData.brandId, carModelId: formData.carModelId, carTrimId: formData.carTrimId || undefined }
+      ),
 
-      ...(formData.editMode ? {} : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
+      ...(formData.editMode ? { version: formData.version || 1 } : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
     }
 
     if (formData.listingType === 'SALE') {
@@ -259,17 +262,14 @@ export default function NewCarListingScreen() {
             let imagesSuccess = true
             try {
               if (newImageUrls.length > 0) {
-                const imgData = new FormData()
-                newImageUrls.forEach(url => {
-                   // This depends on how the backend addImages works, assuming standard listingsApi format
-                   imgData.append('images', url) 
-                })
-                // Actually the backend listings API has addImages taking form data of actual files. 
-                // But we already uploaded them and got URLs.
-                // It's safer to rely on full update if possible or ignore if backend doesn't support URL append directly.
+                for (const url of newImageUrls) {
+                  await uploadsApi.attachListingImageUrl(formData.editListingId!, url)
+                }
               }
               if (formData.removedImageIds && formData.removedImageIds.length > 0) {
-                // Delete logic might need custom route if listingsApi doesn't support it directly.
+                for (const imgId of formData.removedImageIds) {
+                  await uploadsApi.removeListingImage(formData.editListingId!, imgId)
+                }
               }
             } catch (err) {
               imagesSuccess = false
@@ -289,8 +289,27 @@ export default function NewCarListingScreen() {
             router.back()
           },
           onError: (err: any) => {
-            const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+            if (err?.response?.status === 409) {
+              dialogService.confirm(
+                'تحديث مطلوب',
+                'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
+                async () => {
+                  try {
+                    const res = await listingsApi.getById(formData.editListingId!)
+                    const listing: any = res.data ?? res
+                    updateField('version', listing.version)
+                    dialogService.alert('تم', 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.', 'success')
+                  } catch (e) {
+                    dialogService.alert('خطأ', 'تعذر جلب البيانات.')
+                  }
+                },
+                'تحديث الآن',
+                'إلغاء'
+              )
+            } else {
+              const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
+              dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+            }
           },
         }
       )

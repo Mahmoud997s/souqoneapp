@@ -12,6 +12,8 @@ export const uploadsApi = {
               }),
   removeListingImage: (listingId: string, imageId: string) =>
               apiClient.delete(`/uploads/listings/${listingId}/images/${imageId}`),
+  attachListingImageUrl: (listingId: string, url: string) =>
+              apiClient.post(`/uploads/listings/${listingId}/images/url`, { url }),
   removePartImage: (imageId: string) =>
               apiClient.delete(`/uploads/parts/images/${imageId}`),
   removeServiceImage: (imageId: string) =>

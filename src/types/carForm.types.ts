@@ -43,6 +43,9 @@ export type CarFormField =
   | 'images'
   | 'existingImages'
   | 'removedImageIds'
+  | 'version'
+  | 'originalBrandId'
+  | 'originalCarModelId'
 
 export interface CarFormData {
   title: string
@@ -101,6 +104,9 @@ export interface CarFormData {
 
   editMode?: boolean
   editListingId?: string
+  version?: number
+  originalBrandId?: string
+  originalCarModelId?: string
 }
 
 export interface CarFormErrors {

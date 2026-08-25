@@ -101,11 +101,9 @@ export function validateCarStep(
       }
     } else if (formData.listingType === 'RENTAL') {
       const hasDaily = formData.dailyPrice && !isNaN(Number(formData.dailyPrice)) && Number(formData.dailyPrice) > 0
-      const hasMonthly = formData.monthlyPrice && !isNaN(Number(formData.monthlyPrice)) && Number(formData.monthlyPrice) > 0
 
-      if (!hasDaily && !hasMonthly) {
-        errors.dailyPrice = 'يجب إدخال الأجر اليومي أو الشهري على الأقل'
-        errors.monthlyPrice = 'يجب إدخال الأجر اليومي أو الشهري على الأقل'
+      if (!hasDaily) {
+        errors.dailyPrice = 'الأجر اليومي مطلوب ويجب أن يكون أكبر من صفر'
       }
     }
   }
