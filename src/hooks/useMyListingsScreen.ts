@@ -155,6 +155,15 @@ export function useMyListingsScreen() {
   }
 
   const handleEdit = (item: MyListingItem) => {
+    if (item.entityType === 'car' && (item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED')) {
+      dialogService.alert(
+        'تنبيه',
+        'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً.',
+        'warning'
+      )
+      return
+    }
+
     switch (item.entityType) {
       case 'car':
         router.push(`/post/edit/${item.id}` as any)

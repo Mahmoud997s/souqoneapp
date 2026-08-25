@@ -1,3 +1,5 @@
+export const MAX_CAR_IMAGES = 20
+
 export const CAR_LISTING_TYPES = [
   { value: 'SALE', label: 'للبيع' },
   { value: 'RENTAL', label: 'للإيجار' },

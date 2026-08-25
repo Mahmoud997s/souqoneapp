@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { dialogService } from '../store/dialogStore'
 import { CarFormData, CarFormField } from '../types/carForm.types'
+import { MAX_CAR_IMAGES } from '../constants/cars'
 import { router } from 'expo-router'
 
 /**
@@ -29,8 +30,8 @@ export function useCarFormLogic(
       setIsUploading(true)
       const currentImagesCount = (formData.images?.length || 0) + (formData.existingImages?.length || 0)
       
-      if (currentImagesCount >= 20) {
-        dialogService.alert('تنبيه', 'لا يمكن تجاوز 20 صورة كحد أقصى.')
+      if (currentImagesCount >= MAX_CAR_IMAGES) {
+        dialogService.alert('تنبيه', `لا يمكن تجاوز ${MAX_CAR_IMAGES} صورة كحد أقصى.`)
         setIsUploading(false)
         return
       }
@@ -39,7 +40,7 @@ export function useCarFormLogic(
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: 20 - currentImagesCount,
+        selectionLimit: MAX_CAR_IMAGES - currentImagesCount,
       })
 
       if (!result.canceled && result.assets && result.assets.length > 0) {

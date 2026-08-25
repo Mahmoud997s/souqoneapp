@@ -306,6 +306,8 @@ export default function NewCarListingScreen() {
                 'تحديث الآن',
                 'إلغاء'
               )
+            } else if (err?.response?.status === 429) {
+              dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
             } else {
               const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
               dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
@@ -321,8 +323,14 @@ export default function NewCarListingScreen() {
           router.replace('/')
         },
         onError: (err: any) => {
-          const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-          dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+          if (err?.response?.status === 409) {
+            dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
+          } else if (err?.response?.status === 429) {
+            dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+          } else {
+            const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
+            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+          }
         },
       })
     }

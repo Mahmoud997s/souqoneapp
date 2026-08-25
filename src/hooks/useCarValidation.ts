@@ -1,4 +1,5 @@
 import { CarFormData, CarFormErrors } from '../types/carForm.types'
+import { MAX_CAR_IMAGES } from '../constants/cars'
 
 /**
  * Pure validation logic for Car Form steps
@@ -36,8 +37,8 @@ export function validateCarStep(
     const totalImages = (formData.images?.length || 0) + (formData.existingImages?.length || 0)
     if (formData.listingType !== 'WANTED' && totalImages === 0) {
       errors.images = 'يجب إضافة صورة واحدة على الأقل للإعلان'
-    } else if (totalImages > 20) {
-      errors.images = 'لا يمكن تجاوز 20 صورة'
+    } else if (totalImages > MAX_CAR_IMAGES) {
+      errors.images = `لا يمكن تجاوز ${MAX_CAR_IMAGES} صورة`
     }
   } else if (step === 3) {
     // Step 3: Technical Specifications Validation (Mandatory fields from backend)

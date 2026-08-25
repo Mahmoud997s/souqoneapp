@@ -13,6 +13,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CarStep2Props } from '../../../types/carForm.types'
+import { MAX_CAR_IMAGES } from '../../../constants/cars'
 
 export function CarStep2Images({
   images,
@@ -24,7 +25,6 @@ export function CarStep2Images({
   onRemoveExistingImage,
 }: CarStep2Props) {
   const totalCount = images.length + existingImages.length
-  const MAX_IMAGES = 20
 
   return (
     <View style={s.stepWrap}>
@@ -32,7 +32,7 @@ export function CarStep2Images({
       <TouchableOpacity
         style={s.uploadBox}
         onPress={onPickImages}
-        disabled={isUploading || totalCount >= MAX_IMAGES}
+        disabled={isUploading || totalCount >= MAX_CAR_IMAGES}
         activeOpacity={0.8}
       >
         {isUploading ? (
@@ -49,8 +49,8 @@ export function CarStep2Images({
               <Text style={s.uploadBoxTxt}>إرفاق صور واضحة للسيارة</Text>
               <Text style={s.uploadBoxSub}>
                 {totalCount > 0
-                  ? `تم اختيار ${totalCount} من ${MAX_IMAGES} صور مسموحة`
-                  : `يمكنك اختيار حتى ${MAX_IMAGES} صورة (الصورة الأولى ستكون الرئيسية)`}
+                  ? `تم اختيار ${totalCount} من ${MAX_CAR_IMAGES} صور مسموحة`
+                  : `يمكنك اختيار حتى ${MAX_CAR_IMAGES} صورة (الصورة الأولى ستكون الرئيسية)`}
               </Text>
             </View>
             <View style={s.uploadAddPill}>
