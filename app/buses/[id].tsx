@@ -21,16 +21,7 @@ import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/
 import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses'
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
-
-let MapView: any = null;
-let Marker: any = null;
-let PROVIDER_GOOGLE: any = null;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
+import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
 

@@ -67,6 +67,13 @@ export default function PostStep5Screen() {
       return
     }
 
+    if (store.category === 'cars') {
+      if (!store.details?.brandId || !store.details?.carModelId) {
+        dialogService.alert('بيانات غير مكتملة', 'يرجى إعادة اختيار الماركة والموديل')
+        return
+      }
+    }
+
     setLoading(true)
     try {
       const payload: Record<string, unknown> = {
@@ -144,6 +151,12 @@ export default function PostStep5Screen() {
         }
       }
 
+      if (store.category === 'cars') {
+        delete payload.make
+        delete payload.model
+        delete payload.trim
+      }
+
       if (store.category === 'parts') {
         delete payload.exteriorColor
         delete payload.interior
@@ -183,6 +196,14 @@ export default function PostStep5Screen() {
         }
       })
 
+      // Cleanup empty string ID fields to prevent validation errors
+      const stringIdFields = ['brandId', 'carModelId', 'carTrimId']
+      stringIdFields.forEach((field) => {
+        if (payload[field] === '') {
+          delete payload[field]
+        }
+      })
+
       // Format compatibleModels if string
       if (typeof payload.compatibleModels === 'string' && payload.compatibleModels.trim()) {
         payload.compatibleModels = (payload.compatibleModels as string)
@@ -197,6 +218,8 @@ export default function PostStep5Screen() {
       }
 
       if (store.editMode && store.editListingId) {
+        payload.version = store.details?.version;
+        
         switch (store.category) {
           case 'jobs':
             await jobsApi.update(store.editListingId, payload as any)
@@ -272,6 +295,11 @@ export default function PostStep5Screen() {
       )
       router.replace('/(tabs)')
     } catch (err: any) {
+      if (err?.response?.status === 409) {
+        dialogService.alert('خطأ التزامن', 'تم تعديل هذا الإعلان من جهاز آخر، يرجى إعادة تحميل البيانات')
+        return
+      }
+      
       let msg = store.editMode ? 'حدث خطأ أثناء تعديل الإعلان' : 'حدث خطأ أثناء نشر الإعلان'
       if (err?.response?.data?.message) {
         const errorData = err.response.data.message

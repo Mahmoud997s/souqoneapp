@@ -28,6 +28,8 @@ interface GovernorateWilayaSelectProps {
   cityLabelText?: string
   govError?: string
   cityError?: string
+  fallbackGovName?: string
+  fallbackCityName?: string
 }
 
 function normalizeArabic(text: string): string {
@@ -48,6 +50,8 @@ export function GovernorateWilayaSelect({
   cityLabelText = 'الولاية / المدينة',
   govError,
   cityError,
+  fallbackGovName,
+  fallbackCityName,
 }: GovernorateWilayaSelectProps) {
   const insets = useSafeAreaInsets()
   const [modalType, setModalType] = useState<'governorate' | 'city' | null>(null)
@@ -62,8 +66,8 @@ export function GovernorateWilayaSelect({
   const activeGov = governorates.find((g) => g.id === governorateId)
   const activeCity = wilayas.find((w) => w.id === wilayaId)
 
-  const govDisplayLabel = activeGov?.nameAr || 'اختر المحافظة'
-  const cityDisplayLabel = activeCity?.nameAr || 'اختر الولاية'
+  const govDisplayLabel = activeGov?.nameAr || fallbackGovName || 'اختر المحافظة'
+  const cityDisplayLabel = activeCity?.nameAr || fallbackCityName || 'اختر الولاية'
 
   useEffect(() => {
     fetchGovernorates()

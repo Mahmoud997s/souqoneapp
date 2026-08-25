@@ -6,6 +6,7 @@ interface ArchiveState {
   archivedIds: string[]
   toggleArchive: (id: string) => void
   isArchived: (id: string) => boolean
+  reset: () => void
 }
 
 export const useArchiveStore = create<ArchiveState>()(
@@ -18,6 +19,7 @@ export const useArchiveStore = create<ArchiveState>()(
           : [...state.archivedIds, id]
       })),
       isArchived: (id) => get().archivedIds.includes(id),
+      reset: () => set({ archivedIds: [] }),
     }),
     {
       name: 'archive-storage',

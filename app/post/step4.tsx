@@ -20,13 +20,7 @@ import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '.
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { dialogService } from '../../src/store/dialogStore'
 
-let MapView: any = null;
-let PROVIDER_GOOGLE: any = null;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
+import MapView, { PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
 
 
@@ -41,7 +35,7 @@ export default function PostStep4Screen() {
   const insets = useSafeAreaInsets()
   const { category, governorate, city, governorateId, wilayaId, locationNote, latitude, longitude, set } = usePostStore()
   
-  const mapRef = useRef<typeof MapView>(null);
+  const mapRef = useRef<any>(null);
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [focusedField, setFocusedField] = useState('')
   

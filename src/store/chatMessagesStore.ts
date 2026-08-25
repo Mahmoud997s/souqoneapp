@@ -11,6 +11,7 @@ interface ChatMessagesState {
   updateMessage: (roomId: string, messageId: string, updates: Partial<LocalMessage>) => void
   markRoomAsRead: (roomId: string, currentUserId: string) => void
   clearRoom: (roomId: string) => void
+  reset: () => void
 }
 
 export const useChatMessagesStore = create<ChatMessagesState>()(
@@ -113,6 +114,10 @@ export const useChatMessagesStore = create<ChatMessagesState>()(
           delete newMap[roomId]
           return { messagesByRoom: newMap }
         })
+      },
+
+      reset: () => {
+        set({ messagesByRoom: {} })
       }
     }),
     {

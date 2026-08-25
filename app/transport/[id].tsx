@@ -16,14 +16,7 @@ import { transportApi } from '../../src/api/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { resolveLocationGov } from '../../src/utils/mappers'
 import { getServiceLabel, getRequestStatusLabel, getQuoteStatusLabel } from '../../src/constants/transport'
-
-let MapView: any = null;
-let Marker: any = null;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-}
+import MapView, { Marker } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
 

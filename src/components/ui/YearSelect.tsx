@@ -159,14 +159,15 @@ const s = StyleSheet.create({
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 12.5,
+    lineHeight: 18,
     color: '#334155',
     textAlign: 'left',
     writingDirection: 'rtl',
+    marginBottom: 1,
   },
   inputBox: {
-    height: 46,
+    height: 48,
     backgroundColor: '#F8FAFC',
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -184,9 +185,9 @@ const s = StyleSheet.create({
     backgroundColor: '#FEF2F2',
   },
   errorTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
     color: Colors.error,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -208,8 +209,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   inputText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
     lineHeight: 18,
     color: '#0F172A',
     textAlign: 'left',
@@ -217,8 +218,8 @@ const s = StyleSheet.create({
   },
   placeholder: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12.5,
-    lineHeight: 17,
+    fontSize: 13.5,
+    lineHeight: 18,
     color: '#94A3B8',
   },
 

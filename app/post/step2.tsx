@@ -29,6 +29,8 @@ export default function PostStep2Screen() {
   React.useEffect(() => {
     if (category === 'equipment') {
       router.replace('/equipment/new')
+    } else if (category === 'cars') {
+      router.replace('/cars/new')
     } else if (category === 'transport') {
       router.replace('/transport/new')
     }

@@ -27,7 +27,7 @@ configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false })
 
 SplashScreen.preventAutoHideAsync()
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,

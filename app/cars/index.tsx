@@ -18,6 +18,8 @@ import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { usePostStore } from '../../src/store/postStore';
+import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt';
+import { useCarWizardStore } from '../../src/store/carWizardStore';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
@@ -26,9 +28,15 @@ export default function CarsLandingScreen() {
   const { set, reset } = usePostStore();
 
   const handleAddCar = () => {
-    reset();
-    set({ category: 'vehicles' });
-    router.push('/post/step2' as any);
+    const state = useCarWizardStore.getState();
+    const navigateToForm = () => router.push('/cars/new' as any);
+    
+    if (state.isDraft && hasMeaningfulCarData(state)) {
+      router.push('/cars/drafts' as any);
+    } else {
+      state.resetForm();
+      navigateToForm();
+    }
   };
 
 

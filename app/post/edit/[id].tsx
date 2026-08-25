@@ -8,6 +8,7 @@ import { partsApi } from '../../../src/api/parts'
 import { servicesApi } from '../../../src/api/services'
 import { usePostStore } from '../../../src/store/postStore'
 import { useBusWizardStore } from '../../../src/store/busWizardStore'
+import { useCarWizardStore } from '../../../src/store/carWizardStore'
 import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
 
@@ -58,9 +59,9 @@ export default function EditListingLoader() {
             model: listing.model || '',
             year: listing.year ? String(listing.year) : '',
             capacity: listing.capacity ? String(listing.capacity) : '',
-            condition: listing.condition || 'USED',
-            transmission: listing.transmission || 'MANUAL',
-            fuelType: listing.fuelType || 'DIESEL',
+            condition: listing.condition || '',
+            transmission: listing.transmission || '',
+            fuelType: listing.fuelType || '',
             mileage: listing.mileage ? String(listing.mileage) : '',
             plateNumber: listing.plateNumber || '',
             features: listing.features || [],
@@ -69,7 +70,7 @@ export default function EditListingLoader() {
             dailyPrice: listing.dailyPrice ? String(listing.dailyPrice) : '',
             monthlyPrice: listing.monthlyPrice ? String(listing.monthlyPrice) : '',
             withDriver: listing.withDriver || false,
-            contractType: listing.contractType || 'COMPANY',
+            contractType: listing.contractType || '',
             contractClient: listing.contractClient || '',
             contractMonthly: listing.contractMonthly ? String(listing.contractMonthly) : '',
             contractDuration: listing.contractDuration ? String(listing.contractDuration) : '',
@@ -111,7 +112,54 @@ export default function EditListingLoader() {
         else if (type === 'service' || type === 'services' || listing.type === 'service' || listing.listingType === 'CAR_SERVICE' || !!listing.serviceType) category = 'services'
         else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
 
-        // Populate store
+        if (category === 'cars') {
+          useCarWizardStore.getState().setEditMode(id, {
+            listingType: listing.listingType || '',
+            title: listing.title || '',
+            description: listing.description || '',
+            price: listing.price ? String(listing.price) : '',
+            isPriceNegotiable: listing.isPriceNegotiable || false,
+            governorateId: (listing.governorateId || (typeof listing.governorate === 'object' ? listing.governorate?.id : listing.governorate)) ? Number(listing.governorateId || (typeof listing.governorate === 'object' ? listing.governorate?.id : listing.governorate)) : null,
+            wilayaId: (listing.wilayaId || (typeof listing.city === 'object' ? listing.city?.id : listing.city)) ? Number(listing.wilayaId || (typeof listing.city === 'object' ? listing.city?.id : listing.city)) : null,
+            governorateName: listing.governorateName || listing.governorate?.nameAr || '',
+            wilayaName: listing.wilayaName || listing.city?.nameAr || '',
+            latitude: listing.latitude ?? null,
+            longitude: listing.longitude ?? null,
+            brandId: listing.brandId || listing.make || '',
+            carModelId: listing.carModelId || listing.modelId || listing.model || '',
+            carTrimId: listing.carTrimId || listing.trimId || listing.trim || '',
+            year: listing.year ? String(listing.year) : '',
+            condition: listing.condition || '',
+            transmission: listing.transmission || '',
+            fuelType: listing.fuelType || '',
+            mileage: listing.mileage ? String(listing.mileage) : '',
+            exteriorColor: listing.exteriorColor || listing.color || '',
+            bodyType: listing.bodyType || '',
+            engineSize: listing.engineSize ? String(listing.engineSize) : '',
+            horsepower: listing.horsepower ? String(listing.horsepower) : '',
+            doors: listing.doors ? String(listing.doors) : '',
+            seats: listing.seats ? String(listing.seats) : '',
+            driveType: listing.driveType || '',
+            interior: listing.interior || listing.interiorColor || '',
+            features: listing.features || [],
+            dailyPrice: listing.dailyPrice ? String(listing.dailyPrice) : '',
+            monthlyPrice: listing.monthlyPrice ? String(listing.monthlyPrice) : '',
+            withDriver: listing.withDriver || false,
+            depositAmount: listing.depositAmount ? String(listing.depositAmount) : '',
+            minRentalDays: listing.minRentalDays ? String(listing.minRentalDays) : '',
+            kmLimitPerDay: listing.kmLimitPerDay ? String(listing.kmLimitPerDay) : '',
+            cancellationPolicy: listing.cancellationPolicy || '',
+            deliveryAvailable: listing.deliveryAvailable || false,
+            insuranceIncluded: listing.insuranceIncluded || false,
+            existingImages: existingImgs,
+            images: [],
+            removedImageIds: [],
+          })
+          router.replace('/cars/new')
+          return
+        }
+
+        // Populate store for other generic categories
         set({
           editMode: true,
           editListingId: id,

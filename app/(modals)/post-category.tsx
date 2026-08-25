@@ -4,6 +4,8 @@ import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
 import { usePostStore } from '../../src/store/postStore'
+import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt'
+import { useCarWizardStore } from '../../src/store/carWizardStore'
 
 const { width } = Dimensions.get('window')
 const CARD_WIDTH = (width - 48) / 2 // 2 columns with 16 padding on sides and 16 gap
@@ -22,14 +24,53 @@ export default function PostCategoryModal() {
   const { set } = usePostStore()
   const insets = useSafeAreaInsets()
 
-  const handleSelect = (categoryId: string) => {
-    set({ category: categoryId })
+  const navigateToForm = (categoryId: string) => {
     if (categoryId === 'equipment') {
       router.replace('/equipment/new')
+    } else if (categoryId === 'cars') {
+      router.replace('/cars/new')
     } else if (categoryId === 'transport') {
       router.replace('/transport/new')
     } else {
       router.replace('/post/step2')
+    }
+  }
+
+  const handleSelect = (categoryId: string) => {
+    if (categoryId === 'equipment') {
+      navigateToForm(categoryId)
+      return
+    }
+
+    if (categoryId === 'cars') {
+      const carState = useCarWizardStore.getState()
+      if (carState.isDraft && hasMeaningfulCarData(carState)) {
+        router.replace('/cars/drafts')
+      } else {
+        carState.resetForm()
+        navigateToForm(categoryId)
+      }
+      return
+    }
+
+    const state = usePostStore.getState()
+    
+    if (state.category === categoryId && hasMeaningfulPostData(state)) {
+      showDraftResumePrompt({
+        onResume: () => {
+          navigateToForm(categoryId)
+        },
+        onDiscard: () => {
+          set({ category: categoryId }) // `set` uses `usePostStore` directly which is fine.
+          usePostStore.getState().reset('draft') // force reset draft
+          usePostStore.getState().set({ category: categoryId })
+          navigateToForm(categoryId)
+        }
+      })
+    } else {
+      usePostStore.getState().reset('draft')
+      usePostStore.getState().set({ category: categoryId })
+      navigateToForm(categoryId)
     }
   }
 

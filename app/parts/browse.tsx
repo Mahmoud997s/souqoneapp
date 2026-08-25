@@ -24,6 +24,7 @@ import { useBrands } from '../../src/hooks/useCars';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { usePostStore } from '../../src/store/postStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -109,9 +110,24 @@ export default function PartsBrowseScreen() {
       router.push('/(auth)/login' as any);
       return;
     }
-    resetPostStore();
-    setPostStore({ category: 'parts' });
-    router.push('/post/step2' as any);
+
+    const state = usePostStore.getState();
+    const navigateToForm = () => router.push('/post/step2' as any);
+
+    if (state.category === 'parts' && hasMeaningfulPostData(state)) {
+      showDraftResumePrompt({
+        onResume: navigateToForm,
+        onDiscard: () => {
+          resetPostStore('draft');
+          setPostStore({ category: 'parts' });
+          navigateToForm();
+        }
+      });
+    } else {
+      resetPostStore('draft');
+      setPostStore({ category: 'parts' });
+      navigateToForm();
+    }
   }, [isLoggedIn, resetPostStore, setPostStore]);
 
   // Dropdown Modal State

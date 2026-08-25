@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
+import { showDraftResumePrompt, hasMeaningfulPostData } from '../components/ui/DraftResumePrompt';
 
 export interface DepartmentTabConfig {
   id: string;
@@ -100,9 +101,24 @@ export function useDepartmentBottomBar({
       return;
     }
 
-    // Default post flow: set category and skip directly to step 2
-    set({ category });
-    router.push('/post/step2' as any);
+    // Default post flow: check draft or start fresh
+    const state = usePostStore.getState();
+    const navigateToForm = () => router.push('/post/step2' as any);
+
+    if (state.category === category && hasMeaningfulPostData(state)) {
+      showDraftResumePrompt({
+        onResume: navigateToForm,
+        onDiscard: () => {
+          usePostStore.getState().reset('draft');
+          set({ category });
+          navigateToForm();
+        }
+      });
+    } else {
+      usePostStore.getState().reset('draft');
+      set({ category });
+      navigateToForm();
+    }
   }, [isLoggedIn, onPost, postRoute, set, category, router]);
 
   const handleTabPress = useCallback(

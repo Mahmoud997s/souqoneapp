@@ -9,7 +9,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native'
-import MapView, { Region } from 'react-native-maps'
+import MapView, { Region } from './Map'
 import * as Location from 'expo-location'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'

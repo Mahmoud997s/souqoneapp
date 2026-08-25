@@ -17,13 +17,7 @@ import { EQUIPMENT_CONDITIONS, EQUIPMENT_LISTING_TYPES } from '../../src/utils/e
 import { dialogService } from '../../src/store/dialogStore'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
-let MapView: any = null;
-let Marker: any = null;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-}
+import MapView, { Marker } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
 

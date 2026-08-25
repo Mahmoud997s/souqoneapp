@@ -14,6 +14,9 @@ import { Spacing } from '../../src/constants/spacing'
 import { router } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 
+import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt'
+import { useCarWizardStore } from '../../src/store/carWizardStore'
+
 const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-outline' },
   { id: 'buses', title: 'حافلات', icon: 'bus-outline' },
@@ -26,18 +29,61 @@ const CATEGORIES = [
 
 export default function PostScreen() {
   const insets = useSafeAreaInsets()
-  const { set, reset } = usePostStore()
+  const store = usePostStore()
 
-  const handleSelect = (id: string) => {
-    reset()
-    set({ category: id })
+  const navigateToForm = (id: string) => {
     if (id === 'equipment') {
       router.push('/equipment/new')
+    } else if (id === 'cars') {
+      router.push('/cars/new')
     } else if (id === 'transport') {
       router.push('/transport/new')
     } else {
       router.push('/post/step2')
     }
+  }
+
+  const handleSelect = (id: string) => {
+    if (id === 'equipment') {
+      navigateToForm(id)
+      return
+    }
+
+    if (id === 'cars') {
+      const carState = useCarWizardStore.getState()
+      if (carState.isDraft && hasMeaningfulCarData(carState)) {
+        router.push('/cars/drafts')
+      } else {
+        carState.resetForm()
+        navigateToForm(id)
+      }
+      return
+    }
+
+    const state = usePostStore.getState()
+    
+    const checkAndNavigate = () => {
+      // If the current draft is for this category and has meaningful data
+      if (state.category === id && hasMeaningfulPostData(state)) {
+        showDraftResumePrompt({
+          onResume: () => {
+            navigateToForm(id)
+          },
+          onDiscard: () => {
+            store.reset('draft')
+            store.set({ category: id })
+            navigateToForm(id)
+          }
+        })
+      } else {
+        // No meaningful draft for this category, start fresh
+        store.reset('draft')
+        store.set({ category: id })
+        navigateToForm(id)
+      }
+    }
+
+    checkAndNavigate()
   }
 
   return (

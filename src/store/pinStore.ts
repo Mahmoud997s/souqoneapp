@@ -6,6 +6,7 @@ interface PinState {
   pinnedIds: string[]
   togglePin: (id: string) => void
   isPinned: (id: string) => boolean
+  reset: () => void
 }
 
 export const usePinStore = create<PinState>()(
@@ -19,6 +20,7 @@ export const usePinStore = create<PinState>()(
             : [id, ...state.pinnedIds],
         })),
       isPinned: (id) => get().pinnedIds.includes(id),
+      reset: () => set({ pinnedIds: [] }),
     }),
     {
       name: 'pinned-chat-storage',

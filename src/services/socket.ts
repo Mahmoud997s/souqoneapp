@@ -5,6 +5,7 @@ import { useSocketStore } from '../store/socketStore'
 
 class SocketService {
   private socket: Socket | null = null
+  private hasLoggedConnectionError = false
 
   async connect() {
     if (this.socket?.connected) return this.socket
@@ -24,7 +25,6 @@ class SocketService {
 
     this.socket = io(url, {
       auth: { token: token ?? '' },
-      transports: ['websocket', 'polling'],
       autoConnect: false, // Don't auto-connect, we'll call connect manually
       reconnection: true,
       reconnectionAttempts: 5,
@@ -34,6 +34,7 @@ class SocketService {
     })
 
     this.socket.on('connect', () => {
+      this.hasLoggedConnectionError = false
       console.log('[Socket] Connected:', this.socket?.id)
       useSocketStore.setState({ 
         isConnected: true, 
@@ -48,7 +49,12 @@ class SocketService {
     })
 
     this.socket.on('connect_error', (err) => {
-      console.error('[Socket] Connection Error:', err.message)
+      if (!this.hasLoggedConnectionError) {
+        if (__DEV__) {
+          console.warn(`[Socket] Connection Error: ${err.message} (further socket errors silenced)`)
+        }
+        this.hasLoggedConnectionError = true
+      }
       useSocketStore.setState({ 
         isConnected: false,
         lastError: err.message,

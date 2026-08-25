@@ -18,15 +18,7 @@ import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../../src/constants/c
 import { dialogService } from '../../src/store/dialogStore'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 
-let MapView: any = null;
-let Marker: any = null;
-let PROVIDER_GOOGLE: any = null;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
+import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
 

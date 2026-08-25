@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
 import { User } from '../types/auth.types'
+import { clearAllUserData } from '../utils/clearUserData'
 
 interface AuthState {
   user: User | null
@@ -31,8 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await authApi.logout(refreshToken).catch(() => {})
       }
     } finally {
-      await SecureStore.deleteItemAsync('accessToken')
-      await SecureStore.deleteItemAsync('refreshToken')
+      await clearAllUserData()
       set({ user: null, isLoggedIn: false })
     }
   },

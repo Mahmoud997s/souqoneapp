@@ -32,6 +32,9 @@ export function CarForm() {
     make = '',
     model = '',
     trim = '',
+    brandId: storeBrandId = '',
+    carModelId: storeModelId = '',
+    carTrimId: storeTrimId = '',
     year = '',
     dailyPrice = '',
     monthlyPrice = '',
@@ -52,8 +55,8 @@ export function CarForm() {
   const [brands, setBrands] = useState<CarBrand[]>([])
   const [models, setModels] = useState<CarModelItem[]>([])
   const [trims, setTrims] = useState<CarTrimItem[]>([])
-  const [brandId, setBrandId] = useState('')
-  const [modelId, setModelId] = useState('')
+  const [brandId, setBrandId] = useState(storeBrandId)
+  const [modelId, setModelId] = useState(storeModelId)
 
   const [selectModal, setSelectModal] = useState<{
     visible: boolean;
@@ -89,18 +92,32 @@ export function CarForm() {
   }, [modelId])
 
   useEffect(() => {
-    if (make && brands.length && !brandId) {
-      const match = brands.find(b => b.name === make || b.nameAr === make)
-      if (match) setBrandId(match.id)
+    if (!brandId) {
+      if (storeBrandId) {
+        setBrandId(storeBrandId)
+      } else if (make && brands.length) {
+        const match = brands.find(b => b.name === make || b.nameAr === make)
+        if (match) {
+          setBrandId(match.id)
+          setDetail('brandId', match.id)
+        }
+      }
     }
-  }, [make, brands])
+  }, [make, brands, storeBrandId, brandId])
 
   useEffect(() => {
-    if (model && models.length && !modelId) {
-      const match = models.find(m => m.name === model || m.nameAr === model)
-      if (match) setModelId(match.id)
+    if (!modelId) {
+      if (storeModelId) {
+        setModelId(storeModelId)
+      } else if (model && models.length) {
+        const match = models.find(m => m.name === model || m.nameAr === model)
+        if (match) {
+          setModelId(match.id)
+          setDetail('carModelId', match.id)
+        }
+      }
     }
-  }, [model, models])
+  }, [model, models, storeModelId, modelId])
 
   const yearOptions = useMemo(() => {
     const years = []
@@ -117,6 +134,9 @@ export function CarForm() {
       onSelect: async (val, data) => {
         setBrandId(val)
         setModelId('')
+        setDetail('brandId', val)
+        setDetail('carModelId', '')
+        setDetail('carTrimId', '')
         setDetail('make', data.name)
         setDetail('model', '')
         setDetail('trim', '')
@@ -145,6 +165,8 @@ export function CarForm() {
       items: list.map(m => ({ label: m.name, value: m.id, data: m })),
       onSelect: async (val, data) => {
         setModelId(val)
+        setDetail('carModelId', val)
+        setDetail('carTrimId', '')
         setDetail('model', data.name)
         setDetail('trim', '')
         setDetail('year', '')
@@ -173,6 +195,7 @@ export function CarForm() {
       title: 'اختر الفئة',
       items: list.map(t => ({ label: t.name, value: t.id, data: t })),
       onSelect: (val, data) => {
+        setDetail('carTrimId', val)
         setDetail('trim', data.name)
         openYearModal()
       }

@@ -69,6 +69,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
               },
               iconRight ? { paddingStart: isSm ? 40 : 46 } : null,
               iconLeft ? { paddingEnd: isSm ? 40 : 46 } : null,
+              rest.keyboardType === 'numeric' ? { writingDirection: 'ltr' } : null,
               ltr ? { textAlign: 'left', writingDirection: 'ltr' } : null,
               style,
             ]}
