@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useListing } from '../../src/hooks/useListings'
 import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
+import { listingsApi } from '../../src/api/listings'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES, BODY_TYPES, GOVERNORATE_OPTIONS } from '../../src/constants/filters'
@@ -221,6 +222,25 @@ export default function ListingDetailScreen() {
     } else {
       router.push(`/post/edit/${raw.id}` as any)
     }
+  }
+
+  const handleDeleteListing = async () => {
+    dialogService.confirm(
+      'حذف الإعلان',
+      'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+      async () => {
+        try {
+          await listingsApi.remove(raw.id)
+          dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
+          router.back()
+        } catch (e: any) {
+          dialogService.alert('خطأ', e?.message || 'فشل حذف الإعلان', 'error')
+        }
+      },
+      'نعم، احذف',
+      'تراجع',
+      true
+    )
   }
 
   return (
@@ -559,14 +579,25 @@ export default function ListingDetailScreen() {
       {/* ── FIXED CONTACT BAR ── */}
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {isOwner ? (
-          <TouchableOpacity
-            style={s.callWideBtn}
-            onPress={handleEditListing}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="create-outline" size={22} color={Colors.primary} />
-            <Text style={s.callWideTxt}>تعديل الإعلان</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1, backgroundColor: '#fee2e2', borderColor: '#f87171' }]}
+              onPress={handleDeleteListing}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="trash-outline" size={22} color={Colors.error} />
+              <Text style={[s.callWideTxt, { color: Colors.error }]}>حذف</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1 }]}
+              onPress={handleEditListing}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="create-outline" size={22} color={Colors.primary} />
+              <Text style={s.callWideTxt}>تعديل</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             {seller && (

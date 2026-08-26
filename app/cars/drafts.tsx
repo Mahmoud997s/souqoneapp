@@ -1,6 +1,7 @@
 import React from 'react'
 import { router } from 'expo-router'
 import { useCarWizardStore } from '../../src/store/carWizardStore'
+import { dialogService } from '../../src/store/dialogStore'
 import { DraftResumeScreen } from '../../src/components/post/DraftResumeScreen'
 
 export default function CarDraftsScreen() {
@@ -11,8 +12,17 @@ export default function CarDraftsScreen() {
   }
 
   const handleDiscard = () => {
-    resetForm()
-    router.replace('/cars/new')
+    dialogService.confirm(
+      'مسح المسودة',
+      'هل أنت متأكد؟ سيتم حذف جميع البيانات المدخلة.',
+      () => {
+        resetForm()
+        router.replace('/cars/new')
+      },
+      'نعم، امسح البيانات',
+      'تراجع',
+      true
+    )
   }
   
   // Calculate a rough completion percentage based on steps (5 steps total)
