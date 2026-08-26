@@ -24,6 +24,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useInfiniteCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
+import { useDebounce } from '../../src/hooks/useDebounce';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import {
   DROPDOWN_FILTERS,
@@ -87,6 +88,7 @@ export default function CarsBrowseScreen() {
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>(undefined);
   const [selectedBrandName, setSelectedBrandName] = useState<string | undefined>(undefined);
   
@@ -130,8 +132,8 @@ export default function CarsBrowseScreen() {
       limit: 30,
     };
 
-    if (searchQuery.trim()) {
-      params.search = searchQuery;
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery;
     }
 
     // BrandCarousel selection takes priority
@@ -163,7 +165,7 @@ export default function CarsBrowseScreen() {
     });
 
     return params;
-  }, [searchQuery, selectedBrandName, filters]);
+  }, [debouncedSearchQuery, selectedBrandName, filters]);
 
   // Fetch Listings
   const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteCarListings(queryParams);
