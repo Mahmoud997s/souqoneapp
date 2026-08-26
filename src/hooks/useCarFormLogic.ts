@@ -128,6 +128,28 @@ export function useCarFormLogic(
     [updateField]
   )
 
+  const handleMakePrimaryNew = useCallback(
+    (index: number) => {
+      if (index === 0) return
+      const updated = [...(formData.images || [])]
+      const [moved] = updated.splice(index, 1)
+      updated.unshift(moved)
+      updateField('images', updated)
+    },
+    [formData.images, updateField]
+  )
+
+  const handleMakePrimaryExisting = useCallback(
+    (index: number) => {
+      if (index === 0) return
+      const updated = [...(formData.existingImages || [])]
+      const [moved] = updated.splice(index, 1)
+      updated.unshift(moved)
+      updateField('existingImages', updated)
+    },
+    [formData.existingImages, updateField]
+  )
+
   const handleCancel = useCallback(() => {
     router.back()
   }, [])
@@ -139,6 +161,8 @@ export function useCarFormLogic(
     handlePickImages,
     handleRemoveNewImage,
     handleRemoveExistingImage,
+    handleMakePrimaryNew,
+    handleMakePrimaryExisting,
     handleToggleFeature,
     handleAddCustomFeature,
     handleRemoveFeature,

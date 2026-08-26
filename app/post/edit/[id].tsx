@@ -11,6 +11,7 @@ import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { useCarWizardStore } from '../../../src/store/carWizardStore'
 import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
+import { carsApi } from '../../../src/api/cars'
 
 export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
@@ -115,6 +116,7 @@ export default function EditListingLoader() {
         if (category === 'cars') {
           const brandId = listing.brandId || ''
           const carModelId = listing.carModelId || listing.modelId || ''
+          const carTrimId = listing.carTrimId || listing.trimId || listing.trim || ''
           
           if (!brandId || !carModelId) {
             Alert.alert(
@@ -124,12 +126,40 @@ export default function EditListingLoader() {
             )
           }
 
+          let makeLabel = ''
+          let modelLabel = ''
+          let trimLabel = ''
+
+          try {
+            console.log('Resolving car labels for:', { brandId, carModelId, carTrimId })
+            if (brandId) {
+              const brands = await carsApi.getBrands()
+              const b = brands.find((x: any) => String(x.id) === String(brandId))
+              console.log('Brands fetched:', brands?.length, 'Matched brand:', b?.nameAr || b?.name)
+              if (b) makeLabel = b.nameAr || b.name
+            }
+            if (carModelId && brandId) {
+              const models = await carsApi.getModels(brandId)
+              const m = models.find((x: any) => String(x.id) === String(carModelId))
+              console.log('Models fetched:', models?.length, 'Matched model:', m?.nameAr || m?.name)
+              if (m) modelLabel = m.nameAr || m.name
+            }
+            if (carTrimId && carModelId) {
+              const trims = await carsApi.getTrims(carModelId)
+              const t = trims.find((x: any) => String(x.id) === String(carTrimId))
+              console.log('Trims fetched:', trims?.length, 'Matched trim:', t?.nameAr || t?.name)
+              if (t) trimLabel = t.nameAr || t.name
+            }
+          } catch (e) {
+            console.warn('Failed to resolve car labels', e)
+          }
+
           useCarWizardStore.getState().setEditMode(id, {
             listingType: listing.listingType || '',
             version: listing.version || 1,
             title: listing.title || '',
             description: listing.description || '',
-            price: listing.price ? String(listing.price) : '',
+            price: listing.price != null ? String(listing.price) : '',
             isPriceNegotiable: listing.isPriceNegotiable || false,
             governorateId: listing.governorateId ? Number(listing.governorateId) : null,
             wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
@@ -141,27 +171,30 @@ export default function EditListingLoader() {
             carModelId: carModelId,
             originalBrandId: brandId,
             originalCarModelId: carModelId,
-            carTrimId: listing.carTrimId || listing.trimId || listing.trim || '',
-            year: listing.year ? String(listing.year) : '',
+            carTrimId: carTrimId,
+            make: makeLabel,
+            model: modelLabel,
+            trim: trimLabel,
+            year: listing.year != null ? String(listing.year) : '',
             condition: listing.condition || '',
             transmission: listing.transmission || '',
             fuelType: listing.fuelType || '',
-            mileage: listing.mileage ? String(listing.mileage) : '',
+            mileage: listing.mileage != null ? String(listing.mileage) : '',
             exteriorColor: listing.exteriorColor || listing.color || '',
             bodyType: listing.bodyType || '',
-            engineSize: listing.engineSize ? String(listing.engineSize) : '',
-            horsepower: listing.horsepower ? String(listing.horsepower) : '',
-            doors: listing.doors ? String(listing.doors) : '',
-            seats: listing.seats ? String(listing.seats) : '',
+            engineSize: listing.engineSize != null ? String(listing.engineSize) : '',
+            horsepower: listing.horsepower != null ? String(listing.horsepower) : '',
+            doors: listing.doors != null ? String(listing.doors) : '',
+            seats: listing.seats != null ? String(listing.seats) : '',
             driveType: listing.driveType || '',
             interior: listing.interior || listing.interiorColor || '',
             features: listing.features || [],
-            dailyPrice: listing.dailyPrice ? String(listing.dailyPrice) : '',
-            monthlyPrice: listing.monthlyPrice ? String(listing.monthlyPrice) : '',
+            dailyPrice: listing.dailyPrice != null ? String(listing.dailyPrice) : '',
+            monthlyPrice: listing.monthlyPrice != null ? String(listing.monthlyPrice) : '',
             withDriver: listing.withDriver || false,
-            depositAmount: listing.depositAmount ? String(listing.depositAmount) : '',
-            minRentalDays: listing.minRentalDays ? String(listing.minRentalDays) : '',
-            kmLimitPerDay: listing.kmLimitPerDay ? String(listing.kmLimitPerDay) : '',
+            depositAmount: listing.depositAmount != null ? String(listing.depositAmount) : '',
+            minRentalDays: listing.minRentalDays != null ? String(listing.minRentalDays) : '',
+            kmLimitPerDay: listing.kmLimitPerDay != null ? String(listing.kmLimitPerDay) : '',
             cancellationPolicy: listing.cancellationPolicy || '',
             deliveryAvailable: listing.deliveryAvailable || false,
             insuranceIncluded: listing.insuranceIncluded || false,

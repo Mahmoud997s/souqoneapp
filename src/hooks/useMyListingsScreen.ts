@@ -213,6 +213,62 @@ export function useMyListingsScreen() {
     })).filter((section) => section.items.length > 0)
   }, [activeCategory, filteredData])
 
+  const handleStatusChange = (item: MyListingItem) => {
+    if (item.entityType !== 'car') {
+      dialogService.alert('تنبيه', 'تغيير الحالة متاح للسيارات فقط حالياً.', 'warning')
+      return
+    }
+
+    const options: any[] = [
+      { text: 'إلغاء', style: 'cancel' as const },
+    ]
+
+    if (item.rawStatus === 'ACTIVE') {
+      options.push({
+        text: 'تعليم كمباع',
+        onPress: () => confirmStatusChange(item, 'mark-sold'),
+      })
+      options.push({
+        text: 'أرشفة',
+        onPress: () => confirmStatusChange(item, 'archive'),
+      })
+    } else if (item.rawStatus === 'ARCHIVED' || item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED') {
+      options.push({
+        text: 'استعادة',
+        onPress: () => confirmStatusChange(item, 'restore'),
+      })
+    }
+
+    import('react-native').then(({ Alert }) => {
+      Alert.alert('تغيير الحالة', 'اختر الإجراء المطلوب:', options)
+    })
+  }
+
+  const confirmStatusChange = (item: MyListingItem, action: 'mark-sold' | 'archive' | 'restore') => {
+    dialogService.confirm(
+      'تأكيد الإجراء',
+      'هل أنت متأكد من تغيير حالة الإعلان؟',
+      async () => {
+        try {
+          await listingsApi.updateStatus(item.id, action, item.version || 1)
+          await queryClient.invalidateQueries({
+            queryKey: ENTITY_QUERY_KEYS[item.entityType],
+          })
+          dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
+        } catch (err: any) {
+          if (err?.response?.status === 409) {
+            dialogService.alert('تحديث مطلوب', 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.')
+            handleRefresh()
+          } else {
+            dialogService.alert('خطأ', 'حدث خطأ أثناء تغيير الحالة')
+          }
+        }
+      },
+      'تأكيد',
+      'إلغاء'
+    )
+  }
+
   return {
     activeCategory,
     activeSubFilter,
@@ -229,6 +285,7 @@ export function useMyListingsScreen() {
     handleDelete,
     handleEdit,
     handleView,
+    handleStatusChange,
     isEditSupported,
   }
 }

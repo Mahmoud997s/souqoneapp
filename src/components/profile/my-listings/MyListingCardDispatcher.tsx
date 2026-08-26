@@ -17,6 +17,7 @@ export interface MyListingCardDispatcherProps {
   onView: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
   onDelete: (item: MyListingItem) => void
+  onStatusChange?: (item: MyListingItem) => void
   isEditSupported: boolean
   fullWidth?: boolean
 }
@@ -26,6 +27,7 @@ export function MyListingCardDispatcher({
   onView,
   onEdit,
   onDelete,
+  onStatusChange,
   isEditSupported,
   fullWidth = false,
 }: MyListingCardDispatcherProps) {
@@ -34,6 +36,7 @@ export function MyListingCardDispatcher({
       item={item}
       onDelete={onDelete}
       onEdit={onEdit}
+      onStatusChange={onStatusChange}
       isEditSupported={isEditSupported}
     />
   )

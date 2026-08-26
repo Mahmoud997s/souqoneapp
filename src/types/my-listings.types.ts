@@ -35,4 +35,6 @@ export interface MyListingItem {
   raw: unknown
   /** The mapped UnifiedCardItem (for cards that consume UnifiedCardItem) */
   mapped?: UnifiedCardItem
+  /** Optimistic Concurrency Control version */
+  version?: number
 }

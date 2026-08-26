@@ -8,6 +8,7 @@ export interface MyListingActionButtonsProps {
   item: MyListingItem
   onDelete: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
+  onStatusChange?: (item: MyListingItem) => void
   isEditSupported: boolean
 }
 
@@ -15,6 +16,7 @@ export function MyListingActionButtons({
   item,
   onDelete,
   onEdit,
+  onStatusChange,
   isEditSupported,
 }: MyListingActionButtonsProps) {
   return (
@@ -38,6 +40,18 @@ export function MyListingActionButtons({
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           <Ionicons name="pencil" size={16} color={Colors.primary} />
+        </TouchableOpacity>
+      )}
+
+      {/* Overflow Menu / Status Change */}
+      {onStatusChange && (
+        <TouchableOpacity
+          style={s.actionBtn}
+          activeOpacity={0.8}
+          onPress={() => onStatusChange(item)}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <Ionicons name="ellipsis-vertical" size={16} color={Colors.primary} />
         </TouchableOpacity>
       )}
     </View>

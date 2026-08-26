@@ -271,6 +271,12 @@ export default function NewCarListingScreen() {
                   await uploadsApi.removeListingImage(formData.editListingId!, imgId)
                 }
               }
+              if (formData.existingImages && formData.existingImages.length > 0) {
+                const existingIds = formData.existingImages.map((img: any) => img.id).filter(Boolean)
+                if (existingIds.length > 0) {
+                  await uploadsApi.reorderImages(formData.editListingId!, existingIds)
+                }
+              }
             } catch (err) {
               imagesSuccess = false
               console.warn('Error updating images in edit mode:', err)
@@ -392,6 +398,8 @@ export default function NewCarListingScreen() {
               onPickImages={formLogic.handlePickImages}
               onRemoveNewImage={formLogic.handleRemoveNewImage}
               onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
             />
           )}
 

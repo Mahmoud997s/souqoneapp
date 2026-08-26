@@ -127,6 +127,8 @@ export interface CarStep2Props {
   onPickImages: () => void
   onRemoveNewImage: (index: number) => void
   onRemoveExistingImage: (idOrUrl: string) => void
+  onMakePrimaryNew?: (index: number) => void
+  onMakePrimaryExisting?: (index: number) => void
 }
 
 export interface CarStep3Props {

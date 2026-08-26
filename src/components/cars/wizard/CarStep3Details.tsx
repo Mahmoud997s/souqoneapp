@@ -103,7 +103,7 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الموديل',
-      data: models.map((m) => ({ id: m.id, label: m.name, payload: m })),
+      data: models.map((m) => ({ id: m.id, label: (m as any).nameAr || m.name, payload: m })),
       selectedValue: formData.carModelId,
       onSelect: async (opt) => {
         if (!opt) return
@@ -123,7 +123,7 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الفئة',
-      data: trims.map((t) => ({ id: t.id, label: t.name, payload: t })),
+      data: trims.map((t) => ({ id: t.id, label: (t as any).nameAr || t.name, payload: t })),
       selectedValue: formData.carTrimId,
       onSelect: (opt) => {
         if (!opt) return

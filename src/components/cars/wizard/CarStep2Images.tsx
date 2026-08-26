@@ -23,6 +23,8 @@ export function CarStep2Images({
   onPickImages,
   onRemoveNewImage,
   onRemoveExistingImage,
+  onMakePrimaryNew,
+  onMakePrimaryExisting,
 }: CarStep2Props) {
   const totalCount = images.length + existingImages.length
 
@@ -74,10 +76,20 @@ export function CarStep2Images({
               return (
                 <View key={key} style={s.imgThumbWrap}>
                   <Image source={{ uri }} style={s.imgThumb} contentFit="cover" transition={200} />
-                  {idx === 0 && (
+                  {idx === 0 ? (
                     <View style={s.primaryBadge}>
                       <Text style={s.primaryBadgeTxt}>الرئيسية</Text>
                     </View>
+                  ) : (
+                    onMakePrimaryExisting && (
+                      <TouchableOpacity
+                        style={s.makePrimaryBtn}
+                        onPress={() => onMakePrimaryExisting(idx)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={s.makePrimaryTxt}>تعيين كرئيسية</Text>
+                      </TouchableOpacity>
+                    )
                   )}
                   <TouchableOpacity
                     style={s.removeImgBtn}
@@ -103,10 +115,20 @@ export function CarStep2Images({
               return (
                 <View key={`new_${idx}`} style={s.imgThumbWrap}>
                   <Image source={{ uri }} style={s.imgThumb} contentFit="cover" transition={200} />
-                  {existingImages.length === 0 && idx === 0 && (
+                  {existingImages.length === 0 && idx === 0 ? (
                     <View style={s.primaryBadge}>
                       <Text style={s.primaryBadgeTxt}>الرئيسية</Text>
                     </View>
+                  ) : (
+                    onMakePrimaryNew && (
+                      <TouchableOpacity
+                        style={s.makePrimaryBtn}
+                        onPress={() => onMakePrimaryNew(idx)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={s.makePrimaryTxt}>تعيين كرئيسية</Text>
+                      </TouchableOpacity>
+                    )
                   )}
                   <TouchableOpacity
                     style={s.removeImgBtn}
@@ -191,6 +213,21 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     color: Colors.primary,
+    fontWeight: '700',
+  },
+  makePrimaryBtn: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+  },
+  makePrimaryTxt: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Almarai_700Bold',
   },
   inlineErrorTxt: {
     fontFamily: 'Almarai_700Bold',

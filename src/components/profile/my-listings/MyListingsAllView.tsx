@@ -28,6 +28,7 @@ export interface MyListingsAllViewProps {
   onView: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
   onDelete: (item: MyListingItem) => void
+  onStatusChange?: (item: MyListingItem) => void
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
 }
@@ -41,6 +42,7 @@ export function MyListingsAllView({
   onView,
   onEdit,
   onDelete,
+  onStatusChange,
   isEditSupported,
   bottomInset,
 }: MyListingsAllViewProps) {
@@ -103,6 +105,7 @@ export function MyListingsAllView({
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}
+          onStatusChange={onStatusChange}
           isEditSupported={isEditSupported}
         />
       ))}

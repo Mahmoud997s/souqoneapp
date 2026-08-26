@@ -14,6 +14,8 @@ export const uploadsApi = {
               apiClient.delete(`/uploads/listings/${listingId}/images/${imageId}`),
   attachListingImageUrl: (listingId: string, url: string) =>
               apiClient.post(`/uploads/listings/${listingId}/images/url`, { url }),
+  reorderImages: (listingId: string, imageIds: string[]) =>
+              apiClient.patch(`/uploads/listings/${listingId}/images/reorder`, { imageIds }),
   removePartImage: (imageId: string) =>
               apiClient.delete(`/uploads/parts/images/${imageId}`),
   removeServiceImage: (imageId: string) =>

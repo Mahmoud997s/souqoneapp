@@ -98,6 +98,7 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
       updatedAt: car.updatedAt || car.createdAt || '',
       raw: car,
       mapped: mapListingToCard(car),
+      version: car.version || 1,
     })
   }
 
