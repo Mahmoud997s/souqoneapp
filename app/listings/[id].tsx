@@ -17,6 +17,7 @@ import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES, BODY_TYPES, GOVERNORATE_OPT
 import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../../src/constants/cars'
 import { dialogService } from '../../src/store/dialogStore'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
+import { useCarWizardStore } from '../../src/store/carWizardStore';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -188,6 +189,38 @@ export default function ListingDetailScreen() {
   if (isRental) {
     if (raw.deliveryAvailable) featuresList.unshift('توصيل للعميل')
     if (raw.insuranceIncluded) featuresList.unshift('تأمين شامل')
+  }
+
+  const handleEditListing = () => {
+    const isCar = !!raw?.make
+    if (isCar) {
+      useCarWizardStore.getState().setEditMode(raw.id, {
+        title: raw.title ?? '',
+        description: raw.description ?? '',
+        listingType: raw.listingType ?? '',
+        condition: raw.condition ?? '',
+        year: String(raw.year ?? ''),
+        price: String(raw.price ?? ''),
+        mileage: String(raw.mileage ?? ''),
+        fuelType: raw.fuelType ?? '',
+        transmission: raw.transmission ?? '',
+        bodyType: raw.bodyType ?? '',
+        exteriorColor: raw.exteriorColor ?? '',
+        make: raw.make,
+        model: raw.model,
+        trim: raw.trim,
+        brandId: raw.brandId,
+        carModelId: raw.carModelId,
+        carTrimId: raw.carTrimId,
+        existingImages: raw.images ?? [],
+        version: raw.version ?? 1,
+        isPriceNegotiable: raw.isPriceNegotiable ?? false,
+        currency: raw.currency ?? 'OMR',
+      })
+      router.push('/cars/new' as any)
+    } else {
+      router.push(`/post/edit/${raw.id}` as any)
+    }
   }
 
   return (
@@ -528,7 +561,7 @@ export default function ListingDetailScreen() {
         {isOwner ? (
           <TouchableOpacity
             style={s.callWideBtn}
-            onPress={() => router.push(`/post/edit/${raw.id}`)}
+            onPress={handleEditListing}
             activeOpacity={0.9}
           >
             <Ionicons name="create-outline" size={22} color={Colors.primary} />
