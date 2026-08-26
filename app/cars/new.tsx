@@ -187,14 +187,17 @@ export default function NewCarListingScreen() {
                   }
                 } catch (uploadErr) {
                   console.warn('Image upload error:', uploadErr)
+                  throw new Error('فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
                 }
               }
             }
           }
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Error uploading images before submit:', e)
+      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      return
     } finally {
       setIsUploadingImages(false)
     }
