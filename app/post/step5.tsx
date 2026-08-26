@@ -29,16 +29,7 @@ import { busesApi } from '../../src/api/buses'
 import { uploadsApi } from '../../src/api/uploads'
 import { getPostGovLabel, getPostCityLabel } from '../../src/constants/locations'
 import { PART_CATEGORIES, PART_CONDITIONS, POPULAR_PART_MAKES } from '../../src/constants/parts'
-import {
-  CAR_FEATURE_KEYS,
-  FUEL_TYPES,
-  TRANSMISSION_TYPES,
-  CONDITION_TYPES,
-  BODY_TYPES,
-  DRIVE_TYPES,
-  CAR_LISTING_TYPES,
-  CAR_COLORS,
-} from '../../src/constants/cars'
+
 import { useBrands } from '../../src/hooks/useCars'
 import { useQueryClient } from '@tanstack/react-query'
 import { dialogService } from '../../src/store/dialogStore'
@@ -67,12 +58,7 @@ export default function PostStep5Screen() {
       return
     }
 
-    if (store.category === 'cars') {
-      if (!store.details?.brandId || !store.details?.carModelId) {
-        dialogService.alert('بيانات غير مكتملة', 'يرجى إعادة اختيار الماركة والموديل')
-        return
-      }
-    }
+
 
     setLoading(true)
     try {
@@ -151,11 +137,7 @@ export default function PostStep5Screen() {
         }
       }
 
-      if (store.category === 'cars') {
-        delete payload.make
-        delete payload.model
-        delete payload.trim
-      }
+
 
       if (store.category === 'parts') {
         delete payload.exteriorColor
@@ -196,13 +178,7 @@ export default function PostStep5Screen() {
         }
       })
 
-      // Cleanup empty string ID fields to prevent validation errors
-      const stringIdFields = ['brandId', 'carModelId', 'carTrimId']
-      stringIdFields.forEach((field) => {
-        if (payload[field] === '') {
-          delete payload[field]
-        }
-      })
+
 
       // Format compatibleModels if string
       if (typeof payload.compatibleModels === 'string' && payload.compatibleModels.trim()) {
@@ -325,7 +301,6 @@ export default function PostStep5Screen() {
 
   // Format category badge
   const categoryLabelMap: Record<string, string> = {
-    cars: 'سيارات ومركبات',
     parts: 'قطع غيار ولوازم',
     buses: 'حافلات وباصات',
     services: 'خدمات وورش',
@@ -380,72 +355,7 @@ export default function PostStep5Screen() {
     )
   }
 
-  // Helper for rendering Car specifications
-  const renderCarSpecs = () => {
-    const d = store.details || {}
-    const transLabel = TRANSMISSION_TYPES.find((t) => t.value === d.transmission)?.label || d.transmission
-    const fuelLabel = FUEL_TYPES.find((f) => f.value === d.fuelType)?.label || d.fuelType
-    const condLabel = CONDITION_TYPES.find((c) => c.value === d.condition)?.label || d.condition
-    const bodyLabel = BODY_TYPES.find((b) => b.value === d.bodyType)?.label || d.bodyType
-    const driveLabel = DRIVE_TYPES.find((dt) => dt.value === d.driveType)?.label || d.driveType
-    const extColorLabel = CAR_COLORS.find((c) => c.value === (d.exteriorColor || d.color))?.label || d.exteriorColor || d.color
-    const intColorLabel = CAR_COLORS.find((c) => c.value === (d.interior || d.interiorColor))?.label || d.interior || d.interiorColor
 
-    const specs = [
-      { label: 'الماركة والموديل', value: [d.make, d.model, d.trim].filter(Boolean).join(' ') },
-      { label: 'سنة الصنع', value: d.year },
-      { label: 'الحالة', value: condLabel },
-      { label: 'الممشى', value: d.mileage ? `${Number(d.mileage).toLocaleString()} كم` : null },
-      { label: 'ناقل الحركة', value: transLabel },
-      { label: 'نوع الوقود', value: fuelLabel },
-      { label: 'شكل السيارة', value: bodyLabel },
-      { label: 'نظام الدفع', value: driveLabel },
-      { label: 'سعة المحرك', value: d.engineSize ? `${d.engineSize} CC` : null },
-      { label: 'الأحصنة', value: d.horsepower ? `${d.horsepower} حصان` : null },
-      { label: 'عدد الأبواب', value: d.doors ? `${d.doors} أبواب` : null },
-      { label: 'اللون الخارجي', value: extColorLabel },
-      { label: 'اللون الداخلي', value: intColorLabel },
-    ].filter((s) => Boolean(s.value))
-
-    // Rental terms if rental
-    const rentalSpecs = d.listingType === 'RENTAL' ? [
-      { label: 'الإيجار اليومي', value: d.dailyPrice ? `${d.dailyPrice} ر.ع` : null },
-      { label: 'الإيجار الشهري', value: d.monthlyPrice ? `${d.monthlyPrice} ر.ع` : null },
-      { label: 'مبلغ التأمين', value: d.depositAmount ? `${d.depositAmount} ر.ع` : null },
-      { label: 'أقل مدة حجز', value: d.minRentalDays ? `${d.minRentalDays} أيام` : null },
-      { label: 'حد المسافة اليومي', value: d.kmLimitPerDay ? `${d.kmLimitPerDay} كم/يوم` : null },
-      { label: 'مع سائق', value: d.withDriver ? 'نعم' : 'لا' },
-      { label: 'تأمين شامل', value: d.insuranceIncluded ? 'نعم' : 'لا' },
-      { label: 'توصيل للموقع', value: d.deliveryAvailable ? 'نعم' : 'لا' },
-    ].filter((s) => Boolean(s.value)) : []
-
-    return (
-      <>
-        <View style={s.specsGrid}>
-          {specs.map((item, idx) => (
-            <View key={idx} style={s.specItem}>
-              <Text style={s.specLabel} numberOfLines={1}>{item.label}</Text>
-              <Text style={s.specVal} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8}>{String(item.value)}</Text>
-            </View>
-          ))}
-        </View>
-
-        {rentalSpecs.length > 0 && (
-          <View style={{ marginTop: Spacing.space3 }}>
-            <Text style={s.subSectionTitle}>شروط وبنود الإيجار</Text>
-            <View style={s.specsGrid}>
-              {rentalSpecs.map((item, idx) => (
-                <View key={idx} style={[s.specItem, { backgroundColor: '#F0F9FF', borderColor: '#E0F2FE' }]}>
-                  <Text style={s.specLabel} numberOfLines={1}>{item.label}</Text>
-                  <Text style={[s.specVal, { color: Colors.primary }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{String(item.value)}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      </>
-    )
-  }
 
   // Helper for rendering Bus specifications
   const renderBusSpecs = () => {
@@ -503,8 +413,6 @@ export default function PostStep5Screen() {
     switch (store.category) {
       case 'parts':
         return renderPartSpecs()
-      case 'cars':
-        return renderCarSpecs()
       case 'buses':
         return renderBusSpecs()
       case 'services':
@@ -516,9 +424,7 @@ export default function PostStep5Screen() {
 
   const contactPhone = store.details?.contactPhone
   const whatsappNumber = store.details?.whatsapp
-  const carFeatures = Array.isArray(store.details?.features) ? store.details.features : []
-  const listingTypeVal = store.details?.listingType || store.details?.type
-  const listingTypeLabel = CAR_LISTING_TYPES.find((lt) => lt.value === listingTypeVal)?.label
+  const listingTypeLabel = store.details?.listingType || store.details?.type || null
 
   return (
     <View style={s.root}>
@@ -625,33 +531,7 @@ export default function PostStep5Screen() {
             {renderCategorySpecs()}
           </View>
 
-          {/* ── 4. المميزات والإضافات (للسيارات) ── */}
-          {store.category === 'cars' && carFeatures.length > 0 && (
-            <View style={s.card}>
-              <View style={s.cardHeader}>
-                <View style={s.headerIconWrap}>
-                  <Ionicons name="sparkles" size={14} color={Colors.primary} />
-                </View>
-                <Text style={s.cardTitle}>المميزات والإضافات ({carFeatures.length})</Text>
-              </View>
 
-              <View style={s.featuresWrap}>
-                {carFeatures.map((featId: string) => {
-                  const feat = CAR_FEATURE_KEYS.find((f) => f.id === featId)
-                  return (
-                    <View key={featId} style={s.featureBadge}>
-                      <Ionicons
-                        name={(feat?.icon as any) || 'checkmark-circle'}
-                        size={13}
-                        color={Colors.primary}
-                      />
-                      <Text style={s.featureBadgeTxt}>{feat?.label || featId}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-          )}
 
           {/* ── 5. الوصف ── */}
           {store.description ? (

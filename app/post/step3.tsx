@@ -18,7 +18,7 @@ import { usePostStore } from '../../src/store/postStore'
 import { LinearGradient } from 'expo-linear-gradient'
 
 // Forms
-import { CarForm, BusForm, PartForm, ServiceForm } from '../../src/components/post/forms'
+import { BusForm, PartForm, ServiceForm } from '../../src/components/post/forms'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
@@ -60,15 +60,7 @@ export default function PostStep3Screen() {
       return
     }
 
-    if (category === 'cars') {
-      const { listingType, condition, make, model, year, mileage } = details || {}
-      if (!listingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!condition) return dialogService.alert('تنبيه', 'يرجى اختيار الحالة')
-      if (!make) return dialogService.alert('تنبيه', 'يرجى اختيار الماركة')
-      if (!model) return dialogService.alert('تنبيه', 'يرجى اختيار الموديل')
-      if (!year) return dialogService.alert('تنبيه', 'يرجى اختيار سنة الصنع')
-      if (!mileage) return dialogService.alert('تنبيه', 'يرجى إدخال الممشى')
-    }
+
 
     if (category === 'buses') {
       const { busListingType, busType, make, model, year, capacity } = details || {}
@@ -105,8 +97,6 @@ export default function PostStep3Screen() {
 
   const renderForm = () => {
     switch (category) {
-      case 'cars':
-        return <CarForm />
       case 'buses':
         return <BusForm />
       case 'parts':
