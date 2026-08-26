@@ -100,11 +100,18 @@ export function validateCarStep(
       if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
         errors.price = 'سعر البيع مطلوب ويجب أن يكون أكبر من صفر'
       }
+    } else if (formData.listingType === 'WANTED') {
+      const hasValidPrice = formData.price && !isNaN(Number(formData.price)) && Number(formData.price) > 0;
+      
+      if (!hasValidPrice && !formData.isPriceNegotiable) {
+        errors.price = 'يجب إدخال الميزانية المقترحة أو تحديد خيار "قابل للتفاوض"';
+      }
     } else if (formData.listingType === 'RENTAL') {
-      const hasDaily = formData.dailyPrice && !isNaN(Number(formData.dailyPrice)) && Number(formData.dailyPrice) > 0
+      const hasDaily = formData.dailyPrice && !isNaN(Number(formData.dailyPrice)) && Number(formData.dailyPrice) > 0;
+      const hasMonthly = formData.monthlyPrice && !isNaN(Number(formData.monthlyPrice)) && Number(formData.monthlyPrice) > 0;
 
-      if (!hasDaily) {
-        errors.dailyPrice = 'الأجر اليومي مطلوب ويجب أن يكون أكبر من صفر'
+      if (!hasDaily && !hasMonthly) {
+        errors.dailyPrice = 'يجب إدخال الأجر اليومي أو الشهري على الأقل';
       }
     }
   }
