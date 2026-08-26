@@ -44,7 +44,7 @@ export function MyListingActionButtons({
       )}
 
       {/* Overflow Menu / Status Change */}
-      {onStatusChange && (
+      {onStatusChange && item.entityType === 'car' && (
         <TouchableOpacity
           style={s.actionBtn}
           activeOpacity={0.8}

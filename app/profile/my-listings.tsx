@@ -43,6 +43,7 @@ export default function MyListingsScreen() {
             onView={screen.handleView}
             onEdit={screen.handleEdit}
             onDelete={screen.handleDelete}
+            onStatusChange={screen.handleStatusChange}
             isEditSupported={screen.isEditSupported}
             bottomInset={insets.bottom}
           />
@@ -58,6 +59,7 @@ export default function MyListingsScreen() {
             onView={screen.handleView}
             onEdit={screen.handleEdit}
             onDelete={screen.handleDelete}
+            onStatusChange={screen.handleStatusChange}
             isEditSupported={screen.isEditSupported}
             bottomInset={insets.bottom}
           />
