@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView, Pressable, Platform, Share } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
+import { BlurView } from 'expo-blur'
 import { useRouter } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
@@ -70,6 +71,7 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
   const isSale = listingTypeStr === 'SALE' || listingTypeStr === 'EQUIPMENT_SALE'
   
   const rawData = (item as any).raw || item
+  const rawStatus = rawData.status || 'ACTIVE'
   const isSellerVerified = (item as any).isVerified ?? rawData.user?.isVerified ?? rawData.seller?.isVerified ?? false
   
   let priceLabel = `${item.price} ${item.currency === 'USD' ? '$' : 'ر.ع'}`
@@ -203,11 +205,48 @@ export const CarCard = ({ item, onPress, fullWidth = false, gridMode = false, sh
           </TouchableOpacity>
         </View>
 
+        {/* Sold Visual Overlay */}
+        {rawStatus === 'SOLD' && (
+          <View style={[StyleSheet.absoluteFill, { zIndex: 10, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
+            <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={{
+              backgroundColor: 'rgba(255, 59, 48, 0.9)', // iOS systemRed
+              paddingVertical: 6,
+              paddingHorizontal: 32,
+              transform: [{ rotate: '-12deg' }],
+              borderRadius: 4,
+              borderWidth: 1.5,
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 3,
+            }}>
+              <Text style={{ color: 'white', fontFamily: 'Almarai_800ExtraBold', fontSize: 18, letterSpacing: 1 }}>مباع</Text>
+            </View>
+          </View>
+        )}
+
         {/* Badges Overlay */}
         <View style={s.badgesContainer}>
+          {rawStatus === 'SOLD' && (
+            <View style={[s.badge, { backgroundColor: '#FF3B30' }]}>
+              <Text style={[s.badgeTxt, { color: Colors.white }]}>مباع</Text>
+            </View>
+          )}
+          {rawStatus === 'ARCHIVED' && (
+            <View style={[s.badge, { backgroundColor: '#8E8E93' }]}>
+              <Text style={[s.badgeTxt, { color: Colors.white }]}>مؤرشف</Text>
+            </View>
+          )}
+          {rawStatus === 'SUSPENDED' && (
+            <View style={[s.badge, { backgroundColor: '#FF9500' }]}>
+              <Text style={[s.badgeTxt, { color: Colors.white }]}>معلق</Text>
+            </View>
+          )}
           {isRental && (
-            <View style={[s.badge, { backgroundColor: '#fffbeb' }]}>
-              <Text style={[s.badgeTxt, { color: '#d97706' }]}>إيجار</Text>
+            <View style={[s.badge, { backgroundColor: '#FFCC00' }]}>
+              <Text style={[s.badgeTxt, { color: '#000000' }]}>إيجار</Text>
             </View>
           )}
           {isRental && item.withDriver && (
@@ -388,6 +427,7 @@ const s = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     backgroundColor: '#F8F9FA',
+    overflow: 'hidden',
   },
   carImagePlaceholder: {
     width: '100%',

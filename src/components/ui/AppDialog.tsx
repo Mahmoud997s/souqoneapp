@@ -52,7 +52,7 @@ interface AppDialogProps {
 const ICON_CONFIG: Record<string, { name: string; color: string; bgColor: string; borderColor: string }> = {
   success:     { name: 'checkmark-circle-outline', color: '#16A34A', bgColor: '#F0FDF4', borderColor: '#BBF7D0' },
   error:       { name: 'close-circle-outline',     color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
-  warning:     { name: 'alert-triangle-outline',  color: '#D97706', bgColor: '#FEF3C7', borderColor: '#FDE68A' },
+  warning:     { name: 'alert-circle-outline',     color: '#D97706', bgColor: '#FEF3C7', borderColor: '#FDE68A' },
   info:        { name: 'information-circle-outline', color: '#0284C7', bgColor: '#F0F9FF', borderColor: '#BAE6FD' },
   confirm:     { name: 'help-circle-outline',      color: '#0B2447', bgColor: '#EEF3FF', borderColor: '#CBD5E1' },
   destructive: { name: 'log-out-outline',          color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },

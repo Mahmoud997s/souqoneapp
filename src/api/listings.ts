@@ -13,7 +13,7 @@ export const listingsApi = {
 
   update:    (id: string, data: Partial<Listing>) => apiClient.patch<Listing>(`/listings/${id}`, data),
   updateStatus: (id: string, action: 'submit' | 'mark-sold' | 'archive' | 'restore', version: number) => 
-               apiClient.patch(`/listings/${id}/status`, { action, version }),
+    apiClient.post(`/listings/${id}/${action}`, { version }),
   remove:    (id: string)                      => apiClient.delete(`/listings/${id}`),
   report:    (id: string, reason?: string) => apiClient.post(`/listings/${id}/report`, { reason }),
 }

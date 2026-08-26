@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { router } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAllMyListings } from './useAllMyListings'
@@ -28,6 +28,7 @@ export function useMyListingsScreen() {
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [activeSubFilter, setActiveSubFilter] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
+  const isChangingStatus = useRef(false)
 
   const {
     items,
@@ -65,6 +66,10 @@ export function useMyListingsScreen() {
       }
       if (activeSubFilter === 'EXPIRED') {
         return item.normalizedStatus === 'expired'
+      }
+      
+      if (activeSubFilter === 'ARCHIVED') {
+        return item.rawStatus === 'ARCHIVED'
       }
 
       // Entity-specific granular subfilters
@@ -221,48 +226,100 @@ export function useMyListingsScreen() {
 
     const options: any[] = []
 
+    const rawData = (item as any).raw || item
+    const listingTypeStr = String(rawData.listingType || rawData.type || '')
+    const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
+    const isWanted = listingTypeStr === 'WANTED'
+
     if (item.rawStatus === 'ACTIVE') {
-      options.push({
-        text: 'تعليم كمباع',
-        onPress: () => confirmStatusChange(item, 'mark-sold'),
-      })
-      options.push({
-        text: 'أرشفة',
-        onPress: () => confirmStatusChange(item, 'archive'),
-      })
-    } else if (item.rawStatus === 'ARCHIVED' || item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED') {
+      if (isRental) {
+        options.push({
+          text: 'إيقاف مؤقت',
+          icon: 'pause-circle-outline',
+          onPress: () => confirmStatusChange(item, 'archive'),
+        })
+      } else if (isWanted) {
+        options.push({
+          text: 'إيقاف البحث',
+          icon: 'stop-circle-outline',
+          onPress: () => confirmStatusChange(item, 'archive'),
+        })
+      } else {
+        options.push({
+          text: 'تعليم كمباع',
+          icon: 'checkmark-circle-outline',
+          onPress: () => confirmStatusChange(item, 'mark-sold'),
+        })
+        options.push({
+          text: 'أرشفة',
+          icon: 'archive-outline',
+          onPress: () => confirmStatusChange(item, 'archive'),
+        })
+      }
+    } else if (item.rawStatus === 'ARCHIVED') {
       options.push({
         text: 'استعادة',
+        icon: 'refresh-outline',
         onPress: () => confirmStatusChange(item, 'restore'),
       })
+    }
+
+    if (options.length === 0) {
+      dialogService.alert('تنبيه', 'لا يوجد إجراءات متاحة لهذه الحالة', 'warning')
+      return
     }
 
     dialogService.showOptions('تغيير الحالة', options)
   }
 
   const confirmStatusChange = (item: MyListingItem, action: 'mark-sold' | 'archive' | 'restore') => {
-    dialogService.confirm(
-      'تأكيد الإجراء',
-      'هل أنت متأكد من تغيير حالة الإعلان؟',
-      async () => {
-        try {
-          await listingsApi.updateStatus(item.id, action, item.version || 1)
-          await queryClient.invalidateQueries({
-            queryKey: ENTITY_QUERY_KEYS[item.entityType],
-          })
-          dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
-        } catch (err: any) {
-          if (err?.response?.status === 409) {
-            dialogService.alert('تحديث مطلوب', 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.')
-            handleRefresh()
-          } else {
-            dialogService.alert('خطأ', 'حدث خطأ أثناء تغيير الحالة')
+    if (isChangingStatus.current) return
+
+    console.log('[DIAG] confirmStatusChange called with action:', action)
+    
+    // Add a slight delay to allow the bottom sheet Modal to unmount 
+    // before the confirm Modal attempts to mount (fixes iOS Modal collision)
+    setTimeout(() => {
+      dialogService.confirm(
+        'تأكيد الإجراء',
+        'هل أنت متأكد من تغيير حالة الإعلان؟',
+        async () => {
+          if (isChangingStatus.current) return
+          isChangingStatus.current = true
+            try {
+              await listingsApi.updateStatus(item.id, action, item.version || 1)
+              
+              // Immediately refetch all queries to update the UI
+              await refetch()
+              
+              dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
+          } catch (err: any) {
+            console.log('[DIAG] Status change error:', JSON.stringify({
+              status: err?.response?.status,
+              data: err?.response?.data,
+              message: err?.message,
+            }, null, 2))
+            
+            if (!err?.response) {
+              dialogService.alert('خطأ في الاتصال', 'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.')
+            } else if (err?.response?.status === 403) {
+              dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
+            } else if (err?.response?.status === 409) {
+              dialogService.alert('تحديث مطلوب', 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.')
+              handleRefresh()
+            } else if (err?.response?.status === 429) {
+              dialogService.alert('محاولات كثيرة', 'لقد قمت بعدة محاولات متتالية، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+            } else {
+              dialogService.alert('خطأ', 'حدث خطأ أثناء تغيير الحالة')
+            }
+          } finally {
+            isChangingStatus.current = false
           }
-        }
-      },
-      'تأكيد',
-      'إلغاء'
-    )
+        },
+        'تأكيد',
+        'إلغاء'
+      )
+    }, 400)
   }
 
   return {
