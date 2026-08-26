@@ -78,7 +78,7 @@ export default function CarsLandingScreen() {
         primaryCta={{
           label: 'اعرض سيارتك',
           icon: 'add',
-          onPress: () => router.push('/post' as any),
+          onPress: () => router.push('/cars/new' as any),
           bgColor: 'rgba(255,255,255,0.2)',
           textColor: Colors.white
         }}
