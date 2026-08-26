@@ -219,9 +219,7 @@ export function useMyListingsScreen() {
       return
     }
 
-    const options: any[] = [
-      { text: 'إلغاء', style: 'cancel' as const },
-    ]
+    const options: any[] = []
 
     if (item.rawStatus === 'ACTIVE') {
       options.push({
@@ -239,9 +237,7 @@ export function useMyListingsScreen() {
       })
     }
 
-    import('react-native').then(({ Alert }) => {
-      Alert.alert('تغيير الحالة', 'اختر الإجراء المطلوب:', options)
-    })
+    dialogService.showOptions('تغيير الحالة', options)
   }
 
   const confirmStatusChange = (item: MyListingItem, action: 'mark-sold' | 'archive' | 'restore') => {
