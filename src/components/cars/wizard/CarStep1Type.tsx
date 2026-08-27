@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
+import { WizardCard } from '../../ui/WizardCard'
 import { CAR_LISTING_TYPES } from '../../../constants/cars'
 import { CarStep1Props } from '../../../types/carForm.types'
 
@@ -70,19 +71,13 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
               <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
                 {lt.label}
               </Text>
-              <Text style={s.typeDesc} numberOfLines={2}>
-                {lt.desc}
-              </Text>
             </TouchableOpacity>
           )
         })}
       </View>
 
       {/* 2. Basic Information Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>بيانات الإعلان الأساسية *</Text>
-        <Text style={s.cardSub}>اكتب عنواناً ووصفاً وافياً يجذب الانتباه</Text>
-
+      <WizardCard title="بيانات الإعلان الأساسية *" subtitle="اكتب عنواناً ووصفاً وافياً يجذب الانتباه">
         <AppInput
           label="عنوان الإعلان *"
           placeholder="اكتب عنواناً جذاباً يصف سيارتك (مثل الماركة والموديل)"
@@ -102,7 +97,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
           maxLength={2000}
           error={errors.description}
         />
-      </View>
+      </WizardCard>
     </View>
   )
 }
@@ -177,83 +172,50 @@ const s = StyleSheet.create({
   },
   listingTypesRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     marginBottom: Spacing.space3,
   },
   typeCard: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency
+    paddingVertical: 10, 
     borderRadius: Radius.lg,
-    padding: 11,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    gap: 5,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
-      android: { elevation: 1 },
-    }),
+    alignItems: 'center', 
+    justifyContent: 'center',
+    borderWidth: 1.5, 
+    borderColor: '#FFFFFF', // 3D edge light reflection
+    shadowColor: '#94A3B8', 
+    shadowOffset: { width: 0, height: 6 }, 
+    shadowOpacity: 0.15, 
+    shadowRadius: 12, 
+    elevation: 3, // 3D floating shadow
   },
   typeCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   typeIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
+    backgroundColor: '#e0f2fe',
+    alignItems: 'center', 
     justifyContent: 'center',
+    marginBottom: 6,
   },
   typeIconWrapActive: {
     backgroundColor: Colors.primary,
   },
   typeTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 12,
-    lineHeight: 17,
-    color: '#0F172A',
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 12, 
+    color: '#0F172A', 
     textAlign: 'center',
+    lineHeight: 18, 
+    paddingTop: Platform.OS === 'android' ? 2 : 0, 
+    writingDirection: 'rtl'
   },
   typeTitleActive: {
     color: Colors.primary,
-  },
-  typeDesc: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 9.5,
-    lineHeight: 13,
-    color: Colors.textMuted,
-    textAlign: 'center',
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: 14.5,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: -4,
-    marginBottom: 4,
   },
 })

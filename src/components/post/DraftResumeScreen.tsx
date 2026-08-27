@@ -69,6 +69,10 @@ export function DraftResumeScreen({
         title="إعلان غير مكتمل"
         paddingTop={insets.top}
         onBackPress={() => router.back()}
+        actions={[
+          { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
+          { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
+        ]}
       />
 
       <ScrollView
@@ -396,7 +400,9 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.white,
+    paddingTop: Platform.OS === 'android' ? 2 : 0,
   },
   secondaryBtnOuter: {
     width: '100%',
@@ -415,6 +421,8 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
+    lineHeight: 18,
     color: Colors.error,
+    paddingTop: Platform.OS === 'android' ? 2 : 0,
   },
 })
