@@ -2,9 +2,9 @@ import React from 'react'
 import {
   View,
   StyleSheet,
-  ScrollView,
   RefreshControl,
 } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { router } from 'expo-router'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -31,6 +31,9 @@ export interface MyListingsAllViewProps {
   onStatusChange?: (item: MyListingItem) => void
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
+  topInset: number
+  onScroll?: any
+  header?: React.ReactElement | null;
 }
 
 export function MyListingsAllView({
@@ -45,10 +48,13 @@ export function MyListingsAllView({
   onStatusChange,
   isEditSupported,
   bottomInset,
+  topInset,
+  onScroll,
+  header,
 }: MyListingsAllViewProps) {
   if (isLoading) {
     return (
-      <View style={s.loaderContainer}>
+      <View style={[s.loaderContainer, { paddingTop: topInset + Spacing.space4 }]}>
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} />
         ))}
@@ -60,8 +66,10 @@ export function MyListingsAllView({
 
   if (!hasAnyItems) {
     return (
-      <ScrollView
-        contentContainerStyle={[s.emptyScroll, { paddingBottom: bottomInset + 80 }]}
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={[s.emptyScroll, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -71,6 +79,7 @@ export function MyListingsAllView({
           />
         }
       >
+        {header}
         <EmptyState
           icon="document-text-outline"
           title="لا توجد إعلانات"
@@ -79,14 +88,16 @@ export function MyListingsAllView({
           actionIcon="add"
           onAction={() => router.push('/post' as any)}
         />
-      </ScrollView>
+      </Animated.ScrollView>
     )
   }
 
   return (
-    <ScrollView
+    <Animated.ScrollView
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[s.contentContainer, { paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.contentContainer, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -96,6 +107,7 @@ export function MyListingsAllView({
         />
       }
     >
+      {header}
       {groupedSections.map((section) => (
         <MyListingSectionSlider
           key={section.config.entityType}
@@ -109,23 +121,19 @@ export function MyListingsAllView({
           isEditSupported={isEditSupported}
         />
       ))}
-    </ScrollView>
+    </Animated.ScrollView>
   )
 }
 
 const s = StyleSheet.create({
-  contentContainer: {
-    paddingTop: Spacing.space4,
-  },
+  contentContainer: {},
   loaderContainer: {
     paddingHorizontal: Spacing.space5,
-    paddingTop: Spacing.space4,
     gap: Spacing.space4,
   },
   emptyScroll: {
     flexGrow: 1,
     paddingHorizontal: Spacing.space5,
-    paddingTop: Spacing.space4,
     justifyContent: 'center',
   },
 })

@@ -6,9 +6,10 @@ import { useNavVisibility } from '../../context/NavVisibilityContext';
 export interface CollapsibleSubHeaderProps {
   children: React.ReactNode;
   height?: number;
+  isTransparent?: boolean;
 }
 
-export function CollapsibleSubHeader({ children, height = 85 }: CollapsibleSubHeaderProps) {
+export function CollapsibleSubHeader({ children, height = 85, isTransparent = false }: CollapsibleSubHeaderProps) {
   const { navHidden } = useNavVisibility();
 
   const collapsibleStyle = useAnimatedStyle(() => {
@@ -23,7 +24,7 @@ export function CollapsibleSubHeader({ children, height = 85 }: CollapsibleSubHe
   });
 
   return (
-    <Animated.View style={[collapsibleStyle, s.container]}>
+    <Animated.View style={[collapsibleStyle, s.container, isTransparent && s.transparentContainer]}>
       {children}
     </Animated.View>
   );
@@ -34,5 +35,9 @@ const s = StyleSheet.create({
     backgroundColor: '#fff', 
     borderBottomWidth: 1, 
     borderBottomColor: '#F1F5F9'
+  },
+  transparentContainer: {
+    backgroundColor: 'transparent',
+    borderBottomWidth: 0,
   }
 });

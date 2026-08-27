@@ -14,9 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
+import { router } from 'expo-router'
 import { Colors } from '../../src/constants/colors'
 import { useEditProfile } from '../../src/hooks/useEditProfile'
-import { EditProfileNavBar } from '../../src/components/profile/EditProfileNavBar'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { EditProfileAvatar } from '../../src/components/profile/EditProfileAvatar'
 import { EditProfileForm } from '../../src/components/profile/EditProfileForm'
 import { LocationPickerModal } from '../../src/components/profile/LocationPickerModal'
@@ -76,9 +77,14 @@ export default function EditProfileScreen() {
     >
       <View style={s.root}>
         {/* ── Fixed Navigation Bar ── */}
-        <EditProfileNavBar
+        <GlassNavBar
+          title="تعديل الملف الشخصي"
           paddingTop={insets.top}
           onBackPress={handleBackPress}
+          actions={[
+            { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
+            { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
+          ]}
         />
 
         <ScrollView

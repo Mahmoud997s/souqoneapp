@@ -1,9 +1,10 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView, StatusBar } from 'react-native'
+import { router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { useProfileOverview } from '../../src/hooks/useProfileOverview'
-import { ProfileNavBar } from '../../src/components/profile/ProfileNavBar'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard'
 import { ProfilePremiumBanner } from '../../src/components/profile/ProfilePremiumBanner'
 import { ProfileSectionCard } from '../../src/components/profile/ProfileSectionCard'
@@ -32,7 +33,16 @@ export default function ProfileScreen() {
       <StatusBar barStyle="dark-content" />
 
       {/* ── Fixed Top Navigation Bar ── */}
-      <ProfileNavBar paddingTop={insets.top} onBackPress={handleBack} />
+      <GlassNavBar
+        title="الملف الشخصي"
+        paddingTop={insets.top}
+        onBackPress={handleBack}
+        actions={[
+          { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل والمحادثات' },
+          { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
+          { icon: 'create-outline', onPress: () => router.push('/profile/edit-profile' as any), accessibilityLabel: 'تعديل الملف الشخصي' },
+        ]}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

@@ -18,6 +18,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
 import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
@@ -116,29 +117,11 @@ export default function SettingsScreen() {
       <StatusBar barStyle="dark-content" />
 
       {/* ── Fixed Top Navigation Bar ── */}
-      <View style={[s.navBarFixed, { paddingTop: insets.top }]}>
-        <View style={s.navBarRow}>
-          {/* Back Button (Right in RTL) */}
-          <TouchableOpacity
-            style={s.navBtn}
-            activeOpacity={0.75}
-            onPress={() => router.back()}
-            accessibilityLabel="رجوع"
-          >
-            <Ionicons name="arrow-forward-outline" size={18} color="#1E293B" />
-          </TouchableOpacity>
-
-          {/* Title Badge */}
-          <View style={s.navTitleBadge}>
-            <Text style={s.navTitle} numberOfLines={1}>
-              إعدادات الحساب
-            </Text>
-          </View>
-
-          {/* Spacer for symmetry */}
-          <View style={s.navBtnPlaceholder} />
-        </View>
-      </View>
+      <GlassNavBar
+        title="إعدادات الحساب"
+        paddingTop={insets.top}
+        onBackPress={() => router.back()}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -269,72 +252,6 @@ const s = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-  },
-
-  /* Fixed Top Navigation Bar */
-  navBarFixed: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-      },
-      android: { elevation: 3 },
-    }),
-  },
-  navBarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-    height: 44,
-    gap: 8,
-  },
-  navBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...softShadow,
-  },
-  navBtnPlaceholder: {
-    width: 38,
-    height: 38,
-  },
-  navTitleBadge: {
-    flex: 1,
-    height: 38,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...softShadow,
-  },
-  navTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 14,
-    lineHeight: 19,
-    color: '#1E293B',
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
 
   /* Section Styles */

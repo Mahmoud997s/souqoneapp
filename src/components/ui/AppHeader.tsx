@@ -48,8 +48,7 @@ export function AppHeader({
         s.header, 
         { paddingTop: insets.top },
         isLight && { 
-          backgroundColor: Colors.white, 
-          paddingBottom: 0,
+          backgroundColor: Colors.white,
           ...Platform.select({ ios: { shadowOpacity: 0.03, shadowRadius: 3 }, android: { elevation: 1 } }) 
         }
       ]}
@@ -80,7 +79,7 @@ export function AppHeader({
           </View>
         </>
       )}
-      <View style={[s.row, isLight && { height: 42 }]}>
+      <View style={s.row}>
         {/* Left slot (physical RIGHT on screen due to forceRTL) */}
         {leftSlot ? (
           leftSlot
@@ -136,7 +135,7 @@ export function AppHeader({
 
 const s = StyleSheet.create({
   header: {
-    paddingBottom: 0,
+    paddingBottom: 8,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     ...Platform.select({
@@ -145,7 +144,7 @@ const s = StyleSheet.create({
     }),
   },
   row: {
-    height: 42,
+    height: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

@@ -13,7 +13,7 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { usersApi } from '../../src/api/users'
 import { dialogService } from '../../src/store/dialogStore'
-import { ChangePasswordNavBar } from '../../src/components/profile/ChangePasswordNavBar'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
 import { PasswordRequirements } from '../../src/components/profile/PasswordRequirements'
 
@@ -69,9 +69,14 @@ export default function ChangePasswordScreen() {
     >
       <View style={s.root}>
         {/* ── Fixed Navigation Bar ── */}
-        <ChangePasswordNavBar
+        <GlassNavBar
+          title="تغيير كلمة المرور"
           paddingTop={insets.top}
           onBackPress={() => router.back()}
+          actions={[
+            { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
+            { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
+          ]}
         />
 
         <ScrollView

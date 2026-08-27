@@ -2,9 +2,9 @@ import React from 'react'
 import {
   View,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
 } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { router } from 'expo-router'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -27,6 +27,9 @@ export interface MyListingsCategoryViewProps {
   onStatusChange?: (item: MyListingItem) => void
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
+  topInset: number
+  onScroll?: any
+  header?: React.ReactElement | null;
 }
 
 export function MyListingsCategoryView({
@@ -43,10 +46,13 @@ export function MyListingsCategoryView({
   onStatusChange,
   isEditSupported,
   bottomInset,
+  topInset,
+  onScroll,
+  header,
 }: MyListingsCategoryViewProps) {
   if (isLoading) {
     return (
-      <View style={s.list}>
+      <View style={[s.list, { paddingTop: topInset + Spacing.space4 }]}>
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} />
         ))}
@@ -55,10 +61,13 @@ export function MyListingsCategoryView({
   }
 
   return (
-    <FlatList
+    <Animated.FlatList
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+      ListHeaderComponent={header}
       data={data}
       keyExtractor={(item) => `${item.entityType}-${item.id}`}
-      contentContainerStyle={[s.list, { paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.list, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
       refreshing={isRefreshing}
       onRefresh={onRefresh}
       onEndReached={() => {
@@ -104,7 +113,6 @@ export function MyListingsCategoryView({
 const s = StyleSheet.create({
   list: {
     paddingHorizontal: Spacing.space5,
-    paddingTop: Spacing.space4,
     gap: Spacing.space4,
   },
   cardWrapper: {

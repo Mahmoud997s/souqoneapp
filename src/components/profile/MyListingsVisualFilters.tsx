@@ -10,6 +10,7 @@ import {
   UIManager,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 
@@ -165,8 +166,9 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
 export interface MyListingsVisualFiltersProps {
   activeCategory: string
   activeSubFilter: string
-  onSelectCategory: (categoryId: string) => void
-  onSelectSubFilter: (subFilterId: string) => void
+  onSelectCategory: (id: string) => void
+  onSelectSubFilter: (id: string) => void
+  isTransparent?: boolean
 }
 
 export function MyListingsVisualFilters({
@@ -174,23 +176,18 @@ export function MyListingsVisualFilters({
   activeSubFilter,
   onSelectCategory,
   onSelectSubFilter,
+  isTransparent = false,
 }: MyListingsVisualFiltersProps) {
   const currentCategory = MAIN_CATEGORY_TABS.find((c) => c.id === activeCategory) || MAIN_CATEGORY_TABS[0]
   const subItems = currentCategory.items || []
-
-  // Divide into 2 rows for horizontal grid layout
-  const columns: SubFilterItem[][] = []
-  for (let i = 0; i < subItems.length; i += 2) {
-    columns.push(subItems.slice(i, i + 2))
-  }
 
   const handleCategoryPress = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
     onSelectCategory(id)
   }
 
-  return (
-    <View style={s.container}>
+  const content = (
+    <>
       {/* ── TABS (Segmented Bar) ── */}
       <View style={s.segmentedWrapper}>
         <ScrollView
@@ -210,7 +207,7 @@ export function MyListingsVisualFilters({
                 <Ionicons
                   name={tab.icon}
                   size={14}
-                  color={isActive ? Colors.primary : '#64748b'}
+                  color={isActive ? Colors.primary : '#475569'}
                   style={s.tabIcon}
                 />
                 <Text style={[s.segmentTabText, isActive && s.segmentTabTextActive]}>
@@ -222,65 +219,63 @@ export function MyListingsVisualFilters({
         </ScrollView>
       </View>
 
-      {/* ── 2-Row Subcategories Grid with Glassmorphic Profile Style Icon Boxes ── */}
+      {/* ── 1-Row Subcategories Grid with Glassmorphic Profile Style Icon Boxes ── */}
       <View style={s.contentArea}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.scrollContainer}
         >
-          {columns.map((col, colIdx) => (
-            <View key={colIdx} style={s.column}>
-              {col.map((item) => {
-                const isSelected = activeSubFilter === item.id
-                const isAllDefault =
-                  item.id.startsWith('all_') && (activeSubFilter === 'all' || activeSubFilter === item.id)
+          {subItems.map((item) => {
+            const isSelected = activeSubFilter === item.id
+            const isAllDefault =
+              item.id.startsWith('all_') && (activeSubFilter === 'all' || activeSubFilter === item.id)
 
-                const highlighted = isSelected || isAllDefault
+            const highlighted = isSelected || isAllDefault
 
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    activeOpacity={0.7}
-                    style={[s.itemCard, highlighted && s.itemCardSelected]}
-                    onPress={() => {
-                      if (item.id.startsWith('all_')) {
-                        onSelectSubFilter('all')
-                      } else if (activeSubFilter === item.id) {
-                        onSelectSubFilter('all')
-                      } else {
-                        onSelectSubFilter(item.id)
-                      }
-                    }}
-                  >
-                    {/* Glassmorphic Icon Box matching Profile Icons */}
-                    <View
-                      style={[
-                        s.glassmorphicIconBox,
-                        highlighted && s.glassmorphicIconBoxSelected,
-                      ]}
-                    >
-                      <Ionicons
-                        name={item.icon}
-                        size={13.5}
-                        color={highlighted ? Colors.white : '#334155'}
-                      />
-                    </View>
-                    <Text
-                      style={[s.itemLabel, highlighted && s.itemLabelSelected]}
-                      numberOfLines={1}
-                    >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
-          ))}
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.7}
+                style={[s.itemCard, highlighted && s.itemCardSelected]}
+                onPress={() => {
+                  if (item.id.startsWith('all_')) {
+                    onSelectSubFilter('all')
+                  } else if (activeSubFilter === item.id) {
+                    onSelectSubFilter('all')
+                  } else {
+                    onSelectSubFilter(item.id)
+                  }
+                }}
+              >
+                {/* Glassmorphic Icon Box matching Profile Icons */}
+                <View
+                  style={[
+                    s.glassmorphicIconBox,
+                    highlighted && s.glassmorphicIconBoxSelected,
+                  ]}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={11}
+                    color={highlighted ? Colors.white : '#475569'}
+                  />
+                </View>
+                <Text
+                  style={[s.itemLabel, highlighted && s.itemLabelSelected]}
+                  numberOfLines={1}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
         </ScrollView>
       </View>
-    </View>
+    </>
   )
+
+  return <View style={s.container}>{content}</View>
 }
 
 const s = StyleSheet.create({
@@ -288,11 +283,22 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    paddingBottom: Spacing.space2,
+    paddingBottom: Spacing.space1,
+    overflow: 'hidden',
+  },
+  filterWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.08,
+  },
+  filterTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.primary,
+    opacity: 0.04,
   },
   segmentedWrapper: {
     marginHorizontal: Spacing.space5,
-    marginBottom: Spacing.space2,
+    marginBottom: 6,
     marginTop: Spacing.space2,
     backgroundColor: '#f1f5f9',
     borderRadius: 8,
@@ -327,26 +333,23 @@ const s = StyleSheet.create({
     }),
   },
   tabIcon: {
-    marginEnd: 2,
+    marginTop: 1,
   },
   segmentTabText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 15.5,
     color: '#64748b',
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
   segmentTabTextActive: {
     color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
   },
   contentArea: {
-    paddingTop: 2,
+    paddingBottom: 4,
   },
   scrollContainer: {
     paddingHorizontal: Spacing.space5,
-    gap: 6,
+    gap: 8,
   },
   column: {
     gap: 6,
@@ -354,14 +357,14 @@ const s = StyleSheet.create({
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 5.5,
+    backgroundColor: '#ffffff',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4.5,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    minWidth: 95,
-    gap: 7,
+    minWidth: 75,
+    gap: 5,
   },
   itemCardSelected: {
     backgroundColor: '#EFF6FF',
@@ -369,12 +372,10 @@ const s = StyleSheet.create({
   },
   // Profile style glassmorphic icon box
   glassmorphicIconBox: {
-    width: 25,
-    height: 25,
-    borderRadius: 7,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
   },
