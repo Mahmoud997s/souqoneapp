@@ -18,8 +18,7 @@ import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { usePostStore } from '../../src/store/postStore';
-import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt';
-import { useCarWizardStore } from '../../src/store/carWizardStore';
+import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
@@ -27,17 +26,7 @@ export default function CarsLandingScreen() {
   const { scrollHandler, scrollY } = useScrollAwareNav();
   const { set, reset } = usePostStore();
 
-  const handleAddCar = () => {
-    const state = useCarWizardStore.getState();
-    const navigateToForm = () => router.push('/cars/new' as any);
-    
-    if (state.isDraft && hasMeaningfulCarData(state)) {
-      router.push('/cars/drafts' as any);
-    } else {
-      state.resetForm();
-      navigateToForm();
-    }
-  };
+  const handleAddCar = () => navigateToCarForm();
 
 
   // Data fetching logic
@@ -78,7 +67,7 @@ export default function CarsLandingScreen() {
         primaryCta={{
           label: 'اعرض سيارتك',
           icon: 'add',
-          onPress: () => router.push('/cars/new' as any),
+          onPress: handleAddCar,
           bgColor: 'rgba(255,255,255,0.2)',
           textColor: Colors.white
         }}

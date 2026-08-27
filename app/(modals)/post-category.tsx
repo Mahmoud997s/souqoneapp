@@ -4,8 +4,7 @@ import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
 import { usePostStore } from '../../src/store/postStore'
-import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt'
-import { useCarWizardStore } from '../../src/store/carWizardStore'
+import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
 
 const { width } = Dimensions.get('window')
 const CARD_WIDTH = (width - 48) / 2 // 2 columns with 16 padding on sides and 16 gap
@@ -43,13 +42,7 @@ export default function PostCategoryModal() {
     }
 
     if (categoryId === 'cars') {
-      const carState = useCarWizardStore.getState()
-      if (carState.isDraft && hasMeaningfulCarData(carState)) {
-        router.replace('/cars/drafts')
-      } else {
-        carState.resetForm()
-        navigateToForm(categoryId)
-      }
+      navigateToCarForm('replace')
       return
     }
 

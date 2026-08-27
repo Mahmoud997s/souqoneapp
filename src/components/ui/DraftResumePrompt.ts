@@ -69,3 +69,22 @@ export function hasMeaningfulCarData(state: any): boolean {
 
   return false
 }
+
+export function navigateToCarForm(method: 'push' | 'replace' = 'push'): void {
+  const { router } = require('expo-router')
+  const { useAuthStore } = require('../../store/authStore')
+  const { useCarWizardStore } = require('../../store/carWizardStore')
+
+  if (!useAuthStore.getState().user) {
+    method === 'replace' ? router.replace('/login') : router.push('/login')
+    return
+  }
+
+  const state = useCarWizardStore.getState()
+  if (state.isDraft && hasMeaningfulCarData(state)) {
+    method === 'replace' ? router.replace('/cars/drafts') : router.push('/cars/drafts')
+  } else {
+    state.resetForm()
+    method === 'replace' ? router.replace('/cars/new') : router.push('/cars/new')
+  }
+}

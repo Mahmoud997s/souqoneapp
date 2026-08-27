@@ -14,8 +14,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { router } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 
-import { showDraftResumePrompt, hasMeaningfulPostData, hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt'
-import { useCarWizardStore } from '../../src/store/carWizardStore'
+import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
 
 const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-outline' },
@@ -50,13 +49,7 @@ export default function PostScreen() {
     }
 
     if (id === 'cars') {
-      const carState = useCarWizardStore.getState()
-      if (carState.isDraft && hasMeaningfulCarData(carState)) {
-        router.push('/cars/drafts')
-      } else {
-        carState.resetForm()
-        navigateToForm(id)
-      }
+      navigateToCarForm()
       return
     }
 

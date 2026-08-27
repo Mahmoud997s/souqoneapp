@@ -8,10 +8,10 @@ export const DROPDOWN_FILTERS = [
 ];
 
 export const SORT_OPTIONS = [
-  { id: 'createdAt_desc', label: 'الأحدث أولاً', sortBy: 'createdAt', sortOrder: 'DESC' },
-  { id: 'price_asc', label: 'الأقل سعراً', sortBy: 'price', sortOrder: 'ASC' },
-  { id: 'price_desc', label: 'الأعلى سعراً', sortBy: 'price', sortOrder: 'DESC' },
-  { id: 'year_desc', label: 'سنة الصنع الأحدث', sortBy: 'year', sortOrder: 'DESC' },
+  { id: 'createdAt_desc', label: 'الأحدث أولاً', sortBy: 'createdAt', sortOrder: 'desc' },
+  { id: 'price_asc', label: 'الأقل سعراً', sortBy: 'price', sortOrder: 'asc' },
+  { id: 'price_desc', label: 'الأعلى سعراً', sortBy: 'price', sortOrder: 'desc' },
+  { id: 'year_desc', label: 'سنة الصنع الأحدث', sortBy: 'year', sortOrder: 'desc' },
 ];
 
 export const PRICE_RANGES = [
@@ -35,6 +35,6 @@ export const CAR_TYPES = [
   { id: 'sedan', name: 'سيدان' },
   { id: 'suv', name: 'دفع رباعي' },
   { id: 'hatchback', name: 'هاتشباك' },
-  { id: 'pickup', name: 'بيك أب' },
+  { id: 'truck', name: 'بيك أب' },
   { id: 'coupe', name: 'كوبيه' },
 ];

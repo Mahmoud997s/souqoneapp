@@ -9,7 +9,7 @@ export { GOVERNORATE_OPTIONS, WILAYAT_BY_GOVERNORATE } from './locations';
 export const BODY_TYPES: FilterOption[] = [
   { value: 'SEDAN',     labelAr: 'سيدان' },
   { value: 'SUV',       labelAr: 'SUV' },
-  { value: 'PICKUP',    labelAr: 'بيك أب' },
+  { value: 'TRUCK',     labelAr: 'بيك أب' },
   { value: 'HATCHBACK', labelAr: 'هاتشباك' },
   { value: 'COUPE',     labelAr: 'كوبيه' },
   { value: 'VAN',       labelAr: 'فان' },

@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
-import { showDraftResumePrompt, hasMeaningfulPostData } from '../components/ui/DraftResumePrompt';
+import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm } from '../components/ui/DraftResumePrompt';
 
 export interface DepartmentTabConfig {
   id: string;
@@ -194,6 +194,7 @@ export function useCarsBottomBar() {
     category: 'cars',
     activeColor: Colors.primary,
     activeBgColor: '#EFF6FF',
+    onPost: navigateToCarForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/cars' },
       { id: 'browse', label: 'تصفح', icon: 'car-multiple', iconOutline: 'car-multiple', family: 'MaterialCommunityIcons', route: '/cars/browse' },

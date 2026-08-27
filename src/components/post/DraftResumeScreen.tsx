@@ -1,82 +1,176 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Image, Dimensions } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
-import { AppHeader } from '../ui/AppHeader'
-import { AppButton } from '../ui/AppButton'
+import { Gradients } from '../../constants/gradients'
+
+const { width } = Dimensions.get('window')
 
 interface DraftResumeScreenProps {
   categoryName: string
   draftTitle: string
   completionPercentage?: number
   lastSavedText?: string
+  images?: string[]
   onResume: () => void
   onDiscard: () => void
 }
+
+const softShadow = Platform.select({
+  ios: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+  },
+  android: { elevation: 2 },
+})
 
 export function DraftResumeScreen({
   categoryName,
   draftTitle,
   completionPercentage = 30,
   lastSavedText = 'تم الحفظ مؤخراً',
+  images = [],
   onResume,
   onDiscard,
 }: DraftResumeScreenProps) {
+  const insets = useSafeAreaInsets()
+
+  // Generate overlapping images
+  const displayImages = images.slice(0, 4)
+  const remainingImagesCount = Math.max(0, images.length - 4)
+
   return (
     <View style={styles.container}>
-      <AppHeader title="إعلانات غير مكتملة" showBack />
+      <StatusBar barStyle="dark-content" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <View style={styles.iconContainer}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="document-text-outline" size={48} color={Colors.primary} />
+      {/* ── Fixed Top Navigation Bar ── */}
+      <View style={[styles.navBarFixed, { paddingTop: insets.top }]}>
+        <View style={styles.navBarRow}>
+          <TouchableOpacity
+            style={styles.navBtn}
+            activeOpacity={0.75}
+            onPress={() => router.back()}
+            accessibilityLabel="رجوع"
+          >
+            <Ionicons name="arrow-forward-outline" size={20} color="#1E293B" />
+          </TouchableOpacity>
+          <View style={styles.navTitleContainer}>
+            <Text style={styles.navTitle}>إعلان غير مكتمل</Text>
           </View>
-          <Text style={styles.title}>لديك مسودة {categoryName} غير مكتملة</Text>
-          <Text style={styles.subtitle}>
-            لقد بدأت في إضافة إعلان سابقاً ولم تكمله. هل تود استكمال البيانات أم مسحها والبدء من جديد؟
+          <View style={styles.placeholderBtn} />
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 60,
+            paddingBottom: Math.max(insets.bottom, 24) + 24,
+          }
+        ]}
+        bounces={true}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroIconContainer}>
+            <LinearGradient
+              colors={Gradients.primary as any}
+              style={styles.heroIconGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons name="document-text" size={40} color={Colors.white} />
+            </LinearGradient>
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>{categoryName}</Text>
+            </View>
+          </View>
+          <Text style={styles.heroTitle}>مرحباً بعودتك!</Text>
+          <Text style={styles.heroSubtitle}>
+            لقد قطعت شوطاً في إضافة إعلانك. يمكنك إكمال التفاصيل المتبقية الآن ليكون متاحاً للمشترين.
           </Text>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.draftTitle} numberOfLines={2}>
+        {/* Draft Card */}
+        <View style={styles.cardContainer}>
+          {images.length > 0 && (
+            <View style={styles.imageGalleryContainer}>
+              {displayImages.map((img, idx) => (
+                <View 
+                  key={idx} 
+                  style={[
+                    styles.galleryImageWrapper,
+                    { zIndex: displayImages.length - idx, marginRight: idx > 0 ? -12 : 0 }
+                  ]}
+                >
+                  <Image source={{ uri: img }} style={styles.galleryImage} resizeMode="cover" />
+                </View>
+              ))}
+              {remainingImagesCount > 0 && (
+                <View style={[styles.galleryImageWrapper, styles.remainingImagesWrapper, { zIndex: 0, marginRight: -12 }]}>
+                  <Text style={styles.remainingImagesText}>+{remainingImagesCount}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.draftInfo}>
+            <Text style={styles.cardTitle} numberOfLines={2}>
               {draftTitle}
             </Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>مسودة</Text>
+            <View style={styles.timeContainer}>
+              <Ionicons name="time-outline" size={14} color="#64748B" />
+              <Text style={styles.timeText}>{lastSavedText}</Text>
             </View>
           </View>
+
+          <View style={styles.divider} />
 
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressText}>نسبة الاكتمال تقريباً</Text>
+              <Text style={styles.progressText}>نسبة اكتمال الإعلان</Text>
               <Text style={styles.progressValue}>{completionPercentage}%</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${completionPercentage}%` }]} />
+              <LinearGradient
+                colors={Gradients.primary as any}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressBarFill, { width: `${completionPercentage}%` }]}
+              />
             </View>
           </View>
+        </View>
 
-          <View style={styles.cardFooter}>
-            <Ionicons name="time-outline" size={16} color={Colors.text2} />
-            <Text style={styles.timeText}>{lastSavedText}</Text>
-          </View>
+        {/* Actions Area */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity style={styles.primaryBtn} onPress={onResume} activeOpacity={0.85}>
+            <LinearGradient
+              colors={Gradients.primary as any}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.primaryGradient}
+            >
+              <Ionicons name="rocket-outline" size={20} color={Colors.white} />
+              <Text style={styles.primaryBtnText}>استكمال ونشر الإعلان</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryBtn} onPress={onDiscard} activeOpacity={0.6}>
+            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            <Text style={styles.secondaryBtnText}>تجاهل المسودة والبدء من جديد</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <AppButton title="استكمال الإعلان" onPress={onResume} style={styles.resumeBtn} />
-        <AppButton
-          title="مسح والبدء بإعلان جديد"
-          onPress={onDiscard}
-          variant="outline"
-          style={styles.discardBtn}
-          textStyle={styles.discardBtnText}
-        />
-      </View>
     </View>
   )
 }
@@ -84,135 +178,265 @@ export function DraftResumeScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#F8FAFC',
   },
-  scrollContent: {
-    padding: Spacing.space4,
-    paddingTop: Spacing.space8,
+  
+  /* Top Navigation Bar */
+  navBarFixed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: 'rgba(248, 250, 252, 0.98)',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226, 232, 240, 0.8)',
   },
-  iconContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.space6,
-  },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.primary + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.space4,
-  },
-  title: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 22,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Spacing.space2,
-  },
-  subtitle: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 15,
-    color: Colors.text2,
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: Spacing.space4,
-  },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
+  navBarRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.space4,
+    height: 44,
   },
-  draftTitle: {
+  navBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(softShadow as any),
+  },
+  placeholderBtn: {
+    width: 40,
+    height: 40,
+  },
+  navTitleContainer: {
     flex: 1,
+    alignItems: 'center',
+  },
+  navTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
+    color: '#0F172A',
+  },
+
+  /* Scroll Content */
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.space4,
+    alignItems: 'center',
+  },
+
+  /* Hero Section */
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: Spacing.space6,
+    paddingHorizontal: Spacing.space4,
+    width: '100%',
+  },
+  heroIconContainer: {
+    position: 'relative',
+    marginBottom: Spacing.space4,
+  },
+  heroIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '10deg' }],
+    ...(softShadow as any),
+  },
+  heroBadge: {
+    position: 'absolute',
+    bottom: -6,
+    right: -10,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    borderWidth: 2,
+    borderColor: '#F8FAFC',
+    ...(softShadow as any),
+  },
+  heroBadgeText: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 12,
+    color: Colors.primary,
+  },
+  heroTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 24,
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  heroSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
     lineHeight: 24,
   },
-  badge: {
-    backgroundColor: Colors.warning + '20',
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space1,
-    borderRadius: Radius.pill,
-    marginLeft: Spacing.space3,
+
+  /* Shared Card Container (Draft) */
+  cardContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.xl,
+    padding: Spacing.space4,
+    marginBottom: Spacing.space5,
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.8)',
+    gap: Spacing.space4,
+    ...(softShadow as any),
   },
-  badgeText: {
+  cardTitle: {
     fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    color: '#0F172A',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 22,
+    marginBottom: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    width: '100%',
+  },
+
+  /* Draft Specific Items */
+  imageGalleryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 8,
+  },
+  galleryImageWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.md,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  galleryImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: Radius.md - 2,
+  },
+  remainingImagesWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F5F9',
+  },
+  remainingImagesText: {
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12,
-    color: Colors.warning,
+    color: '#64748B',
+  },
+  draftInfo: {
+    alignItems: 'center',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    marginTop: 6,
+  },
+  timeText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    color: '#64748B',
+    marginLeft: 6,
   },
   progressSection: {
-    marginBottom: Spacing.space4,
+    width: '100%',
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Spacing.space2,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   progressText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    color: Colors.text2,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: '#475569',
   },
   progressValue: {
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
     color: Colors.primary,
   },
   progressBarBg: {
-    height: 6,
-    backgroundColor: Colors.border,
+    height: 8,
+    backgroundColor: '#F1F5F9',
     borderRadius: Radius.pill,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
     borderRadius: Radius.pill,
   },
-  cardFooter: {
+
+  /* Actions Area */
+  actionsContainer: {
+    width: '100%',
+    gap: 16,
+    marginTop: Spacing.space2,
+  },
+  primaryBtn: {
+    width: '100%',
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  primaryGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: Spacing.space3,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
   },
-  timeText: {
-    fontFamily: 'Almarai_400Regular',
+  primaryBtnText: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    color: Colors.white,
+  },
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+    borderRadius: Radius.lg,
+  },
+  secondaryBtnText: {
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
-    color: Colors.text2,
-    marginLeft: Spacing.space2,
-  },
-  footer: {
-    padding: Spacing.space4,
-    backgroundColor: Colors.white,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingBottom: Spacing.space8, // safe area padding fallback
-  },
-  resumeBtn: {
-    marginBottom: Spacing.space3,
-  },
-  discardBtn: {
-    borderColor: Colors.error,
-  },
-  discardBtnText: {
-    color: Colors.error,
+    color: '#EF4444',
   },
 })

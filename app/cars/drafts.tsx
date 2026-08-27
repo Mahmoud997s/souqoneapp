@@ -30,11 +30,16 @@ export default function CarDraftsScreen() {
   const completionPercentage = Math.min(Math.round((currentStep / 5) * 100), 100)
   
   const title = formData.title || `${formData.brandId || ''} ${formData.model || ''}`.trim() || 'بدون عنوان'
+  const draftImages = [
+    ...(formData.images?.map((img: any) => img.uri || img) || []),
+    ...(formData.existingImages?.map((img: any) => img.url || img) || []),
+  ].filter(Boolean)
 
   return (
     <DraftResumeScreen
       categoryName="سيارات"
       draftTitle={title}
+      images={draftImages}
       completionPercentage={completionPercentage}
       onResume={handleResume}
       onDiscard={handleDiscard}

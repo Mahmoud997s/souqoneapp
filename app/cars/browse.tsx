@@ -36,9 +36,9 @@ import {
 } from '../../src/constants/browseFilters';
 import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
-import { useNavVisibility } from '../../src/context/NavVisibilityContext';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { navigateToCarForm } from '../../src/components/ui/DraftResumePrompt';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { useBrands } from '../../src/hooks/useCars';
@@ -82,7 +82,6 @@ interface FilterState {
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
-  const { navHidden } = useNavVisibility();
 
   const searchParams = useLocalSearchParams<{ type?: string; featured?: string }>();
 
@@ -123,7 +122,7 @@ export default function CarsBrowseScreen() {
   const { data: brands } = useBrands();
 
   const handleAddCar = () => {
-    router.push('/add-listing' as any);
+    navigateToCarForm();
   };
 
   // Combine query parameters
@@ -142,7 +141,7 @@ export default function CarsBrowseScreen() {
     }
 
     // Internal/UI-only keys not sent to API
-    const skipKeys = new Set(['makeId', 'modelId', 'trim', 'priceId', 'governorate', 'city']);
+    const skipKeys = new Set(['makeId', 'modelId', 'priceId', 'governorate', 'city']);
 
     // Apply all custom filters
     Object.entries(filters).forEach(([key, val]) => {
@@ -341,44 +340,6 @@ export default function CarsBrowseScreen() {
     setSelectedBrandName(undefined);
     setFilters({});
     setSearchQuery('');
-  };
-
-  const renderEmptyState = () => {
-    if (isLoading) {
-      return (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <SkeletonCard />
-            </View>
-          ))}
-        </View>
-      );
-    }
-
-    if (isError) {
-      return (
-        <View style={s.center}>
-          <Text style={s.errorTxt}>حدث خطأ أثناء تحميل إعلانات السيارات</Text>
-          <TouchableOpacity onPress={() => refetch()} style={s.retryBtn}>
-            <Text style={s.retryTxt}>إعادة المحاولة</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View style={s.emptyState}>
-        <Ionicons name="car-outline" size={64} color={Colors.borderStrong} />
-        <Text style={s.emptyTitle}>لا توجد سيارات مطابقة</Text>
-        <Text style={s.emptySubtitle}>جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى</Text>
-        {activeFiltersCount > 0 && (
-          <TouchableOpacity onPress={handleClearAll} style={s.clearAllBtn}>
-            <Text style={s.clearAllBtnText}>إعادة تعيين الكل</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
   };
 
   return (
