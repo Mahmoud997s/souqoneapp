@@ -12,7 +12,7 @@ import { Colors } from '../../constants/colors'
 import { CardSystem } from '../../constants/cardSystem'
 import { VerificationBadge } from '../jobs/VerificationBadge'
 import { getInitials, getAvatarColor } from '../../utils/format'
-import { getPostGovLabel, getPostCityLabel } from '../../constants/locations'
+import { formatLocation } from '../../utils/mappers'
 import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
 import { OperatorListing } from '../../types/equipment.types'
 import { UnifiedCardItem } from './UnifiedCard'
@@ -57,14 +57,9 @@ export function ModernOperatorCard({
   const isVerified = Boolean(user?.isVerified || item.isVerified || raw.isVerified)
 
   // Location resolution
-  const gov = item.governorate || raw.governorate || ''
-  const city = item.city || raw.city || ''
-  const govLabel = gov ? getPostGovLabel(gov) : ''
-  const cityLabel = gov && city ? getPostCityLabel(gov, city) : city
-  const locationDisplay =
-    govLabel || cityLabel
-      ? `${govLabel}${cityLabel ? `، ${cityLabel}` : ''}`
-      : 'موقع غير محدد'
+  const locationDisplay = item.governorate
+    ? item.governorate
+    : formatLocation(raw) || 'موقع غير محدد'
 
   // Operator Specs
   const operatorType = raw.operatorType || item.operatorType
