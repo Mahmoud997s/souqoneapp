@@ -18,6 +18,8 @@ import Animated from 'react-native-reanimated';
 import { useInfiniteBuses } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
+import { locationsApi } from '../../src/api/locations';
+import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
 
 // Components
@@ -37,10 +39,7 @@ import { Radius } from '../../src/constants/radius';
 const CAPACITIES = [10, 15, 30, 45, 50];
 const CAPACITY_OPTIONS = CAPACITIES.map(c => ({ label: `+ ${c} مقعد`, value: c }));
 
-const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
-  labelAr: g.labelAr,
-  value: g.labelAr
-}));
+
 
 const DROPDOWN_FILTERS = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
@@ -58,6 +57,16 @@ const SORT_OPTIONS = [
 ];
 
 export default function BusesBrowseScreen() {
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+  useEffect(() => {
+    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+  }, []);
+  
+  const governorateOptions = governorates.map(g => ({
+    id: g.id,
+    labelAr: g.nameAr,
+    value: g.nameAr
+  }));
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
   const searchParams = useLocalSearchParams<{ type?: string }>();
@@ -66,8 +75,8 @@ export default function BusesBrowseScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   
-  const [filters, setFilters] = useState<BusFilters & { governorate?: string }>(() => {
-    const initialFilters: BusFilters & { governorate?: string } = {};
+  const [filters, setFilters] = useState<BusFilters & { governorateId?: number }>(() => {
+    const initialFilters: BusFilters & { governorateId?: number } = {};
     if (searchParams.type) {
       initialFilters.busListingType = searchParams.type.toUpperCase() as any;
     }
@@ -114,8 +123,8 @@ export default function BusesBrowseScreen() {
     let displayLabel = qf.label;
 
     if (qf.id === 'governorate') {
-      isActive = !!filters.governorate;
-      if (isActive) displayLabel = filters.governorate as string;
+      isActive = !!filters.governorateId;
+      if (isActive) displayLabel = governorates.find(g => g.id === filters.governorateId)?.nameAr || 'المدينة';
     } else if (qf.id === 'make') {
       isActive = !!filters.make;
       if (isActive) displayLabel = BUS_MAKES.find(m => m.id === filters.make)?.label || filters.make as string;
@@ -142,7 +151,7 @@ export default function BusesBrowseScreen() {
 
   const handleClearQuickFilter = (id: string) => {
     const newFilters = { ...filters };
-    if (id === 'governorate') delete newFilters.governorate;
+    if (id === 'governorate') delete newFilters.governorateId;
     if (id === 'make') delete newFilters.make;
     if (id === 'capacity') { delete newFilters.capacityMin; }
     if (id === 'busType') delete newFilters.busType;
@@ -300,21 +309,21 @@ export default function BusesBrowseScreen() {
 
             {activeDropdown === 'governorate' && (
               <FlatList
-                data={GOVERNORATE_OPTIONS}
-                keyExtractor={(item) => item.value}
+                data={governorateOptions}
+                keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, governorate: item.labelAr });
+                      setFilters({ ...filters, governorateId: item.id });
                       setActiveDropdown(null);
                     }}
                   >
-                    <Text style={[s.modalOptionTxt, filters.governorate === item.labelAr && s.modalOptionTxtActive]}>
+                    <Text style={[s.modalOptionTxt, filters.governorateId === item.id && s.modalOptionTxtActive]}>
                       {item.labelAr}
                     </Text>
-                    {filters.governorate === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                    {filters.governorateId === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                   </TouchableOpacity>
                 )}
               />

@@ -22,6 +22,8 @@ import Animated, {
 import { useEquipment } from '../../src/hooks/useEquipment';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
+import { locationsApi } from '../../src/api/locations';
+import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 
 // Components
@@ -41,7 +43,7 @@ import { Radius } from '../../src/constants/radius';
 
 interface FilterState {
   listingType?: string;
-  governorate?: string;
+  governorateId?: number;
   city?: string;
   priceMin?: string;
   priceMax?: string;
@@ -69,10 +71,7 @@ const DROPDOWN_FILTERS = [
   { id: 'hours', label: 'ساعات العمل', icon: 'time-outline' },
 ];
 
-const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
-  labelAr: g.labelAr,
-  value: g.labelAr
-}));
+
 
 const CATEGORIES_ARRAY = Object.entries(EQUIPMENT_TYPES).map(([key, value]) => ({
   id: key,
@@ -114,6 +113,16 @@ const HOURS_RANGES = [
 ];
 
 export default function EquipmentBrowseScreen() {
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+  useEffect(() => {
+    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+  }, []);
+  
+  const governorateOptions = governorates.map(g => ({
+    id: g.id,
+    labelAr: g.nameAr,
+    value: g.nameAr
+  }));
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
   const searchParams = useLocalSearchParams<{ type?: string }>();
@@ -209,8 +218,8 @@ export default function EquipmentBrowseScreen() {
     let displayLabel = qf.label;
 
     if (qf.id === 'governorate') {
-      isActive = !!filters.governorate;
-      if (isActive) displayLabel = filters.governorate as string;
+      isActive = !!filters.governorateId;
+      if (isActive) displayLabel = governorates.find(g => g.id === filters.governorateId)?.nameAr || 'المدينة';
     } else if (qf.id === 'category') {
       isActive = !!filters.equipmentType;
       if (isActive) displayLabel = CATEGORIES_ARRAY.find(t => t.id === filters.equipmentType)?.name || qf.label;
@@ -248,7 +257,7 @@ export default function EquipmentBrowseScreen() {
 
   const handleClearQuickFilter = (id: string) => {
     const newFilters = { ...filters };
-    if (id === 'governorate') delete newFilters.governorate;
+    if (id === 'governorate') delete newFilters.governorateId;
     if (id === 'category') { delete newFilters.equipmentType; delete newFilters.categoryId; }
     if (id === 'condition') { delete newFilters.condition; delete newFilters.conditionId; }
     if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; delete newFilters.priceId; }
@@ -401,21 +410,21 @@ export default function EquipmentBrowseScreen() {
 
             {activeDropdown === 'governorate' && (
               <FlatList
-                data={GOVERNORATE_OPTIONS}
-                keyExtractor={(item) => item.value}
+                data={governorateOptions}
+                keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, governorate: item.labelAr });
+                      setFilters({ ...filters, governorateId: item.id });
                       setActiveDropdown(null);
                     }}
                   >
-                    <Text style={[s.modalOptionTxt, filters.governorate === item.labelAr && s.modalOptionTxtActive]}>
+                    <Text style={[s.modalOptionTxt, filters.governorateId === item.id && s.modalOptionTxtActive]}>
                       {item.labelAr}
                     </Text>
-                    {filters.governorate === item.labelAr && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
+                    {filters.governorateId === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
                   </TouchableOpacity>
                 )}
               />
