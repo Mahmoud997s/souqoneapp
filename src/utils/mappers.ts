@@ -162,8 +162,7 @@ export function mapListingToCard(item: any): UnifiedCardItem {
 export function mapJobToCard(item: any): UnifiedCardItem {
   const salary = safePrice(item.salary)
   const period = SALARY_PERIOD_LABELS[item.salaryPeriod] ?? ''
-  const govLabel = resolveLocationGov(item.governorate)
-  const location = govLabel + (item.city ? ` — ${item.city}` : '')
+  const location = formatLocation(item) || 'موقع غير محدد'
 
   const details: { icon: string; value: string }[] = []
   details.push({
@@ -506,13 +505,17 @@ export function mapOperatorToCard(item: any): UnifiedCardItem {
 
 // ── Transport requests ───────────────────────────────────────────────────────
 export function mapTransportToCard(item: any): UnifiedCardItem {
-  const fromLabel = formatLocation({ governorate: item.fromGovernorate, city: item.fromCity })
-  const toLabel = formatLocation({ governorate: item.toGovernorate, city: item.toCity })
+  const fromLocation = item.fromGovernorateRef
+    ? (item.fromGovernorateRef.nameAr || item.fromGovernorateRef.nameEn || '')
+    : (item.fromGovernorate || '')
+  const toLocation = item.toGovernorateRef
+    ? (item.toGovernorateRef.nameAr || item.toGovernorateRef.nameEn || '')
+    : (item.toGovernorate || '')
   const title = SERVICE_TYPE_LABELS[item.serviceType] ?? item.serviceType ?? 'طلب نقل'
   const quotesCount = item._count?.quotes ?? item.quotesCount ?? 0
 
   const details: { icon: string; value: string }[] = []
-  details.push({ icon: 'navigate-outline', value: `${fromLabel} → ${toLabel}` })
+  details.push({ icon: 'navigate-outline', value: `${fromLocation} → ${toLocation}` })
   if (item.weightTons)
     details.push({ icon: 'barbell-outline', value: `${item.weightTons} طن` })
   if (quotesCount > 0)
@@ -527,7 +530,7 @@ export function mapTransportToCard(item: any): UnifiedCardItem {
     priceText: budgetText,
     price: hasBudget ? safePrice(item.budgetMax ?? item.budgetMin) : undefined,
     currency: item.currency ?? 'ر.ع.',
-    governorate: fromLabel,
+    governorate: fromLocation,
     images: [],
     category: 'transport',
     listingType: REQUEST_STATUS_LABELS[item.status] ?? item.status,

@@ -20,7 +20,7 @@ import { dialogService } from '../../src/store/dialogStore'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/filters'
 import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses'
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
-import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
+
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
@@ -144,7 +144,7 @@ export default function ListingDetailScreen() {
   const cap = raw.capacity
   const bType = raw.busType
   const cond = raw.condition
-  const governorate = formatOmanLocation(raw.governorate, raw.city)
+  const governorate = formatLocation(raw)
   const city = raw.city
 
   const translatedBusType = BUS_TYPES.find(b => b.id === bType)?.label || bType
