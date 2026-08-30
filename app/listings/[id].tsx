@@ -217,6 +217,12 @@ export default function ListingDetailScreen() {
         version: raw.version ?? 1,
         isPriceNegotiable: raw.isPriceNegotiable ?? false,
         currency: raw.currency ?? 'OMR',
+        governorateId: raw.governorateId ?? null,
+        wilayaId: raw.wilayaId ?? null,
+        governorateName: raw.governorateRef?.nameAr ?? '',
+        wilayaName: raw.wilayaRef?.nameAr ?? '',
+        latitude: raw.latitude ?? null,
+        longitude: raw.longitude ?? null,
       })
       router.push('/cars/new' as any)
     } else {
