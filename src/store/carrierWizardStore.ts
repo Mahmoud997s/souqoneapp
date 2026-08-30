@@ -5,6 +5,10 @@ export interface CarrierWizardState {
   bio: string;
   vehicleTypes: string[];
   serviceTypes: string[];
+  governorateId: number | null;
+  wilayaId: number | null;
+  governorateNameAr: string;
+  wilayaNameAr: string;
   governorate: string;
   city: string;
   baseLat?: number;
@@ -14,6 +18,8 @@ export interface CarrierWizardState {
   errors: Record<string, string>;
   
   // Actions
+  // Actions
+  setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void;
   setField: <K extends keyof CarrierWizardState>(field: K, value: CarrierWizardState[K]) => void;
   setErrors: (errors: Record<string, string>) => void;
   toggleArrayItem: (field: 'vehicleTypes' | 'serviceTypes', value: string) => void;
@@ -25,6 +31,10 @@ const initialState = {
   bio: '',
   vehicleTypes: [],
   serviceTypes: [],
+  governorateId: null,
+  wilayaId: null,
+  governorateNameAr: '',
+  wilayaNameAr: '',
   governorate: '',
   city: '',
   baseLat: undefined,
@@ -36,6 +46,14 @@ const initialState = {
 
 export const useCarrierWizardStore = create<CarrierWizardState>((set) => ({
   ...initialState,
+
+  setLocation: (govId, wilId, govName, wilName) => set((state) => ({
+    ...state,
+    governorateId: govId,
+    wilayaId: wilId,
+    governorateNameAr: govName,
+    wilayaNameAr: wilName,
+  })),
 
   setField: (field, value) => set((state) => ({ ...state, [field]: value })),
   

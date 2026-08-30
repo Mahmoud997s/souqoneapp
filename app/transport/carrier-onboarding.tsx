@@ -28,7 +28,8 @@ export default function CarrierOnboardingScreen() {
     bio,
     vehicleTypes,
     serviceTypes,
-    governorate,
+    governorateId,
+    wilayaId,
     city,
     baseLat,
     baseLng,
@@ -44,8 +45,8 @@ export default function CarrierOnboardingScreen() {
         bio: bio || undefined,
         vehicleTypes,
         serviceTypes,
-        governorate,
-        city: city || undefined,
+        governorateId,
+        wilayaId,
         baseLat,
         baseLng,
         contactPhone: contactPhone || undefined,
@@ -89,7 +90,7 @@ export default function CarrierOnboardingScreen() {
       }
       setCurrentStep(3);
     } else if (currentStep === 3) {
-      if (!governorate) storeErrors.governorate = 'الرجاء اختيار المحافظة الأساسية';
+      if (!governorateId) storeErrors.governorateId = 'الرجاء اختيار المحافظة الأساسية';
       if (!city?.trim()) storeErrors.city = 'الرجاء إدخال الولاية / المدينة';
       
       if (Object.keys(storeErrors).length > 0) {

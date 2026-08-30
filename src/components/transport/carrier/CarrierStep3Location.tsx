@@ -5,11 +5,11 @@ import { useCarrierWizardStore } from '../../../store/carrierWizardStore';
 import { Colors } from '../../../constants/colors';
 import { Radius } from '../../../constants/radius';
 import { InlineError } from '../../ui/InlineError';
-import { LocationPicker } from '../../ui/LocationPicker';
+import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect';
 import { MapLocationPicker } from '../../ui/MapLocationPicker';
 
 export default function CarrierStep3Location() {
-  const { governorate, city, baseLat, baseLng, setField, errors } = useCarrierWizardStore();
+  const { governorateId, wilayaId, baseLat, baseLng, setLocation, setField, errors } = useCarrierWizardStore();
   const [isMapVisible, setIsMapVisible] = useState(false);
 
   return (
@@ -20,19 +20,15 @@ export default function CarrierStep3Location() {
       </View>
 
       <View style={s.section}>
-        <LocationPicker
-          governorate={governorate || ''}
-          onGovernorateChange={(v) => {
-            setField('governorate', v);
-            useCarrierWizardStore.getState().setErrors({ ...errors, governorate: '' });
+        <GovernorateWilayaSelect
+          governorateId={governorateId}
+          wilayaId={wilayaId}
+          onLocationChange={(govId, wilId, govName, wilName) => {
+            setLocation(govId, wilId, govName, wilName);
+            useCarrierWizardStore.getState().setErrors({ ...errors, governorateId: '' });
           }}
-          city={city || ''}
-          onCityChange={(v) => {
-            setField('city', v);
-            useCarrierWizardStore.getState().setErrors({ ...errors, city: '' });
-          }}
-          govLabelText="المحافظة الأساسية *"
-          cityLabelText="الولاية / المدينة *"
+          govError={errors.governorateId}
+          cityError={errors.wilayaId}
         />
         
         <TouchableOpacity 

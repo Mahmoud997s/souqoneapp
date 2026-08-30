@@ -7,11 +7,11 @@ import { Spacing } from '../../../constants/spacing';
 import { useBusWizardStore } from '../../../store/busWizardStore';
 import { useAuthStore } from '../../../store/authStore';
 import { InlineError } from '../../ui/InlineError';
-import { LocationPicker } from '../../ui/LocationPicker';
+import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect';
 import { MapLocationPicker } from '../../ui/MapLocationPicker';
 
 export function BusStep5Location() {
-  const { data, setData, errors, setErrors } = useBusWizardStore();
+  const { data, setData, errors, setErrors, setLocation } = useBusWizardStore();
   const { user } = useAuthStore();
   const [mapVisible, setMapVisible] = useState(false);
 
@@ -24,19 +24,15 @@ export function BusStep5Location() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>الموقع الجغرافي</Text>
         
-        <LocationPicker
-          governorate={data.governorate || ''}
-          onGovernorateChange={(v) => {
-            setData({ governorate: v, city: '' });
-            setErrors({ ...errors, governorate: '' });
+        <GovernorateWilayaSelect
+          governorateId={data.governorateId}
+          wilayaId={data.wilayaId}
+          onLocationChange={(govId, wilId, govName, wilName) => {
+            setLocation(govId, wilId, govName, wilName);
+            setErrors({ ...errors, governorateId: '' });
           }}
-          city={data.city || ''}
-          onCityChange={(v) => {
-            setData({ city: v });
-            setErrors({ ...errors, city: '' });
-          }}
-          govLabelText="المحافظة *"
-          cityLabelText="الولاية *"
+          govError={errors.governorateId}
+          cityError={errors.wilayaId}
         />
         <InlineError message={errors.governorateId || errors.city} style={{ marginTop: 8 }} />
 

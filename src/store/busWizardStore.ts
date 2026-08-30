@@ -30,6 +30,10 @@ export interface BusWizardData {
   title: string
   description: string
   
+  governorateId: number | null
+  wilayaId: number | null
+  governorateNameAr: string
+  wilayaNameAr: string
   governorate: string
   city: string
   latitude: number | null
@@ -67,6 +71,10 @@ const DEFAULT_DATA: BusWizardData = {
   contractDuration: '',
   title: '',
   description: '',
+  governorateId: null,
+  wilayaId: null,
+  governorateNameAr: '',
+  wilayaNameAr: '',
   governorate: '',
   city: '',
   latitude: null,
@@ -92,6 +100,7 @@ interface BusWizardState {
   setErrors: (errs: Record<string, string>) => void
   clearError: (field: string) => void
   reset: () => void
+  setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void
   setEditMode: (id: string, initialData: Partial<BusWizardData>) => void
 }
 
@@ -109,6 +118,16 @@ export const useBusWizardStore = create<BusWizardState>()(
       prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
       
       setData: (updates) => set((s) => ({ data: { ...s.data, ...updates } })),
+      
+      setLocation: (govId, wilId, govName, wilName) => set((s) => ({
+        data: {
+          ...s.data,
+          governorateId: govId,
+          wilayaId: wilId,
+          governorateNameAr: govName,
+          wilayaNameAr: wilName,
+        }
+      })),
       
       setErrors: (errors) => set({ errors }),
       clearError: (field) => set((s) => {

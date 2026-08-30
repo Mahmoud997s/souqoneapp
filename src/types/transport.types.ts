@@ -100,8 +100,8 @@ export interface CarrierProfile {
   bio?: string;
   vehicleTypes?: string[];
   serviceTypes?: string[];
-  governorate?: string;
-  city?: string;
+  governorateId?: number;
+  wilayaId?: number;
   contactPhone?: string;
   whatsapp?: string;
   

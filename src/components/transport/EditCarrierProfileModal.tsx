@@ -6,7 +6,7 @@ import { Radius } from '../../constants/radius';
 import { CarrierProfile } from '../../types/transport.types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { transportApi } from '../../api/transport';
-import { LocationPicker } from '../ui/LocationPicker';
+import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect';
 import { dialogService } from '../../store/dialogStore'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,16 +22,16 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
   const [companyName, setCompanyName] = useState('');
   const [bio, setBio] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  const [governorate, setGovernorate] = useState('');
-  const [city, setCity] = useState('');
+  const [governorateId, setGovernorateId] = useState<number | null>(null);
+  const [wilayaId, setWilayaId] = useState<number | null>(null);
 
   useEffect(() => {
     if (visible && profile) {
       setCompanyName(profile.companyName || '');
       setBio(profile.bio || '');
       setContactPhone(profile.contactPhone || '');
-      setGovernorate(profile.governorate || '');
-      setCity(profile.city || '');
+      setGovernorateId(profile.governorateId || null);
+      setWilayaId(profile.wilayaId || null);
     }
   }, [visible, profile]);
 
@@ -51,12 +51,16 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
   });
 
   const handleSave = () => {
+    if (!companyName.trim() || !contactPhone.trim() || !governorateId) {
+      dialogService.alert('بيانات ناقصة', 'يرجى إكمال اسم الشركة، ورقم الهاتف، والمحافظة');
+      return;
+    }
     updateMutation.mutate({
       companyName,
       bio,
       contactPhone,
-      governorate,
-      city,
+      governorateId,
+      wilayaId: wilayaId || undefined,
     });
   };
 
@@ -99,16 +103,13 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
             </View>
 
             <View style={[s.field, { zIndex: 50 }]}>
-              <LocationPicker
-                governorate={governorate}
-                onGovernorateChange={(g) => {
-                  setGovernorate(g);
-                  setCity('');
+              <GovernorateWilayaSelect
+                governorateId={governorateId}
+                wilayaId={wilayaId}
+                onLocationChange={(govId, wilId) => {
+                  setGovernorateId(govId);
+                  setWilayaId(wilId);
                 }}
-                city={city}
-                onCityChange={setCity}
-                govLabelText="المحافظة الأساسية"
-                cityLabelText="الولاية / المدينة"
               />
             </View>
 

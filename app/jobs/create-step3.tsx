@@ -15,14 +15,15 @@ import { useJobPostStore } from '../../src/store/jobPostStore'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { InlineError } from '../../src/components/ui/InlineError'
 import { OMAN_GOVERNORATES, OMAN_WILAYAT_BY_GOVERNORATE } from '../../src/constants/jobs'
-import { LocationPicker } from '../../src/components/ui/LocationPicker'
+import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 
 const TOTAL_STEPS = 4
 
 export default function CreateStep3() {
   const insets = useSafeAreaInsets()
-  const { governorate, city, set } = useJobPostStore()
-
+  const { governorateId, wilayaId, governorateNameAr, wilayaNameAr, setLocation } = useJobPostStore()
+  
+  const governorate = governorateNameAr || ''
   const wilayat = governorate ? (OMAN_WILAYAT_BY_GOVERNORATE[governorate] ?? []) : []
   const [error, setError] = useState('')
 
@@ -31,7 +32,7 @@ export default function CreateStep3() {
       setError('الرجاء تحديد المحافظة أولاً')
       return
     }
-    if (city.trim().length === 0) {
+    if (!wilayaId) {
       setError('الرجاء تحديد الولاية/المدينة')
       return
     }
@@ -53,11 +54,12 @@ export default function CreateStep3() {
 
           {/* Governorate & City */}
           <View style={{ marginBottom: 24 }}>
-            <LocationPicker
-              governorate={governorate}
-              onGovernorateChange={(val) => set({ governorate: val, city: '' })}
-              city={city}
-              onCityChange={(val) => set({ city: val })}
+            <GovernorateWilayaSelect
+              governorateId={governorateId}
+              wilayaId={wilayaId}
+              onLocationChange={(govId, wilId, govName, wilName) => {
+                setLocation(govId, wilId, govName, wilName)
+              }}
               showCity={true}
             />
           </View>
@@ -70,7 +72,7 @@ export default function CreateStep3() {
               <View style={s.summaryContent}>
                 <Text style={s.summaryTitle}>الموقع المحدد</Text>
                 <Text style={s.summaryValue}>
-                  {[governorate, city].filter(Boolean).join(' — ')}
+                  {[governorateNameAr, wilayaNameAr].filter(Boolean).join(' — ')}
                 </Text>
               </View>
             </View>

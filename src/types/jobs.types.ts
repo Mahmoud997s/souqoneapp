@@ -138,8 +138,8 @@ export interface CreateJobDto {
   nationality?: string
   vehicleTypes: string[]
   hasOwnVehicle: boolean
-  governorate: string
-  city?: string
+  governorateId: number
+  wilayaId?: number
   contactPhone?: string
   contactEmail?: string
   whatsapp?: string
@@ -158,8 +158,8 @@ export interface CreateDriverProfileDto {
   nationality?: string
   hasOwnVehicle: boolean
   bio?: string
-  governorate: string
-  city?: string
+  governorateId: number
+  wilayaId?: number
   contactPhone?: string
   whatsapp?: string
 }
@@ -169,8 +169,8 @@ export interface CreateEmployerProfileDto {
   companySize?: string
   industry?: string
   bio?: string
-  governorate: string
-  city?: string
+  governorateId: number
+  wilayaId?: number
   contactPhone?: string
   whatsapp?: string
 }

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
   TextInput
@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
-import { LocationPicker } from '../ui/LocationPicker'
+import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { AppButton } from '../ui/AppButton'
 import { useCreateEmployerProfile } from '../../hooks/useEmployerProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
@@ -20,12 +20,13 @@ export function EmployerOnboardingForm() {
 
   const [companyName, setCompanyName] = useState('')
   const [industry, setIndustry] = useState('')
-  const [empGov, setEmpGov] = useState('')
+  const [empGovId, setEmpGovId] = useState<number | null>(null)
+  const [empWilId, setEmpWilId] = useState<number | null>(null)
   const [empBio, setEmpBio] = useState('')
   const [empPhone, setEmpPhone] = useState('')
 
   const handleSubmit = async () => {
-    if (!empGov) {
+    if (!empGovId) {
       dialogService.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
       return
     }
@@ -33,7 +34,8 @@ export function EmployerOnboardingForm() {
       await createEmployer.mutateAsync({
         companyName: companyName || undefined,
         industry: industry || undefined,
-        governorate: empGov,
+        governorateId: empGovId,
+        wilayaId: empWilId || undefined,
         bio: empBio || undefined,
         contactPhone: empPhone || undefined,
       })
@@ -100,9 +102,13 @@ export function EmployerOnboardingForm() {
           </View>
 
           <View style={s.inputGroup}>
-            <LocationPicker
-              governorate={empGov}
-              onGovernorateChange={setEmpGov}
+            <GovernorateWilayaSelect
+              governorateId={empGovId}
+              wilayaId={empWilId}
+              onLocationChange={(govId, wilId) => {
+                setEmpGovId(govId)
+                setEmpWilId(wilId)
+              }}
               showCity={false}
             />
           </View>

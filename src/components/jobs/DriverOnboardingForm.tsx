@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput
@@ -10,7 +10,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { LicenseType } from '../../types/jobs.types'
 import { LICENSE_TYPE_LABELS, LANGUAGE_OPTIONS } from '../../constants/jobs'
-import { LocationPicker } from '../ui/LocationPicker'
+import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { AppButton } from '../ui/AppButton'
 import { useCreateDriverProfile } from '../../hooks/useDriverProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
@@ -27,7 +27,8 @@ export function DriverOnboardingForm() {
   const [hasOwnVehicle, setHasOwnVehicle] = useState(false)
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([])
   const [languages, setLanguages] = useState<string[]>([])
-  const [governorate, setGovernorate] = useState('')
+  const [governorateId, setGovernorateId] = useState<number | null>(null)
+  const [wilayaId, setWilayaId] = useState<number | null>(null)
   const [bio, setBio] = useState('')
   const [contactPhone, setContactPhone] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
@@ -37,7 +38,7 @@ export function DriverOnboardingForm() {
   }
 
   const handleSubmit = async () => {
-    if (!governorate) {
+    if (!governorateId) {
       dialogService.alert('الموقع مطلوب', 'يرجى اختيار المحافظة')
       return
     }
@@ -52,7 +53,8 @@ export function DriverOnboardingForm() {
         hasOwnVehicle,
         vehicleTypes,
         languages,
-        governorate,
+        governorateId,
+        wilayaId: wilayaId || undefined,
         bio: bio || undefined,
         contactPhone: contactPhone || undefined,
         whatsapp: whatsapp || undefined,
@@ -124,9 +126,13 @@ export function DriverOnboardingForm() {
           </View>
 
           <View style={s.inputGroup}>
-            <LocationPicker
-              governorate={governorate}
-              onGovernorateChange={setGovernorate}
+            <GovernorateWilayaSelect
+              governorateId={governorateId}
+              wilayaId={wilayaId}
+              onLocationChange={(govId, wilId) => {
+                setGovernorateId(govId)
+                setWilayaId(wilId)
+              }}
               showCity={false}
             />
           </View>

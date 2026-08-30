@@ -18,17 +18,22 @@ interface JobPostState {
   languages: string[]
   vehicleTypes: string[]
   hasOwnVehicle: boolean
+  governorateId: number | null
+  wilayaId: number | null
+  governorateNameAr: string
+  wilayaNameAr: string
   governorate: string
   city: string
   contactPhone: string
   contactEmail: string
   whatsapp: string
 
-  set: (updates: Partial<Omit<JobPostState, 'set' | 'reset'>>) => void
+  setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void
+  set: (updates: Partial<Omit<JobPostState, 'set' | 'reset' | 'setLocation'>>) => void
   reset: () => void
 }
 
-const initial: Omit<JobPostState, 'set' | 'reset'> = {
+const initial: Omit<JobPostState, 'set' | 'reset' | 'setLocation'> = {
   jobType: 'HIRING',
   title: '',
   description: '',
@@ -43,6 +48,10 @@ const initial: Omit<JobPostState, 'set' | 'reset'> = {
   languages: [],
   vehicleTypes: [],
   hasOwnVehicle: false,
+  governorateId: null,
+  wilayaId: null,
+  governorateNameAr: '',
+  wilayaNameAr: '',
   governorate: '',
   city: '',
   contactPhone: '',
@@ -54,6 +63,14 @@ export const useJobPostStore = create<JobPostState>()(
   persist(
     (set) => ({
       ...initial,
+      setLocation: (govId, wilId, govName, wilName) => 
+        set((state) => ({ 
+          ...state, 
+          governorateId: govId, 
+          wilayaId: wilId, 
+          governorateNameAr: govName, 
+          wilayaNameAr: wilName 
+        })),
       set: (updates) => set((state) => ({ ...state, ...updates })),
       reset: () => set(initial),
     }),
