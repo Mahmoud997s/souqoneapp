@@ -4,14 +4,14 @@ import { Colors } from '../../../constants/colors';
 import { Radius } from '../../../constants/radius';
 import { Spacing } from '../../../constants/spacing';
 import { useTransportWizardStore } from '../../../store/transportWizardStore';
-import { LocationPicker } from '../../ui/LocationPicker';
+import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect';
 import { MapLocationPicker } from '../../ui/MapLocationPicker';
 import { InlineError } from '../../ui/InlineError';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 
 export function TransportStep2Location() {
-  const { data, setField, errors } = useTransportWizardStore();
+  const { data, setField, setFromLocation, setToLocation, errors } = useTransportWizardStore();
   const [mapType, setMapType] = React.useState<'from' | 'to' | null>(null);
 
   return (
@@ -21,16 +21,17 @@ export function TransportStep2Location() {
       {/* From */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>من (موقع الاستلام) *</Text>
-        <LocationPicker
-          governorate={data.fromGovernorate || ''}
-          onGovernorateChange={(v) => {
-            setField('fromGovernorate', v);
-            useTransportWizardStore.getState().setErrors({ ...errors, fromGovernorate: '' });
-          }}
-          city={data.fromCity || ''}
-          onCityChange={(v) => setField('fromCity', v)}
+        <GovernorateWilayaSelect
+          governorateId={data.fromGovernorateId}
+          wilayaId={data.fromWilayaId}
           govLabelText="المحافظة"
           cityLabelText="الولاية / المدينة (اختياري)"
+          govError={errors.fromGovernorateId}
+          cityError={errors.fromWilayaId}
+          onLocationChange={(govId, wilId, govName, wilName) => {
+            setFromLocation(govId, wilId, govName, wilName);
+            useTransportWizardStore.getState().setErrors({ ...errors, fromGovernorateId: '', fromWilayaId: '' });
+          }}
         />
         
         <TouchableOpacity 
@@ -50,22 +51,23 @@ export function TransportStep2Location() {
           </View>
         )}
 
-        <InlineError message={errors.fromGovernorate} style={{ marginTop: 12 }} />
+        <InlineError message={errors.fromGovernorateId} style={{ marginTop: 12 }} />
       </View>
 
       {/* To */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>إلى (موقع التسليم) *</Text>
-        <LocationPicker
-          governorate={data.toGovernorate || ''}
-          onGovernorateChange={(v) => {
-            setField('toGovernorate', v);
-            useTransportWizardStore.getState().setErrors({ ...errors, toGovernorate: '' });
-          }}
-          city={data.toCity || ''}
-          onCityChange={(v) => setField('toCity', v)}
+        <GovernorateWilayaSelect
+          governorateId={data.toGovernorateId}
+          wilayaId={data.toWilayaId}
           govLabelText="المحافظة"
           cityLabelText="الولاية / المدينة (اختياري)"
+          govError={errors.toGovernorateId}
+          cityError={errors.toWilayaId}
+          onLocationChange={(govId, wilId, govName, wilName) => {
+            setToLocation(govId, wilId, govName, wilName);
+            useTransportWizardStore.getState().setErrors({ ...errors, toGovernorateId: '', toWilayaId: '' });
+          }}
         />
         
         <TouchableOpacity 
@@ -85,7 +87,7 @@ export function TransportStep2Location() {
           </View>
         )}
 
-        <InlineError message={errors.toGovernorate} style={{ marginTop: 12 }} />
+        <InlineError message={errors.toGovernorateId} style={{ marginTop: 12 }} />
       </View>
 
       <MapLocationPicker

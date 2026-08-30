@@ -7,13 +7,17 @@ export interface TransportWizardState {
   weightTons?: number;
   requiresHelper: boolean;
 
-  fromGovernorate: string;
-  fromCity?: string;
+  fromGovernorateId: number | null;
+  fromWilayaId: number | null;
+  fromGovernorateNameAr: string;
+  fromWilayaNameAr: string;
   fromLat?: number;
   fromLng?: number;
 
-  toGovernorate: string;
-  toCity?: string;
+  toGovernorateId: number | null;
+  toWilayaId: number | null;
+  toGovernorateNameAr: string;
+  toWilayaNameAr: string;
   toLat?: number;
   toLng?: number;
 
@@ -35,8 +39,14 @@ const initialState: TransportWizardState = {
   serviceType: '',
   cargoDescription: '',
   requiresHelper: false,
-  fromGovernorate: '',
-  toGovernorate: '',
+  fromGovernorateId: null,
+  fromWilayaId: null,
+  fromGovernorateNameAr: '',
+  fromWilayaNameAr: '',
+  toGovernorateId: null,
+  toWilayaId: null,
+  toGovernorateNameAr: '',
+  toWilayaNameAr: '',
   isFlexible: true,
   images: [],
   notes: '',
@@ -52,6 +62,8 @@ interface TransportWizardStore {
   nextStep: () => void;
   prevStep: () => void;
   setStep: (step: number) => void;
+  setFromLocation: (govId: number, wilId: number, govName: string, wilName: string) => void;
+  setToLocation: (govId: number, wilId: number, govName: string, wilName: string) => void;
   reset: () => void;
 }
 
@@ -75,5 +87,25 @@ export const useTransportWizardStore = create<TransportWizardStore>((set) => ({
     
   setStep: (step) => set({ currentStep: step }),
   
+  setFromLocation: (govId, wilId, govName, wilName) => set((state) => ({
+    data: {
+      ...state.data,
+      fromGovernorateId: govId,
+      fromWilayaId: wilId,
+      fromGovernorateNameAr: govName,
+      fromWilayaNameAr: wilName,
+    }
+  })),
+
+  setToLocation: (govId, wilId, govName, wilName) => set((state) => ({
+    data: {
+      ...state.data,
+      toGovernorateId: govId,
+      toWilayaId: wilId,
+      toGovernorateNameAr: govName,
+      toWilayaNameAr: wilName,
+    }
+  })),
+
   reset: () => set({ data: initialState, currentStep: 1, errors: {} }),
 }));
