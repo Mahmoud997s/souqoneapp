@@ -25,21 +25,7 @@ import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { BackButton } from '../../src/components/ui/BackButton'
-import { LocationPicker } from '../../src/components/ui/LocationPicker'
-
-const GOVERNORATES = [
-  { label: 'مسقط', value: 'muscat' },
-  { label: 'ظفار', value: 'dhofar' },
-  { label: 'مسندم', value: 'musandam' },
-  { label: 'البريمي', value: 'buraimi' },
-  { label: 'الداخلية', value: 'dakhiliyah' },
-  { label: 'شمال الباطنة', value: 'batinah_north' },
-  { label: 'جنوب الباطنة', value: 'batinah_south' },
-  { label: 'شمال الشرقية', value: 'sharqiyah_north' },
-  { label: 'جنوب الشرقية', value: 'sharqiyah_south' },
-  { label: 'الظاهرة', value: 'dhahirah' },
-  { label: 'الوسطى', value: 'wusta' },
-]
+import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
@@ -49,8 +35,10 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [governorate, setGovernorate] = useState('')
+  const [governorateId, setGovernorateId] = useState<number | null>(null)
+  const [wilayaId, setWilayaId] = useState<number | null>(null)
   const [govLabel, setGovLabel] = useState('')
+  const [wilayaLabel, setWilayaLabel] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -79,7 +67,8 @@ export default function RegisterScreen() {
         username: username.trim().toLowerCase(),
         email: email.trim().toLowerCase(),
         phone: `+968${phone.trim()}`,
-        governorate: governorate || undefined,
+        governorateId: governorateId ?? undefined,
+        wilayaId: wilayaId ?? undefined,
         country: 'OM',
         password,
       })
@@ -182,20 +171,17 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* المحافظة */}
-            <LocationPicker 
-              governorate={governorate}
-              onGovernorateChange={(val) => {
-                const selected = GOVERNORATES.find(g => g.label === val)
-                if(selected) {
-                  setGovernorate(selected.value)
-                  setGovLabel(selected.label)
-                } else {
-                  setGovernorate(val)
-                  setGovLabel(val)
-                }
+            {/* المحافظة والولاية */}
+            <GovernorateWilayaSelect
+              governorateId={governorateId}
+              wilayaId={wilayaId}
+              onLocationChange={(gId, wId, gName, wName) => {
+                setGovernorateId(gId)
+                setWilayaId(wId)
+                setGovLabel(gName)
+                setWilayaLabel(wName)
               }}
-              showCity={false}
+              showCity={true}
             />
 
             {/* كلمة المرور */}

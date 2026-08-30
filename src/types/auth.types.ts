@@ -41,6 +41,8 @@ export interface RegisterDto {
   country?: string
   governorate?: string
   city?: string
+  governorateId?: number
+  wilayaId?: number
   accountType?: 'private' | 'company'
 }
 

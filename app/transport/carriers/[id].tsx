@@ -8,8 +8,7 @@ import { transportApi } from '../../../src/api/transport';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Colors } from '../../../src/constants/colors';
 import { Radius } from '../../../src/constants/radius';
-import { resolveLocationGov } from '../../../src/utils/mappers';
-import { getPostCityLabel } from '../../../src/constants/locations';
+import { formatLocation, resolveLocationGov } from '../../../src/utils/mappers';
 import { getServiceLabel, getVehicleTypeLabel } from '../../../src/constants/transport';
 import { VerificationBadge } from '../../../src/components/jobs/VerificationBadge';
 import { getInitials, getAvatarColor } from '../../../src/utils/format';
@@ -101,7 +100,7 @@ export default function CarrierProfileScreen() {
           <View style={s.tagsRow}>
             <View style={s.tag}>
               <Ionicons name="location-outline" size={14} color="#64748b" />
-              <Text style={s.tagText}>{profile.city ? `${resolveLocationGov(profile.governorate)}، ${getPostCityLabel(profile.governorate || '', profile.city) || profile.city}` : resolveLocationGov(profile.governorate)}</Text>
+              <Text style={s.tagText}>{formatLocation(profile as any) || 'موقع غير محدد'}</Text>
             </View>
             <View style={[s.tag, profile.isAvailable ? s.tagAvailable : s.tagBusy]}>
               <View style={[s.dot, profile.isAvailable ? { backgroundColor: '#10b981' } : { backgroundColor: '#ef4444' }]} />

@@ -8,7 +8,7 @@ import { CarrierProfile } from '../../types/transport.types'
 import { VerificationBadge } from '../jobs/VerificationBadge'
 import RatingBadges from '../jobs/RatingBadges'
 import { getInitials, getAvatarColor } from '../../utils/format'
-import { getPostGovLabel, getPostCityLabel } from '../../constants/locations'
+import { formatLocation } from '../../utils/mappers'
 import { getServiceLabel } from '../../constants/transport'
 import { CardSystem } from '../../constants/cardSystem'
 
@@ -25,8 +25,7 @@ export function CarrierCard({ carrier, onPress, compact = false, maxChips = 3 }:
   const avatarColor = getAvatarColor(carrier.userId)
   const isVerified = carrier.user?.isVerified || carrier.isVerified || false;
 
-  const govLabel = carrier.governorate ? getPostGovLabel(carrier.governorate) : '';
-  const cityLabel = carrier.governorate && carrier.city ? getPostCityLabel(carrier.governorate, carrier.city) : carrier.city;
+  const locationDisplay = formatLocation(carrier as any) || 'موقع غير محدد';
 
   return (
     <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={onPress}>
@@ -53,10 +52,7 @@ export function CarrierCard({ carrier, onPress, compact = false, maxChips = 3 }:
           
           <View style={s.locationRow}>
             <Ionicons name="location" size={12} color="#64748b" />
-            <Text style={s.locationText} numberOfLines={1}>
-              {govLabel}{cityLabel ? `، ${cityLabel}` : ''}
-              {(!govLabel && !cityLabel) && 'موقع غير محدد'}
-            </Text>
+            <Text style={s.locationText} numberOfLines={1}>{locationDisplay}</Text>
           </View>
         </View>
 

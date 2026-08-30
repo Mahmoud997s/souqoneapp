@@ -10,8 +10,8 @@ export interface PostData {
   isPriceNegotiable: boolean
   governorate: string
   city: string
-  governorateId?: number
-  wilayaId?: number
+  governorateId?: number | null
+  wilayaId?: number | null
   locationNote: string
   latitude?: number
   longitude?: number
