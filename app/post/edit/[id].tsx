@@ -217,6 +217,8 @@ export default function EditListingLoader() {
           isPriceNegotiable: listing.isPriceNegotiable || false,
           governorate: listing.governorate || '',
           city: listing.city || '',
+          governorateId: listing.governorateId ? Number(listing.governorateId) : undefined,
+          wilayaId: listing.wilayaId ? Number(listing.wilayaId) : undefined,
           latitude: listing.latitude,
           longitude: listing.longitude,
           existingImages: existingImgs,
