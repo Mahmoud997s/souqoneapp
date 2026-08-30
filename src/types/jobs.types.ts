@@ -80,6 +80,10 @@ export interface DriverJob {
   hasOwnVehicle: boolean
   governorate: string
   city?: string
+  governorateId?: number
+  wilayaId?: number  
+  governorateRef?: { id: number; nameAr: string; nameEn: string }
+  wilayaRef?: { id: number; nameAr: string; nameEn: string }
   contactPhone?: string
   contactEmail?: string
   whatsapp?: string

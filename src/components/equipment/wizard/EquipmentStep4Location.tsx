@@ -177,7 +177,7 @@ export function EquipmentStep4Location({
           governorateId={formData.governorateId}
           wilayaId={formData.wilayaId}
           onLocationChange={onLocationChange}
-          govError={errors.governorate}
+          govError={errors.governorateId}
           cityError={errors.city}
         />
 

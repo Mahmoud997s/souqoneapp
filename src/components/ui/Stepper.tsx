@@ -2,36 +2,29 @@ import React from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Gradients } from '../../constants/gradients'
 
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
+
 interface StepperProps {
   currentStep: number
   totalSteps: number
   title?: string
+  variant?: 'dark' | 'light'
 }
 
-export function Stepper({ currentStep, totalSteps, title }: StepperProps) {
+export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: StepperProps) {
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1)
+  const isLight = variant === 'light'
 
-  return (
-    <Animated.View entering={FadeIn.duration(400)} style={[s.banner, { overflow: 'hidden' }]}>
-      <LinearGradient colors={Gradients.hero as any} style={StyleSheet.absoluteFill} />
-      <View style={[StyleSheet.absoluteFill, { opacity: 0.8 }]} pointerEvents="none">
-        <Svg width="100%" height="100%">
-          <Defs>
-            <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-            </Pattern>
-          </Defs>
-          <Rect width="100%" height="100%" fill="url(#grid)" />
-        </Svg>
-      </View>
-
+  const body = (
+    <>
       {title && (
-        <Animated.Text entering={FadeIn.delay(200)} style={s.bannerTitle}>
+        <Animated.Text entering={FadeIn.delay(200)} style={[s.bannerTitle, isLight && s.bannerTitleLight]}>
           {title}
         </Animated.Text>
       )}
@@ -46,9 +39,13 @@ export function Stepper({ currentStep, totalSteps, title }: StepperProps) {
               {/* Circle */}
               <Animated.View
                 entering={ZoomIn.delay(index * 150).springify()}
-                style={[s.circle, isActive && s.circleActive]}
+                style={[
+                  s.circle,
+                  isLight && s.circleLight,
+                  isActive && (isLight ? s.circleActiveLight : s.circleActive),
+                ]}
               >
-                <Text style={[s.stepText, isActive && s.stepTextActive]}>
+                <Text style={[s.stepText, isLight && s.stepTextLight, isActive && s.stepTextActive]}>
                   {step}
                 </Text>
               </Animated.View>
@@ -57,13 +54,51 @@ export function Stepper({ currentStep, totalSteps, title }: StepperProps) {
               {!isLast && (
                 <Animated.View
                   entering={FadeIn.delay(index * 150 + 100)}
-                  style={[s.line, isLineActive && s.lineActive]}
+                  style={[
+                    s.line,
+                    isLight && s.lineLight,
+                    isLineActive && (isLight ? s.lineActiveLight : s.lineActive),
+                  ]}
                 />
               )}
             </React.Fragment>
           )
         })}
       </View>
+    </>
+  )
+
+  if (isLight) {
+    return (
+      <AnimatedBlurView
+        entering={FadeIn.duration(400)}
+        intensity={50}
+        tint="light"
+        experimentalBlurMethod="dimezisBlurView"
+        style={[s.banner, s.bannerLight]}
+      >
+        {/* Same wash + tint formula used across the rest of this session's glass surfaces */}
+        <View style={s.whiteWash} pointerEvents="none" />
+        <View style={s.tint} pointerEvents="none" />
+        {body}
+      </AnimatedBlurView>
+    )
+  }
+
+  return (
+    <Animated.View entering={FadeIn.duration(400)} style={[s.banner, { overflow: 'hidden' }]}>
+      <LinearGradient colors={Gradients.hero as any} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, { opacity: 0.8 }]} pointerEvents="none">
+        <Svg width="100%" height="100%">
+          <Defs>
+            <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+            </Pattern>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#grid)" />
+        </Svg>
+      </View>
+      {body}
     </Animated.View>
   )
 }
@@ -146,5 +181,60 @@ const s = StyleSheet.create({
   },
   lineActive: {
     backgroundColor: Colors.accent,
+  },
+
+  /* Light glass variant — matches GlassNavBar's palette */
+  bannerLight: {
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    borderColor: 'rgba(255,255,255,0.6)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: { elevation: 1.5 },
+    }),
+  },
+  whiteWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.08,
+  },
+  tint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.primary,
+    opacity: 0.04,
+  },
+  bannerTitleLight: {
+    color: Colors.text,
+  },
+  circleLight: {
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  circleActiveLight: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: { elevation: 3 },
+    }),
+  },
+  stepTextLight: {
+    color: '#94A3B8',
+  },
+  lineLight: {
+    backgroundColor: '#E2E8F0',
+  },
+  lineActiveLight: {
+    backgroundColor: Colors.primary,
   },
 })

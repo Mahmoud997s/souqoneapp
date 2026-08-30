@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
+import { WizardCard } from '../../ui/WizardCard'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { CarStep4Props } from '../../../types/carForm.types'
@@ -27,18 +28,16 @@ export function CarStep4Location({
   return (
     <View style={s.stepWrap}>
       {/* 1. Pricing & Commercial Terms Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>
-          {isWanted ? 'الميزانية المطلوبة *' : isRent ? 'أسعار الإيجار والشروط *' : 'سعر البيع المطلوب *'}
-        </Text>
-        <Text style={s.cardSub}>
-          {isWanted
+      <WizardCard
+        title={isWanted ? 'الميزانية المطلوبة *' : isRent ? 'أسعار الإيجار والشروط *' : 'سعر البيع المطلوب *'}
+        subtitle={
+          isWanted
             ? 'حدد الميزانية التقديرية التي تبحث عنها'
             : isRent
             ? 'أدخل الأجر اليومي أو الشهري وشروط التأجير'
-            : 'أدخل سعر البيع بالريال العماني'}
-        </Text>
-
+            : 'أدخل سعر البيع بالريال العماني'
+        }
+      >
         {/* Sale Pricing */}
         {(isSale || isWanted) && (
           <>
@@ -117,7 +116,7 @@ export function CarStep4Location({
               </View>
             </View>
             
-            <View style={{ marginBottom: 12 }}>
+            <View style={{ marginBottom: Spacing.space3 }}>
               <AppInput
                 label="الحد اليومي المسموح (كم)"
                 placeholder="أدخل المسافة بالكيلومتر"
@@ -128,7 +127,7 @@ export function CarStep4Location({
               />
             </View>
 
-            <View style={{ marginBottom: 12 }}>
+            <View>
               <Text style={[s.switchTitle, { marginBottom: 8 }]}>سياسة الإلغاء</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
                 {CANCELLATION_POLICIES.map((opt) => (
@@ -153,50 +152,53 @@ export function CarStep4Location({
                 ))}
               </ScrollView>
             </View>
-
-            <View style={s.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.switchTitle}>مع سائق</Text>
-                <Text style={s.switchSub}>السيارة متوفرة للتأجير مع سائق</Text>
-              </View>
-              <Switch
-                value={formData.withDriver}
-                onValueChange={(val) => onUpdateField('withDriver', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-              />
-            </View>
-
-            <View style={s.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.switchTitle}>متوفر التوصيل للعميل</Text>
-                <Text style={s.switchSub}>إمكانية توصيل السيارة للعميل في موقعه</Text>
-              </View>
-              <Switch
-                value={formData.deliveryAvailable}
-                onValueChange={(val) => onUpdateField('deliveryAvailable', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-              />
-            </View>
-            
-            <View style={s.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.switchTitle}>شامل التأمين الشامل</Text>
-                <Text style={s.switchSub}>سعر الإيجار يشمل التأمين الشامل للسيارة</Text>
-              </View>
-              <Switch
-                value={formData.insuranceIncluded}
-                onValueChange={(val) => onUpdateField('insuranceIncluded', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-              />
-            </View>
           </>
         )}
-      </View>
+      </WizardCard>
 
-      {/* 2. Geographic Location Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>موقع تواجد السيارة *</Text>
-        <Text style={s.cardSub}>حدد المحافظة والولاية بدقة لتظهر في نتائج البحث الجغرافي</Text>
+      {/* 2. Rental Options & Terms */}
+      {isRent && (
+        <WizardCard title="خيارات وشروط الإيجار *">
+          <View style={[s.switchRow, { borderTopWidth: 0, paddingTop: 0 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.switchTitle}>مع سائق</Text>
+              <Text style={s.switchSub}>السيارة متوفرة للتأجير مع سائق</Text>
+            </View>
+            <Switch
+              value={formData.withDriver}
+              onValueChange={(val) => onUpdateField('withDriver', val)}
+              trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            />
+          </View>
+
+          <View style={s.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.switchTitle}>متوفر التوصيل للعميل</Text>
+              <Text style={s.switchSub}>إمكانية توصيل السيارة للعميل في موقعه</Text>
+            </View>
+            <Switch
+              value={formData.deliveryAvailable}
+              onValueChange={(val) => onUpdateField('deliveryAvailable', val)}
+              trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            />
+          </View>
+
+          <View style={s.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.switchTitle}>شامل التأمين الشامل</Text>
+              <Text style={s.switchSub}>سعر الإيجار يشمل التأمين الشامل للسيارة</Text>
+            </View>
+            <Switch
+              value={formData.insuranceIncluded}
+              onValueChange={(val) => onUpdateField('insuranceIncluded', val)}
+              trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            />
+          </View>
+        </WizardCard>
+      )}
+
+      {/* 3. Geographic Location Card */}
+      <WizardCard title="موقع تواجد السيارة *" subtitle="حدد المحافظة والولاية بدقة لتظهر في نتائج البحث الجغرافي">
 
         <GovernorateWilayaSelect
           governorateId={formData.governorateId}
@@ -262,7 +264,7 @@ export function CarStep4Location({
             <Ionicons name="chevron-back" size={18} color="#94A3B8" />
           </TouchableOpacity>
         )}
-      </View>
+      </WizardCard>
 
       {/* Modal for Map Picking */}
       <MapLocationPicker
@@ -284,36 +286,6 @@ export function CarStep4Location({
 const s = StyleSheet.create({
   stepWrap: {
     gap: Spacing.space3,
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: 14.5,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: -4,
-    marginBottom: 4,
   },
   row: {
     flexDirection: 'row',

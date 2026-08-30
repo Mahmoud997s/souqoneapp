@@ -21,55 +21,11 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
 import { formatDate } from '../../utils/format'
+import { formatLocation } from '../../utils/mappers'
 import { PART_CATEGORIES, POPULAR_PART_MAKES } from '../../constants/parts'
 import { useBrands } from '../../hooks/useCars'
 
-function resolvePartLocation(item: any, rawData: any): string {
-  const govRef = rawData.governorateRef || item.governorateRef
-  const wilRef = rawData.wilayaRef || item.wilayaRef
 
-  if (govRef || wilRef) {
-    const govName = govRef?.nameAr || govRef?.name || govRef?.nameEn || ''
-    const wilName = wilRef ? (wilRef.nameAr || wilRef.name || wilRef.nameEn || '') : ''
-    if (govName && wilName && govName !== wilName) {
-      return `${govName}، ${wilName}`
-    }
-    return wilName || govName || ''
-  }
-
-  const rawGov = rawData.governorateName || rawData.details?.governorateName || item.governorate || rawData.governorate
-  const rawWil = rawData.wilayaName || rawData.details?.wilayaName || rawData.city || item.city || rawData.wilaya || item.wilaya
-
-  let govLabel = ''
-  if (typeof rawGov === 'string' && !rawGov.startsWith('OM_') && !rawGov.startsWith('OM-') && isNaN(Number(rawGov))) {
-    govLabel = rawGov
-  } else if (rawGov) {
-    const strGov = String(rawGov).toUpperCase()
-    const foundOpt = GOVERNORATE_OPTIONS.find(
-      (o) => o.value.toUpperCase() === strGov || o.value.replace('_', '-').toUpperCase() === strGov.replace('_', '-')
-    )
-    if (foundOpt) {
-      govLabel = foundOpt.labelAr
-    } else {
-      const foundLoc = OMAN_LOCATIONS.find(
-        (l) => l.id.toUpperCase() === strGov || l.legacyId.toUpperCase() === strGov
-      )
-      if (foundLoc) govLabel = foundLoc.labelAr
-    }
-  }
-
-  let wilLabel = ''
-  if (typeof rawWil === 'string') {
-    wilLabel = rawWil
-  } else if (rawWil?.nameAr) {
-    wilLabel = rawWil.nameAr
-  }
-
-  if (govLabel && wilLabel && govLabel !== wilLabel) {
-    return `${govLabel}، ${wilLabel}`
-  }
-  return wilLabel || govLabel || rawData.location || item.location || ''
-}
 
 export interface PartCardProps {
   item: any
@@ -199,7 +155,9 @@ export const PartCard: React.FC<PartCardProps> = ({
   }
 
   // Location & Date
-  const location = resolvePartLocation(item, rawData)
+  const location = item.governorate
+    ? item.governorate
+    : formatLocation(rawData) || 'موقع غير محدد'
   const createdAt = rawData.createdAt || item.createdAt
 
   // State

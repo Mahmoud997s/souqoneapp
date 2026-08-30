@@ -23,7 +23,7 @@ export const validateEquipmentForm = (data: Partial<EquipmentListing>): Record<s
     if (!data.rentalDuration?.trim()) errors.rentalDuration = 'يجب تحديد مدة الإيجار المطلوبة'
   }
 
-  if (!data.governorate) errors.governorate = 'المحافظة مطلوبة'
+  if (!data.governorate) errors.governorateId = 'المحافظة مطلوبة'
   if (!data.city) errors.city = 'المدينة مطلوبة'
   if (!data.contactPhone?.trim()) errors.contactPhone = 'رقم التواصل مطلوب'
 
@@ -45,7 +45,7 @@ export const validateOperatorForm = (data: Partial<OperatorListing>): Record<str
     errors.equipmentTypes = 'يجب تحديد نوع معدة واحد على الأقل'
   }
 
-  if (!data.governorate) errors.governorate = 'المحافظة مطلوبة'
+  if (!data.governorate) errors.governorateId = 'المحافظة مطلوبة'
   if (!data.city) errors.city = 'المدينة مطلوبة'
   if (!data.contactPhone?.trim()) errors.contactPhone = 'رقم التواصل مطلوب'
 

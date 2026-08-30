@@ -53,7 +53,7 @@ export default function CarrierStep3Location() {
           </View>
         )}
 
-        {!!errors.governorate && <InlineError message={errors.governorate} style={{ marginTop: 12 }} />}
+        {!!errors.governorateId && <InlineError message={errors.governorateId} style={{ marginTop: 12 }} />}
         {!!errors.city && <InlineError message={errors.city} style={{ marginTop: 4 }} />}
       </View>
 

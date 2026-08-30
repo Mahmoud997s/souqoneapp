@@ -44,6 +44,15 @@ export interface TransportRequest {
   userId: string;
   serviceType: TransportServiceType;
   
+  fromGovernorateId: number;
+  fromWilayaId: number;
+  toGovernorateId: number;
+  toWilayaId: number;
+  fromGovernorateNameAr?: string;
+  fromWilayaNameAr?: string;
+  toGovernorateNameAr?: string;
+  toWilayaNameAr?: string;
+
   fromGovernorate: string;
   fromCity?: string;
   fromLat?: number;

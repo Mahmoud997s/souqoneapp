@@ -38,7 +38,7 @@ export function BusStep5Location() {
           govLabelText="المحافظة *"
           cityLabelText="الولاية *"
         />
-        <InlineError message={errors.governorate || errors.city} style={{ marginTop: 8 }} />
+        <InlineError message={errors.governorateId || errors.city} style={{ marginTop: 8 }} />
 
         <TouchableOpacity 
           style={styles.mapButton} 

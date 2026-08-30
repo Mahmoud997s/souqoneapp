@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -55,7 +56,10 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       </View>
 
       {/* ── CARD 1: Photos Gallery ── */}
-      <View style={s.card}>
+      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+        <View style={s.cardWhiteWash} pointerEvents="none" />
+        <View style={s.cardTint} pointerEvents="none" />
+
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -94,10 +98,13 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
         ) : (
           <Text style={s.emptyTxt}>لم يتم إرفاق صور للسيارة (اختياري)</Text>
         )}
-      </View>
+      </BlurView>
 
       {/* ── CARD 2: Basic Information ── */}
-      <View style={s.card}>
+      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+        <View style={s.cardWhiteWash} pointerEvents="none" />
+        <View style={s.cardTint} pointerEvents="none" />
+
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -152,10 +159,13 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
             <Text style={s.descTxt}>{formData.description}</Text>
           </View>
         ) : null}
-      </View>
+      </BlurView>
 
       {/* ── CARD 3: Technical Specifications ── */}
-      <View style={s.card}>
+      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+        <View style={s.cardWhiteWash} pointerEvents="none" />
+        <View style={s.cardTint} pointerEvents="none" />
+
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -308,10 +318,13 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
             </View>
           </View>
         )}
-      </View>
+      </BlurView>
 
       {/* ── CARD 4: Pricing & Location ── */}
-      <View style={s.card}>
+      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+        <View style={s.cardWhiteWash} pointerEvents="none" />
+        <View style={s.cardTint} pointerEvents="none" />
+
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -433,7 +446,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
             </View>
           ) : null}
         </View>
-      </View>
+      </BlurView>
     </View>
   )
 }
@@ -463,16 +476,26 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
     borderRadius: Radius.lg,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.6)',
     gap: 12,
     ...Platform.select({
       ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3 },
       android: { elevation: 1 },
     }),
+  },
+  cardWhiteWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.08,
+  },
+  cardTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.primary,
+    opacity: 0.04,
   },
   cardHeader: {
     flexDirection: 'row',

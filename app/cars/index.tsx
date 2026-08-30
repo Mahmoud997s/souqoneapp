@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,7 +15,6 @@ import { CategoriesGrid } from '../../src/components/cars/CategoriesGrid';
 import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { usePostStore } from '../../src/store/postStore';
 import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
@@ -30,9 +29,6 @@ export default function CarsLandingScreen() {
 
 
   // Data fetching logic
-  const { data: baseFeaturedData = [], isLoading: loadingFeatured, isError, refetch } = useCarListings({ limit: 20 });
-  const featuredCars = useMemo(() => baseFeaturedData.filter(car => car.isPremium).slice(0, 10), [baseFeaturedData]);
-  
   const [loadRest, setLoadRest] = useState(false);
   React.useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
@@ -88,60 +84,37 @@ export default function CarsLandingScreen() {
         <View style={s.content}>
           <CategoriesGrid />
 
-          {isError && !loadingFeatured ? (
-            <ActionBanner 
-              title="تعذر الاتصال بالشبكة"
-              subtitle="حدث خطأ أثناء جلب البيانات، يرجى المحاولة مرة أخرى."
-              buttonText="إعادة المحاولة"
-              iconName="cloud-offline"
-              onPress={() => refetch()}
-              gradientColors={['#ef4444', '#b91c1c', '#7f1d1d']}
-            />
-          ) : (
+          {loadRest && (
             <>
               <CarHorizontalList
-                title="إعلانات مميزة"
-                subTitle="أفضل السيارات المتاحة حالياً"
-                data={featuredCars}
-                isLoading={loadingFeatured}
-                emptyText="لا توجد إعلانات مميزة حالياً"
-                onSeeAll={() => router.push('/cars/browse?featured=true' as any)}
+                title="سيارات للبيع"
+                subTitle="تصفح أحدث عروض البيع"
+                data={saleCars}
+                isLoading={loadingSale}
+                emptyText="لا توجد سيارات للبيع حالياً"
+                onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
                 onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
               />
 
-              {loadRest && (
-                <>
-                  <CarHorizontalList
-                    title="سيارات للبيع"
-                    subTitle="تصفح أحدث عروض البيع"
-                    data={saleCars}
-                    isLoading={loadingSale}
-                    emptyText="لا توجد سيارات للبيع حالياً"
-                    onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
-                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-                  />
+              <CarHorizontalList
+                title="سيارات للإيجار"
+                subTitle="خيارات تأجير مرنة ومتنوعة"
+                data={rentCars}
+                isLoading={loadingRent}
+                emptyText="لا توجد سيارات للإيجار حالياً"
+                onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
+                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+              />
 
-                  <CarHorizontalList
-                    title="سيارات للإيجار"
-                    subTitle="خيارات تأجير مرنة ومتنوعة"
-                    data={rentCars}
-                    isLoading={loadingRent}
-                    emptyText="لا توجد سيارات للإيجار حالياً"
-                    onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
-                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-                  />
-
-                  <CarHorizontalList
-                    title="سيارات مطلوبة"
-                    subTitle="طلبات شراء سيارات من المستخدمين"
-                    data={wantedCars}
-                    isLoading={loadingWanted}
-                    emptyText="لا توجد سيارات مطلوبة حالياً"
-                    onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
-                    onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
-                  />
-                </>
-              )}
+              <CarHorizontalList
+                title="سيارات مطلوبة"
+                subTitle="طلبات شراء سيارات من المستخدمين"
+                data={wantedCars}
+                isLoading={loadingWanted}
+                emptyText="لا توجد سيارات مطلوبة حالياً"
+                onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
+                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+              />
             </>
           )}
 

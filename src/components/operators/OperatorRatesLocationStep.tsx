@@ -63,7 +63,7 @@ export function OperatorRatesLocationStep({
           governorateId={formData.governorateId}
           wilayaId={formData.wilayaId}
           onLocationChange={onLocationChange}
-          govError={errors.governorate}
+          govError={errors.governorateId}
           cityError={errors.city}
         />
       </View>

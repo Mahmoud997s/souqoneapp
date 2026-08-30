@@ -15,6 +15,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
+import { WizardCard } from '../../ui/WizardCard'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { CarStep3Props } from '../../../types/carForm.types'
 import {
@@ -210,9 +211,7 @@ export function CarStep3Details({
   return (
     <View style={s.stepWrap}>
       {/* 1. Main Specs */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>المواصفات الأساسية *</Text>
-
+      <WizardCard title="المواصفات الأساسية *">
         {formData.listingType !== 'WANTED' && (
           <View style={s.inputWrapper}>
             <Text style={s.label}>الحالة *</Text>
@@ -326,11 +325,10 @@ export function CarStep3Details({
             error={errors.mileage}
           />
         )}
-      </View>
+      </WizardCard>
 
-      {/* 2. Additional Specs */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>مواصفات إضافية *</Text>
+      {/* 2. Fuel & Drivetrain */}
+      <WizardCard title="نوع الوقود والدفع *">
 
         <View style={s.inputWrapper}>
           <Text style={s.label}>نوع الوقود *</Text>
@@ -394,7 +392,10 @@ export function CarStep3Details({
           </View>
           {errors.transmission ? <Text style={s.inlineErrorTxt}>{errors.transmission}</Text> : null}
         </View>
+      </WizardCard>
 
+      {/* 3. Colors & Engine */}
+      <WizardCard title="الألوان والمحرك *">
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <Text style={s.label}>اللون الخارجي *</Text>
@@ -497,11 +498,10 @@ export function CarStep3Details({
             />
           </View>
         </View>
-      </View>
+      </WizardCard>
 
-      {/* 3. Features */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>المميزات الإضافية (اختياري)</Text>
+      {/* 4. Features */}
+      <WizardCard title="المميزات الإضافية (اختياري)">
         <View style={s.featuresGrid}>
           {CAR_FEATURE_KEYS.map((feat) => {
             const isActive = formData.features.includes(feat.id)
@@ -563,7 +563,7 @@ export function CarStep3Details({
               </TouchableOpacity>
             </View>
           ))}
-      </View>
+      </WizardCard>
 
       <SearchableSelectModal
         visible={selectModal.visible}
@@ -579,26 +579,6 @@ export function CarStep3Details({
 
 const s = StyleSheet.create({
   stepWrap: { gap: Spacing.space3 },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
   inputWrapper: { gap: 6 },
   label: {
     fontFamily: 'Almarai_700Bold',

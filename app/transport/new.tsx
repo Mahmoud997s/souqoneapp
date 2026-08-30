@@ -55,8 +55,8 @@ export default function NewTransportRequest() {
         if (!data.serviceType) errs.serviceType = 'الرجاء اختيار نوع الخدمة';
         break;
       case 2:
-        if (!data.fromGovernorate) errs.fromGovernorate = 'الرجاء تحديد موقع الانطلاق';
-        if (!data.toGovernorate) errs.toGovernorate = 'الرجاء تحديد موقع الوصول';
+        if (!data.fromGovernorateId) errs.fromGovernorateId = 'الرجاء تحديد موقع الانطلاق';
+        if (!data.toGovernorateId) errs.toGovernorateId = 'الرجاء تحديد موقع الوصول';
         break;
       case 3:
         if (data.cargoDescription.trim().length < 5) errs.cargoDescription = 'الرجاء كتابة وصف واضح لا يقل عن 5 أحرف';
@@ -106,7 +106,7 @@ export default function NewTransportRequest() {
       // 1. Full Validation before hitting the Backend
       const missingFields: string[] = [];
       if (!data.serviceType) missingFields.push('نوع الشحن');
-      if (!data.fromGovernorate || !data.toGovernorate) missingFields.push('مواقع الانطلاق والوصول');
+      if (!data.fromGovernorateId || !data.toGovernorateId) missingFields.push('مواقع الانطلاق والوصول');
       if (!data.cargoDescription || data.cargoDescription.trim().length < 5) missingFields.push('وصف الحمولة (5 أحرف على الأقل)');
       if (!data.weightTons || data.weightTons <= 0) missingFields.push('الوزن التقريبي');
       if (!data.timingType) missingFields.push('تحديد الموعد (في أقرب وقت / مجدول)');
@@ -137,14 +137,14 @@ export default function NewTransportRequest() {
 
       const payload: any = {
         serviceType: data.serviceType,
-        fromGovernorate: data.fromGovernorate,
-        fromCity: data.fromCity,
-        fromAddress: `${data.fromGovernorate}${data.fromCity ? ' - ' + data.fromCity : ''}, سلطنة عمان`,
+        fromGovernorateId: data.fromGovernorateId,
+        fromWilayaId: data.fromWilayaId,
+        fromAddress: `${data.fromGovernorateNameAr}${data.fromWilayaNameAr ? ' - ' + data.fromWilayaNameAr : ''}, سلطنة عمان`,
         fromLat: data.fromLat,
         fromLng: data.fromLng,
-        toGovernorate: data.toGovernorate,
-        toCity: data.toCity,
-        toAddress: `${data.toGovernorate}${data.toCity ? ' - ' + data.toCity : ''}, سلطنة عمان`,
+        toGovernorateId: data.toGovernorateId,
+        toWilayaId: data.toWilayaId,
+        toAddress: `${data.toGovernorateNameAr}${data.toWilayaNameAr ? ' - ' + data.toWilayaNameAr : ''}, سلطنة عمان`,
         toLat: data.toLat,
         toLng: data.toLng,
         cargoDescription: data.cargoDescription,

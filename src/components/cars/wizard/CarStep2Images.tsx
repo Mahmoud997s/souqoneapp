@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
+import { WizardCard } from '../../ui/WizardCard'
 import { CarStep2Props } from '../../../types/carForm.types'
 import { MAX_CAR_IMAGES } from '../../../constants/cars'
 
@@ -67,8 +68,7 @@ export function CarStep2Images({
 
       {/* Existing Images (Edit Mode) */}
       {existingImages.length > 0 && (
-        <View style={s.cardSection}>
-          <Text style={s.cardTitle}>الصور الحالية المرفوعة ({existingImages.length})</Text>
+        <WizardCard title={`الصور الحالية المرفوعة (${existingImages.length})`}>
           <View style={s.imagesGrid}>
             {existingImages.map((img: any, idx: number) => {
               const uri = typeof img === 'string' ? img : img.url
@@ -102,13 +102,12 @@ export function CarStep2Images({
               )
             })}
           </View>
-        </View>
+        </WizardCard>
       )}
 
       {/* New Images */}
       {images.length > 0 && (
-        <View style={s.cardSection}>
-          <Text style={s.cardTitle}>الصور الجديدة المضافة ({images.length})</Text>
+        <WizardCard title={`الصور الجديدة المضافة (${images.length})`}>
           <View style={s.imagesGrid}>
             {images.map((img, idx) => {
               const uri = typeof img === 'string' ? img : img.uri
@@ -141,7 +140,7 @@ export function CarStep2Images({
               )
             })}
           </View>
-        </View>
+        </WizardCard>
       )}
     </View>
   )
@@ -237,26 +236,6 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: -4,
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   imagesGrid: {
     flexDirection: 'row',

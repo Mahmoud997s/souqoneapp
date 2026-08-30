@@ -38,7 +38,7 @@ export function validateOperatorStep(step: number, formData: Partial<OperatorFor
       errors.hourlyRate = 'الأجر بالساعة مطلوب'
     }
     if (!formData.governorateId) {
-      errors.governorate = 'يرجى اختيار المحافظة'
+      errors.governorateId = 'يرجى اختيار المحافظة'
     }
     if (!formData.wilayaId) {
       errors.city = 'يرجى اختيار المدينة / الولاية'

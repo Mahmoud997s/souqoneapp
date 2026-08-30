@@ -37,8 +37,8 @@ export function TransportStep5Review() {
         {renderRow('نوع الشحن', data.serviceType ? getServiceLabel(data.serviceType as TransportServiceType) : '', 'cube-outline')}
         
         <View style={styles.divider} />
-        {renderRow('من', `${data.fromGovernorate} ${data.fromCity ? '- ' + data.fromCity : ''} ${data.fromLat ? '(محدد على الخريطة 📍)' : ''}`, 'location-outline')}
-        {renderRow('إلى', `${data.toGovernorate} ${data.toCity ? '- ' + data.toCity : ''} ${data.toLat ? '(محدد على الخريطة 📍)' : ''}`, 'flag-outline')}
+        {renderRow('من', `${data.fromGovernorateNameAr} ${data.fromWilayaNameAr ? '- ' + data.fromWilayaNameAr : ''} ${data.fromLat ? '(محدد على الخريطة 📍)' : ''}`, 'location-outline')}
+        {renderRow('إلى', `${data.toGovernorateNameAr} ${data.toWilayaNameAr ? '- ' + data.toWilayaNameAr : ''} ${data.toLat ? '(محدد على الخريطة 📍)' : ''}`, 'flag-outline')}
         
         <View style={styles.divider} />
         {renderRow('تفاصيل الحمولة', data.cargoDescription, 'document-text-outline')}

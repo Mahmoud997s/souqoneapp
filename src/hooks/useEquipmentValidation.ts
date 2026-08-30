@@ -79,7 +79,6 @@ export function validateEquipmentStep(
     // Location validation (Strict IDs matching Backend migration)
     if (!formData.governorateId) {
       errors.governorateId = 'يرجى اختيار المحافظة'
-      errors.governorate = 'يرجى اختيار المحافظة'
     }
     if (!formData.wilayaId) {
       errors.wilayaId = 'يرجى اختيار الولاية'
