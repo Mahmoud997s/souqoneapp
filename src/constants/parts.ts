@@ -77,3 +77,24 @@ export const PARTS_LISTING_TABS = [
   { id: 'SCRAP', label: 'تشليح وسكراب' },
 ];
 
+
+export const MAX_PART_IMAGES = 10;
+
+export const QUANTITY_OPTIONS = [
+  { id: 'ONE', label: '1' },
+  { id: 'TWO_TO_FIVE', label: '2 - 5' },
+  { id: 'SIX_TO_TEN', label: '6 - 10' },
+  { id: 'ELEVEN_TO_TWENTY', label: '11 - 20' },
+  { id: 'TWENTY_TO_FIFTY', label: '21 - 50' },
+  { id: 'FIFTY_TO_HUNDRED', label: '51 - 100' },
+  { id: 'OVER_HUNDRED', label: 'أكثر من 100' },
+];
+
+export const WARRANTY_DURATION_OPTIONS = [
+  { id: 'ONE_MONTH', label: 'شهر واحد' },
+  { id: 'THREE_MONTHS', label: '3 أشهر' },
+  { id: 'SIX_MONTHS', label: '6 أشهر' },
+  { id: 'ONE_YEAR', label: 'سنة' },
+  { id: 'TWO_YEARS', label: 'سنتين' },
+];
+

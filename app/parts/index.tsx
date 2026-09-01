@@ -10,9 +10,7 @@ import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
 import { useParts } from '../../src/hooks/useParts';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { usePostStore } from '../../src/store/postStore';
-import { useAuthStore } from '../../src/store/authStore';
-import { showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
+import { navigateToPartForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { PartsCategoriesGrid } from '../../src/components/parts/PartsCategoriesGrid';
 import { PartHorizontalList } from '../../src/components/parts/PartHorizontalList';
@@ -24,33 +22,8 @@ export default function PartsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
-  const { set, reset } = usePostStore();
-  const { isLoggedIn } = useAuthStore();
 
-  const handleAddPart = () => {
-    if (!isLoggedIn) {
-      router.push('/(auth)/login' as any);
-      return;
-    }
-
-    const state = usePostStore.getState();
-    const navigateToForm = () => router.push('/post/step2' as any);
-
-    if (state.category === 'parts' && hasMeaningfulPostData(state)) {
-      showDraftResumePrompt({
-        onResume: navigateToForm,
-        onDiscard: () => {
-          reset('draft');
-          set({ category: 'parts' });
-          navigateToForm();
-        }
-      });
-    } else {
-      reset('draft');
-      set({ category: 'parts' });
-      navigateToForm();
-    }
-  };
+  const handleAddPart = () => navigateToPartForm();
 
 
   // Fetch Parts Data

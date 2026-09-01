@@ -14,7 +14,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { router } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 
-import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
+import { navigateToCarForm, navigateToPartForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
 
 const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-outline' },
@@ -35,6 +35,8 @@ export default function PostScreen() {
       router.push('/equipment/new')
     } else if (id === 'cars') {
       router.push('/cars/new')
+    } else if (id === 'parts') {
+      router.push('/parts/new')
     } else if (id === 'transport') {
       router.push('/transport/new')
     } else {
@@ -50,6 +52,11 @@ export default function PostScreen() {
 
     if (id === 'cars') {
       navigateToCarForm()
+      return
+    }
+
+    if (id === 'parts') {
+      navigateToPartForm()
       return
     }
 

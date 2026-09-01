@@ -106,6 +106,7 @@ export interface Service {
 export interface Part {
   id: string
   title: string
+  description?: string
   partName?: string
   partCategory: 'ENGINE' | 'BODY' | 'ELECTRICAL' | 'SUSPENSION' | 'BRAKES' | 'INTERIOR' | 'TIRES' | 'BATTERIES' | 'OILS' | 'ACCESSORIES' | 'OTHER'
   brand?: string
@@ -126,10 +127,14 @@ export interface Part {
   wilayaId?: number
   governorateRef?: { id: number; nameAr: string; nameEn: string }
   wilayaRef?: { id: number; nameAr: string; nameEn: string }
-  governorate: string
-  city: string
+  governorate?: string
+  city?: string
   latitude?: number
   longitude?: number
+  hasWarranty?: boolean
+  warrantyDuration?: 'ONE_MONTH' | 'THREE_MONTHS' | 'SIX_MONTHS' | 'ONE_YEAR' | 'TWO_YEARS'
+  quantity?: 'ONE' | 'TWO_TO_FIVE' | 'SIX_TO_TEN' | 'ELEVEN_TO_TWENTY' | 'TWENTY_TO_FIFTY' | 'FIFTY_TO_HUNDRED' | 'OVER_HUNDRED'
+  compatibleVehicleTypes?: ('CAR' | 'BUS' | 'EQUIPMENT')[]
   user?: UserSummary
   images: ListingImage[]
   createdAt: string

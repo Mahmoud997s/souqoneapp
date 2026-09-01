@@ -10,6 +10,10 @@ import { chatApi } from '../../src/api/chat'
 import { formatLocation } from '../../src/utils/mappers'
 import { useBrands } from '../../src/hooks/useCars'
 import { POPULAR_PART_MAKES } from '../../src/constants/parts'
+import { useAuthStore } from '../../src/store/authStore'
+import { usePartWizardStore } from '../../src/store/partWizardStore'
+import { partsApi } from '../../src/api/parts'
+import { dialogService } from '../../src/store/dialogStore'
 
 const ACCENT = '#ea580c' // Orange Accent
 
@@ -29,6 +33,7 @@ const COND_LABELS: Record<string, string> = {
 export default function PartDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
+  const { user } = useAuthStore()
   const { data: item, isLoading, isError } = usePart(id)
   const { data: brands } = useBrands()
   const [imgIdx, setImgIdx] = useState(0)
@@ -53,6 +58,7 @@ export default function PartDetailScreen() {
   const images: string[] = (raw.images ?? []).map((img: any) => img.url ?? img)
   const price = parseFloat(raw.price) || 0
   const seller = raw.seller ?? raw.user
+  const isOwner = !!user?.id && !!seller?.id && user.id === seller.id
   const condColor = COND_COLORS[raw.condition] ?? COND_COLORS.USED
 
   const handleChat = async () => {
@@ -63,6 +69,57 @@ export default function PartDetailScreen() {
     } catch (err) {
       console.log('Chat error', err)
     }
+  }
+
+  const handleEditPart = () => {
+    usePartWizardStore.getState().setEditMode(raw.id, {
+      title: raw.title ?? '',
+      description: raw.description ?? '',
+      partCategory: raw.partCategory,
+      condition: raw.condition,
+      partNumber: raw.partNumber ?? '',
+      compatibleMakes: raw.compatibleMakes ?? [],
+      compatibleModels: raw.compatibleModels ?? [],
+      yearFrom: raw.yearFrom ?? null,
+      yearTo: raw.yearTo ?? null,
+      isOriginal: raw.isOriginal ?? false,
+      hasWarranty: raw.hasWarranty ?? false,
+      warrantyDuration: raw.warrantyDuration ?? null,
+      quantity: raw.quantity ?? null,
+      compatibleVehicleTypes: raw.compatibleVehicleTypes ?? [],
+      price: Number(raw.price) || null,
+      currency: raw.currency ?? 'OMR',
+      isPriceNegotiable: raw.isPriceNegotiable ?? false,
+      contactPhone: raw.contactPhone ?? '',
+      whatsapp: raw.whatsapp ?? '',
+      governorateId: raw.governorateId ? Number(raw.governorateId) : null,
+      wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
+      governorateNameAr: raw.governorateRef?.nameAr ?? raw.governorate ?? '',
+      wilayaNameAr: raw.wilayaRef?.nameAr ?? raw.city ?? '',
+      latitude: raw.latitude ?? null,
+      longitude: raw.longitude ?? null,
+      existingImages: (raw.images ?? []).map((img: any) => ({ id: img.id, url: img.url })),
+    })
+    router.push('/parts/new' as any)
+  }
+
+  const handleDeletePart = async () => {
+    dialogService.confirm(
+      'حذف الإعلان',
+      'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+      async () => {
+        try {
+          await partsApi.remove(raw.id)
+          dialogService.alert('تم', 'تم حذف إعلان القطعة بنجاح', 'success')
+          router.back()
+        } catch (e: any) {
+          dialogService.alert('خطأ', e?.message || 'فشل حذف الإعلان', 'error')
+        }
+      },
+      'نعم، احذف',
+      'تراجع',
+      true
+    )
   }
 
   return (
@@ -195,22 +252,45 @@ export default function PartDetailScreen() {
       </ScrollView>
 
       <View style={[s.contactBar, { paddingBottom: insets.bottom + 12 }]}>
-        {seller?.phone && (
-          <TouchableOpacity style={s.callBtn} onPress={() => Linking.openURL(`tel:${seller.phone}`)}>
-            <Ionicons name="call-outline" size={20} color={ACCENT} />
-            <Text style={s.callTxt}>اتصال</Text>
-          </TouchableOpacity>
+        {isOwner ? (
+          <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
+            <TouchableOpacity
+              style={[s.callBtn, { flex: 1, backgroundColor: '#fee2e2', borderColor: '#f87171' }]}
+              onPress={handleDeletePart}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="trash-outline" size={20} color={Colors.error} />
+              <Text style={[s.callTxt, { color: Colors.error }]}>حذف</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.callBtn, { flex: 1 }]}
+              onPress={handleEditPart}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={20} color={ACCENT} />
+              <Text style={s.callTxt}>تعديل</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {seller?.phone && (
+              <TouchableOpacity style={s.callBtn} onPress={() => Linking.openURL(`tel:${seller.phone}`)}>
+                <Ionicons name="call-outline" size={20} color={ACCENT} />
+                <Text style={s.callTxt}>اتصال</Text>
+              </TouchableOpacity>
+            )}
+            {seller?.phone && (
+              <TouchableOpacity style={s.waBtn} onPress={() => Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}`)}>
+                <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+                <Text style={s.waTxt}>واتساب</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={s.chatBtn} onPress={handleChat}>
+              <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
+              <Text style={s.chatTxt}>محادثة</Text>
+            </TouchableOpacity>
+          </>
         )}
-        {seller?.phone && (
-          <TouchableOpacity style={s.waBtn} onPress={() => Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}`)}>
-            <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-            <Text style={s.waTxt}>واتساب</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={s.chatBtn} onPress={handleChat}>
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
-          <Text style={s.chatTxt}>محادثة</Text>
-        </TouchableOpacity>
       </View>
     </View>
   )

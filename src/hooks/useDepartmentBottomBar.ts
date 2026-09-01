@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
-import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm } from '../components/ui/DraftResumePrompt';
+import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToPartForm } from '../components/ui/DraftResumePrompt';
 
 export interface DepartmentTabConfig {
   id: string;
@@ -241,6 +241,7 @@ export function usePartsBottomBar() {
     category: 'parts',
     activeColor: Colors.primary,
     activeBgColor: '#EFF6FF',
+    onPost: navigateToPartForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/parts' },
       { id: 'browse', label: 'قطع الغيار', icon: 'car-wrench', iconOutline: 'car-wrench', family: 'MaterialCommunityIcons', route: '/parts/browse' },

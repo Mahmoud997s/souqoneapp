@@ -88,3 +88,46 @@ export function navigateToCarForm(method: 'push' | 'replace' = 'push'): void {
     method === 'replace' ? router.replace('/cars/new') : router.push('/cars/new')
   }
 }
+
+/**
+ * Meaningful data definition for partWizardStore
+ * A draft is meaningful if step > 1 or title is filled or images exist.
+ */
+export function hasMeaningfulPartData(state: any): boolean {
+  if (!state || !state.formData) return false
+
+  if (state.currentStep > 1) return true
+
+  const data = state.formData
+  if (
+    (data.title && data.title.trim().length > 0) ||
+    (data.images && data.images.length > 0) ||
+    (data.description && data.description.trim().length > 0) ||
+    data.price != null ||
+    data.partNumber
+  ) {
+    return true
+  }
+
+  return false
+}
+
+export function navigateToPartForm(method: 'push' | 'replace' = 'push'): void {
+  const { router } = require('expo-router')
+  const { useAuthStore } = require('../../store/authStore')
+  const { usePartWizardStore } = require('../../store/partWizardStore')
+
+  if (!useAuthStore.getState().user) {
+    method === 'replace' ? router.replace('/login') : router.push('/login')
+    return
+  }
+
+  const state = usePartWizardStore.getState()
+  if (hasMeaningfulPartData(state)) {
+    method === 'replace' ? router.replace('/parts/drafts') : router.push('/parts/drafts')
+  } else {
+    state.reset()
+    method === 'replace' ? router.replace('/parts/new') : router.push('/parts/new')
+  }
+}
+
