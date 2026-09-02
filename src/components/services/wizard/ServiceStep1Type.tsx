@@ -15,19 +15,16 @@ export interface ServiceStep1Props {
   onUpdateField: <K extends keyof ServiceFormData>(field: K, value: ServiceFormData[K]) => void
 }
 
-const SERVICE_TYPE_CONFIG: Record<
-  string,
-  { color: string; bg: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }
-> = {
-  MAINTENANCE: { color: '#16a34a', bg: '#dcfce7', icon: 'wrench' },
-  CLEANING: { color: '#2563eb', bg: '#dbeafe', icon: 'water' },
-  INSPECTION: { color: '#9333ea', bg: '#f3e8ff', icon: 'magnify' },
-  BODYWORK: { color: '#ea580c', bg: '#ffedd5', icon: 'spray' },
-  MODIFICATION: { color: '#eab308', bg: '#fef9c3', icon: 'tune' },
-  TOWING: { color: '#dc2626', bg: '#fee2e2', icon: 'tow-truck' },
-  KEYS_LOCKS: { color: '#0891b2', bg: '#cffafe', icon: 'key' },
-  ACCESSORIES_INSTALL: { color: '#b45309', bg: '#fef3c7', icon: 'car-shift-pattern' },
-  OTHER_SERVICE: { color: '#64748b', bg: '#f1f5f9', icon: 'dots-horizontal' },
+const SERVICE_TYPE_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
+  MAINTENANCE: 'wrench',
+  CLEANING: 'water',
+  INSPECTION: 'magnify',
+  BODYWORK: 'spray',
+  MODIFICATION: 'tune',
+  TOWING: 'tow-truck',
+  KEYS_LOCKS: 'key',
+  ACCESSORIES_INSTALL: 'car-shift-pattern',
+  OTHER_SERVICE: 'dots-horizontal',
 }
 
 export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceStep1Props) {
@@ -55,11 +52,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
           {SERVICE_TYPES.map((st) => {
             const isSel = formData.serviceType === st.id
             const isOther = st.id === 'OTHER_SERVICE'
-            const cfg = SERVICE_TYPE_CONFIG[st.id] || {
-              color: '#2563EB',
-              bg: '#EFF6FF',
-              icon: 'wrench' as any,
-            }
+            const iconName = SERVICE_TYPE_ICONS[st.id] || 'wrench'
 
             return (
               <TouchableOpacity
@@ -69,7 +62,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                   s.gridCard,
                   isOther && s.gridCardFull,
                   isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? cfg.color : '#E2E8F0' },
+                  { borderColor: isSel ? Colors.primary : '#E2E8F0' },
                 ]}
                 onPress={() => onUpdateField('serviceType', st.id)}
                 activeOpacity={0.7}
@@ -78,20 +71,20 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                   style={[
                     s.gridIconWrap,
                     isOther && s.gridIconWrapFull,
-                    { backgroundColor: isSel ? cfg.color : cfg.bg },
+                    isSel ? s.gridIconWrapActive : null,
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name={cfg.icon}
+                    name={iconName}
                     size={isOther ? 18 : 20}
-                    color={isSel ? '#FFFFFF' : cfg.color}
+                    color={isSel ? '#FFFFFF' : Colors.primary}
                   />
                 </View>
                 <Text
                   style={[
                     s.gridCardTxt,
                     isOther && s.gridCardTxtFull,
-                    isSel && { color: cfg.color, fontFamily: 'Almarai_700Bold' },
+                    isSel && s.gridCardTxtActive,
                   ]}
                   numberOfLines={isOther ? 1 : 2}
                 >
@@ -229,11 +222,13 @@ const s = StyleSheet.create({
   },
   gridCardActive: {
     backgroundColor: '#FAFAFA',
+    borderColor: Colors.primary,
   },
   gridIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -244,6 +239,9 @@ const s = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 0,
   },
+  gridIconWrapActive: {
+    backgroundColor: Colors.primary,
+  },
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 10,
@@ -253,6 +251,10 @@ const s = StyleSheet.create({
     minHeight: 28,
     paddingHorizontal: 1,
     writingDirection: 'rtl',
+  },
+  gridCardTxtActive: {
+    color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',
   },
   gridCardTxtFull: {
     fontSize: 11.5,
