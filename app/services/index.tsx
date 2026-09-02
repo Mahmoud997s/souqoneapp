@@ -102,11 +102,11 @@ export default function ServicesLandingScreen() {
           ) : (
             <>
               <ServiceHorizontalList
-                title="خدمات منزلية"
-                subTitle="خدمات تصلك إلى باب بيتك"
+                title="خدمات متنقلة"
+                subTitle="خدمات تصلك أينما كنت"
                 data={homeServices}
                 isLoading={loadingData}
-                emptyText="لا توجد خدمات منزلية حالياً"
+                emptyText="لا توجد خدمات متنقلة حالياً"
                 onSeeAll={() => router.push('/services/browse?isHomeService=true' as any)}
                 onPressItem={(item) => router.push(`/services/${item.id}` as any)}
               />

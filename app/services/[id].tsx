@@ -194,7 +194,7 @@ export default function ServiceDetailScreen() {
             {raw.isHomeService && (
               <View style={[s.tag, { backgroundColor: '#ecfdf5' }]}>
                 <Ionicons name="home-outline" size={14} color="#059669" />
-                <Text style={[s.tagTxt, { color: '#059669' }]}>خدمة منزلية / متنقلة</Text>
+                <Text style={[s.tagTxt, { color: '#059669' }]}>خدمة متنقلة</Text>
               </View>
             )}
           </View>

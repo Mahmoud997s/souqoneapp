@@ -144,7 +144,7 @@ export const ServiceCard = ({
           {isHomeService && (
             <View style={[s.badge, { backgroundColor: '#10b981' }]}>
               <Ionicons name="home" size={10} color={Colors.white} style={{ marginRight: 2 }} />
-              <Text style={s.badgeTxt}>خدمة منزلية</Text>
+              <Text style={s.badgeTxt}>خدمة متنقلة</Text>
             </View>
           )}
           {serviceTypeLabel && (

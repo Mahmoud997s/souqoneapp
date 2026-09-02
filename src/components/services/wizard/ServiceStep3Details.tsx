@@ -90,7 +90,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
       {/* 3. Home / Mobile Service Switch */}
       <WizardCard
         title="خدمة في موقع العميل"
-        subtitle="هل تقدم الخدمة في موقع العميل أو كخدمة منزلية / متنقلة؟"
+        subtitle="هل تقدم الخدمة في موقع العميل أو كخدمة متنقلة؟"
       >
         <View style={s.switchRow}>
           <View style={{ flex: 1 }}>
