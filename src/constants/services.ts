@@ -41,3 +41,5 @@ export const COMMON_SPECIALIZATIONS: Record<string, string[]> = {
   TOWING: ['سطحة هيدروليك', 'سطحة ونش عادي', 'نقل بين المدن والمحافظات', 'خدمة مساعدة على الطريق', 'اشتراك بطارية وسحب'],
   OTHER_SERVICE: ['خدمات عامة', 'استشارات فنية', 'توصيل وتجهيز سيارات'],
 }
+
+export const MAX_SERVICE_IMAGES = 10
