@@ -31,6 +31,10 @@ export default function PostStep2Screen() {
       router.replace('/equipment/new')
     } else if (category === 'cars') {
       router.replace('/cars/new')
+    } else if (category === 'parts') {
+      router.replace('/parts/new')
+    } else if (category === 'services') {
+      router.replace('/services/new')
     } else if (category === 'transport') {
       router.replace('/transport/new')
     }

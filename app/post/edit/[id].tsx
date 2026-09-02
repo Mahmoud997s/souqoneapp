@@ -110,8 +110,8 @@ export default function EditListingLoader() {
         let category = 'cars'
         if (type === 'operator') category = 'operators'
         else if (type === 'equipment' || listing.type === 'equipment' || ['EQUIPMENT_SALE', 'EQUIPMENT_RENT', 'EQUIPMENT_WANTED', 'EQUIPMENT_LISTING'].includes(listing.listingType)) category = 'equipment'
-        else if (listing.type === 'transport' || listing.listingType === 'TRANSPORT_REQUEST') category = 'transport'
-        else if (listing.type === 'job' || listing.listingType === 'JOB') category = 'jobs'
+        else if (type === 'transport' || listing.type === 'transport' || listing.listingType === 'TRANSPORT_REQUEST') category = 'transport'
+        else if (type === 'jobs' || type === 'job' || listing.type === 'job' || listing.listingType === 'JOB') category = 'jobs'
         else if (type === 'service' || type === 'services' || listing.type === 'service' || listing.listingType === 'CAR_SERVICE' || !!listing.serviceType) category = 'services'
         else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
 
