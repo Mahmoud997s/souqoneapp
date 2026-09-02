@@ -8,18 +8,18 @@ import { WizardCard } from '../../ui/WizardCard'
 import { PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
 
-const CATEGORIES_DATA = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine', color: '#ea580c', bg: '#ffedd5' },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', color: '#eab308', bg: '#fef9c3' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', color: '#16a34a', bg: '#dcfce7' },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert', color: '#dc2626', bg: '#fee2e2' },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat', color: '#9333ea', bg: '#f3e8ff' },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire', color: '#4b5563', bg: '#f3f4f6' },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery', color: '#0891b2', bg: '#cffafe' },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil', color: '#b45309', bg: '#fef3c7' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog', color: '#6366f1', bg: '#e0e7ff' },
-  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal', color: '#64748b', bg: '#f1f5f9' },
+const CATEGORIES_DATA: { id: string; label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }[] = [
+  { id: 'ENGINE', label: 'المحرك', icon: 'engine' },
+  { id: 'BODY', label: 'الهيكل', icon: 'car-side' },
+  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric' },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp' },
+  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert' },
+  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat' },
+  { id: 'TIRES', label: 'الإطارات', icon: 'tire' },
+  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery' },
+  { id: 'OILS', label: 'الزيوت', icon: 'oil' },
+  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog' },
+  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal' },
 ]
 
 export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1Props) {
@@ -95,20 +95,20 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
                 style={[
                   s.gridCard,
                   isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? cat.color : '#E2E8F0' }
+                  { borderColor: isSel ? Colors.primary : '#E2E8F0' }
                 ]}
                 onPress={() => onUpdateField('partCategory', cat.id)}
                 activeOpacity={0.7}
               >
-                <View style={[s.gridIconWrap, { backgroundColor: isSel ? cat.color : cat.bg }]}>
+                <View style={[s.gridIconWrap, isSel && s.gridIconWrapActive]}>
                   <MaterialCommunityIcons
                     name={cat.icon as any}
-                    size={22}
-                    color={isSel ? '#FFFFFF' : cat.color}
+                    size={20}
+                    color={isSel ? '#FFFFFF' : Colors.primary}
                   />
                 </View>
                 <Text
-                  style={[s.gridCardTxt, isSel && { color: cat.color, fontFamily: 'Almarai_700Bold' }]}
+                  style={[s.gridCardTxt, isSel && s.gridCardTxtActive]}
                   numberOfLines={2}
                 >
                   {cat.label}
@@ -280,37 +280,48 @@ const s = StyleSheet.create({
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   gridCard: {
-    width: '31%',
+    width: '23.2%',
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderRadius: Radius.md,
-    paddingVertical: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 88,
   },
   gridCardActive: {
     backgroundColor: '#FAFAFA',
+    borderColor: Colors.primary,
   },
   gridIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  gridIconWrapActive: {
+    backgroundColor: Colors.primary,
   },
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
-    fontSize: 11,
+    fontSize: 10,
     color: '#334155',
     textAlign: 'center',
-    lineHeight: 16,
-    minHeight: 32,
-    paddingHorizontal: 4,
+    lineHeight: 14,
+    minHeight: 28,
+    paddingHorizontal: 1,
     writingDirection: 'rtl',
+  },
+  gridCardTxtActive: {
+    color: Colors.primary,
+    fontFamily: 'Almarai_700Bold',
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {

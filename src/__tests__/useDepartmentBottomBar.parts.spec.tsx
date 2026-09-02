@@ -10,12 +10,13 @@ import {
   useBusesBottomBar,
   useJobsBottomBar,
 } from '../hooks/useDepartmentBottomBar'
-import { navigateToPartForm, navigateToCarForm } from '../components/ui/DraftResumePrompt'
+import { navigateToPartForm, navigateToCarForm, navigateToServiceForm } from '../components/ui/DraftResumePrompt'
 import { useAuthStore } from '../store/authStore'
 
 jest.mock('../components/ui/DraftResumePrompt', () => ({
   navigateToPartForm: jest.fn(),
   navigateToCarForm: jest.fn(),
+  navigateToServiceForm: jest.fn(),
   showDraftResumePrompt: jest.fn(),
   hasMeaningfulPostData: jest.fn(),
 }))
@@ -76,13 +77,12 @@ describe('useDepartmentBottomBar Specialized Hooks', () => {
     expect(navigateToCarForm).toHaveBeenCalledTimes(1)
   })
 
-  it('useServicesBottomBar falls through to generic post flow without onPost callback', async () => {
+  it('useServicesBottomBar delegates handlePostPress to navigateToServiceForm', async () => {
     await render(<TestBottomBarHarness hookType="services" />)
 
     fireEvent.press(screen.getByTestId('btn-post'))
 
-    expect(navigateToPartForm).not.toHaveBeenCalled()
-    expect(navigateToCarForm).not.toHaveBeenCalled()
+    expect(navigateToServiceForm).toHaveBeenCalledTimes(1)
   })
 
   it('useTransportBottomBar configures 5 tabs', async () => {

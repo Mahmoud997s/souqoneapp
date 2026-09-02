@@ -4,7 +4,7 @@ import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
 import { usePostStore } from '../../src/store/postStore'
-import { navigateToCarForm, navigateToPartForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
+import { navigateToCarForm, navigateToPartForm, navigateToServiceForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
 
 const { width } = Dimensions.get('window')
 const CARD_WIDTH = (width - 48) / 2 // 2 columns with 16 padding on sides and 16 gap
@@ -30,6 +30,8 @@ export default function PostCategoryModal() {
       router.replace('/cars/new')
     } else if (categoryId === 'parts') {
       router.replace('/parts/new')
+    } else if (categoryId === 'services') {
+      router.replace('/services/new')
     } else if (categoryId === 'transport') {
       router.replace('/transport/new')
     } else {
@@ -50,6 +52,11 @@ export default function PostCategoryModal() {
 
     if (categoryId === 'parts') {
       navigateToPartForm('replace')
+      return
+    }
+
+    if (categoryId === 'services') {
+      navigateToServiceForm('replace')
       return
     }
 

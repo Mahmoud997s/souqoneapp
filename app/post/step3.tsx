@@ -18,7 +18,7 @@ import { usePostStore } from '../../src/store/postStore'
 import { LinearGradient } from 'expo-linear-gradient'
 
 // Forms
-import { BusForm, ServiceForm } from '../../src/components/post/forms'
+import { BusForm } from '../../src/components/post/forms'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
@@ -99,8 +99,6 @@ export default function PostStep3Screen() {
     switch (category) {
       case 'buses':
         return <BusForm />
-      case 'services':
-        return <ServiceForm />
       case 'jobs':
       default:
         return (

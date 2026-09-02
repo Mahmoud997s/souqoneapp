@@ -323,7 +323,7 @@ export function ServicesFilterBottomSheet({
             />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing.space2 }}>
-            <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.textMuted }}>خدمة منزلية فقط</Text>
+            <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.textMuted }}>خدمة متنقلة فقط</Text>
             <Switch
               value={filters.isHomeService || false}
               onValueChange={(val) => updateFilter('isHomeService', val ? true : undefined)}

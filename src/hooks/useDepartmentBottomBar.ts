@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
-import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToPartForm } from '../components/ui/DraftResumePrompt';
+import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToPartForm, navigateToServiceForm } from '../components/ui/DraftResumePrompt';
 
 export interface DepartmentTabConfig {
   id: string;
@@ -226,6 +226,7 @@ export function useServicesBottomBar() {
     category: 'services',
     activeColor: Colors.primary,
     activeBgColor: '#EFF6FF',
+    onPost: navigateToServiceForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/services' },
       { id: 'browse', label: 'الخدمات', icon: 'toolbox', iconOutline: 'toolbox-outline', family: 'MaterialCommunityIcons', route: '/services/browse' },

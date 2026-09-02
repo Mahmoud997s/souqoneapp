@@ -131,3 +131,46 @@ export function navigateToPartForm(method: 'push' | 'replace' = 'push'): void {
   }
 }
 
+/**
+ * Meaningful data definition for serviceWizardStore
+ * A draft is meaningful if step > 1 or title is filled or images exist or providerName / description / serviceType are filled.
+ */
+export function hasMeaningfulServiceData(state: any): boolean {
+  if (!state || !state.formData) return false
+
+  if (state.currentStep > 1) return true
+
+  const data = state.formData
+  if (
+    (data.title && data.title.trim().length > 0) ||
+    (data.images && data.images.length > 0) ||
+    (data.description && data.description.trim().length > 0) ||
+    (data.providerName && data.providerName.trim().length > 0) ||
+    data.serviceType != null ||
+    data.priceFrom != null
+  ) {
+    return true
+  }
+
+  return false
+}
+
+export function navigateToServiceForm(method: 'push' | 'replace' = 'push'): void {
+  const { router } = require('expo-router')
+  const { useAuthStore } = require('../../store/authStore')
+  const { useServiceWizardStore } = require('../../store/serviceWizardStore')
+
+  if (!useAuthStore.getState().user) {
+    method === 'replace' ? router.replace('/login') : router.push('/login')
+    return
+  }
+
+  const state = useServiceWizardStore.getState()
+  if (hasMeaningfulServiceData(state)) {
+    method === 'replace' ? router.replace('/services/drafts') : router.push('/services/drafts')
+  } else {
+    state.reset()
+    method === 'replace' ? router.replace('/services/new') : router.push('/services/new')
+  }
+}
+
