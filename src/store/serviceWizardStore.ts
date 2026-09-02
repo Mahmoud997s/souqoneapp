@@ -164,9 +164,9 @@ export const useServiceWizardStore = create<ServiceWizardState>()(
         })),
 
       setEditMode: (id, data) =>
-        set((state) => ({
+        set(() => ({
           formData: {
-            ...state.formData,
+            ...defaultServiceFormData,
             ...data,
             editMode: true,
             editListingId: id,

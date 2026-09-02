@@ -109,6 +109,30 @@ describe('serviceWizardStore (Phase 1)', () => {
       expect(state.website).toBe('https://garage.om');
       expect(state.existingImages).toEqual([{ id: 'img-1', url: 'https://img.com/1.jpg', isPrimary: true }]);
     });
+
+    it('does not leak images/removedImageIds left over from an abandoned draft into an unrelated listing edit', () => {
+      // Simulate: user started a new service, picked an image, then abandoned the draft —
+      // the store still holds that stale image (this is the exact repro from the bug report).
+      useServiceWizardStore.getState().setField('images', [{ uri: 'file://abandoned-draft-image.jpg' }]);
+      useServiceWizardStore.getState().setField('removedImageIds', ['stale-removed-id']);
+
+      // Now edit a completely different, unrelated listing. Its `data` (matching the real
+      // call sites in app/services/[id].tsx and app/post/edit/[id].tsx) never includes
+      // `images` or `removedImageIds` — only `existingImages`.
+      const unrelatedServiceData: Partial<ServiceFormData> = {
+        title: 'خدمة أخرى غير مرتبطة',
+        existingImages: [{ id: 'real-1', url: 'https://img.com/real.jpg', isPrimary: true }],
+      };
+
+      useServiceWizardStore.getState().setEditMode('srv-unrelated-999', unrelatedServiceData);
+
+      const state = useServiceWizardStore.getState().formData;
+      expect(state.images).toEqual([]);
+      expect(state.removedImageIds).toEqual([]);
+      expect(state.existingImages).toEqual([{ id: 'real-1', url: 'https://img.com/real.jpg', isPrimary: true }]);
+      expect(state.title).toBe('خدمة أخرى غير مرتبطة');
+      expect(state.editListingId).toBe('srv-unrelated-999');
+    });
   });
 
   describe('3. reset', () => {
