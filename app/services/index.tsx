@@ -10,8 +10,7 @@ import { Spacing } from '../../src/constants/spacing';
 
 import { useServices } from '../../src/hooks/useServices';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { usePostStore } from '../../src/store/postStore';
-import { showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
+import { navigateToServiceForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { ServicesCategoriesGrid } from '../../src/components/services/ServicesCategoriesGrid';
 import { ServiceHorizontalList } from '../../src/components/services/ServiceHorizontalList';
@@ -25,26 +24,9 @@ export default function ServicesLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
-  const { set, reset } = usePostStore();
 
   const handleAddService = () => {
-    const state = usePostStore.getState();
-    const navigateToForm = () => router.push('/post/step2' as any);
-
-    if (state.category === 'services' && hasMeaningfulPostData(state)) {
-      showDraftResumePrompt({
-        onResume: navigateToForm,
-        onDiscard: () => {
-          reset('draft');
-          set({ category: 'services' });
-          navigateToForm();
-        }
-      });
-    } else {
-      reset('draft');
-      set({ category: 'services' });
-      navigateToForm();
-    }
+    navigateToServiceForm();
   };
 
 

@@ -15,9 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteServices } from '../../src/hooks/useInfiniteServices';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
-import { usePostStore } from '../../src/store/postStore';
-import { useAuthStore } from '../../src/store/authStore';
-import { showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
+import { navigateToServiceForm } from '../../src/components/ui/DraftResumePrompt';
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -70,33 +68,10 @@ export default function ServicesBrowseScreen() {
   });
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const { set: setPostStore, reset: resetPostStore } = usePostStore();
-  const { isLoggedIn } = useAuthStore();
 
   const handleAddService = useCallback(() => {
-    if (!isLoggedIn) {
-      router.push('/(auth)/login' as any);
-      return;
-    }
-
-    const state = usePostStore.getState();
-    const navigateToForm = () => router.push('/post/step2' as any);
-
-    if (state.category === 'services' && hasMeaningfulPostData(state)) {
-      showDraftResumePrompt({
-        onResume: navigateToForm,
-        onDiscard: () => {
-          resetPostStore('draft');
-          setPostStore({ category: 'services' });
-          navigateToForm();
-        }
-      });
-    } else {
-      resetPostStore('draft');
-      setPostStore({ category: 'services' });
-      navigateToForm();
-    }
-  }, [isLoggedIn, resetPostStore, setPostStore]);
+    navigateToServiceForm();
+  }, []);
 
   // Debounce search query to prevent lag and excessive API requests
   const debouncedSearch = useDebounce(searchQuery, 400);
