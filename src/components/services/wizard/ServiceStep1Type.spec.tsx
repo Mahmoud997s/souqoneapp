@@ -10,6 +10,7 @@ jest.mock('expo-blur', () => ({
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
 }))
 
 describe('ServiceStep1Type', () => {

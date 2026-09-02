@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -17,17 +17,17 @@ export interface ServiceStep1Props {
 
 const SERVICE_TYPE_CONFIG: Record<
   string,
-  { color: string; bg: string; icon: keyof typeof Ionicons.glyphMap }
+  { color: string; bg: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }
 > = {
-  MAINTENANCE: { color: '#ea580c', bg: '#ffedd5', icon: 'build-outline' },
-  CLEANING: { color: '#0284c7', bg: '#e0f2fe', icon: 'sparkles-outline' },
-  MODIFICATION: { color: '#dc2626', bg: '#fee2e2', icon: 'flame-outline' },
-  INSPECTION: { color: '#2563eb', bg: '#dbeafe', icon: 'scan-outline' },
-  BODYWORK: { color: '#7c3aed', bg: '#ede9fe', icon: 'color-palette-outline' },
-  ACCESSORIES_INSTALL: { color: '#059669', bg: '#d1fae5', icon: 'hardware-chip-outline' },
-  KEYS_LOCKS: { color: '#d97706', bg: '#fef3c7', icon: 'key-outline' },
-  TOWING: { color: '#4b5563', bg: '#f3f4f6', icon: 'car-sport-outline' },
-  OTHER_SERVICE: { color: '#64748b', bg: '#f1f5f9', icon: 'ellipsis-horizontal-outline' },
+  MAINTENANCE: { color: '#16a34a', bg: '#dcfce7', icon: 'wrench' },
+  CLEANING: { color: '#2563eb', bg: '#dbeafe', icon: 'water' },
+  INSPECTION: { color: '#9333ea', bg: '#f3e8ff', icon: 'magnify' },
+  BODYWORK: { color: '#ea580c', bg: '#ffedd5', icon: 'spray' },
+  MODIFICATION: { color: '#eab308', bg: '#fef9c3', icon: 'tune' },
+  TOWING: { color: '#dc2626', bg: '#fee2e2', icon: 'tow-truck' },
+  KEYS_LOCKS: { color: '#0891b2', bg: '#cffafe', icon: 'key' },
+  ACCESSORIES_INSTALL: { color: '#b45309', bg: '#fef3c7', icon: 'car-shift-pattern' },
+  OTHER_SERVICE: { color: '#64748b', bg: '#f1f5f9', icon: 'dots-horizontal' },
 }
 
 export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceStep1Props) {
@@ -54,10 +54,11 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
         <View style={s.gridWrap}>
           {SERVICE_TYPES.map((st) => {
             const isSel = formData.serviceType === st.id
+            const isOther = st.id === 'OTHER_SERVICE'
             const cfg = SERVICE_TYPE_CONFIG[st.id] || {
               color: '#2563EB',
               bg: '#EFF6FF',
-              icon: 'construct-outline',
+              icon: 'wrench' as any,
             }
 
             return (
@@ -66,6 +67,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                 testID={`service-type-${st.id}`}
                 style={[
                   s.gridCard,
+                  isOther && s.gridCardFull,
                   isSel ? s.gridCardActive : null,
                   { borderColor: isSel ? cfg.color : '#E2E8F0' },
                 ]}
@@ -75,21 +77,23 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                 <View
                   style={[
                     s.gridIconWrap,
+                    isOther && s.gridIconWrapFull,
                     { backgroundColor: isSel ? cfg.color : cfg.bg },
                   ]}
                 >
-                  <Ionicons
+                  <MaterialCommunityIcons
                     name={cfg.icon}
-                    size={18}
+                    size={isOther ? 18 : 20}
                     color={isSel ? '#FFFFFF' : cfg.color}
                   />
                 </View>
                 <Text
                   style={[
                     s.gridCardTxt,
+                    isOther && s.gridCardTxtFull,
                     isSel && { color: cfg.color, fontFamily: 'Almarai_700Bold' },
                   ]}
-                  numberOfLines={2}
+                  numberOfLines={isOther ? 1 : 2}
                 >
                   {st.label}
                 </Text>
@@ -117,7 +121,9 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                 onPress={() => onUpdateField('providerType', pt.id)}
                 activeOpacity={0.7}
               >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{pt.label}</Text>
+                <Text style={[s.chipTxt, isSel && s.chipTxtActive]} numberOfLines={2}>
+                  {pt.label}
+                </Text>
               </TouchableOpacity>
             )
           })}
@@ -210,6 +216,17 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 88,
   },
+  gridCardFull: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 46,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 2,
+  },
   gridCardActive: {
     backgroundColor: '#FAFAFA',
   },
@@ -221,6 +238,12 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 6,
   },
+  gridIconWrapFull: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginBottom: 0,
+  },
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 10,
@@ -231,22 +254,28 @@ const s = StyleSheet.create({
     paddingHorizontal: 1,
     writingDirection: 'rtl',
   },
+  gridCardTxtFull: {
+    fontSize: 11.5,
+    lineHeight: 16,
+    minHeight: 0,
+    textAlign: 'center',
+  },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
   chip: {
-    flex: 1,
-    minWidth: '47%',
+    width: '48.5%',
     backgroundColor: '#F8FAFC',
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
     borderRadius: Radius.md,
-    paddingVertical: 11,
-    paddingHorizontal: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 48,
   },
   chipActive: {
     backgroundColor: '#EFF6FF',
@@ -254,8 +283,8 @@ const s = StyleSheet.create({
   },
   chipTxt: {
     fontFamily: 'Almarai_600SemiBold',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 11.5,
+    lineHeight: 16,
     color: '#475569',
     writingDirection: 'rtl',
     textAlign: 'center',

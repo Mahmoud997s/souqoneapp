@@ -32,6 +32,7 @@ jest.mock('expo-linear-gradient', () => ({
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
 }))
 
 jest.mock('@tanstack/react-query', () => {
