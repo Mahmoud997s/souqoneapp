@@ -103,7 +103,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
                 <View style={[s.gridIconWrap, { backgroundColor: isSel ? cat.color : cat.bg }]}>
                   <MaterialCommunityIcons
                     name={cat.icon as any}
-                    size={22}
+                    size={20}
                     color={isSel ? '#FFFFFF' : cat.color}
                   />
                 </View>
@@ -280,36 +280,38 @@ const s = StyleSheet.create({
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   gridCard: {
-    width: '31%',
+    width: '23.2%',
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderRadius: Radius.md,
-    paddingVertical: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 88,
   },
   gridCardActive: {
     backgroundColor: '#FAFAFA',
   },
   gridIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
-    fontSize: 11,
+    fontSize: 10,
     color: '#334155',
     textAlign: 'center',
-    lineHeight: 16,
-    minHeight: 32,
-    paddingHorizontal: 4,
+    lineHeight: 14,
+    minHeight: 28,
+    paddingHorizontal: 1,
     writingDirection: 'rtl',
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
