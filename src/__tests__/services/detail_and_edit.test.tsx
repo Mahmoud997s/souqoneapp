@@ -5,6 +5,7 @@ import EditListingLoader from '../../../app/post/edit/[id]'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
 import { useAuthStore } from '../../store/authStore'
 import { servicesApi } from '../../api/services'
+import { dialogService } from '../../store/dialogStore'
 import { router } from 'expo-router'
 
 const mockServiceData = {
@@ -151,6 +152,46 @@ describe('Services Edit Flow (Phase 5)', () => {
 
       // Confirm navigation
       expect(router.push).toHaveBeenCalledWith('/services/new')
+    })
+  })
+
+  describe('ServiceDetailScreen Delete button', () => {
+    it('shows confirmation dialog and deletes service on confirm', async () => {
+      await render(<ServiceDetailScreen />)
+
+      const deleteBtn = screen.getByText('حذف')
+      expect(deleteBtn).toBeTruthy()
+
+      await act(async () => {
+        fireEvent.press(deleteBtn)
+      })
+
+      expect(dialogService.confirm).toHaveBeenCalledWith(
+        'حذف الإعلان',
+        expect.stringContaining('هل أنت متأكد من حذف هذا الإعلان؟'),
+        expect.any(Function),
+        'نعم، احذف',
+        'تراجع',
+        true
+      )
+
+      expect(servicesApi.remove).toHaveBeenCalledWith('srv-999')
+      expect(dialogService.alert).toHaveBeenCalledWith('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
+      expect(router.back).toHaveBeenCalled()
+    })
+
+    it('handles delete error gracefully and displays error alert without crashing', async () => {
+      ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce(new Error('Network error on delete'))
+
+      await render(<ServiceDetailScreen />)
+
+      const deleteBtn = screen.getByText('حذف')
+      await act(async () => {
+        fireEvent.press(deleteBtn)
+      })
+
+      expect(servicesApi.remove).toHaveBeenCalledWith('srv-999')
+      expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'Network error on delete', 'error')
     })
   })
 
