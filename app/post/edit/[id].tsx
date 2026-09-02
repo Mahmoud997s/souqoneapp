@@ -10,6 +10,7 @@ import { usePostStore } from '../../../src/store/postStore'
 import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { useCarWizardStore } from '../../../src/store/carWizardStore'
 import { usePartWizardStore } from '../../../src/store/partWizardStore'
+import { useServiceWizardStore } from '../../../src/store/serviceWizardStore'
 import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
 import { carsApi } from '../../../src/api/cars'
@@ -237,6 +238,40 @@ export default function EditListingLoader() {
             existingImages: (listing.images ?? []).map((img: any) => ({ id: img.id, url: img.url || img })),
           })
           router.replace('/parts/new')
+          return
+        }
+
+        if (category === 'services') {
+          useServiceWizardStore.getState().setEditMode(id, {
+            title: listing.title ?? '',
+            description: listing.description ?? '',
+            serviceType: listing.serviceType ?? null,
+            providerType: listing.providerType ?? null,
+            providerName: listing.providerName ?? '',
+            specializations: listing.specializations ?? [],
+            isHomeService: Boolean(listing.isHomeService),
+            workingHoursOpen: listing.workingHoursOpen ?? null,
+            workingHoursClose: listing.workingHoursClose ?? null,
+            workingDays: listing.workingDays ?? [],
+            priceFrom: listing.priceFrom != null ? Number(listing.priceFrom) : (listing.price != null ? Number(listing.price) : null),
+            priceTo: listing.priceTo != null ? Number(listing.priceTo) : null,
+            currency: listing.currency ?? 'OMR',
+            contactPhone: listing.contactPhone ?? '',
+            whatsapp: listing.whatsapp ?? '',
+            website: listing.website ?? '',
+            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
+            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
+            governorateNameAr: listing.governorateRef?.nameAr ?? listing.governorate ?? '',
+            wilayaNameAr: listing.wilayaRef?.nameAr ?? listing.city ?? '',
+            address: listing.address ?? '',
+            latitude: listing.latitude ?? null,
+            longitude: listing.longitude ?? null,
+            existingImages: (listing.images ?? []).map((img: any) => ({
+              id: typeof img === 'string' ? img : (img.id || img.url),
+              url: typeof img === 'string' ? img : (img.url || img.uri),
+            })),
+          })
+          router.replace('/services/new')
           return
         }
 
