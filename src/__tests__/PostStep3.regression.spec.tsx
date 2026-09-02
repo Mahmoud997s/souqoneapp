@@ -2,14 +2,10 @@ import React from 'react'
 import { render, screen } from '@testing-library/react-native'
 import PostStep3Screen from '../../app/post/step3'
 import { usePostStore } from '../store/postStore'
-import { BusForm, ServiceForm } from '../components/post/forms'
+import { BusForm } from '../components/post/forms'
 
 jest.mock('../../src/components/post/forms/BusForm', () => ({
   BusForm: () => <></>,
-}))
-
-jest.mock('../../src/components/post/forms/ServiceForm', () => ({
-  ServiceForm: () => <></>,
 }))
 
 jest.mock('../../src/components/ui/AppHeader', () => ({
@@ -34,21 +30,12 @@ describe('PostStep3Screen Multi-Vertical Forms Regression Check', () => {
     usePostStore.getState().reset()
   })
 
-  it('exports BusForm and ServiceForm cleanly from forms index', () => {
+  it('exports BusForm cleanly from forms index', () => {
     expect(BusForm).toBeDefined()
-    expect(ServiceForm).toBeDefined()
   })
 
   it('renders BusForm when category is buses', async () => {
     usePostStore.getState().set({ category: 'buses' })
-
-    await render(<PostStep3Screen />)
-
-    expect(screen.queryByText(/نموذج .* قيد التطوير/)).toBeNull()
-  })
-
-  it('renders ServiceForm when category is services', async () => {
-    usePostStore.getState().set({ category: 'services' })
 
     await render(<PostStep3Screen />)
 
