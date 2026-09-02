@@ -244,20 +244,20 @@ export default function NewCarListingScreen() {
     }
 
     if (formData.listingType === 'SALE') {
-      payload.price = formData.price ? Number(formData.price) : undefined
+      payload.price = formData.price ? (isNaN(Number(formData.price)) ? undefined : Number(formData.price)) : undefined
     } else if (formData.listingType === 'RENTAL') {
       payload.price = 0 // Required by backend even for rentals
-      payload.dailyPrice = formData.dailyPrice ? Number(formData.dailyPrice) : undefined
-      payload.monthlyPrice = formData.monthlyPrice ? Number(formData.monthlyPrice) : undefined
+      payload.dailyPrice = formData.dailyPrice ? (isNaN(Number(formData.dailyPrice)) ? undefined : Number(formData.dailyPrice)) : undefined
+      payload.monthlyPrice = formData.monthlyPrice ? (isNaN(Number(formData.monthlyPrice)) ? undefined : Number(formData.monthlyPrice)) : undefined
       payload.withDriver = formData.withDriver
-      payload.depositAmount = formData.depositAmount ? Number(formData.depositAmount) : undefined
-      payload.minRentalDays = formData.minRentalDays ? Number(formData.minRentalDays) : undefined
-      payload.kmLimitPerDay = formData.kmLimitPerDay ? Number(formData.kmLimitPerDay) : undefined
+      payload.depositAmount = formData.depositAmount ? (isNaN(Number(formData.depositAmount)) ? undefined : Number(formData.depositAmount)) : undefined
+      payload.minRentalDays = formData.minRentalDays ? (isNaN(Number(formData.minRentalDays)) ? undefined : Number(formData.minRentalDays)) : undefined
+      payload.kmLimitPerDay = formData.kmLimitPerDay ? (isNaN(Number(formData.kmLimitPerDay)) ? undefined : Number(formData.kmLimitPerDay)) : undefined
       payload.cancellationPolicy = formData.cancellationPolicy || undefined
       payload.deliveryAvailable = formData.deliveryAvailable
       payload.insuranceIncluded = formData.insuranceIncluded
     } else if (formData.listingType === 'WANTED') {
-      payload.price = formData.price ? Number(formData.price) : 0
+      payload.price = formData.price ? (isNaN(Number(formData.price)) ? 0 : Number(formData.price)) : 0
     }
 
     if (formData.editMode && formData.editListingId) {

@@ -41,6 +41,8 @@ export interface PartsFilterState {
   sortBy?: string;
   sortOrder?: string;
   isScrap?: boolean;
+  hasWarranty?: boolean;
+  compatibleVehicleType?: string;
 }
 
 export interface ServicesFilterState {

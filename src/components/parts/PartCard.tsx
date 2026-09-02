@@ -22,7 +22,7 @@ import { Radius } from '../../constants/radius'
 import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
 import { formatDate } from '../../utils/format'
 import { formatLocation } from '../../utils/mappers'
-import { PART_CATEGORIES, POPULAR_PART_MAKES } from '../../constants/parts'
+import { PART_CATEGORIES, POPULAR_PART_MAKES, WARRANTY_DURATION_LABELS, VEHICLE_TYPE_LABELS } from '../../constants/parts'
 import { useBrands } from '../../hooks/useCars'
 
 
@@ -385,7 +385,7 @@ export const PartCard: React.FC<PartCardProps> = ({
               pills.push(
                 <View key="cat" style={[s.detailPill, s.pillNeutral]}>
                   <Ionicons name="grid-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText}>{categoryLabel}</Text>
+                  <Text style={s.detailText} numberOfLines={1}>{categoryLabel}</Text>
                 </View>
               )
             }
@@ -395,7 +395,7 @@ export const PartCard: React.FC<PartCardProps> = ({
               pills.push(
                 <View key="partNo" style={[s.detailPill, s.pillBlue]}>
                   <Ionicons name="barcode-outline" size={12} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]}>{partNumber}</Text>
+                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{partNumber}</Text>
                 </View>
               )
             }
@@ -444,6 +444,33 @@ export const PartCard: React.FC<PartCardProps> = ({
               )
             }
 
+            // 7. Warranty Pill
+            if (rawData.hasWarranty ?? item.hasWarranty) {
+              const duration = rawData.warrantyDuration ?? item.warrantyDuration
+              pills.push(
+                <View key="warranty" style={[s.detailPill, s.pillGreen]}>
+                  <Ionicons name="shield-checkmark-outline" size={12} color="#059669" />
+                  <Text style={[s.detailText, { color: '#059669' }]} numberOfLines={1}>
+                    {duration ? (WARRANTY_DURATION_LABELS[duration] ?? 'ضمان') : 'يوجد ضمان'}
+                  </Text>
+                </View>
+              )
+            }
+
+            // 8. Compatible Vehicle Types Pill
+            const vehicleTypes = rawData.compatibleVehicleTypes ?? item.compatibleVehicleTypes
+            if (Array.isArray(vehicleTypes) && vehicleTypes.length > 0) {
+              const typeLabels = vehicleTypes.map((t: string) => VEHICLE_TYPE_LABELS[t] ?? t)
+              pills.push(
+                <View key="vehTypes" style={[s.detailPill, s.pillNeutral]}>
+                  <Ionicons name="construct-outline" size={12} color="#64748b" />
+                  <Text style={s.detailText} numberOfLines={1}>
+                    {typeLabels.join('، ')}
+                  </Text>
+                </View>
+              )
+            }
+
             if (pills.length <= maxChips) {
               return pills
             }
@@ -466,9 +493,9 @@ export const PartCard: React.FC<PartCardProps> = ({
           })()}
         </View>
 
-        <View style={[s.divider, { marginTop: 4 }]} />
+        <View style={[s.divider, { marginTop: 2, marginBottom: 6 }]} />
 
-        {/* Footer Row (Price & Negotiable Status) */}
+        {/* Footer Row (Budget & Quotes style) */}
         <View style={s.footerRow}>
           <View
             style={[
@@ -479,14 +506,15 @@ export const PartCard: React.FC<PartCardProps> = ({
           >
             <Ionicons
               name="wallet-outline"
-              size={16}
+              size={15}
               color={isPriceNegotiable ? '#059669' : '#64748b'}
             />
             <Text
               style={[
-                s.priceValText,
+                s.budgetValText,
                 isPriceNegotiable && { color: '#059669' },
               ]}
+              numberOfLines={1}
             >
               {priceLabel}
             </Text>
@@ -499,6 +527,7 @@ export const PartCard: React.FC<PartCardProps> = ({
                   s.detailText,
                   { color: '#059669', fontFamily: 'Almarai_700Bold' },
                 ]}
+                numberOfLines={1}
               >
                 قابل للتفاوض
               </Text>
@@ -593,8 +622,9 @@ const s = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 7,
-    paddingVertical: 2.5,
+    paddingVertical: 3,
     borderRadius: 100,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -607,7 +637,7 @@ const s = StyleSheet.create({
     fontSize: 9.5,
     color: Colors.white,
     letterSpacing: 0.2,
-    lineHeight: 13.5,
+    lineHeight: 14,
     writingDirection: 'rtl',
   },
   partDetails: {
@@ -630,10 +660,11 @@ const s = StyleSheet.create({
   verifiedRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 3,
     backgroundColor: '#eff6ff',
     paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: '#bfdbfe',
@@ -643,7 +674,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 9.5,
     color: '#2563eb',
-    lineHeight: 13.5,
+    lineHeight: 14,
     writingDirection: 'rtl',
   },
   locationRow: {
@@ -714,13 +745,13 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 6,
+    gap: 5,
   },
-  priceValText: {
-    fontSize: 12,
+  budgetValText: {
+    fontSize: 11.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: '#64748b',
-    lineHeight: 16,
+    lineHeight: 15,
     writingDirection: 'rtl',
   },
 })

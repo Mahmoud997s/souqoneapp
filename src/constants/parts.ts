@@ -98,3 +98,27 @@ export const WARRANTY_DURATION_OPTIONS = [
   { id: 'TWO_YEARS', label: 'سنتين' },
 ];
 
+export const WARRANTY_DURATION_LABELS: Record<string, string> = Object.fromEntries(
+  WARRANTY_DURATION_OPTIONS.map((o) => [o.id, o.label])
+);
+
+export const QUANTITY_LABELS: Record<string, string> = Object.fromEntries(
+  QUANTITY_OPTIONS.map((o) => [o.id, o.label])
+);
+
+export const VEHICLE_TYPE_LABELS: Record<string, string> = {
+  CAR: 'سيارات',
+  BUS: 'باصات',
+  EQUIPMENT: 'معدات',
+};
+
+export const PART_WARRANTY_OPTIONS = [
+  { value: true, label: 'يوجد ضمان' },
+  { value: false, label: 'بدون ضمان' },
+];
+
+export const VEHICLE_TYPE_FILTER_OPTIONS = Object.entries(VEHICLE_TYPE_LABELS).map(([id, label]) => ({
+  id,
+  label,
+}));
+

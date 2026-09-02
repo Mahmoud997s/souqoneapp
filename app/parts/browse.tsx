@@ -171,6 +171,14 @@ export default function PartsBrowseScreen() {
       params.wilayaId = String(filters.wilayaId);
     }
 
+    if (filters.hasWarranty !== undefined) {
+      params.hasWarranty = filters.hasWarranty;
+    }
+
+    if (filters.compatibleVehicleType) {
+      params.compatibleVehicleType = filters.compatibleVehicleType;
+    }
+
     if (filters.partNumber) {
       params.partNumber = filters.partNumber;
     }
@@ -506,6 +514,7 @@ export default function PartsBrowseScreen() {
               onPress={() => router.push(`/parts/${item.id}` as any)}
               fullWidth
               showChips
+              maxChips={5}
             />
           </View>
         )}

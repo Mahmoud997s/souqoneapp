@@ -9,7 +9,7 @@ import { Colors } from '../../src/constants/colors'
 import { chatApi } from '../../src/api/chat'
 import { formatLocation } from '../../src/utils/mappers'
 import { useBrands } from '../../src/hooks/useCars'
-import { POPULAR_PART_MAKES } from '../../src/constants/parts'
+import { POPULAR_PART_MAKES, WARRANTY_DURATION_LABELS, QUANTITY_LABELS, VEHICLE_TYPE_LABELS } from '../../src/constants/parts'
 import { useAuthStore } from '../../src/store/authStore'
 import { usePartWizardStore } from '../../src/store/partWizardStore'
 import { partsApi } from '../../src/api/parts'
@@ -207,6 +207,28 @@ export default function PartDetailScreen() {
                     const foundLocal = POPULAR_PART_MAKES.find((pm) => pm.id === m)
                     return foundLocal ? foundLocal.label : m
                   }).join('، ')}
+                </Text>
+              </View>
+            )}
+            {raw.hasWarranty && (
+              <View style={[s.tag, { backgroundColor: '#ecfdf5' }]}>
+                <Ionicons name="shield-checkmark-outline" size={14} color="#059669" />
+                <Text style={[s.tagTxt, { color: '#059669' }]}>
+                  {raw.warrantyDuration ? (WARRANTY_DURATION_LABELS[raw.warrantyDuration] ?? 'ضمان') : 'يوجد ضمان'}
+                </Text>
+              </View>
+            )}
+            {raw.quantity && (
+              <View style={s.tag}>
+                <Ionicons name="cube-outline" size={14} color={ACCENT} />
+                <Text style={s.tagTxt}>{QUANTITY_LABELS[raw.quantity] ?? raw.quantity}</Text>
+              </View>
+            )}
+            {raw.compatibleVehicleTypes && raw.compatibleVehicleTypes.length > 0 && (
+              <View style={s.tag}>
+                <Ionicons name="construct-outline" size={14} color={ACCENT} />
+                <Text style={s.tagTxt}>
+                  {raw.compatibleVehicleTypes.map((t: string) => VEHICLE_TYPE_LABELS[t] ?? t).join('، ')}
                 </Text>
               </View>
             )}

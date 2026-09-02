@@ -8,6 +8,8 @@ import {
   PART_CONDITIONS, 
   PART_CATEGORIES,
   PART_ORIGINALITY_OPTIONS,
+  PART_WARRANTY_OPTIONS,
+  VEHICLE_TYPE_FILTER_OPTIONS,
   PARTS_SORT_OPTIONS 
 } from '../../constants/parts';
 import { useBrands } from '../../hooks/useCars';
@@ -36,7 +38,7 @@ export function PartsFilterBottomSheet({
   resultsCount,
 }: PartsFilterBottomSheetProps) {
   const [filters, setFilters] = useState<PartsFilterState>({ ...initialFilters });
-  const [activeSelector, setActiveSelector] = useState<'make' | 'gov' | 'city' | 'category' | 'condition' | 'originality' | 'sort' | null>(null);
+  const [activeSelector, setActiveSelector] = useState<'make' | 'gov' | 'city' | 'category' | 'condition' | 'originality' | 'warranty' | 'vehicleType' | 'sort' | null>(null);
   const [showMore, setShowMore] = useState(false);
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
   const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
@@ -203,6 +205,32 @@ export function PartsFilterBottomSheet({
         hideSearch
       />
     );
+  } else if (activeSelector === 'warranty') {
+    title = "الضمان";
+    nestedContent = (
+      <NestedSearchableList
+        data={PART_WARRANTY_OPTIONS.map((o) => ({ id: String(o.value), label: o.label }))}
+        selectedValue={filters.hasWarranty !== undefined ? String(filters.hasWarranty) : undefined}
+        onSelect={(opt) => { 
+          updateFilter('hasWarranty', opt ? opt.id === 'true' : undefined); 
+          setActiveSelector(null); 
+        }}
+        hideSearch
+      />
+    );
+  } else if (activeSelector === 'vehicleType') {
+    title = "نوع المركبة المتوافقة";
+    nestedContent = (
+      <NestedSearchableList
+        data={VEHICLE_TYPE_FILTER_OPTIONS}
+        selectedValue={filters.compatibleVehicleType}
+        onSelect={(opt) => { 
+          updateFilter('compatibleVehicleType', opt ? opt.id : undefined); 
+          setActiveSelector(null); 
+        }}
+        hideSearch
+      />
+    );
   } else if (activeSelector === 'sort') {
     title = "ترتيب النتائج";
     nestedContent = (
@@ -308,6 +336,22 @@ export function PartsFilterBottomSheet({
               value={PART_CONDITIONS.find(c => c.id === filters.condition)?.label}
               placeholder="الكل"
               onPress={() => setActiveSelector('condition')}
+            />
+          </FilterSection>
+
+          <FilterSection title="الضمان">
+            <DropdownSelector
+              value={filters.hasWarranty !== undefined ? PART_WARRANTY_OPTIONS.find(o => o.value === filters.hasWarranty)?.label : undefined}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('warranty')}
+            />
+          </FilterSection>
+
+          <FilterSection title="نوع المركبة المتوافقة">
+            <DropdownSelector
+              value={filters.compatibleVehicleType ? VEHICLE_TYPE_FILTER_OPTIONS.find(o => o.id === filters.compatibleVehicleType)?.label : undefined}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('vehicleType')}
             />
           </FilterSection>
 

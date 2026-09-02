@@ -32,7 +32,10 @@ export function PartStep5Pricing({
           placeholder="أدخل السعر بالريال"
           keyboardType="numeric"
           value={formData.price != null ? formData.price.toString() : ''}
-          onChangeText={(val) => onUpdateField('price', val ? Number(val) : null)}
+          onChangeText={(val) => {
+            const num = val ? Number(val) : null
+            onUpdateField('price', num !== null && isNaN(num) ? null : num)
+          }}
           maxLength={9}
           error={errors.price}
           testID="price-input"

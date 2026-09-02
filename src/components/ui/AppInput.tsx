@@ -28,11 +28,26 @@ interface AppInputProps extends TextInputProps {
   inputWrapStyle?: StyleProp<ViewStyle>
 }
 
+const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
+
+export function normalizeDigits(value: string): string {
+  if (!value) return value
+  return value.replace(/[٠-٩]/g, (d) => String(ARABIC_INDIC_DIGITS.indexOf(d)))
+}
+
+const NUMERIC_KEYBOARD_TYPES = ['numeric', 'phone-pad', 'number-pad', 'decimal-pad']
+
 export const AppInput = forwardRef<TextInput, AppInputProps>(
   ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
     const isSm = size === 'sm'
     const inputHeight = isSm ? 42 : 48
+    const isNumericField = Boolean(rest.keyboardType && NUMERIC_KEYBOARD_TYPES.includes(rest.keyboardType))
+
+    const handleChangeText = (val: string) => {
+      const processedVal = isNumericField ? normalizeDigits(val) : val
+      rest.onChangeText?.(processedVal)
+    }
 
     return (
       <View style={[s.container, containerStyle]}>
@@ -78,6 +93,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             onFocus={(e) => { setFocused(true); rest.onFocus?.(e) }}
             onBlur={(e) => { setFocused(false); rest.onBlur?.(e) }}
             {...rest}
+            onChangeText={handleChangeText}
           />
 
           {/* Trailing icon – physical LEFT */}
