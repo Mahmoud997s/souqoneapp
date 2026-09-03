@@ -237,7 +237,7 @@ const s = StyleSheet.create({
     }),
   },
   blurBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 28,
     overflow: 'hidden',
     backgroundColor: 'rgba(255, 255, 255, 0.85)',

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { I18nManager, Platform } from 'react-native'
-import { reloadAppAsync } from 'expo'
+import { I18nManager, Platform, Text, TextInput } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import {
   useFonts,
@@ -11,7 +10,8 @@ import {
 import * as SplashScreen from 'expo-splash-screen'
 import * as Notifications from 'expo-notifications'
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '../src/api/queryClient'
 import { useAuthStore } from '../src/store/authStore'
 import { registerForPushNotifications } from '../src/services/notifications'
 import { navigateFromNotification } from '../src/utils/notificationRouter'
@@ -23,72 +23,21 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ChatSyncService } from '../src/services/ChatSyncService'
 
+export { queryClient }
+
 configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false })
 
 SplashScreen.preventAutoHideAsync()
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 1000 * 60 * 5,
-    },
-  },
-})
-
-import { Text, TextInput } from 'react-native'
-
-interface TextWithDefaultProps {
-  defaultProps?: any;
-}
-
-const CustomText = Text as unknown as TextWithDefaultProps;
-if (CustomText.defaultProps == null) CustomText.defaultProps = {};
-CustomText.defaultProps.allowFontScaling = false;
-CustomText.defaultProps.style = {  };
-
-const CustomTextInput = TextInput as unknown as TextWithDefaultProps;
-if (CustomTextInput.defaultProps == null) CustomTextInput.defaultProps = {};
-CustomTextInput.defaultProps.allowFontScaling = false;
-CustomTextInput.defaultProps.style = {  };
-
-// Deep patch for styled Text components (handles forwardRef render)
-const oldTextRender = (Text as any).render;
-if (oldTextRender) {
-  (Text as any).render = function (...args: any[]) {
-    const origin = oldTextRender.call(this, ...args);
-    if (!origin) return origin;
-    return React.cloneElement(origin, {
-      style: [{  }, origin.props.style],
-    });
-  };
-}
-const oldTextInputRender = (TextInput as any).render;
-if (oldTextInputRender) {
-  (TextInput as any).render = function (...args: any[]) {
-    const origin = oldTextInputRender.call(this, ...args);
-    if (!origin) return origin;
-    return React.cloneElement(origin, {
-      style: [{  }, origin.props.style],
-    });
-  };
-}
 
 export default function RootLayout() {
   const [rtlReady, setRtlReady] = useState(I18nManager.isRTL)
 
   useEffect(() => {
     if (!I18nManager.isRTL) {
-      I18nManager.forceRTL(true)
       I18nManager.allowRTL(true)
-      if (Platform.OS === 'ios') {
-        reloadAppAsync()
-      } else {
-        setRtlReady(true)
-      }
-    } else {
-      setRtlReady(true)
+      I18nManager.forceRTL(true)
     }
+    setRtlReady(true)
   }, [])
 
   const [fontsLoaded] = useFonts({
@@ -127,7 +76,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isLoading || !fontsLoaded) return
-    SplashScreen.hideAsync()
+    SplashScreen.hideAsync().catch(() => {})
 
     const inAuth = segments[0] === '(auth)'
 

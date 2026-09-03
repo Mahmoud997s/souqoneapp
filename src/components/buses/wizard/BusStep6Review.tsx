@@ -80,7 +80,7 @@ export function BusStep6Review() {
         ) : null}
 
         <View style={styles.divider} />
-        {renderRow('الموقع', `${data.governorate} ${data.city ? '- ' + data.city : ''}`, 'location-outline')}
+        {renderRow('الموقع', `${data.governorateNameAr || ''} ${data.wilayaNameAr ? '- ' + data.wilayaNameAr : ''}`, 'location-outline')}
         {renderRow('للتواصل', data.contactPhone, 'call-outline')}
         {renderRow('واتساب', data.whatsapp, 'logo-whatsapp')}
 

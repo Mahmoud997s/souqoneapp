@@ -211,7 +211,7 @@ function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
       <Animated.View style={[s.wrapper, { bottom: bottomPad }, containerStyle]}>
         <BlurView intensity={80} tint="light" style={s.blurBackground} />
         <View style={s.bar}>
-          {state.routes.map((route, index) => {
+          {state.routes.map((route: any, index: number) => {
             const meta    = TABS[index]
             const focused = state.index === index
 
@@ -278,7 +278,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props: any) => <CustomTabBar {...props} />}
     >
       <Tabs.Screen name="index"   options={{ title: 'الرئيسية' }} />
       <Tabs.Screen name="search"  options={{ title: 'البحث'    }} />
@@ -309,7 +309,7 @@ const s = StyleSheet.create({
     }),
   },
   blurBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 28,
     overflow: 'hidden',
     backgroundColor: 'rgba(255, 255, 255, 0.82)', // fallback

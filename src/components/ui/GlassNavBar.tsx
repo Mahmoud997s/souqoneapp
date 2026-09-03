@@ -129,12 +129,12 @@ const s = StyleSheet.create({
     elevation: 0,
   },
   whiteWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#FFFFFF',
     opacity: 0.08,
   },
   tintOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.primary,
     opacity: 0.04,
   },

@@ -287,12 +287,12 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   filterWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#FFFFFF',
     opacity: 0.08,
   },
   filterTint: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.primary,
     opacity: 0.04,
   },

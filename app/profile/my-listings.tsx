@@ -155,12 +155,12 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
   },
   whiteWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#FFFFFF',
     opacity: 0.08,
   },
   tintOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.primary,
     opacity: 0.04,
   },

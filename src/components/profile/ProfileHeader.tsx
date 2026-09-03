@@ -60,11 +60,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         locations={[0, 0.6, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Subtle Background SVG Grid */}
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Svg width="100%" height="100%">
           <Defs>
             <Pattern id="profileGrid" width="36" height="36" patternUnits="userSpaceOnUse">

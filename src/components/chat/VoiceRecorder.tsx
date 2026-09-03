@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Audio } from 'expo-av'
+import { useAudioRecorder, useAudioRecorderState, RecordingPresets, requestRecordingPermissionsAsync } from 'expo-audio'
 import { Colors } from '../../constants/colors'
 
 interface Props {
@@ -10,9 +10,11 @@ interface Props {
 }
 
 export function VoiceRecorder({ onSend, onCancel }: Props) {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null)
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
+  const recorderState = useAudioRecorderState(recorder)
   const [duration, setDuration] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const isStartedRef = useRef(false)
   
   // Animation for pulse effect
   const pulseAnim = useRef(new Animated.Value(1)).current
@@ -25,7 +27,7 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
   }, [])
 
   useEffect(() => {
-    if (recording) {
+    if (recorderState.isRecording) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.5, duration: 500, useNativeDriver: true }),
@@ -35,24 +37,21 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
     } else {
       pulseAnim.stopAnimation()
     }
-  }, [recording])
+  }, [recorderState.isRecording])
 
   async function startRecording() {
     try {
-      await Audio.requestPermissionsAsync()
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      })
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      )
-      setRecording(recording)
+      const { granted } = await requestRecordingPermissionsAsync()
+      if (!granted) {
+        onCancel()
+        return
+      }
+      await recorder.record()
+      isStartedRef.current = true
       
       timerRef.current = setInterval(() => {
         setDuration(d => d + 1)
       }, 1000)
-      
     } catch (err) {
       console.error('Failed to start recording', err)
       onCancel()
@@ -61,12 +60,12 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
 
   async function stopRecording(send: boolean = true) {
     if (timerRef.current) clearInterval(timerRef.current)
-    if (!recording) return
+    if (!isStartedRef.current) return
+    isStartedRef.current = false
 
     try {
-      setRecording(null)
-      await recording.stopAndUnloadAsync()
-      const uri = recording.getURI()
+      await recorder.stop()
+      const uri = recorder.uri
       
       if (send && uri) {
         onSend(uri, duration)
@@ -75,6 +74,7 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
       }
     } catch (err) {
       console.error('Failed to stop recording', err)
+      onCancel()
     }
   }
 

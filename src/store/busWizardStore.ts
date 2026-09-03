@@ -7,6 +7,8 @@ export interface BusWizardData {
   busType: string
   make: string
   model: string
+  manufacturerId: string | null
+  modelId: string | null
   year: string
   capacity: string
   condition: string
@@ -17,6 +19,7 @@ export interface BusWizardData {
   features: string[]
   
   price: string
+  currency: string
   isPriceNegotiable: boolean
   dailyPrice: string
   monthlyPrice: string
@@ -26,6 +29,7 @@ export interface BusWizardData {
   contractClient: string
   contractMonthly: string
   contractDuration: string
+  contractExpiry: string | null
   
   title: string
   description: string
@@ -34,8 +38,6 @@ export interface BusWizardData {
   wilayaId: number | null
   governorateNameAr: string
   wilayaNameAr: string
-  governorate: string
-  city: string
   latitude: number | null
   longitude: number | null
   
@@ -52,6 +54,8 @@ const DEFAULT_DATA: BusWizardData = {
   busType: '',
   make: '',
   model: '',
+  manufacturerId: null,
+  modelId: null,
   year: '',
   capacity: '',
   condition: 'USED',
@@ -61,6 +65,7 @@ const DEFAULT_DATA: BusWizardData = {
   plateNumber: '',
   features: [],
   price: '',
+  currency: 'OMR',
   isPriceNegotiable: false,
   dailyPrice: '',
   monthlyPrice: '',
@@ -69,14 +74,13 @@ const DEFAULT_DATA: BusWizardData = {
   contractClient: '',
   contractMonthly: '',
   contractDuration: '',
+  contractExpiry: null,
   title: '',
   description: '',
   governorateId: null,
   wilayaId: null,
   governorateNameAr: '',
   wilayaNameAr: '',
-  governorate: '',
-  city: '',
   latitude: null,
   longitude: null,
   images: [],
@@ -156,8 +160,10 @@ export const useBusWizardStore = create<BusWizardState>()(
       name: 'bus-wizard-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ 
-        data: state.editMode ? DEFAULT_DATA : state.data, 
-        currentStep: state.editMode ? 1 : state.currentStep 
+        data: state.data, 
+        currentStep: state.currentStep,
+        editMode: state.editMode,
+        editListingId: state.editListingId,
       }),
     }
   )

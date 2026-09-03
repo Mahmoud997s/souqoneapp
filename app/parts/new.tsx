@@ -336,7 +336,7 @@ export default function NewPartListingScreen() {
           locations={[0, 0.55, 1]}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
         <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
@@ -602,12 +602,12 @@ const s = StyleSheet.create({
     }),
   },
   footerWhiteWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#FFFFFF',
     opacity: 0.08,
   },
   footerTint: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.primary,
     opacity: 0.04,
   },

@@ -1,8 +1,7 @@
 import * as SecureStore from 'expo-secure-store'
 import { disconnectSocket } from '../services/socket'
 import { usersApi } from '../api/users'
-// Use dynamic imports for stores to avoid circular dependencies during initial load
-import { queryClient } from '../../app/_layout'
+import { queryClient } from '../api/queryClient'
 
 export const clearAllUserData = async () => {
   // 1. Unregister Push Token from Backend (best effort, fail silently)

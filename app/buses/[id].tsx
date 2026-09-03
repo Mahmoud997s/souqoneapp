@@ -614,7 +614,7 @@ export default function ListingDetailScreen() {
                         </MapView>
                       )}
                       {/* Overlay to prevent accidental touches capturing scroll */}
-                      <View style={StyleSheet.absoluteFillObject} />
+                      <View style={StyleSheet.absoluteFill} />
                     </View>
                   )}
                   

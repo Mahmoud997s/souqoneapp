@@ -138,7 +138,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       ]}
     >
       {/* Svg Geometric Background Grid */}
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Svg width="100%" height="100%">
           <Defs>
             <Pattern
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   titleContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
   },
   titleWithBadge: {
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   navSearchWrapper: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
   },
   navSearchInner: {

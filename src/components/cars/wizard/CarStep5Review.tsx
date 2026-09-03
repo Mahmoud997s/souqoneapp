@@ -488,12 +488,12 @@ const s = StyleSheet.create({
     }),
   },
   cardWhiteWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#FFFFFF',
     opacity: 0.08,
   },
   cardTint: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.primary,
     opacity: 0.04,
   },

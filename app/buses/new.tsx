@@ -89,8 +89,8 @@ export default function NewBusListing() {
         }
         break;
       case 5:
-        if (!data.governorate) errs.governorate = 'الرجاء اختيار المحافظة';
-        if (!data.city) errs.city = 'الرجاء اختيار الولاية';
+        if (!data.governorateId) errs.governorateId = 'الرجاء اختيار المحافظة';
+        if (!data.wilayaId) errs.wilayaId = 'الرجاء اختيار الولاية';
         if (!data.contactPhone) errs.contactPhone = 'الرجاء إدخال رقم الجوال';
         break;
     }

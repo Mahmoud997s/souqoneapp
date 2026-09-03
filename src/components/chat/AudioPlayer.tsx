@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Audio } from 'expo-av'
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import { Colors } from '../../constants/colors'
 
 interface Props {
@@ -10,69 +10,36 @@ interface Props {
 }
 
 export function AudioPlayer({ uri, isOwn }: Props) {
-  const [sound, setSound] = useState<Audio.Sound | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [duration, setDuration] = useState(1)
-  const [position, setPosition] = useState(0)
+  const player = useAudioPlayer(uri ? { uri } : null)
+  const status = useAudioPlayerStatus(player)
 
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync()
-      }
-    }
-  }, [sound])
+  const isPlaying = status.playing
+  const durationSec = status.duration || 1
+  const currentTimeSec = status.currentTime || 0
 
-  const handlePlayPause = async () => {
+  const handlePlayPause = () => {
     try {
-      if (!sound) {
-        const { sound: newSound, status } = await Audio.Sound.createAsync(
-          { uri },
-          { shouldPlay: true },
-          onPlaybackStatusUpdate
-        )
-        setSound(newSound)
-        setIsPlaying(true)
-        if (status.isLoaded && status.durationMillis) {
-          setDuration(status.durationMillis)
-        }
+      if (isPlaying) {
+        player.pause()
       } else {
-        if (isPlaying) {
-          await sound.pauseAsync()
-        } else {
-          // if ended, replay
-          if (position >= duration) {
-            await sound.playFromPositionAsync(0)
-          } else {
-            await sound.playAsync()
-          }
+        if (currentTimeSec >= durationSec && durationSec > 0) {
+          player.seekTo(0)
         }
+        player.play()
       }
     } catch (e) {
       console.log('Error playing audio', e)
     }
   }
 
-  const onPlaybackStatusUpdate = (status: any) => {
-    if (status.isLoaded) {
-      setPosition(status.positionMillis)
-      if (status.durationMillis) setDuration(status.durationMillis)
-      setIsPlaying(status.isPlaying)
-      if (status.didJustFinish) {
-        setIsPlaying(false)
-        setPosition(status.durationMillis)
-      }
-    }
-  }
-
-  function formatTime(ms: number) {
-    const totalSeconds = Math.floor(ms / 1000)
+  function formatTime(seconds: number) {
+    const totalSeconds = Math.floor(seconds)
     const m = Math.floor(totalSeconds / 60)
     const sec = totalSeconds % 60
     return `${m}:${sec.toString().padStart(2, '0')}`
   }
 
-  const progress = duration > 0 ? (position / duration) * 100 : 0
+  const progress = durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0
 
   return (
     <View style={[s.container, isOwn ? s.own : s.other]}>
@@ -85,7 +52,7 @@ export function AudioPlayer({ uri, isOwn }: Props) {
           <View style={[s.progressFill, { width: `${progress}%`, backgroundColor: isOwn ? Colors.white : Colors.primary }]} />
         </View>
         <Text style={[s.time, isOwn ? s.txtWhite : s.txtDark]}>
-          {formatTime(position > 0 ? position : duration)}
+          {formatTime(currentTimeSec > 0 ? currentTimeSec : durationSec)}
         </Text>
       </View>
     </View>

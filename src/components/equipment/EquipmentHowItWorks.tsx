@@ -112,7 +112,7 @@ const s = StyleSheet.create({
     zIndex: 1,
   },
   iconBg: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#d97706',
     opacity: 0.1,
     borderRadius: 28,

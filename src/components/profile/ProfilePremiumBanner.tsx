@@ -21,7 +21,7 @@ export function ProfilePremiumBanner() {
         style={s.premiumBanner}
       >
         {/* SVG Grid Overlay */}
-        <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <Svg width="100%" height="100%">
             <Defs>
               <Pattern id="premiumGrid" width="32" height="32" patternUnits="userSpaceOnUse">

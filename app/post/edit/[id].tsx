@@ -79,8 +79,10 @@ export default function EditListingLoader() {
             contractDuration: listing.contractDuration ? String(listing.contractDuration) : '',
             title: listing.title || '',
             description: listing.description || '',
-            governorate: listing.governorate || '',
-            city: listing.city || '',
+            governorateId: listing.governorateId ?? null,
+            wilayaId: listing.wilayaId ?? null,
+            governorateNameAr: listing.governorate?.nameAr || listing.governorateNameAr || '',
+            wilayaNameAr: listing.wilaya?.nameAr || listing.wilayaNameAr || '',
             latitude: listing.latitude ?? null,
             longitude: listing.longitude ?? null,
             existingImages: (listing.images || []).map((img: any) => ({

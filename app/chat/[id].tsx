@@ -205,6 +205,7 @@ export default function ChatRoomScreen() {
           ref={scrollRef as any}
           data={reversedMessages}
           keyExtractor={(item) => item.id}
+          // @ts-ignore
           inverted
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}

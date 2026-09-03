@@ -409,7 +409,7 @@ export default function EquipmentDetailScreen() {
                         </MapView>
                       )}
                       {/* Overlay to prevent accidental touches capturing scroll */}
-                      <View style={StyleSheet.absoluteFillObject} />
+                      <View style={StyleSheet.absoluteFill} />
                     </View>
                   )}
                   

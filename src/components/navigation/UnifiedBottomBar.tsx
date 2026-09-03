@@ -416,7 +416,7 @@ export function UnifiedBottomBar({
           colors={['rgba(255, 255, 255, 0.42)', 'rgba(255, 255, 255, 0.16)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         <View style={s.topHighlight} />
       </BlurView>
@@ -473,7 +473,7 @@ const s = StyleSheet.create({
     }),
   },
   blurBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,

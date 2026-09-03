@@ -74,7 +74,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({
       />
 
       {/* Svg Geometric Background Grid */}
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Svg width="100%" height="100%">
           <Defs>
             <Pattern
