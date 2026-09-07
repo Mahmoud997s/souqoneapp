@@ -2,11 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react-native'
 import PostStep3Screen from '../../app/post/step3'
 import { usePostStore } from '../store/postStore'
-import { BusForm } from '../components/post/forms'
-
-jest.mock('../../src/components/post/forms/BusForm', () => ({
-  BusForm: () => <></>,
-}))
+import { router } from 'expo-router'
 
 jest.mock('../../src/components/ui/AppHeader', () => ({
   AppHeader: ({ title }: any) => <></>,
@@ -30,19 +26,31 @@ describe('PostStep3Screen Multi-Vertical Forms Regression Check', () => {
     usePostStore.getState().reset()
   })
 
-  it('exports BusForm cleanly from forms index', () => {
-    expect(BusForm).toBeDefined()
-  })
-
-  it('renders BusForm when category is buses', async () => {
+  it('redirects buses to dedicated /buses/new wizard', async () => {
     usePostStore.getState().set({ category: 'buses' })
 
     await render(<PostStep3Screen />)
 
-    expect(screen.queryByText(/نموذج .* قيد التطوير/)).toBeNull()
+    expect(router.replace).toHaveBeenCalledWith('/buses/new')
   })
 
-  it('renders fallback development message for other categories like jobs', async () => {
+  it('redirects other dedicated categories correctly', async () => {
+    usePostStore.getState().set({ category: 'cars' })
+    await render(<PostStep3Screen />)
+    expect(router.replace).toHaveBeenCalledWith('/cars/new')
+
+    jest.clearAllMocks()
+    usePostStore.getState().set({ category: 'parts' })
+    await render(<PostStep3Screen />)
+    expect(router.replace).toHaveBeenCalledWith('/parts/new')
+
+    jest.clearAllMocks()
+    usePostStore.getState().set({ category: 'services' })
+    await render(<PostStep3Screen />)
+    expect(router.replace).toHaveBeenCalledWith('/services/new')
+  })
+
+  it('renders fallback development message for remaining categories like jobs', async () => {
     usePostStore.getState().set({ category: 'jobs' })
 
     await render(<PostStep3Screen />)

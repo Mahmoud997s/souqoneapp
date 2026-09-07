@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 import { Colors } from '../../src/constants/colors'
 
+import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt'
+
 /**
  * Redirect to the unified post flow with category='equipment'.
  * This ensures equipment uses the same professional flow as cars
@@ -14,7 +16,7 @@ export default function AddEquipmentScreen() {
   const { set, reset } = usePostStore()
 
   useEffect(() => {
-    router.replace('/equipment/new' as any)
+    navigateToEquipmentForm('replace')
   }, [])
 
   return (

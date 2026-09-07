@@ -23,6 +23,7 @@ import { BusPromoBanner } from '../../src/components/buses/landing/BusPromoBanne
 import { BusesHowItWorks } from '../../src/components/buses/landing/BusesHowItWorks';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 
@@ -109,7 +110,7 @@ export default function BusesLandingScreen() {
         primaryCta={{
           label: 'أضف حافلة',
           icon: 'add-circle-outline',
-          onPress: () => router.push('/buses/new' as any),
+          onPress: () => navigateToBusForm(),
           textColor: '#FFFFFF',
           bgColor: Colors.accent
         }}

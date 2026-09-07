@@ -57,7 +57,26 @@ export const BUS_FEATURES = [
 export const BUS_CONTRACT_TYPES = [
   { id: 'SCHOOL', label: 'نقل مدرسي / جامعي' },
   { id: 'COMPANY', label: 'نقل موظفين' },
+  { id: 'GOVERNMENT', label: 'عقد حكومي' },
   { id: 'TOURISM', label: 'نقل سياحي' },
-  { id: 'PILGRIMAGE', label: 'رحلات عمرة / حج' },
-  { id: 'OTHER', label: 'أخرى', icon: 'ellipsis-horizontal' }
+  { id: 'OTHER_CONTRACT', label: 'عقد آخر' },
 ]
+
+export const BUS_CONDITIONS = [
+  { id: 'USED', label: 'مستعمل' },
+  { id: 'NEW', label: 'جديد' },
+]
+
+export const BUS_TRANSMISSIONS = [
+  { id: 'MANUAL', label: 'عادي / يدوي' },
+  { id: 'AUTOMATIC', label: 'أوتوماتيك' },
+]
+
+export const BUS_FUEL_TYPES = [
+  { id: 'DIESEL', label: 'ديزل' },
+  { id: 'PETROL', label: 'بنزين' },
+  { id: 'HYBRID', label: 'هايبرد' },
+  { id: 'ELECTRIC', label: 'كهربائي' },
+]
+
+export const MAX_BUS_IMAGES = 10;

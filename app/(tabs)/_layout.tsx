@@ -181,7 +181,7 @@ function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
 
   const handlePost = useCallback(() => {
     if (!isLoggedIn) { router.push('/(auth)/login'); return }
-    router.push('/buses/new')
+    router.push('/(modals)/post-category' as any)
   }, [isLoggedIn, router])
 
   const bottomPad = insets.bottom > 0 ? insets.bottom : 16

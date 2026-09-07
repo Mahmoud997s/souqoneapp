@@ -18,6 +18,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useEquipment, useOperatorsInfinite } from '../../src/hooks/useEquipment'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
+import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt'
 
 import { EquipmentCategoriesGrid } from '../../src/components/equipment/EquipmentCategoriesGrid'
 import { EquipmentPromoBanners } from '../../src/components/equipment/EquipmentPromoBanners'
@@ -128,7 +129,7 @@ export default function EquipmentLandingScreen() {
         primaryCta={{
           label: 'أضف إعلانك',
           icon: 'add',
-          onPress: () => router.push('/equipment/new' as any),
+          onPress: () => navigateToEquipmentForm('push'),
           bgColor: Colors.accent,
           textColor: Colors.white
         }}

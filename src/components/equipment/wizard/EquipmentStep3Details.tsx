@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
+import { WizardCard } from '../../ui/WizardCard'
 import { AppInput } from '../../ui/AppInput'
 import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
@@ -25,17 +26,10 @@ export function EquipmentStep3Details({
   return (
     <View style={s.stepWrap}>
       {/* ── 1. Primary Specifications Card ── */}
-      <View style={s.cardSection}>
-        <View style={s.cardHeaderRow}>
-          <View style={s.headerIconCircle}>
-            <Ionicons name="construct-outline" size={16} color={Colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.cardTitle}>المواصفات الأساسية والصنع *</Text>
-            <Text style={s.cardSub}>أدخل الماركة وسنة الصنع لتصنيف المعدة بدقة</Text>
-          </View>
-        </View>
-
+      <WizardCard
+        title="المواصفات الأساسية والصنع *"
+        subtitle="أدخل الماركة وسنة الصنع لتصنيف المعدة بدقة"
+      >
         <View style={s.row}>
           <View style={{ flex: 1 }}>
             <AppInput
@@ -79,21 +73,14 @@ export function EquipmentStep3Details({
             />
           </View>
         </View>
-      </View>
+      </WizardCard>
 
       {/* ── 2. Equipment Condition Card (Only for Sale & Rent) ── */}
       {!isWanted && (
-        <View style={s.cardSection}>
-          <View style={s.cardHeaderRow}>
-            <View style={s.headerIconCircle}>
-              <Ionicons name="shield-checkmark-outline" size={16} color={Colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.cardTitle}>حالة المعدة الفنية *</Text>
-              <Text style={s.cardSub}>اختر التقييم الأقرب لحالة المعدة الحالية</Text>
-            </View>
-          </View>
-
+        <WizardCard
+          title="حالة المعدة الفنية *"
+          subtitle="اختر التقييم الأقرب لحالة المعدة الحالية"
+        >
           {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
 
           <View style={s.conditionsGrid}>
@@ -118,21 +105,14 @@ export function EquipmentStep3Details({
               )
             })}
           </View>
-        </View>
+        </WizardCard>
       )}
 
       {/* ── 3. Technical Performance Specs ── */}
-      <View style={s.cardSection}>
-        <View style={s.cardHeaderRow}>
-          <View style={s.headerIconCircle}>
-            <Ionicons name="speedometer-outline" size={16} color={Colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.cardTitle}>القدرة والمقاييس الفنية (اختياري)</Text>
-            <Text style={s.cardSub}>مواصفات إضافية تساعد المستأجر أو المشتري على الاختيار</Text>
-          </View>
-        </View>
-
+      <WizardCard
+        title="القدرة والمقاييس الفنية (اختياري)"
+        subtitle="مواصفات إضافية تساعد المستأجر أو المشتري على الاختيار"
+      >
         <View style={s.row}>
           <View style={{ flex: 1 }}>
             <AppInput
@@ -164,20 +144,13 @@ export function EquipmentStep3Details({
           maxLength={50}
           error={errors.weight}
         />
-      </View>
+      </WizardCard>
 
       {/* ── 4. Equipment Features & Badges ── */}
-      <View style={s.cardSection}>
-        <View style={s.cardHeaderRow}>
-          <View style={s.headerIconCircle}>
-            <Ionicons name="sparkles-outline" size={16} color={Colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.cardTitle}>الميزات والمرفقات المتوفرة</Text>
-            <Text style={s.cardSub}>حدد الميزات الجاهزة في المعدة أو أضف ميزة خاصة</Text>
-          </View>
-        </View>
-
+      <WizardCard
+        title="الميزات والمرفقات المتوفرة"
+        subtitle="حدد الميزات الجاهزة في المعدة أو أضف ميزة خاصة"
+      >
         <View style={s.chipsWrap}>
           {POPULAR_EQUIPMENT_FEATURES.map((feat) => {
             const isSel = formData.features.includes(feat)
@@ -238,7 +211,7 @@ export function EquipmentStep3Details({
             </View>
           </View>
         )}
-      </View>
+      </WizardCard>
     </View>
   )
 }
@@ -246,51 +219,6 @@ export function EquipmentStep3Details({
 const s = StyleSheet.create({
   stepWrap: {
     gap: 12,
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 12,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerIconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: 14,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: 1,
   },
   inlineErrorTxt: {
     fontFamily: 'Almarai_700Bold',

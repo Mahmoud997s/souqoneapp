@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { navigateToBusForm } from '../../ui/DraftResumePrompt';
 import { Colors } from '../../../constants/colors';
 import { Spacing } from '../../../constants/spacing';
 import { Radius } from '../../../constants/radius';
@@ -46,7 +47,7 @@ export function BusActionCards() {
         icon="add-circle-outline" label="أضف حافلة"
         desc="اعرض حافلتك للبيع أو للإيجار"
         color="#10b981" bg="#ECFDF5"
-        onPress={() => router.push('/buses/new' as any)}
+        onPress={() => navigateToBusForm()}
       />
     </View>
   );

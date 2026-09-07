@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Linking, Dimensions, Platform, Modal,
+  ActivityIndicator, Linking, Dimensions, Platform, Modal, Share,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
@@ -10,7 +10,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEquipmentItem } from '../../src/hooks/useEquipment'
 import { Colors } from '../../src/constants/colors'
+import { Spacing } from '../../src/constants/spacing'
 import { chatApi } from '../../src/api/chat'
+import { usersApi } from '../../src/api/users'
+import { listingsApi } from '../../src/api/listings'
+import { equipmentApi } from '../../src/api/equipment'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { EQUIPMENT_CONDITIONS, EQUIPMENT_LISTING_TYPES } from '../../src/utils/equipment-mappers'
@@ -39,6 +43,7 @@ export default function EquipmentDetailScreen() {
   const [imgIdx, setImgIdx] = useState(0)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   if (isLoading) {
     return (
@@ -114,8 +119,7 @@ export default function EquipmentDetailScreen() {
 
   const y = raw.year
   const h = raw.hoursUsed
-  const governorate = formatLocation(raw)
-  const city = raw.city
+  const locationText = formatLocation(raw)
 
   const specs = [
     y && { icon: 'calendar-outline',    label: 'سنة الصنع',     value: String(y) },
@@ -139,12 +143,114 @@ export default function EquipmentDetailScreen() {
 
   const featuresList = [...(raw.features || [])]
 
+  const handleShare = async () => {
+    try {
+      const title = raw.title || 'معدة للبيع / للإيجار على سوق وان'
+      const message = `شاهد هذا الإعلان على سوق وان: ${title}\nhttps://souqone.app/equipment/${id}`
+      await Share.share({
+        title,
+        message,
+        url: `https://souqone.app/equipment/${id}`,
+      })
+    } catch (error) {
+      console.log('Error sharing listing:', error)
+    }
+  }
+
+  const handleEditEquipment = () => {
+    router.push(`/equipment/edit/${raw.id}` as any)
+  }
+
+  const handleDeleteEquipment = async () => {
+    dialogService.confirm(
+      'حذف الإعلان',
+      'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+      async () => {
+        setIsDeleting(true)
+        try {
+          await equipmentApi.delete(raw.id)
+          dialogService.alert('تم بنجاح', 'تم حذف إعلان المعدة بنجاح', 'success')
+          if (router.canGoBack()) {
+            router.back()
+          } else {
+            router.replace('/profile/my-listings' as any)
+          }
+        } catch (e: any) {
+          const msg = e?.response?.data?.message || e?.message || 'فشل حذف الإعلان، يرجى المحاولة لاحقاً'
+          dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg), 'error')
+        } finally {
+          setIsDeleting(false)
+        }
+      },
+      'نعم، احذف',
+      'تراجع',
+      true
+    )
+  }
+
+  const handleReport = async () => {
+    if (!user) {
+      router.push('/(auth)/login' as any)
+      return
+    }
+    try {
+      await listingsApi.report(id as string, 'User reported equipment listing from app')
+      dialogService.alert('تم الإبلاغ', 'تم استلام بلاغك بنجاح. سيتم مراجعة الإعلان من قبل الإدارة.', 'success')
+    } catch (error) {
+      console.log('Error reporting listing:', error)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء الإبلاغ. يرجى المحاولة لاحقاً.', 'error')
+    }
+  }
+
+  const handleBlock = async () => {
+    if (!user) {
+      router.push('/(auth)/login' as any)
+      return
+    }
+    try {
+      if (!seller?.id) return
+      await usersApi.blockUser(seller.id, 'User blocked seller from app')
+      dialogService.alert('تم الحظر', 'تم حظر المستخدم بنجاح. لن ترى إعلاناته بعد الآن.', 'success')
+    } catch (error) {
+      console.log('Error blocking user:', error)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء حظر المستخدم. يرجى المحاولة لاحقاً.', 'error')
+    }
+  }
+
+  const handleOptions = () => {
+    if (isOwner) {
+      dialogService.showOptions('خيارات الإعلان', [
+        { text: 'تعديل الإعلان', icon: 'create-outline', onPress: handleEditEquipment },
+        { text: 'مشاركة الإعلان', icon: 'share-social-outline', onPress: handleShare },
+        { text: 'حذف الإعلان', icon: 'trash-outline', onPress: handleDeleteEquipment, style: 'destructive' },
+      ])
+    } else {
+      dialogService.showOptions('خيارات الإعلان', [
+        { text: 'مشاركة الإعلان', icon: 'share-social-outline', onPress: handleShare },
+        { text: 'إبلاغ عن هذا الإعلان', icon: 'flag-outline', onPress: handleReport },
+        { text: 'حظر هذا المستخدم', icon: 'ban-outline', onPress: handleBlock, style: 'destructive' },
+      ])
+    }
+  }
+
   return (
     <View style={s.root}>
-      {/* ── BACK BUTTON ── */}
-      <TouchableOpacity style={[s.backBtn, { top: insets.top + 12 }]} onPress={() => router.back()} activeOpacity={0.8}>
-        <Ionicons name="arrow-forward" size={24} color="#000" />
-      </TouchableOpacity>
+      {/* ── TOP HEADER BAR (BACK & SHARE & OPTIONS) ── */}
+      <View style={[s.headerTopBar, { top: insets.top + 12 }]}>
+        <TouchableOpacity style={s.topHeaderBtn} onPress={() => router.back()} activeOpacity={0.8}>
+          <Ionicons name="arrow-forward" size={22} color="#0F172A" />
+        </TouchableOpacity>
+
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={s.topHeaderBtn} onPress={handleShare} activeOpacity={0.8}>
+            <Ionicons name="share-social-outline" size={20} color="#0F172A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.topHeaderBtn} onPress={handleOptions} activeOpacity={0.8}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 100 }} showsVerticalScrollIndicator={false} bounces={false}>
 
@@ -219,7 +325,7 @@ export default function EquipmentDetailScreen() {
 
               <View style={s.locationWrap}>
                 <Ionicons name="location-outline" size={14} color="#475569" />
-                <Text style={s.locationTxtMeta}>{formatLocation(raw)}</Text>
+                <Text style={s.locationTxtMeta}>{locationText}</Text>
               </View>
             </View>
           </View>
@@ -371,14 +477,14 @@ export default function EquipmentDetailScreen() {
           )}
 
           {/* ── LOCATION & MAP ── */}
-          {(governorate || city || raw.locationNote || (raw.latitude && raw.longitude)) ? (
+          {(locationText || raw.locationNote || (raw.latitude && raw.longitude)) ? (
             <View style={s.section}>
               <Text style={s.sectionTitle}>الموقع والعنوان</Text>
 
               {/* Text Location */}
-              {(governorate || city || raw.locationNote) ? (
+              {(locationText || raw.locationNote) ? (
                 <View style={[s.descContainer, { marginBottom: (raw.latitude && raw.longitude) ? 16 : 0 }]}>
-                  {formatLocation(raw) ? <Text style={s.desc}>{formatLocation(raw)}</Text> : null}
+                  {locationText ? <Text style={s.desc}>{locationText}</Text> : null}
                   {raw.locationNote && <Text style={[s.desc, { marginTop: 8, color: '#64748b' }]}>{raw.locationNote}</Text>}
                 </View>
               ) : null}
@@ -434,14 +540,31 @@ export default function EquipmentDetailScreen() {
       {/* ── FIXED CONTACT BAR ── */}
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {isOwner ? (
-          <TouchableOpacity
-            style={[s.callWideBtn, { backgroundColor: Colors.primary }]}
-            onPress={() => router.push(`/equipment/edit/${raw.id}` as any)}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="create-outline" size={22} color={Colors.white} />
-            <Text style={[s.callWideTxt, { color: Colors.white }]}>تعديل الإعلان</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 10, flex: 1 }}>
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1, backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FCA5A5' }]}
+              onPress={handleDeleteEquipment}
+              disabled={isDeleting}
+              activeOpacity={0.85}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={Colors.error} />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                  <Text style={[s.callWideTxt, { color: Colors.error }]}>حذف الإعلان</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1, backgroundColor: Colors.primary }]}
+              onPress={handleEditEquipment}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="create-outline" size={18} color="#ffffff" />
+              <Text style={[s.callWideTxt, { color: '#ffffff' }]}>تعديل الإعلان</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             {seller && (
@@ -517,12 +640,19 @@ const s = StyleSheet.create({
   retryBtn: { marginTop: 20, backgroundColor: Colors.primary, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 100 },
   retryTxt: { fontFamily: 'Almarai_700Bold',  color: '#fff', fontSize: 15 },
 
-  backBtn: {
-    position: 'absolute', start: 16, zIndex: 10,
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#ffffff',
+  headerTopBar: {
+    position: 'absolute',
+    left: Spacing.space4,
+    right: Spacing.space4,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topHeaderBtn: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#ffffff',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4,
   },
 
   // Images

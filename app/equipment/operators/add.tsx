@@ -70,9 +70,6 @@ export default function AddOperatorScreen() {
   })
 
   const handleNext = () => {
-    const isValid = validateStep(currentStep)
-    if (!isValid) return
-
     if (currentStep < TOTAL_STEPS) {
       nextStep()
     } else {

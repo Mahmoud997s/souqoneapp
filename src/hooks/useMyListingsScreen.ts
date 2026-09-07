@@ -156,11 +156,21 @@ export function useMyListingsScreen() {
   }
 
   const isEditSupported = (entityType: MyListingEntityType): boolean => {
-    return entityType === 'car' || entityType === 'equipment' || entityType === 'operator'
+    return (
+      entityType === 'car' ||
+      entityType === 'bus' ||
+      entityType === 'equipment' ||
+      entityType === 'operator' ||
+      entityType === 'part' ||
+      entityType === 'service'
+    )
   }
 
   const handleEdit = (item: MyListingItem) => {
-    if (item.entityType === 'car' && (item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED')) {
+    if (
+      (item.entityType === 'car' || item.entityType === 'bus') &&
+      (item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED')
+    ) {
       dialogService.alert(
         'تنبيه',
         'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً.',
@@ -173,11 +183,20 @@ export function useMyListingsScreen() {
       case 'car':
         router.push(`/post/edit/${item.id}` as any)
         break
+      case 'bus':
+        router.push(`/post/edit/${item.id}?type=bus` as any)
+        break
       case 'equipment':
         router.push(`/equipment/edit/${item.id}` as any)
         break
       case 'operator':
         router.push(`/equipment/operators/edit/${item.id}` as any)
+        break
+      case 'part':
+        router.push(`/post/edit/${item.id}?type=parts` as any)
+        break
+      case 'service':
+        router.push(`/post/edit/${item.id}?type=services` as any)
         break
       default:
         break

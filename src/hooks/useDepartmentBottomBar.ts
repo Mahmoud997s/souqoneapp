@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
-import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToPartForm, navigateToServiceForm } from '../components/ui/DraftResumePrompt';
+import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToBusForm, navigateToPartForm, navigateToServiceForm, navigateToEquipmentForm } from '../components/ui/DraftResumePrompt';
 
 export interface DepartmentTabConfig {
   id: string;
@@ -256,7 +256,7 @@ export function usePartsBottomBar() {
 export function useEquipmentBottomBar() {
   return useDepartmentBottomBar({
     category: 'equipment',
-    postRoute: '/equipment/new',
+    onPost: navigateToEquipmentForm,
     activeColor: '#d97706',
     activeBgColor: '#FEF3C7',
     customTabs: [
@@ -272,9 +272,9 @@ export function useEquipmentBottomBar() {
 export function useBusesBottomBar() {
   return useDepartmentBottomBar({
     category: 'buses',
-    postRoute: '/buses/new',
     activeColor: Colors.primary,
     activeBgColor: '#EFF6FF',
+    onPost: navigateToBusForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/buses' },
       { id: 'browse', label: 'الحافلات', icon: 'bus-side', iconOutline: 'bus-side', family: 'MaterialCommunityIcons', route: '/buses/browse' },

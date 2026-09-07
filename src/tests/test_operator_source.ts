@@ -67,7 +67,7 @@ console.log('  ✅ [REAL HOOK] Step 2 Empty Form correctly returned equipment an
 // 1.4 Step 2 Valid
 const validForm2: OperatorFormData = {
   ...validForm1,
-  equipmentTypes: ['حفار', 'لودر'],
+  equipmentTypes: ['EXCAVATOR', 'LOADER'],
   certifications: ['رخصة قيادة معدات ثقيلة ROP'],
 }
 const resStep2Valid = validateOperatorStep(2, validForm2)
@@ -103,7 +103,7 @@ console.log('  ✅ [REAL HOOK] Step 3 Valid Form returned isValid: true\n')
 console.log('--- 2. Testing Constants directly from src/constants/operators.ts ---')
 assert.strictEqual(OPERATOR_ROLES.length, 4, 'Must have exactly 4 roles')
 assert.strictEqual(OPERATOR_ROLE_TABS.length, 5, 'Must have 5 tabs (all + 4 roles)')
-assert.strictEqual(AVAILABLE_EQUIPMENT.length, 12, 'Must have 12 equipment catalog items')
+assert.strictEqual(AVAILABLE_EQUIPMENT.length, 15, 'Must have 15 equipment catalog items')
 assert.strictEqual(OPERATOR_EXPERIENCE_RANGES.length, 4, 'Must have 4 experience ranges')
 console.log('  ✅ [REAL CONSTANTS] All constants exports are intact and accurately defined\n')
 

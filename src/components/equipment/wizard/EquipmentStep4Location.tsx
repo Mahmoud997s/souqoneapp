@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
@@ -8,6 +8,7 @@ import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
+import { WizardCard } from '../../ui/WizardCard'
 import { EquipmentStep4Props } from '../../../types/equipmentForm.types'
 
 export function EquipmentStep4Location({
@@ -27,18 +28,16 @@ export function EquipmentStep4Location({
   return (
     <View style={s.stepWrap}>
       {/* 1. Pricing & Commercial Terms Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>
-          {isWanted ? 'الميزانية والكمية المطلوبة *' : isRent ? 'أسعار الإيجار الاسترشادية *' : 'سعر البيع المطلوب *'}
-        </Text>
-        <Text style={s.cardSub}>
-          {isWanted
+      <WizardCard
+        title={isWanted ? 'الميزانية والكمية المطلوبة *' : isRent ? 'أسعار الإيجار الاسترشادية *' : 'سعر البيع المطلوب *'}
+        subtitle={
+          isWanted
             ? 'حدد الميزانية التقديرية والكمية ومدة العمل'
             : isRent
             ? 'أدخل الأجر اليومي أو الشهري وشروط التشغيل'
-            : 'أدخل سعر البيع بالريال العماني'}
-        </Text>
-
+            : 'أدخل سعر البيع بالريال العماني'
+        }
+      >
         {/* Sale Pricing */}
         {isSale && (
           <>
@@ -166,13 +165,13 @@ export function EquipmentStep4Location({
             </View>
           </>
         )}
-      </View>
+      </WizardCard>
 
       {/* 2. Geographic Location Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>موقع تواجد المعدة *</Text>
-        <Text style={s.cardSub}>حدد المحافظة والولاية بدقة لتظهر في نتائج البحث الجغرافي</Text>
-
+      <WizardCard
+        title="موقع تواجد المعدة *"
+        subtitle="حدد المحافظة والولاية بدقة لتظهر في نتائج البحث الجغرافي"
+      >
         <GovernorateWilayaSelect
           governorateId={formData.governorateId}
           wilayaId={formData.wilayaId}
@@ -235,13 +234,13 @@ export function EquipmentStep4Location({
             <Ionicons name="chevron-back" size={18} color="#94A3B8" />
           </TouchableOpacity>
         )}
-      </View>
+      </WizardCard>
 
       {/* 3. Direct Contact Info Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>بيانات التواصل المباشر (اختياري)</Text>
-        <Text style={s.cardSub}>أرقام التواصل التي ستظهر في الإعلان (تُملأ تلقائياً من حسابك)</Text>
-
+      <WizardCard
+        title="بيانات التواصل المباشر (اختياري)"
+        subtitle="أرقام التواصل التي ستظهر في الإعلان (تُملأ تلقائياً من حسابك)"
+      >
         <AppInput
           label="رقم هاتف الاتصال"
           placeholder="مثال: 96891234567"
@@ -259,7 +258,7 @@ export function EquipmentStep4Location({
           onChangeText={(val) => onUpdateField('whatsapp', val)}
           error={errors.whatsapp}
         />
-      </View>
+      </WizardCard>
 
       {/* Modal for Map Picking */}
       <MapLocationPicker
@@ -281,36 +280,6 @@ export function EquipmentStep4Location({
 const s = StyleSheet.create({
   stepWrap: {
     gap: Spacing.space3,
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: 14.5,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: -4,
-    marginBottom: 4,
   },
   row: {
     flexDirection: 'row',

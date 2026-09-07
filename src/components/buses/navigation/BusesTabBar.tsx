@@ -14,6 +14,7 @@ import Animated, {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../../store/authStore';
+import { navigateToBusForm } from '../../ui/DraftResumePrompt';
 import { Colors } from '../../../constants/colors';
 import { Shadows } from '../../../constants/shadows';
 import { Typography } from '../../../constants/typography';
@@ -156,9 +157,8 @@ export function BusesTabBar({ state, navigation, descriptors }: BottomTabBarProp
   const { isLoggedIn } = useAuthStore();
 
   const handlePost = useCallback(() => {
-    if (!isLoggedIn) { router.push('/(auth)/login'); return; }
-    router.push('/buses/new');
-  }, [isLoggedIn, router]);
+    navigateToBusForm();
+  }, []);
 
   const bottomPad = insets.bottom > 0 ? insets.bottom : 16;
   const currentRoute = state.routes[state.index];

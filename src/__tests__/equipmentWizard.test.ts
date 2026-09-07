@@ -1,5 +1,6 @@
 import { validateEquipmentStep } from '../hooks/useEquipmentValidation'
 import { EquipmentFormData } from '../types/equipmentForm.types'
+import { useEquipmentWizardStore } from '../store/equipmentWizardStore'
 
 describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
   const baseValidForm: EquipmentFormData = {
@@ -331,6 +332,218 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
 
       expect(payload.images).toBeDefined()
       expect(payload.images.length).toBe(2)
+    })
+  })
+
+  // ── 6. Store initEditMode & Location Fallback Tests ─────────────────
+  describe('Store initEditMode: Real DB Listing & Fallback Verification', () => {
+    beforeEach(() => {
+      useEquipmentWizardStore.getState().resetDraft()
+    })
+
+    it('should correctly initialize from real database listing with IDs and Refs', () => {
+      const realDbListing = {
+        id: 'cmsyl01xu005xmv0x7np76a1q',
+        title: 'Komatsu WA900-8R',
+        description: 'لودر كوماتسو WA900-8R للإيجار',
+        equipmentType: 'EXCAVATOR',
+        listingType: 'EQUIPMENT_RENT',
+        make: 'Komatsu',
+        model: 'WA900-8R',
+        year: 2021,
+        condition: 'USED',
+        governorate: null,
+        city: null,
+        governorateId: 2,
+        wilayaId: 7,
+        governorateRef: { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
+        wilayaRef: { id: 7, nameAr: 'صلالة', nameEn: 'Salalah' },
+        images: [{ id: 'img-1', url: 'https://res.cloudinary.com/test1.jpg' }],
+      }
+
+      useEquipmentWizardStore.getState().initEditMode(realDbListing)
+
+      const state = useEquipmentWizardStore.getState()
+      expect(state.formData.editMode).toBe(true)
+      expect(state.formData.editListingId).toBe('cmsyl01xu005xmv0x7np76a1q')
+      expect(state.formData.title).toBe('Komatsu WA900-8R')
+      expect(state.formData.governorateId).toBe(2)
+      expect(state.formData.wilayaId).toBe(7)
+      expect(state.formData.governorate).toBe('ظفار')
+      expect(state.formData.city).toBe('صلالة')
+      expect(state.formData.existingImages?.length).toBe(1)
+    })
+
+    it('should fallback to governorateRef.id and wilayaRef.id when numeric IDs are null/missing', () => {
+      const legacyListing = {
+        id: 'cmogga1ff003qraj0ffjgw9xc',
+        title: 'شيول كاتربيلر 950GC',
+        description: 'للبيع شيول كاتربيلر بحالة الوكالة',
+        equipmentType: 'LOADER',
+        listingType: 'EQUIPMENT_SALE',
+        governorate: 'Al Dakhiliyah', // English raw text from legacy web
+        city: null,
+        governorateId: null, // missing numeric ID
+        wilayaId: undefined, // missing numeric ID
+        governorateRef: { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
+        wilayaRef: { id: 10, nameAr: 'سدح', nameEn: 'Sadah' },
+        price: '38000',
+      }
+
+      useEquipmentWizardStore.getState().initEditMode(legacyListing)
+
+      const state = useEquipmentWizardStore.getState()
+      expect(state.formData.editMode).toBe(true)
+      expect(state.formData.editListingId).toBe('cmogga1ff003qraj0ffjgw9xc')
+      // Fallback extracted from governorateRef/wilayaRef
+      expect(state.formData.governorateId).toBe(2)
+      expect(state.formData.wilayaId).toBe(10)
+      // Arabic name prioritized over mismatched English raw string
+      expect(state.formData.governorate).toBe('ظفار')
+      expect(state.formData.city).toBe('سدح')
+      expect(state.formData.price).toBe('38000')
+    })
+
+    it('resetDraft() should properly restore all defaults, step 1, and clear errors', () => {
+      // Dirty the store first
+      useEquipmentWizardStore.getState().setFormData({
+        title: 'معدة للتجربة',
+        price: '50000',
+        editMode: true,
+      })
+      useEquipmentWizardStore.getState().goToStep(4)
+
+      expect(useEquipmentWizardStore.getState().currentStep).toBe(4)
+      expect(useEquipmentWizardStore.getState().formData.title).toBe('معدة للتجربة')
+
+      // Reset
+      useEquipmentWizardStore.getState().resetDraft()
+
+      const freshState = useEquipmentWizardStore.getState()
+      expect(freshState.currentStep).toBe(1)
+      expect(freshState.formData.title).toBe('')
+      expect(freshState.formData.price).toBe('')
+      expect(freshState.formData.editMode).toBe(false)
+      expect(freshState.formData.listingType).toBe('EQUIPMENT_SALE')
+      expect(Object.keys(freshState.errors).length).toBe(0)
+    })
+  })
+
+  // ── 7. Additional Missing Field Checks (Step 1 & Step 4) ────────────
+  describe('Additional Missing Field Checks (Step 1 & Step 4)', () => {
+    it('should fail Step 1 if listingType is missing', () => {
+      const { isValid, errors } = validateEquipmentStep(1, { ...baseValidForm, listingType: '' as any })
+      expect(isValid).toBe(false)
+      expect(errors.listingType).toBeDefined()
+    })
+
+    it('should fail Step 4 for Wanted listing if budgetMax is missing or 0', () => {
+      const wantedNoBudget: EquipmentFormData = {
+        ...baseValidForm,
+        listingType: 'EQUIPMENT_WANTED',
+        price: '',
+        budgetMax: '',
+      }
+      const { isValid, errors } = validateEquipmentStep(4, wantedNoBudget)
+      expect(isValid).toBe(false)
+      expect(errors.budgetMax).toBeDefined()
+    })
+  })
+
+  // ── 8. Full Payload Construction for SALE, RENT, and WANTED ─────────
+  describe('Full Payload Construction for SALE, RENT, and WANTED', () => {
+    const buildPayload = (form: EquipmentFormData, finalImages: string[]) => {
+      const payload: any = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        equipmentType: form.equipmentType,
+        listingType: form.listingType,
+
+        make: form.make.trim() || undefined,
+        model: form.model.trim() || undefined,
+        year: form.year ? Number(form.year) : undefined,
+        condition: form.condition || 'USED',
+        capacity: form.capacity.trim() || undefined,
+        power: form.power.trim() || undefined,
+        weight: form.weight.trim() || undefined,
+        hoursUsed: form.hoursUsed ? Number(form.hoursUsed) : undefined,
+        features: form.features.length > 0 ? form.features : undefined,
+
+        isPriceNegotiable: form.isPriceNegotiable,
+        withOperator: form.withOperator,
+        deliveryAvailable: form.deliveryAvailable,
+
+        governorateId: form.governorateId ? Number(form.governorateId) : undefined,
+        wilayaId: form.wilayaId ? Number(form.wilayaId) : undefined,
+        latitude: form.latitude || undefined,
+        longitude: form.longitude || undefined,
+
+        contactPhone: form.contactPhone.trim() || undefined,
+        whatsapp: form.whatsapp.trim() || undefined,
+        ...(form.editMode ? {} : { images: finalImages.length > 0 ? finalImages : undefined }),
+      }
+
+      if (form.listingType === 'EQUIPMENT_SALE') {
+        payload.price = form.price ? Number(form.price) : undefined
+      } else if (form.listingType === 'EQUIPMENT_RENT') {
+        payload.dailyPrice = form.dailyPrice ? Number(form.dailyPrice) : undefined
+        payload.monthlyPrice = form.monthlyPrice ? Number(form.monthlyPrice) : undefined
+      } else if (form.listingType === 'EQUIPMENT_WANTED') {
+        payload.budgetMin = form.budgetMin ? Number(form.budgetMin) : undefined
+        payload.budgetMax = form.budgetMax ? Number(form.budgetMax) : undefined
+        payload.rentalDuration = form.rentalDuration || undefined
+        payload.quantity = form.quantity ? Number(form.quantity) : 1
+        payload.siteDetails = form.siteDetails || undefined
+      }
+
+      return payload
+    }
+
+    it('should build correct payload for EQUIPMENT_SALE with price', () => {
+      const payload = buildPayload(baseValidForm, ['https://cdn.souqone.com/img1.jpg'])
+      expect(payload.listingType).toBe('EQUIPMENT_SALE')
+      expect(payload.price).toBe(18500)
+      expect(payload.dailyPrice).toBeUndefined()
+      expect(payload.monthlyPrice).toBeUndefined()
+      expect(payload.budgetMax).toBeUndefined()
+      expect(payload.images).toEqual(['https://cdn.souqone.com/img1.jpg'])
+    })
+
+    it('should build correct payload for EQUIPMENT_RENT with daily and monthly prices', () => {
+      const rentForm: EquipmentFormData = {
+        ...baseValidForm,
+        listingType: 'EQUIPMENT_RENT',
+        price: '',
+        dailyPrice: '50',
+        monthlyPrice: '1100',
+        withOperator: true,
+      }
+      const payload = buildPayload(rentForm, ['https://cdn.souqone.com/img1.jpg'])
+      expect(payload.listingType).toBe('EQUIPMENT_RENT')
+      expect(payload.dailyPrice).toBe(50)
+      expect(payload.monthlyPrice).toBe(1100)
+      expect(payload.withOperator).toBe(true)
+      expect(payload.price).toBeUndefined()
+    })
+
+    it('should build correct payload for EQUIPMENT_WANTED with budget, quantity and siteDetails', () => {
+      const wantedForm: EquipmentFormData = {
+        ...baseValidForm,
+        listingType: 'EQUIPMENT_WANTED',
+        price: '',
+        budgetMin: '3000',
+        budgetMax: '6000',
+        quantity: '3',
+        siteDetails: 'موقع العمل في الدقم',
+      }
+      const payload = buildPayload(wantedForm, [])
+      expect(payload.listingType).toBe('EQUIPMENT_WANTED')
+      expect(payload.budgetMin).toBe(3000)
+      expect(payload.budgetMax).toBe(6000)
+      expect(payload.quantity).toBe(3)
+      expect(payload.siteDetails).toBe('موقع العمل في الدقم')
+      expect(payload.price).toBeUndefined()
+      expect(payload.dailyPrice).toBeUndefined()
     })
   })
 })

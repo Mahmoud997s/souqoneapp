@@ -108,7 +108,7 @@ export default function OperatorDetailScreen() {
     }
     try {
       const res = await chatApi.createRoom({
-        entityType: 'OPERATOR',
+        entityType: 'OPERATOR_LISTING',
         entityId: operator.id,
         receiverId: sellerId,
       })

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,26 +12,41 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
-import { EquipmentStep2Props } from '../../../types/equipmentForm.types'
+import { MAX_BUS_IMAGES } from '../../../constants/buses'
 
-export function EquipmentStep2Images({
-  images,
-  existingImages,
+export interface BusStep2Props {
+  images: (string | { uri: string })[]
+  existingImages?: (string | { id?: string; url: string })[]
+  errors: Record<string, string>
+  isUploading?: boolean
+  onPickImages: () => void
+  onRemoveNewImage: (index: number) => void
+  onRemoveExistingImage?: (idOrUrl: string) => void
+  onMakePrimaryNew?: (index: number) => void
+  onMakePrimaryExisting?: (index: number) => void
+}
+
+export function BusStep2Images({
+  images = [],
+  existingImages = [],
   errors,
-  isUploading,
+  isUploading = false,
   onPickImages,
   onRemoveNewImage,
   onRemoveExistingImage,
-}: EquipmentStep2Props) {
+  onMakePrimaryNew,
+  onMakePrimaryExisting,
+}: BusStep2Props) {
   const totalCount = images.length + existingImages.length
 
   return (
     <View style={s.stepWrap}>
       {/* Upload Action Box */}
       <TouchableOpacity
+        testID="upload-action-box"
         style={s.uploadBox}
         onPress={onPickImages}
-        disabled={isUploading || totalCount >= 10}
+        disabled={isUploading || totalCount >= MAX_BUS_IMAGES}
         activeOpacity={0.8}
       >
         {isUploading ? (
@@ -46,11 +60,11 @@ export function EquipmentStep2Images({
               <Ionicons name="camera" size={20} color={Colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.uploadBoxTxt}>إرفاق صور واضحة للمعدة</Text>
+              <Text style={s.uploadBoxTxt}>إرفاق صور واضحة للحافلة *</Text>
               <Text style={s.uploadBoxSub}>
                 {totalCount > 0
-                  ? `تم اختيار ${totalCount} من 10 صور مسموحة`
-                  : 'يمكنك اختيار حتى 10 صور (الصورة الأولى ستكون الصورة الرئيسية)'}
+                  ? `تم اختيار ${totalCount} من ${MAX_BUS_IMAGES} صور مسموحة`
+                  : `مطلوب صورة واحدة على الأقل – حتى ${MAX_BUS_IMAGES} صور (الصورة الأولى ستكون الرئيسية)`}
               </Text>
             </View>
             <View style={s.uploadAddPill}>
@@ -61,33 +75,48 @@ export function EquipmentStep2Images({
         )}
       </TouchableOpacity>
 
-      {errors.images ? <Text style={s.inlineErrorTxt}>{errors.images}</Text> : null}
+      {errors.images ? (
+        <Text style={s.inlineErrorTxt} testID="error-images">
+          {errors.images}
+        </Text>
+      ) : null}
 
       {/* Existing Images (Edit Mode) */}
       {existingImages.length > 0 && (
-        <WizardCard
-          title={`الصور الحالية المرفوعة (${existingImages.length})`}
-          subtitle="يمكنك حذف أي صورة غير مناسبة بالضغط على علامة الإغلاق"
-        >
+        <WizardCard title={`الصور الحالية المرفوعة (${existingImages.length})`}>
           <View style={s.imagesGrid}>
             {existingImages.map((img: any, idx: number) => {
               const uri = typeof img === 'string' ? img : img.url
               const key = img.id || img.url || `existing_${idx}`
               return (
-                <View key={key} style={s.imgThumbWrap}>
+                <View key={key} style={s.imgThumbWrap} testID={`existing-img-${idx}`}>
                   <Image source={{ uri }} style={s.imgThumb} contentFit="cover" transition={200} />
-                  {idx === 0 && (
+                  {idx === 0 ? (
                     <View style={s.primaryBadge}>
                       <Text style={s.primaryBadgeTxt}>الرئيسية</Text>
                     </View>
+                  ) : (
+                    onMakePrimaryExisting && (
+                      <TouchableOpacity
+                        testID={`make-primary-existing-${idx}`}
+                        style={s.makePrimaryBtn}
+                        onPress={() => onMakePrimaryExisting(idx)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={s.makePrimaryTxt}>تعيين كرئيسية</Text>
+                      </TouchableOpacity>
+                    )
                   )}
-                  <TouchableOpacity
-                    style={s.removeImgBtn}
-                    onPress={() => onRemoveExistingImage(img.id || img.url)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Ionicons name="close" size={14} color="#fff" />
-                  </TouchableOpacity>
+                  {onRemoveExistingImage && (
+                    <TouchableOpacity
+                      testID={`remove-existing-img-${idx}`}
+                      style={s.removeImgBtn}
+                      onPress={() => onRemoveExistingImage(img.id || img.url || String(idx))}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <Ionicons name="close" size={14} color="#fff" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )
             })}
@@ -97,22 +126,31 @@ export function EquipmentStep2Images({
 
       {/* New Images */}
       {images.length > 0 && (
-        <WizardCard
-          title={`الصور الجديدة المضافة (${images.length})`}
-          subtitle="الصورة الأولى ستكون الغلاف الأساسي لإعلانك"
-        >
+        <WizardCard title={`الصور الجديدة المضافة (${images.length})`}>
           <View style={s.imagesGrid}>
             {images.map((img, idx) => {
               const uri = typeof img === 'string' ? img : img.uri
               return (
-                <View key={`new_${idx}`} style={s.imgThumbWrap}>
+                <View key={`new_${idx}`} style={s.imgThumbWrap} testID={`new-img-${idx}`}>
                   <Image source={{ uri }} style={s.imgThumb} contentFit="cover" transition={200} />
-                  {existingImages.length === 0 && idx === 0 && (
+                  {existingImages.length === 0 && idx === 0 ? (
                     <View style={s.primaryBadge}>
                       <Text style={s.primaryBadgeTxt}>الرئيسية</Text>
                     </View>
+                  ) : (
+                    onMakePrimaryNew && (
+                      <TouchableOpacity
+                        testID={`make-primary-new-${idx}`}
+                        style={s.makePrimaryBtn}
+                        onPress={() => onMakePrimaryNew(idx)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={s.makePrimaryTxt}>تعيين كرئيسية</Text>
+                      </TouchableOpacity>
+                    )
                   )}
                   <TouchableOpacity
+                    testID={`remove-new-img-${idx}`}
                     style={s.removeImgBtn}
                     onPress={() => onRemoveNewImage(idx)}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -125,25 +163,6 @@ export function EquipmentStep2Images({
           </View>
         </WizardCard>
       )}
-
-      {/* Guidelines Box */}
-      <WizardCard
-        title="إرشادات الصور الناجحة"
-        subtitle="نصائح لزيادة المشاهدات والتفاعل مع إعلانك"
-      >
-        <View style={s.guidelinesRow}>
-          <Ionicons name="checkmark-circle-outline" size={16} color="#059669" />
-          <Text style={s.guidelineTxt}>التقط صوراً من زوايا متعددة تظهر هيكل المعدة بالكامل</Text>
-        </View>
-        <View style={s.guidelinesRow}>
-          <Ionicons name="checkmark-circle-outline" size={16} color="#059669" />
-          <Text style={s.guidelineTxt}>أظهر لوحة ساعات التشغيل ولوحة البيانات الفنية بوضوح</Text>
-        </View>
-        <View style={s.guidelinesRow}>
-          <Ionicons name="checkmark-circle-outline" size={16} color="#059669" />
-          <Text style={s.guidelineTxt}>تأكد من وضوح الإضاءة وتجنب الصور الضبابية أو ذات العلامات المائية</Text>
-        </View>
-      </WizardCard>
     </View>
   )
 }
@@ -215,6 +234,20 @@ const s = StyleSheet.create({
     fontSize: 11.5,
     color: Colors.primary,
   },
+  makePrimaryBtn: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+  },
+  makePrimaryTxt: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Almarai_700Bold',
+  },
   inlineErrorTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
@@ -223,21 +256,6 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: -4,
-  },
-  guidelinesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 3,
-  },
-  guidelineTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: '#475569',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flex: 1,
   },
   imagesGrid: {
     flexDirection: 'row',

@@ -68,6 +68,10 @@ export interface EquipmentListing {
   // Location
   governorate?: string
   city?: string
+  governorateId?: number | null
+  wilayaId?: number | null
+  governorateRef?: { id: number; nameAr: string; nameEn?: string } | null
+  wilayaRef?: { id: number; nameAr: string; nameEn?: string } | null
   latitude?: number
   longitude?: number
 

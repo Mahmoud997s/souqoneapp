@@ -18,7 +18,6 @@ import { usePostStore } from '../../src/store/postStore'
 import { LinearGradient } from 'expo-linear-gradient'
 
 // Forms
-import { BusForm } from '../../src/components/post/forms'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
@@ -31,6 +30,14 @@ export default function PostStep3Screen() {
   useEffect(() => {
     if (category === 'equipment') {
       router.replace('/equipment/new')
+    } else if (category === 'cars') {
+      router.replace('/cars/new')
+    } else if (category === 'buses') {
+      router.replace('/buses/new')
+    } else if (category === 'parts') {
+      router.replace('/parts/new')
+    } else if (category === 'services') {
+      router.replace('/services/new')
     } else if (category === 'transport') {
       router.replace('/transport/new')
     }
@@ -60,18 +67,6 @@ export default function PostStep3Screen() {
       return
     }
 
-
-
-    if (category === 'buses') {
-      const { busListingType, busType, make, model, year, capacity } = details || {}
-      if (!busListingType) return dialogService.alert('تنبيه', 'يرجى اختيار نوع الإعلان')
-      if (!make) return dialogService.alert('تنبيه', 'يرجى اختيار الماركة')
-      if (!model) return dialogService.alert('تنبيه', 'يرجى إدخال الموديل')
-      if (!year) return dialogService.alert('تنبيه', 'يرجى إدخال سنة الصنع')
-      if (!capacity) return dialogService.alert('تنبيه', 'يرجى إدخال عدد المقاعد')
-      if (!busType) return dialogService.alert('تنبيه', 'يرجى اختيار فئة الحافلة')
-    }
-
     if (category === 'parts') {
       const { partCategory } = details || {}
       if (!partCategory && !details?.category) {
@@ -97,8 +92,6 @@ export default function PostStep3Screen() {
 
   const renderForm = () => {
     switch (category) {
-      case 'buses':
-        return <BusForm />
       case 'jobs':
       default:
         return (

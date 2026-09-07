@@ -20,6 +20,8 @@ import { dialogService } from '../../src/store/dialogStore'
 import { CONDITIONS, TRANSMISSION_TYPES, FUEL_TYPES } from '../../src/constants/filters'
 import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses'
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
+import { useBusWizardStore } from '../../src/store/busWizardStore'
+import { busesApi } from '../../src/api/buses'
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -59,6 +61,7 @@ export default function ListingDetailScreen() {
   const [isContractExpanded, setIsContractExpanded] = useState(false)
   const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const viewConfigRef = useRef({ itemVisiblePercentThreshold: 50 }).current;
   const onViewRef = useRef((info: any) => {
@@ -198,11 +201,98 @@ export default function ListingDetailScreen() {
     }
   }
 
+  const handleEditBus = () => {
+    useBusWizardStore.getState().setEditMode(raw.id, {
+      busListingType: raw.busListingType || '',
+      busType: raw.busType || '',
+      make: raw.make || '',
+      model: raw.model || '',
+      manufacturerId: raw.manufacturerId || '',
+      modelId: raw.modelId || '',
+      year: raw.year ? String(raw.year) : '',
+      capacity: raw.capacity ? String(raw.capacity) : '',
+      condition: raw.condition || 'USED',
+      transmission: raw.transmission || '',
+      fuelType: raw.fuelType || '',
+      mileage: raw.mileage ? String(raw.mileage) : '',
+      plateNumber: raw.plateNumber || '',
+      features: raw.features || [],
+      price: raw.price ? String(raw.price) : '',
+      currency: raw.currency || 'OMR',
+      isPriceNegotiable: raw.isPriceNegotiable || false,
+      dailyPrice: raw.dailyPrice ? String(raw.dailyPrice) : '',
+      monthlyPrice: raw.monthlyPrice ? String(raw.monthlyPrice) : '',
+      withDriver: raw.withDriver || false,
+      contractType: raw.contractType || '',
+      contractClient: raw.contractClient || '',
+      contractMonthly: raw.contractMonthly ? String(raw.contractMonthly) : '',
+      contractDuration: raw.contractDuration ? String(raw.contractDuration) : '',
+      contractExpiry: raw.contractExpiry
+        ? (typeof raw.contractExpiry === 'string'
+            ? raw.contractExpiry.split('T')[0]
+            : new Date(raw.contractExpiry).toISOString().split('T')[0])
+        : null,
+      title: raw.title || '',
+      description: raw.description || '',
+      governorateId: raw.governorateId ? Number(raw.governorateId) : null,
+      wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
+      governorateNameAr: raw.governorateRef?.nameAr ?? raw.governorate?.nameAr ?? raw.governorateNameAr ?? '',
+      wilayaNameAr: raw.wilayaRef?.nameAr ?? raw.wilaya?.nameAr ?? raw.wilayaNameAr ?? '',
+      latitude: raw.latitude != null ? Number(raw.latitude) : null,
+      longitude: raw.longitude != null ? Number(raw.longitude) : null,
+      existingImages: (raw.images || []).map((img: any) => ({
+        id: img.id,
+        url: img.url || img,
+      })),
+      images: [],
+      removedImageIds: [],
+      contactPhone: raw.contactPhone || '',
+      whatsapp: raw.whatsapp || '',
+    })
+    router.push('/buses/new' as any)
+  }
+
+  const handleDeleteBus = async () => {
+    dialogService.confirm(
+      'حذف الإعلان',
+      'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+      async () => {
+        setIsDeleting(true)
+        try {
+          await busesApi.remove(raw.id)
+          dialogService.alert('تم بنجاح', 'تم حذف إعلان الحافلة بنجاح', 'success')
+          if (router.canGoBack()) {
+            router.back()
+          } else {
+            router.replace('/profile/my-listings' as any)
+          }
+        } catch (e: any) {
+          const msg = e?.response?.data?.message || e?.message || 'فشل حذف الإعلان، يرجى المحاولة لاحقاً'
+          dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg), 'error')
+        } finally {
+          setIsDeleting(false)
+        }
+      },
+      'نعم، احذف',
+      'تراجع',
+      true
+    )
+  }
+
   const handleOptions = () => {
-    dialogService.showOptions('خيارات الإعلان', [
-      { text: 'إبلاغ عن هذا الإعلان', icon: 'flag-outline',  onPress: handleReport },
-      { text: 'حظر هذا المستخدم',    icon: 'ban-outline',   onPress: handleBlock, style: 'destructive' },
-    ])
+    if (isOwner) {
+      dialogService.showOptions('خيارات الإعلان', [
+        { text: 'تعديل الإعلان', icon: 'create-outline', onPress: handleEditBus },
+        { text: 'مشاركة الإعلان', icon: 'share-social-outline', onPress: handleShare },
+        { text: 'حذف الإعلان', icon: 'trash-outline', onPress: handleDeleteBus, style: 'destructive' },
+      ])
+    } else {
+      dialogService.showOptions('خيارات الإعلان', [
+        { text: 'مشاركة الإعلان', icon: 'share-social-outline', onPress: handleShare },
+        { text: 'إبلاغ عن هذا الإعلان', icon: 'flag-outline', onPress: handleReport },
+        { text: 'حظر هذا المستخدم', icon: 'ban-outline', onPress: handleBlock, style: 'destructive' },
+      ])
+    }
   }
 
   const handleReport = async () => {
@@ -639,14 +729,31 @@ export default function ListingDetailScreen() {
       {/* ── FIXED CONTACT BAR ── */}
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
         {isOwner ? (
-          <TouchableOpacity
-            style={s.callWideBtn}
-            onPress={() => router.push(`/post/edit/${raw.id}?type=bus` as any)}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="create-outline" size={22} color={Colors.white} />
-            <Text style={s.callWideTxt}>تعديل الإعلان</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 10, flex: 1 }}>
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1, backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FCA5A5' }]}
+              onPress={handleDeleteBus}
+              disabled={isDeleting}
+              activeOpacity={0.85}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={Colors.error} />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                  <Text style={[s.callWideTxt, { color: Colors.error }]}>حذف الإعلان</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.callWideBtn, { flex: 1, backgroundColor: Colors.primary }]}
+              onPress={handleEditBus}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="create-outline" size={18} color="#ffffff" />
+              <Text style={[s.callWideTxt, { color: '#ffffff' }]}>تعديل الإعلان</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             {seller && (
