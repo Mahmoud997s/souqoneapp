@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -22,8 +22,9 @@ import { Stepper } from '../../../../src/components/ui/Stepper'
 import { dialogService } from '../../../../src/store/dialogStore'
 import { useOperatorItem, useUpdateOperator } from '../../../../src/hooks/useEquipment'
 import { useOperatorFormLogic } from '../../../../src/hooks/useOperatorFormLogic'
+import { validateOperatorStep } from '../../../../src/hooks/useOperatorValidation'
 import { buildOperatorPayload } from '../../../../src/utils/operator-payload'
-import { useOperatorWizardStore, mapOperatorItemToFormData } from '../../../../src/store/operatorWizardStore'
+import { OperatorFormData, OperatorFormErrors } from '../../../../src/types/operatorForm.types'
 
 import { OperatorRoleStep } from '../../../../src/components/operators/OperatorRoleStep'
 import { OperatorEquipCertsStep } from '../../../../src/components/operators/OperatorEquipCertsStep'
@@ -38,50 +39,87 @@ export default function EditOperatorScreen() {
   const updateMutation = useUpdateOperator()
   const { data: operatorData, isLoading, isError } = useOperatorItem(id as string)
 
-  const {
-    currentStep,
-    formData,
-    errors,
-    nextStep,
-    prevStep,
-    setFormField,
-    setFormData,
-    clearFieldError,
-    validateStep,
-    initEditMode,
-    resetDraft,
-  } = useOperatorWizardStore()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [errors, setErrors] = useState<OperatorFormErrors>({})
 
-  // Initialize edit mode when operatorData resolves
-  const initializedRef = useRef(false)
-  useEffect(() => {
-    if (operatorData && id && !initializedRef.current) {
-      initializedRef.current = true
-      const mapped = mapOperatorItemToFormData(operatorData)
-      initEditMode(id as string, mapped)
-    }
-  }, [operatorData, id, initEditMode])
+  const [formData, setFormData] = useState<OperatorFormData>({
+    operatorType: 'OPERATOR',
+    title: '',
+    description: '',
+    experienceYears: '',
+    equipmentTypes: [],
+    specializations: [],
+    certifications: [],
+    dailyRate: '',
+    hourlyRate: '',
+    isPriceNegotiable: true,
+    governorateId: null,
+    wilayaId: null,
+    governorateName: '',
+    wilayaName: '',
+    contactPhone: '',
+    whatsapp: '',
+  })
 
-  // Clean up store state when exiting screen
   useEffect(() => {
-    return () => {
-      resetDraft()
+    if (operatorData) {
+      setFormData({
+        operatorType: operatorData.operatorType || 'OPERATOR',
+        title: operatorData.title || '',
+        description: operatorData.description || '',
+        experienceYears: operatorData.experienceYears != null ? String(operatorData.experienceYears) : '',
+        equipmentTypes: operatorData.equipmentTypes || [],
+        specializations: operatorData.specializations || [],
+        certifications: operatorData.certifications || [],
+        dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
+        hourlyRate: operatorData.hourlyRate ? String(operatorData.hourlyRate) : '',
+        isPriceNegotiable: operatorData.isPriceNegotiable ?? (operatorData as any).isNegotiable ?? true,
+        governorateId: operatorData.governorateId ?? null,
+        wilayaId: operatorData.wilayaId ?? null,
+        governorateName: (operatorData as any).governorate?.nameAr || (operatorData as any).governorateName || '',
+        wilayaName: (operatorData as any).wilaya?.nameAr || (operatorData as any).wilayaName || '',
+        contactPhone: operatorData.contactPhone || '',
+        whatsapp: operatorData.whatsapp || operatorData.contactPhone || '',
+      })
     }
-  }, [resetDraft])
+  }, [operatorData])
+
+  const updateField = (key: keyof OperatorFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [key]: value }))
+    setErrors((prev) => {
+      const updated = { ...prev }
+      delete updated[key]
+      return updated
+    })
+  }
+
+  const clearFieldError = (key: string) => {
+    setErrors((prev) => {
+      const updated = { ...prev }
+      delete (updated as any)[key]
+      return updated
+    })
+  }
 
   const formLogic = useOperatorFormLogic({
     certifications: formData.certifications,
     equipmentTypes: formData.equipmentTypes,
     specializations: formData.specializations,
-    onUpdateCertifications: (certs) => setFormField('certifications', certs),
-    onUpdateEquipmentTypes: (types) => setFormField('equipmentTypes', types),
-    onUpdateSpecializations: (specs) => setFormField('specializations', specs),
+    onUpdateCertifications: (certs) => updateField('certifications', certs),
+    onUpdateEquipmentTypes: (types) => updateField('equipmentTypes', types),
+    onUpdateSpecializations: (specs) => updateField('specializations', specs),
     onClearFieldError: clearFieldError,
   })
 
   const handleNext = () => {
+    const { isValid, errors: stepErrors } = validateOperatorStep(currentStep, formData)
+    if (!isValid) {
+      setErrors(stepErrors)
+      return
+    }
+
     if (currentStep < TOTAL_STEPS) {
-      nextStep()
+      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS))
     } else {
       handleSubmit()
     }
@@ -89,27 +127,28 @@ export default function EditOperatorScreen() {
 
   const handlePrev = () => {
     if (currentStep > 1) {
-      prevStep()
+      setCurrentStep((prev) => Math.max(prev - 1, 1))
     } else {
       router.back()
     }
   }
 
   const handleSubmit = () => {
-    const editId = formData.editListingId || (id as string)
-    if (!editId) return
-    const isValid = validateStep(3)
-    if (!isValid) return
+    if (!id) return
+    const { isValid, errors: finalErrors } = validateOperatorStep(3, formData)
+    if (!isValid) {
+      setErrors(finalErrors)
+      return
+    }
 
     const payload = buildOperatorPayload(formData)
 
     updateMutation.mutate(
-      { id: editId, data: payload },
+      { id, data: payload },
       {
         onSuccess: () => {
-          resetDraft()
           dialogService.alert('نجاح', 'تم تحديث بيانات بطاقتك المهنية بنجاح!')
-          router.replace(`/equipment/operators/${editId}` as any)
+          router.replace(`/equipment/operators/${id}` as any)
         },
         onError: (err: any) => {
           const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء تحديث البطاقة المهنية'
@@ -170,7 +209,7 @@ export default function EditOperatorScreen() {
             <OperatorRoleStep
               formData={formData}
               errors={errors}
-              onUpdateField={setFormField}
+              onUpdateField={updateField}
             />
           )}
 
@@ -194,14 +233,15 @@ export default function EditOperatorScreen() {
             <OperatorRatesLocationStep
               formData={formData}
               errors={errors}
-              onUpdateField={setFormField}
+              onUpdateField={updateField}
               onLocationChange={(govId, wilId, govNameAr, wilNameAr) => {
-                setFormData({
+                setFormData((prev) => ({
+                  ...prev,
                   governorateId: govId,
                   wilayaId: wilId || null,
                   governorateName: govNameAr,
                   wilayaName: wilNameAr,
-                })
+                }))
                 clearFieldError('governorate')
                 if (wilId) clearFieldError('city')
               }}

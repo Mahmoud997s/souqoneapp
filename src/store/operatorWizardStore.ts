@@ -21,9 +21,6 @@ export interface OperatorWizardFormData {
   wilayaName?: string
   contactPhone: string
   whatsapp: string
-  profileImageUrl?: string | null
-  isEditMode: boolean
-  editListingId: string | null
 }
 
 interface OperatorWizardState {
@@ -41,7 +38,6 @@ interface OperatorWizardState {
   setErrors: (errors: Record<string, string>) => void
   clearErrors: () => void
   validateStep: (step: number) => boolean
-  initEditMode: (id: string, data: Partial<OperatorWizardFormData>) => void
   resetDraft: () => void
 }
 
@@ -63,45 +59,6 @@ export const DEFAULT_OPERATOR_WIZARD_DATA: OperatorWizardFormData = {
   wilayaName: '',
   contactPhone: '',
   whatsapp: '',
-  profileImageUrl: null,
-  isEditMode: false,
-  editListingId: null,
-}
-
-/**
- * Maps backend OperatorListing response to OperatorWizardFormData
- */
-export function mapOperatorItemToFormData(operatorData: any): Partial<OperatorWizardFormData> {
-  return {
-    operatorType: operatorData.operatorType || 'OPERATOR',
-    title: operatorData.title || '',
-    description: operatorData.description || '',
-    experienceYears: operatorData.experienceYears != null ? String(operatorData.experienceYears) : '',
-    equipmentTypes: operatorData.equipmentTypes || [],
-    specializations: operatorData.specializations || [],
-    certifications: operatorData.certifications || [],
-    dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
-    hourlyRate: operatorData.hourlyRate ? String(operatorData.hourlyRate) : '',
-    currency: operatorData.currency || 'OMR',
-    isPriceNegotiable: operatorData.isPriceNegotiable ?? operatorData.isNegotiable ?? true,
-    governorateId: operatorData.governorateId ?? null,
-    wilayaId: operatorData.wilayaId ?? null,
-    governorateName:
-      operatorData.governorateRef?.nameAr ||
-      operatorData.governorate?.nameAr ||
-      operatorData.governorateName ||
-      operatorData.governorate ||
-      '',
-    wilayaName:
-      operatorData.wilayaRef?.nameAr ||
-      operatorData.wilaya?.nameAr ||
-      operatorData.wilayaName ||
-      operatorData.city ||
-      '',
-    contactPhone: operatorData.contactPhone || '',
-    whatsapp: operatorData.whatsapp || operatorData.contactPhone || '',
-    profileImageUrl: operatorData.profileImageUrl || null,
-  }
 }
 
 export const useOperatorWizardStore = create<OperatorWizardState>()(
@@ -112,11 +69,7 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
       errors: {},
 
       setStep: (step) => set({ currentStep: step }),
-      nextStep: () => {
-        const { currentStep, validateStep } = get()
-        if (!validateStep(currentStep)) return
-        set((state) => ({ currentStep: Math.min(state.currentStep + 1, 3) }))
-      },
+      nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 3) })),
       prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
 
       setFormField: (key, value) => {
@@ -160,19 +113,6 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
         return isValid
       },
 
-      initEditMode: (id: string, data: Partial<OperatorWizardFormData>) => {
-        set({
-          currentStep: 1,
-          errors: {},
-          formData: {
-            ...DEFAULT_OPERATOR_WIZARD_DATA,
-            ...data,
-            isEditMode: true,
-            editListingId: id,
-          },
-        })
-      },
-
       resetDraft: () =>
         set({
           currentStep: 1,
@@ -183,23 +123,10 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
     {
       name: 'souqone_operator_wizard_draft',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => {
-        if (state.formData.isEditMode) {
-          return {
-            currentStep: 1,
-            formData: DEFAULT_OPERATOR_WIZARD_DATA,
-          }
-        }
-        const { isEditMode, editListingId, ...draftableData } = state.formData
-        return {
-          currentStep: state.currentStep,
-          formData: {
-            ...draftableData,
-            isEditMode: false,
-            editListingId: null,
-          },
-        }
-      },
+      partialize: (state) => ({
+        currentStep: state.currentStep,
+        formData: state.formData,
+      }),
     }
   )
 )

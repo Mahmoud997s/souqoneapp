@@ -50,21 +50,18 @@ export interface EquipmentCatalogItem {
 }
 
 export const AVAILABLE_EQUIPMENT: EquipmentCatalogItem[] = [
-  { id: 'EXCAVATOR', label: 'حفار (Excavator)' },
-  { id: 'CRANE', label: 'كرين / رافعة (Crane)' },
-  { id: 'LOADER', label: 'لودر (Wheel Loader)' },
-  { id: 'BULLDOZER', label: 'بلدوزر (Bulldozer)' },
-  { id: 'FORKLIFT', label: 'رافعة شوكية (Forklift)' },
-  { id: 'CONCRETE_MIXER', label: 'خلاطة خرسانة (Concrete Mixer)' },
-  { id: 'GENERATOR', label: 'مولد كهرباء (Generator)' },
-  { id: 'COMPRESSOR', label: 'ضاغط هواء (Compressor)' },
-  { id: 'SCAFFOLDING', label: 'سقالات (Scaffolding)' },
-  { id: 'WELDING_MACHINE', label: 'ماكينة لحام (Welding Machine)' },
-  { id: 'TRUCK', label: 'شاحنة ثقيلة (Heavy Truck)' },
-  { id: 'DUMP_TRUCK', label: 'قلاب (Dump Truck)' },
-  { id: 'WATER_TANKER', label: 'صهريج مياه (Water Tanker)' },
-  { id: 'LIGHT_EQUIPMENT', label: 'معدات خفيفة (Light Equipment)' },
-  { id: 'OTHER_EQUIPMENT', label: 'أخرى (Other)' },
+  { id: 'حفار', label: 'حفار (Excavator)' },
+  { id: 'لودر', label: 'لودر (Wheel Loader)' },
+  { id: 'بلدوزر', label: 'بلدوزر (Bulldozer)' },
+  { id: 'كرين', label: 'كرين / رافعة (Crane)' },
+  { id: 'رافعة شوكية', label: 'رافعة شوكية (Forklift)' },
+  { id: 'جريدر', label: 'جريدر (Grader)' },
+  { id: 'مدحلة', label: 'مدحلة (Roller Compactor)' },
+  { id: 'قلاب', label: 'قلاب (Dump Truck)' },
+  { id: 'شاحنة ثقيلة', label: 'شاحنة ثقيلة (Heavy Truck)' },
+  { id: 'خلاطة خرسانة', label: 'خلاطة خرسانة (Concrete Mixer)' },
+  { id: 'صهريج مياه', label: 'صهريج مياه / وقود (Tanker)' },
+  { id: 'بوبكات', label: 'بوبكات (Bobcat)' },
 ]
 
 export const CERTIFICATION_PRESETS: string[] = [
