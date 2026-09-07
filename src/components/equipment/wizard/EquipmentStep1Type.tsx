@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
+import { WizardCard } from '../../ui/WizardCard'
 import { AppInput } from '../../ui/AppInput'
 import { LISTING_TYPES, EQUIPMENT_CATEGORIES } from '../../../constants/equipment'
 import { EquipmentStep1Props } from '../../../types/equipmentForm.types'
@@ -23,75 +24,79 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
       </View>
 
       {/* 1. Listing Type Selection */}
-      <Text style={s.sectionLabel}>نوع الإعلان *</Text>
-      <Text style={s.sectionSub}>حدد الغرض من الإعلان لتخصيص خيارات التسعير والمواصفات</Text>
+      <WizardCard
+        title="نوع الإعلان *"
+        subtitle="حدد الغرض من الإعلان لتخصيص خيارات التسعير والمواصفات"
+      >
+        {errors.listingType ? <Text style={s.inlineErrorTxt}>{errors.listingType}</Text> : null}
 
-      {errors.listingType ? <Text style={s.inlineErrorTxt}>{errors.listingType}</Text> : null}
-
-      <View style={s.listingTypesRow}>
-        {LISTING_TYPES.map((lt) => {
-          const isSel = formData.listingType === lt.key
-          return (
-            <TouchableOpacity
-              key={lt.key}
-              style={[s.typeCard, isSel && s.typeCardActive]}
-              onPress={() => onUpdateField('listingType', lt.key)}
-              activeOpacity={0.85}
-            >
-              <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
-                <MaterialCommunityIcons
-                  name={lt.icon as any}
-                  size={20}
-                  color={isSel ? '#ffffff' : Colors.primary}
-                />
-              </View>
-              <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
-                {lt.label}
-              </Text>
-              <Text style={s.typeDesc} numberOfLines={2}>
-                {lt.desc}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+        <View style={s.listingTypesRow}>
+          {LISTING_TYPES.map((lt) => {
+            const isSel = formData.listingType === lt.key
+            return (
+              <TouchableOpacity
+                key={lt.key}
+                style={[s.typeCard, isSel && s.typeCardActive]}
+                onPress={() => onUpdateField('listingType', lt.key)}
+                activeOpacity={0.85}
+              >
+                <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
+                  <MaterialCommunityIcons
+                    name={lt.icon as any}
+                    size={20}
+                    color={isSel ? '#ffffff' : Colors.primary}
+                  />
+                </View>
+                <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
+                  {lt.label}
+                </Text>
+                <Text style={s.typeDesc} numberOfLines={2}>
+                  {lt.desc}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      </WizardCard>
 
       {/* 2. Equipment Category Selection */}
-      <Text style={s.sectionLabel}>فئة المعدة *</Text>
-      <Text style={s.sectionSub}>اختر الفئة المناسبة لتسهيل عثور الباحثين عليها</Text>
+      <WizardCard
+        title="فئة المعدة *"
+        subtitle="اختر الفئة المناسبة لتسهيل عثور الباحثين عليها"
+      >
+        {errors.equipmentType ? <Text style={s.inlineErrorTxt}>{errors.equipmentType}</Text> : null}
 
-      {errors.equipmentType ? <Text style={s.inlineErrorTxt}>{errors.equipmentType}</Text> : null}
-
-      <View style={s.categoriesGrid}>
-        {EQUIPMENT_CATEGORIES.map((cat) => {
-          const isSel = formData.equipmentType === cat.key
-          return (
-            <TouchableOpacity
-              key={cat.key}
-              style={[s.catCard, isSel && s.catCardActive]}
-              onPress={() => onUpdateField('equipmentType', cat.key)}
-              activeOpacity={0.85}
-            >
-              <View style={[s.catIconWrap, isSel && s.catIconWrapActive]}>
-                <MaterialCommunityIcons
-                  name={cat.icon as any}
-                  size={18}
-                  color={isSel ? '#ffffff' : Colors.primary}
-                />
-              </View>
-              <Text style={[s.catTitle, isSel && s.catTitleActive]} numberOfLines={2}>
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+        <View style={s.categoriesGrid}>
+          {EQUIPMENT_CATEGORIES.map((cat) => {
+            const isSel = formData.equipmentType === cat.key
+            return (
+              <TouchableOpacity
+                key={cat.key}
+                style={[s.catCard, isSel && s.catCardActive]}
+                onPress={() => onUpdateField('equipmentType', cat.key)}
+                activeOpacity={0.85}
+              >
+                <View style={[s.catIconWrap, isSel && s.catIconWrapActive]}>
+                  <MaterialCommunityIcons
+                    name={cat.icon as any}
+                    size={18}
+                    color={isSel ? '#ffffff' : Colors.primary}
+                  />
+                </View>
+                <Text style={[s.catTitle, isSel && s.catTitleActive]} numberOfLines={2}>
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      </WizardCard>
 
       {/* 3. Basic Information Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>بيانات الإعلان الأساسية *</Text>
-        <Text style={s.cardSub}>اكتب عنواناً جذاباً ووصفاً وافياً للمعدة وحالتها</Text>
-
+      <WizardCard
+        title="بيانات الإعلان الأساسية *"
+        subtitle="اكتب عنواناً جذاباً ووصفاً وافياً للمعدة وحالتها"
+      >
         <AppInput
           label="عنوان الإعلان *"
           placeholder="مثال: حفار كوماتسو PC200 بحالة ممتازة للبيع أو الإيجار"
@@ -111,7 +116,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
           maxLength={2000}
           error={errors.description}
         />
-      </View>
+      </WizardCard>
     </View>
   )
 }
@@ -155,24 +160,6 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: 1,
-  },
-  sectionLabel: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13.5,
-    lineHeight: 19,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginBottom: 3,
-  },
-  sectionSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginBottom: Spacing.space3,
   },
   inlineErrorTxt: {
     fontFamily: 'Almarai_700Bold',
@@ -283,35 +270,5 @@ const s = StyleSheet.create({
   catTitleActive: {
     color: Colors.primary,
     fontFamily: 'Almarai_800ExtraBold',
-  },
-  cardSection: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: Spacing.space3,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
-      android: { elevation: 1.5 },
-    }),
-  },
-  cardTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: 14.5,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginTop: -4,
-    marginBottom: 4,
   },
 })

@@ -174,3 +174,98 @@ export function navigateToServiceForm(method: 'push' | 'replace' = 'push'): void
   }
 }
 
+/**
+ * Meaningful data definition for busWizardStore
+ * A draft is meaningful if step > 1 or title is filled or images exist or make/model/price/contractClient are filled.
+ */
+export function hasMeaningfulBusData(state: any): boolean {
+  if (!state || !state.data) return false
+  if (state.editMode) return false
+
+  if (state.currentStep > 1) return true
+
+  const data = state.data
+  if (
+    (data.title && data.title.trim().length > 0) ||
+    (data.images && data.images.length > 0) ||
+    (data.description && data.description.trim().length > 0) ||
+    (data.make && data.make.trim().length > 0) ||
+    (data.model && data.model.trim().length > 0) ||
+    (data.price && data.price.trim().length > 0) ||
+    (data.dailyPrice && data.dailyPrice.trim().length > 0) ||
+    (data.monthlyPrice && data.monthlyPrice.trim().length > 0) ||
+    (data.contractClient && data.contractClient.trim().length > 0)
+  ) {
+    return true
+  }
+
+  return false
+}
+
+export function navigateToBusForm(method: 'push' | 'replace' = 'push'): void {
+  const { router } = require('expo-router')
+  const { useAuthStore } = require('../../store/authStore')
+  const { useBusWizardStore } = require('../../store/busWizardStore')
+
+  if (!useAuthStore.getState().user) {
+    method === 'replace' ? router.replace('/login') : router.push('/login')
+    return
+  }
+
+  const state = useBusWizardStore.getState()
+  if (hasMeaningfulBusData(state)) {
+    method === 'replace' ? router.replace('/buses/drafts') : router.push('/buses/drafts')
+  } else {
+    state.reset()
+    method === 'replace' ? router.replace('/buses/new') : router.push('/buses/new')
+  }
+}
+
+/**
+ * Meaningful data definition for equipmentWizardStore
+ * Only verified real fields from EquipmentFormData
+ */
+export function hasMeaningfulEquipmentData(state: any): boolean {
+  if (!state || !state.formData) return false
+  const d = state.formData
+  if (d.editMode || state.editMode) return false
+
+  if (state.currentStep > 1) return true
+
+  if (d.title && d.title.trim().length > 0) return true
+  if (d.equipmentType && d.equipmentType.trim().length > 0) return true
+  if (d.description && d.description.trim().length > 0) return true
+  if (d.make && d.make.trim().length > 0) return true
+  if (d.model && d.model.trim().length > 0) return true
+  if (d.price && Number(d.price) > 0) return true
+  if (d.dailyPrice && Number(d.dailyPrice) > 0) return true
+  if (d.monthlyPrice && Number(d.monthlyPrice) > 0) return true
+  if (d.budgetMax && Number(d.budgetMax) > 0) return true
+  if (d.governorateId) return true
+  if (d.wilayaId) return true
+  if (d.images && d.images.length > 0) return true
+  if (d.features && d.features.length > 0) return true
+
+  return false
+}
+
+export function navigateToEquipmentForm(method: 'push' | 'replace' = 'push'): void {
+  const { router } = require('expo-router')
+  const { useAuthStore } = require('../../store/authStore')
+  const { useEquipmentWizardStore } = require('../../store/equipmentWizardStore')
+
+  if (!useAuthStore.getState().user) {
+    method === 'replace' ? router.replace('/login') : router.push('/login')
+    return
+  }
+
+  const store = useEquipmentWizardStore.getState()
+  if (hasMeaningfulEquipmentData(store)) {
+    method === 'replace' ? router.replace('/equipment/drafts') : router.push('/equipment/drafts')
+  } else {
+    store.resetDraft()
+    method === 'replace' ? router.replace('/equipment/new') : router.push('/equipment/new')
+  }
+}
+
+

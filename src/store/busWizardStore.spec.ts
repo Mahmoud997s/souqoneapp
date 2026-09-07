@@ -23,14 +23,24 @@ describe('busWizardStore', () => {
     expect(state.wilayaNameAr).toBe('Seeb');
   });
 
-  it('setEditMode correctly updates data, editMode, and editListingId', () => {
+  it('setEditMode correctly updates all data fields including manufacturerId, modelId, contractExpiry, and currency', () => {
     useBusWizardStore.getState().setEditMode('bus-101', {
       title: 'حافلة تويوتا كوستر للبيع',
       make: 'Toyota',
       model: 'Coaster',
+      manufacturerId: 'man-toyota-1',
+      modelId: 'mod-coaster-2',
       price: '15000',
-      busListingType: 'BUS_SALE',
+      currency: 'OMR',
+      busListingType: 'BUS_SALE_WITH_CONTRACT',
       busType: 'COASTER',
+      contractType: 'SCHOOL',
+      contractClient: 'مدرسة مسقط الدولية',
+      contractMonthly: '800',
+      contractDuration: '24',
+      contractExpiry: '2027-09-01T00:00:00.000Z',
+      governorateId: 1,
+      wilayaId: 101,
     });
 
     const state = useBusWizardStore.getState();
@@ -39,14 +49,27 @@ describe('busWizardStore', () => {
     expect(state.data.title).toBe('حافلة تويوتا كوستر للبيع');
     expect(state.data.make).toBe('Toyota');
     expect(state.data.model).toBe('Coaster');
+    expect(state.data.manufacturerId).toBe('man-toyota-1');
+    expect(state.data.modelId).toBe('mod-coaster-2');
     expect(state.data.price).toBe('15000');
-    expect(state.data.busListingType).toBe('BUS_SALE');
+    expect(state.data.currency).toBe('OMR');
+    expect(state.data.busListingType).toBe('BUS_SALE_WITH_CONTRACT');
     expect(state.data.busType).toBe('COASTER');
+    expect(state.data.contractType).toBe('SCHOOL');
+    expect(state.data.contractClient).toBe('مدرسة مسقط الدولية');
+    expect(state.data.contractMonthly).toBe('800');
+    expect(state.data.contractDuration).toBe('24');
+    expect(state.data.contractExpiry).toBe('2027-09-01T00:00:00.000Z');
+    expect(state.data.governorateId).toBe(1);
+    expect(state.data.wilayaId).toBe(101);
   });
 
-  it('reset() clears all location fields, data, editMode, and editListingId back to initial state', () => {
+  it('reset() clears all location fields, data, editMode, and editListingId back to initial defaults', () => {
     useBusWizardStore.getState().setEditMode('bus-101', {
       title: 'حافلة تجريبية',
+      manufacturerId: 'man-1',
+      modelId: 'mod-1',
+      contractExpiry: '2027-09-01',
     });
     useBusWizardStore.getState().setLocation(1, 2, 'Muscat', 'Seeb');
     useBusWizardStore.getState().reset();
@@ -54,7 +77,12 @@ describe('busWizardStore', () => {
     const state = useBusWizardStore.getState();
     expect(state.editMode).toBe(false);
     expect(state.editListingId).toBeNull();
+    expect(state.currentStep).toBe(1);
     expect(state.data.title).toBe('');
+    expect(state.data.currency).toBe('OMR');
+    expect(state.data.manufacturerId).toBeNull();
+    expect(state.data.modelId).toBeNull();
+    expect(state.data.contractExpiry).toBeNull();
     expect(state.data.governorateId).toBeNull();
     expect(state.data.wilayaId).toBeNull();
     expect(state.data.governorateNameAr).toBe('');

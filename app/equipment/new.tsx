@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -7,15 +7,18 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native'
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
 import { Spacing } from '../../src/constants/spacing'
-import { AppHeader } from '../../src/components/ui/AppHeader'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
@@ -54,6 +57,8 @@ export default function NewEquipmentListingScreen() {
     resetDraft,
   } = useEquipmentWizardStore()
 
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
+
   // Auto-fill phone from auth user if empty
   useEffect(() => {
     if (user?.phone && !formData.contactPhone) {
@@ -82,7 +87,7 @@ export default function NewEquipmentListingScreen() {
     if (currentStep < TOTAL_STEPS) {
       nextStep()
     } else {
-      handleSubmit()
+      handleConfirmSubmit()
     }
   }
 
@@ -90,14 +95,38 @@ export default function NewEquipmentListingScreen() {
     if (currentStep > 1) {
       prevStep()
     } else {
-      router.back()
+      if (formData.editMode) {
+        dialogService.confirm(
+          'الخروج من التعديل',
+          'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
+          () => router.back(),
+          'خروج',
+          'إلغاء',
+          true
+        )
+      } else {
+        dialogService.confirm(
+          'الخروج',
+          'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
+          () => router.back(),
+          'خروج',
+          'إلغاء'
+        )
+      }
     }
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm('مسح المسودة', 'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟', () => {
-      resetDraft()
-    })
+    dialogService.confirm(
+      'مسح المسودة',
+      'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟',
+      () => {
+        resetDraft()
+      },
+      'نعم، مسح',
+      'تراجع',
+      true
+    )
   }
 
   const getStepTitle = () => {
@@ -117,11 +146,28 @@ export default function NewEquipmentListingScreen() {
     }
   }
 
-  const [isUploadingImages, setIsUploadingImages] = React.useState(false)
+  const handleConfirmSubmit = () => {
+    if (formData.editMode) {
+      executeSubmit()
+    } else {
+      dialogService.confirm(
+        'تأكيد النشر',
+        'هل أنت متأكد من صحة كافة البيانات وترغب في نشر الإعلان الآن؟',
+        () => executeSubmit(),
+        'نعم، نشر الإعلان',
+        'مراجعة البيانات'
+      )
+    }
+  }
 
-  const handleSubmit = async () => {
-    const isValid = validateStep(4)
-    if (!isValid) return
+  const executeSubmit = async () => {
+    for (let s = 1; s <= 4; s++) {
+      const isValid = validateStep(s)
+      if (!isValid) {
+        goToStep(s)
+        return
+      }
+    }
 
     setIsUploadingImages(true)
 
@@ -259,10 +305,15 @@ export default function NewEquipmentListingScreen() {
       )
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => {
+        onSuccess: (res: any) => {
+          const equipId = res?.data?.id ?? res?.id
           dialogService.alert('تم بنجاح', 'تم نشر إعلان المعدة بنجاح في سوق ون!')
           resetDraft()
-          router.replace('/equipment')
+          if (equipId) {
+            router.replace(`/equipment/${equipId}`)
+          } else {
+            router.replace('/equipment')
+          }
         },
         onError: (err: any) => {
           const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
@@ -281,30 +332,60 @@ export default function NewEquipmentListingScreen() {
     >
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <AppHeader
-          title={formData.editMode ? 'تعديل إعلان معدة' : 'إضافة معدة جديدة'}
-          showBack
-          onLeftPress={handlePrev}
+        {/* Ambient glass backdrop */}
+        <LinearGradient
+          colors={['#EAF2FF', '#FFF6EE']}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
+        <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
+
+        <GlassNavBar
+          title={formData.editMode ? 'تعديل إعلان معدة' : 'إضافة معدة'}
+          paddingTop={insets.top}
+          onBackPress={handlePrev}
+          actions={[
+            {
+              icon: 'chatbubble-outline',
+              onPress: () => router.push('/(tabs)/chat' as any),
+              accessibilityLabel: 'الرسائل',
+            },
+            {
+              icon: 'notifications-outline',
+              onPress: () => router.push('/profile/notifications' as any),
+              accessibilityLabel: 'الإشعارات',
+            },
+          ]}
         />
 
         <ScrollView
           style={s.scrollView}
-          contentContainerStyle={s.content}
+          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* Stepper Header */}
-          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} title={getStepTitle()} />
+          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} title={getStepTitle()} variant="light" />
 
           {/* Draft Auto-Save Bar */}
           <View style={s.draftBar}>
             <View style={s.draftBadge}>
-              <Ionicons name="cloud-done-outline" size={14} color="#059669" />
+              <View style={s.draftIconWrap}>
+                <Ionicons name="cloud-done-outline" size={13} color="#059669" />
+              </View>
               <Text style={s.draftBadgeTxt}>يتم حفظ مسودتك تلقائياً</Text>
             </View>
             {!formData.editMode && (
-              <TouchableOpacity onPress={handleClearDraft} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity
+                style={s.clearDraftBtn}
+                onPress={handleClearDraft}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Text style={s.clearDraftTxt}>مسح والبدء من جديد</Text>
               </TouchableOpacity>
             )}
@@ -371,7 +452,15 @@ export default function NewEquipmentListingScreen() {
         </ScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
-        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BlurView
+          intensity={60}
+          tint="light"
+          experimentalBlurMethod="dimezisBlurView"
+          style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
+        >
+          <View style={s.footerWhiteWash} pointerEvents="none" />
+          <View style={s.footerTint} pointerEvents="none" />
+
           {currentStep > 1 ? (
             <View style={s.footerBtnGroup}>
               <AppButton
@@ -400,7 +489,7 @@ export default function NewEquipmentListingScreen() {
               disabled={isSubmitting}
             />
           )}
-        </View>
+        </BlurView>
       </View>
     </KeyboardAvoidingView>
   )
@@ -409,62 +498,113 @@ export default function NewEquipmentListingScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F3EEFF',
+  },
+  orb: {
+    position: 'absolute',
+    borderRadius: 9999,
+  },
+  orbPrimary: {
+    width: 260,
+    height: 260,
+    top: -80,
+    left: -70,
+    backgroundColor: Colors.primary,
+    opacity: 0.08,
+  },
+  orbAccent: {
+    width: 220,
+    height: 220,
+    bottom: 80,
+    right: -60,
+    backgroundColor: Colors.accent,
+    opacity: 0.1,
   },
   scrollView: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space2,
+    paddingHorizontal: Spacing.space4 - 4,
     paddingBottom: 120,
   },
   draftBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#F0FDF9',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    borderRadius: Radius.md,
-    paddingHorizontal: 12,
+    borderColor: '#D1FAE5',
+    borderRadius: 14,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     marginBottom: Spacing.space3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#059669',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+      },
+      android: { elevation: 1 },
+    }),
   },
   draftBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  draftIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#D1FAE5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   draftBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#047857',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#065F46',
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  clearDraftBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(220,38,38,0.06)',
   },
   clearDraftTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
     color: Colors.error,
-    textDecorationLine: 'underline',
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.white,
+    overflow: 'hidden',
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: 'rgba(255,255,255,0.5)',
     paddingHorizontal: Spacing.space4,
     paddingTop: 10,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },
       android: { elevation: 8 },
     }),
+  },
+  footerWhiteWash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.08,
+  },
+  footerTint: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: Colors.primary,
+    opacity: 0.04,
   },
   footerBtnGroup: {
     flexDirection: 'row',

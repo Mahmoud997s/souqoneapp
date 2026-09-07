@@ -185,8 +185,8 @@ export const useEquipmentWizardStore = create<EquipmentWizardState>()(
             quantity: listing.quantity ? String(listing.quantity) : '1',
             siteDetails: listing.siteDetails || '',
 
-            governorateId: listing.governorateId || null,
-            wilayaId: listing.wilayaId || null,
+            governorateId: listing.governorateId ?? listing.governorateRef?.id ?? null,
+            wilayaId: listing.wilayaId ?? listing.wilayaRef?.id ?? null,
             governorate: listing.governorateRef?.nameAr || listing.governorate || '',
             city: listing.wilayaRef?.nameAr || listing.city || '',
             latitude: listing.latitude || null,

@@ -10,13 +10,14 @@ import {
   useBusesBottomBar,
   useJobsBottomBar,
 } from '../hooks/useDepartmentBottomBar'
-import { navigateToPartForm, navigateToCarForm, navigateToServiceForm } from '../components/ui/DraftResumePrompt'
+import { navigateToPartForm, navigateToCarForm, navigateToServiceForm, navigateToBusForm } from '../components/ui/DraftResumePrompt'
 import { useAuthStore } from '../store/authStore'
 
 jest.mock('../components/ui/DraftResumePrompt', () => ({
   navigateToPartForm: jest.fn(),
   navigateToCarForm: jest.fn(),
   navigateToServiceForm: jest.fn(),
+  navigateToBusForm: jest.fn(),
   showDraftResumePrompt: jest.fn(),
   hasMeaningfulPostData: jest.fn(),
 }))
@@ -98,6 +99,14 @@ describe('useDepartmentBottomBar Specialized Hooks', () => {
   it('useBusesBottomBar configures 5 tabs', async () => {
     await render(<TestBottomBarHarness hookType="buses" />)
     expect(screen.getByTestId('tab-count').props.children).toBe('5')
+  })
+
+  it('useBusesBottomBar delegates handlePostPress to navigateToBusForm', async () => {
+    await render(<TestBottomBarHarness hookType="buses" />)
+
+    fireEvent.press(screen.getByTestId('btn-post'))
+
+    expect(navigateToBusForm).toHaveBeenCalledTimes(1)
   })
 
   it('useJobsBottomBar configures 5 tabs', async () => {

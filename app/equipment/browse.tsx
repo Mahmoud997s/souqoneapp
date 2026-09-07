@@ -25,6 +25,7 @@ import { OMAN_LOCATIONS } from '../../src/constants/locations';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
+import { formatLocation } from '../../src/utils/mappers';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -373,8 +374,7 @@ export default function EquipmentBrowseScreen() {
                   condition: (item as any).condition,
                   year: raw.year,
                   mileage: raw.hoursUsed,
-                  governorate: (item as any).governorate,
-                  city: raw.city
+                  governorate: formatLocation(raw),
                 } as any} 
                 onPress={() => router.push(`/equipment/${(item as any).id}` as any)} 
                 fullWidth
