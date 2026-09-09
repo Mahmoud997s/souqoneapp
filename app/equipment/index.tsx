@@ -18,6 +18,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { useEquipment, useOperatorsInfinite } from '../../src/hooks/useEquipment'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
+import { useOperatorNavigation } from '../../src/hooks/useOperatorNavigation'
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt'
 
 import { EquipmentCategoriesGrid } from '../../src/components/equipment/EquipmentCategoriesGrid'
@@ -83,6 +84,7 @@ export default function EquipmentLandingScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { scrollHandler, scrollY } = useScrollAwareNav()
+  const { navigateToAddOperator } = useOperatorNavigation()
 
   // Fetch Data
   const { data: latestEquipment = [], isLoading: loadingEq } = useEquipment({ limit: 10 })
@@ -136,7 +138,7 @@ export default function EquipmentLandingScreen() {
         outlineCta={{
           label: 'سجل كمشغل',
           icon: 'person-add-outline',
-          onPress: () => router.push('/equipment/operators/add' as any)
+          onPress: () => navigateToAddOperator()
         }}
       />
 
@@ -148,6 +150,7 @@ export default function EquipmentLandingScreen() {
         contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
+          <EquipmentPromoBanners />
 
           <View style={s.sectionsGrid}>
             <TouchableOpacity style={s.sectionItem} onPress={() => router.push('/equipment/browse?type=sale')}>

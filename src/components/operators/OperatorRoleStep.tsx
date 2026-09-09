@@ -1,14 +1,76 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppInput } from '../ui/AppInput'
 import { OPERATOR_ROLES } from '../../constants/operators'
-import { OperatorRoleStepProps } from '../../types/operatorForm.types'
+import { OperatorWizardFormData } from '../../store/operatorWizardStore'
+import * as ImagePicker from 'expo-image-picker'
+import { uploadsApi } from '../../api/uploads'
+import { dialogService } from '../../store/dialogStore'
+import { EditProfileAvatar } from '../profile/EditProfileAvatar'
+import { Config } from '../../constants/config'
+import { WizardCard } from '../ui/WizardCard'
+
+export interface OperatorRoleStepProps {
+  formData: OperatorWizardFormData
+  errors: Record<string, string>
+  onUpdateField: <K extends keyof OperatorWizardFormData>(field: K, value: OperatorWizardFormData[K]) => void
+}
 
 export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRoleStepProps) {
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+  const handlePickAvatar = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== 'granted') {
+        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز')
+        return
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setIsUploadingImage(true)
+        const asset = result.assets[0]
+        const uri = asset.uri
+        const rawFilename = asset.fileName || uri.split('/').pop() || 'avatar.jpg'
+        const match = /\.(\w+)$/.exec(rawFilename)
+        const type = asset.mimeType || (match ? `image/${match[1]}` : 'image/jpeg')
+        const filename = rawFilename.includes('.') ? rawFilename : `${rawFilename}.${match ? match[1] : 'jpg'}`
+
+        const uploadData = new FormData()
+        uploadData.append('file', {
+          uri,
+          name: filename,
+          type,
+        } as any)
+
+        const uploadRes = await uploadsApi.single(uploadData)
+        if (uploadRes.data?.url) {
+          onUpdateField('profileImageUrl', uploadRes.data.url)
+        }
+      }
+    } catch (err: any) {
+      console.error('❌ [OperatorRoleStep] Error uploading avatar:', err?.message, err?.response?.data || err)
+      dialogService.alert('خطأ', 'حدث خطأ أثناء رفع الصورة')
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  const displayAvatar = formData.profileImageUrl
+    ? formData.profileImageUrl.startsWith('http') || formData.profileImageUrl.startsWith('file')
+      ? formData.profileImageUrl
+      : `${Config.apiUrl}${formData.profileImageUrl.startsWith('/') ? '' : '/'}${formData.profileImageUrl}`
+    : null
+
   return (
     <View style={s.stepWrap}>
       {/* Value proposition intro banner */}
@@ -22,12 +84,21 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
         </View>
       </View>
 
-      <Text style={s.sectionLabel}>اختر نوع الدور أو الخدمة *</Text>
-      <Text style={s.sectionSub}>حدد تخصصك الرئيسي ليظهر في مقدمة بطاقتك التعريفية</Text>
+      <WizardCard title="الصورة الشخصية للمشغل (اختياري)" subtitle="أضف صورتك الشخصية لتعزيز الموثوقية">
+        <View style={{ opacity: isUploadingImage ? 0.5 : 1 }}>
+          <EditProfileAvatar displayAvatar={displayAvatar} onPress={handlePickAvatar} />
+          {displayAvatar && (
+            <TouchableOpacity onPress={() => onUpdateField('profileImageUrl', null)}>
+              <Text style={{ textAlign: 'center', color: Colors.error, marginTop: 4, fontFamily: 'Almarai_700Bold', fontSize: 12 }}>إزالة الصورة</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </WizardCard>
 
-      {errors.operatorType ? (
-        <Text style={s.inlineErrorTxt}>{errors.operatorType}</Text>
-      ) : null}
+      <WizardCard title="اختر نوع الدور أو الخدمة *" subtitle="حدد تخصصك الرئيسي ليظهر في مقدمة بطاقتك التعريفية">
+        {errors.operatorType ? (
+          <Text style={s.inlineErrorTxt}>{errors.operatorType}</Text>
+        ) : null}
 
       <View style={s.rolesGrid}>
         {OPERATOR_ROLES.map((r) => {
@@ -40,7 +111,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
               activeOpacity={0.85}
             >
               <View style={[s.roleIconWrap, isSel && s.roleIconWrapActive]}>
-                <MaterialCommunityIcons
+                <Ionicons
                   name={r.icon as any}
                   size={20}
                   color={isSel ? '#ffffff' : Colors.primary}
@@ -58,9 +129,10 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
           )
         })}
       </View>
+      </WizardCard>
 
       {/* Grouped Info Card */}
-      <View style={s.cardSection}>
+      <WizardCard title="التفاصيل المهنية *" subtitle="عنوان الإعلان ونبذة عن خبراتك">
         <AppInput
           label="عنوان الإعلان / المسمى المهني *"
           placeholder="مثال: مشغل معدات ثقيلة وبلدوزر خبرة 10 سنوات"
@@ -89,7 +161,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
           maxLength={2000}
           error={errors.description}
         />
-      </View>
+      </WizardCard>
     </View>
   )
 }

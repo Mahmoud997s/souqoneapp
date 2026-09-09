@@ -1,9 +1,11 @@
-import { OperatorFormData, OperatorFormErrors } from '../types/operatorForm.types'
+import { OperatorWizardFormData } from '../store/operatorWizardStore'
+
+export type OperatorFormErrors = Partial<Record<keyof OperatorWizardFormData | 'governorate' | 'city', string>>
 
 /**
  * Pure validation logic for Operator Form steps
  */
-export function validateOperatorStep(step: number, formData: Partial<OperatorFormData>): { isValid: boolean; errors: OperatorFormErrors } {
+export function validateOperatorStep(step: number, formData: Partial<OperatorWizardFormData>): { isValid: boolean; errors: OperatorFormErrors } {
   const errors: OperatorFormErrors = {}
 
   if (step === 1) {

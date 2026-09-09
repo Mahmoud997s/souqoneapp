@@ -145,6 +145,28 @@ export function useUpdateOperator() {
   })
 }
 
+export function useDeleteOperator() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => equipmentApi.deleteOperator(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operators-infinite'] })
+      queryClient.invalidateQueries({ queryKey: ['my-operators'] })
+    },
+  })
+}
+
+export function useCancelOperatorDeletionRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (requestId: string) => equipmentApi.cancelOperatorDeletionRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-operators'] })
+      queryClient.invalidateQueries({ queryKey: ['operator-item'] })
+    },
+  })
+}
+
 // Bid Mutations
 export function useCreateEquipmentBid() {
   return useMutation({

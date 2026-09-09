@@ -1,9 +1,9 @@
 import { validateOperatorStep } from '../hooks/useOperatorValidation'
 import { buildOperatorPayload } from '../utils/operator-payload'
-import { OperatorFormData } from '../types/operatorForm.types'
+import { OperatorWizardFormData } from '../store/operatorWizardStore'
 
 describe('Operators Wizard (Add & Edit Tests)', () => {
-  const baseValidForm: OperatorFormData = {
+  const baseValidForm: OperatorWizardFormData = {
     operatorType: 'OPERATOR',
     title: 'مشغل حفارات كوماتسو بخبرة 8 سنوات',
     experienceYears: '8',
@@ -13,6 +13,7 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
     certifications: ['رخصة معدات ثقيلة'],
     dailyRate: '25',
     hourlyRate: '5',
+    currency: 'OMR',
     isPriceNegotiable: true,
     governorateId: 1,
     wilayaId: 101,
@@ -20,6 +21,9 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
     wilayaName: 'السيب',
     contactPhone: '96891234567',
     whatsapp: '96891234567',
+    profileImageUrl: null,
+    isEditMode: false,
+    editListingId: null,
   }
 
   // ── 1. Step 1: Role, Type, Title & Description ──────────────────────────

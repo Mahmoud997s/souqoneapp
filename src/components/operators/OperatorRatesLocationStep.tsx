@@ -5,7 +5,16 @@ import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppInput } from '../ui/AppInput'
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
-import { OperatorRatesLocationStepProps } from '../../types/operatorForm.types'
+import { OperatorWizardFormData } from '../../store/operatorWizardStore'
+import { WizardCard } from '../ui/WizardCard'
+
+export interface OperatorRatesLocationStepProps {
+  formData: OperatorWizardFormData
+  errors: Record<string, string>
+  onUpdateField: <K extends keyof OperatorWizardFormData>(field: K, value: OperatorWizardFormData[K]) => void
+  onLocationChange: (govId: number, wilId: number | undefined, govNameAr?: string, wilNameAr?: string) => void
+  onClearFieldError?: (field: string) => void
+}
 
 export function OperatorRatesLocationStep({
   formData,
@@ -16,9 +25,7 @@ export function OperatorRatesLocationStep({
   return (
     <View style={s.stepWrap}>
       {/* Expected Rates Card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>الأجر المتوقع ونظام التعاقد *</Text>
-        <Text style={s.cardSub}>حدد الأجر الاسترشادي اليومي أو بالساعة</Text>
+      <WizardCard title="الأجر المتوقع ونظام التعاقد *" subtitle="حدد الأجر الاسترشادي اليومي أو بالساعة">
 
         <View style={s.ratesRow}>
           <View style={{ flex: 1 }}>
@@ -54,11 +61,10 @@ export function OperatorRatesLocationStep({
             trackColor={{ false: '#E2E8F0', true: Colors.primary }}
           />
         </View>
-      </View>
+      </WizardCard>
 
       {/* Location Picker */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>الموقع ونطاق العمل *</Text>
+      <WizardCard title="الموقع ونطاق العمل *">
         <GovernorateWilayaSelect
           governorateId={formData.governorateId}
           wilayaId={formData.wilayaId}
@@ -66,11 +72,10 @@ export function OperatorRatesLocationStep({
           govError={errors.governorateId}
           cityError={errors.city}
         />
-      </View>
+      </WizardCard>
 
       {/* Contact numbers */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>بيانات الاتصال والتواصل *</Text>
+      <WizardCard title="بيانات الاتصال والتواصل *">
         <AppInput
           label="رقم الهاتف للاتصال المباشر *"
           placeholder="مثال: 96891234567"
@@ -88,7 +93,7 @@ export function OperatorRatesLocationStep({
           onChangeText={(val) => onUpdateField('whatsapp', val)}
           error={errors.whatsapp}
         />
-      </View>
+      </WizardCard>
     </View>
   )
 }

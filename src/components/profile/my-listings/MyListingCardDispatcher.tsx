@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Dimensions } from 'react-native'
+import { View, StyleSheet, Dimensions, Text } from 'react-native'
 import { MyListingItem } from '../../../types/my-listings.types'
 import { MyListingActionButtons } from './MyListingActionButtons'
 import { CarCard } from '../../cars/CarCard'
@@ -18,6 +18,7 @@ export interface MyListingCardDispatcherProps {
   onEdit: (item: MyListingItem) => void
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
+  onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: boolean
   fullWidth?: boolean
 }
@@ -28,6 +29,7 @@ export function MyListingCardDispatcher({
   onEdit,
   onDelete,
   onStatusChange,
+  onCancelDeletionRequest,
   isEditSupported,
   fullWidth = false,
 }: MyListingCardDispatcherProps) {
@@ -37,9 +39,21 @@ export function MyListingCardDispatcher({
       onDelete={onDelete}
       onEdit={onEdit}
       onStatusChange={onStatusChange}
+      onCancelDeletionRequest={onCancelDeletionRequest}
       isEditSupported={isEditSupported}
     />
   )
+
+  const renderPendingBanner = () => {
+    if (item.pendingDeletionRequest && item.pendingDeletionRequest.status === 'PENDING') {
+      return (
+        <View style={s.pendingBanner}>
+          <Text style={s.pendingBannerText}>طلب حذف قيد المراجعة</Text>
+        </View>
+      )
+    }
+    return null
+  }
 
   switch (item.entityType) {
     case 'car':
@@ -101,13 +115,16 @@ export function MyListingCardDispatcher({
       )
     case 'operator':
       return (
-        <ModernOperatorCard
-          item={item.mapped as any}
-          onPress={() => onView(item)}
-          fullWidth={fullWidth}
-          maxChips={3}
-          actionMenu={menu}
-        />
+        <View style={[s.overlayContainer, !fullWidth && { width: CARD_SCALE_WIDTH, alignSelf: 'flex-start' }]}>
+          <ModernOperatorCard
+            item={item.mapped as any}
+            onPress={() => onView(item)}
+            fullWidth={true}
+            maxChips={3}
+            actionMenu={menu}
+          />
+          {renderPendingBanner()}
+        </View>
       )
     case 'job':
       return (
@@ -134,5 +151,23 @@ const s = StyleSheet.create({
     top: 12,
     left: 12,
     zIndex: 10,
+  },
+  pendingBanner: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)', // Red-500 with opacity
+    paddingVertical: 6,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  pendingBannerText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: '#FFFFFF',
   },
 })

@@ -15,7 +15,20 @@ import { Spacing } from '../../constants/spacing'
 import { CardSystem } from '../../constants/cardSystem'
 import { AppInput } from '../ui/AppInput'
 import { AVAILABLE_EQUIPMENT } from '../../constants/operators'
-import { OperatorEquipCertsStepProps } from '../../types/operatorForm.types'
+import { OperatorWizardFormData } from '../../store/operatorWizardStore'
+import { WizardCard } from '../ui/WizardCard'
+
+export interface OperatorEquipCertsStepProps {
+  formData: OperatorWizardFormData
+  errors: Record<string, string>
+  onToggleEquipment: (eqId: string) => void
+  onPickCertificateImages: () => void
+  onRemoveCertificate: (index: number) => void
+  onAddTextCertificate: (text: string) => void
+  onAddSpecialization?: (text: string) => void
+  onRemoveSpecialization?: (index: number) => void
+  isUploading: boolean
+}
 
 export function OperatorEquipCertsStep({
   formData,
@@ -50,9 +63,7 @@ export function OperatorEquipCertsStep({
   return (
     <View style={s.stepWrap}>
       {/* Equipment Selection Section */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>المعدات المصرح بتشغيلها *</Text>
-        <Text style={s.cardSub}>اختر كل المعدات المصرح لك بقيادتها ولديك خبرة بها</Text>
+      <WizardCard title="المعدات المصرح بتشغيلها *" subtitle="اختر كل المعدات المصرح لك بقيادتها ولديك خبرة بها">
 
         {errors.equipmentTypes ? (
           <Text style={s.inlineErrorTxt}>{errors.equipmentTypes}</Text>
@@ -79,12 +90,10 @@ export function OperatorEquipCertsStep({
             )
           })}
         </View>
-      </View>
+      </WizardCard>
 
       {/* Certifications and licenses card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>الرخص والشهادات المهنية *</Text>
-        <Text style={s.cardSub}>أرفق صور رخص القيادة وشهادات السلامة أو اكتبها نصياً</Text>
+      <WizardCard title="الرخص والشهادات المهنية *" subtitle="أرفق صور رخص القيادة وشهادات السلامة أو اكتبها نصياً">
 
         {errors.certifications ? (
           <Text style={s.inlineErrorTxt}>{errors.certifications}</Text>
@@ -180,12 +189,10 @@ export function OperatorEquipCertsStep({
             })}
           </View>
         )}
-      </View>
+      </WizardCard>
 
       {/* Specializations card */}
-      <View style={s.cardSection}>
-        <Text style={s.cardTitle}>التخصصات والمهارات الإضافية</Text>
-        <Text style={s.cardSub}>مهارات ميكانيكية، صيانة موقعية، تشغيل ليلي</Text>
+      <WizardCard title="التخصصات والمهارات الإضافية" subtitle="مهارات ميكانيكية، صيانة موقعية، تشغيل ليلي">
 
         <View style={s.addInputRow}>
           <View style={{ flex: 1 }}>
@@ -220,7 +227,7 @@ export function OperatorEquipCertsStep({
             ))}
           </View>
         )}
-      </View>
+      </WizardCard>
     </View>
   )
 }

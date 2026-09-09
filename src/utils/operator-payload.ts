@@ -1,5 +1,5 @@
 /**
- * Accepts both OperatorFormData (edit screen) and OperatorWizardFormData (store/add screen).
+ * Accepts OperatorWizardFormData (for both add and edit flows).
  * governorateId/wilayaId are optional here because the store marks them as optional;
  * validation guarantees they are non-null before this function is ever called.
  */
