@@ -5,9 +5,11 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { useRouter } from 'expo-router'
+import { useOperatorNavigation } from '../../hooks/useOperatorNavigation'
 
 export const EquipmentPromoBanners = () => {
   const router = useRouter()
+  const { navigateToAddOperator } = useOperatorNavigation()
   return (
     <>
 
@@ -43,7 +45,7 @@ export const EquipmentPromoBanners = () => {
           <View style={s.promoContent}>
             <Text style={[s.promoTitle, { color: '#ffffff' }]}>سجل كمشغل الآن</Text>
             <Text style={[s.promoDesc, { color: '#cbd5e1' }]}>انضم لأفضل شبكة مشغلي المعدات واعرض خبراتك للشركات والأفراد.</Text>
-            <TouchableOpacity style={[s.promoBtn, { backgroundColor: '#1e3a8a' }]} activeOpacity={0.8} onPress={() => router.push('/equipment/operators/add')}>
+            <TouchableOpacity style={[s.promoBtn, { backgroundColor: '#1e3a8a' }]} activeOpacity={0.8} onPress={navigateToAddOperator}>
               <Text style={s.promoBtnTxt}>تسجيل كمشغل</Text>
               <Ionicons name="chevron-back" size={14} color={Colors.white} />
             </TouchableOpacity>

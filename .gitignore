@@ -9,6 +9,8 @@ node_modules/
 
 # ── Environment (sensitive) ───────────────────
 .env
+.env.*
+!.env.example
 .env.local
 .env.production
 .env.staging

@@ -120,6 +120,7 @@ export interface OperatorListing {
   currency?: string
   isPriceNegotiable?: boolean
   isNegotiable?: boolean
+  profileImageUrl?: string | null
 
   governorate?: string
   city?: string
@@ -137,6 +138,11 @@ export interface OperatorListing {
   isPremium?: boolean
   featuredUntil?: string
   viewCount?: number
+  pendingDeletionRequest?: {
+    id: string
+    createdAt: string
+    status: 'PENDING'
+  } | null
 
   createdAt?: string
   updatedAt?: string

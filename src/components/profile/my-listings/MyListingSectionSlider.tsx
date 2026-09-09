@@ -23,6 +23,7 @@ export interface MyListingSectionSliderProps {
   onEdit: (item: MyListingItem) => void
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
+  onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: (entityType: MyListingEntityType) => boolean
 }
 
@@ -34,6 +35,7 @@ export function MyListingSectionSlider({
   onEdit,
   onDelete,
   onStatusChange,
+  onCancelDeletionRequest,
   isEditSupported,
 }: MyListingSectionSliderProps) {
   if (!items || items.length === 0) return null
@@ -85,6 +87,7 @@ export function MyListingSectionSlider({
             onEdit={onEdit}
             onDelete={onDelete}
             onStatusChange={onStatusChange}
+            onCancelDeletionRequest={onCancelDeletionRequest}
             isEditSupported={isEditSupported(item.entityType)}
             fullWidth={false}
           />

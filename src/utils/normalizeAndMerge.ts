@@ -179,6 +179,15 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
   for (const op of operators) {
     if (!op || !op.id) continue
     const rawStatus = op.status || 'ACTIVE'
+    // Extract pendingDeletionRequest assuming the backend might return it as an object
+    // or as an array of deletionRequests.
+    let pendingDeletionRequest: any = undefined
+    if (op.pendingDeletionRequest) {
+      pendingDeletionRequest = op.pendingDeletionRequest
+    } else if (Array.isArray(op.deletionRequests)) {
+      pendingDeletionRequest = op.deletionRequests.find((req: any) => req.status === 'PENDING')
+    }
+
     results.push({
       id: op.id,
       entityType: 'operator',
@@ -189,6 +198,7 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
       updatedAt: op.updatedAt || op.createdAt || '',
       raw: op,
       mapped: mapOperatorToCard(op),
+      pendingDeletionRequest,
     })
   }
 

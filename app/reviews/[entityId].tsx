@@ -37,8 +37,13 @@ function formatTime(iso: string) {
 }
 
 export default function ReviewsScreen() {
-  const { entityId, type = 'USER' } = useLocalSearchParams<{ entityId: string; type?: string }>()
-  const [isWriting, setIsWriting] = React.useState(false)
+  const { entityId, type = 'USER', revieweeId, write } = useLocalSearchParams<{
+    entityId: string
+    type?: string
+    revieweeId?: string
+    write?: string
+  }>()
+  const [isWriting, setIsWriting] = React.useState(write === 'true')
   const [rating, setRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
   const queryClient = useQueryClient()
@@ -46,7 +51,7 @@ export default function ReviewsScreen() {
   const { data: reviews, isLoading } = useQuery({
     queryKey: ['reviews', entityId],
     queryFn: async () => {
-      const res = await reviewsApi.getByEntity(entityId)
+      const res = await reviewsApi.getByEntity(entityId, type)
       const raw = res.data as any
       return Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? [])
     },
@@ -58,14 +63,24 @@ export default function ReviewsScreen() {
     : 0
 
   const { mutate: submitReview, isPending: submitting } = useMutation({
-    mutationFn: () => reviewsApi.create({ entityId, entityType: type, rating, comment }),
+    mutationFn: () =>
+      reviewsApi.create({
+        entityId,
+        entityType: type,
+        rating,
+        comment,
+        revieweeId: revieweeId || entityId,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', entityId] })
       setIsWriting(false)
       setRating(0)
       setComment('')
     },
-    onError: () => dialogService.alert('خطأ', 'تعذر إضافة التقييم'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'تعذر إضافة التقييم'
+      dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+    },
   })
 
   return (

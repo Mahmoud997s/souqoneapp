@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Linking,
   Dimensions,
   Platform,
+  Modal,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Colors } from '../../../src/constants/colors'
@@ -16,9 +17,11 @@ import { Radius } from '../../../src/constants/radius'
 import { Spacing } from '../../../src/constants/spacing'
 import { CardSystem } from '../../../src/constants/cardSystem'
 import { useOperatorItem } from '../../../src/hooks/useEquipment'
+import { useQuery } from '@tanstack/react-query'
+import { reviewsApi } from '../../../src/api/reviews'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { mapOperatorToCard } from '../../../src/utils/mappers'
+import { formatLocation } from '../../../src/utils/mappers'
 import { useAuthStore } from '../../../src/store/authStore'
 import { chatApi } from '../../../src/api/chat'
 import { Image } from 'expo-image'
@@ -38,10 +41,36 @@ export default function OperatorDetailScreen() {
 
   const { data: operator, isLoading, isError } = useOperatorItem(id as string)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+
+  const certImages = useMemo(
+    () => (operator?.certifications ?? []).filter((c: string) => c.startsWith('http') || c.startsWith('/')),
+    [operator?.certifications]
+  )
+  const certTexts = useMemo(
+    () => (operator?.certifications ?? []).filter((c: string) => !c.startsWith('http') && !c.startsWith('/')),
+    [operator?.certifications]
+  )
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: async () => {
+      const res = await reviewsApi.getByEntity(id as string, 'OPERATOR_LISTING')
+      const raw = res.data as any
+      return Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? [])
+    },
+    enabled: !!id,
+  })
+
+  const reviewsList = Array.isArray(reviewsData) ? reviewsData : []
+  const reviewCount = reviewsList.length
+  const avgRating = reviewCount > 0
+    ? reviewsList.reduce((sum: number, r: any) => sum + (r.rating ?? 0), 0) / reviewCount
+    : 0
 
   if (isLoading) {
     return (
-      <View style={[s.root, s.center, { paddingTop: insets.top + 40, paddingHorizontal: 16 }]}>
+      <View style={[s.root, s.center, { paddingTop: insets.top + Spacing.touch, paddingHorizontal: Spacing.space4 }]}>
         <SkeletonCard />
         <SkeletonCard />
       </View>
@@ -56,28 +85,24 @@ export default function OperatorDetailScreen() {
         </View>
         <Text style={s.errorTxt}>تعذّر العثور على ملف المشغل</Text>
         <TouchableOpacity style={s.retryBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-forward" size={18} color="#fff" />
+          <Ionicons name="arrow-forward" size={18} color={Colors.white} />
           <Text style={s.retryTxt}>العودة للخلف</Text>
         </TouchableOpacity>
       </View>
     )
   }
 
-  const cardData = mapOperatorToCard(operator)
-  const sellerId = operator.userId || (operator as any).raw?.user?.id
-  const sellerPhone = operator.contactPhone || (operator as any).raw?.user?.phone || (operator as any).phone
-  const raw = operator as any
-  const avatarUrl = operator.user?.avatarUrl || operator.user?.avatar || raw.user?.avatarUrl || raw.avatarUrl
-  const displayName = operator.user?.displayName || operator.user?.name || raw.user?.displayName || raw.user?.name || 'مشغل معتمد'
-  const isVerified = operator.user?.isVerified || raw.user?.isVerified || raw.isVerified || false
+  const sellerId = operator.userId
+  const sellerPhone = operator.contactPhone
+  const avatarUrl = operator.profileImageUrl || operator.user?.avatarUrl
+  const whatsappNumber = operator.whatsapp || operator.contactPhone
+  const displayName = operator.user?.displayName || operator.user?.name || 'مشغل معتمد'
+  const isVerified = Boolean(operator.user?.isVerified)
   const isOwner = user?.id === sellerId
 
-  const locationText =
-    operator.governorateRef?.nameAr && operator.wilayaRef?.nameAr
-      ? `${operator.governorateRef.nameAr} - ${operator.wilayaRef.nameAr}`
-      : operator.governorate && operator.city
-      ? `${operator.governorate} - ${operator.city}`
-      : operator.governorate || 'سلطنة عمان'
+  const locationText = formatLocation(operator)
+  const reviewsUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}`
+  const writeReviewUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}&write=true`
 
   const handleCall = () => {
     if (sellerPhone) {
@@ -88,9 +113,9 @@ export default function OperatorDetailScreen() {
   }
 
   const handleWhatsApp = () => {
-    if (sellerPhone) {
-      const cleanPhone = sellerPhone.replace(/[^0-9+]/g, '')
-      const msg = encodeURIComponent(`مرحباً ${displayName}، بخصوص ملفك كمشغل في تطبيق سوق ون: ${cardData.title}`)
+    if (whatsappNumber) {
+      const cleanPhone = whatsappNumber.replace(/[^0-9+]/g, '')
+      const msg = encodeURIComponent(`مرحباً ${displayName}، بخصوص ملفك كمشغل في تطبيق سوق ون: ${operator.title}`)
       Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${msg}`)
     } else {
       dialogService.alert('تنبيه', 'رقم الواتساب غير متوفر')
@@ -127,9 +152,9 @@ export default function OperatorDetailScreen() {
     operator.experienceYears != null && { label: 'سنوات الخبرة', value: `${operator.experienceYears} سنوات` },
     operator.dailyRate != null && operator.dailyRate > 0 && { label: 'الأجر اليومي', value: `${operator.dailyRate} ${currency} / يوم` },
     operator.hourlyRate != null && operator.hourlyRate > 0 && { label: 'الأجر بالساعة', value: `${operator.hourlyRate} ${currency} / ساعة` },
-    (operator.isPriceNegotiable != null || operator.isNegotiable != null) && {
+    operator.isPriceNegotiable != null && {
       label: 'قابلية التفاوض',
-      value: (operator.isPriceNegotiable ?? operator.isNegotiable) ? 'نعم، قابل للتفاوض' : 'سعر نهائي',
+      value: operator.isPriceNegotiable ? 'نعم، قابل للتفاوض' : 'سعر نهائي',
     },
     { label: 'الموقع والمنطقة', value: locationText },
   ].filter(Boolean) as { label: string; value: string }[]
@@ -142,7 +167,7 @@ export default function OperatorDetailScreen() {
         onPress={() => router.back()}
         activeOpacity={0.85}
       >
-        <Ionicons name="arrow-forward" size={22} color="#ffffff" />
+        <Ionicons name="arrow-forward" size={22} color={Colors.white} />
       </TouchableOpacity>
 
       <ScrollView
@@ -202,7 +227,7 @@ export default function OperatorDetailScreen() {
               )}
               {operator.experienceYears != null && operator.experienceYears > 0 && (
                 <View style={s.expBadge}>
-                  <Ionicons name="shield-checkmark" size={13} color="#059669" />
+                  <Ionicons name="shield-checkmark" size={13} color={Colors.successDeep} />
                   <Text style={s.expTxt}>خبرة {operator.experienceYears} سنوات</Text>
                 </View>
               )}
@@ -210,8 +235,33 @@ export default function OperatorDetailScreen() {
                 <Ionicons name="location-sharp" size={14} color={Colors.textMuted} />
                 <Text style={s.locationTxtMeta}>{locationText}</Text>
               </View>
+
+              {/* Rating Summary Badge */}
+              <TouchableOpacity
+                style={s.ratingBadgeMeta}
+                onPress={() => router.push(reviewsUrl as any)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="star" size={13} color={Colors.warning} />
+                <Text style={s.ratingTxtMeta}>
+                  {reviewCount > 0 ? `${avgRating.toFixed(1)} (${reviewCount})` : 'جديد'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
+
+          {/* Owner Pending Deletion Notice */}
+          {isOwner && Boolean(operator.pendingDeletionRequest && operator.pendingDeletionRequest.status === 'PENDING') && (
+            <View style={s.pendingNoticeCard}>
+              <Ionicons name="time-outline" size={20} color={Colors.error} />
+              <View style={{ flex: 1 }}>
+                <Text style={s.pendingNoticeTitle}>طلب حذف قيد المراجعة</Text>
+                <Text style={s.pendingNoticeSub}>
+                  تم تقديم طلب لحذف هذا الملف المهني وهو قيد مراجعة الإدارة حالياً.
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Pricing Highlight Card */}
           <View style={s.priceCard}>
@@ -223,7 +273,7 @@ export default function OperatorDetailScreen() {
                 <Text style={s.priceLabelTxt}>
                   {operator.dailyRate ? 'الأجر اليومي الاسترشادي' : operator.hourlyRate ? 'الأجر بالساعة' : 'الأجر والتعاقد'}
                 </Text>
-                {(operator.isPriceNegotiable ?? operator.isNegotiable) && (
+                {operator.isPriceNegotiable && (
                   <Text style={s.negotiable}>قابل للتفاوض</Text>
                 )}
               </View>
@@ -285,10 +335,37 @@ export default function OperatorDetailScreen() {
             (operator.certifications && operator.certifications.length > 0)) && (
             <View style={s.section}>
               <Text style={s.sectionTitle}>الشهادات والتخصصات الإضافية</Text>
+
+              {/* Certificate Image Previews */}
+              {certImages.length > 0 && (
+                <View style={s.certImagesBox}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={s.certImagesScroll}
+                  >
+                    {certImages.map((imgUrl: string, idx: number) => (
+                      <TouchableOpacity
+                        key={`cert-img-${idx}`}
+                        style={s.certThumbnailCard}
+                        onPress={() => setPreviewImage(imgUrl)}
+                        activeOpacity={0.85}
+                      >
+                        <Image source={{ uri: imgUrl }} style={s.certThumbnailImg} contentFit="cover" />
+                        <View style={s.certThumbnailOverlay}>
+                          <Ionicons name="expand-outline" size={14} color={Colors.white} />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Text Chips (Plain Text Certifications & Specializations) */}
               <View style={s.chipRow}>
-                {operator.certifications?.map((c: string, idx: number) => (
+                {certTexts.map((c: string, idx: number) => (
                   <View key={`cert-${idx}`} style={[s.chip, s.certChip]}>
-                    <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginEnd: 5 }} />
+                    <Ionicons name="ribbon" size={13} color={Colors.warning} style={{ marginEnd: 5 }} />
                     <Text style={[s.chipTxt, s.certChipTxt]}>{c}</Text>
                   </View>
                 ))}
@@ -323,32 +400,96 @@ export default function OperatorDetailScreen() {
               </View>
             </View>
           )}
+
+          {/* ── REVIEWS & RATINGS SECTION ── */}
+          <View style={s.section}>
+            <View style={s.sectionHeaderRow}>
+              <Text style={s.sectionTitle}>التقييمات والمراجعات</Text>
+              <TouchableOpacity
+                onPress={() => router.push(reviewsUrl as any)}
+                activeOpacity={0.7}
+              >
+                <Text style={s.seeAllReviewsTxt}>عرض الكل ({reviewCount})</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.reviewsSummaryCard}>
+              <View style={s.reviewsScoreCol}>
+                <View style={s.scoreBigRow}>
+                  <Text style={s.scoreBigTxt}>{reviewCount > 0 ? avgRating.toFixed(1) : '—'}</Text>
+                  <Text style={s.scoreMaxTxt}>/ 5</Text>
+                </View>
+                <View style={s.starsRowSummary}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Ionicons
+                      key={star}
+                      name="star"
+                      size={15}
+                      color={star <= Math.round(avgRating) ? Colors.warning : Colors.border}
+                    />
+                  ))}
+                </View>
+                <Text style={s.reviewsCountSub}>
+                  {reviewCount > 0 ? `${reviewCount} تقييم معتمد` : 'لا توجد تقييمات بعد'}
+                </Text>
+              </View>
+
+              <View style={s.reviewsActionCol}>
+                {!isOwner && (
+                  <TouchableOpacity
+                    style={s.addReviewBtn}
+                    onPress={() => router.push(writeReviewUrl as any)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="create-outline" size={16} color={Colors.white} />
+                    <Text style={s.addReviewBtnTxt}>أضف تقييم</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={s.browseReviewsBtn}
+                  onPress={() => router.push(reviewsUrl as any)}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="chatbubbles-outline" size={16} color={Colors.primary} />
+                  <Text style={s.browseReviewsBtnTxt}>تصفح التقييمات</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
       {/* ── FIXED FLOATING BOTTOM CONTACT BAR ── */}
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {isOwner ? (
-          <TouchableOpacity
-            style={s.editWideBtn}
-            onPress={() => router.push(`/equipment/operators/edit/${operator.id}` as any)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="create-outline" size={20} color="#ffffff" />
-            <Text style={s.editWideTxt}>تعديل الملف المهني</Text>
-          </TouchableOpacity>
+          <View style={s.ownerBottomContainer}>
+            {Boolean(operator.pendingDeletionRequest && operator.pendingDeletionRequest.status === 'PENDING') && (
+              <View style={s.pendingBottomNotice}>
+                <Ionicons name="time-outline" size={15} color={Colors.error} />
+                <Text style={s.pendingBottomNoticeTxt}>طلب حذف قيد المراجعة</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={s.editWideBtn}
+              onPress={() => router.push(`/equipment/operators/edit/${operator.id}` as any)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="create-outline" size={20} color={Colors.white} />
+              <Text style={s.editWideTxt}>تعديل الملف المهني</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={s.contactBtnGroup}>
             {sellerPhone ? (
               <TouchableOpacity style={s.callBtn} onPress={handleCall} activeOpacity={0.85}>
-                <Ionicons name="call" size={18} color="#ffffff" />
+                <Ionicons name="call" size={18} color={Colors.white} />
                 <Text style={s.callBtnTxt}>اتصال</Text>
               </TouchableOpacity>
             ) : null}
 
-            {sellerPhone ? (
+            {whatsappNumber ? (
               <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.85}>
-                <Ionicons name="logo-whatsapp" size={18} color="#ffffff" />
+                <Ionicons name="logo-whatsapp" size={18} color={Colors.white} />
                 <Text style={s.whatsappBtnTxt}>واتساب</Text>
               </TouchableOpacity>
             ) : null}
@@ -360,6 +501,31 @@ export default function OperatorDetailScreen() {
           </View>
         )}
       </View>
+
+      {/* ── FULLSCREEN IMAGE PREVIEW MODAL ── */}
+      <Modal
+        visible={Boolean(previewImage)}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View style={s.modalBackdrop}>
+          <TouchableOpacity
+            style={[s.modalCloseBtn, { top: insets.top + 16 }]}
+            onPress={() => setPreviewImage(null)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="close" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          {previewImage && (
+            <Image
+              source={{ uri: previewImage }}
+              style={s.modalPreviewImg}
+              contentFit="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -367,7 +533,7 @@ export default function OperatorDetailScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surfaceAlt,
   },
   center: {
     alignItems: 'center',
@@ -375,7 +541,7 @@ const s = StyleSheet.create({
   },
   backBtn: {
     position: 'absolute',
-    start: 16,
+    start: Spacing.space4,
     zIndex: 20,
     width: 40,
     height: 40,
@@ -392,26 +558,26 @@ const s = StyleSheet.create({
     position: 'relative',
   },
   body: {
-    backgroundColor: '#F8F9FA',
-    borderTopStartRadius: 28,
-    borderTopEndRadius: 28,
+    backgroundColor: Colors.surfaceAlt,
+    borderTopStartRadius: Radius.xl,
+    borderTopEndRadius: Radius.xl,
     marginTop: -28,
     paddingHorizontal: Spacing.space4,
-    paddingTop: 16,
+    paddingTop: Spacing.space4,
   },
   avatarWrapper: {
     alignSelf: 'center',
     position: 'relative',
     marginTop: -56,
-    marginBottom: 10,
+    marginBottom: Spacing.space3,
   },
   avatarCircle: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -428,8 +594,8 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     end: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
   },
   headerArea: {
     alignItems: 'center',
@@ -442,7 +608,7 @@ const s = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
     lineHeight: 26,
-    marginBottom: 4,
+    marginBottom: Spacing.space1,
   },
   displayNameTxt: {
     fontFamily: 'Almarai_700Bold',
@@ -451,19 +617,19 @@ const s = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 10,
+    marginBottom: Spacing.space3,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: Spacing.space2,
   },
   typeBadgeInline: {
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
     borderRadius: CardSystem.radius.inner,
     borderWidth: 1,
     borderColor: '#DBEAFE',
@@ -477,10 +643,10 @@ const s = StyleSheet.create({
   expBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.space1,
     backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
     borderRadius: CardSystem.radius.inner,
     borderWidth: 1,
     borderColor: '#A7F3D0',
@@ -489,24 +655,24 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#059669',
+    color: Colors.successDeep,
   },
   locationWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.space1,
     backgroundColor: '#F8FAFC',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
     borderRadius: CardSystem.radius.inner,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
   },
   locationTxtMeta: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.text2,
   },
   priceCard: {
     flexDirection: 'row',
@@ -516,7 +682,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.space3,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.border,
     marginBottom: Spacing.space3,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
@@ -549,7 +715,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#059669',
+    color: Colors.successDeep,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: 2,
@@ -561,7 +727,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 17,
     lineHeight: 23,
-    color: '#EA580C',
+    color: Colors.accent,
     textAlign: 'right',
   },
   currency: {
@@ -593,13 +759,13 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.space3,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.border,
   },
   desc: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 20,
-    color: '#334155',
+    color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -607,9 +773,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    marginTop: 10,
-    paddingTop: 8,
+    gap: Spacing.space1,
+    marginTop: Spacing.space3,
+    paddingTop: Spacing.space2,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
@@ -629,16 +795,16 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
     borderRadius: CardSystem.radius.inner,
   },
   chipTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.text2,
   },
   certChip: {
     backgroundColor: '#FEF3C7',
@@ -659,13 +825,13 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.border,
   },
   detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.space3,
-    paddingVertical: 10,
+    paddingVertical: Spacing.space3,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
@@ -697,10 +863,10 @@ const s = StyleSheet.create({
     start: 0,
     end: 0,
     backgroundColor: Colors.white,
-    paddingTop: 10,
+    paddingTop: Spacing.space3,
     paddingHorizontal: Spacing.space3,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.border,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 10 },
       android: { elevation: 8 },
@@ -710,20 +876,20 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: Spacing.space2,
     backgroundColor: Colors.primary,
-    paddingVertical: 12,
+    paddingVertical: Spacing.space3,
     borderRadius: Radius.md,
   },
   editWideTxt: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 18,
-    color: '#ffffff',
+    color: Colors.white,
   },
   contactBtnGroup: {
     flexDirection: 'row',
-    gap: 8,
+    gap: Spacing.space2,
   },
   callBtn: {
     flex: 1,
@@ -739,7 +905,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#ffffff',
+    color: Colors.white,
   },
   whatsappBtn: {
     flex: 1,
@@ -747,7 +913,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
-    backgroundColor: '#16A34A',
+    backgroundColor: Colors.success,
     paddingVertical: 11,
     borderRadius: Radius.md,
   },
@@ -755,7 +921,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#ffffff',
+    color: Colors.white,
   },
   chatBtn: {
     flex: 1,
@@ -782,14 +948,14 @@ const s = StyleSheet.create({
     backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.space3,
   },
   errorTxt: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 22,
     color: Colors.text,
-    marginBottom: 14,
+    marginBottom: Spacing.space4,
     textAlign: 'center',
   },
   retryBtn: {
@@ -797,7 +963,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: Colors.primary,
-    paddingHorizontal: 18,
+    paddingHorizontal: Spacing.space4,
     paddingVertical: 9,
     borderRadius: Radius.md,
   },
@@ -805,6 +971,214 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#ffffff',
+    color: Colors.white,
+  },
+  pendingNoticeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space3,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space3,
+    marginBottom: Spacing.space4,
+  },
+  pendingNoticeTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  pendingNoticeSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 17,
+    color: '#991B1B',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginTop: 2,
+  },
+  ownerBottomContainer: {
+    width: '100%',
+    gap: Spacing.space2,
+  },
+  pendingBottomNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: Radius.sm,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.space3,
+  },
+  pendingBottomNoticeTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.error,
+  },
+  certImagesBox: {
+    marginBottom: Spacing.space3,
+  },
+  certImagesScroll: {
+    gap: Spacing.space3,
+  },
+  certThumbnailCard: {
+    width: 88,
+    height: 88,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceAlt,
+    position: 'relative',
+  },
+  certThumbnailImg: {
+    width: '100%',
+    height: '100%',
+  },
+  certThumbnailOverlay: {
+    position: 'absolute',
+    bottom: 4,
+    end: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: Radius.md,
+    padding: 3,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    start: Spacing.space4,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPreviewImg: {
+    width: SW,
+    height: '80%',
+  },
+  ratingBadgeMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
+    borderRadius: CardSystem.radius.inner,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  ratingTxtMeta: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#B45309',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.space3,
+  },
+  seeAllReviewsTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.primary,
+  },
+  reviewsSummaryCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.space4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  reviewsScoreCol: {
+    alignItems: 'flex-start',
+  },
+  scoreBigRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.space1,
+  },
+  scoreBigTxt: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 28,
+    lineHeight: 34,
+    color: Colors.text,
+  },
+  scoreMaxTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.text2,
+  },
+  starsRowSummary: {
+    flexDirection: 'row',
+    gap: 3,
+    marginVertical: Spacing.space1,
+  },
+  reviewsCountSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.text2,
+  },
+  reviewsActionCol: {
+    gap: Spacing.space2,
+    minWidth: 130,
+  },
+  addReviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space1,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.space2,
+    paddingHorizontal: Spacing.space3,
+    borderRadius: Radius.md,
+  },
+  addReviewBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.white,
+  },
+  browseReviewsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space1,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingVertical: Spacing.space2,
+    paddingHorizontal: Spacing.space3,
+    borderRadius: Radius.md,
+  },
+  browseReviewsBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.primary,
   },
 })

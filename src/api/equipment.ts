@@ -22,7 +22,8 @@ export const equipmentApi = {
   createOperator: (data: Partial<OperatorListing>) => apiClient.post<OperatorListing>('/operators', data),
   updateOperator: (id: string, data: Partial<OperatorListing>) =>
     apiClient.patch<OperatorListing>(`/operators/${id}`, data),
-  deleteOperator: (id: string) => apiClient.delete(`/operators/${id}`),
+  deleteOperator: (id: string, reason?: string) => apiClient.delete(`/operators/${id}`, { data: { reason } }),
+  cancelOperatorDeletionRequest: (requestId: string) => apiClient.delete(`/operators/deletion-requests/${requestId}`),
 
   // Bids (for EQUIPMENT_WANTED)
   getBids: (equipmentId: string) => apiClient.get<PaginatedResponse<EquipmentBid>>(`/equipment/${equipmentId}/bids`),

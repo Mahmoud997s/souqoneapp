@@ -20,6 +20,7 @@ import { OperatorCard } from '../../../src/components/cards/OperatorCard'
 import { useOperatorsInfinite, useMyOperators } from '../../../src/hooks/useEquipment'
 import { useAuthStore } from '../../../src/store/authStore'
 import { useScrollAwareNav } from '../../../src/hooks/useScrollAwareNav'
+import { useOperatorNavigation } from '../../../src/hooks/useOperatorNavigation'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
 import { SupportHelpButton } from '../../../src/components/ui/SupportHelpButton'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
@@ -41,6 +42,7 @@ import { OMAN_LOCATIONS } from '../../../src/constants/locations'
 export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
   const { scrollHandler } = useScrollAwareNav()
+  const { navigateToAddOperator } = useOperatorNavigation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<OperatorFilterState>({})
@@ -319,7 +321,7 @@ export default function BrowseOperatorsScreen() {
             {/* Modular Smart Banner */}
             <OperatorSmartBanner
               myOperatorProfile={myOperatorProfile}
-              onJoinPress={() => router.push('/equipment/operators/add')}
+              onJoinPress={navigateToAddOperator}
               onEditPress={(profileId) => router.push(`/equipment/operators/edit/${profileId}` as any)}
             />
 

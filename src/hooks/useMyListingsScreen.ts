@@ -112,6 +112,33 @@ export function useMyListingsScreen() {
   }, [refetch])
 
   const handleDelete = (item: MyListingItem) => {
+    // ════════════════════════════════════════════════════════════
+    // OPERATOR DELETION FLOW (Request-based instead of immediate)
+    // ════════════════════════════════════════════════════════════
+    if (item.entityType === 'operator') {
+      dialogService.confirm(
+        'طلب حذف البروفايل',
+        'سيتم رفع طلب لإدارة التطبيق لحذف البروفايل المهني. هل أنت متأكد من رغبتك في الحذف؟',
+        async () => {
+          try {
+            await equipmentApi.deleteOperator(item.id)
+            await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
+            dialogService.alert('تم بنجاح', 'تم إرسال طلب حذف البروفايل للإدارة وسوف يتم مراجعته.', 'success')
+          } catch (err: any) {
+            const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء إرسال طلب الحذف'
+            dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
+          }
+        },
+        'إرسال الطلب',
+        'إلغاء',
+        true
+      )
+      return
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // STANDARD DELETION FLOW (Immediate deletion for all other types)
+    // ════════════════════════════════════════════════════════════
     dialogService.confirm(
       'حذف الإعلان',
       'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
@@ -126,9 +153,6 @@ export function useMyListingsScreen() {
               break
             case 'equipment':
               await equipmentApi.delete(item.id)
-              break
-            case 'operator':
-              await equipmentApi.deleteOperator(item.id)
               break
             case 'part':
               await partsApi.remove(item.id)
@@ -152,6 +176,27 @@ export function useMyListingsScreen() {
       'حذف',
       'إلغاء',
       true
+    )
+  }
+
+  const handleCancelDeletionRequest = (item: MyListingItem) => {
+    if (!item.pendingDeletionRequest) return
+
+    dialogService.confirm(
+      'إلغاء طلب الحذف',
+      'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
+      async () => {
+        try {
+          await equipmentApi.cancelOperatorDeletionRequest(item.pendingDeletionRequest!.id)
+          await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
+          dialogService.alert('تم بنجاح', 'تم إلغاء طلب حذف البروفايل بنجاح.', 'success')
+        } catch (err: any) {
+          const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء إلغاء الطلب'
+          dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
+        }
+      },
+      'تأكيد الإلغاء',
+      'تراجع'
     )
   }
 
@@ -358,6 +403,7 @@ export function useMyListingsScreen() {
     handleEdit,
     handleView,
     handleStatusChange,
+    handleCancelDeletionRequest,
     isEditSupported,
   }
 }

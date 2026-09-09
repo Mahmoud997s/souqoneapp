@@ -25,6 +25,7 @@ export interface MyListingsCategoryViewProps {
   onEdit: (item: MyListingItem) => void
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
+  onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
   topInset: number
@@ -44,6 +45,7 @@ export function MyListingsCategoryView({
   onEdit,
   onDelete,
   onStatusChange,
+  onCancelDeletionRequest,
   isEditSupported,
   bottomInset,
   topInset,
@@ -101,6 +103,7 @@ export function MyListingsCategoryView({
             onEdit={onEdit}
             onDelete={onDelete}
             onStatusChange={onStatusChange}
+            onCancelDeletionRequest={onCancelDeletionRequest}
             isEditSupported={isEditSupported(item.entityType)}
             fullWidth={true}
           />

@@ -8,15 +8,18 @@ import {
   Platform,
   ActivityIndicator,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native'
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
+import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import { Colors } from '../../../../src/constants/colors'
 import { Radius } from '../../../../src/constants/radius'
 import { Spacing } from '../../../../src/constants/spacing'
-import { AppHeader } from '../../../../src/components/ui/AppHeader'
+import { GlassNavBar } from '../../../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../../../src/components/ui/AppButton'
 import { Stepper } from '../../../../src/components/ui/Stepper'
 import { dialogService } from '../../../../src/store/dialogStore'
@@ -199,10 +202,26 @@ export default function EditOperatorScreen() {
     >
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <AppHeader title="تعديل البطاقة المهنية" showBack onLeftPress={handlePrev} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <LinearGradient
+          colors={['#EAF2FF', '#F3EEFF', '#FFF6EE']}
+          locations={[0, 0.55, 1]}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
+        <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
 
-        <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} title={getStepTitle()} />
+        <GlassNavBar title="تعديل البطاقة المهنية" paddingTop={insets.top} onBackPress={handlePrev} />
+
+        <ScrollView
+          style={s.scrollView}
+          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} title={getStepTitle()} variant="light" />
 
           {/* ═══════════════ STEP 1: ROLE & BASIC INFO ═══════════════ */}
           {currentStep === 1 && (
@@ -251,7 +270,15 @@ export default function EditOperatorScreen() {
         </ScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
-        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BlurView
+          intensity={60}
+          tint="light"
+          experimentalBlurMethod="dimezisBlurView"
+          style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
+        >
+          <View style={s.footerWhiteWash} pointerEvents="none" />
+          <View style={s.footerTint} pointerEvents="none" />
+
           {currentStep > 1 ? (
             <View style={s.footerBtnGroup}>
               <AppButton
@@ -280,7 +307,7 @@ export default function EditOperatorScreen() {
               disabled={updateMutation.isPending}
             />
           )}
-        </View>
+        </BlurView>
       </View>
     </KeyboardAvoidingView>
   )
@@ -289,16 +316,38 @@ export default function EditOperatorScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F3EEFF',
+  },
+  orb: {
+    position: 'absolute',
+    borderRadius: 9999,
+  },
+  orbPrimary: {
+    width: 260,
+    height: 260,
+    top: -80,
+    left: -70,
+    backgroundColor: Colors.primary,
+    opacity: 0.08,
+  },
+  orbAccent: {
+    width: 220,
+    height: 220,
+    bottom: 80,
+    right: -60,
+    backgroundColor: Colors.accent,
+    opacity: 0.1,
   },
   center: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.space4,
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
-    paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space2,
+    paddingHorizontal: Spacing.space4 - 4,
     paddingBottom: 120,
   },
   loadingTxt: {
@@ -334,15 +383,25 @@ const s = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: 'rgba(255,255,255,0.5)',
     paddingHorizontal: Spacing.space4,
     paddingTop: 10,
+    overflow: 'hidden',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },
       android: { elevation: 8 },
     }),
+  },
+  footerWhiteWash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.08,
+  },
+  footerTint: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: Colors.primary,
+    opacity: 0.04,
   },
   footerBtnGroup: {
     flexDirection: 'row',

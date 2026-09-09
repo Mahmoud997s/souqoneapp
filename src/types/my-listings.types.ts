@@ -37,4 +37,10 @@ export interface MyListingItem {
   mapped?: UnifiedCardItem
   /** Optimistic Concurrency Control version */
   version?: number
+  /** Pending deletion request for Operators (optional until backend supports it) */
+  pendingDeletionRequest?: {
+    id: string
+    createdAt: string
+    status: string
+  }
 }

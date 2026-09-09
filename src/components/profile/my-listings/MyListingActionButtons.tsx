@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { MyListingItem } from '../../../types/my-listings.types'
@@ -9,6 +9,7 @@ export interface MyListingActionButtonsProps {
   onDelete: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
+  onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: boolean
 }
 
@@ -17,8 +18,38 @@ export function MyListingActionButtons({
   onDelete,
   onEdit,
   onStatusChange,
+  onCancelDeletionRequest,
   isEditSupported,
 }: MyListingActionButtonsProps) {
+  // Check if there is a pending deletion request
+  if (item.pendingDeletionRequest && item.pendingDeletionRequest.status === 'PENDING') {
+    const createdAtMs = new Date(item.pendingDeletionRequest.createdAt).getTime()
+    const isUnder24Hours = Date.now() - createdAtMs < 24 * 60 * 60 * 1000
+
+    if (!isUnder24Hours) {
+      // Locked for admin review, show disabled label
+      return (
+        <View style={s.actionRow}>
+          <View style={[s.cancelRequestBtn, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}>
+            <Text style={[s.cancelRequestTxt, { color: '#6B7280' }]}>قيد مراجعة الإدارة</Text>
+          </View>
+        </View>
+      )
+    }
+
+    return (
+      <View style={s.actionRow}>
+        <TouchableOpacity
+          style={s.cancelRequestBtn}
+          activeOpacity={0.8}
+          onPress={() => onCancelDeletionRequest && onCancelDeletionRequest(item)}
+        >
+          <Text style={s.cancelRequestTxt}>إلغاء طلب الحذف</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
     <View style={s.actionRow}>
       {/* Delete Action Button */}
@@ -76,5 +107,23 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.18,
     shadowRadius: 4,
+  },
+  cancelRequestBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  cancelRequestTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    color: '#DC2626',
   },
 })
