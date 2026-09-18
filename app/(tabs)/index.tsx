@@ -254,6 +254,15 @@ export default function HomeScreen() {
             </Animated.View>
           </View>
 
+          {/* Test Screen Link (Dev Mode) */}
+          <TouchableOpacity
+            style={[s.iconBtn, { backgroundColor: '#2563EB', marginLeft: 8 }]}
+            onPress={() => router.push('/scroll-card-test' as any)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="flask" size={18} color={Colors.white} />
+          </TouchableOpacity>
+
           {/* Bell Icon (Always Visible) */}
           <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/profile/notifications')}>
             <Ionicons name="notifications-outline" size={22} color={Colors.white} />

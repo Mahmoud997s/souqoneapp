@@ -242,7 +242,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-    direction: 'rtl',
   },
   timingBtn: {
     flex: 1,
@@ -320,7 +319,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginTop: 8,
-    direction: 'rtl',
   },
   flex1: {
     flex: 1,
@@ -367,7 +365,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     backgroundColor: '#F8F9FA',
-    direction: 'rtl',
   },
   currencyInput: {
     flex: 1,

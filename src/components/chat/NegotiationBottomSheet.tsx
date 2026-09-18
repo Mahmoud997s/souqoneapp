@@ -97,7 +97,7 @@ const s = StyleSheet.create({
   diffBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   bgGreen: { backgroundColor: '#E5F6E5' },
   bgRed: { backgroundColor: '#FFE5E5' },
-  diffBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, direction: 'ltr' },
+  diffBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, writingDirection: 'ltr' },
   txtGreen: { color: '#2E7D32' },
   txtRed: { color: '#FF4D4D' },
 
