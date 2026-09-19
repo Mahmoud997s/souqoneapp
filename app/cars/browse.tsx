@@ -25,7 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useInfiniteCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import {
   DROPDOWN_FILTERS,
   SORT_OPTIONS,
@@ -79,42 +79,88 @@ interface FilterState {
   trim?: string;
 }
 
+function parseFiltersFromParams(params: {
+  type?: string;
+  condition?: string;
+  featured?: string;
+  isPremium?: string;
+  make?: string;
+  brandId?: string;
+}): FilterState {
+  const initialFilters: FilterState = {};
+  const t = params.type?.toLowerCase();
+
+  if (t === 'used') {
+    initialFilters.condition = 'USED';
+  } else if (t === 'new') {
+    initialFilters.condition = 'NEW';
+  } else if (t === 'wanted') {
+    initialFilters.listingType = 'WANTED';
+  } else if (t === 'rental' || t === 'rent') {
+    initialFilters.listingType = 'RENTAL';
+  } else if (t === 'sale') {
+    initialFilters.listingType = 'SALE';
+  }
+
+  if (params.condition) {
+    initialFilters.condition = params.condition.toUpperCase();
+  }
+
+  if (params.featured === 'true' || params.isPremium === 'true') {
+    initialFilters.isPremium = true;
+  }
+
+  if (params.make) {
+    initialFilters.make = params.make;
+  }
+
+  if (params.brandId) {
+    initialFilters.makeId = params.brandId;
+  }
+
+  return initialFilters;
+}
+
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
 
-  const searchParams = useLocalSearchParams<{ type?: string; featured?: string }>();
+  const searchParams = useLocalSearchParams<{
+    type?: string;
+    condition?: string;
+    featured?: string;
+    isPremium?: string;
+    make?: string;
+    brandId?: string;
+  }>();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>(undefined);
-  const [selectedBrandName, setSelectedBrandName] = useState<string | undefined>(undefined);
-  
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const initialFilters: FilterState = {};
-    const t = searchParams.type?.toLowerCase();
-    
-    if (t === 'used') {
-      initialFilters.condition = 'USED';
-      initialFilters.listingType = 'SALE';
-    } else if (t === 'new') {
-      initialFilters.condition = 'NEW';
-      initialFilters.listingType = 'SALE';
-    } else if (t === 'wanted') {
-      initialFilters.listingType = 'WANTED';
-    } else if (t === 'rental' || t === 'rent') {
-      initialFilters.listingType = 'RENTAL';
-    } else if (t === 'sale') {
-      initialFilters.listingType = 'SALE';
-    }
-    
-    if (searchParams.featured === 'true') {
-      initialFilters.isPremium = true;
-    }
-    
-    return initialFilters;
-  });
+  const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>(
+    () => searchParams.brandId
+  );
+  const [selectedBrandName, setSelectedBrandName] = useState<string | undefined>(
+    () => searchParams.make
+  );
+
+  const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams));
+
+  // Sync state whenever navigation params change (prevents stale filters when navigating)
+  useEffect(() => {
+    const nextFilters = parseFiltersFromParams(searchParams);
+    setFilters(nextFilters);
+    setSelectedBrandId(searchParams.brandId);
+    setSelectedBrandName(searchParams.make);
+  }, [
+    searchParams.type,
+    searchParams.condition,
+    searchParams.featured,
+    searchParams.isPremium,
+    searchParams.make,
+    searchParams.brandId,
+  ]);
+
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   
   // Dropdown Modal State
@@ -173,8 +219,8 @@ export default function CarsBrowseScreen() {
   // Active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (selectedBrandId) count++;
-    const skipKeys = new Set(['makeId', 'modelId']);
+    if (selectedBrandId || filters.makeId || filters.make) count++;
+    const skipKeys = new Set(['makeId', 'make', 'modelId']);
     Object.entries(filters).forEach(([key, val]) => {
       if (skipKeys.has(key)) return;
       if (val !== undefined && val !== '') count++;
@@ -408,7 +454,7 @@ export default function CarsBrowseScreen() {
               <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
             )}
             {listings && listings.length > 0 && (
-              <ActionBanner
+              <SectionFooterAction
                 title="لديك سيارة للبيع؟"
                 subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
                 buttonText="أضف إعلانك"

@@ -1,12 +1,14 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  FlatList,
+  TouchableOpacity,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,10 +21,12 @@ import { navigateToServiceForm } from '../../src/components/ui/DraftResumePrompt
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
+import { ListingTabs, TabItem } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
-import { EmptyState } from '../../src/components/ui/EmptyState';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 
 // Services Components
 import { ServiceCard } from '../../src/components/services/ServiceCard';
@@ -34,14 +38,40 @@ import { ServicesFilterState } from '../../src/types/filters.types';
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
-import { GOVERNORATE_OPTIONS } from '../../src/constants/filters';
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../src/constants/services';
 
-const DROPDOWN_FILTERS = [
-  { id: 'serviceType', label: 'نوع الخدمة', icon: 'build-outline' },
-  { id: 'providerType', label: 'المزود', icon: 'person-outline' },
-  { id: 'gov', label: 'الموقع', icon: 'location-outline' },
+const PROVIDER_TABS: TabItem[] = [
+  { id: 'WORKSHOP', label: 'مراكز وورش' },
+  { id: 'INDIVIDUAL', label: 'فنيين مستقلين' },
+  { id: 'MOBILE', label: 'خدمة متنقلة' },
 ];
+
+function parseServicesFiltersFromParams(params: {
+  q?: string;
+  serviceType?: string;
+  providerType?: string;
+  governorate?: string;
+  governorateId?: string;
+  wilayaId?: string;
+  isHomeService?: string;
+}): ServicesFilterState {
+  const initial: ServicesFilterState = {};
+  if (params.serviceType) initial.serviceType = params.serviceType;
+  if (params.providerType) {
+    initial.providerType = params.providerType === 'CENTER' ? 'WORKSHOP' : params.providerType;
+  }
+  if (params.governorate) initial.governorate = params.governorate;
+  if (params.governorateId) {
+    const parsed = parseInt(String(params.governorateId), 10);
+    if (!isNaN(parsed) && parsed > 0) initial.governorateId = parsed;
+  }
+  if (params.wilayaId) {
+    const parsed = parseInt(String(params.wilayaId), 10);
+    if (!isNaN(parsed) && parsed > 0) initial.wilayaId = parsed;
+  }
+  if (params.isHomeService === 'true') initial.isHomeService = true;
+  return initial;
+}
 
 export default function ServicesBrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -52,29 +82,44 @@ export default function ServicesBrowseScreen() {
     serviceType?: string;
     providerType?: string;
     governorate?: string;
+    governorateId?: string;
+    wilayaId?: string;
     isHomeService?: string;
   }>();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(searchParams.q || '');
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
-  const [filters, setFilters] = useState<ServicesFilterState>(() => {
-    const initial: ServicesFilterState = {};
-    if (searchParams.serviceType) initial.serviceType = searchParams.serviceType;
-    if (searchParams.providerType) initial.providerType = searchParams.providerType;
-    if (searchParams.governorate) initial.governorate = searchParams.governorate;
-    if (searchParams.isHomeService === 'true') initial.isHomeService = true;
-    return initial;
-  });
+  const [filters, setFilters] = useState<ServicesFilterState>(() =>
+    parseServicesFiltersFromParams(searchParams)
+  );
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<
+    'serviceType' | 'specialization' | 'providerType' | 'city' | 'sort' | null
+  >(null);
+
+  // Sync state whenever navigation params change (prevents stale filters when navigating)
+  useEffect(() => {
+    const nextFilters = parseServicesFiltersFromParams(searchParams);
+    setFilters(nextFilters);
+    if (searchParams.q !== undefined) {
+      setSearchQuery(searchParams.q);
+    }
+  }, [
+    searchParams.q,
+    searchParams.serviceType,
+    searchParams.providerType,
+    searchParams.governorate,
+    searchParams.governorateId,
+    searchParams.wilayaId,
+    searchParams.isHomeService,
+  ]);
 
   const handleAddService = useCallback(() => {
     navigateToServiceForm();
   }, []);
-
-  // Debounce search query to prevent lag and excessive API requests
-  const debouncedSearch = useDebounce(searchQuery, 400);
 
   // Combine query parameters for API call
   const queryParams = useMemo(() => {
@@ -94,6 +139,10 @@ export default function ServicesBrowseScreen() {
     if (filters.isOpenNow) params.isOpenNow = true;
     if (filters.specializations && filters.specializations.length > 0) {
       params.specializations = filters.specializations;
+    }
+    if (filters.sortBy) {
+      params.sortBy = filters.sortBy;
+      params.sortOrder = filters.sortOrder || 'desc';
     }
     if (filters.latitude && filters.longitude) {
       params.latitude = filters.latitude;
@@ -124,94 +173,155 @@ export default function ServicesBrowseScreen() {
   // Active filters count calculation
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    Object.entries(filters).forEach(([key, val]) => {
-      if (val !== undefined && val !== '') count++;
+    Object.entries(filters).forEach(([_, val]) => {
+      if (val !== undefined && val !== '' && val !== false) count++;
     });
     return count;
   }, [filters]);
 
+  // Current selected tab for ListingTabs
+  const currentTabId = useMemo(() => {
+    if (filters.providerType === 'WORKSHOP') return 'WORKSHOP';
+    if (filters.providerType === 'INDIVIDUAL') return 'INDIVIDUAL';
+    if (filters.providerType === 'MOBILE') return 'MOBILE';
+    return undefined;
+  }, [filters.providerType]);
+
+  const handleChangeTab = useCallback((id: string) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (next.providerType === id) {
+        delete next.providerType;
+      } else {
+        next.providerType = id;
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClearTab = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      delete next.providerType;
+      return next;
+    });
+  }, []);
+
   // Quick filter chips representation
-  const quickFilterItems: QuickFilterItem[] = [];
+  const quickFilterItems: QuickFilterItem[] = useMemo(() => {
+    const items: QuickFilterItem[] = [];
 
-  // Service Type
-  if (filters.serviceType) {
-    const found = SERVICE_TYPES.find((c) => c.id === filters.serviceType);
-    quickFilterItems.push({
+    // Service Type
+    const foundType = SERVICE_TYPES.find((c) => c.id === filters.serviceType);
+    items.push({
       id: 'serviceType',
-      label: found ? found.label : filters.serviceType,
+      label: foundType ? foundType.label : 'نوع الخدمة',
       icon: 'build-outline' as any,
-      isActive: true,
+      isActive: !!filters.serviceType,
     });
-  } else {
-    quickFilterItems.push({ id: 'serviceType', label: 'نوع الخدمة', icon: 'build-outline' as any, isActive: false });
-  }
 
-  // Specializations
-  if (filters.specializations && filters.specializations.length > 0) {
-    quickFilterItems.push({
-      id: 'specializations',
-      label: filters.specializations.length === 1 ? filters.specializations[0] : `تخصصات (${filters.specializations.length})`,
-      icon: 'pricetags-outline' as any,
-      isActive: true,
+    // Specialization
+    const hasSpec = !!(filters.specializations && filters.specializations.length > 0);
+    items.push({
+      id: 'specialization',
+      label: hasSpec
+        ? filters.specializations!.length === 1
+          ? filters.specializations![0]
+          : `تخصصات (${filters.specializations!.length})`
+        : 'التخصص',
+      icon: 'sparkles-outline' as any,
+      isActive: hasSpec,
     });
-  }
 
-  // Provider Type
-  if (filters.providerType) {
-    const found = PROVIDER_TYPES.find((p) => p.id === filters.providerType);
-    quickFilterItems.push({
-      id: 'providerType',
-      label: found ? found.label : filters.providerType,
-      icon: 'person-outline' as any,
-      isActive: true,
-    });
-  } else {
-    quickFilterItems.push({ id: 'providerType', label: 'المزود', icon: 'person-outline' as any, isActive: false });
-  }
-
-  // Location / Near Me
-  if (filters.latitude && filters.longitude) {
-    quickFilterItems.push({
-      id: 'nearMe',
-      label: 'الأقرب لي',
-      icon: 'location' as any,
-      isActive: true,
-    });
-  } else if (filters.governorateId || filters.governorate) {
-    const displayLabel = filters.city ? filters.city : filters.governorate;
-    quickFilterItems.push({
-      id: 'gov',
-      label: displayLabel || 'موقع',
+    // Location / City
+    const hasLocation = !!(filters.governorateId || filters.city || filters.governorate);
+    const locationLabel = filters.city || filters.governorate || 'الموقع';
+    items.push({
+      id: 'city',
+      label: hasLocation ? locationLabel : 'الموقع',
       icon: 'location-outline' as any,
-      isActive: true,
+      isActive: hasLocation,
     });
-  } else {
-    quickFilterItems.push({ id: 'gov', label: 'الموقع', icon: 'location-outline' as any, isActive: false });
-  }
 
-  // Open Now
-  if (filters.isOpenNow) {
-    quickFilterItems.push({
+    // Provider Type
+    const foundProvider = PROVIDER_TYPES.find((p) => p.id === filters.providerType);
+    items.push({
+      id: 'providerType',
+      label: foundProvider ? foundProvider.label : 'نوع المزود',
+      icon: 'business-outline' as any,
+      isActive: !!filters.providerType,
+    });
+
+    // Sort
+    let sortLabel = 'الترتيب';
+    if (filters.sortBy === 'rating') sortLabel = 'الأعلى تقييماً';
+    else if (filters.sortBy === 'views') sortLabel = 'الأكثر طلباً';
+    else if (filters.sortBy) sortLabel = 'الأحدث أولاً';
+    items.push({
+      id: 'sort',
+      label: sortLabel,
+      icon: 'swap-vertical-outline' as any,
+      isActive: !!filters.sortBy,
+    });
+
+    // Open Now (Toggle)
+    items.push({
       id: 'isOpenNow',
       label: 'مفتوح الآن',
-      icon: 'time' as any,
-      isActive: true,
+      icon: 'time-outline' as any,
+      isActive: !!filters.isOpenNow,
     });
-  }
+
+    // Home Service (Toggle)
+    items.push({
+      id: 'isHomeService',
+      label: 'خدمة منزلية',
+      icon: 'home-outline' as any,
+      isActive: !!filters.isHomeService,
+    });
+
+    return items;
+  }, [filters]);
+
+  const handleFilterPress = useCallback((id: string) => {
+    if (id === 'isOpenNow') {
+      setFilters((prev) => {
+        const next = { ...prev };
+        if (next.isOpenNow) {
+          delete next.isOpenNow;
+        } else {
+          next.isOpenNow = true;
+        }
+        return next;
+      });
+    } else if (id === 'isHomeService') {
+      setFilters((prev) => {
+        const next = { ...prev };
+        if (next.isHomeService) {
+          delete next.isHomeService;
+        } else {
+          next.isHomeService = true;
+        }
+        return next;
+      });
+    } else {
+      setActiveDropdown(id as any);
+    }
+  }, []);
 
   const handleClearQuickFilter = useCallback((filterId: string) => {
     setFilters((prev) => {
       const next = { ...prev };
       if (filterId === 'serviceType') delete next.serviceType;
       if (filterId === 'providerType') delete next.providerType;
-      if (filterId === 'specializations') delete next.specializations;
+      if (filterId === 'specialization' || filterId === 'specializations') delete next.specializations;
       if (filterId === 'isOpenNow') delete next.isOpenNow;
-      if (filterId === 'nearMe') {
-        delete next.latitude;
-        delete next.longitude;
-        delete next.radiusKm;
+      if (filterId === 'isHomeService') delete next.isHomeService;
+      if (filterId === 'sort') {
+        delete next.sortBy;
+        delete next.sortOrder;
       }
-      if (filterId === 'gov') {
+      if (filterId === 'city' || filterId === 'gov') {
         delete next.governorateId;
         delete next.wilayaId;
         delete next.governorate;
@@ -221,14 +331,52 @@ export default function ServicesBrowseScreen() {
     });
   }, []);
 
-  const handleVisualFilterSelect = (type: 'serviceType', valueId: string, valueName?: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [type]: valueId || undefined,
-    }));
+  const handleVisualFilterSelect = (
+    type: 'serviceType' | 'specialization' | 'city' | 'providerType',
+    valueId: string,
+    valueName?: string,
+    extraId?: number
+  ) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (type === 'serviceType') {
+        if (!valueId || prev.serviceType === valueId) {
+          delete next.serviceType;
+        } else {
+          next.serviceType = valueId;
+        }
+      } else if (type === 'specialization') {
+        if (!valueId || prev.specializations?.includes(valueId)) {
+          delete next.specializations;
+        } else {
+          next.specializations = [valueId];
+        }
+      } else if (type === 'city') {
+        if (!valueId || prev.city === valueName) {
+          delete next.city;
+          delete next.governorate;
+          delete next.wilayaId;
+          delete next.governorateId;
+        } else {
+          next.city = valueName;
+          next.wilayaId = Number(valueId);
+          next.governorateId = extraId;
+        }
+      } else if (type === 'providerType') {
+        if (!valueId || prev.providerType === valueId) {
+          delete next.providerType;
+        } else {
+          next.providerType = valueId;
+        }
+      }
+      return next;
+    });
   };
 
-  const handleClearAll = () => setFilters({});
+  const handleClearAll = useCallback(() => {
+    setFilters({});
+    setSearchQuery('');
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -240,31 +388,48 @@ export default function ServicesBrowseScreen() {
         activeFiltersCount={activeFiltersCount}
       />
 
-      <QuickFilters
-        filters={quickFilterItems}
-        onFilterPress={(id) => setIsFilterVisible(true)}
-        onClearFilter={handleClearQuickFilter}
-      />
+      <CollapsibleSubHeader>
+        <ListingTabs
+          tabs={PROVIDER_TABS}
+          activeTabId={currentTabId}
+          onChangeTab={handleChangeTab}
+          onClearTab={handleClearTab}
+        />
+        <QuickFilters
+          filters={quickFilterItems}
+          onFilterPress={handleFilterPress}
+          onClearFilter={handleClearQuickFilter}
+        />
+      </CollapsibleSubHeader>
 
       {/* Main Content List */}
       <Animated.FlatList
         data={isLoading ? Array(6).fill({}) : listings}
         keyExtractor={(item: any, index: number) => item.id || `skeleton-${index}`}
-        renderItem={({ item, index }: { item: any; index: number }) => {
+        renderItem={({ item }: { item: any; index: number }) => {
           if (isLoading) {
-            return <ServiceSkeletonCard fullWidth style={{ marginHorizontal: Spacing.space4 }} />;
+            return (
+              <View style={styles.cardWrapper}>
+                <ServiceSkeletonCard fullWidth />
+              </View>
+            );
           }
           return (
-            <ServiceCard
-              item={item}
-              fullWidth
-              onPress={() => router.push(`/services/${item.id}` as any)}
-            />
+            <View style={styles.cardWrapper}>
+              <ServiceCard
+                item={item}
+                fullWidth
+                onPress={() => router.push(`/services/${item.id}` as any)}
+              />
+            </View>
           );
         }}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: Math.max(insets.bottom, Spacing.space4) },
+          {
+            paddingTop: Spacing.space2,
+            paddingBottom: Math.max(insets.bottom, 16) + 8,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -285,25 +450,40 @@ export default function ServicesBrowseScreen() {
         }}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
-          <>
+          <View style={styles.listHeader}>
             <ServicesVisualFilters
               selectedServiceType={filters.serviceType}
+              selectedSpecialization={filters.specializations?.[0]}
+              selectedCity={filters.city}
+              selectedProviderType={filters.providerType}
               onSelectFilter={handleVisualFilterSelect}
+              onViewAll={(tabId) => setIsFilterVisible(true)}
             />
 
-            {isError && (
-              <View style={{ paddingHorizontal: Spacing.space4, marginBottom: Spacing.space4 }}>
-                <ActionBanner
-                  title="حدث خطأ"
-                  subtitle="حدث خطأ أثناء تحميل الخدمات. يرجى المحاولة مرة أخرى."
-                  buttonText="تحديث"
-                  iconName="warning"
-                  onPress={() => refetch()}
-                  gradientColors={['#7f1d1d', '#991b1b', '#b91c1c']}
-                />
+            {!isLoading && listings && listings.length > 0 && (
+              <View style={styles.resultsRow}>
+                {activeFiltersCount > 0 ? (
+                  <TouchableOpacity
+                    style={styles.clearFiltersBtn}
+                    onPress={handleClearAll}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
+                    <Text style={styles.clearFiltersText}>مسح الفلاتر</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View />
+                )}
+
+                <View style={styles.resultsCountBadge}>
+                  <Ionicons name="construct-outline" size={14} color="#64748b" />
+                  <Text style={styles.resultsCountTxt}>
+                    {listings.length} خدمة متاحة
+                  </Text>
+                </View>
               </View>
             )}
-          </>
+          </View>
         }
         ListFooterComponent={() => (
           <>
@@ -313,22 +493,40 @@ export default function ServicesBrowseScreen() {
               </View>
             )}
             {!isLoading && listings && listings.length > 0 && (
-              <SupportHelpButton />
+              <SectionFooterAction
+                title="لديك مركز صيانة أو تقدم خدمات؟"
+                subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
+                buttonText="أضف خدمتك"
+                iconName="construct-outline"
+                onPress={handleAddService}
+              />
             )}
           </>
         )}
         ListEmptyComponent={
-          !isLoading && !isError ? (
-            <EmptyState
-              icon="build-outline"
-              iconType="ionicons"
-              title="لم يتم العثور على خدمات"
-              subtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر"
-              actionLabel={activeFiltersCount > 0 ? 'إزالة الفلاتر' : undefined}
-              onAction={activeFiltersCount > 0 ? handleClearAll : undefined}
+          !isLoading ? (
+            <BrowseEmptyState
+              isLoading={isLoading}
+              isError={isError}
+              activeFiltersCount={activeFiltersCount}
+              onRetry={refetch}
+              onClearAll={handleClearAll}
+              iconName="construct-outline"
+              emptyTitle="لم يتم العثور على خدمات مطابقة"
+              emptySubtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر"
+              errorText="حدث خطأ أثناء تحميل الخدمات"
             />
           ) : null
         }
+      />
+
+      <QuickFilterModal
+        visible={activeDropdown !== null}
+        activeDropdown={activeDropdown}
+        onClose={() => setActiveDropdown(null)}
+        filters={filters}
+        setFilters={setFilters}
+        isService={true}
       />
 
       <ServicesFilterBottomSheet
@@ -345,17 +543,60 @@ export default function ServicesBrowseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F8F9FA',
   },
   listContent: {
-    flexGrow: 1,
-    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space6,
   },
-  filtersWrapper: {
-    backgroundColor: Colors.white,
-    paddingVertical: Spacing.space2,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+  listHeader: {
+    marginBottom: Spacing.space2,
+  },
+  resultsRow: {
+    paddingHorizontal: Spacing.space4,
+    marginTop: Spacing.space2,
+    marginBottom: Spacing.space1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  clearFiltersBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3.5,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: '#FEF2F2',
+  },
+  clearFiltersText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  resultsCountBadge: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  resultsCountTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#64748b',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  cardWrapper: {
+    paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space4,
   },
   footerLoader: {

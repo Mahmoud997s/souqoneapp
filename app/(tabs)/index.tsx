@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -17,8 +17,10 @@ import { EquipCard } from '../../src/components/cards/EquipCard'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
+import { ServiceCard } from '../../src/components/services/ServiceCard'
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobsRaw } from '../../src/hooks/useJobs'
@@ -27,7 +29,7 @@ import { useParts } from '../../src/hooks/useParts'
 import { useBuses } from '../../src/hooks/useBuses'
 import { useEquipment } from '../../src/hooks/useEquipment'
 import { useTransport } from '../../src/hooks/useTransport'
-import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown, FadeInRight } from 'react-native-reanimated'
+import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown } from 'react-native-reanimated'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
@@ -49,10 +51,6 @@ const CATEGORIES = [
   { id: 'transport', label: 'نقل',       image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Delivery%20truck/3D/delivery_truck_3d.png', route: '/transport', isMain: false },
 ]
 
-const PROMO_BANNERS = [
-  { id: '1', title: 'خصم 20% على قطع الغيار', sub: 'استخدم كود خصم SOUQ20', icon: 'pricetag', colors: ['#E8781E', '#FBBF24'] },
-  { id: '2', title: 'أضف إعلانك مجاناً', sub: 'لفترة محدودة، اعرض سيارتك بدون رسوم', icon: 'megaphone', colors: ['#3B82F6', '#8B5CF6'] },
-]
 
 import { favoritesApi } from '../../src/api/favorites'
 
@@ -64,7 +62,14 @@ interface SectionProps {
   data: UnifiedCardItem[] | undefined
   isLoading: boolean
   routeBase: string
-  CustomCard?: React.FC<{ item: any; onPress: () => void; imageHeight?: number }>
+  CustomCard?: React.FC<{
+    item: any
+    onPress: () => void
+    imageHeight?: number
+    disableImageSwipe?: boolean
+    fullWidth?: boolean
+    maxChips?: number
+  }>
 }
 
 function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
@@ -118,26 +123,41 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
       </View>
 
       {isLoading ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.hWrap} style={s.hList}>
-          {[1, 2, 3].map(i => <SkeletonCard key={i} style={s.cardWrap} />)}
-        </ScrollView>
+        <HorizontalScrollCard
+          key="loading-skeletons"
+          data={[1, 2, 3]}
+          cardWidth={CARD_W}
+          gap={Spacing.space4}
+          paddingEnd={Spacing.space5}
+          keyExtractor={(item) => `skeleton-${item}`}
+          renderItem={() => <SkeletonCard style={{ width: CARD_W }} />}
+        />
       ) : (
-        <FlatList
-          data={data}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.hWrap}
-          keyExtractor={i => i.id}
-          style={s.hList}
+        <HorizontalScrollCard
+          key="loaded-cards"
+          data={data || []}
+          cardWidth={CARD_W}
+          gap={Spacing.space4}
+          paddingEnd={Spacing.space5}
+          keyExtractor={(item) => item.id}
+          onSeeAll={() => router.push(seeAllRoute as any)}
+          seeAllTitle="عرض الكل"
+          seeAllSubtitle={`تصفح جميع ${title}`}
           renderItem={({ item }) => (
             <View style={s.cardWrap}>
               {CustomCard ? (
-                <CustomCard item={item} onPress={() => router.push(`/${routeBase}/${item.id}` as any)} imageHeight={IMG_H} />
+                <CustomCard
+                  item={item}
+                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
+                  imageHeight={IMG_H}
+                  disableImageSwipe={true}
+                />
               ) : (
-                <UnifiedCard 
-                  item={item} 
-                  imageHeight={IMG_H} 
-                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)} 
+                <UnifiedCard
+                  item={item}
+                  imageHeight={IMG_H}
+                  disableImageSwipe={true}
+                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
                   onFavorite={() => handleFavorite(item)}
                 />
               )}
@@ -290,24 +310,6 @@ export default function HomeScreen() {
         scrollEventThrottle={16}
       >
 
-        {/* ── BANNERS ── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.bannersList} style={{ flexGrow: 0 }}>
-          {PROMO_BANNERS.map((banner, index) => (
-            <Animated.View key={banner.id} entering={FadeInRight.delay(index * 100).springify()}>
-              <TouchableOpacity style={s.bannerCard} activeOpacity={0.9}>
-                <LinearGradient colors={banner.colors as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.bannerGradient}>
-                  <View style={s.bannerTexts}>
-                    <Text style={s.bannerTitle}>{banner.title}</Text>
-                    <Text style={s.bannerSub}>{banner.sub}</Text>
-                  </View>
-                  <View style={s.bannerIconBgBlur}>
-                    <Ionicons name={banner.icon as any} size={45} color="rgba(255,255,255,0.3)" />
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </ScrollView>
 
         {/* ── CATEGORIES (Photographic Premium) ── */}
         <View style={s.catsContainer}>
@@ -337,12 +339,12 @@ export default function HomeScreen() {
         </View>
 
         {/* ── SECTIONS ── */}
-        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
         <CategorySection title="وظائف" icon="briefcase" iconColor="#10B981" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
-        <CategorySection title="خدمات" icon="build" iconColor="#3B82F6" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" />
-        <CategorySection title="قطع غيار" icon="construct" iconColor="#8B5CF6" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="حافلات" icon="bus" iconColor="#F59E0B" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
-        <CategorySection title="معدات" icon="hardware-chip" iconColor="#64748B" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} />} />
+        <CategorySection title="خدمات" icon="build" iconColor="#3B82F6" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" CustomCard={({ item, onPress }) => <ServiceCard item={item as any} onPress={onPress} fullWidth disableImageSwipe={true} />} />
+        <CategorySection title="قطع غيار" icon="construct" iconColor="#8B5CF6" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
+        <CategorySection title="حافلات" icon="bus" iconColor="#F59E0B" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
+        <CategorySection title="معدات" icon="hardware-chip" iconColor="#64748B" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
         <CategorySection title="طلبات نقل" icon="navigate" iconColor="#EC4899" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
 
         {/* Need Help / Support Button */}
@@ -407,14 +409,6 @@ const s = StyleSheet.create({
 
   content: { },
 
-  // Banners
-  bannersList: { paddingHorizontal: Spacing.space5, paddingBottom: Spacing.space5, gap: Spacing.space3 },
-  bannerCard: { width: SW * 0.85, height: 110, borderRadius: 20, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
-  bannerGradient: { flex: 1, padding: Spacing.space4, justifyContent: 'center', position: 'relative' },
-  bannerTexts: { zIndex: 2, paddingEnd: 40 },
-  bannerTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.white, marginBottom: 4, writingDirection: 'rtl' },
-  bannerSub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: 'rgba(255,255,255,0.9)', writingDirection: 'rtl' },
-  bannerIconBgBlur: { position: 'absolute', left: -10, bottom: -15, transform: [{ rotate: '-15deg' }], width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
 
   // Categories (3D Talabat Style - Small)
   catsContainer: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6, gap: Spacing.space3 },

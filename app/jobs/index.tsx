@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, FlatList,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Dimensions, Platform, StatusBar, I18nManager,
 } from 'react-native'
 import { Image } from 'expo-image'
@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated'
-import Carousel from 'react-native-reanimated-carousel'
+
 import { router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -31,7 +31,9 @@ import VerificationBanner from '../../src/components/jobs/VerificationBanner'
 import { useVerificationStatus } from '../../src/hooks/useVerification'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { JobsBottomBar } from '../../src/components/jobs/JobsBottomBar'
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction'
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar'
+import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -69,46 +71,161 @@ function StatPill({ icon, value, label }: { icon: string; value: string; label: 
 }
 
 
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
+function DriverCircleSkeleton() {
+  return (
+    <View style={s.driverCircleCard}>
+      <View
+        style={[
+          s.driverCircleAvatarWrap,
+          {
+            backgroundColor: '#F1F5F9',
+            borderColor: '#E2E8F0',
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <Ionicons name="person" size={26} color="#CBD5E1" />
+      </View>
+      <View
+        style={{
+          width: 50,
+          height: 10,
+          backgroundColor: '#E2E8F0',
+          borderRadius: 5,
+          marginBottom: 4,
+        }}
+      />
+      <View
+        style={{
+          width: 36,
+          height: 14,
+          backgroundColor: '#F1F5F9',
+          borderRadius: 7,
+        }}
+      />
+    </View>
+  )
+}
 
-function DriversSwiper({ drivers }: { drivers: any[] }) {
-  if (!drivers || drivers.length === 0) return null
+interface DriversSwiperProps {
+  drivers: any[]
+  isLoading?: boolean
+}
+
+function DriversSwiper({ drivers, isLoading = false }: DriversSwiperProps) {
+  if (!isLoading && (!drivers || drivers.length === 0)) return null
+
   return (
     <View style={{ marginTop: 0, marginBottom: Spacing.space2 }}>
-      <Text style={s.sectionTitle}>سائقين جاهزين للعمل</Text>
-      <FlatList
-        data={drivers}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingHorizontal: Spacing.space4, gap: Spacing.space4 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={s.driverCircleCard}
-            onPress={() => router.push(`/jobs/drivers/${item.id}` as any)}
-            activeOpacity={0.8}
-          >
-            <View style={s.driverCircleAvatarWrap}>
-              {item.user?.avatarUrl ? (
-                <Image source={{ uri: item.user.avatarUrl }} style={s.driverCircleAvatar} />
-              ) : (
-                <View style={[s.driverCircleAvatar, { backgroundColor: Colors.primary + '15', justifyContent: 'center', alignItems: 'center' }]}>
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 24, color: Colors.primary,  }}>
-                    {item.user?.displayName?.[0] || 'س'}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={s.driverCircleName} numberOfLines={1}>
-              {item.user?.displayName || 'سائق'}
-            </Text>
-            <View style={s.driverCircleRating}>
-              <Ionicons name="star" size={12} color="#FBBF24" />
-              <Text style={s.driverCircleRatingTxt}>{item.averageRating ? item.averageRating.toFixed(1) : 'جديد'}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={s.sectionHeader}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.sectionTitleHeader}>سائقين جاهزين للعمل</Text>
+          <Text style={s.sectionSubHeader}>تواصل مباشرة مع نخبة السائقين</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push('/jobs/drivers' as any)}
+          style={s.seeAllBtn}
+          activeOpacity={0.8}
+        >
+          <Text style={s.seeAllTxt}>الكل</Text>
+          <Ionicons name="chevron-back" size={14} color={Colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      {isLoading ? (
+        <HorizontalScrollCard
+          key="loading-drivers-skeleton"
+          data={[1, 2, 3, 4, 5, 6]}
+          cardWidth={76}
+          cardHeight={112}
+          gap={Spacing.space3}
+          paddingEnd={10}
+          keyExtractor={(item) => String(item)}
+          renderItem={() => <DriverCircleSkeleton />}
+        />
+      ) : (
+        <HorizontalScrollCard
+          key="loaded-drivers"
+          data={drivers}
+          cardWidth={76}
+          cardHeight={112}
+          gap={Spacing.space3}
+          paddingEnd={10}
+          keyExtractor={(item) => item.id}
+          onSeeAll={() => router.push('/jobs/drivers' as any)}
+          renderSeeAllCard={() => (
+            <TouchableOpacity
+              style={s.driverCircleCard}
+              onPress={() => router.push('/jobs/drivers' as any)}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  s.driverCircleAvatarWrap,
+                  {
+                    borderColor: Colors.primary + '40',
+                    backgroundColor: Colors.primary + '0D',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <Ionicons name="arrow-back" size={22} color={Colors.primary} />
+              </View>
+              <Text style={[s.driverCircleName, { color: Colors.primary }]} numberOfLines={1}>
+                عرض الكل
+              </Text>
+              <View style={[s.driverCircleRating, { backgroundColor: Colors.primary + '15' }]}>
+                <Text style={[s.driverCircleRatingTxt, { color: Colors.primary }]}>الجميع</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={s.driverCircleCard}
+              onPress={() => router.push(`/jobs/drivers/${item.id}` as any)}
+              activeOpacity={0.8}
+            >
+              <View style={s.driverCircleAvatarWrap}>
+                {item.user?.avatarUrl ? (
+                  <Image source={{ uri: item.user.avatarUrl }} style={s.driverCircleAvatar} />
+                ) : (
+                  <View
+                    style={[
+                      s.driverCircleAvatar,
+                      {
+                        backgroundColor: Colors.primary + '15',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'Almarai_700Bold',
+                        fontSize: 24,
+                        color: Colors.primary,
+                      }}
+                    >
+                      {item.user?.displayName?.[0] || 'س'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={s.driverCircleName} numberOfLines={1}>
+                {item.user?.displayName || 'سائق'}
+              </Text>
+              <View style={s.driverCircleRating}>
+                <Ionicons name="star" size={12} color="#FBBF24" />
+                <Text style={s.driverCircleRatingTxt}>
+                  {item.averageRating ? item.averageRating.toFixed(1) : 'جديد'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   )
 }
@@ -189,7 +306,7 @@ export default function JobsLandingScreen() {
       )}
 
       {/* ── DRIVERS SWIPER ── */}
-      <DriversSwiper drivers={topDrivers} />
+      <DriversSwiper drivers={topDrivers} isLoading={driversLoading} />
 
       {/* ── QUICK ACTIONS ── */}
       <Text style={s.sectionTitle}>ماذا تريد؟</Text>
@@ -222,7 +339,7 @@ export default function JobsLandingScreen() {
 
       <View style={{ height: Spacing.space4 }} />
     </>
-  ), [hasProfile, user, activeBanner, verification, topDrivers])
+  ), [hasProfile, user, activeBanner, verification, topDrivers, driversLoading])
 
   return (
     <View style={s.root}>
@@ -261,7 +378,7 @@ export default function JobsLandingScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           s.content,
-          { paddingTop: insets.top + 185 + 4, paddingBottom: 100 },
+          { paddingTop: insets.top + 185 + 4, paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8 },
         ]}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -340,8 +457,16 @@ export default function JobsLandingScreen() {
            )}
         </View>
 
-        {/* Need Help / Support Button */}
-        <SupportHelpButton style={{ marginHorizontal: 10, marginTop: 4, marginBottom: Spacing.space6 }} />
+        {/* Unified Action Banner & Support Help */}
+        <SectionFooterAction
+          isLanding
+          style={{ paddingHorizontal: 10 }}
+          title="تبحث عن سائق أو فرصة عمل؟"
+          subtitle="انشر إعلانك الآن وتواصل مع أصحاب العمل والسائقين مباشرة"
+          buttonText="انشر وظيفة"
+          iconName="briefcase-outline"
+          onPress={() => router.push('/jobs/create' as any)}
+        />
       </Animated.ScrollView>
 
       <JobsBottomBar />

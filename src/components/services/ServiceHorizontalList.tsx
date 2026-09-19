@@ -5,8 +5,11 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { ServiceCard } from './ServiceCard'
 import { ServiceSkeletonCard } from './ServiceSkeletonCard'
+import { HorizontalScrollCard } from '../ui/HorizontalScrollCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
+
+const CARD_WIDTH = Dimensions.get('window').width * 0.6
 
 export const ServiceHorizontalList = ({ 
   title, 
@@ -38,25 +41,48 @@ export const ServiceHorizontalList = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
-        style={s.scrollView}
-        contentContainerStyle={s.scrollContent}
-      >
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <ServiceSkeletonCard key={i} />
-          ))
-        ) : data.length > 0 ? (
-          data.map((item, idx) => (
-            <ServiceCard 
-              key={item.id ?? idx} 
-              item={item} 
-              onPress={() => onPressItem(item)} 
-            />
-          ))
-        ) : (
+      {isLoading ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loading-skeleton"
+            data={[1, 2, 3]}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => String(item)}
+            renderItem={() => (
+              <ServiceSkeletonCard style={{ width: CARD_WIDTH, marginBottom: 0 }} />
+            )}
+          />
+        </View>
+      ) : data.length > 0 ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loaded-cards"
+            data={data}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item, idx) => item.id ?? String(idx)}
+            onSeeAll={onSeeAll}
+            seeAllTitle="عرض الكل"
+            seeAllSubtitle={`تصفح جميع ${title}`}
+            renderItem={({ item }) => (
+              <ServiceCard 
+                item={item} 
+                onPress={() => onPressItem(item)} 
+                disableImageSwipe={true}
+              />
+            )}
+          />
+        </View>
+      ) : (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={s.scrollContent}
+        >
           <View style={s.emptyCard}>
             <EmptyState 
               title={emptyText} 
@@ -64,8 +90,8 @@ export const ServiceHorizontalList = ({
               compact 
             />
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   )
 }

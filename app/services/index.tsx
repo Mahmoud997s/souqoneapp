@@ -19,6 +19,8 @@ import { ServicesBottomBar } from '../../src/components/services/ServicesBottomB
 import { Gradients } from '../../src/constants/gradients';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 export default function ServicesLandingScreen() {
   const router = useRouter();
@@ -85,7 +87,10 @@ export default function ServicesLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 106 + Spacing.space5,
+          paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+        }}
       >
         <View style={s.content}>
           <ServicesCategoriesGrid />
@@ -149,8 +154,15 @@ export default function ServicesLandingScreen() {
 
           <ServicesHowItWorks />
 
-          {/* Need Help / Support Button */}
-          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
+          {/* Unified Action Banner & Support Help */}
+          <SectionFooterAction
+            isLanding
+            title="لديك مركز صيانة أو تقدم خدمات؟"
+            subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
+            buttonText="أضف خدمتك"
+            iconName="construct-outline"
+            onPress={handleAddService}
+          />
         </View>
       </Animated.ScrollView>
 

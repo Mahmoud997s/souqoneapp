@@ -1,22 +1,11 @@
-import React from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  LayoutAnimation,
-  UIManager,
-} from 'react-native'
+import React, { useMemo } from 'react'
+import { View, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
 import { Colors } from '../../constants/colors'
-import { Spacing } from '../../constants/spacing'
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true)
-}
+import {
+  VisualFiltersBase,
+  VisualFilterTab,
+} from '../ui/VisualFiltersBase'
 
 export interface SubFilterItem {
   id: string
@@ -178,199 +167,65 @@ export function MyListingsVisualFilters({
   onSelectSubFilter,
   isTransparent = false,
 }: MyListingsVisualFiltersProps) {
-  const currentCategory = MAIN_CATEGORY_TABS.find((c) => c.id === activeCategory) || MAIN_CATEGORY_TABS[0]
-  const subItems = currentCategory.items || []
+  const tabs: VisualFilterTab[] = useMemo(
+    () =>
+      MAIN_CATEGORY_TABS.map((cat) => ({
+        id: cat.id,
+        label: cat.label,
+        icon: cat.icon,
+        items: cat.items,
+        rows: 1,
+        hideViewAll: true,
+        getItemProps: (item: SubFilterItem) => {
+          const isSelected = activeSubFilter === item.id
+          const isAllDefault =
+            item.id.startsWith('all_') && (activeSubFilter === 'all' || activeSubFilter === item.id)
+          const highlighted = isSelected || isAllDefault
 
-  const handleCategoryPress = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    onSelectCategory(id)
-  }
-
-  const content = (
-    <>
-      {/* ── TABS (Segmented Bar) ── */}
-      <View style={s.segmentedWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.segmentedContainer}
-        >
-          {MAIN_CATEGORY_TABS.map((tab) => {
-            const isActive = activeCategory === tab.id
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                activeOpacity={0.8}
-                style={[s.segmentTab, isActive && s.segmentTabActive]}
-                onPress={() => handleCategoryPress(tab.id)}
+          return {
+            id: item.id,
+            label: item.label,
+            isSelected: highlighted,
+            icon: (
+              <View
+                style={[
+                  s.glassmorphicIconBox,
+                  highlighted && s.glassmorphicIconBoxSelected,
+                ]}
               >
                 <Ionicons
-                  name={tab.icon}
-                  size={14}
-                  color={isActive ? Colors.primary : '#475569'}
-                  style={s.tabIcon}
+                  name={item.icon}
+                  size={11}
+                  color={highlighted ? Colors.white : '#475569'}
                 />
-                <Text style={[s.segmentTabText, isActive && s.segmentTabTextActive]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      </View>
-
-      {/* ── 1-Row Subcategories Grid with Glassmorphic Profile Style Icon Boxes ── */}
-      <View style={s.contentArea}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.scrollContainer}
-        >
-          {subItems.map((item) => {
-            const isSelected = activeSubFilter === item.id
-            const isAllDefault =
-              item.id.startsWith('all_') && (activeSubFilter === 'all' || activeSubFilter === item.id)
-
-            const highlighted = isSelected || isAllDefault
-
-            return (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.7}
-                style={[s.itemCard, highlighted && s.itemCardSelected]}
-                onPress={() => {
-                  if (item.id.startsWith('all_')) {
-                    onSelectSubFilter('all')
-                  } else if (activeSubFilter === item.id) {
-                    onSelectSubFilter('all')
-                  } else {
-                    onSelectSubFilter(item.id)
-                  }
-                }}
-              >
-                {/* Glassmorphic Icon Box matching Profile Icons */}
-                <View
-                  style={[
-                    s.glassmorphicIconBox,
-                    highlighted && s.glassmorphicIconBoxSelected,
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={11}
-                    color={highlighted ? Colors.white : '#475569'}
-                  />
-                </View>
-                <Text
-                  style={[s.itemLabel, highlighted && s.itemLabelSelected]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      </View>
-    </>
+              </View>
+            ),
+            onPress: () => {
+              if (item.id.startsWith('all_')) {
+                onSelectSubFilter('all')
+              } else if (activeSubFilter === item.id) {
+                onSelectSubFilter('all')
+              } else {
+                onSelectSubFilter(item.id)
+              }
+            },
+          }
+        },
+      })),
+    [activeSubFilter, onSelectSubFilter]
   )
 
-  return <View style={s.container}>{content}</View>
+  return (
+    <VisualFiltersBase
+      tabs={tabs}
+      activeTab={activeCategory}
+      onTabChange={onSelectCategory}
+      isTransparent={isTransparent}
+    />
+  )
 }
 
 const s = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: Spacing.space1,
-    overflow: 'hidden',
-  },
-  filterWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
-  },
-  filterTint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
-  },
-  segmentedWrapper: {
-    marginHorizontal: Spacing.space5,
-    marginBottom: 6,
-    marginTop: Spacing.space2,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
-    padding: 3,
-  },
-  segmentedContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  segmentTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    gap: 5,
-  },
-  segmentTabActive: {
-    backgroundColor: '#ffffff',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  tabIcon: {
-    marginTop: 1,
-  },
-  segmentTabText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 15.5,
-    color: '#64748b',
-  },
-  segmentTabTextActive: {
-    color: Colors.primary,
-  },
-  contentArea: {
-    paddingBottom: 4,
-  },
-  scrollContainer: {
-    paddingHorizontal: Spacing.space5,
-    gap: 8,
-  },
-  column: {
-    gap: 6,
-  },
-  itemCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4.5,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    minWidth: 75,
-    gap: 5,
-  },
-  itemCardSelected: {
-    backgroundColor: '#EFF6FF',
-    borderColor: Colors.primary,
-  },
-  // Profile style glassmorphic icon box
   glassmorphicIconBox: {
     width: 20,
     height: 20,
@@ -382,18 +237,5 @@ const s = StyleSheet.create({
   glassmorphicIconBoxSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-  },
-  itemLabel: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#334155',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flexShrink: 1,
-  },
-  itemLabelSelected: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
   },
 })

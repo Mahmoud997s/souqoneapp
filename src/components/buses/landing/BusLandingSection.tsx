@@ -20,8 +20,9 @@ export function BusLandingSection({
   queryParams
 }: Props) {
   const { data = [], isLoading } = useBuses(queryParams);
+  const items = Array.isArray(data) ? data : [];
 
-  if (!isLoading && (!data || data.length === 0)) {
+  if (!isLoading && items.length === 0) {
     return null;
   }
 
@@ -29,7 +30,7 @@ export function BusLandingSection({
     <BusHorizontalList
       title={title}
       subTitle={subTitle}
-      data={data}
+      data={items}
       isLoading={isLoading}
       emptyText={emptyText}
       onSeeAll={onSeeAll}

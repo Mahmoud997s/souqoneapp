@@ -30,8 +30,7 @@ import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
@@ -494,16 +493,13 @@ export default function PartsBrowseScreen() {
               <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
             )}
             {listings && listings.length > 0 && (
-              <>
-                <ActionBanner
-                  title="لديك قطعة للبيع؟"
-                  subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
-                  buttonText="انشر إعلانك"
-                  iconName="camera-outline"
-                  onPress={handleAddPart}
-                />
-                <SupportHelpButton />
-              </>
+              <SectionFooterAction
+                title="لديك قطعة للبيع؟"
+                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+                buttonText="انشر إعلانك"
+                iconName="camera-outline"
+                onPress={handleAddPart}
+              />
             )}
           </>
         )}

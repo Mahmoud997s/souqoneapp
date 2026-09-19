@@ -31,8 +31,7 @@ import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 
 // Components
 import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard';
@@ -346,7 +345,13 @@ export default function TransportBrowseScreen() {
         <Animated.FlatList
           data={listings || []}
           keyExtractor={(item, index) => (item as any).id ?? (item as any)._id ?? `transport-${index}`}
-          contentContainerStyle={[s.listContent, { paddingTop: Spacing.space2 }]}
+          contentContainerStyle={[
+            s.listContent,
+            {
+              paddingTop: Spacing.space2,
+              paddingBottom: Math.max(insets.bottom, 16) + 8,
+            },
+          ]}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
@@ -365,16 +370,13 @@ export default function TransportBrowseScreen() {
                 <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
               )}
               {listings && listings.length > 0 && (
-                <>
-                  <ActionBanner
-                    title="لديك شحنة أو بضاعة للنقل؟"
-                    subtitle="أضف طلبك الآن وتلق عروض أسعار مباشرة من الناقلين"
-                    buttonText="أضف طلبك"
-                    iconName="cube-outline"
-                    onPress={() => router.push('/transport/new' as any)}
-                  />
-                  <SupportHelpButton />
-                </>
+                <SectionFooterAction
+                  title="لديك شحنة أو بضاعة للنقل؟"
+                  subtitle="أضف طلبك الآن وتلق عروض أسعار مباشرة من الناقلين"
+                  buttonText="أضف طلبك"
+                  iconName="cube-outline"
+                  onPress={() => router.push('/transport/new' as any)}
+                />
               )}
             </>
           )}
@@ -672,9 +674,7 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  listContent: {
-    paddingBottom: 120, // increased for safe area
-  },
+  listContent: {},
   cardWrapper: {
     paddingHorizontal: 16,
     marginBottom: 16,

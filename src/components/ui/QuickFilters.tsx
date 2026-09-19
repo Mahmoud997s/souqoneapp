@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, ScrollView, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 
 export interface QuickFilterItem {
   id: string;
@@ -22,7 +23,10 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
 
   return (
     <View style={s.quickFiltersContainer}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.quickFiltersContent}>
+      <PhysicalHorizontalTrack
+        minHeight={34}
+        contentContainerStyle={s.quickFiltersContent}
+      >
         {filters.map((qf) => {
           const isActive = qf.isActive;
           
@@ -56,7 +60,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </PhysicalHorizontalTrack>
     </View>
   );
 }

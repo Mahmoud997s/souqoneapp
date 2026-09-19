@@ -9,7 +9,10 @@ import { TransportRequestCard } from '../TransportRequestCard';
 import { SkeletonCard } from '../../ui/SkeletonCard';
 import { EmptyState } from '../../ui/EmptyState';
 
+import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard';
+
 const { width: SW } = Dimensions.get('window');
+const CARD_WIDTH = SW * 0.62;
 
 interface TransportHorizontalListProps {
   title: string;
@@ -43,29 +46,49 @@ export function TransportHorizontalList({
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -Spacing.space5 }}
-        contentContainerStyle={s.scrollContent}
-      >
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonCard
-              key={i}
-              style={{ width: SW * 0.62, height: 190 }}
-            />
-          ))
-        ) : data.length > 0 ? (
-          data.map((item) => (
-            <View key={item.id} style={{ width: SW * 0.62 }}>
-              <TransportRequestCard
-                request={item}
-                onPress={() => onPressItem(item)}
-              />
-            </View>
-          ))
-        ) : (
+      {isLoading ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loading-skeleton"
+            data={[1, 2, 3]}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => String(item)}
+            renderItem={() => (
+              <SkeletonCard style={{ width: CARD_WIDTH, height: 190 }} />
+            )}
+          />
+        </View>
+      ) : data.length > 0 ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loaded-requests"
+            data={data}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => item.id}
+            onSeeAll={onSeeAll}
+            seeAllTitle="عرض الكل"
+            seeAllSubtitle={`تصفح جميع ${title}`}
+            renderItem={({ item }) => (
+              <View style={{ width: CARD_WIDTH }}>
+                <TransportRequestCard
+                  request={item}
+                  onPress={() => onPressItem(item)}
+                />
+              </View>
+            )}
+          />
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={s.scrollContent}
+        >
           <View style={s.emptyCard}>
             <EmptyState
               title={emptyText}
@@ -73,8 +96,8 @@ export function TransportHorizontalList({
               compact
             />
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 }

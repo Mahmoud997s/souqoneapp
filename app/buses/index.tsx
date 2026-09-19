@@ -1,9 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar, InteractionManager,
-  Dimensions, TextInput
-} from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
@@ -11,66 +7,18 @@ import Animated from 'react-native-reanimated';
 import { Colors } from '../../src/constants/colors';
 import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
-import { Radius } from '../../src/constants/radius';
-import { useBuses } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 
 // Feature Components
-import { BusActionCards } from '../../src/components/buses/landing/BusActionCards';
 import { BusCategoriesGrid } from '../../src/components/buses/landing/BusCategoriesGrid';
-import { BusLandingSection } from '../../src/components/buses/landing/BusLandingSection';
-import { BusPromoBanner } from '../../src/components/buses/landing/BusPromoBanner';
+import { BusHorizontalList } from '../../src/components/buses/landing/BusHorizontalList';
+import { useBuses } from '../../src/hooks/useBuses';
 import { BusesHowItWorks } from '../../src/components/buses/landing/BusesHowItWorks';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
-
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
-
-const { width: SW } = Dimensions.get('window');
-
-// Reusable Action Card (Matched from Transport)
-function ActionCard({
-  icon, label, desc, color, bg, onPress, iconFamily = 'Ionicons'
-}: {
-  icon: string; label: string; desc: string
-  color: string; bg: string; onPress: () => void; iconFamily?: 'Ionicons' | 'MaterialCommunityIcons'
-}) {
-  return (
-    <TouchableOpacity style={[act.card, { backgroundColor: bg }]} onPress={onPress} activeOpacity={0.85}>
-      <View style={[act.iconBox, { backgroundColor: color + '20' }]}>
-        {iconFamily === 'MaterialCommunityIcons' ? (
-          <MaterialCommunityIcons name={icon as any} size={20} color={color} />
-        ) : (
-          <Ionicons name={icon as any} size={20} color={color} />
-        )}
-      </View>
-      <View style={act.textBox}>
-        <Text style={[act.label, { color: Colors.text }]} numberOfLines={1}>{label}</Text>
-        <Text style={act.desc} numberOfLines={1}>{desc}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-const act = StyleSheet.create({
-  card: {
-    width: (SW - Spacing.space5 * 2 - Spacing.space4) / 2,
-    padding: Spacing.space2 + 4,
-    borderRadius: Radius.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.space2,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
-  },
-  iconBox: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  textBox: { flex: 1 },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 13, textAlign: 'left', marginBottom: 2 },
-  desc: { fontFamily: 'Almarai_400Regular', fontSize: 11, color: Colors.textMuted, textAlign: 'left', paddingBottom: 2 },
-});
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 export default function BusesLandingScreen() {
   const router = useRouter();
@@ -85,7 +33,28 @@ export default function BusesLandingScreen() {
     return () => task.cancel();
   }, []);
 
-  // Data is fetched inside BusLandingSection components
+  // Stable, cached queries at the screen root (Matching Cars architecture)
+  const { data: newestBuses = [], isLoading: loadingNewest } = useBuses(
+    { sort: 'newest', limit: 8 },
+    { enabled: loadRest }
+  );
+  const { data: saleBuses = [], isLoading: loadingSale } = useBuses(
+    { busListingType: 'BUS_SALE', limit: 8 },
+    { enabled: loadRest }
+  );
+  const { data: contractBuses = [], isLoading: loadingContract } = useBuses(
+    { busListingType: 'BUS_SALE_WITH_CONTRACT', limit: 8 },
+    { enabled: loadRest }
+  );
+  const { data: rentBuses = [], isLoading: loadingRent } = useBuses(
+    { busListingType: 'BUS_RENT', limit: 8 },
+    { enabled: loadRest }
+  );
+
+  // Safe client-side derivation of premium buses (eliminates 400 Bad Request error)
+  const premiumBuses = React.useMemo(() => {
+    return newestBuses.filter((b: any) => b.isPremium || b.raw?.isPremium);
+  }, [newestBuses]);
 
   return (
     <View style={s.root}>
@@ -96,10 +65,9 @@ export default function BusesLandingScreen() {
         scrollY={scrollY}
         gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للحافلات"
-        titleAccent="بيع وتأجير الحافلات بسهولة وموثوقية"
         navSearchPlaceholder="ابحث عن حافلة..."
         onNavSearchPress={() => router.push('/buses/browse' as any)}
-        heroSearchPlaceholder="ابحث عن ماركة، موديل، أو فئة..."
+        heroSearchPlaceholder="عن أي حافلة تبحث؟"
         onHeroSearchPress={() => router.push('/buses/browse' as any)}
         onBackPress={() => {
           if (router.canGoBack()) router.back();
@@ -108,16 +76,16 @@ export default function BusesLandingScreen() {
         headerIcon="notifications-outline"
         onHeaderIconPress={() => router.push('/profile/notifications' as any)}
         primaryCta={{
-          label: 'أضف حافلة',
-          icon: 'add-circle-outline',
+          label: 'اعرض حافلتك',
+          icon: 'add',
           onPress: () => navigateToBusForm(),
-          textColor: '#FFFFFF',
-          bgColor: Colors.accent
+          bgColor: 'rgba(255,255,255,0.2)',
+          textColor: Colors.white,
         }}
         outlineCta={{
           label: 'تصفح الحافلات',
           icon: 'bus-outline',
-          onPress: () => router.push('/buses/browse' as any)
+          onPress: () => router.push('/buses/browse' as any),
         }}
       />
 
@@ -126,44 +94,64 @@ export default function BusesLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 185 + 4 + 24, paddingBottom: insets.bottom + 80 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 106 + Spacing.space5,
+          paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+        }}
       >
         <View style={s.content}>
-          <BusPromoBanner />
           <BusCategoriesGrid />
 
           {/* LISTS */}
           {loadRest && (
             <>
-              <BusLandingSection 
-                title="حافلات مميزة" 
-                subTitle="إعلانات موثوقة ومميزة" 
-                queryParams={{ isPremium: true, limit: 6 }}
-                emptyText="لا توجد حافلات مميزة حالياً"
-                onSeeAll={() => router.push('/buses/browse?isPremium=true')}
+              <BusHorizontalList
+                title="أحدث اعلانات الحافلات"
+                subTitle="تصفح أحدث عروض وإعلانات الحافلات المضافة"
+                data={newestBuses}
+                isLoading={loadingNewest}
+                emptyText="لا توجد حافلات مضافة حالياً"
+                onSeeAll={() => router.push('/buses/browse?sort=newest')}
                 onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
               />
 
-              <BusLandingSection 
-                title="الأكثر طلباً" 
-                subTitle="الحافلات الأكثر شعبية وبحثاً" 
-                queryParams={{ sort: 'popular', limit: 6 }}
-                emptyText="لا توجد بيانات حالياً"
-                onSeeAll={() => router.push('/buses/browse?sort=popular')}
-                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
-              />
+              {premiumBuses.length > 0 && (
+                <BusHorizontalList
+                  title="حافلات مميزة"
+                  subTitle="إعلانات موثوقة ومختارة بعناية"
+                  data={premiumBuses}
+                  isLoading={loadingNewest}
+                  emptyText="لا توجد حافلات مميزة حالياً"
+                  onSeeAll={() => router.push('/buses/browse?isPremium=true')}
+                  onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                />
+              )}
 
-              <BusLandingSection 
-                title="حافلات للبيع" 
-                queryParams={{ busListingType: 'BUS_SALE', limit: 6 }}
+              <BusHorizontalList
+                title="حافلات للبيع"
+                subTitle="تصفح أفضل عروض بيع الحافلات"
+                data={saleBuses}
+                isLoading={loadingSale}
                 emptyText="لا توجد حافلات للبيع حالياً"
                 onSeeAll={() => router.push('/buses/browse?busListingType=BUS_SALE')}
                 onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
               />
 
-              <BusLandingSection 
-                title="حافلات للإيجار" 
-                queryParams={{ busListingType: 'BUS_RENT', limit: 6 }}
+              <BusHorizontalList
+                title="حافلات للبيع بعقد"
+                subTitle="حافلات مع عقود تشغيل قائمة ومضمونة"
+                data={contractBuses}
+                isLoading={loadingContract}
+                emptyText="لا توجد حافلات للبيع بعقد حالياً"
+                onSeeAll={() => router.push('/buses/browse?busListingType=BUS_SALE_WITH_CONTRACT')}
+                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+              />
+
+              <BusHorizontalList
+                title="حافلات للإيجار"
+                subTitle="خيارات تأجير مرنة ومتنوعة"
+                data={rentBuses}
+                isLoading={loadingRent}
                 emptyText="لا توجد حافلات للإيجار حالياً"
                 onSeeAll={() => router.push('/buses/browse?busListingType=BUS_RENT')}
                 onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
@@ -173,8 +161,15 @@ export default function BusesLandingScreen() {
 
           <BusesHowItWorks />
 
-          {/* Need Help / Support Button */}
-          <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space3, marginBottom: Spacing.space4 }} />
+          {/* Unified Action Banner & Support Help */}
+          <SectionFooterAction
+            isLanding
+            title="لديك حافلة للبيع أو للإيجار؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
+            buttonText="أضف إعلانك"
+            iconName="bus-outline"
+            onPress={() => navigateToBusForm()}
+          />
         </View>
       </Animated.ScrollView>
 
@@ -185,10 +180,9 @@ export default function BusesLandingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
-  
-
-  content: { paddingHorizontal: 0 },
-  actionsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.space5, gap: Spacing.space4, justifyContent: 'space-between', marginBottom: Spacing.space1, marginTop: Spacing.space4,
+  content: {
+    paddingHorizontal: Spacing.space5,
+    gap: 20,
+    paddingBottom: 0,
   },
 });

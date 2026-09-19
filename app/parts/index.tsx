@@ -16,7 +16,7 @@ import { PartsCategoriesGrid } from '../../src/components/parts/PartsCategoriesG
 import { PartHorizontalList } from '../../src/components/parts/PartHorizontalList';
 import { PartsHowItWorks } from '../../src/components/parts/PartsHowItWorks';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 
 export default function PartsLandingScreen() {
   const router = useRouter();
@@ -113,8 +113,15 @@ export default function PartsLandingScreen() {
 
           <PartsHowItWorks />
 
-          {/* Need Help / Support Button */}
-          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
+          {/* Unified Action Banner & Support Help */}
+          <SectionFooterAction
+            isLanding
+            title="لديك قطع غيار للبيع؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
+            buttonText="أضف إعلانك"
+            iconName="camera-outline"
+            onPress={handleAddPart}
+          />
         </View>
       </Animated.ScrollView>
 

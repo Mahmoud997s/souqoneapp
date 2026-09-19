@@ -58,6 +58,8 @@ export interface ServicesFilterState {
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 export interface OperatorFilterState {

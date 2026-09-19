@@ -1,15 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, Dimensions, StyleProp, ViewStyle } from 'react-native'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-  cancelAnimation,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import {
+  physicalRightStyle,
+  physicalRowDirection,
+} from '../../utils/physicalDirection'
+import { useGestureSwiper } from '../../hooks/useGestureSwiper'
+import { SeeAllHorizontalCard } from './SeeAllHorizontalCard'
 
 export interface HorizontalScrollCardProps<T> {
   /** Array of items to display */
@@ -27,8 +27,8 @@ export interface HorizontalScrollCardProps<T> {
   /** Whether to display pagination dots below the cards (default: false) */
   showDots?: boolean
   /**
-   * Invert gesture direction if desired.
-   * By default (true), dragging to the left pulls subsequent cards from the left into view (RTL friendly).
+   * Optional manual override for gesture direction inversion.
+   * When omitted (default), direction is automatically computed via getGestureDirectionMultiplier().
    */
   invertedGesture?: boolean
   /** Callback fired when the active card index changes after snapping */
@@ -39,6 +39,20 @@ export interface HorizontalScrollCardProps<T> {
   containerStyle?: StyleProp<ViewStyle>
   /** Style for the cards track container */
   trackStyle?: StyleProp<ViewStyle>
+  /** Callback fired when tapping the See All card at the end of the list */
+  onSeeAll?: () => void
+  /** Main title text displayed on the See All card (default: 'عرض الكل') */
+  seeAllTitle?: string
+  /** Subtitle text displayed on the See All card (default: 'تصفح جميع الإعلانات') */
+  seeAllSubtitle?: string
+  /** Optional custom action text inside the See All card pill */
+  seeAllActionText?: string
+  /** Optional custom render function for the See All card */
+  renderSeeAllCard?: () => React.ReactNode
+  /** Whether to strictly enforce paging by 1 item at a time (default: false) */
+  paging?: boolean
+  /** Momentum projection factor in seconds (default: 0.22) */
+  momentumFactor?: number
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -52,6 +66,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
  * - Never uses native ScrollView, pagingEnabled, contentOffset, or scaleX inversion hacks.
  * - Sits completely independent of I18nManager.isRTL or system language changes.
  * - Direct manipulation: cards follow touch 1:1, with velocity-based snapping and soft rubber-banding.
+ * - Displays a unified See All card as the final item when onSeeAll or renderSeeAllCard is provided.
  */
 export function HorizontalScrollCard<T>({
   data,
@@ -61,126 +76,56 @@ export function HorizontalScrollCard<T>({
   gap = Spacing.space3,
   paddingEnd = Spacing.space5,
   showDots = false,
-  invertedGesture = true,
+  invertedGesture,
   onActiveIndexChange,
   keyExtractor,
   containerStyle,
   trackStyle,
+  onSeeAll,
+  seeAllTitle,
+  seeAllSubtitle,
+  seeAllActionText,
+  renderSeeAllCard,
+  paging = false,
+  momentumFactor = 0.22,
 }: HorizontalScrollCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH)
-  const [activeIndex, setActiveIndex] = useState(0)
   const [measuredHeight, setMeasuredHeight] = useState<number | undefined>(cardHeight)
 
-  const count = data.length
+  const showSeeAll = Boolean((onSeeAll || renderSeeAllCard) && data.length > 0)
+  const count = data.length + (showSeeAll ? 1 : 0)
   const step = cardWidth + gap
-  const maxTranslateX = Math.max(0, (count - 1) * step)
 
-  // Reanimated shared values
-  const translateX = useSharedValue(0)
-  const startX = useSharedValue(0)
-  const currentIndex = useSharedValue(0)
-
-  // Callback to update JS state when snapping completes
-  const handleSnapComplete = useCallback(
-    (newIndex: number) => {
-      setActiveIndex(newIndex)
-      onActiveIndexChange?.(newIndex)
-    },
-    [onActiveIndexChange]
-  )
-
-  // Pan gesture configuration
-  const panGesture = useMemo(() => {
-    return Gesture.Pan()
-      .activeOffsetX([-10, 10]) // Don't trigger pan on minor horizontal touch, allowing child taps
-      .failOffsetY([-15, 15])   // Fail quickly if gesture is vertical, letting parent ScrollView scroll
-      .onStart(() => {
-        cancelAnimation(translateX)
-        startX.value = translateX.value
-      })
-      .onUpdate((event) => {
-        if (count <= 1) return // Single card never translates
-
-        const dx = invertedGesture ? -event.translationX : event.translationX
-        const rawX = startX.value + dx
-
-        if (rawX < 0) {
-          // Soft resistance when pulling past Card 0
-          translateX.value = rawX * 0.25
-        } else if (rawX > maxTranslateX) {
-          // Soft resistance when pulling past the last card
-          const over = rawX - maxTranslateX
-          translateX.value = maxTranslateX + over * 0.25
-        } else {
-          translateX.value = rawX
-        }
-      })
-      .onEnd((event) => {
-        if (count <= 1) {
-          translateX.value = withSpring(0, { damping: 20, stiffness: 200 })
-          return
-        }
-
-        const vx = invertedGesture ? -event.velocityX : event.velocityX
-        const rawIndex = translateX.value / step
-        let targetIndex = Math.round(rawIndex)
-
-        // Velocity flick recognition (> 400 px/s)
-        const velocityThreshold = 400
-        if (Math.abs(vx) > velocityThreshold) {
-          if (vx > 0) {
-            targetIndex = Math.ceil(rawIndex)
-            if (targetIndex === currentIndex.value && targetIndex < count - 1) {
-              targetIndex += 1
-            }
-          } else {
-            targetIndex = Math.floor(rawIndex)
-            if (targetIndex === currentIndex.value && targetIndex > 0) {
-              targetIndex -= 1
-            }
-          }
-        }
-
-        // Clamp to valid range [0, count - 1]
-        targetIndex = Math.max(0, Math.min(count - 1, targetIndex))
-
-        const targetX = targetIndex * step
-        translateX.value = withSpring(
-          targetX,
-          {
-            damping: 22,
-            stiffness: 180,
-            mass: 0.8,
-          },
-          (finished) => {
-            if (finished) {
-              currentIndex.value = targetIndex
-              runOnJS(handleSnapComplete)(targetIndex)
-            }
-          }
-        )
-      })
-  }, [count, step, maxTranslateX, invertedGesture, handleSnapComplete])
-
-  const animatedTrackStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    }
+  const {
+    panGesture,
+    animatedTrackStyle,
+    activeIndex,
+  } = useGestureSwiper({
+    count,
+    step,
+    invertedGesture,
+    onActiveIndexChange,
+    paging,
+    momentumFactor,
   })
+
 
   // Measure container height dynamically if cardHeight wasn't explicitly provided
   const handleCardLayout = useCallback(
     (e: any) => {
       if (cardHeight) return
       const h = e.nativeEvent.layout.height
-      if (h > 0 && h !== measuredHeight) {
-        setMeasuredHeight(h)
+      if (h > 0) {
+        const total = Math.ceil(h + 8)
+        if (total !== measuredHeight) {
+          setMeasuredHeight(total)
+        }
       }
     },
     [cardHeight, measuredHeight]
   )
 
-  const finalHeight = cardHeight || measuredHeight || 260
+  const finalHeight = cardHeight ? cardHeight + 8 : (measuredHeight || 270)
 
   return (
     <View
@@ -211,22 +156,51 @@ export function HorizontalScrollCard<T>({
                     styles.cardWrapper,
                     {
                       width: cardWidth,
-                      right: rightOffset,
+                      ...physicalRightStyle(rightOffset),
                     },
+                    cardHeight ? { height: cardHeight } : undefined,
                   ]}
                 >
                   {renderItem({ item, index })}
                 </View>
               )
             })}
+
+            {/* See All Card as the final item in the track */}
+            {showSeeAll && (
+              <View
+                key="see-all-card"
+                style={[
+                  styles.cardWrapper,
+                  {
+                    width: cardWidth,
+                    ...physicalRightStyle(paddingEnd + data.length * step),
+                    height: cardHeight || (measuredHeight ? measuredHeight - 8 : undefined),
+                  },
+                ]}
+              >
+                {renderSeeAllCard ? (
+                  renderSeeAllCard()
+                ) : onSeeAll ? (
+                  <SeeAllHorizontalCard
+                    onPress={onSeeAll}
+                    title={seeAllTitle}
+                    subTitle={seeAllSubtitle}
+                    actionText={seeAllActionText}
+                    cardWidth={cardWidth}
+                    height={cardHeight || (measuredHeight ? measuredHeight - 8 : undefined)}
+                  />
+                ) : null}
+              </View>
+            )}
           </Animated.View>
         </View>
       </GestureDetector>
 
       {/* Optional Pagination Dots */}
       {showDots && count > 1 && (
-        <View style={styles.dotsContainer}>
-          {data.map((_, i) => (
+        <View style={[styles.dotsContainer, { flexDirection: physicalRowDirection() }]}>
+          {Array.from({ length: count }).map((_, i) => (
             <View
               key={i}
               style={[
@@ -255,11 +229,9 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
+    top: 4,
   },
   dotsContainer: {
-    flexDirection: 'row-reverse', // Dot 0 physically on the right to match Card 0
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,

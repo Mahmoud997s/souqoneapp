@@ -1,82 +1,59 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Colors } from '../../../constants/colors';
-import { Spacing } from '../../../constants/spacing';
-import { Radius } from '../../../constants/radius';
-
-import { BUS_CATEGORIES } from '../../../constants/buses';
+import React from 'react'
+import { useRouter } from 'expo-router'
+import {
+  GlassCategoriesGrid,
+  GlassCategoryTabItem,
+} from '../../ui/GlassCategoriesGrid'
 
 export function BusCategoriesGrid() {
-  const router = useRouter();
+  const router = useRouter()
 
-  return (
-    <View style={s.container}>
-      <View style={s.sectionHeader}>
-        <Text style={s.sectionTitleHeader}>فئات الحافلات</Text>
-      </View>
-      <FlatList
-        data={BUS_CATEGORIES}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.listContent}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={s.item}
-            activeOpacity={0.7}
-            onPress={() => router.push(`/buses/browse?busType=${item.id}` as any)}
-          >
-            <View style={[s.iconWrap, { backgroundColor: item.bgColor }]}>
-              <Ionicons name={item.icon as any} size={30} color={item.color} />
-            </View>
-            <Text style={s.label}>{item.label}</Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  );
+  const tabs: GlassCategoryTabItem[] = [
+    {
+      id: 'used',
+      label: 'مستعملة',
+      icon: 'bus-outline',
+      iconBg: '#e0f2fe',
+      iconColor: '#0ea5e9',
+      onPress: () => router.push('/buses/browse?condition=USED' as any),
+    },
+    {
+      id: 'new',
+      label: 'جديدة',
+      icon: 'sparkles',
+      iconBg: '#d1fae5',
+      iconColor: '#10b981',
+      onPress: () => router.push('/buses/browse?condition=NEW' as any),
+    },
+    {
+      id: 'contract',
+      label: 'بيع بعقد',
+      icon: 'document-text-outline',
+      iconBg: '#ffedd5',
+      iconColor: '#ea580c',
+      onPress: () =>
+        router.push(
+          '/buses/browse?busListingType=BUS_SALE_WITH_CONTRACT' as any
+        ),
+    },
+    {
+      id: 'rental',
+      label: 'تأجير',
+      icon: 'key',
+      iconBg: '#fef3c7',
+      iconColor: '#f59e0b',
+      onPress: () =>
+        router.push('/buses/browse?busListingType=BUS_RENT' as any),
+    },
+    {
+      id: 'wanted',
+      label: 'مطلوب',
+      icon: 'megaphone',
+      iconBg: '#ede9fe',
+      iconColor: '#8b5cf6',
+      onPress: () => router.push('/buses/browse?type=wanted' as any),
+    },
+  ]
+
+  return <GlassCategoriesGrid items={tabs} />
 }
-
-const s = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.space6,
-    marginTop: Spacing.space2,
-  },
-  sectionHeader: {
-    paddingHorizontal: Spacing.space5,
-    marginBottom: Spacing.space3,
-  },
-  sectionTitleHeader: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  listContent: {
-    paddingHorizontal: Spacing.space5,
-    gap: Spacing.space3,
-  },
-  item: {
-    alignItems: 'center',
-    width: 72,
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.space2,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
-  },
-  label: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.text,
-    textAlign: 'center',
-  },
-});

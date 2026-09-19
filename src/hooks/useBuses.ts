@@ -1,9 +1,11 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { busesApi } from '../api/buses'
 import { mapBusToCard } from '../utils/mappers'
+import { BusManufacturer, BusModel } from '../types/bus.types'
+import { UnifiedCardItem } from '../components/cards/UnifiedCard'
 
-export function useBuses(params?: Record<string, unknown>) {
-  return useQuery({
+export function useBuses(params?: Record<string, unknown>, options?: any) {
+  return useQuery<UnifiedCardItem[], Error>({
     queryKey: ['buses', params],
     queryFn: async () => {
       const res = await busesApi.getAll(params)
@@ -11,6 +13,10 @@ export function useBuses(params?: Record<string, unknown>) {
       const arr = Array.isArray(raw) ? raw : []
       return arr.map(mapBusToCard)
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+    ...options,
   })
 }
 
@@ -43,5 +49,22 @@ export function useBus(id: string) {
       return res.data
     },
     enabled: !!id,
+  })
+}
+
+export function useBusManufacturers() {
+  return useQuery<BusManufacturer[]>({
+    queryKey: ['bus-manufacturers'],
+    queryFn: () => busesApi.getManufacturers(),
+    staleTime: 60 * 60 * 1000,
+  })
+}
+
+export function useBusModels(manufacturerId: string) {
+  return useQuery<BusModel[]>({
+    queryKey: ['bus-models', manufacturerId],
+    queryFn: () => busesApi.getModels(manufacturerId),
+    enabled: !!manufacturerId,
+    staleTime: 60 * 60 * 1000,
   })
 }

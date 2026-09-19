@@ -15,9 +15,10 @@ import { CategoriesGrid } from '../../src/components/cars/CategoriesGrid';
 import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { usePostStore } from '../../src/store/postStore';
 import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
@@ -79,7 +80,10 @@ export default function CarsLandingScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 106 + Spacing.space5,
+          paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+        }}
       >
         <View style={s.content}>
           <CategoriesGrid />
@@ -120,8 +124,15 @@ export default function CarsLandingScreen() {
 
           <HowItWorks />
 
-          {/* Need Help / Support Button */}
-          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
+          {/* Unified Action Banner & Support Help */}
+          <SectionFooterAction
+            isLanding
+            title="لديك سيارة للبيع أو للإيجار؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
+            buttonText="أضف إعلانك"
+            iconName="car-sport-outline"
+            onPress={handleAddCar}
+          />
         </View>
       </Animated.ScrollView>
 
@@ -132,5 +143,5 @@ export default function CarsLandingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
-  content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: Spacing.space4 },
+  content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: 0 },
 });

@@ -22,7 +22,7 @@ import { useAuthStore } from '../../../src/store/authStore'
 import { useScrollAwareNav } from '../../../src/hooks/useScrollAwareNav'
 import { useOperatorNavigation } from '../../../src/hooks/useOperatorNavigation'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
-import { SupportHelpButton } from '../../../src/components/ui/SupportHelpButton'
+import { SectionFooterAction } from '../../../src/components/ui/SectionFooterAction'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
 import { ListingTabs } from '../../../src/components/ui/ListingTabs'
 import { QuickFilters, QuickFilterItem } from '../../../src/components/ui/QuickFilters'
@@ -299,8 +299,8 @@ export default function BrowseOperatorsScreen() {
         contentContainerStyle={[
           s.listContent,
           {
-            paddingTop: 10,
-            paddingBottom: insets.bottom + 80,
+            paddingTop: Spacing.space2,
+            paddingBottom: Math.max(insets.bottom, 16) + 8,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -391,7 +391,14 @@ export default function BrowseOperatorsScreen() {
             {!isLoading && (
               <>
                 <OperatorFAQ />
-                <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 16 }} />
+                <SectionFooterAction
+                  isLanding
+                  title="هل أنت مشغل معدات محترف؟"
+                  subtitle="سجل بروفايلك المهني الآن وتلق عروض عمل ومشاريع مجزية"
+                  buttonText="سجل كمشغل"
+                  iconName="construct-outline"
+                  onPress={navigateToAddOperator}
+                />
               </>
             )}
           </>
@@ -418,7 +425,7 @@ const s = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   listContent: {
-    paddingHorizontal: Spacing.space3,
+    paddingHorizontal: Spacing.space4,
   },
   resultsRow: {
     flexDirection: 'row',

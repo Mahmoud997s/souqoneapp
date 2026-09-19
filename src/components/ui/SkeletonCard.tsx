@@ -1,49 +1,69 @@
 import { useEffect, useRef } from 'react'
 import { View, ViewStyle, StyleSheet, Animated } from 'react-native'
 import { Colors } from '../../constants/colors'
-import { Radius } from '../../constants/radius'
-import { Spacing } from '../../constants/spacing'
 import { CardSystem } from '../../constants/cardSystem'
 
-export function SkeletonCard({ style }: { style?: ViewStyle }) {
-  const anim = useRef(new Animated.Value(0)).current
+export interface SkeletonCardProps {
+  style?: ViewStyle
+  fullWidth?: boolean
+}
+
+export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
+  const opacity = useRef(new Animated.Value(0.45)).current
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 900, useNativeDriver: false }),
-        Animated.timing(anim, { toValue: 0, duration: 900, useNativeDriver: false }),
+        Animated.timing(opacity, { toValue: 0.9, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.45, duration: 800, useNativeDriver: true }),
       ])
-    ).start()
-  }, [])
+    )
+    animation.start()
+    return () => animation.stop()
+  }, [opacity])
 
-  const bg = anim.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface, Colors.border] })
+  const imageHeight = fullWidth
+    ? CardSystem.fullWidthHeight
+    : CardSystem.aspectRatioHeight
 
   return (
-    <View style={[s.card, style]}>
-      {/* Image — matches UnifiedCard aspectRatio 4/3 */}
-      <Animated.View style={[s.image, { backgroundColor: bg }]} />
+    <View style={[s.card, fullWidth && { width: '100%' }, style]}>
+      <Animated.View style={{ opacity }}>
+        {/* Image — matches UnifiedCard aspectRatio 4/3 */}
+        <View style={[s.image, { height: imageHeight }, s.placeholder]} />
 
-      <View style={s.body}>
-        {/* Title row */}
-        <View style={s.row}>
-          <Animated.View style={[s.titleLine, { backgroundColor: bg }]} />
-          <Animated.View style={[s.badge, { backgroundColor: bg }]} />
+        <View style={s.body}>
+          {/* Title row */}
+          <View style={s.row}>
+            <View style={[s.titleLine, s.placeholder]} />
+            <View style={[s.badge, s.placeholder]} />
+          </View>
+
+          {/* Location row */}
+          <View style={s.locationRow}>
+            <View style={[s.locLine, s.placeholder]} />
+          </View>
+
+          {/* Divider */}
+          <View style={s.divider} />
+
+          {/* Chips row */}
+          <View style={s.chipsRow}>
+            <View style={[s.chip, s.placeholder]} />
+            <View style={[s.chip, s.placeholder]} />
+            <View style={[s.chip, s.placeholder]} />
+          </View>
+
+          {/* Footer divider */}
+          <View style={s.divider} />
+
+          {/* Footer */}
+          <View style={s.footer}>
+            <View style={[s.timeLine, s.placeholder]} />
+            <View style={[s.priceLine, s.placeholder]} />
+          </View>
         </View>
-        {/* Chips row */}
-        <View style={s.row}>
-          <Animated.View style={[s.chip, { backgroundColor: bg }]} />
-          <Animated.View style={[s.chip, { backgroundColor: bg }]} />
-          <Animated.View style={[s.chip, { backgroundColor: bg }]} />
-        </View>
-        {/* Divider */}
-        <Animated.View style={[s.divider, { backgroundColor: bg }]} />
-        {/* Footer */}
-        <View style={s.footer}>
-          <Animated.View style={[s.locLine, { backgroundColor: bg }]} />
-          <Animated.View style={[s.priceLine, { backgroundColor: bg }]} />
-        </View>
-      </View>
+      </Animated.View>
     </View>
   )
 }
@@ -53,22 +73,25 @@ const s = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
     overflow: 'hidden',
+  },
+  placeholder: {
+    backgroundColor: '#E2E8F0',
   },
   image: {
     width: '100%',
-    height: CardSystem.aspectRatioHeight,
   },
   body: {
-    padding: Spacing.space3,
-    gap: Spacing.space3,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
+    gap: CardSystem.gap.primary,
   },
   titleLine: {
     flex: 1,
@@ -76,32 +99,49 @@ const s = StyleSheet.create({
     borderRadius: 7,
   },
   badge: {
-    width: 52,
-    height: 20,
-    borderRadius: 10,
+    width: 44,
+    height: 18,
+    borderRadius: CardSystem.radius.badge,
   },
-  chip: {
-    width: 64,
-    height: 24,
-    borderRadius: 12,
+  locationRow: {
+    marginTop: 3,
+    marginBottom: 5,
+  },
+  locLine: {
+    width: 75,
+    height: 11,
+    borderRadius: 5.5,
   },
   divider: {
     height: 1,
-    borderRadius: 1,
+    backgroundColor: '#f1f5f9',
+    marginTop: 1,
+    marginBottom: 5,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 5,
+  },
+  chip: {
+    width: 48,
+    height: 20,
+    borderRadius: CardSystem.radius.inner,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  locLine: {
-    width: 80,
-    height: 12,
-    borderRadius: 6,
+  timeLine: {
+    width: 55,
+    height: 11,
+    borderRadius: 5.5,
   },
   priceLine: {
-    width: 90,
-    height: 20,
-    borderRadius: 10,
+    width: 75,
+    height: 18,
+    borderRadius: 9,
   },
 })

@@ -8,6 +8,7 @@ import { SkeletonCard } from '../ui/SkeletonCard'
 import { CarCard } from './CarCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
+import { HorizontalScrollCard } from '../ui/HorizontalScrollCard'
 
 interface CarHorizontalListProps {
   title: string
@@ -18,6 +19,8 @@ interface CarHorizontalListProps {
   onSeeAll: () => void
   onPressItem: (item: Listing) => void
 }
+
+const CARD_WIDTH = Dimensions.get('window').width * 0.6
 
 export const CarHorizontalList = ({
   title,
@@ -40,17 +43,50 @@ export const CarHorizontalList = ({
           <Ionicons name="chevron-back" size={14} color={Colors.primary} />
         </TouchableOpacity>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -Spacing.space5 }}
-        contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: Spacing.space3, paddingVertical: 4, alignItems: 'flex-start' }}
-      >
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} style={{ width: Dimensions.get('window').width * 0.6 }} />)
-        ) : data.length > 0 ? (
-          data.map(item => <CarCard key={item.id} item={item} onPress={() => onPressItem(item)} maxChips={3} />)
-        ) : (
+
+      {isLoading ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loading-skeleton"
+            data={[1, 2, 3]}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => String(item)}
+            renderItem={() => (
+              <SkeletonCard style={{ width: CARD_WIDTH }} />
+            )}
+          />
+        </View>
+      ) : data.length > 0 ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loaded-cards"
+            data={data}
+            cardWidth={CARD_WIDTH}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => item.id}
+            onSeeAll={onSeeAll}
+            seeAllTitle="عرض الكل"
+            seeAllSubtitle={`تصفح جميع ${title}`}
+            renderItem={({ item }) => (
+              <CarCard
+                item={item}
+                onPress={() => onPressItem(item)}
+                maxChips={3}
+                disableImageSwipe={true}
+              />
+            )}
+          />
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: Spacing.space3, paddingVertical: 4, alignItems: 'flex-start' }}
+        >
           <View style={s.emptyCard}>
             <EmptyState 
               title={emptyText} 
@@ -58,8 +94,8 @@ export const CarHorizontalList = ({
               compact 
             />
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   )
 }

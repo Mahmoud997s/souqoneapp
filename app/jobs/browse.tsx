@@ -18,7 +18,8 @@ import { useState, useMemo, useEffect } from 'react'
 
 import { Modal, ActivityIndicator } from 'react-native'
 import { QuickFilters } from '../../src/components/ui/QuickFilters'
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction'
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
 
 const GOVERNORATE_OPTIONS = OMAN_LOCATIONS.map(g => ({
@@ -47,6 +48,7 @@ const SALARY_RANGES = [
 ];
 
 export default function JobsBrowseScreen() {
+  const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   
@@ -202,7 +204,13 @@ export default function JobsBrowseScreen() {
         <Animated.FlatList
           data={displayData}
           keyExtractor={(item, index) => (item as any).id ?? (item as any)._id ?? `job-${index}`}
-          contentContainerStyle={[s.list, { paddingTop: Spacing.space2 }]}
+          contentContainerStyle={[
+            s.list,
+            {
+              paddingTop: Spacing.space2,
+              paddingBottom: Math.max(insets.bottom, 16) + 8,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
@@ -220,7 +228,14 @@ export default function JobsBrowseScreen() {
                 </View>
               )}
               {displayData && displayData.length > 0 && (
-                <SupportHelpButton />
+                <SectionFooterAction
+                  isLanding
+                  title="تبحث عن سائق أو فرصة عمل؟"
+                  subtitle="انشر إعلانك الآن وتواصل مع أصحاب العمل والسائقين مباشرة"
+                  buttonText="انشر وظيفة"
+                  iconName="briefcase-outline"
+                  onPress={() => router.push('/jobs/create' as any)}
+                />
               )}
             </>
           )}
@@ -398,7 +413,7 @@ export default function JobsBrowseScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.surface },
   loadWrap: { padding: Spacing.space5 },
-  list: { paddingHorizontal: Spacing.space4, paddingBottom: Spacing.space5, paddingTop: 0 },
+  list: { paddingHorizontal: Spacing.space4 },
 
   // Compact Header Search
   compactSearch: {

@@ -1,23 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
-  Platform,
   ActivityIndicator,
-  Modal,
-  FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated from 'react-native-reanimated';
 
-import { useInfiniteBuses } from '../../src/hooks/useBuses';
+import { useInfiniteBuses, useBusManufacturers } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
-import { OMAN_LOCATIONS } from '../../src/constants/locations';
+import { useDebounce } from '../../src/hooks/useDebounce';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
@@ -26,20 +20,18 @@ import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/bus
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
-import { QuickFilters } from '../../src/components/ui/QuickFilters';
+import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { BusCard } from '../../src/components/buses/BusCard';
+import { BusesVisualFilters } from '../../src/components/buses/BusesVisualFilters';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
-import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
-import { Radius } from '../../src/constants/radius';
-
-const CAPACITIES = [10, 15, 30, 45, 50];
-const CAPACITY_OPTIONS = CAPACITIES.map(c => ({ label: `+ ${c} مقعد`, value: c }));
-
-
 
 const DROPDOWN_FILTERS = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
@@ -53,91 +45,169 @@ const SORT_OPTIONS = [
   { id: 'newest', label: 'الأحدث أولاً' },
   { id: 'popular', label: 'الأكثر شيوعاً' },
   { id: 'price_asc', label: 'السعر: الأقل للأعلى' },
-  { id: 'price_desc', label: 'السعر: الأعلى للأقل' }
+  { id: 'price_desc', label: 'السعر: الأعلى للأقل' },
 ];
 
 export default function BusesBrowseScreen() {
+  const insets = useSafeAreaInsets();
+  const { scrollHandler } = useScrollAwareNav();
+  const searchParams = useLocalSearchParams<{
+    type?: string;
+    featured?: string;
+    busListingType?: string;
+    condition?: string;
+    isPremium?: string;
+  }>();
+
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
   useEffect(() => {
     locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
   }, []);
-  
-  const governorateOptions = governorates.map(g => ({
-    id: g.id,
-    labelAr: g.nameAr,
-    value: g.nameAr
-  }));
-  const insets = useSafeAreaInsets();
-  const { scrollHandler } = useScrollAwareNav();
-  const searchParams = useLocalSearchParams<{ type?: string }>();
 
-  // State
+  const { data: manufacturers } = useBusManufacturers();
+
+  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  const [filters, setFilters] = useState<BusFilters & { governorateId?: number }>(() => {
-    const initialFilters: BusFilters & { governorateId?: number } = {};
-    if (searchParams.type) {
-      initialFilters.busListingType = searchParams.type.toUpperCase() as any;
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  type BusBrowseFilters = BusFilters & {
+    governorateId?: number;
+    wilayaId?: number;
+    city?: string;
+    priceId?: string;
+    isPremium?: boolean | string;
+  };
+
+  const [filters, setFilters] = useState<BusBrowseFilters>(() => {
+    const initialFilters: BusBrowseFilters = {};
+    if (searchParams.busListingType) {
+      initialFilters.busListingType = searchParams.busListingType as any;
+    } else if (searchParams.type) {
+      const t = searchParams.type.toUpperCase();
+      if (t === 'RENT' || t === 'RENTAL') initialFilters.busListingType = 'BUS_RENT';
+      else if (t === 'SALE') initialFilters.busListingType = 'BUS_SALE';
+      else if (t === 'CONTRACT') initialFilters.busListingType = 'BUS_SALE_WITH_CONTRACT';
+      else initialFilters.busListingType = t as any;
+    }
+    if (searchParams.condition) {
+      initialFilters.condition = searchParams.condition as any;
+    }
+    if (searchParams.featured === 'true' || searchParams.isPremium === 'true') {
+      (initialFilters as any).isPremium = true;
     }
     return initialFilters;
   });
-  
+
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Combine params
+  // Combine query filters for API
   const queryFilters = useMemo(() => {
-    const params = { ...filters };
+    const params: Record<string, any> = {};
+
+    // 1. Search text
     if (debouncedSearch.trim()) {
-      (params as any).search = debouncedSearch;
+      params.search = debouncedSearch.trim();
     }
+
+    // 2. Vertical & core classifications
+    if (filters.busListingType) params.busListingType = filters.busListingType;
+    if (filters.busType) params.busType = filters.busType;
+    if (filters.make) params.make = filters.make;
+    if (filters.governorateId) params.governorateId = String(filters.governorateId);
+    if (filters.wilayaId) params.wilayaId = String(filters.wilayaId);
+
+    // 3. Pricing
+    const minPrice = filters.minPrice || filters.priceMin;
+    if (minPrice) params.minPrice = String(minPrice);
+    const maxPrice = filters.maxPrice || filters.priceMax;
+    if (maxPrice) params.maxPrice = String(maxPrice);
+
+    // 4. Passenger capacity
+    const minCap = filters.minCapacity || filters.capacityMin;
+    if (minCap) params.minCapacity = String(minCap);
+    const maxCap = filters.maxCapacity || filters.capacityMax;
+    if (maxCap) params.maxCapacity = String(maxCap);
+
+    // 5. Technical specs (condition, transmission, fuel, year)
+    if (filters.condition) params.condition = filters.condition;
+    if (filters.transmission) params.transmission = filters.transmission;
+    if (filters.fuelType) params.fuelType = filters.fuelType;
+    if (filters.yearMin) params.yearMin = String(filters.yearMin);
+    if (filters.yearMax) params.yearMax = String(filters.yearMax);
+
+    // 6. Sorting
+    if (filters.sort && filters.sort !== 'newest') {
+      params.sort = filters.sort;
+    }
+
+    // 7. Premium flag if any
+    if ((filters as any).isPremium) {
+      params.isPremium = 'true';
+    }
+
     return params;
   }, [debouncedSearch, filters]);
 
-  const { 
-    data, 
-    isLoading, 
-    isError, 
-    refetch, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useInfiniteBuses(queryFilters as any);
 
   const listings = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
-  const activeFiltersCount = Object.entries(filters).filter(([k, v]) => Boolean(v) && k !== 'sort').length;
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.busListingType) count++;
+    if (filters.condition) count++;
+    if (filters.governorateId) count++;
+    if (filters.make) count++;
+    if (filters.busType) count++;
+    if (filters.minCapacity || filters.capacityMin) count++;
+    if (filters.minPrice || filters.maxPrice || filters.priceMin || filters.priceMax) count++;
+    if (filters.yearMin || filters.yearMax) count++;
+    if (filters.transmission) count++;
+    if (filters.fuelType) count++;
+    return count;
+  }, [filters]);
 
-  const handleClearAll = () => setFilters(prev => ({ sort: prev.sort }));
+  const handleClearAll = () => setFilters((prev) => ({ sort: prev.sort }));
 
-  const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
+  const quickFilterItems: QuickFilterItem[] = DROPDOWN_FILTERS.map((qf) => {
     let isActive = false;
     let displayLabel = qf.label;
 
     if (qf.id === 'governorate') {
       isActive = !!filters.governorateId;
-      if (isActive) displayLabel = governorates.find(g => g.id === filters.governorateId)?.nameAr || 'المدينة';
+      if (isActive)
+        displayLabel =
+          governorates.find((g) => g.id === filters.governorateId)?.nameAr || 'المدينة';
     } else if (qf.id === 'make') {
       isActive = !!filters.make;
-      if (isActive) displayLabel = BUS_MAKES.find(m => m.id === filters.make)?.label || filters.make as string;
+      if (isActive) {
+        const found = manufacturers?.find((m) => m.name === filters.make || m.id === filters.make);
+        displayLabel = found ? (found.nameAr || found.name) : (filters.make as string);
+      }
     } else if (qf.id === 'capacity') {
-      isActive = !!filters.capacityMin;
-      if (isActive) displayLabel = `+ ${filters.capacityMin} مقعد`;
+      const cap = filters.minCapacity ?? filters.capacityMin;
+      isActive = !!cap;
+      if (isActive) displayLabel = `+ ${cap} مقعد`;
     } else if (qf.id === 'busType') {
       isActive = !!filters.busType;
-      if (isActive) displayLabel = BUS_TYPES.find(b => b.id === filters.busType)?.label || filters.busType as string;
+      if (isActive)
+        displayLabel =
+          BUS_TYPES.find((b) => b.id === filters.busType)?.label || (filters.busType as string);
     } else if (qf.id === 'sort') {
       isActive = !!filters.sort && filters.sort !== 'newest';
       if (isActive) {
-        displayLabel = SORT_OPTIONS.find(s => s.id === filters.sort)?.label || qf.label;
+        displayLabel = SORT_OPTIONS.find((s) => s.id === filters.sort)?.label || qf.label;
       }
     }
 
@@ -145,49 +215,103 @@ export default function BusesBrowseScreen() {
       id: qf.id,
       label: displayLabel,
       icon: qf.icon as any,
-      isActive
+      isActive,
     };
   });
 
   const handleClearQuickFilter = (id: string) => {
     const newFilters = { ...filters };
-    if (id === 'governorate') delete newFilters.governorateId;
+    if (id === 'governorate') {
+      delete newFilters.governorateId;
+      delete newFilters.city;
+    }
     if (id === 'make') delete newFilters.make;
-    if (id === 'capacity') { delete newFilters.capacityMin; }
+    if (id === 'capacity') {
+      delete newFilters.capacityMin;
+      delete newFilters.minCapacity;
+    }
     if (id === 'busType') delete newFilters.busType;
     if (id === 'sort') newFilters.sort = 'newest';
     setFilters(newFilters);
   };
 
-  const renderEmptyState = () => {
-    if (isLoading) {
-      return (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <SkeletonCard />
-            </View>
-          ))}
-        </View>
-      );
+  const handleSelectFilter = (
+    type: 'make' | 'busType' | 'capacity' | 'city' | 'price',
+    valueId: string,
+    valueName?: string,
+    min?: number,
+    max?: number,
+    extraId?: number
+  ) => {
+    if (type === 'make') {
+      if (!valueId || valueId === filters.make) {
+        setFilters((prev) => {
+          const next = { ...prev };
+          delete next.make;
+          return next;
+        });
+        return;
+      }
+      setFilters((prev) => ({ ...prev, make: valueId }));
+    } else if (type === 'busType') {
+      if (!valueId || valueId === filters.busType) {
+        setFilters((prev) => {
+          const next = { ...prev };
+          delete next.busType;
+          return next;
+        });
+        return;
+      }
+      setFilters((prev) => ({ ...prev, busType: valueId as any }));
+    } else if (type === 'capacity') {
+      const currentCap = filters.minCapacity ?? filters.capacityMin;
+      if (!valueId || min === currentCap) {
+        setFilters((prev) => {
+          const next = { ...prev };
+          delete next.capacityMin;
+          delete next.minCapacity;
+          return next;
+        });
+        return;
+      }
+      setFilters((prev) => ({ ...prev, minCapacity: min, capacityMin: min }));
+    } else if (type === 'city') {
+      if (!valueId || valueId === String(filters.governorateId)) {
+        setFilters((prev) => {
+          const next = { ...prev };
+          delete next.governorateId;
+          delete next.city;
+          return next;
+        });
+        return;
+      }
+      setFilters((prev) => ({
+        ...prev,
+        governorateId: extraId || Number(valueId), // governorateId: item.id
+        city: valueName,
+      }));
+    } else if (type === 'price') {
+      if (!valueId || valueId === filters.priceId) {
+        setFilters((prev) => {
+          const next = { ...prev };
+          delete next.priceMin;
+          delete next.priceMax;
+          delete next.minPrice;
+          delete next.maxPrice;
+          delete next.priceId;
+          return next;
+        });
+        return;
+      }
+      setFilters((prev) => ({
+        ...prev,
+        minPrice: min !== undefined ? String(min) : undefined,
+        maxPrice: max !== undefined ? String(max) : undefined,
+        priceMin: min !== undefined ? String(min) : undefined,
+        priceMax: max !== undefined ? String(max) : undefined,
+        priceId: valueId,
+      }));
     }
-    if (isError) {
-      return (
-        <View style={s.center}>
-          <Text style={s.errorTxt}>حدث خطأ أثناء تحميل الحافلات</Text>
-          <TouchableOpacity onPress={() => refetch()} style={s.retryBtn}>
-            <Text style={s.retryTxt}>إعادة المحاولة</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return (
-      <View style={s.emptyState}>
-        <Ionicons name="bus-outline" size={64} color={Colors.borderStrong || '#E2E8F0'} />
-        <Text style={s.emptyTitle}>لا توجد حافلات مطابقة</Text>
-        <Text style={s.emptySubtitle}>جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى</Text>
-      </View>
-    );
   };
 
   return (
@@ -207,12 +331,17 @@ export default function BusesBrowseScreen() {
           activeTabId={filters.busListingType || ''}
           onChangeTab={(id) => {
             if (id === filters.busListingType) {
-               const newFilters = { ...filters };
-               delete newFilters.busListingType;
-               setFilters(newFilters);
+              const newFilters = { ...filters };
+              delete newFilters.busListingType;
+              setFilters(newFilters);
             } else {
-               setFilters({ ...filters, busListingType: id as any });
+              setFilters({ ...filters, busListingType: id as any });
             }
+          }}
+          onClearTab={() => {
+            const newFilters = { ...filters };
+            delete newFilters.busListingType;
+            setFilters(newFilters);
           }}
         />
         <QuickFilters
@@ -229,7 +358,7 @@ export default function BusesBrowseScreen() {
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={[
           s.listContent,
-          { paddingTop: Spacing.space2 },
+          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -241,30 +370,6 @@ export default function BusesBrowseScreen() {
             colors={[Colors.primary]}
           />
         }
-        ListHeaderComponent={
-          <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            {activeFiltersCount > 0 ? (
-              <TouchableOpacity onPress={handleClearAll}>
-                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
-                  مسح الفلاتر
-                </Text>
-              </TouchableOpacity>
-            ) : <View />}
-
-            <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
-              <Ionicons name="bus-outline" size={14} color="#64748b" />
-              <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
-                {listings?.length || 0} حافلة متاحة
-              </Text>
-            </View>
-          </View>
-        }
-        ListEmptyComponent={renderEmptyState}
-        renderItem={({ item }: any) => (
-          <View style={s.cardWrapper}>
-            <BusCard item={item} onPress={() => router.push(`/buses/${item.id}` as any)} fullWidth showChips maxChips={4} />
-          </View>
-        )}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) {
             fetchNextPage();
@@ -274,151 +379,66 @@ export default function BusesBrowseScreen() {
         ListFooterComponent={() => (
           <>
             {isFetchingNextPage && (
-              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>جاري تحميل المزيد...</Text>
-              </View>
+              <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
             )}
             {listings && listings.length > 0 && (
-              <SupportHelpButton />
+              <SectionFooterAction
+                title="لديك حافلة للبيع؟"
+                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+                buttonText="أضف إعلانك"
+                iconName="bus-outline"
+                onPress={() => navigateToBusForm()}
+              />
             )}
           </>
         )}
-      />
+        ListHeaderComponent={
+          <View style={s.listHeader}>
+            <BusesVisualFilters
+              selectedBrandId={filters.make}
+              selectedCity={filters.city}
+              selectedTypeId={filters.busType}
+              selectedCapacity={filters.minCapacity ?? filters.capacityMin}
+              selectedPriceId={filters.priceId}
+              onSelectFilter={handleSelectFilter}
+              onViewAll={() => setIsFilterVisible(true)}
+            />
 
-      {/* DROPDOWNS */}
-      <Modal
-        visible={!!activeDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActiveDropdown(null)}
-      >
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
-          <View style={s.modalContent}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>
-                {activeDropdown === 'governorate' ? 'المدينة' :
-                 activeDropdown === 'make' ? 'الماركة' :
-                 activeDropdown === 'capacity' ? 'سعة الحافلة' : 
-                 activeDropdown === 'busType' ? 'فئة الحافلة' : 
-                 activeDropdown === 'sort' ? 'الترتيب' : ''}
-              </Text>
-              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {activeDropdown === 'governorate' && (
-              <FlatList
-                data={governorateOptions}
-                keyExtractor={(item) => item.id.toString()}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, governorateId: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.governorateId === item.id && s.modalOptionTxtActive]}>
-                      {item.labelAr}
-                    </Text>
-                    {filters.governorateId === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'make' && (
-              <FlatList
-                data={BUS_MAKES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, make: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.make === item.id && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {filters.make === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'capacity' && (
-              <FlatList
-                data={CAPACITY_OPTIONS}
-                keyExtractor={(item) => item.value.toString()}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, capacityMin: item.value });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.capacityMin === item.value && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {filters.capacityMin === item.value && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'busType' && (
-              <FlatList
-                data={BUS_TYPES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, busType: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.busType === item.id && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {filters.busType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'sort' && (
-              <FlatList
-                data={SORT_OPTIONS}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, sort: item.id as any });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, (filters.sort === item.id || (!filters.sort && item.id === 'newest')) && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {(filters.sort === item.id || (!filters.sort && item.id === 'newest')) && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                  </TouchableOpacity>
-                )}
+            {listings && listings.length > 0 && (
+              <BrowseResultsBar
+                resultsCount={listings.length}
+                entityName="حافلة"
+                iconName="bus-outline"
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
               />
             )}
           </View>
-        </TouchableOpacity>
-      </Modal>
+        }
+        ListEmptyComponent={() => (
+          <BrowseEmptyState
+            isLoading={isLoading}
+            isError={isError}
+            activeFiltersCount={activeFiltersCount}
+            onRetry={refetch}
+            onClearAll={handleClearAll}
+            iconName="bus-outline"
+            emptyTitle="لا توجد حافلات مطابقة"
+            emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
+            errorText="حدث خطأ أثناء تحميل الحافلات"
+          />
+        )}
+        renderItem={({ item }: any) => (
+          <View style={s.cardWrapper}>
+            <BusCard
+              item={item}
+              onPress={() => router.push(`/buses/${item.id}` as any)}
+              fullWidth
+              showChips
+            />
+          </View>
+        )}
+      />
 
       <BusFilterBottomSheet
         visible={isFilterVisible}
@@ -427,6 +447,15 @@ export default function BusesBrowseScreen() {
         onApply={(appliedFilters) => setFilters(appliedFilters)}
       />
 
+      <QuickFilterModal
+        visible={!!activeDropdown}
+        activeDropdown={activeDropdown}
+        onClose={() => setActiveDropdown(null)}
+        filters={filters}
+        setFilters={setFilters}
+        brands={manufacturers || []}
+        isBus={true}
+      />
     </View>
   );
 }
@@ -439,99 +468,14 @@ const s = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.space6,
   },
+  listHeader: {
+    marginBottom: Spacing.space2,
+  },
   cardWrapper: {
     paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space4,
   },
-  skeletonGrid: {
-    padding: Spacing.space4,
-    gap: Spacing.space4,
-  },
-  fullCard: {
-    marginBottom: Spacing.space2,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-  },
-  errorTxt: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.error || '#d9534f',
-    marginBottom: Spacing.space3,
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: Spacing.space2,
-    borderRadius: Radius.lg,
-  },
-  retryTxt: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.white,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: Spacing.space5,
-  },
-  emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 18,
-    color: Colors.text,
-    marginTop: Spacing.space4,
-    marginBottom: Spacing.space2,
-  },
-  emptySubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    paddingHorizontal: Spacing.space6,
-    lineHeight: 22,
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    maxHeight: '65%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space4,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 16, color: Colors.text,
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: Colors.text2,
-  },
-  modalOptionTxtActive: {
-    color: Colors.primary,
+  loader: {
+    margin: 20,
   },
 });

@@ -19,15 +19,15 @@ import { TransportCategoriesGrid } from '../../src/components/transport/landing/
 import { TransportHorizontalList } from '../../src/components/transport/landing/TransportHorizontalList';
 import { TransportHowItWorks } from '../../src/components/transport/landing/TransportHowItWorks';
 import { TransportBottomBar } from '../../src/components/transport/TransportBottomBar';
-import { CarrierCTABanner } from '../../src/components/transport/landing/CarrierCTABanner';
 import { CarrierCard } from '../../src/components/transport/CarrierCard';
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 
 import { TransportRequest, CarrierProfile } from '../../src/types/transport.types';
-import { PaginatedResponse } from '../../src/types/api.types';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -52,28 +52,44 @@ function CarriersSwiper({ carriers, isLoading }: { carriers: CarrierProfile[]; i
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -Spacing.space5 }}
-        contentContainerStyle={s.scrollContent}
-      >
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonCard key={i} style={{ width: SW * 0.62, height: 160 }} />
-          ))
-        ) : (
-          carriers.map((item) => (
-            <View key={item.id} style={{ width: SW * 0.62 }}>
-              <CarrierCard
-                carrier={item}
-                onPress={() => router.push(`/transport/carriers/${item.id}` as any)}
-                compact={true}
-              />
-            </View>
-          ))
-        )}
-      </ScrollView>
+      {isLoading ? (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loading-skeleton-carriers"
+            data={[1, 2, 3]}
+            cardWidth={SW * 0.62}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => String(item)}
+            renderItem={() => (
+              <SkeletonCard style={{ width: SW * 0.62, height: 160 }} />
+            )}
+          />
+        </View>
+      ) : (
+        <View style={{ marginHorizontal: -Spacing.space5 }}>
+          <HorizontalScrollCard
+            key="loaded-carriers"
+            data={carriers}
+            cardWidth={SW * 0.62}
+            gap={Spacing.space3}
+            paddingEnd={Spacing.space5}
+            keyExtractor={(item) => item.id}
+            onSeeAll={() => router.push('/transport/carriers' as any)}
+            seeAllTitle="عرض الكل"
+            seeAllSubtitle="تصفح جميع شركات ومندوبي النقل"
+            renderItem={({ item }) => (
+              <View style={{ width: SW * 0.62 }}>
+                <CarrierCard
+                  carrier={item}
+                  onPress={() => router.push(`/transport/carriers/${item.id}` as any)}
+                  compact={true}
+                />
+              </View>
+            )}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -201,7 +217,7 @@ export default function TransportLandingScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: insets.top + 106 + Spacing.space5,
-          paddingBottom: 100,
+          paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
         }}
       >
         <View style={s.content}>
@@ -267,11 +283,15 @@ export default function TransportLandingScreen() {
           {/* How It Works */}
           <TransportHowItWorks />
 
-          {/* Carrier Registration Banner */}
-          {!isCarrier && <CarrierCTABanner />}
-
-          {/* Need Help / Support Button */}
-          <SupportHelpButton style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 12 }} />
+          {/* Unified Action Banner & Support Help */}
+          <SectionFooterAction
+            isLanding
+            title="هل تملك مركبة نقل وترغب بزيادة دخلك؟"
+            subtitle="انضم لشبكة ناقلي سوق ون، تصفح الطلبات وقدم عروضك بسهولة"
+            buttonText="سجل كناقل"
+            iconName="shield-checkmark-outline"
+            onPress={() => router.push('/transport/carrier-register' as any)}
+          />
         </View>
       </Animated.ScrollView>
 

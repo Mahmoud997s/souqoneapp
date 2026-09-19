@@ -1,31 +1,16 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  ScrollView,
-  Pressable,
-  Platform,
-  Share,
-} from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import { useRouter } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
-import { Colors } from '../../constants/colors'
-import { useAuthStore } from '../../store/authStore'
-import { favoritesApi } from '../../api/favorites'
-import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
-import { GOVERNORATE_OPTIONS, OMAN_LOCATIONS } from '../../constants/locations'
-import { formatDate } from '../../utils/format'
+  ListingCardBase,
+  ListingCardPill,
+  ListingCardBadge,
+} from '../ui/ListingCardBase'
 import { formatLocation } from '../../utils/mappers'
-import { PART_CATEGORIES, POPULAR_PART_MAKES, WARRANTY_DURATION_LABELS, VEHICLE_TYPE_LABELS } from '../../constants/parts'
+import {
+  POPULAR_PART_MAKES,
+  WARRANTY_DURATION_LABELS,
+  VEHICLE_TYPE_LABELS,
+} from '../../constants/parts'
 import { useBrands } from '../../hooks/useCars'
-
-
 
 export interface PartCardProps {
   item: any
@@ -35,6 +20,7 @@ export interface PartCardProps {
   showChips?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
+  disableImageSwipe?: boolean
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -68,8 +54,8 @@ export const PartCard: React.FC<PartCardProps> = ({
   showChips = false,
   maxChips = 3,
   actionMenu,
+  disableImageSwipe = false,
 }) => {
-  const router = useRouter()
   const rawData = item.raw || item
   const { data: brands } = useBrands()
 
@@ -154,604 +140,139 @@ export const PartCard: React.FC<PartCardProps> = ({
     yearRange = `حتى ${yearTo}`
   }
 
-  // Location & Date
+  // Location
   const location = item.governorate
     ? item.governorate
     : formatLocation(rawData) || 'موقع غير محدد'
-  const createdAt = rawData.createdAt || item.createdAt
 
-  // State
-  const { isLoggedIn } = useAuthStore()
-  const queryClient = useQueryClient()
-  const [isFav, setIsFav] = useState(false)
-  const [cardWidth, setCardWidth] = useState(
-    fullWidth ? Dimensions.get('window').width - 32 : Dimensions.get('window').width * 0.6
-  )
-  const [activeImgIdx, setActiveImgIdx] = useState(0)
-
-  const handleFavorite = async () => {
-    if (!isLoggedIn) {
-      router.push('/(auth)/login' as any)
-      return
-    }
-
-    setIsFav(!isFav)
-    try {
-      await favoritesApi.add('SPARE_PART', rawData.id || item.id)
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    } catch (err: any) {
-      console.log('Error toggling favorite:', err?.response?.data || err.message || err)
-      setIsFav(isFav)
-    }
+  // Badges
+  const badges: ListingCardBadge[] = []
+  if (isOriginal === true) {
+    badges.push({
+      key: 'orig',
+      label: 'أصلي وكالة',
+      backgroundColor: '#ea580c',
+      iconName: 'shield-checkmark',
+    })
+  } else if (isOriginal === false) {
+    badges.push({
+      key: 'commercial',
+      label: 'تجاري / بديل',
+      backgroundColor: '#475569',
+    })
   }
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\nhttps://souqone.app/parts/${
-          rawData.id || item.id
-        }`,
-      })
-    } catch (error) {
-      console.log('Error sharing part listing:', error)
-    }
+  if (rawCondition === 'NEW') {
+    badges.push({ key: 'new', label: 'جديد', backgroundColor: '#10b981' })
+  } else if (rawCondition === 'LIKE_NEW') {
+    badges.push({ key: 'like_new', label: 'شبه جديد', backgroundColor: '#14b8a6' })
+  } else if (rawCondition === 'USED') {
+    badges.push({ key: 'used', label: 'مستعمل', backgroundColor: '#64748b' })
+  } else if (rawCondition === 'REFURBISHED') {
+    badges.push({ key: 'refurbished', label: 'مجدد', backgroundColor: '#d97706' })
+  }
+
+  if (rawData.isPremium || item.isPremium) {
+    badges.push({
+      key: 'premium',
+      label: 'مميز',
+      backgroundColor: '#ef4444',
+      iconName: 'star',
+    })
+  }
+
+  // Pills
+  const pills: ListingCardPill[] = []
+  if (categoryLabel) {
+    pills.push({
+      key: 'cat',
+      label: categoryLabel,
+      iconName: 'grid-outline',
+      variant: 'neutral',
+    })
+  }
+  if (partNumber) {
+    pills.push({
+      key: 'partNo',
+      label: partNumber,
+      iconName: 'barcode-outline',
+      variant: 'blue',
+    })
+  }
+  if (makeLabels.length > 0) {
+    pills.push({
+      key: 'makes',
+      label: makeLabels.slice(0, 2).join('، '),
+      iconName: 'car-outline',
+      variant: 'neutral',
+    })
+  }
+  if (compatibleModels) {
+    pills.push({
+      key: 'models',
+      label: compatibleModels,
+      iconName: 'car-sport-outline',
+      variant: 'neutral',
+    })
+  }
+  if (yearRange) {
+    pills.push({
+      key: 'year',
+      label: yearRange,
+      iconName: 'calendar-outline',
+      variant: 'blue',
+    })
+  }
+  if (conditionLabel) {
+    pills.push({
+      key: 'cond',
+      label: conditionLabel,
+      iconName: 'information-circle-outline',
+      variant: 'amber',
+    })
+  }
+  if (rawData.hasWarranty ?? item.hasWarranty) {
+    const duration = rawData.warrantyDuration ?? item.warrantyDuration
+    pills.push({
+      key: 'warranty',
+      label: duration ? (WARRANTY_DURATION_LABELS[duration] ?? 'ضمان') : 'يوجد ضمان',
+      iconName: 'shield-checkmark-outline',
+      variant: 'green',
+    })
+  }
+  const vehicleTypes = rawData.compatibleVehicleTypes ?? item.compatibleVehicleTypes
+  if (Array.isArray(vehicleTypes) && vehicleTypes.length > 0) {
+    const typeLabels = vehicleTypes.map((t: string) => VEHICLE_TYPE_LABELS[t] ?? t)
+    pills.push({
+      key: 'vehTypes',
+      label: typeLabels.join('، '),
+      iconName: 'construct-outline',
+      variant: 'neutral',
+    })
   }
 
   return (
-    <View
-      style={[
-        s.card,
-        fullWidth && { width: '100%' },
-        gridMode && { width: '100%', flex: 1 },
-      ]}
-    >
-      {/* ── Image & Carousel ── */}
-      <View
-        style={s.imageContainer}
-        onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
-      >
-        {displayImages.length > 0 ? (
-          cardWidth > 0 ? (
-            <>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={[
-                  s.swiperScrollView,
-                  fullWidth && { height: 180, aspectRatio: undefined },
-                ]}
-                onMomentumScrollEnd={(e) => {
-                  const newIdx = Math.round(e.nativeEvent.contentOffset.x / cardWidth)
-                  setActiveImgIdx(newIdx)
-                }}
-              >
-                {displayImages.map((img, i) => (
-                  <Pressable
-                    key={i}
-                    onPress={onPress}
-                    style={{ width: cardWidth, height: '100%' }}
-                  >
-                    <Image
-                      source={{ uri: img }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="cover"
-                    />
-                  </Pressable>
-                ))}
-              </ScrollView>
-
-              {/* Pagination Dots */}
-              {displayImages.length > 1 && (
-                <View style={s.dotsWrapper}>
-                  {displayImages.map((_, i) => (
-                    <View
-                      key={i}
-                      style={[s.dot, activeImgIdx === i && s.activeDot]}
-                    />
-                  ))}
-                </View>
-              )}
-            </>
-          ) : null
-        ) : (
-          <Pressable
-            onPress={onPress}
-            style={[
-              s.imagePlaceholder,
-              fullWidth && { height: 180, aspectRatio: undefined },
-            ]}
-          >
-            <Ionicons name="construct-outline" size={40} color={Colors.borderStrong} />
-          </Pressable>
-        )}
-
-        {/* Top Floating Actions (Share & Favorite) */}
-        <View style={s.actionsContainer}>
-          <TouchableOpacity style={s.actionBtn} onPress={handleShare} activeOpacity={0.8}>
-            <Ionicons name="share-social" size={16} color={Colors.white} />
-          </TouchableOpacity>
-          <TouchableOpacity style={s.actionBtn} onPress={handleFavorite} activeOpacity={0.8}>
-            <Ionicons
-              name={isFav ? 'heart' : 'heart-outline'}
-              size={16}
-              color={isFav ? '#ef4444' : Colors.white}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Top Floating Badges Overlay */}
-        <View style={s.badgesContainer}>
-          {isOriginal === true && (
-            <View style={[s.badge, { backgroundColor: '#ea580c' }]}>
-              <Ionicons
-                name="shield-checkmark"
-                size={10}
-                color={Colors.white}
-                style={{ marginRight: 2 }}
-              />
-              <Text style={s.badgeTxt}>أصلي وكالة</Text>
-            </View>
-          )}
-          {isOriginal === false && (
-            <View style={[s.badge, { backgroundColor: '#475569' }]}>
-              <Text style={s.badgeTxt}>تجاري / بديل</Text>
-            </View>
-          )}
-          {rawCondition === 'NEW' && (
-            <View style={[s.badge, { backgroundColor: '#10b981' }]}>
-              <Text style={s.badgeTxt}>جديد</Text>
-            </View>
-          )}
-          {rawCondition === 'LIKE_NEW' && (
-            <View style={[s.badge, { backgroundColor: '#14b8a6' }]}>
-              <Text style={s.badgeTxt}>شبه جديد</Text>
-            </View>
-          )}
-          {rawCondition === 'USED' && (
-            <View style={[s.badge, { backgroundColor: '#64748b' }]}>
-              <Text style={s.badgeTxt}>مستعمل</Text>
-            </View>
-          )}
-          {rawCondition === 'REFURBISHED' && (
-            <View style={[s.badge, { backgroundColor: '#d97706' }]}>
-              <Text style={s.badgeTxt}>مجدد</Text>
-            </View>
-          )}
-          {(rawData.isPremium || item.isPremium) && (
-            <View style={[s.badge, { backgroundColor: '#ef4444' }]}>
-              <Ionicons
-                name="star"
-                size={10}
-                color={Colors.white}
-                style={{ marginRight: 2 }}
-              />
-              <Text style={s.badgeTxt}>مميز</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Action Menu (passed from outside) */}
-        {actionMenu && (
-          <View style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 30, elevation: 6 }}>
-            {actionMenu}
-          </View>
-        )}
-      </View>
-
-      {/* ── Card Body & Details ── */}
-      <Pressable onPress={onPress} style={s.partDetails}>
-        {/* Header Row: Title & Verified Badge */}
-        <View style={s.headerRow}>
-          <Text style={[s.partTitle, { flex: 1 }]} numberOfLines={2}>
-            {partTitle}
-          </Text>
-          {isSellerVerified && (
-            <View style={s.verifiedRow}>
-              <Ionicons name="checkmark-circle" size={12} color="#1877F2" />
-              <Text style={s.verifiedTxt}>موثق</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Location & Time Row */}
-        <View style={s.locationRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
-            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-            <Text style={[s.locationTxt, { marginStart: 4 }]} numberOfLines={1}>
-              {location}
-            </Text>
-          </View>
-          {!!createdAt && (
-            <>
-              <Text style={{ fontSize: 10, color: '#cbd5e1' }}>•</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
-                <Ionicons name="time-outline" size={12} color={'#94a3b8'} />
-                <Text style={[s.timeTxt, { marginStart: 4 }]}>{formatDate(createdAt)}</Text>
-              </View>
-            </>
-          )}
-        </View>
-
-        <View style={s.divider} />
-
-        {/* Details List (Info Pills) */}
-        <View style={s.detailsList}>
-          {(() => {
-            const pills = []
-
-            // 1. Part Category
-            if (categoryLabel) {
-              pills.push(
-                <View key="cat" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="grid-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText} numberOfLines={1}>{categoryLabel}</Text>
-                </View>
-              )
-            }
-
-            // 2. Part Number
-            if (partNumber) {
-              pills.push(
-                <View key="partNo" style={[s.detailPill, s.pillBlue]}>
-                  <Ionicons name="barcode-outline" size={12} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{partNumber}</Text>
-                </View>
-              )
-            }
-
-            // 3. Compatible Makes
-            if (makeLabels.length > 0) {
-              pills.push(
-                <View key="makes" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="car-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText} numberOfLines={1}>
-                    {makeLabels.slice(0, 2).join('، ')}
-                  </Text>
-                </View>
-              )
-            }
-
-            // 4. Compatible Models
-            if (compatibleModels) {
-              pills.push(
-                <View key="models" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="car-sport-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText} numberOfLines={1} ellipsizeMode="tail">
-                    {compatibleModels}
-                  </Text>
-                </View>
-              )
-            }
-
-            // 5. Year Range Fitment
-            if (yearRange) {
-              pills.push(
-                <View key="year" style={[s.detailPill, s.pillBlue]}>
-                  <Ionicons name="calendar-outline" size={12} color="#3b82f6" />
-                  <Text style={[s.detailText, { color: '#3b82f6' }]} numberOfLines={1}>{yearRange}</Text>
-                </View>
-              )
-            }
-
-            // 6. Condition Pill
-            if (conditionLabel) {
-              pills.push(
-                <View key="cond" style={[s.detailPill, s.pillAmber]}>
-                  <Ionicons name="information-circle-outline" size={12} color="#d97706" />
-                  <Text style={[s.detailText, { color: '#d97706' }]} numberOfLines={1} ellipsizeMode="tail">{conditionLabel}</Text>
-                </View>
-              )
-            }
-
-            // 7. Warranty Pill
-            if (rawData.hasWarranty ?? item.hasWarranty) {
-              const duration = rawData.warrantyDuration ?? item.warrantyDuration
-              pills.push(
-                <View key="warranty" style={[s.detailPill, s.pillGreen]}>
-                  <Ionicons name="shield-checkmark-outline" size={12} color="#059669" />
-                  <Text style={[s.detailText, { color: '#059669' }]} numberOfLines={1}>
-                    {duration ? (WARRANTY_DURATION_LABELS[duration] ?? 'ضمان') : 'يوجد ضمان'}
-                  </Text>
-                </View>
-              )
-            }
-
-            // 8. Compatible Vehicle Types Pill
-            const vehicleTypes = rawData.compatibleVehicleTypes ?? item.compatibleVehicleTypes
-            if (Array.isArray(vehicleTypes) && vehicleTypes.length > 0) {
-              const typeLabels = vehicleTypes.map((t: string) => VEHICLE_TYPE_LABELS[t] ?? t)
-              pills.push(
-                <View key="vehTypes" style={[s.detailPill, s.pillNeutral]}>
-                  <Ionicons name="construct-outline" size={12} color="#64748b" />
-                  <Text style={s.detailText} numberOfLines={1}>
-                    {typeLabels.join('، ')}
-                  </Text>
-                </View>
-              )
-            }
-
-            if (pills.length <= maxChips) {
-              return pills
-            }
-
-            const visiblePills = pills.slice(0, maxChips)
-            const remainingCount = pills.length - maxChips
-
-            return (
-              <>
-                {visiblePills}
-                {remainingCount > 0 && (
-                  <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 5, flexShrink: 0 }]}>
-                    <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748b', fontSize: 9.5 }]}>
-                      +{remainingCount}
-                    </Text>
-                  </View>
-                )}
-              </>
-            )
-          })()}
-        </View>
-
-        <View style={[s.divider, { marginTop: 2, marginBottom: 6 }]} />
-
-        {/* Footer Row (Budget & Quotes style) */}
-        <View style={s.footerRow}>
-          <View
-            style={[
-              s.detailPill,
-              isPriceNegotiable ? s.pillGreen : s.pillNeutral,
-              { flex: 1 },
-            ]}
-          >
-            <Ionicons
-              name="wallet-outline"
-              size={15}
-              color={isPriceNegotiable ? '#059669' : '#64748b'}
-            />
-            <Text
-              style={[
-                s.budgetValText,
-                isPriceNegotiable && { color: '#059669' },
-              ]}
-              numberOfLines={1}
-            >
-              {priceLabel}
-            </Text>
-          </View>
-
-          {isPriceNegotiable && (
-            <View style={[s.detailPill, s.pillGreen]}>
-              <Text
-                style={[
-                  s.detailText,
-                  { color: '#059669', fontFamily: 'Almarai_700Bold' },
-                ]}
-                numberOfLines={1}
-              >
-                قابل للتفاوض
-              </Text>
-            </View>
-          )}
-        </View>
-      </Pressable>
-    </View>
+    <ListingCardBase
+      item={item}
+      title={partTitle}
+      priceLabel={priceLabel}
+      isPriceNegotiable={isPriceNegotiable}
+      location={location}
+      onPress={onPress}
+      displayImages={displayImages}
+      placeholderIcon="construct-outline"
+      pills={pills}
+      badges={badges}
+      maxChips={maxChips}
+      isSellerVerified={isSellerVerified}
+      status={rawData.status}
+      fullWidth={fullWidth}
+      gridMode={gridMode}
+      actionMenu={actionMenu}
+      disableImageSwipe={disableImageSwipe}
+      titleNumberOfLines={2}
+      favoriteType="SPARE_PART"
+      shareMessage={`شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\nhttps://souqone.app/parts/${rawData.id || item.id}`}
+    />
   )
 }
-
-const softShadow = Platform.select({
-  ios: {
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-  },
-  android: { elevation: 3 },
-})
-
-const s = StyleSheet.create({
-  card: {
-    width: Dimensions.get('window').width * 0.6,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
-    overflow: 'hidden',
-    ...softShadow,
-  },
-  imageContainer: {
-    position: 'relative',
-    backgroundColor: '#F8F9FA',
-  },
-  imagePlaceholder: {
-    width: '100%',
-    height: 140,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  swiperScrollView: {
-    width: '100%',
-    height: 140,
-  },
-  dotsWrapper: {
-    position: 'absolute',
-    bottom: 12,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  activeDot: {
-    backgroundColor: '#fff',
-    width: 16,
-  },
-  actionsContainer: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 10,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgesContainer: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    right: 80,
-    flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 100,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  badgeTxt: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 9.5,
-    color: Colors.white,
-    letterSpacing: 0.2,
-    lineHeight: 14,
-    writingDirection: 'rtl',
-  },
-  partDetails: {
-    padding: 12,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  partTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 14,
-    color: '#0f172a',
-    textAlign: 'left',
-    lineHeight: 20,
-    writingDirection: 'rtl',
-  },
-  verifiedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 6,
-    paddingVertical: 2.5,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    marginTop: 2,
-  },
-  verifiedTxt: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 9.5,
-    color: '#2563eb',
-    lineHeight: 14,
-    writingDirection: 'rtl',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 5,
-    marginTop: 3,
-    marginBottom: 6,
-  },
-  locationTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    color: Colors.textMuted,
-    lineHeight: 15,
-    writingDirection: 'rtl',
-  },
-  timeTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    color: '#94a3b8',
-    lineHeight: 14.5,
-    writingDirection: 'rtl',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
-    marginBottom: 8,
-  },
-  detailsList: {
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    alignItems: 'center',
-    gap: 3.5,
-    marginBottom: 4,
-    overflow: 'hidden',
-  },
-  detailPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 5,
-    paddingVertical: 2.5,
-    borderRadius: 6,
-    flexShrink: 1,
-  },
-  pillNeutral: {
-    backgroundColor: '#f8fafc',
-  },
-  pillBlue: {
-    backgroundColor: '#eff6ff',
-  },
-  pillAmber: {
-    backgroundColor: '#fffbeb',
-  },
-  pillGreen: {
-    backgroundColor: '#ecfdf5',
-  },
-  detailText: {
-    fontSize: 10,
-    fontFamily: 'Almarai_700Bold',
-    color: '#475569',
-    lineHeight: 14,
-    writingDirection: 'rtl',
-    flexShrink: 1,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 5,
-  },
-  budgetValText: {
-    fontSize: 11.5,
-    fontFamily: 'Almarai_800ExtraBold',
-    color: '#64748b',
-    lineHeight: 15,
-    writingDirection: 'rtl',
-  },
-})

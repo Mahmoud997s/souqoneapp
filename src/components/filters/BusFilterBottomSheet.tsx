@@ -27,9 +27,14 @@ export interface BusFilters {
   busType?: string
   make?: string
   capacityMin?: number
+  minCapacity?: number
+  capacityMax?: number
+  maxCapacity?: number
   sort?: string
   priceMin?: string
   priceMax?: string
+  minPrice?: string
+  maxPrice?: string
   yearMin?: string
   yearMax?: string
   condition?: string

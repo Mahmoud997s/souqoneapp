@@ -60,6 +60,7 @@ export default function ScrollCardTestScreen() {
     { title: '3. جزئي (60%) + نقاط', id: 3 },
     { title: '4. كامل العرض (100%)', id: 4 },
     { title: '5. قائمة طويلة (12 كارت)', id: 5 },
+    { title: '6. كرت عرض الكل (See All)', id: 6 },
   ]
 
   const renderCard = (item: TestItem, index: number, width: number, height = 180) => (
@@ -241,7 +242,30 @@ export default function ScrollCardTestScreen() {
           </View>
         )}
 
-        <View style={{ height: 60 }} />
+        {/* Case 6: See All Card */}
+        {(selectedCase === 0 || selectedCase === 6) && (
+          <View style={s.section}>
+            <View style={s.sectionHeader}>
+              <View style={s.numberCircle}><Text style={s.numberText}>6</Text></View>
+              <View>
+                <Text style={s.sectionTitle}>حالة 6: كرت عرض الكل في نهاية القائمة (See All Card)</Text>
+                <Text style={s.sectionDesc}>كرت تفاعلي أنيق يظهر بنهاية القائمة ويدخل بسلاسة في فيزياء التمرير</Text>
+              </View>
+            </View>
+            <HorizontalScrollCard
+              data={partialCardsData}
+              cardWidth={CARD_WIDTH_60}
+              cardHeight={170}
+              showDots
+              onSeeAll={() => setTappedMessage('تم الضغط على كرت "عرض الكل" بنجاح!')}
+              seeAllTitle="عرض الكل"
+              seeAllSubtitle="تصفح جميع العناصر المتاحة"
+              renderItem={({ item, index }) => renderCard(item, index, CARD_WIDTH_60, 170)}
+            />
+          </View>
+        )}
+
+        <View style={{ height: 10 }} />
       </ScrollView>
     </SafeAreaView>
   )

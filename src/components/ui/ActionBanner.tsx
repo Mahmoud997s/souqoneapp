@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
@@ -13,7 +12,7 @@ export interface ActionBannerProps {
   buttonText: string;
   iconName: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   gradientColors?: [string, string, string];
 }
 
@@ -85,8 +84,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.lg,
     overflow: 'hidden',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#0f172a',
@@ -96,9 +95,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -108,34 +107,49 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 2,
+    paddingEnd: 10,
   },
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
+    lineHeight: 18.5,
     color: Colors.white,
-    marginBottom: 2,
+    marginBottom: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
+    paddingTop: Platform.OS === 'android' ? 2 : 1,
+    includeFontPadding: false,
   },
   subtitle: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    color: 'rgba(255,255,255,0.85)',
+    fontSize: 11,
+    lineHeight: 16,
+    color: 'rgba(255,255,255,0.88)',
     textAlign: 'left',
     writingDirection: 'rtl',
+    paddingTop: Platform.OS === 'android' ? 1 : 0,
+    includeFontPadding: false,
   },
   ctaBtn: {
     backgroundColor: Colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginStart: 12,
+    marginStart: 10,
+    minHeight: 36,
   },
   ctaTxt: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
+    fontSize: 11.5,
+    lineHeight: 16.5,
     color: '#0B2447',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    paddingTop: Platform.OS === 'android' ? 1 : 0,
+    includeFontPadding: false,
   },
 });

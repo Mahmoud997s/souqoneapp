@@ -32,10 +32,12 @@ import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
+import { EquipmentVisualFilters } from '../../src/components/equipment/EquipmentVisualFilters';
 import { CarCard } from '../../src/components/cars/CarCard';
 import { EquipmentFilterBottomSheet } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
+import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -53,6 +55,7 @@ interface FilterState {
   conditionId?: string;
   equipmentType?: string;
   categoryId?: string;
+  make?: string;
   sortBy?: string;
   sortOrder?: string;
 }
@@ -267,6 +270,59 @@ export default function EquipmentBrowseScreen() {
     setFilters(newFilters);
   };
 
+  const handleSelectVisualFilter = (
+    type: 'category' | 'make' | 'city' | 'price' | 'condition',
+    valueId: string,
+    valueName?: string,
+    min?: number,
+    max?: number,
+    extraId?: number
+  ) => {
+    const newFilters = { ...filters };
+    if (type === 'category') {
+      if (newFilters.equipmentType === valueId || !valueId) {
+        delete newFilters.equipmentType;
+        delete newFilters.categoryId;
+      } else {
+        newFilters.equipmentType = valueId;
+        newFilters.categoryId = valueId;
+      }
+    } else if (type === 'make') {
+      if (newFilters.make === valueId || !valueId) {
+        delete newFilters.make;
+      } else {
+        newFilters.make = valueId;
+      }
+    } else if (type === 'city') {
+      if (newFilters.city === valueName || newFilters.city === valueId || !valueId) {
+        delete newFilters.city;
+        delete newFilters.governorateId;
+      } else {
+        newFilters.city = valueName || valueId;
+        if (extraId) newFilters.governorateId = extraId;
+      }
+    } else if (type === 'price') {
+      if (newFilters.priceId === valueId || !valueId) {
+        delete newFilters.priceId;
+        delete newFilters.priceMin;
+        delete newFilters.priceMax;
+      } else {
+        newFilters.priceId = valueId;
+        newFilters.priceMin = min !== undefined ? String(min) : undefined;
+        newFilters.priceMax = max !== undefined ? String(max) : undefined;
+      }
+    } else if (type === 'condition') {
+      if (newFilters.condition === valueId || !valueId) {
+        delete newFilters.condition;
+        delete newFilters.conditionId;
+      } else {
+        newFilters.condition = valueId;
+        newFilters.conditionId = valueId;
+      }
+    }
+    setFilters(newFilters);
+  };
+
   return (
     <View style={s.root}>
       {/* ── HEADER ── */}
@@ -323,7 +379,13 @@ export default function EquipmentBrowseScreen() {
         <Animated.FlatList
           data={listings || []}
           keyExtractor={(item) => (item as any).id}
-          contentContainerStyle={[s.listContent, { paddingTop: Spacing.space2 }]}
+          contentContainerStyle={[
+            s.listContent,
+            {
+              paddingTop: Spacing.space2,
+              paddingBottom: Math.max(insets.bottom, 16) + 8,
+            },
+          ]}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
@@ -331,24 +393,46 @@ export default function EquipmentBrowseScreen() {
             <RefreshControl refreshing={isLoading && ((listings as any)?.length > 0)} onRefresh={refetch} tintColor={Colors.equipmentPrimary} />
           }
           ListHeaderComponent={
-            <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              {activeFiltersCount > 0 ? (
-                <TouchableOpacity onPress={handleClearAll}>
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
-                    مسح الفلاتر
-                  </Text>
-                </TouchableOpacity>
-              ) : <View />}
+            <View style={s.listHeader}>
+              <EquipmentVisualFilters
+                selectedCategoryId={filters.equipmentType || filters.categoryId}
+                selectedMake={filters.make}
+                selectedCity={filters.city}
+                selectedPriceId={filters.priceId}
+                selectedConditionId={filters.condition || filters.conditionId}
+                onSelectFilter={handleSelectVisualFilter}
+                onViewAll={() => setIsFilterVisible(true)}
+              />
 
-              <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
-                <Ionicons name="hardware-chip-outline" size={14} color="#64748b" />
-                <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
-                  {listings?.length || 0} معدة متوفرة
-                </Text>
+              <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.space2 }}>
+                {activeFiltersCount > 0 ? (
+                  <TouchableOpacity onPress={handleClearAll}>
+                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
+                      مسح الفلاتر
+                    </Text>
+                  </TouchableOpacity>
+                ) : <View />}
+
+                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                  <Ionicons name="construct-outline" size={14} color="#64748b" />
+                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
+                    {listings?.length || 0} معدة متوفرة
+                  </Text>
+                </View>
               </View>
             </View>
           }
-          ListFooterComponent={() => (!isLoading && listings && listings.length > 0 ? <SupportHelpButton /> : null)}
+          ListFooterComponent={() => (
+            !isLoading && listings && listings.length > 0 ? (
+              <SectionFooterAction
+                title="لديك معدة ثقيلة للبيع أو للإيجار؟"
+                subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات"
+                buttonText="أضف معدتك"
+                iconName="construct-outline"
+                onPress={() => navigateToEquipmentForm('push')}
+              />
+            ) : null
+          )}
           ListEmptyComponent={
             <View style={s.emptyContainer}>
               <View style={s.emptyIconWrap}>
@@ -584,9 +668,10 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  listContent: {
-    paddingBottom: 100,
+  listHeader: {
+    paddingBottom: Spacing.space1,
   },
+  listContent: {},
   cardWrapper: {
     paddingHorizontal: 16,
     marginBottom: 16,

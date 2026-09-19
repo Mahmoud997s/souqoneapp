@@ -3,8 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -14,10 +14,18 @@ import { Radius } from '../../../constants/radius'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
 import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
+import { SkeletonCard } from '../../ui/SkeletonCard'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const CARD_WIDTH = SCREEN_WIDTH * 0.6
+const GAP = Spacing.space3
+const PADDING_END = Spacing.space5
 
 export interface MyListingSectionSliderProps {
   config: ListingSectionConfig
   items: MyListingItem[]
+  isLoading?: boolean
   onSelectCategory: (categoryId: string) => void
   onView: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
@@ -30,6 +38,7 @@ export interface MyListingSectionSliderProps {
 export function MyListingSectionSlider({
   config,
   items,
+  isLoading = false,
   onSelectCategory,
   onView,
   onEdit,
@@ -38,7 +47,7 @@ export function MyListingSectionSlider({
   onCancelDeletionRequest,
   isEditSupported,
 }: MyListingSectionSliderProps) {
-  if (!items || items.length === 0) return null
+  if (!isLoading && (!items || items.length === 0)) return null
 
   return (
     <View style={s.section}>
@@ -57,7 +66,7 @@ export function MyListingSectionSlider({
           
           {/* Count Badge */}
           <View style={s.countBadge}>
-            <Text style={s.countText}>{items.length}</Text>
+            <Text style={s.countText}>{items?.length || 0}</Text>
           </View>
         </View>
 
@@ -74,25 +83,43 @@ export function MyListingSectionSlider({
       </View>
 
       {/* ── Horizontal List ── */}
-      <FlatList
-        data={items}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => `${item.entityType}-${item.id}`}
-        contentContainerStyle={s.sliderContent}
-        renderItem={({ item }) => (
-          <MyListingCardDispatcher
-            item={item}
-            onView={onView}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onStatusChange={onStatusChange}
-            onCancelDeletionRequest={onCancelDeletionRequest}
-            isEditSupported={isEditSupported(item.entityType)}
-            fullWidth={false}
-          />
-        )}
-      />
+      {isLoading ? (
+        <HorizontalScrollCard
+          key="loading-skeleton"
+          data={[1, 2, 3]}
+          cardWidth={CARD_WIDTH}
+          gap={GAP}
+          paddingEnd={PADDING_END}
+          keyExtractor={(item) => String(item)}
+          renderItem={() => (
+            <SkeletonCard style={{ width: CARD_WIDTH, height: 180 }} />
+          )}
+        />
+      ) : (
+        <HorizontalScrollCard
+          key="loaded-cards"
+          data={items}
+          cardWidth={CARD_WIDTH}
+          gap={GAP}
+          paddingEnd={PADDING_END}
+          keyExtractor={(item) => `${item.entityType}-${item.id}`}
+          onSeeAll={() => onSelectCategory(config.categoryId)}
+          seeAllTitle="عرض الكل"
+          seeAllSubtitle={`جميع إعلانات ${config.title}`}
+          renderItem={({ item }) => (
+            <MyListingCardDispatcher
+              item={item}
+              onView={onView}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onStatusChange={onStatusChange}
+              onCancelDeletionRequest={onCancelDeletionRequest}
+              isEditSupported={isEditSupported(item.entityType)}
+              fullWidth={false}
+            />
+          )}
+        />
+      )}
     </View>
   )
 }
@@ -166,11 +193,5 @@ const s = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
     paddingTop: 1,
-  },
-  sliderContent: {
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: 4,
-    gap: Spacing.space3,
-    alignItems: 'flex-start',
   },
 })
