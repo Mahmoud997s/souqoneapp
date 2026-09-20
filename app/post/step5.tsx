@@ -8,7 +8,6 @@ import {
   Dimensions,
   Platform,
 } from 'react-native'
-import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { AppHeader } from '../../src/components/ui/AppHeader'
@@ -18,6 +17,7 @@ import { Radius } from '../../src/constants/radius'
 import { router } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 import { AppButton } from '../../src/components/ui/AppButton'
+import { CardImageSwiper } from '../../src/components/ui/CardImageSwiper'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { listingsApi } from '../../src/api/listings'
 import { jobsApi } from '../../src/api/jobs'
@@ -443,23 +443,13 @@ export default function PostStep5Screen() {
           {/* ── 1. معرض الصور (Un-zoomed & Refined) ── */}
           {allImages.length > 0 ? (
             <View style={s.galleryCard}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(e) => {
-                  const x = e.nativeEvent.contentOffset.x
-                  const idx = Math.round(x / cardWidth)
-                  setActiveImageIndex(idx)
-                }}
-              >
-                {allImages.map((uri, index) => (
-                  <View key={index} style={[s.slideWrap, { width: cardWidth }]}>
-                    <Image source={{ uri }} style={s.slideImg} contentFit="cover" />
-                  </View>
-                ))}
-              </ScrollView>
-              <View style={s.photoCounterBadge}>
+              <CardImageSwiper
+                images={allImages}
+                cardWidth={cardWidth}
+                imageHeight={195}
+                onActiveIndexChange={setActiveImageIndex}
+              />
+              <View style={s.photoCounterBadge} pointerEvents="none">
                 <Ionicons name="camera" size={12} color={Colors.white} />
                 <Text style={s.photoCounterTxt}>
                   {activeImageIndex + 1} / {allImages.length}
@@ -632,13 +622,6 @@ const s = StyleSheet.create({
     backgroundColor: '#0F172A',
     position: 'relative',
     marginBottom: Spacing.space3,
-  },
-  slideWrap: {
-    height: 195,
-  },
-  slideImg: {
-    width: '100%',
-    height: '100%',
   },
   photoCounterBadge: {
     position: 'absolute',
