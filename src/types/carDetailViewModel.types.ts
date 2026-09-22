@@ -59,7 +59,7 @@ export interface SpecSectionView {
 export interface BaseDetailViewModel {
   id: string
   version: number
-  status: 'ACTIVE' | 'PENDING' | 'REJECTED' | 'SOLD' | 'RENTED' | 'ARCHIVED' | 'EXPIRED' | string
+  status: 'DRAFT' | 'ACTIVE' | 'SOLD' | 'RENTED' | 'ARCHIVED' | 'SUSPENDED'
   title: string
   description: string
   listingType: 'SALE' | 'RENTAL' | 'WANTED' | string

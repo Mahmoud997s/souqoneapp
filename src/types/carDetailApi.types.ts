@@ -25,7 +25,7 @@ export interface CarDetailApiLocationRef {
 export interface CarDetailApi {
   id: string
   version?: number
-  status: 'ACTIVE' | 'PENDING' | 'REJECTED' | 'SOLD' | 'RENTED' | 'ARCHIVED' | 'EXPIRED' | string
+  status: 'DRAFT' | 'ACTIVE' | 'SOLD' | 'RENTED' | 'ARCHIVED' | 'SUSPENDED'
   title: string
   description: string
   listingType: 'SALE' | 'RENTAL' | 'WANTED' | string
@@ -84,13 +84,11 @@ export interface CarDetailApi {
   images: CarDetailApiImage[]
 
   // Ownership & Contact
-  seller?: CarDetailApiSeller | null
-  user?: CarDetailApiSeller | null
+  seller: CarDetailApiSeller
   whatsappEnabled?: boolean | null
 
   // Metadata
-  viewCount?: number | null
-  views?: number | null
+  viewCount: number
   createdAt: string
   updatedAt?: string | null
 }

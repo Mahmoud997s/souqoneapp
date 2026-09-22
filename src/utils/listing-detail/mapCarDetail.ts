@@ -1,4 +1,4 @@
-import { CarDetailApi, CarDetailApiImage } from '../../types/carDetailApi.types'
+import { CarDetailApi, CarDetailApiImage, CarDetailApiSeller } from '../../types/carDetailApi.types'
 import {
   CarDetailViewModel,
   GalleryImage,
@@ -137,26 +137,25 @@ function mapLocation(raw: CarDetailApi): LocationView {
 }
 
 /**
- * Maps seller or user info into a safe UI view model.
+ * Maps seller info into a safe UI view model.
  */
-function mapSeller(raw: CarDetailApi): SellerView {
-  const sellerObj = raw.seller || raw.user
-  const id = sellerObj?.id ? String(sellerObj.id) : ''
-  const username = sellerObj?.username || 'مستخدم سوق ون'
-  const name = sellerObj?.displayName?.trim() || username
-  const isVerified = Boolean(sellerObj?.isVerified)
-  const memberSinceLabel = sellerObj?.createdAt
-    ? formatMemberSince(sellerObj.createdAt)
+function mapSeller(seller: CarDetailApiSeller): SellerView {
+  const id = seller.id ? String(seller.id) : ''
+  const username = seller.username || 'مستخدم سوق ون'
+  const name = seller.displayName?.trim() || username
+  const isVerified = Boolean(seller.isVerified)
+  const memberSinceLabel = seller.createdAt
+    ? formatMemberSince(seller.createdAt)
     : 'عضو في سوق ون'
 
   return {
     id,
     name,
     username,
-    avatarUrl: sellerObj?.avatarUrl || undefined,
+    avatarUrl: seller.avatarUrl || undefined,
     isVerified,
     memberSinceLabel,
-    accountType: sellerObj?.accountType || undefined,
+    accountType: seller.accountType || undefined,
   }
 }
 
@@ -252,7 +251,7 @@ export function mapCarDetail(raw: CarDetailApi): CarDetailViewModel {
   const price = mapPrice(raw)
   const images = mapImages(raw.images)
   const location = mapLocation(raw)
-  const seller = mapSeller(raw)
+  const seller = mapSeller(raw.seller)
   const rentalTerms = mapRentalTerms(raw, currency)
 
   const conditionLabel = translateEnum(CONDITION_MAP, raw.condition)
@@ -329,7 +328,7 @@ export function mapCarDetail(raw: CarDetailApi): CarDetailViewModel {
   return {
     id: String(raw.id),
     version: raw.version ?? 1,
-    status: raw.status || 'ACTIVE',
+    status: raw.status,
     title: raw.title || '',
     description: raw.description || '',
     listingType: raw.listingType || 'SALE',
@@ -341,7 +340,7 @@ export function mapCarDetail(raw: CarDetailApi): CarDetailViewModel {
     seller,
     whatsappEnabled: raw.whatsappEnabled !== false,
     postedAtLabel: formatRelativeTimeAr(raw.createdAt),
-    viewCount: raw.viewCount ?? raw.views ?? 0,
+    viewCount: raw.viewCount,
 
     make: raw.make || '',
     model: raw.model || '',

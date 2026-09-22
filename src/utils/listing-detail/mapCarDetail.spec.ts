@@ -189,6 +189,13 @@ describe('mapCarDetail', () => {
       price: 5000,
       currency: 'OMR',
       images: [],
+      seller: {
+        id: 'seller-min',
+        username: 'user_min',
+        displayName: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+      viewCount: 0,
       createdAt: '2026-09-22T00:00:00.000Z',
     }
 
@@ -200,9 +207,10 @@ describe('mapCarDetail', () => {
     expect(vm.location.longitude).toBeUndefined()
     expect(vm.location.fullLocationText).toBe('سلطنة عُمان')
 
-    expect(vm.seller.name).toBe('مستخدم سوق ون')
+    expect(vm.seller.name).toBe('user_min')
     expect(vm.seller.isVerified).toBe(false)
-    expect(vm.seller.memberSinceLabel).toBe('عضو في سوق ون')
+    expect(vm.seller.memberSinceLabel).toBe('عضو منذ يناير 2026')
+    expect(vm.viewCount).toBe(0)
 
     expect(vm.keySpecs).toEqual([])
     expect(vm.specsSections).toEqual([])
@@ -210,32 +218,10 @@ describe('mapCarDetail', () => {
     expect(vm.rentalTerms).toBeUndefined()
   })
 
-  it('falls back to raw.user if raw.seller is missing', () => {
-    const carWithUser: CarDetailApi = {
-      ...baseMockCar,
-      seller: null,
-      user: {
-        id: 'user-77',
-        username: 'salim99',
-        displayName: 'سالم المعمري',
-        avatarUrl: null,
-        isVerified: false,
-        createdAt: '2024-03-01T00:00:00.000Z',
-      },
-    }
-
-    const vm = mapCarDetail(carWithUser)
-
-    expect(vm.seller.id).toBe('user-77')
-    expect(vm.seller.name).toBe('سالم المعمري')
-    expect(vm.seller.username).toBe('salim99')
-    expect(vm.seller.memberSinceLabel).toBe('عضو منذ مارس 2024')
-  })
-
   it('safely passes through unexpected enum values without crashing', () => {
     const carWithCustomEnums: CarDetailApi = {
       ...baseMockCar,
-      status: 'CUSTOM_STATUS',
+      status: 'ACTIVE',
       transmission: 'CUSTOM_GEAR',
       fuelType: 'HYDROGEN',
       driveType: '6x6',
@@ -244,7 +230,7 @@ describe('mapCarDetail', () => {
 
     const vm = mapCarDetail(carWithCustomEnums)
 
-    expect(vm.status).toBe('CUSTOM_STATUS')
+    expect(vm.status).toBe('ACTIVE')
     expect(vm.conditionLabel).toBe('RESTORED')
 
     const transSpec = vm.keySpecs.find((s) => s.key === 'transmission')

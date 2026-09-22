@@ -76,6 +76,7 @@ describe('useCarDetail', () => {
       displayName: 'شركة كبار الشخصيات للسيارات',
       createdAt: '2021-01-01T00:00:00.000Z',
     },
+    viewCount: 342,
   }
 
   beforeEach(() => {
