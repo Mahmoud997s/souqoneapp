@@ -37,7 +37,8 @@ function extractErrorMessage(err: any, fallback: string): string {
 export function useListingContact(
   entityType: string,
   id: string,
-  redirectPath: string
+  redirectPath: string,
+  listingTitle?: string
 ): UseListingContactReturn {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -114,8 +115,12 @@ export function useListingContact(
           const whatsappNumber = res.data?.whatsappNumber
           if (whatsappNumber) {
             const cleanPhone = whatsappNumber.replace(/[^0-9+]/g, '')
+            const messageText = listingTitle
+              ? `مرحباً، بخصوص إعلانك: ${listingTitle}`
+              : 'مرحباً، بخصوص إعلانك'
+            const encodedMsg = encodeURIComponent(messageText)
             try {
-              await Linking.openURL(`whatsapp://send?phone=${cleanPhone}`)
+              await Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`)
             } catch {
               setError('تعذر فتح تطبيق واتساب')
             }
@@ -130,7 +135,7 @@ export function useListingContact(
         }
       })()
     })
-  }, [busy, entityType, id, redirectPath, requireAuth, startChatInternal])
+  }, [busy, entityType, id, redirectPath, listingTitle, requireAuth, startChatInternal])
 
   return {
     busy,

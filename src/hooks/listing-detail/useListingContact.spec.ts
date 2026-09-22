@@ -29,12 +29,19 @@ function TestContactHarness({
   entityType = 'LISTING',
   id = 'car-123',
   redirectPath = '/listings/car-123',
+  listingTitle,
 }: {
   entityType?: string
   id?: string
   redirectPath?: string
+  listingTitle?: string
 }) {
-  const { busy, error, call, whatsApp, chat } = useListingContact(entityType, id, redirectPath)
+  const { busy, error, call, whatsApp, chat } = useListingContact(
+    entityType,
+    id,
+    redirectPath,
+    listingTitle
+  )
 
   return React.createElement(
     View,
@@ -137,16 +144,54 @@ describe('useListingContact', () => {
       expect(screen.getByTestId('error-status')).toHaveTextContent('NO_ERROR')
     })
 
-    it('whatsApp() opens whatsapp://send URL with normalized number', async () => {
-      await render(React.createElement(TestContactHarness))
+    it('whatsApp() opens whatsapp://send URL with normalized number and pre-filled message', async () => {
+      await render(
+        React.createElement(TestContactHarness, {
+          listingTitle: 'لكزس LX600 VIP 2023',
+        })
+      )
 
       await act(async () => {
         fireEvent.press(screen.getByTestId('btn-whatsapp'))
       })
 
       expect(contactApi.getContact).toHaveBeenCalledWith('LISTING', 'car-123')
-      expect(openUrlSpy).toHaveBeenCalledWith('whatsapp://send?phone=+96891234567')
+      const expectedMsg = encodeURIComponent('مرحباً، بخصوص إعلانك: لكزس LX600 VIP 2023')
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `whatsapp://send?phone=+96891234567&text=${expectedMsg}`
+      )
       expect(screen.getByTestId('busy-status')).toHaveTextContent('IDLE')
+    })
+
+    it('whatsApp() encodes special characters properly in message', async () => {
+      await render(
+        React.createElement(TestContactHarness, {
+          listingTitle: 'تويوتا & نيسان 2023',
+        })
+      )
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('btn-whatsapp'))
+      })
+
+      const expectedMsg = encodeURIComponent('مرحباً، بخصوص إعلانك: تويوتا & نيسان 2023')
+      expect(expectedMsg).toContain('%26')
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `whatsapp://send?phone=+96891234567&text=${expectedMsg}`
+      )
+    })
+
+    it('whatsApp() uses default message when listingTitle is not provided', async () => {
+      await render(React.createElement(TestContactHarness))
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('btn-whatsapp'))
+      })
+
+      const expectedMsg = encodeURIComponent('مرحباً، بخصوص إعلانك')
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `whatsapp://send?phone=+96891234567&text=${expectedMsg}`
+      )
     })
   })
 
