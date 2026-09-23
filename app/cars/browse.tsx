@@ -121,6 +121,15 @@ function parseFiltersFromParams(params: {
   return initialFilters;
 }
 
+export function decodeSearchParam(search?: string): string {
+  if (!search) return '';
+  try {
+    return decodeURIComponent(search).trim();
+  } catch {
+    return search.trim();
+  }
+}
+
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
@@ -132,10 +141,11 @@ export default function CarsBrowseScreen() {
     isPremium?: string;
     make?: string;
     brandId?: string;
+    search?: string;
   }>();
 
   // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => decodeSearchParam(searchParams.search));
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>(
     () => searchParams.brandId
@@ -152,6 +162,9 @@ export default function CarsBrowseScreen() {
     setFilters(nextFilters);
     setSelectedBrandId(searchParams.brandId);
     setSelectedBrandName(searchParams.make);
+    if (searchParams.search !== undefined) {
+      setSearchQuery(decodeSearchParam(searchParams.search));
+    }
   }, [
     searchParams.type,
     searchParams.condition,
@@ -159,6 +172,7 @@ export default function CarsBrowseScreen() {
     searchParams.isPremium,
     searchParams.make,
     searchParams.brandId,
+    searchParams.search,
   ]);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);

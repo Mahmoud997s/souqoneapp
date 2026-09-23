@@ -1,4 +1,13 @@
 describe('Cars Browse Filter Logic', () => {
+  function decodeSearchParam(search?: string): string {
+    if (!search) return '';
+    try {
+      return decodeURIComponent(search).trim();
+    } catch {
+      return search.trim();
+    }
+  }
+
   function parseFiltersFromParams(params: {
     type?: string;
     condition?: string;
@@ -90,5 +99,23 @@ describe('Cars Browse Filter Logic', () => {
     });
 
     expect(count).toBe(1);
+  });
+
+  describe('decodeSearchParam', () => {
+    it('returns empty string when search param is absent or undefined', () => {
+      expect(decodeSearchParam(undefined)).toBe('');
+      expect(decodeSearchParam('')).toBe('');
+      expect(decodeSearchParam('   ')).toBe('');
+    });
+
+    it('returns trimmed search query when plain text is provided', () => {
+      expect(decodeSearchParam('كامري')).toBe('كامري');
+      expect(decodeSearchParam('  تويوتا لاندكروزر  ')).toBe('تويوتا لاندكروزر');
+    });
+
+    it('decodes URL-encoded Arabic characters correctly', () => {
+      expect(decodeSearchParam('%D8%AA%D9%88%D9%8A%D9%88%D8%AA%D8%A7')).toBe('تويوتا');
+      expect(decodeSearchParam('%D9%86%D9%8A%D8%B3%D8%A7%D9%86%20%D8%A8%D8%A7%D8%AA%D8%B1%D9%88%D9%84')).toBe('نيسان باترول');
+    });
   });
 });
