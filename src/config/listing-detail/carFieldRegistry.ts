@@ -210,7 +210,14 @@ export const carFieldRegistry: FieldRegistry = [
     id: 'interior',
     group: 'specs',
     label: CAR_FIELD_LABELS.interior,
-    format: (raw) => raw.interior?.trim() || null,
+    format: (raw) => {
+      if (!raw.interior) return null
+      return (
+        CAR_COLORS.find((c) => c.value === raw.interior)?.label ||
+        raw.interior.trim() ||
+        null
+      )
+    },
   },
   {
     id: 'engineSize',

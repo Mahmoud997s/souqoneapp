@@ -126,6 +126,14 @@ describe('carFieldRegistry & EXCLUDED_FROM_DETAIL Parity', () => {
     expect(colorField?.swatch!(rawWithoutColor)).toBeUndefined()
   })
 
+  it('translates interior color through CAR_COLORS and passes unknown values through', () => {
+    const interiorField = carFieldRegistry.find((f) => f.id === 'interior')!
+    expect(interiorField.format({ interior: 'ivory' } as CarDetailApi)).toBe('عاجي')
+    expect(interiorField.format({ interior: 'custom_shade' } as CarDetailApi)).toBe('custom_shade')
+    expect(interiorField.format({ interior: '   ' } as CarDetailApi)).toBeNull()
+    expect(interiorField.format({ interior: null } as unknown as CarDetailApi)).toBeNull()
+  })
+
   it('formats field values accurately and returns null (never em-dash) when value is absent', () => {
     const mileageField = carFieldRegistry.find((f) => f.id === 'mileage')!
     expect(mileageField.format({ mileage: 45000 } as CarDetailApi)).toBe('45,000 كم')
