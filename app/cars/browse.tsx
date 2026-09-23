@@ -525,7 +525,7 @@ export default function CarsBrowseScreen() {
         )}
         renderItem={({ item }) => (
           <View style={s.cardWrapper}>
-            <CarCard item={item as any} onPress={() => router.push(`/listings/${item.id}` as any)} fullWidth showChips />
+            <CarCard item={item as any} onPress={() => router.push(`/cars/${item.id}` as any)} fullWidth showChips />
           </View>
         )}
       />
