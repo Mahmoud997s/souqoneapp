@@ -59,7 +59,7 @@ import {
 } from '../../components/listing-detail/OwnerManageBar'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SpecsSections } from '../../components/listing-detail/SpecsSections'
-import { SimilarListingsSwiper } from '../../components/listing-detail/SimilarListingsSwiper'
+import { SimilarListingsGrid } from '../../components/listing-detail/SimilarListingsGrid'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
@@ -126,6 +126,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [similarPage, setSimilarPage] = useState<number>(1)
 
   // 5. Scroll Tracker for glassmorphism and sticky bars
   const scrollY = useSharedValue(0)
@@ -325,53 +326,51 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         {/* 7. Specs Sections */}
         <SpecsSections sections={vm.specsSections} />
 
-        {/* 8. Similar Listings Swiper (hidden if empty and not loading/error) */}
-        {similarListings.isLoading ||
-        similarListings.isError ||
-        similarListings.items.length > 0 ? (
-          <SimilarListingsSwiper<SimilarCarItem>
-            items={similarListings.items}
-            isLoading={similarListings.isLoading}
-            isError={similarListings.isError}
-            onRetry={similarListings.refetch}
-            cardWidth={155}
-            renderItem={(car) => (
-              <TouchableOpacity
-                key={car.id}
-                style={s.similarCard}
-                onPress={() => router.push(`/cars/${car.id}` as any)}
-                activeOpacity={0.8}
-              >
-                <View style={s.similarCardImagePlaceholder}>
-                  {car.images?.[0]?.url ? (
-                    <Image
-                      source={{ uri: car.images[0].url }}
-                      style={StyleSheet.absoluteFill}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <Ionicons
-                      name="car-sport"
-                      size={28}
-                      color={Colors.primaryLight}
-                    />
-                  )}
-                </View>
-                <Text style={s.similarCardTitle} numberOfLines={2}>
-                  {car.title}
-                </Text>
-                <Text style={s.similarCardPrice}>
-                  {typeof car.price === 'number'
-                    ? `${car.price.toLocaleString('en-US')} ${car.currency ?? 'ر.ع'}`
-                    : car.price}
-                </Text>
-                <Text style={s.similarCardMeta}>
-                  {car.governorate ?? car.city ?? ''}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-        ) : null}
+        {/* 8. Similar Listings Grid (paginated vertical grid, RTL-safe) */}
+        <SimilarListingsGrid<SimilarCarItem>
+          items={similarListings.items}
+          isLoading={similarListings.isLoading}
+          isError={similarListings.isError}
+          onRetry={similarListings.refetch}
+          page={similarPage}
+          pageCount={1}
+          onPageChange={setSimilarPage}
+          renderItem={(car) => (
+            <TouchableOpacity
+              key={car.id}
+              style={s.similarCard}
+              onPress={() => router.push(`/cars/${car.id}` as any)}
+              activeOpacity={0.8}
+            >
+              <View style={s.similarCardImagePlaceholder}>
+                {car.images?.[0]?.url ? (
+                  <Image
+                    source={{ uri: car.images[0].url }}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <Ionicons
+                    name="car-sport"
+                    size={28}
+                    color={Colors.primaryLight}
+                  />
+                )}
+              </View>
+              <Text style={s.similarCardTitle} numberOfLines={2}>
+                {car.title}
+              </Text>
+              <Text style={s.similarCardPrice}>
+                {typeof car.price === 'number'
+                  ? `${car.price.toLocaleString('en-US')} ${car.currency ?? 'ر.ع'}`
+                  : car.price}
+              </Text>
+              <Text style={s.similarCardMeta}>
+                {car.governorate ?? car.city ?? ''}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
 
         {/* 9. Safety Tips */}
         <SafetyTips
