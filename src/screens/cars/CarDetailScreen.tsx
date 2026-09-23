@@ -5,6 +5,7 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Linking,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -18,6 +19,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import MapView, { Marker, PROVIDER_GOOGLE } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { dialogService } from '../../store/dialogStore'
@@ -327,6 +329,50 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         {/* 7. Specs Sections */}
         <SpecsSections sections={vm.specsSections} />
 
+        {/* 7b. Location Map (only when the listing has coordinates, D-29) */}
+        {vm.location.hasCoordinates &&
+        vm.location.latitude !== undefined &&
+        vm.location.longitude !== undefined ? (
+          <View style={s.mapSection}>
+            <Text style={s.mapSectionTitle}>الموقع والعنوان</Text>
+            <View style={s.mapContainer}>
+              <MapView
+                style={{ width: '100%', height: '100%' }}
+                provider={PROVIDER_GOOGLE}
+                initialRegion={{
+                  latitude: vm.location.latitude,
+                  longitude: vm.location.longitude,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: vm.location.latitude,
+                    longitude: vm.location.longitude,
+                  }}
+                />
+              </MapView>
+              {/* Overlay to prevent accidental touches capturing scroll */}
+              <View style={StyleSheet.absoluteFill} />
+            </View>
+            <TouchableOpacity
+              style={s.directionsBtn}
+              activeOpacity={0.8}
+              onPress={() => {
+                Linking.openURL(
+                  `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
+                )
+              }}
+            >
+              <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />
+              <Text style={s.directionsTxt}>الحصول على الاتجاهات</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         {/* 8. Similar Listings Grid (paginated vertical grid, RTL-safe) */}
         <SimilarListingsGrid<SimilarCarItem>
           items={similarListings.items}
@@ -429,6 +475,52 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     gap: Spacing.space2,
+  },
+  mapSection: {
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space2,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.space3,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.card,
+  },
+  mapSectionTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 19,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginBottom: Spacing.space2,
+  },
+  mapContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    position: 'relative',
+  },
+  directionsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  directionsTxt: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+    fontSize: 14,
   },
   similarCard: {
     backgroundColor: Colors.white,
