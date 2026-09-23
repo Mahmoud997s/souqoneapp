@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import {
   View,
+  Text,
   StyleSheet,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -10,8 +12,12 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { Image } from 'expo-image'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { dialogService } from '../../store/dialogStore'
@@ -25,7 +31,17 @@ import {
   useOwnerActions,
   isOptimisticLockError,
 } from '../../hooks/listing-detail/useOwnerActions'
+import {
+  useSimilarListings,
+  type SimilarCarItem,
+} from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import {
+  BUYER_SAFETY_TIPS_TITLE,
+  BUYER_SAFETY_TIPS,
+  SELLER_SAFETY_TIPS_TITLE,
+  SELLER_SAFETY_TIPS,
+} from '../../constants/listing-detail/safetyTips'
 
 // Presentational Components
 import { DetailNavBar } from '../../components/listing-detail/DetailNavBar'
@@ -41,6 +57,11 @@ import {
   OwnerManageBar,
   type OwnerActionId,
 } from '../../components/listing-detail/OwnerManageBar'
+import { ListingDescription } from '../../components/listing-detail/ListingDescription'
+import { SpecsSections } from '../../components/listing-detail/SpecsSections'
+import { SimilarListingsSwiper } from '../../components/listing-detail/SimilarListingsSwiper'
+import { SafetyTips } from '../../components/listing-detail/SafetyTips'
+import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
@@ -99,6 +120,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان سيارة' })
   const contact = useListingContact('LISTING', id, `/cars/${id}`, vm?.title)
   const ownerActions = useOwnerActions(currentVm)
+  const similarListings = useSimilarListings(id)
 
   // 4. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
@@ -123,6 +145,10 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   const handleProfilePress = (sellerId: string) => {
     router.push(`/user/${sellerId}` as any)
+  }
+
+  const handleSupportPress = () => {
+    router.push('/(support)' as any)
   }
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
@@ -292,6 +318,70 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         {!isOwner ? (
           <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
         ) : null}
+
+        {/* 6. Listing Description */}
+        <ListingDescription text={vm.description} collapsedLines={5} />
+
+        {/* 7. Specs Sections */}
+        <SpecsSections sections={vm.specsSections} />
+
+        {/* 8. Similar Listings Swiper (hidden if empty and not loading/error) */}
+        {similarListings.isLoading ||
+        similarListings.isError ||
+        similarListings.items.length > 0 ? (
+          <SimilarListingsSwiper<SimilarCarItem>
+            items={similarListings.items}
+            isLoading={similarListings.isLoading}
+            isError={similarListings.isError}
+            onRetry={similarListings.refetch}
+            cardWidth={155}
+            renderItem={(car) => (
+              <TouchableOpacity
+                key={car.id}
+                style={s.similarCard}
+                onPress={() => router.push(`/cars/${car.id}` as any)}
+                activeOpacity={0.8}
+              >
+                <View style={s.similarCardImagePlaceholder}>
+                  {car.images?.[0]?.url ? (
+                    <Image
+                      source={{ uri: car.images[0].url }}
+                      style={StyleSheet.absoluteFill}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Ionicons
+                      name="car-sport"
+                      size={28}
+                      color={Colors.primaryLight}
+                    />
+                  )}
+                </View>
+                <Text style={s.similarCardTitle} numberOfLines={2}>
+                  {car.title}
+                </Text>
+                <Text style={s.similarCardPrice}>
+                  {typeof car.price === 'number'
+                    ? `${car.price.toLocaleString('en-US')} ${car.currency ?? 'ر.ع'}`
+                    : car.price}
+                </Text>
+                <Text style={s.similarCardMeta}>
+                  {car.governorate ?? car.city ?? ''}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        ) : null}
+
+        {/* 9. Safety Tips */}
+        <SafetyTips
+          role={isOwner ? 'seller' : 'buyer'}
+          title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
+          tips={isOwner ? SELLER_SAFETY_TIPS : BUYER_SAFETY_TIPS}
+        />
+
+        {/* 10. Support Button */}
+        <SupportButton onPress={handleSupportPress} />
       </Animated.ScrollView>
 
       {/* Sticky Contact Actions Bar (when buyer & contact available, scroll-aware) */}
@@ -339,5 +429,44 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     gap: Spacing.space2,
+  },
+  similarCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    padding: Spacing.space2 + 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.card,
+  },
+  similarCardImagePlaceholder: {
+    height: 75,
+    backgroundColor: Colors.inputBg,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space2,
+    overflow: 'hidden',
+  },
+  similarCardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginBottom: 2,
+  },
+  similarCardPrice: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 13,
+    color: Colors.primary,
+    textAlign: 'left',
+  },
+  similarCardMeta: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 10,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    marginTop: 1,
   },
 })
