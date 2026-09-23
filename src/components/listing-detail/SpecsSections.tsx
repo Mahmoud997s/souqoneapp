@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
@@ -14,6 +15,8 @@ export interface SpecsSectionsProps {
  * SpecsSections
  * Presentational sections displaying grouped vehicle technical specifications.
  * Strictly skips rendering any section if its items array is empty.
+ * A section whose items all have an empty `value` is a chips section (e.g. features):
+ * each item renders as a small chip with its optional Ionicons `icon` and its `label`.
  */
 export function SpecsSections({ sections }: SpecsSectionsProps) {
   // Filter out any sections that have no items
@@ -31,6 +34,20 @@ export function SpecsSections({ sections }: SpecsSectionsProps) {
         <View key={sIndex} style={s.card}>
           <Text style={s.sectionTitle}>{section.title}</Text>
 
+          {section.items.every((item) => item.value === '') ? (
+            <View style={s.chipsContainer}>
+              {section.items.map((item, iIndex) => (
+                <View key={item.key || iIndex} style={s.chip}>
+                  <Ionicons
+                    name={(item.icon as keyof typeof Ionicons.glyphMap) ?? 'checkmark-circle-outline'}
+                    size={13}
+                    color="#059669"
+                  />
+                  <Text style={s.chipText}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
           <View style={s.itemsContainer}>
             {section.items.map((item, iIndex) => (
               <View
@@ -45,6 +62,7 @@ export function SpecsSections({ sections }: SpecsSectionsProps) {
               </View>
             ))}
           </View>
+          )}
         </View>
       ))}
     </View>
@@ -76,6 +94,28 @@ const s = StyleSheet.create({
   },
   itemsContainer: {
     gap: 0,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.md,
+  },
+  chipText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#166534',
   },
   specRow: {
     flexDirection: 'row',
