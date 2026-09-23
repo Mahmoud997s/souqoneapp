@@ -36,6 +36,7 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import {
   BUYER_SAFETY_TIPS_TITLE,
   BUYER_SAFETY_TIPS,
@@ -361,9 +362,9 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
                 {car.title}
               </Text>
               <Text style={s.similarCardPrice}>
-                {typeof car.price === 'number'
-                  ? `${car.price.toLocaleString('en-US')} ${car.currency ?? 'ر.ع'}`
-                  : car.price}
+                {parseDecimal(car.price) !== undefined
+                  ? `${formatNumberWestern(parseDecimal(car.price))} ${car.currency ?? 'ر.ع'}`
+                  : ''}
               </Text>
               <Text style={s.similarCardMeta}>
                 {car.governorate ?? car.city ?? ''}

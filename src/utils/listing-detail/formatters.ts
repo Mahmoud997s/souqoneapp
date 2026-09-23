@@ -106,3 +106,23 @@ export function formatMemberSince(isoDate: string): string {
   const year = date.getUTCFullYear()
   return `عضو منذ ${monthName} ${year}`
 }
+
+/**
+ * Parses a Decimal field that the API may serialize as a JSON string ("1800") or a number.
+ * Returns undefined for null/undefined/empty; warns (dev only) and returns undefined for
+ * non-numeric input instead of silently coercing it to 0.
+ */
+export function parseDecimal(value: unknown): number | undefined {
+  if (value === null || value === undefined) return undefined
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (trimmed === '') return undefined
+    const parsed = Number(trimmed)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    console.warn('[parseDecimal] Unparseable numeric value:', value)
+  }
+  return undefined
+}

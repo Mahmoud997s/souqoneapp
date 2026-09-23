@@ -32,13 +32,13 @@ export interface CarDetailApi {
   condition?: 'NEW' | 'USED' | string | null
 
   // Pricing
-  price: number
+  price: number | string
   currency: 'OMR' | 'USD' | string
   isPriceNegotiable?: boolean | null
 
   // Rental specific fields
-  dailyPrice?: number | null
-  monthlyPrice?: number | null
+  dailyPrice?: number | string | null
+  monthlyPrice?: number | string | null
   minRentalDays?: number | null
   depositAmount?: number | null
   kmLimitPerDay?: number | null

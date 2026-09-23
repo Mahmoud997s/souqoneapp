@@ -15,6 +15,7 @@ import {
   formatMileage,
   formatNumberWestern,
   formatRelativeTimeAr,
+  parseDecimal,
 } from './formatters'
 
 /**
@@ -167,24 +168,26 @@ function mapPrice(raw: CarDetailApi): PriceView {
   const listingType = raw.listingType || 'SALE'
   const isNegotiable = Boolean(raw.isPriceNegotiable)
 
-  let amount = typeof raw.price === 'number' && !isNaN(raw.price) ? raw.price : 0
+  let amount = parseDecimal(raw.price) ?? 0
   let caption: string | undefined
 
+  const dailyAmount = parseDecimal(raw.dailyPrice)
   let dailyRate: PriceView['dailyRate']
-  if (typeof raw.dailyPrice === 'number' && !isNaN(raw.dailyPrice)) {
+  if (dailyAmount !== undefined) {
     dailyRate = {
-      amount: raw.dailyPrice,
-      formatted: formatDetailPrice(raw.dailyPrice, currency),
-      label: `${formatDetailPrice(raw.dailyPrice, currency)} / يوم`,
+      amount: dailyAmount,
+      formatted: formatDetailPrice(dailyAmount, currency),
+      label: `${formatDetailPrice(dailyAmount, currency)} / يوم`,
     }
   }
 
+  const monthlyAmount = parseDecimal(raw.monthlyPrice)
   let monthlyRate: PriceView['monthlyRate']
-  if (typeof raw.monthlyPrice === 'number' && !isNaN(raw.monthlyPrice)) {
+  if (monthlyAmount !== undefined) {
     monthlyRate = {
-      amount: raw.monthlyPrice,
-      formatted: formatDetailPrice(raw.monthlyPrice, currency),
-      label: `${formatDetailPrice(raw.monthlyPrice, currency)} / شهر`,
+      amount: monthlyAmount,
+      formatted: formatDetailPrice(monthlyAmount, currency),
+      label: `${formatDetailPrice(monthlyAmount, currency)} / شهر`,
     }
   }
 
@@ -222,19 +225,22 @@ function mapPrice(raw: CarDetailApi): PriceView {
 function mapRentalTerms(raw: CarDetailApi, currency: string): RentalTermsView | undefined {
   const isRental =
     raw.listingType === 'RENTAL' ||
-    typeof raw.dailyPrice === 'number' ||
-    typeof raw.monthlyPrice === 'number'
+    parseDecimal(raw.dailyPrice) !== undefined ||
+    parseDecimal(raw.monthlyPrice) !== undefined
 
   if (!isRental) return undefined
 
+  const depositAmount = parseDecimal(raw.depositAmount)
+  const kmLimitPerDay = parseDecimal(raw.kmLimitPerDay)
+
   return {
     minRentalDays: raw.minRentalDays ?? undefined,
-    depositAmount: raw.depositAmount ?? undefined,
+    depositAmount,
     depositLabel:
-      raw.depositAmount != null ? formatDetailPrice(raw.depositAmount, currency) : undefined,
-    kmLimitPerDay: raw.kmLimitPerDay ?? undefined,
+      depositAmount !== undefined ? formatDetailPrice(depositAmount, currency) : undefined,
+    kmLimitPerDay,
     kmLimitLabel:
-      raw.kmLimitPerDay != null ? `${formatNumberWestern(raw.kmLimitPerDay)} كم / يوم` : undefined,
+      kmLimitPerDay !== undefined ? `${formatNumberWestern(kmLimitPerDay)} كم / يوم` : undefined,
     cancellationPolicy: raw.cancellationPolicy ?? undefined,
     withDriver: raw.withDriver != null ? Boolean(raw.withDriver) : undefined,
     deliveryAvailable: raw.deliveryAvailable != null ? Boolean(raw.deliveryAvailable) : undefined,

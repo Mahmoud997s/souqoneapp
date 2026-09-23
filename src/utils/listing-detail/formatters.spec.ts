@@ -4,6 +4,7 @@ import {
   formatMileage,
   formatRelativeTimeAr,
   formatMemberSince,
+  parseDecimal,
 } from './formatters'
 
 describe('formatters', () => {
@@ -113,6 +114,32 @@ describe('formatters', () => {
       expect(formatMemberSince('2023-01-15T10:00:00.000Z')).toBe('عضو منذ يناير 2023')
       expect(formatMemberSince('2025-09-01T00:00:00.000Z')).toBe('عضو منذ سبتمبر 2025')
       expect(formatMemberSince('2022-12-31T23:59:59.000Z')).toBe('عضو منذ ديسمبر 2022')
+    })
+  })
+
+  describe('parseDecimal', () => {
+    it('parses numbers and numeric strings', () => {
+      expect(parseDecimal(1800)).toBe(1800)
+      expect(parseDecimal('1800')).toBe(1800)
+      expect(parseDecimal(' 45.5 ')).toBe(45.5)
+      expect(parseDecimal('0')).toBe(0)
+    })
+
+    it('returns undefined for null, undefined, and empty strings without warning', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      expect(parseDecimal(null)).toBeUndefined()
+      expect(parseDecimal(undefined)).toBeUndefined()
+      expect(parseDecimal('  ')).toBeUndefined()
+      expect(warn).not.toHaveBeenCalled()
+      warn.mockRestore()
+    })
+
+    it('returns undefined and warns for unparseable values instead of coercing to 0', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      expect(parseDecimal('not-a-number')).toBeUndefined()
+      expect(parseDecimal(NaN)).toBeUndefined()
+      expect(parseDecimal({})).toBeUndefined()
+      warn.mockRestore()
     })
   })
 })

@@ -218,6 +218,52 @@ describe('mapCarDetail', () => {
     expect(vm.rentalTerms).toBeUndefined()
   })
 
+  describe('Decimal-as-string price fields', () => {
+    it('maps a string price ("1800") to amount 1800, not 0', () => {
+      const vm = mapCarDetail({ ...baseMockCar, price: '1800' })
+      expect(vm.price.amount).toBe(1800)
+      expect(vm.price.formattedAmount).toBe('1,800')
+      expect(vm.price.fullPriceLabel).toBe('1,800 ر.ع')
+    })
+
+    it('still maps a numeric price (regression)', () => {
+      const vm = mapCarDetail({ ...baseMockCar, price: 1800 })
+      expect(vm.price.amount).toBe(1800)
+      expect(vm.price.formattedAmount).toBe('1,800')
+    })
+
+    it('populates rental rates and terms from string dailyPrice/monthlyPrice/deposit/km', () => {
+      const vm = mapCarDetail({
+        ...baseMockCar,
+        listingType: 'RENTAL',
+        price: '0',
+        dailyPrice: '45.5',
+        monthlyPrice: '1200',
+        depositAmount: '100' as unknown as number,
+        kmLimitPerDay: '250' as unknown as number,
+      })
+      expect(vm.price.dailyRate?.amount).toBe(45.5)
+      expect(vm.price.monthlyRate?.amount).toBe(1200)
+      expect(vm.price.amount).toBe(45.5)
+      expect(vm.price.fullPriceLabel).toBe('45.5 ر.ع / يوم')
+      expect(vm.rentalTerms?.depositAmount).toBe(100)
+      expect(vm.rentalTerms?.depositLabel).toBe('100 ر.ع')
+      expect(vm.rentalTerms?.kmLimitPerDay).toBe(250)
+      expect(vm.rentalTerms?.kmLimitLabel).toBe('250 كم / يوم')
+    })
+
+    it('treats null and unparseable prices as 0 without throwing', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const nullVm = mapCarDetail({ ...baseMockCar, price: null as unknown as number })
+      expect(nullVm.price.amount).toBe(0)
+
+      const badVm = mapCarDetail({ ...baseMockCar, price: 'not-a-number' })
+      expect(badVm.price.amount).toBe(0)
+      expect(badVm.price.formattedAmount).toBe('0')
+      warn.mockRestore()
+    })
+  })
+
   it('safely passes through unexpected enum values without crashing', () => {
     const carWithCustomEnums: CarDetailApi = {
       ...baseMockCar,
