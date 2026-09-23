@@ -21,12 +21,13 @@ import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Gradients } from '../../src/constants/gradients'
 import { Colors } from '../../src/constants/colors'
+import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 
 const OTP_LENGTH = 6
 
 export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets()
-  const { email } = useLocalSearchParams<{ email?: string }>()
+  const { email, redirect } = useLocalSearchParams<{ email?: string; redirect?: string }>()
   const { setAuth } = useAuthStore()
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
@@ -71,7 +72,7 @@ export default function VerifyEmailScreen() {
     try {
       const res = await authApi.verifyEmail(code)
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
-      router.replace('/(tabs)')
+      router.replace(resolveRedirect(redirect) as any)
     } catch (e: any) {
       setError(e?.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية')
     } finally {

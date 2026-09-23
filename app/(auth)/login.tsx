@@ -16,14 +16,16 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { dialogService } from '../../src/store/dialogStore'
+import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 
 export default function LoginScreen() {
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>()
   const { setAuth } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -44,9 +46,11 @@ export default function LoginScreen() {
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
         if (res.data.requiresVerification) {
-          router.replace(`/(auth)/verify-email?email=${encodeURIComponent(email.trim())}`)
+          const emailParam = encodeURIComponent(email.trim())
+          const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
+          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}`)
         } else {
-          router.replace('/(tabs)')
+          router.replace(resolveRedirect(redirect) as any)
         }
       }, 100)
     } catch (e: any) {
@@ -147,7 +151,12 @@ export default function LoginScreen() {
                 ليس لديك حساب؟{'  '}
                 <Text
                   style={s.signupLink}
-                  onPress={() => router.push('/(auth)/register')}
+                  onPress={() => {
+                    const target = redirect
+                      ? `/(auth)/register?redirect=${encodeURIComponent(redirect)}`
+                      : '/(auth)/register'
+                    router.push(target as any)
+                  }}
                 >
                   إنشاء حساب
                 </Text>

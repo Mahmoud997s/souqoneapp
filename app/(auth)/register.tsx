@@ -18,7 +18,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
@@ -26,9 +26,11 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { BackButton } from '../../src/components/ui/BackButton'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
+import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>()
   const { setAuth } = useAuthStore()
 
   const [displayName, setDisplayName] = useState('')
@@ -75,9 +77,11 @@ export default function RegisterScreen() {
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
         if (res.data.requiresVerification) {
-          router.replace(`/(auth)/verify-email?email=${encodeURIComponent(email.trim())}`)
+          const emailParam = encodeURIComponent(email.trim())
+          const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
+          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
         } else {
-          router.replace('/(tabs)')
+          router.replace(resolveRedirect(redirect) as any)
         }
       }, 100)
     } catch (e: any) {
