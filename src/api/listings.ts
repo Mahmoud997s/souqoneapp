@@ -7,6 +7,7 @@ export const listingsApi = {
   getAll:    (params?: Record<string, unknown>) =>
                apiClient.get<PaginatedResponse<Listing>>('/listings', { params }),
   getById:   (id: string)                      => apiClient.get<Listing>(`/listings/${id}`),
+  getSimilar: (id: string, limit = 8)          => apiClient.get<Listing[]>(`/listings/${id}/similar`, { params: { limit } }),
   getMy:     (params?: { page?: number; limit?: number; status?: string }) =>
                apiClient.get<{ items: Listing[]; meta: PaginationMeta }>('/listings/my', { params }),
   create:    (data: Partial<Listing>)          => apiClient.post<Listing>('/listings', data),
