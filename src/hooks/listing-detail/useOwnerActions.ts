@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
 import { useDeleteCarListing } from './useDeleteCarListing'
 import {
   useChangeCarListingStatus,
@@ -7,25 +8,10 @@ import {
 import { isOptimisticLockError } from './useUpdateCarListing'
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Extended owner action IDs used in the car detail screen.
- * Superset of OwnerManageBar's OwnerActionId (defined in the UI component).
- * Both sets must remain consistent — if OwnerManageBar.tsx changes its type,
- * update this one to match.
- */
-export type OwnerActionId =
-  | 'edit'        // navigation-only; run() is a no-op — caller handles routing
-  | 'delete'      // useDeleteCarListing
-  | 'markSold'    // useChangeCarListingStatus → 'mark-sold'  (ACTIVE SALE only)
-  | 'archive'     // useChangeCarListingStatus → 'archive'    (ACTIVE SALE only)
-  | 'pause'       // useChangeCarListingStatus → 'archive'    (ACTIVE RENTAL only, label "إيقاف مؤقت")
-  | 'stopSearch'  // useChangeCarListingStatus → 'archive'    (ACTIVE WANTED only, label "إيقاف البحث")
-  | 'restore'     // useChangeCarListingStatus → 'restore'    (ARCHIVED only)
-  | 'submit'      // useChangeCarListingStatus → 'submit'     (DRAFT only)
+// OwnerActionId is the single source of truth — exported from OwnerManageBar.tsx.
+// This hook only ever produces/accepts the 8 backend-supported ids.
+// markRented/activate remain valid type members (for OwnerManageBar's future use)
+// but are never emitted by this hook (TD-44 — no backend support yet).
 
 export interface OwnerAction {
   id: OwnerActionId

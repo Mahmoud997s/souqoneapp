@@ -21,12 +21,18 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 
 export type OwnerActionId =
+  // Hook-produced (useOwnerActions — D-19 matrix)
   | 'edit'
   | 'delete'
   | 'markSold'
+  | 'archive'
+  | 'pause'       // RENTAL "إيقاف مؤقت"
+  | 'stopSearch'  // WANTED "إيقاف البحث"
+  | 'restore'
+  | 'submit'
+  // UI-only (OwnerManageBar display — no backend support yet, TD-44)
   | 'markRented'
   | 'activate'
-  | 'archive'
 
 export interface OwnerManageBarProps {
   variant?: 'inline' | 'sticky'
