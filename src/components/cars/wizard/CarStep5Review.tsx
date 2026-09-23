@@ -56,7 +56,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       </View>
 
       {/* ── CARD 1: Photos Gallery ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -101,7 +101,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       </BlurView>
 
       {/* ── CARD 2: Basic Information ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -162,7 +162,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       </BlurView>
 
       {/* ── CARD 3: Technical Specifications ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -321,7 +321,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       </BlurView>
 
       {/* ── CARD 4: Pricing & Location ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 

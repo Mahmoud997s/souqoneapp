@@ -302,6 +302,38 @@ export default function HomeScreen() {
       >
 
 
+        {/* ── CAR DETAIL SANDBOX QUICK ACCESS ── */}
+        <Animated.View entering={FadeInDown.duration(300)} style={s.sandboxBannerWrap}>
+          <TouchableOpacity
+            style={s.sandboxBanner}
+            onPress={() => router.push('/dev/car-detail-sandbox' as any)}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#0F172A', '#1E293B']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.sandboxGradient}
+            >
+              <View style={s.sandboxContent}>
+                <View style={s.sandboxIconCircle}>
+                  <Ionicons name="car-sport" size={22} color={Colors.white} />
+                </View>
+                <View style={s.sandboxTextCol}>
+                  <View style={s.sandboxBadgeRow}>
+                    <Text style={s.sandboxTitle}>معمل تجارب تفاصيل السيارة</Text>
+                    <View style={s.devBadge}>
+                      <Text style={s.devBadgeText}>DEV</Text>
+                    </View>
+                  </View>
+                  <Text style={s.sandboxSubtitle}>معاينة كافة مكونات الصفحة والسيناريوهات</Text>
+                </View>
+                <Ionicons name="chevron-back" size={20} color={Colors.white} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ── CATEGORIES (Photographic Premium) ── */}
         <View style={s.catsContainer}>
           {/* Main Categories (Top 2) */}
@@ -400,6 +432,65 @@ const s = StyleSheet.create({
 
   content: { },
 
+  // Dev Sandbox Quick Access Banner
+  sandboxBannerWrap: {
+    paddingHorizontal: Spacing.space4,
+    marginBottom: Spacing.space4,
+  },
+  sandboxBanner: {
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  sandboxGradient: {
+    padding: Spacing.space3,
+  },
+  sandboxContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space3,
+  },
+  sandboxIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sandboxTextCol: {
+    flex: 1,
+  },
+  sandboxBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sandboxTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    color: Colors.white,
+    textAlign: 'left',
+  },
+  devBadge: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+  },
+  devBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 10,
+    color: Colors.white,
+  },
+  sandboxSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    color: '#94A3B8',
+    textAlign: 'left',
+    marginTop: 2,
+  },
 
   // Categories (3D Talabat Style - Small)
   catsContainer: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6, gap: Spacing.space3 },

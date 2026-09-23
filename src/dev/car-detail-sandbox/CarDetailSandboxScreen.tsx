@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
+  Modal,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -37,7 +38,7 @@ import {
   OwnerManageBar,
   type OwnerActionId,
 } from '../../components/listing-detail/OwnerManageBar'
-import { SimilarListingsGrid } from '../../components/listing-detail/SimilarListingsGrid'
+import { SimilarListingsSwiper } from '../../components/listing-detail/SimilarListingsSwiper'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 
 // Fixtures
@@ -101,7 +102,7 @@ export function CarDetailSandboxScreen() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('sale_full')
   const [isOwner, setIsOwner] = useState<boolean>(false)
   const [overrideState, setOverrideState] = useState<OverrideState>('normal')
-  const [isDevPanelOpen, setIsDevPanelOpen] = useState<boolean>(true)
+  const [isDevModalOpen, setIsDevModalOpen] = useState<boolean>(false)
 
   // Interactive component states
   const [isFavorite, setIsFavorite] = useState<boolean>(false)
@@ -109,7 +110,6 @@ export function CarDetailSandboxScreen() {
   const [searchValue, setSearchValue] = useState<string>('')
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
-  const [similarPage, setSimilarPage] = useState<number>(1)
 
   // Reanimated scroll tracker
   const scrollY = useSharedValue(0)
@@ -192,113 +192,6 @@ export function CarDetailSandboxScreen() {
     <View style={s.rootContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Floating Dev Control Panel Toggle */}
-      <View style={[s.devBarHeader, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={s.devBarToggleButton}
-          onPress={() => setIsDevPanelOpen((prev) => !prev)}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={isDevPanelOpen ? 'options' : 'options-outline'}
-            size={18}
-            color={Colors.white}
-          />
-          <Text style={s.devBarToggleText}>
-            معمل التجارب {isDevPanelOpen ? '(إخفاء التحكم)' : '(إظهار التحكم)'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Expandable Dev Controls Panel */}
-      {isDevPanelOpen ? (
-        <View style={s.devPanel}>
-          <Text style={s.devSectionTitle}>السيناريو:</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.chipsScroll}
-          >
-            {SCENARIOS.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  s.scenarioChip,
-                  selectedScenarioId === item.id && s.scenarioChipActive,
-                ]}
-                onPress={() => {
-                  setSelectedScenarioId(item.id)
-                  setGalleryIndex(0)
-                }}
-              >
-                <Text
-                  style={[
-                    s.scenarioChipText,
-                    selectedScenarioId === item.id && s.scenarioChipTextActive,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <View style={s.devRow}>
-            {/* Viewer Mode Toggle */}
-            <TouchableOpacity
-              style={[s.toggleChip, isOwner && s.toggleChipActive]}
-              onPress={() => setIsOwner((prev) => !prev)}
-            >
-              <Ionicons
-                name={isOwner ? 'person' : 'person-outline'}
-                size={14}
-                color={isOwner ? Colors.white : Colors.primary}
-              />
-              <Text style={[s.toggleChipText, isOwner && s.toggleChipTextActive]}>
-                {isOwner ? 'عرض: المالك' : 'عرض: زائر / مشتري'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Override States */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.overrideScroll}
-            >
-              {(
-                ['normal', 'loading', 'error', 'notFound', 'offline'] as OverrideState[]
-              ).map((st) => (
-                <TouchableOpacity
-                  key={st}
-                  style={[
-                    s.stateChip,
-                    overrideState === st && s.stateChipActive,
-                  ]}
-                  onPress={() => setOverrideState(st)}
-                >
-                  <Text
-                    style={[
-                      s.stateChipText,
-                      overrideState === st && s.stateChipTextActive,
-                    ]}
-                  >
-                    {st === 'normal'
-                      ? 'طبيعي'
-                      : st === 'loading'
-                      ? 'تحميل'
-                      : st === 'error'
-                      ? 'خطأ'
-                      : st === 'notFound'
-                      ? 'غير موجود'
-                      : 'أوفلاين'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      ) : null}
-
       {/* Main View Area */}
       {overrideState !== 'normal' ? (
         <View style={s.overrideContainer}>
@@ -323,7 +216,7 @@ export function CarDetailSandboxScreen() {
             onSearchSubmit={handleSearchSubmit}
             scrollY={scrollY}
             placeholder="ابحث في تفاصيل السيارة..."
-            paddingTop={insets.top + (isDevPanelOpen ? 0 : 4)}
+            paddingTop={insets.top + 4}
           />
 
           <Animated.ScrollView
@@ -332,8 +225,7 @@ export function CarDetailSandboxScreen() {
             contentContainerStyle={[
               s.scrollContent,
               {
-                paddingTop: insets.top + 54,
-                paddingBottom: contactAvailability.mode !== 'hidden' ? 90 : 40,
+                paddingBottom: !isOwner && contactAvailability.mode !== 'hidden' ? 90 : 40,
               },
             ]}
           >
@@ -423,16 +315,13 @@ export function CarDetailSandboxScreen() {
             {/* 7. Specs Sections */}
             <SpecsSections sections={data.specsSections} />
 
-            {/* 8. Similar Listings Grid */}
-            <SimilarListingsGrid<SimilarCarItem>
+            {/* 8. Similar Listings Swiper */}
+            <SimilarListingsSwiper<SimilarCarItem>
               items={MOCK_SIMILAR_ITEMS}
               isLoading={false}
               isError={false}
               onRetry={() => {}}
-              page={similarPage}
-              pageCount={3}
-              onPageChange={setSimilarPage}
-              columns={2}
+              cardWidth={155}
               renderItem={(car) => (
                 <View style={s.similarCard}>
                   <View style={s.similarCardImagePlaceholder}>
@@ -466,7 +355,7 @@ export function CarDetailSandboxScreen() {
             <SupportButton onPress={handleSupportPress} />
           </Animated.ScrollView>
 
-          {/* Sticky Contact Actions Bar (at screen bottom when not owner) */}
+          {/* Sticky Contact Actions Bar (when buyer & contact available, scroll-aware) */}
           {!isOwner && contactAvailability.mode !== 'hidden' ? (
             <ContactActions
               variant="sticky"
@@ -475,8 +364,61 @@ export function CarDetailSandboxScreen() {
               onCall={handleContactCall}
               onWhatsApp={handleContactWhatsApp}
               onChat={handleContactChat}
+              scrollY={scrollY}
+              threshold={320}
             />
           ) : null}
+
+          {/* Sticky Owner Manage Bar (when owner, scroll-aware) */}
+          {isOwner ? (
+            <OwnerManageBar
+              variant="sticky"
+              viewCount={data.viewCount ?? 0}
+              busy={false}
+              actions={[
+                {
+                  id: 'edit',
+                  label: 'تعديل',
+                  tone: 'primary',
+                  icon: 'create-outline',
+                },
+                {
+                  id: 'markSold',
+                  label: 'تمييز كمباع',
+                  tone: 'neutral',
+                  icon: 'checkmark-circle-outline',
+                },
+                {
+                  id: 'delete',
+                  label: 'حذف',
+                  tone: 'danger',
+                  icon: 'trash-outline',
+                },
+              ]}
+              onAction={handleOwnerAction}
+              scrollY={scrollY}
+              threshold={320}
+            />
+          ) : null}
+
+          {/* Floating Dev Control Button */}
+          <TouchableOpacity
+            style={[
+              s.floatingDevFab,
+              {
+                bottom:
+                  (!isOwner && contactAvailability.mode !== 'hidden') || isOwner
+                    ? 78
+                    : 24,
+              },
+            ]}
+            onPress={() => setIsDevModalOpen(true)}
+            activeOpacity={0.85}
+            testID="btn-open-dev-modal"
+          >
+            <Ionicons name="options" size={16} color={Colors.white} />
+            <Text style={s.floatingDevFabText}>معمل التجارب</Text>
+          </TouchableOpacity>
 
           {/* Fullscreen Photo Viewer Modal */}
           <ImageViewerModal
@@ -487,6 +429,129 @@ export function CarDetailSandboxScreen() {
           />
         </View>
       )}
+
+      {/* Dev Controls Bottom Sheet Modal */}
+      <Modal
+        visible={isDevModalOpen}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsDevModalOpen(false)}
+      >
+        <View style={s.modalOverlay}>
+          <TouchableOpacity
+            style={s.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setIsDevModalOpen(false)}
+          />
+          <View style={[s.modalSheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            {/* Sheet Handle */}
+            <View style={s.sheetHandle} />
+
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>لوحة تحكم معمل التجارب</Text>
+              <TouchableOpacity
+                style={s.modalCloseBtn}
+                onPress={() => setIsDevModalOpen(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={20} color={Colors.text2} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Scenario Picker */}
+            <Text style={s.devSectionTitle}>اختر السيناريو المعروض:</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.chipsScroll}
+            >
+              {SCENARIOS.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    s.scenarioChip,
+                    selectedScenarioId === item.id && s.scenarioChipActive,
+                  ]}
+                  onPress={() => {
+                    setSelectedScenarioId(item.id)
+                    setGalleryIndex(0)
+                  }}
+                >
+                  <Text
+                    style={[
+                      s.scenarioChipText,
+                      selectedScenarioId === item.id && s.scenarioChipTextActive,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={s.devDivider} />
+
+            {/* Viewer Mode & States */}
+            <Text style={s.devSectionTitle}>وضع العرض وحالة الصفحة:</Text>
+            <View style={s.devRow}>
+              <TouchableOpacity
+                style={[s.toggleChip, isOwner && s.toggleChipActive]}
+                onPress={() => setIsOwner((prev) => !prev)}
+              >
+                <Ionicons
+                  name={isOwner ? 'person' : 'person-outline'}
+                  size={14}
+                  color={isOwner ? Colors.white : Colors.primary}
+                />
+                <Text style={[s.toggleChipText, isOwner && s.toggleChipTextActive]}>
+                  {isOwner ? 'عرض: المالك' : 'عرض: زائر / مشتري'}
+                </Text>
+              </TouchableOpacity>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={s.overrideScroll}
+              >
+                {(
+                  ['normal', 'loading', 'error', 'notFound', 'offline'] as OverrideState[]
+                ).map((st) => (
+                  <TouchableOpacity
+                    key={st}
+                    style={[
+                      s.stateChip,
+                      overrideState === st && s.stateChipActive,
+                    ]}
+                    onPress={() => {
+                      setOverrideState(st)
+                      if (st !== 'normal') {
+                        setIsDevModalOpen(false)
+                      }
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.stateChipText,
+                        overrideState === st && s.stateChipTextActive,
+                      ]}
+                    >
+                      {st === 'normal'
+                        ? 'طبيعي'
+                        : st === 'loading'
+                        ? 'تحميل'
+                        : st === 'error'
+                        ? 'خطأ'
+                        : st === 'notFound'
+                        ? 'غير موجود'
+                        : 'أوفلاين'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -496,39 +561,73 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.surface,
   },
-  devBarHeader: {
-    backgroundColor: '#0F172A',
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: Spacing.space2,
-    zIndex: 110,
-  },
-  devBarToggleButton: {
+  floatingDevFab: {
+    position: 'absolute',
+    right: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1E293B',
-    paddingVertical: 6,
+    gap: 6,
+    backgroundColor: '#0F172A',
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: Radius.pill,
-    gap: 6,
+    zIndex: 95,
+    borderWidth: 1,
+    borderColor: '#334155',
+    ...Shadows.floating,
   },
-  devBarToggleText: {
+  floatingDevFabText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.white,
   },
-  devPanel: {
-    backgroundColor: '#1E293B',
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+  },
+  modalSheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.space4,
-    paddingBottom: Spacing.space3,
-    zIndex: 109,
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    paddingTop: Spacing.space3,
+    ...Shadows.floating,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.borderStrong,
+    alignSelf: 'center',
+    marginBottom: Spacing.space3,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.space3,
+  },
+  modalTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 15,
+    color: Colors.text,
+  },
+  modalCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.inputBg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   devSectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#94A3B8',
+    color: Colors.textMuted,
     marginBottom: 6,
     textAlign: 'left',
   },
@@ -539,20 +638,28 @@ const s = StyleSheet.create({
   scenarioChip: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#334155',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   scenarioChipActive: {
     backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   scenarioChipText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: '#E2E8F0',
+    color: Colors.text2,
   },
   scenarioChipTextActive: {
     fontFamily: 'Almarai_700Bold',
     color: Colors.white,
+  },
+  devDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.space3,
   },
   devRow: {
     flexDirection: 'row',
@@ -565,11 +672,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: Radius.pill,
-    backgroundColor: '#334155',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#475569',
+    borderColor: Colors.border,
   },
   toggleChipActive: {
     backgroundColor: Colors.primary,
@@ -578,7 +685,7 @@ const s = StyleSheet.create({
   toggleChipText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    color: '#E2E8F0',
+    color: Colors.text2,
   },
   toggleChipTextActive: {
     fontFamily: 'Almarai_700Bold',
@@ -589,17 +696,20 @@ const s = StyleSheet.create({
   },
   stateChip: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#334155',
+    paddingVertical: 5,
+    backgroundColor: Colors.surface,
     borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   stateChipActive: {
     backgroundColor: Colors.error,
+    borderColor: Colors.error,
   },
   stateChipText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    color: '#CBD5E1',
+    color: Colors.text2,
   },
   stateChipTextActive: {
     fontFamily: 'Almarai_700Bold',
@@ -618,13 +728,13 @@ const s = StyleSheet.create({
   similarCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.md,
-    padding: Spacing.space3,
+    padding: Spacing.space2 + 2,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.card,
   },
   similarCardImagePlaceholder: {
-    height: 90,
+    height: 75,
     backgroundColor: Colors.inputBg,
     borderRadius: Radius.sm,
     alignItems: 'center',
@@ -633,24 +743,24 @@ const s = StyleSheet.create({
   },
   similarCardTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   similarCardPrice: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.primary,
     textAlign: 'left',
   },
   similarCardMeta: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textMuted,
     textAlign: 'left',
-    marginTop: 2,
+    marginTop: 1,
   },
 })

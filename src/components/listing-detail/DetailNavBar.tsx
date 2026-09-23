@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native'
+import { BlurView } from 'expo-blur'
 import Animated, {
   useAnimatedStyle,
   interpolate,
@@ -37,10 +38,10 @@ export interface DetailNavBarProps {
 
 /**
  * DetailNavBar
- * D-31 compliant navigation bar for detail page.
+ * D-31 compliant glassmorphic navigation bar for detail page.
  * - Back, favorite, and share buttons remain fixed & visible at all times.
- * - Crossfades background from transparent to solid white based on scrollY (~80px).
- * - Search bar smoothly fades in when scrolled into solid state.
+ * - Crossfades background to frosted glassmorphism based on scrollY (~80px).
+ * - Search bar smoothly fades in when scrolled into glass state.
  */
 export function DetailNavBar({
   onBack,
@@ -71,8 +72,18 @@ export function DetailNavBar({
 
   return (
     <View style={[s.container, { paddingTop }]} pointerEvents="box-none">
-      {/* Animated Solid White Background */}
-      <Animated.View style={[StyleSheet.absoluteFill, s.solidBackground, solidBgStyle]} />
+      {/* Animated Glassmorphism Background */}
+      <Animated.View
+        style={[StyleSheet.absoluteFill, solidBgStyle]}
+        pointerEvents="none"
+      >
+        <BlurView
+          intensity={65}
+          tint="light"
+          blurMethod="dimezisBlurView"
+          style={[StyleSheet.absoluteFill, s.glassBackground]}
+        />
+      </Animated.View>
 
       <View style={s.contentRow}>
         {/* Back Button */}
@@ -83,12 +94,12 @@ export function DetailNavBar({
           testID="btn-detail-back"
           accessibilityLabel="رجوع"
         >
-          <Ionicons name="arrow-forward-outline" size={22} color={Colors.text} />
+          <Ionicons name="arrow-forward-outline" size={20} color={Colors.text} />
         </TouchableOpacity>
 
         {/* Search Bar (Centered / Animated) */}
         <Animated.View style={[s.searchContainer, searchBarStyle]}>
-          <Ionicons name="search-outline" size={18} color={Colors.placeholder} style={s.searchIcon} />
+          <Ionicons name="search-outline" size={17} color={Colors.placeholder} style={s.searchIcon} />
           <TextInput
             style={s.searchInput}
             value={searchValue}
@@ -115,7 +126,7 @@ export function DetailNavBar({
             testID="btn-detail-share"
             accessibilityLabel="مشاركة"
           >
-            <Ionicons name="share-social-outline" size={20} color={Colors.text} />
+            <Ionicons name="share-social-outline" size={19} color={Colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -131,7 +142,7 @@ export function DetailNavBar({
             ) : (
               <Ionicons
                 name={isFavorite ? 'heart' : 'heart-outline'}
-                size={22}
+                size={20}
                 color={isFavorite ? Colors.error : Colors.text}
               />
             )}
@@ -152,24 +163,26 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
     paddingBottom: Spacing.space2,
   },
-  solidBackground: {
-    backgroundColor: Colors.white,
+  glassBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: 'rgba(0, 0, 0, 0.06)',
     ...Shadows.nav,
   },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 48,
+    minHeight: 44,
     gap: Spacing.space2,
   },
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: Radius.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.65)',
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.card,
@@ -180,19 +193,19 @@ const s = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
+    gap: 6,
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 40,
-    backgroundColor: Colors.inputBg,
+    height: 36,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: Radius.pill,
     paddingHorizontal: Spacing.space3,
     marginHorizontal: Spacing.space1,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   searchIcon: {
     marginEnd: Spacing.space2,
@@ -200,10 +213,10 @@ const s = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     color: Colors.text,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+    paddingVertical: Platform.OS === 'ios' ? 6 : 2,
     textAlign: 'right',
   },
 })

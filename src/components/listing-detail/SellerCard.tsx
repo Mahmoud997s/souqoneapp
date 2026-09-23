@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -15,75 +16,88 @@ export interface SellerCardProps {
 
 /**
  * SellerCard
- * Presentational seller preview card on listing detail.
- * Displays avatar, seller name, verified badge, membership longevity, and account type.
+ * Glassmorphic seller preview card on listing detail.
+ * Same layout as the original — avatar, name, verified badge,
+ * membership label, account type badge, and chevron.
  */
 export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
   return (
     <TouchableOpacity
-      style={s.card}
       onPress={() => onPressProfile(seller.id)}
       activeOpacity={0.75}
       testID="seller-card-touchable"
+      style={s.wrapper}
     >
-      <View style={s.row}>
-        {/* Avatar */}
-        <View style={s.avatarContainer}>
-          {seller.avatarUrl ? (
-            <Image
-              source={{ uri: seller.avatarUrl }}
-              style={s.avatar}
-              contentFit="cover"
-            />
-          ) : (
-            <View style={s.avatarFallback}>
-              <Ionicons name="person" size={24} color={Colors.primaryLight} />
-            </View>
-          )}
-        </View>
-
-        {/* Info */}
-        <View style={s.infoColumn}>
-          <View style={s.nameRow}>
-            <Text style={s.nameText}>{seller.name}</Text>
-            {seller.isVerified ? (
-              <Ionicons
-                name="checkmark-circle"
-                size={16}
-                color={Colors.primaryLight}
-                style={s.verifiedIcon}
+      <BlurView
+        intensity={70}
+        tint="light"
+        blurMethod="dimezisBlurView"
+        style={s.card}
+      >
+        <View style={s.row}>
+          {/* Avatar */}
+          <View style={s.avatarContainer}>
+            {seller.avatarUrl ? (
+              <Image
+                source={{ uri: seller.avatarUrl }}
+                style={s.avatar}
+                contentFit="cover"
               />
+            ) : (
+              <View style={s.avatarFallback}>
+                <Ionicons name="person" size={24} color={Colors.primaryLight} />
+              </View>
+            )}
+          </View>
+
+          {/* Info */}
+          <View style={s.infoColumn}>
+            <View style={s.nameRow}>
+              <Text style={s.nameText}>{seller.name}</Text>
+              {seller.isVerified ? (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={16}
+                  color="#0D9488"
+                  style={s.verifiedIcon}
+                />
+              ) : null}
+            </View>
+
+            <Text style={s.membershipText}>{seller.memberSinceLabel}</Text>
+
+            {seller.accountType ? (
+              <View style={s.accountBadge}>
+                <Text style={s.accountBadgeText}>{seller.accountType}</Text>
+              </View>
             ) : null}
           </View>
 
-          <Text style={s.membershipText}>{seller.memberSinceLabel}</Text>
-
-          {seller.accountType ? (
-            <View style={s.accountBadge}>
-              <Text style={s.accountBadgeText}>{seller.accountType}</Text>
-            </View>
-          ) : null}
+          {/* Chevron */}
+          <View style={s.chevronWrapper}>
+            <Ionicons name="chevron-back" size={20} color="#14B8A6" />
+          </View>
         </View>
-
-        {/* Arrow chevron */}
-        <View style={s.chevronWrapper}>
-          <Ionicons name="chevron-back" size={20} color={Colors.placeholder} />
-        </View>
-      </View>
+      </BlurView>
     </TouchableOpacity>
   )
 }
 
 const s = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
+  wrapper: {
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
     ...Shadows.card,
+  },
+  card: {
+    backgroundColor: 'rgba(204, 251, 241, 0.55)',
+    borderRadius: Radius.lg,
+    borderWidth: 1.2,
+    borderColor: 'rgba(20, 184, 166, 0.30)',
+    padding: Spacing.space3,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
@@ -91,9 +105,9 @@ const s = StyleSheet.create({
     gap: Spacing.space3,
   },
   avatarContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     overflow: 'hidden',
   },
   avatar: {
@@ -106,7 +120,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 26,
+    borderRadius: 22,
   },
   infoColumn: {
     flex: 1,
@@ -119,8 +133,8 @@ const s = StyleSheet.create({
   },
   nameText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 18,
     color: Colors.text,
   },
   verifiedIcon: {
@@ -128,22 +142,24 @@ const s = StyleSheet.create({
   },
   membershipText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.textMuted,
   },
   accountBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(13, 148, 136, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(13, 148, 136, 0.25)',
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: Radius.pill,
-    marginTop: 3,
+    marginTop: 2,
   },
   accountBadgeText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    color: Colors.text2,
+    fontSize: 10,
+    color: '#0D9488',
   },
   chevronWrapper: {
     paddingStart: Spacing.space2,

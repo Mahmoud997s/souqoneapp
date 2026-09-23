@@ -62,7 +62,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: Spacing.space4,
+    padding: Spacing.space3,
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
     borderWidth: 1,
@@ -71,8 +71,8 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 19,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -80,8 +80,8 @@ const s = StyleSheet.create({
   },
   bodyText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
-    lineHeight: 24,
+    fontSize: 13,
+    lineHeight: 21,
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -92,11 +92,11 @@ const s = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 4,
     marginTop: Spacing.space2,
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   toggleText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.primary,
   },
 })

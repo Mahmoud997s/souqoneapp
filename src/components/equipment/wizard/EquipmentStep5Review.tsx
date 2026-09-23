@@ -47,7 +47,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
       </View>
 
       {/* ── CARD 1: Basic Information ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -113,7 +113,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
       </BlurView>
 
       {/* ── CARD 2: Photos Gallery ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -158,7 +158,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
       </BlurView>
 
       {/* ── CARD 3: Technical Specifications ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -266,7 +266,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
       </BlurView>
 
       {/* ── CARD 4: Pricing, Location & Contact ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 

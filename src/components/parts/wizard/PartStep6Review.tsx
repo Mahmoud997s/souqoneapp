@@ -87,7 +87,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
       </View>
 
       {/* ── CARD 1: Photos Gallery ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -133,7 +133,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
       </BlurView>
 
       {/* ── CARD 2: Basic Information ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -181,7 +181,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
       </BlurView>
 
       {/* ── CARD 3: Part Details & Specifications ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -277,7 +277,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
 
       {/* ── CARD 4: Compatibility (Conditional) ── */}
       {hasCompatibilityData && (
-        <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card} testID="compatibility-card">
+        <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card} testID="compatibility-card">
           <View style={s.cardWhiteWash} pointerEvents="none" />
           <View style={s.cardTint} pointerEvents="none" />
 
@@ -347,7 +347,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
       )}
 
       {/* ── CARD 5: Pricing & Location ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 

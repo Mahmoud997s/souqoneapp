@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -37,11 +37,11 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
         if (supported) {
           await Linking.openURL(url)
         } else {
-          dialogService.alert('خطأ', 'لا يمكن فتح هذا الملف.')
+          dialogService.alert('???', '?? ???? ??? ??? ?????.')
         }
       }
     } catch (e) {
-      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الملف.')
+      dialogService.alert('???', '??? ??? ????? ??? ?????.')
     }
   }
 
@@ -56,7 +56,7 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
       </View>
       <View style={s.info}>
         <Text style={[s.name, isOwn ? s.txtWhite : s.txtDark]} numberOfLines={1}>
-          {fileName || 'ملف مرفق'}
+          {fileName || '??? ????'}
         </Text>
         {fileSize ? (
           <Text style={[s.size, isOwn ? s.txtWhiteMuted : s.txtMuted]}>{fileSize}</Text>

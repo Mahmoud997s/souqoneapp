@@ -3,13 +3,12 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   StatusBar,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { GestureDetector, Gesture } from 'react-native-gesture-handler'
+import { GestureDetector, Gesture, TouchableOpacity } from 'react-native-gesture-handler'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -57,6 +57,9 @@ export function ImageViewerModal({
   const scale = useSharedValue(1)
   const translateX = useSharedValue(0)
 
+  // Compute once on JS thread — safe to capture in worklet closure
+  const gestureDir = getGestureDirectionMultiplier()
+
   // Reset scale when index changes
   const changeIndex = (newIdx: number) => {
     setActiveIndex(newIdx)
@@ -67,10 +70,10 @@ export function ImageViewerModal({
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
     .onEnd(() => {
-      if (scale.value > 1.2) {
+      if (scale.value > 1.15) {
         scale.value = withTiming(1)
       } else {
-        scale.value = withTiming(2)
+        scale.value = withTiming(1.65)
       }
     })
 
@@ -78,16 +81,17 @@ export function ImageViewerModal({
   const panGesture = Gesture.Pan()
     .activeOffsetX([-15, 15])
     .onUpdate((e) => {
-      if (scale.value <= 1.1) {
+      if (scale.value <= 1.05) {
         translateX.value = e.translationX
       }
     })
     .onEnd((e) => {
-      if (scale.value <= 1.1) {
-        const THRESHOLD = 60
-        if (e.translationX < -THRESHOLD && activeIndex < count - 1) {
+      if (scale.value <= 1.05) {
+        const dx = e.translationX * gestureDir
+        const THRESHOLD = 50
+        if (dx > THRESHOLD && activeIndex < count - 1) {
           runOnJS(changeIndex)(activeIndex + 1)
-        } else if (e.translationX > THRESHOLD && activeIndex > 0) {
+        } else if (dx < -THRESHOLD && activeIndex > 0) {
           runOnJS(changeIndex)(activeIndex - 1)
         }
         translateX.value = withSpring(0)
@@ -125,7 +129,7 @@ export function ImageViewerModal({
             testID="btn-close-viewer"
             accessibilityLabel="إغلاق"
           >
-            <Ionicons name="close" size={26} color={Colors.white} />
+            <Ionicons name="close" size={22} color={Colors.white} />
           </TouchableOpacity>
 
           <Text style={s.counterText}>
@@ -169,13 +173,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space8,
-    paddingBottom: Spacing.space3,
+    paddingTop: Spacing.space6,
+    paddingBottom: Spacing.space2,
     zIndex: 10,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     borderRadius: Radius.pill,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
@@ -183,11 +187,11 @@ const s = StyleSheet.create({
   },
   counterText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.white,
   },
   placeholderRight: {
-    width: 44,
+    width: 38,
   },
   canvas: {
     flex: 1,
@@ -197,7 +201,7 @@ const s = StyleSheet.create({
   },
   imageContainer: {
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.75,
+    height: SCREEN_HEIGHT * 0.68,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -206,12 +210,12 @@ const s = StyleSheet.create({
     height: '100%',
   },
   bottomBar: {
-    paddingVertical: Spacing.space4,
+    paddingVertical: Spacing.space3,
     alignItems: 'center',
   },
   tipText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.6)',
   },
 })

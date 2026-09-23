@@ -126,31 +126,31 @@ export function SimilarListingsGrid<TItem>({
 const s = StyleSheet.create({
   container: {
     marginHorizontal: Spacing.space4,
-    marginVertical: Spacing.space4,
+    marginVertical: Spacing.space2,
   },
   title: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 19,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: Spacing.space3,
+    marginBottom: Spacing.space2,
   },
   gridRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.space3,
+    gap: Spacing.space2,
   },
   col2: {
-    width: '48%',
+    width: '48.5%',
   },
   col3: {
     width: '31%',
   },
   errorBox: {
     backgroundColor: Colors.white,
-    padding: Spacing.space4,
+    padding: Spacing.space3,
     borderRadius: Radius.lg,
     alignItems: 'center',
     gap: Spacing.space2,
@@ -159,11 +159,11 @@ const s = StyleSheet.create({
   },
   errorText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.error,
   },
   retryButton: {
-    paddingHorizontal: Spacing.space4,
+    paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2,
     backgroundColor: Colors.primary + '15',
     borderRadius: Radius.md,
@@ -171,15 +171,15 @@ const s = StyleSheet.create({
   },
   retryText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.primary,
   },
   paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing.space4,
-    paddingTop: Spacing.space3,
+    marginTop: Spacing.space3,
+    paddingTop: Spacing.space2,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
@@ -187,7 +187,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space2,
+    paddingVertical: 6,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
     gap: 4,
@@ -197,12 +197,12 @@ const s = StyleSheet.create({
   },
   pageButtonText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text2,
   },
   pageIndicator: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
+    fontSize: 11,
     color: Colors.textMuted,
   },
 })

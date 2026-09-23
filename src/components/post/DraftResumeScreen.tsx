@@ -94,7 +94,7 @@ export function DraftResumeScreen({
 
         {/* Glass Draft Card */}
         <View style={styles.cardOuter}>
-          <BlurView intensity={45} tint="light" experimentalBlurMethod="dimezisBlurView" style={styles.cardContainer}>
+          <BlurView intensity={45} tint="light" blurMethod="dimezisBlurView" style={styles.cardContainer}>
             {images.length > 0 && (
               <View style={styles.photoRow}>
                 <View style={styles.photoStack}>
@@ -171,7 +171,7 @@ export function DraftResumeScreen({
       <BlurView
         intensity={55}
         tint="light"
-        experimentalBlurMethod="dimezisBlurView"
+        blurMethod="dimezisBlurView"
         style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]}
       >
         <TouchableOpacity style={styles.primaryBtn} onPress={onResume} activeOpacity={0.9}>

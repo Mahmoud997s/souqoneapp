@@ -72,7 +72,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
       </View>
 
       {/* ── 2. CARD 1: Photos Gallery (Step 2) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -118,7 +118,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
       </BlurView>
 
       {/* ── 3. CARD 2: Basic Info & Classification (Step 1) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -183,7 +183,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
       </BlurView>
 
       {/* ── 4. CARD 3: Specifications & Details (Step 3) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -293,7 +293,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
       </BlurView>
 
       {/* ── 5. CARD 4: Pricing & Financials (Step 4) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -430,7 +430,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
       </BlurView>
 
       {/* ── 6. CARD 5: Location & Contact (Step 5) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 

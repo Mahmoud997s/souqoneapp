@@ -1,23 +1,19 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { physicalRightStyle, physicalRowDirection } from '../../utils/physicalDirection'
+import { useGestureSwiper } from '../../hooks/useGestureSwiper'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -32,40 +28,43 @@ export interface ImageGalleryProps {
 
 /**
  * ImageGallery
- * Pager component for car detail image showcase.
- * - Avoids native horizontal ScrollView paging to prevent RTL inverted offset bugs.
- * - Uses Gesture.Pan to smoothly handle left/right swipe gestures.
+ * High-performance image swiper for car detail image showcase.
+ * - Uses the repository's standard useGestureSwiper and physicalRightStyle.
+ * - Provides real physical touch tracking with continuous multi-image sliding track.
  * - Displays active dot indicators and current image counter.
- * - Gracefully renders a placeholder when images array is empty.
+ * - Composes pan and tap gestures seamlessly so tapping opens fullscreen viewer.
  */
 export function ImageGallery({
   images,
   index,
   onIndexChange,
   onPressImage,
-  aspectRatio = 16 / 10,
+  aspectRatio = 16 / 11,
 }: ImageGalleryProps) {
   const count = images.length
-  const translateX = useSharedValue(0)
+  const galleryWidth = SCREEN_WIDTH
 
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-15, 15])
-    .onUpdate((e) => {
-      translateX.value = e.translationX
-    })
-    .onEnd((e) => {
-      const SWIPE_THRESHOLD = 50
-      if (e.translationX < -SWIPE_THRESHOLD && index < count - 1) {
-        runOnJS(onIndexChange)(index + 1)
-      } else if (e.translationX > SWIPE_THRESHOLD && index > 0) {
-        runOnJS(onIndexChange)(index - 1)
-      }
-      translateX.value = withSpring(0, { damping: 18, stiffness: 120 })
-    })
+  const { panGesture, animatedTrackStyle, activeIndex } = useGestureSwiper({
+    count,
+    step: galleryWidth,
+    initialIndex: index,
+    onActiveIndexChange: onIndexChange,
+    paging: true,
+  })
 
-  const animatedImageStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }))
+  // Tap gesture composed with pan gesture
+  const tapGesture = useMemo(() => {
+    return Gesture.Tap()
+      .maxDuration(250)
+      .runOnJS(true)
+      .onEnd(() => {
+        onPressImage(activeIndex)
+      })
+  }, [onPressImage, activeIndex])
+
+  const composedGesture = useMemo(() => {
+    return Gesture.Exclusive(panGesture, tapGesture)
+  }, [panGesture, tapGesture])
 
   if (count === 0) {
     return (
@@ -76,46 +75,55 @@ export function ImageGallery({
     )
   }
 
-  const currentImage = images[index] || images[0]
-
   return (
     <View style={[s.container, { aspectRatio }]}>
-      <GestureDetector gesture={panGesture}>
-        <TouchableOpacity
-          activeOpacity={0.95}
-          onPress={() => onPressImage(index)}
-          style={s.imageWrapper}
-          testID="gallery-image-touchable"
-        >
-          <Animated.View style={[s.imageWrapper, animatedImageStyle]}>
-            <Image
-              source={{ uri: currentImage.url }}
-              style={s.image}
-              contentFit="cover"
-              transition={200}
-              accessibilityLabel={`صورة ${index + 1} من ${count}`}
-            />
+      <GestureDetector gesture={composedGesture}>
+        <View style={s.trackContainer}>
+          <Animated.View style={[s.track, animatedTrackStyle]}>
+            {images.map((img, i) => (
+              <View
+                key={img.id || i}
+                style={[
+                  s.imageSlide,
+                  {
+                    width: galleryWidth,
+                    ...physicalRightStyle(i * galleryWidth),
+                  },
+                ]}
+              >
+                <Image
+                  source={{ uri: img.url }}
+                  style={s.image}
+                  contentFit="cover"
+                  transition={200}
+                  accessibilityLabel={`صورة ${i + 1} من ${count}`}
+                />
+              </View>
+            ))}
           </Animated.View>
-        </TouchableOpacity>
+        </View>
       </GestureDetector>
 
       {/* Counter Badge */}
-      <View style={s.counterBadge}>
+      <View style={s.counterBadge} pointerEvents="none">
         <Ionicons name="images-outline" size={13} color={Colors.white} />
         <Text style={s.counterText}>
-          {index + 1} / {count}
+          {activeIndex + 1} / {count}
         </Text>
       </View>
 
       {/* Dots Indicator */}
       {count > 1 ? (
-        <View style={s.dotsContainer}>
+        <View
+          style={[s.dotsContainer, { flexDirection: physicalRowDirection() }]}
+          pointerEvents="none"
+        >
           {images.map((_, i) => (
             <View
               key={i}
               style={[
                 s.dot,
-                i === index ? s.dotActive : s.dotInactive,
+                i === activeIndex ? s.dotActive : s.dotInactive,
               ]}
             />
           ))}
@@ -132,8 +140,19 @@ const s = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  imageWrapper: {
+  trackContainer: {
     width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  track: {
+    ...StyleSheet.absoluteFill,
+  },
+  imageSlide: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
     height: '100%',
   },
   image: {
@@ -174,7 +193,6 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: Spacing.space3,
     alignSelf: 'center',
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     paddingHorizontal: 8,
@@ -183,15 +201,15 @@ const s = StyleSheet.create({
     gap: 5,
   },
   dot: {
-    height: 6,
-    borderRadius: 3,
+    height: 5,
+    borderRadius: 2.5,
   },
   dotActive: {
-    width: 16,
+    width: 14,
     backgroundColor: Colors.white,
   },
   dotInactive: {
-    width: 6,
+    width: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
 })
