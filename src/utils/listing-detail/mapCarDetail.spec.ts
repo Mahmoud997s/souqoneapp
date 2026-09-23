@@ -99,10 +99,11 @@ describe('mapCarDetail', () => {
     ])
 
     // Structured Sections
-    expect(vm.specsSections).toHaveLength(3)
-    expect(vm.specsSections[0].title).toBe('المواصفات الأساسية')
-    expect(vm.specsSections[1].title).toBe('المحرك والأداء')
-    expect(vm.specsSections[2].title).toBe('المظهر والأبعاد')
+    expect(vm.specsSections.map((sec) => sec.title)).toEqual([
+      'المواصفات الأساسية',
+      'المواصفات الفنية',
+      'الميزات الإضافية',
+    ])
 
     // Features
     expect(vm.features).toEqual([
@@ -216,6 +217,79 @@ describe('mapCarDetail', () => {
     expect(vm.specsSections).toEqual([])
     expect(vm.features).toEqual([])
     expect(vm.rentalTerms).toBeUndefined()
+  })
+
+  describe('registry-driven specs sections', () => {
+    const findValue = (vm: ReturnType<typeof mapCarDetail>, key: string) =>
+      vm.specsSections.flatMap((sec) => sec.items).find((item) => item.key === key)?.value
+
+    it('translates exterior and interior colors and enums to Arabic (real listing values)', () => {
+      const vm = mapCarDetail({
+        ...baseMockCar,
+        exteriorColor: 'metallic_white',
+        interior: 'ivory',
+        bodyType: 'SUV',
+        fuelType: 'PETROL',
+        transmission: 'AUTOMATIC',
+        driveType: 'RWD',
+        condition: 'NEW',
+        mileage: 0,
+      })
+      expect(findValue(vm, 'exteriorColor')).toBe('أبيض ميتاليك')
+      expect(findValue(vm, 'interior')).toBe('عاجي')
+      expect(findValue(vm, 'bodyType')).toBe('دفع رباعي (SUV)')
+      expect(findValue(vm, 'fuelType')).toBe('بترول')
+      expect(findValue(vm, 'transmission')).toBe('أوتوماتيك')
+      expect(findValue(vm, 'driveType')).toBe('دفع خلفي (RWD)')
+      expect(findValue(vm, 'condition')).toBe('جديد')
+    })
+
+    it('builds a features section of icon chips (empty value) from feature ids', () => {
+      const vm = mapCarDetail({
+        ...baseMockCar,
+        features: ['lfFeatureTouchscreen', 'lfFeatureSunroof', 'custom typed feature'],
+      })
+      const section = vm.specsSections.find((sec) => sec.title === 'الميزات الإضافية')
+      expect(section).toBeDefined()
+      expect(section!.items).toEqual([
+        { key: 'lfFeatureTouchscreen', label: 'شاشة لمس', value: '', icon: 'tablet-portrait-outline' },
+        { key: 'lfFeatureSunroof', label: 'فتحة سقف', value: '', icon: 'sunny-outline' },
+        { key: 'custom typed feature', label: 'custom typed feature', value: '', icon: undefined },
+      ])
+    })
+
+    it('omits the features section and empty rows when data is absent', () => {
+      const vm = mapCarDetail({
+        ...baseMockCar,
+        features: [],
+        interior: null,
+        exteriorColor: null,
+        engineSize: null,
+      })
+      expect(vm.specsSections.some((sec) => sec.title === 'الميزات الإضافية')).toBe(false)
+      const allItems = vm.specsSections.flatMap((sec) => sec.items)
+      expect(allItems.some((item) => item.key === 'interior')).toBe(false)
+      expect(allItems.some((item) => item.key === 'exteriorColor')).toBe(false)
+      expect(allItems.some((item) => item.key === 'engineSize')).toBe(false)
+      expect(allItems.every((item) => item.label.length > 0)).toBe(true)
+    })
+
+    it('shows rental-only sections only for RENTAL listings', () => {
+      const sale = mapCarDetail({ ...baseMockCar, listingType: 'SALE', depositAmount: 100 })
+      expect(sale.specsSections.some((sec) => sec.title === 'شروط الإيجار')).toBe(false)
+
+      const rental = mapCarDetail({
+        ...baseMockCar,
+        listingType: 'RENTAL',
+        dailyPrice: '45',
+        depositAmount: 100,
+        withDriver: false,
+      })
+      const rentalSection = rental.specsSections.find((sec) => sec.title === 'شروط الإيجار')
+      expect(rentalSection).toBeDefined()
+      expect(rentalSection!.items.find((i) => i.key === 'depositAmount')?.value).toBe('100 ر.ع')
+      expect(rentalSection!.items.find((i) => i.key === 'withDriver')?.value).toBe('بدون سائق')
+    })
   })
 
   describe('Decimal-as-string price fields', () => {

@@ -1,4 +1,6 @@
 import { CarDetailApi, CarDetailApiImage, CarDetailApiSeller } from '../../types/carDetailApi.types'
+import { carFieldRegistry, FieldDef } from '../../config/listing-detail/carFieldRegistry'
+import { CAR_FEATURE_KEYS } from '../../constants/cars'
 import {
   CarDetailViewModel,
   GalleryImage,
@@ -248,6 +250,55 @@ function mapRentalTerms(raw: CarDetailApi, currency: string): RentalTermsView | 
   }
 }
 
+const SPEC_SECTION_ORDER: FieldDef['group'][] = ['basic', 'specs', 'features', 'rental', 'location']
+
+const SPEC_SECTION_TITLES: Record<FieldDef['group'], string> = {
+  basic: 'المواصفات الأساسية',
+  specs: 'المواصفات الفنية',
+  features: 'الميزات الإضافية',
+  rental: 'شروط الإيجار',
+  location: 'الموقع',
+}
+
+/**
+ * Builds the grouped spec sections from carFieldRegistry (the single source of truth for
+ * labels/translations). Fields whose format() returns null and rental-only fields on
+ * non-rental listings are skipped. The features group becomes icon chips: items with an
+ * empty `value`, carrying the feature's Arabic label and icon.
+ */
+function buildSpecsSections(raw: CarDetailApi): SpecSectionView[] {
+  const itemsByGroup = new Map<FieldDef['group'], SpecItemView[]>()
+
+  for (const field of carFieldRegistry) {
+    if (field.visibleWhen && !field.visibleWhen(raw)) continue
+    const value = field.format(raw)
+    if (!value) continue
+
+    const items = itemsByGroup.get(field.group) ?? []
+    if (field.group === 'features') {
+      const featureIds = (raw.features ?? []).filter(
+        (f): f is string => typeof f === 'string' && f.trim().length > 0
+      )
+      for (const featureId of featureIds) {
+        const known = CAR_FEATURE_KEYS.find((f) => f.id === featureId)
+        items.push({
+          key: featureId,
+          label: known?.label ?? featureId,
+          value: '',
+          icon: known?.icon,
+        })
+      }
+    } else {
+      items.push({ key: field.id, label: field.label, value })
+    }
+    itemsByGroup.set(field.group, items)
+  }
+
+  return SPEC_SECTION_ORDER.filter((group) => (itemsByGroup.get(group)?.length ?? 0) > 0).map(
+    (group) => ({ title: SPEC_SECTION_TITLES[group], items: itemsByGroup.get(group)! })
+  )
+}
+
 /**
  * Pure mapper converting raw car detail API response into strongly-typed UI ViewModel.
  * Guarantees zero null/undefined field pollution in specifications and sections.
@@ -288,43 +339,8 @@ export function mapCarDetail(raw: CarDetailApi): CarDetailViewModel {
     keySpecs.push({ key: 'fuelType', label: 'الوقود', value: fuelTypeLabel, icon: 'droplet' })
   }
 
-  // 2. Structured Spec Sections
-  const basicItems: SpecItemView[] = []
-  if (raw.make) basicItems.push({ key: 'make', label: 'الشركة المصنعة', value: raw.make })
-  if (raw.model) basicItems.push({ key: 'model', label: 'الموديل', value: raw.model })
-  if (raw.trim) basicItems.push({ key: 'trim', label: 'الفئة (Trim)', value: raw.trim })
-  if (raw.year) basicItems.push({ key: 'year', label: 'سنة الصنع', value: String(raw.year) })
-  if (conditionLabel) basicItems.push({ key: 'condition', label: 'الحالة', value: conditionLabel })
-  if (mileageLabel) basicItems.push({ key: 'mileage', label: 'المسافة المقطوعة', value: mileageLabel })
-
-  const engineItems: SpecItemView[] = []
-  if (fuelTypeLabel) engineItems.push({ key: 'fuelType', label: 'نوع الوقود', value: fuelTypeLabel })
-  if (transmissionLabel)
-    engineItems.push({ key: 'transmission', label: 'ناقل الحركة', value: transmissionLabel })
-  if (driveTypeLabel) engineItems.push({ key: 'driveType', label: 'نوع الدفع', value: driveTypeLabel })
-  if (raw.engineSize) engineItems.push({ key: 'engineSize', label: 'سعة المحرك', value: raw.engineSize })
-  if (raw.horsepower)
-    engineItems.push({ key: 'horsepower', label: 'القوة الحصانية', value: `${formatNumberWestern(raw.horsepower)} حصان` })
-
-  const appearanceItems: SpecItemView[] = []
-  if (bodyTypeLabel) appearanceItems.push({ key: 'bodyType', label: 'نوع الهيكل', value: bodyTypeLabel })
-  if (raw.exteriorColor)
-    appearanceItems.push({ key: 'exteriorColor', label: 'اللون الخارجي', value: raw.exteriorColor })
-  if (raw.interior)
-    appearanceItems.push({ key: 'interior', label: 'الفرش الداخلي', value: raw.interior })
-  if (raw.doors) appearanceItems.push({ key: 'doors', label: 'عدد الأبواب', value: String(raw.doors) })
-  if (raw.seats) appearanceItems.push({ key: 'seats', label: 'عدد المقاعد', value: String(raw.seats) })
-
-  const specsSections: SpecSectionView[] = []
-  if (basicItems.length > 0) {
-    specsSections.push({ title: 'المواصفات الأساسية', items: basicItems })
-  }
-  if (engineItems.length > 0) {
-    specsSections.push({ title: 'المحرك والأداء', items: engineItems })
-  }
-  if (appearanceItems.length > 0) {
-    specsSections.push({ title: 'المظهر والأبعاد', items: appearanceItems })
-  }
+  // 2. Structured Spec Sections (driven by carFieldRegistry)
+  const specsSections = buildSpecsSections(raw)
 
   // Features list
   const features = Array.isArray(raw.features)
