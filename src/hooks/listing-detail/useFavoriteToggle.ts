@@ -3,6 +3,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { favoritesApi } from '../../api/favorites'
 import { useRequireAuth } from './useRequireAuth'
 
+export interface UseFavoriteToggleOptions {
+  /** The path to redirect guests to after login. Defaults to `/listings/${id}`. */
+  redirectPath?: string
+}
+
 export interface UseFavoriteToggleReturn {
   isFavorite: boolean
   isBusy: boolean
@@ -20,8 +25,10 @@ export interface UseFavoriteToggleReturn {
 export function useFavoriteToggle(
   entityType: string,
   id: string,
-  initialIsFavorite: boolean
+  initialIsFavorite: boolean,
+  options: UseFavoriteToggleOptions = {}
 ): UseFavoriteToggleReturn {
+  const redirectPath = options.redirectPath ?? `/listings/${id}`
   const [isFavorite, setIsFavorite] = useState<boolean>(initialIsFavorite)
   const [isBusy, setIsBusy] = useState<boolean>(false)
 
@@ -31,7 +38,7 @@ export function useFavoriteToggle(
   const toggle = useCallback(() => {
     if (isBusy) return
 
-    requireAuth(`/listings/${id}`, () => {
+    requireAuth(redirectPath, () => {
       const prev = isFavorite
       const next = !prev
 
@@ -48,7 +55,7 @@ export function useFavoriteToggle(
           setIsBusy(false)
         })
     })
-  }, [entityType, id, isFavorite, isBusy, queryClient, requireAuth])
+  }, [entityType, id, redirectPath, isFavorite, isBusy, queryClient, requireAuth])
 
   return {
     isFavorite,

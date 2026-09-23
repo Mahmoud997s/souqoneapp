@@ -116,7 +116,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   // 3. Foundation Hooks (called unconditionally at top level)
   const currentVm = vm ?? DUMMY_VM
-  const favoriteToggle = useFavoriteToggle('LISTING', id, false)
+  const favoriteToggle = useFavoriteToggle('LISTING', id, false, { redirectPath: `/cars/${id}` })
   const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان سيارة' })
   const contact = useListingContact('LISTING', id, `/cars/${id}`, vm?.title)
   const ownerActions = useOwnerActions(currentVm)

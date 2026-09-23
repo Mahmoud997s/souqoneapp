@@ -33,12 +33,19 @@ function TestFavoriteHarness({
   entityType = 'LISTING',
   id = 'car-123',
   initialIsFavorite = false,
+  redirectPath,
 }: {
   entityType?: string
   id?: string
   initialIsFavorite?: boolean
+  redirectPath?: string
 }) {
-  const { isFavorite, isBusy, toggle } = useFavoriteToggle(entityType, id, initialIsFavorite)
+  const { isFavorite, isBusy, toggle } = useFavoriteToggle(
+    entityType,
+    id,
+    initialIsFavorite,
+    redirectPath !== undefined ? { redirectPath } : {}
+  )
 
   return React.createElement(
     View,
@@ -144,7 +151,7 @@ describe('useFavoriteToggle', () => {
     expect(screen.getByText('IDLE')).toBeTruthy()
   })
 
-  it('guest calling toggle triggers useRequireAuth navigation without calling API or flipping state', async () => {
+  it('guest without explicit redirectPath defaults to /listings/${id} (backward-compat)', async () => {
     useAuthStore.setState({ isLoggedIn: false, user: null })
 
     await render(
@@ -169,8 +176,32 @@ describe('useFavoriteToggle', () => {
     // API was never called
     expect(favoritesApi.add).not.toHaveBeenCalled()
 
-    // Routed to login
+    // Routed to login with the default /listings/${id} path
     expect(mockPush).toHaveBeenCalledWith('/(auth)/login?redirect=%2Flistings%2Fcar-123')
+  })
+
+  it('guest with explicit redirectPath (/cars/${id}) is routed to that path — CarDetailScreen use case', async () => {
+    useAuthStore.setState({ isLoggedIn: false, user: null })
+
+    await render(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(TestFavoriteHarness, {
+          id: 'car-456',
+          initialIsFavorite: false,
+          redirectPath: '/cars/car-456',
+        })
+      )
+    )
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('fav-btn'))
+    })
+
+    // Must redirect to the NEW car detail route, not the old /listings route
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/login?redirect=%2Fcars%2Fcar-456')
+    expect(favoritesApi.add).not.toHaveBeenCalled()
   })
 
   it('ignores subsequent toggle calls while busy', async () => {
