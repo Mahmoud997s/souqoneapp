@@ -126,6 +126,18 @@ describe('carFieldRegistry & EXCLUDED_FROM_DETAIL Parity', () => {
     expect(colorField?.swatch!(rawWithoutColor)).toBeUndefined()
   })
 
+  it('formats depositAmount from numbers and Decimal strings with thousands separators', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const depositField = carFieldRegistry.find((f) => f.id === 'depositAmount')!
+    expect(depositField.format({ depositAmount: 100 } as CarDetailApi)).toBe('100 ر.ع')
+    expect(depositField.format({ depositAmount: '100' } as unknown as CarDetailApi)).toBe('100 ر.ع')
+    expect(depositField.format({ depositAmount: '1500' } as unknown as CarDetailApi)).toBe('1,500 ر.ع')
+    expect(depositField.format({ depositAmount: null } as unknown as CarDetailApi)).toBeNull()
+    expect(depositField.format({ depositAmount: '' } as unknown as CarDetailApi)).toBeNull()
+    expect(depositField.format({ depositAmount: 'abc' } as unknown as CarDetailApi)).toBeNull()
+    warn.mockRestore()
+  })
+
   it('translates interior color through CAR_COLORS and passes unknown values through', () => {
     const interiorField = carFieldRegistry.find((f) => f.id === 'interior')!
     expect(interiorField.format({ interior: 'ivory' } as CarDetailApi)).toBe('عاجي')

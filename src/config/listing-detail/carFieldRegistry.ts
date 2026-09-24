@@ -10,6 +10,7 @@ import {
   CANCELLATION_POLICIES,
   CAR_FEATURE_KEYS,
 } from '../../constants/cars'
+import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 
 export interface FieldDef {
   id: string
@@ -274,10 +275,10 @@ export const carFieldRegistry: FieldRegistry = [
     group: 'rental',
     label: CAR_FIELD_LABELS.depositAmount,
     visibleWhen: (raw) => raw.listingType === 'RENTAL',
-    format: (raw) =>
-      raw.depositAmount != null && !isNaN(raw.depositAmount)
-        ? `${raw.depositAmount.toLocaleString('en-US')} ر.ع`
-        : null,
+    format: (raw) => {
+      const amount = parseDecimal(raw.depositAmount)
+      return amount !== undefined ? `${formatNumberWestern(amount)} ر.ع` : null
+    },
   },
   {
     id: 'minRentalDays',
