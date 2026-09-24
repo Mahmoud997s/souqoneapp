@@ -20,6 +20,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface DetailNavBarProps {
   onBack: () => void
@@ -214,7 +215,7 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
     color: Colors.text,
     paddingVertical: Platform.OS === 'ios' ? 6 : 2,
     textAlign: 'right',

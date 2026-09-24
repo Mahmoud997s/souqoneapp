@@ -15,6 +15,7 @@ import { Radius } from '../../constants/radius'
 import { physicalRightStyle, physicalRowDirection } from '../../utils/physicalDirection'
 import { useGestureSwiper } from '../../hooks/useGestureSwiper'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
+import { lineHeightFor } from '../../constants/typography'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -167,7 +168,7 @@ const s = StyleSheet.create({
   placeholderText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: lineHeightFor(14),
     color: Colors.textMuted,
     marginTop: Spacing.space2,
   },
@@ -186,7 +187,7 @@ const s = StyleSheet.create({
   counterText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    lineHeight: 14,
+    lineHeight: lineHeightFor(11),
     color: Colors.white,
   },
   dotsContainer: {

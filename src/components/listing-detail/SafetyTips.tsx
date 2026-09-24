@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface SafetyTipsProps {
   role: 'buyer' | 'seller'
@@ -64,7 +65,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: lineHeightFor(13),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -80,14 +81,14 @@ const s = StyleSheet.create({
   bulletPoint: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: lineHeightFor(14),
     color: Colors.textMuted,
   },
   tipText: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(12),
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',

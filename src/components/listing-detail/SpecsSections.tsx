@@ -6,6 +6,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import type { SpecSectionView } from '../../types/carDetailViewModel.types'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface SpecsSectionsProps {
   sections: SpecSectionView[]
@@ -86,7 +87,7 @@ const s = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -114,7 +115,7 @@ const s = StyleSheet.create({
   chipText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    lineHeight: 15,
+    lineHeight: lineHeightFor(11),
     color: '#166534',
   },
   specRow: {
@@ -130,13 +131,13 @@ const s = StyleSheet.create({
   specLabel: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
   },
   specValue: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
     color: Colors.text,
     textAlign: 'left',
   },

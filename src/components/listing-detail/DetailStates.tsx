@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { EmptyState } from '../ui/EmptyState'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface DetailStatesProps {
   kind: 'loading' | 'error' | 'notFound' | 'offline'
@@ -92,7 +93,7 @@ const s = StyleSheet.create({
   loadingText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: lineHeightFor(14),
     color: Colors.text2,
     marginTop: Spacing.space3,
   },

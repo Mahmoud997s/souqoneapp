@@ -8,6 +8,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import type { SellerView } from '../../types/carDetailViewModel.types'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface SellerCardProps {
   seller: SellerView
@@ -134,7 +135,7 @@ const s = StyleSheet.create({
   nameText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
   },
   verifiedIcon: {
@@ -143,7 +144,7 @@ const s = StyleSheet.create({
   membershipText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    lineHeight: 15,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
   accountBadge: {
@@ -159,6 +160,7 @@ const s = StyleSheet.create({
   accountBadgeText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10,
+    lineHeight: lineHeightFor(10),
     color: '#0D9488',
   },
   chevronWrapper: {

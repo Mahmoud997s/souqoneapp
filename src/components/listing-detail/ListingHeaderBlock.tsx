@@ -7,6 +7,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { PriceBadge } from '../ui/PriceBadge'
 import type { PriceView } from '../../types/carDetailViewModel.types'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface ListingHeaderBlockProps {
   title: string
@@ -170,7 +171,7 @@ const s = StyleSheet.create({
   kindBadgeText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(11),
     color: Colors.primary,
   },
   conditionBadge: {
@@ -184,7 +185,7 @@ const s = StyleSheet.create({
   conditionBadgeText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(11),
     color: Colors.text2,
   },
   statusBadge: {
@@ -196,14 +197,14 @@ const s = StyleSheet.create({
   statusBadgeText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(11),
   },
 
   // ── Title ────────────────────────────────────────────────────────────────────
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
-    lineHeight: 26,
+    lineHeight: lineHeightFor(18),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -240,7 +241,7 @@ const s = StyleSheet.create({
   negotiableText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10,
-    lineHeight: 14,
+    lineHeight: lineHeightFor(10),
     color: Colors.text2,
   },
   ratesRow: {
@@ -265,7 +266,7 @@ const s = StyleSheet.create({
     flexShrink: 1,
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: lineHeightFor(15),
     color: Colors.primary,
   },
 
@@ -291,13 +292,13 @@ const s = StyleSheet.create({
   metaText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(12),
     color: Colors.text2,
   },
   metaTextMuted: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
   },
   metaDot: {

@@ -19,6 +19,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 
 export type OwnerActionId =
   // Hook-produced (useOwnerActions — D-19 matrix)
@@ -255,11 +256,13 @@ const s = StyleSheet.create({
   viewCountText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.primary,
   },
   ownerNotice: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
   actionsRow: {
@@ -282,7 +285,7 @@ const s = StyleSheet.create({
   buttonText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
   },
   primaryButton: {
     backgroundColor: Colors.primary,
@@ -340,7 +343,7 @@ const s = StyleSheet.create({
   stickyOwnerText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    lineHeight: 15,
+    lineHeight: lineHeightFor(11),
     color: Colors.primary,
   },
   stickyActionsRow: {

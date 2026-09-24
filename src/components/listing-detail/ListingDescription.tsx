@@ -5,6 +5,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface ListingDescriptionProps {
   text: string
@@ -72,7 +73,7 @@ const s = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -81,7 +82,7 @@ const s = StyleSheet.create({
   bodyText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    lineHeight: 21,
+    lineHeight: lineHeightFor(13),
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -97,6 +98,7 @@ const s = StyleSheet.create({
   toggleText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
   },
 })

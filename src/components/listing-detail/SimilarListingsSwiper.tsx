@@ -12,6 +12,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { SkeletonCard } from '../ui/SkeletonCard'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface SimilarListingsSwiperProps<TItem> {
   items: TItem[]
@@ -98,7 +99,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -127,6 +128,7 @@ const s = StyleSheet.create({
   errorText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.error,
   },
   retryButton: {
@@ -138,6 +140,7 @@ const s = StyleSheet.create({
   retryText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
   },
 })

@@ -19,6 +19,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 
 export type ContactAvailability =
   | { mode: 'full' }
@@ -225,7 +226,7 @@ const s = StyleSheet.create({
   callButtonText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(13),
     color: Colors.white,
   },
   whatsappButton: {
@@ -234,7 +235,7 @@ const s = StyleSheet.create({
   whatsappButtonText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(13),
     color: Colors.white,
   },
   chatButton: {
@@ -245,7 +246,7 @@ const s = StyleSheet.create({
   chatButtonText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    lineHeight: 17,
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
   },
 })

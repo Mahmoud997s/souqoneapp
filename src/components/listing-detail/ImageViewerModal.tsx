@@ -22,6 +22,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
+import { lineHeightFor } from '../../constants/typography'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -188,6 +189,7 @@ const s = StyleSheet.create({
   counterText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
+    lineHeight: lineHeightFor(14),
     color: Colors.white,
   },
   placeholderRight: {
@@ -216,6 +218,7 @@ const s = StyleSheet.create({
   tipText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: 'rgba(255, 255, 255, 0.6)',
   },
 })

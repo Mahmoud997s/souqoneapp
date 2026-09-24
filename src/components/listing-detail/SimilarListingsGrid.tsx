@@ -11,6 +11,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { SkeletonCard } from '../ui/SkeletonCard'
+import { lineHeightFor } from '../../constants/typography'
 
 export interface SimilarListingsGridProps<TItem> {
   items: TItem[]
@@ -131,7 +132,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -160,6 +161,7 @@ const s = StyleSheet.create({
   errorText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.error,
   },
   retryButton: {
@@ -172,6 +174,7 @@ const s = StyleSheet.create({
   retryText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
   },
   paginationRow: {
@@ -198,11 +201,13 @@ const s = StyleSheet.create({
   pageButtonText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.text2,
   },
   pageIndicator: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
 })
