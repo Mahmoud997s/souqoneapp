@@ -132,7 +132,7 @@ export default function FavoritesScreen() {
                   item={item as any}
                   fullWidth
                   showChips
-                  onPress={() => router.push(`/listings/${item.id}` as any)}
+                  onPress={() => router.push(`/cars/${item.id}` as any)}
                 />
               )
             }

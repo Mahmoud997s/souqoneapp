@@ -125,7 +125,7 @@ export default function PublicProfileScreen() {
                   <CarCard
                     key={item.id}
                     item={item as any}
-                    onPress={() => router.push(`/listings/${item.id}` as any)}
+                    onPress={() => router.push(`/cars/${item.id}` as any)}
                     fullWidth
                     showChips
                   />

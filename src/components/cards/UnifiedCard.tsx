@@ -149,7 +149,7 @@ export function UnifiedCard({
       router.push(`/equipment/operators/${item.id}` as any)
       return
     }
-    const routeBase = cat === 'cars' || cat === 'real_estate' ? 'listings' : cat
+    const routeBase = cat === 'cars' ? 'cars' : cat === 'real_estate' ? 'listings' : cat
     router.push(`/${routeBase}/${item.id}` as any)
   }
 

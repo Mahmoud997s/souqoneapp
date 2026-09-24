@@ -50,7 +50,7 @@ export default function ListingsScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} colors={[Colors.primary]} />}
         renderItem={({item}) => (
           <View style={s.fullCard}>
-            <UnifiedCard item={item} onPress={() => router.push(`/listings/${item.id}`)} />
+            <UnifiedCard item={item} onPress={() => router.push(`/cars/${item.id}`)} />
           </View>
         )}
       />

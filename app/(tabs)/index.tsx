@@ -87,6 +87,7 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
       // Maps routeBase to backend entityType
       const entityMap: Record<string, string> = {
         'listings': 'LISTING',
+        'cars': 'LISTING',
         'jobs': 'JOB',
         'services': 'CAR_SERVICE',
         'parts': 'SPARE_PART',
@@ -362,7 +363,7 @@ export default function HomeScreen() {
         </View>
 
         {/* ── SECTIONS ── */}
-        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="listings" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
+        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="cars" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
         <CategorySection title="وظائف" icon="briefcase" iconColor="#10B981" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
         <CategorySection title="خدمات" icon="build" iconColor="#3B82F6" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" CustomCard={({ item, onPress }) => <ServiceCard item={item as any} onPress={onPress} fullWidth disableImageSwipe={true} />} />
         <CategorySection title="قطع غيار" icon="construct" iconColor="#8B5CF6" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
