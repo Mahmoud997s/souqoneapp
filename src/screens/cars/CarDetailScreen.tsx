@@ -140,6 +140,11 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   })
 
   // Handlers
+  const goBackSafely = () => {
+    if (router.canGoBack()) router.back()
+    else router.push('/')
+  }
+
   const handleSearchSubmit = (text: string) => {
     router.push({
       pathname: '/(tabs)/cars' as any,
@@ -172,7 +177,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
-          router.back()
+          goBackSafely()
         }
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
@@ -221,7 +226,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         <DetailStates
           kind={state === 'ready' ? 'loading' : state}
           onRetry={refetch}
-          onBack={() => router.back()}
+          onBack={goBackSafely}
         />
       </View>
     )
@@ -233,7 +238,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
       {/* Glassmorphic Navigation Bar */}
       <DetailNavBar
-        onBack={() => router.back()}
+        onBack={goBackSafely}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
