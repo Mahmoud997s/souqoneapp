@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StatusBar,
   TouchableOpacity,
   Linking,
+  InteractionManager,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -130,6 +131,14 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [similarPage, setSimilarPage] = useState<number>(1)
+  const [isMapMounted, setIsMapMounted] = useState<boolean>(false)
+
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      setIsMapMounted(true)
+    })
+    return () => task.cancel()
+  }, [])
 
   // 5. Scroll Tracker for glassmorphism and sticky bars
   const scrollY = useSharedValue(0)
@@ -341,27 +350,35 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           <View style={s.mapSection}>
             <Text style={s.mapSectionTitle}>الموقع والعنوان</Text>
             <View style={s.mapContainer}>
-              <MapView
-                style={{ width: '100%', height: '100%' }}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={{
-                  latitude: vm.location.latitude,
-                  longitude: vm.location.longitude,
-                  latitudeDelta: 0.05,
-                  longitudeDelta: 0.05,
-                }}
-                scrollEnabled={false}
-                zoomEnabled={false}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: vm.location.latitude,
-                    longitude: vm.location.longitude,
-                  }}
-                />
-              </MapView>
-              {/* Overlay to prevent accidental touches capturing scroll */}
-              <View style={StyleSheet.absoluteFill} />
+              {isMapMounted ? (
+                <>
+                  <MapView
+                    style={{ width: '100%', height: '100%' }}
+                    provider={PROVIDER_GOOGLE}
+                    initialRegion={{
+                      latitude: vm.location.latitude,
+                      longitude: vm.location.longitude,
+                      latitudeDelta: 0.05,
+                      longitudeDelta: 0.05,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: vm.location.latitude,
+                        longitude: vm.location.longitude,
+                      }}
+                    />
+                  </MapView>
+                  {/* Overlay to prevent accidental touches capturing scroll */}
+                  <View style={StyleSheet.absoluteFill} />
+                </>
+              ) : (
+                <View style={s.mapPlaceholder}>
+                  <Ionicons name="location-outline" size={32} color={Colors.primary} />
+                </View>
+              )}
             </View>
             <TouchableOpacity
               style={s.directionsBtn}
@@ -509,6 +526,13 @@ const s = StyleSheet.create({
     borderColor: '#e2e8f0',
     backgroundColor: '#f8fafc',
     position: 'relative',
+  },
+  mapPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
   },
   directionsBtn: {
     flexDirection: 'row',
