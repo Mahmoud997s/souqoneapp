@@ -126,6 +126,44 @@ describe('carFieldRegistry & EXCLUDED_FROM_DETAIL Parity', () => {
     expect(colorField?.swatch!(rawWithoutColor)).toBeUndefined()
   })
 
+  it('translates every real exteriorColor value found in the live data', () => {
+    const field = carFieldRegistry.find((f) => f.id === 'exteriorColor')!
+    const fmt = (v: string) => field.format({ exteriorColor: v } as CarDetailApi)
+    expect(fmt('metallic_white')).toBe('أبيض ميتاليك')
+    expect(fmt('White')).toBe('أبيض')
+    expect(fmt('white')).toBe('أبيض')
+    expect(fmt('silver')).toBe('فضي')
+    expect(fmt('forest_green')).toBe('أخضر غابي')
+    expect(fmt('blue')).toBe('أزرق')
+    expect(fmt('carmineRed')).toBe('أحمر كارمين')
+    expect(fmt('darkGray')).toBe('رمادي داكن')
+    // Arabic free text stored by other listings passes through untouched
+    expect(fmt('كحلي')).toBe('كحلي')
+    expect(fmt('أخضر بريطاني')).toBe('أخضر بريطاني')
+    // never-seen values keep the raw fallback
+    expect(fmt('space_grey_2099')).toBe('space_grey_2099')
+    expect(field.swatch!({ exteriorColor: 'carmineRed' } as CarDetailApi)).toBe('#960018')
+    expect(field.swatch!({ exteriorColor: 'White' } as CarDetailApi)).toBe('#FFFFFF')
+    expect(field.swatch!({ exteriorColor: 'space_grey_2099' } as CarDetailApi)).toBeUndefined()
+  })
+
+  it('translates every real interior value found in the live data, including color+material compounds', () => {
+    const field = carFieldRegistry.find((f) => f.id === 'interior')!
+    const fmt = (v: string) => field.format({ interior: v } as CarDetailApi)
+    expect(fmt('ivory')).toBe('عاجي')
+    expect(fmt('Black')).toBe('أسود')
+    expect(fmt('solid_black')).toBe('أسود')
+    expect(fmt('beigeLeather')).toBe('جلد بيج')
+    expect(fmt('blackLeather')).toBe('جلد أسود')
+    expect(fmt('grayFabric')).toBe('قماش رمادي')
+    // Arabic free text stored by other listings passes through untouched
+    expect(fmt('جلد بيج')).toBe('جلد بيج')
+    expect(fmt('جلد نابا أسود')).toBe('جلد نابا أسود')
+    // unknown color part or unknown material keeps the raw fallback
+    expect(fmt('unknownLeather')).toBe('unknownLeather')
+    expect(fmt('beigeSuede')).toBe('beigeSuede')
+  })
+
   it('formats depositAmount from numbers and Decimal strings with thousands separators', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     const depositField = carFieldRegistry.find((f) => f.id === 'depositAmount')!

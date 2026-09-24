@@ -1,7 +1,8 @@
 import { CarDetailApi } from '../../types/carDetailApi.types'
 import { CAR_FIELD_LABELS } from '../../constants/listing-detail/carFieldLabels'
 import {
-  CAR_COLORS,
+  findCarColor,
+  translateCarInterior,
   FUEL_TYPES,
   TRANSMISSION_TYPES,
   BODY_TYPES,
@@ -197,14 +198,11 @@ export const carFieldRegistry: FieldRegistry = [
     label: CAR_FIELD_LABELS.exteriorColor,
     format: (raw) => {
       if (!raw.exteriorColor) return null
-      return (
-        CAR_COLORS.find((c) => c.value === raw.exteriorColor)?.label ||
-        raw.exteriorColor
-      )
+      return findCarColor(raw.exteriorColor)?.label || raw.exteriorColor
     },
     swatch: (raw) => {
       if (!raw.exteriorColor) return undefined
-      return CAR_COLORS.find((c) => c.value === raw.exteriorColor)?.hex
+      return findCarColor(raw.exteriorColor)?.hex
     },
   },
   {
@@ -213,11 +211,7 @@ export const carFieldRegistry: FieldRegistry = [
     label: CAR_FIELD_LABELS.interior,
     format: (raw) => {
       if (!raw.interior) return null
-      return (
-        CAR_COLORS.find((c) => c.value === raw.interior)?.label ||
-        raw.interior.trim() ||
-        null
-      )
+      return translateCarInterior(raw.interior) || raw.interior.trim() || null
     },
   },
   {

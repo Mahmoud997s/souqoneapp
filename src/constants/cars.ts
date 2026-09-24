@@ -99,6 +99,7 @@ export const CAR_COLORS = [
   { value: 'metallic_red', label: 'أحمر ميتاليك', hex: '#B22222' },
   { value: 'cherry_red', label: 'أحمر كرزي', hex: '#D2042D' },
   { value: 'crimson', label: 'قرمزي', hex: '#DC143C' },
+  { value: 'carmine_red', label: 'أحمر كارمين', hex: '#960018' },
   { value: 'burgundy', label: 'عنابي', hex: '#800020' },
   { value: 'maroon', label: 'مارون', hex: '#800000' },
   { value: 'candy_apple_red', label: 'أحمر كاندي', hex: '#FF0800' },
@@ -164,3 +165,59 @@ export const CAR_COLORS = [
   { value: 'metallic_pink', label: 'وردي ميتاليك', hex: '#FFB6C1' },
   { value: 'rose', label: 'روز', hex: '#FF007F' },
 ]
+
+export type CarColorOption = (typeof CAR_COLORS)[number]
+
+/** Bare English words that map onto an existing CAR_COLORS value (real values found in the data). */
+export const CAR_COLOR_ALIASES: Record<string, string> = {
+  white: 'solid_white',
+  black: 'solid_black',
+}
+
+/** Interior material words (real compound values look like "beigeLeather", "grayFabric"). */
+export const CAR_INTERIOR_MATERIALS: Record<string, string> = {
+  leather: 'جلد',
+  fabric: 'قماش',
+}
+
+/** Normalizes camelCase / spaced / dashed / cased strings into the snake_case ids used by CAR_COLORS. */
+function toColorKey(raw: string): string {
+  return raw
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s-]+/g, '_')
+    .toLowerCase()
+}
+
+/**
+ * Finds the CAR_COLORS entry for a raw stored value. Accepts the canonical snake_case id
+ * ("metallic_white") as well as the camelCase / capitalised / bare forms seen in real
+ * listings ("carmineRed", "darkGray", "White"). Returns undefined for anything else.
+ */
+export function findCarColor(raw?: string | null): CarColorOption | undefined {
+  if (!raw) return undefined
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  const exact = CAR_COLORS.find((c) => c.value === trimmed)
+  if (exact) return exact
+  const key = toColorKey(trimmed)
+  const resolved = CAR_COLOR_ALIASES[key] ?? key
+  return CAR_COLORS.find((c) => c.value === resolved)
+}
+
+/**
+ * Arabic label for an interior value: a plain color ("ivory") or a "<color><Material>"
+ * compound ("beigeLeather" -> "جلد بيج", material first, matching the Arabic values
+ * already stored by other listings). Returns undefined when it can't be translated.
+ */
+export function translateCarInterior(raw?: string | null): string | undefined {
+  if (!raw) return undefined
+  const plain = findCarColor(raw)
+  if (plain) return plain.label
+  const tokens = toColorKey(raw).split('_')
+  if (tokens.length < 2) return undefined
+  const material = CAR_INTERIOR_MATERIALS[tokens[tokens.length - 1]]
+  if (!material) return undefined
+  const color = findCarColor(tokens.slice(0, -1).join('_'))
+  return color ? `${material} ${color.label}` : undefined
+}
