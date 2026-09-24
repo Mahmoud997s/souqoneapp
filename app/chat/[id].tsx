@@ -121,13 +121,16 @@ export default function ChatRoomScreen() {
 
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
+  // entityType 'LISTING' is the Cars model; any other room keeps the legacy route
+  const listingRoute = room?.entityType === 'LISTING' ? '/cars' : '/listings'
+
   const handleRoomOptions = React.useCallback(() => {
     const options: import('../../src/components/ui/AppDialog').DialogOption[] = []
 
     if (room?.listing) {
       options.push({
         text: '🏷️ عرض الإعلان',
-        onPress: () => router.push(`/listings/${room.listing!.id}` as any),
+        onPress: () => router.push(`${listingRoute}/${room.listing!.id}` as any),
         style: 'default',
       })
     }
@@ -164,7 +167,7 @@ export default function ChatRoomScreen() {
     )
 
     dialogService.showOptions('خيارات المحادثة', options)
-  }, [room?.listing])
+  }, [room?.listing, listingRoute])
 
   return (
     <View style={s.root}>
@@ -185,7 +188,7 @@ export default function ChatRoomScreen() {
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
           listing={room.listing}
-          onPress={() => router.push(`/listings/${room.listing!.id}` as any)}
+          onPress={() => router.push(`${listingRoute}/${room.listing!.id}` as any)}
           onClose={() => setIsListingBannerVisible(false)}
         />
       )}

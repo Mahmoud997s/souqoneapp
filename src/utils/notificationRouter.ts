@@ -60,7 +60,8 @@ export function routeForNotification(data: NotificationData | undefined): string
  *   app/equipment/[id].tsx → /equipment/:id
  *   app/parts/[id].tsx    → /parts/:id
  *   app/services/[id].tsx → /services/:id
- *   app/listings/[id].tsx → /listings/:id  (fallback)
+ *   app/cars/[id].tsx     → /cars/:id      (LISTING = Cars)
+ *   app/listings/[id].tsx → /listings/:id  (fallback for unknown types)
  */
 function routeForListingEntity(entityType: string | undefined, id: string): string {
   switch (entityType) {
@@ -73,6 +74,7 @@ function routeForListingEntity(entityType: string | undefined, id: string): stri
     case 'CAR_SERVICE':
       return `/services/${id}`
     case 'LISTING':
+      return `/cars/${id}`
     default:
       return `/listings/${id}`
   }
