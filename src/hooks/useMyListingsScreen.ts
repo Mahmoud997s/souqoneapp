@@ -251,7 +251,7 @@ export function useMyListingsScreen() {
   const handleView = (item: MyListingItem) => {
     switch (item.entityType) {
       case 'car':
-        router.push(`/listings/${item.id}` as any)
+        router.push(`/cars/${item.id}` as any)
         break
       case 'bus':
         router.push(`/buses/${item.id}` as any)
