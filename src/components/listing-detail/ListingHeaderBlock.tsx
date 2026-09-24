@@ -102,20 +102,16 @@ export function ListingHeaderBlock({
             {price.dailyRate ? (
               <View style={s.rateChip}>
                 <Ionicons name="sunny-outline" size={14} color={Colors.primary} />
-                <Text style={s.rateLabel}>{price.dailyRate.label}</Text>
-                <Text style={s.rateValue}>
-                  {price.dailyRate.formatted}{' '}
-                  <Text style={s.rateCurrency}>{price.currency}</Text>
+                <Text style={s.rateValue} numberOfLines={1} adjustsFontSizeToFit>
+                  {price.dailyRate.label}
                 </Text>
               </View>
             ) : null}
             {price.monthlyRate ? (
               <View style={s.rateChip}>
                 <Ionicons name="calendar-outline" size={14} color={Colors.primary} />
-                <Text style={s.rateLabel}>{price.monthlyRate.label}</Text>
-                <Text style={s.rateValue}>
-                  {price.monthlyRate.formatted}{' '}
-                  <Text style={s.rateCurrency}>{price.currency}</Text>
+                <Text style={s.rateValue} numberOfLines={1} adjustsFontSizeToFit>
+                  {price.monthlyRate.label}
                 </Text>
               </View>
             ) : null}
@@ -250,37 +246,27 @@ const s = StyleSheet.create({
   ratesRow: {
     flexDirection: 'row',
     gap: Spacing.space2,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   rateChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     backgroundColor: Colors.primary + '08',
     borderWidth: 1,
     borderColor: Colors.primary + '22',
-    paddingHorizontal: 30,
+    paddingHorizontal: Spacing.space2,
     paddingVertical: 8,
     borderRadius: Radius.md,
   },
-  rateLabel: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.text2,
-  },
   rateValue: {
+    flexShrink: 1,
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
     color: Colors.primary,
-  },
-  rateCurrency: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    color: Colors.text2,
   },
 
   // ── Metadata ─────────────────────────────────────────────────────────────────
