@@ -81,26 +81,34 @@ export function ImageGallery({
       <GestureDetector gesture={composedGesture}>
         <View style={s.trackContainer}>
           <Animated.View style={[s.track, animatedTrackStyle]}>
-            {images.map((img, i) => (
-              <View
-                key={img.id || i}
-                style={[
-                  s.imageSlide,
-                  {
-                    width: galleryWidth,
-                    ...physicalRightStyle(i * galleryWidth),
-                  },
-                ]}
-              >
-                <Image
-                  source={{ uri: img.url }}
-                  style={s.image}
-                  contentFit="cover"
-                  transition={200}
-                  accessibilityLabel={`صورة ${i + 1} من ${count}`}
-                />
-              </View>
-            ))}
+            {images.map((img, i) => {
+              const isNearby = Math.abs(i - activeIndex) <= 1
+              return (
+                <View
+                  key={img.id || i}
+                  style={[
+                    s.imageSlide,
+                    {
+                      width: galleryWidth,
+                      ...physicalRightStyle(i * galleryWidth),
+                    },
+                  ]}
+                >
+                  {isNearby ? (
+                    <Image
+                      source={{ uri: img.url }}
+                      style={s.image}
+                      contentFit="cover"
+                      transition={150}
+                      cachePolicy="memory-disk"
+                      accessibilityLabel={`صورة ${i + 1} من ${count}`}
+                    />
+                  ) : (
+                    <View style={[s.image, s.imagePlaceholder]} />
+                  )}
+                </View>
+              )
+            })}
           </Animated.View>
         </View>
       </GestureDetector>
@@ -159,6 +167,9 @@ const s = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  imagePlaceholder: {
+    backgroundColor: Colors.inputBg,
   },
   placeholderContainer: {
     alignItems: 'center',
