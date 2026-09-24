@@ -147,17 +147,17 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   const handleSearchSubmit = (text: string) => {
     router.push({
-      pathname: '/(tabs)/cars' as any,
+      pathname: '/cars/browse' as any,
       params: { search: text },
     })
   }
 
   const handleProfilePress = (sellerId: string) => {
-    router.push(`/user/${sellerId}` as any)
+    router.push(`/profile/${sellerId}` as any)
   }
 
   const handleSupportPress = () => {
-    router.push('/(support)' as any)
+    Linking.openURL('mailto:support@souqone.com').catch(() => {})
   }
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
