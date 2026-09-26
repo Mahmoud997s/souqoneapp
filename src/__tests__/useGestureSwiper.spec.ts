@@ -72,24 +72,28 @@ describe('useGestureSwiper & CardImageSwiper Physics Engine', () => {
       currentIndex: number,
       paging = false,
       momentumFactor = 0.22,
-      velocityThreshold = 400,
-      maxScrollCards = 5
+      velocityThreshold = 150,
+      maxScrollCards = 5,
+      dragThresholdRatio = 0.2,
+      startTranslateX = currentIndex * cardWidth
     ): number {
-      const rawIndex = currentTranslateX / cardWidth
+      const deltaX = currentTranslateX - startTranslateX
+      const rawIndex = cardWidth > 0 ? currentTranslateX / cardWidth : 0
+      const deltaRatio = cardWidth > 0 ? Math.abs(deltaX) / cardWidth : 0
       let targetIndex = Math.round(rawIndex)
 
       if (paging) {
         if (Math.abs(vx) > velocityThreshold) {
           if (vx > 0) {
-            targetIndex = Math.ceil(rawIndex)
-            if (targetIndex === currentIndex && targetIndex < count - 1) {
-              targetIndex += 1
-            }
+            targetIndex = currentIndex + 1
           } else {
-            targetIndex = Math.floor(rawIndex)
-            if (targetIndex === currentIndex && targetIndex > 0) {
-              targetIndex -= 1
-            }
+            targetIndex = currentIndex - 1
+          }
+        } else {
+          if (deltaRatio >= dragThresholdRatio) {
+            targetIndex = deltaX > 0 ? currentIndex + 1 : currentIndex - 1
+          } else {
+            targetIndex = currentIndex
           }
         }
       } else {
@@ -111,27 +115,44 @@ describe('useGestureSwiper & CardImageSwiper Physics Engine', () => {
             targetIndex = currentIndex + Math.sign(delta) * maxScrollCards
           }
         } else {
-          targetIndex = Math.round(rawIndex)
+          if (deltaRatio >= dragThresholdRatio) {
+            if (deltaX > 0) {
+              targetIndex = Math.max(currentIndex + 1, Math.round(rawIndex))
+            } else {
+              targetIndex = Math.min(currentIndex - 1, Math.round(rawIndex))
+            }
+          } else {
+            targetIndex = currentIndex
+          }
         }
       }
 
       return Math.max(0, Math.min(count - 1, targetIndex))
     }
 
-    test('Standard drag snaps to nearest page without velocity', () => {
-      // Pulled slightly (100px of 300px) -> snaps back to 0
-      expect(computeTargetIndex(100, 0, 0)).toBe(0)
+    test('Intent threshold: dragging past 20% advances to next card without velocity', () => {
+      // Minor drag under 20% (40px of 300px = 13.3%) -> snaps back to 0
+      expect(computeTargetIndex(40, 0, 0)).toBe(0)
 
-      // Pulled past halfway (180px of 300px) -> snaps forward to 1
+      // Intentional drag past 20% (100px of 300px = 33.3%) -> advances to 1
+      expect(computeTargetIndex(100, 0, 0)).toBe(1)
+
+      // Pulled past halfway (180px of 300px) -> advances to 1
       expect(computeTargetIndex(180, 0, 0)).toBe(1)
 
-      // Pulled past halfway from 1 to 2 (470px) -> snaps to 2
-      expect(computeTargetIndex(470, 0, 1)).toBe(2)
+      // Dragging backward past 20% from index 1 (startX = 300, current = 220 -> delta = -80px) -> retreats to 0
+      expect(computeTargetIndex(220, 0, 1)).toBe(0)
+
+      // Minor backward drag under 20% from index 1 (startX = 300, current = 270 -> delta = -30px) -> stays at 1
+      expect(computeTargetIndex(270, 0, 1)).toBe(1)
     })
 
     test('Paging mode (CardImageSwiper): flick advances strictly 1 card at a time', () => {
       // High velocity flick (2500 px/s) in paging mode advances strictly 1 image
       expect(computeTargetIndex(40, 2500, 0, true)).toBe(1)
+
+      // Moderate velocity flick (200 px/s > 150 px/s) in paging mode advances strictly 1 image
+      expect(computeTargetIndex(20, 200, 0, true)).toBe(1)
 
       // Backward flick from page 2 retreats strictly to page 1
       expect(computeTargetIndex(560, -2500, 2, true)).toBe(1)
@@ -146,8 +167,8 @@ describe('useGestureSwiper & CardImageSwiper Physics Engine', () => {
       // projectedPos = 60 + 880 = 940px -> 940 / 300 = 3.13 -> snaps to card 3!
       expect(computeTargetIndex(60, 4000, 0, false)).toBe(3)
 
-      // Light flick (vx = 500 px/s) still advances at least 1 card
-      expect(computeTargetIndex(20, 500, 0, false)).toBe(1)
+      // Light flick (vx = 300 px/s > 150) still advances at least 1 card
+      expect(computeTargetIndex(20, 300, 0, false)).toBe(1)
     })
 
     test('Clamping prevents overshooting bounds', () => {
