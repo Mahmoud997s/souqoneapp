@@ -17,7 +17,7 @@ export function WizardCard({ title, subtitle, children, style }: WizardCardProps
     <BlurView
       intensity={50}
       tint="light"
-      experimentalBlurMethod="dimezisBlurView"
+      blurMethod="dimezisBlurView"
       style={[s.card, style]}
     >
       {/* Same wash + tint formula used across the rest of this session's glass surfaces */}

@@ -79,7 +79,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
       </View>
 
       {/* ── CARD 1: Photos & Attachments (Step 2) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -125,7 +125,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
       </BlurView>
 
       {/* ── CARD 2: Basic Information (Step 1) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -169,7 +169,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
       </BlurView>
 
       {/* ── CARD 3: Service Details (Step 3) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -223,7 +223,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
       </BlurView>
 
       {/* ── CARD 4: Working Schedule (Step 4) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 
@@ -260,7 +260,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
       </BlurView>
 
       {/* ── CARD 5: Pricing, Location & Contact (Step 5) ── */}
-      <BlurView intensity={50} tint="light" experimentalBlurMethod="dimezisBlurView" style={s.card}>
+      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
         <View style={s.cardWhiteWash} pointerEvents="none" />
         <View style={s.cardTint} pointerEvents="none" />
 

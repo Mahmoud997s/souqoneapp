@@ -97,7 +97,7 @@ export default function CarsLandingScreen() {
                 isLoading={loadingSale}
                 emptyText="لا توجد سيارات للبيع حالياً"
                 onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
-                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
               />
 
               <CarHorizontalList
@@ -107,7 +107,7 @@ export default function CarsLandingScreen() {
                 isLoading={loadingRent}
                 emptyText="لا توجد سيارات للإيجار حالياً"
                 onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
-                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
               />
 
               <CarHorizontalList
@@ -117,7 +117,7 @@ export default function CarsLandingScreen() {
                 isLoading={loadingWanted}
                 emptyText="لا توجد سيارات مطلوبة حالياً"
                 onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
-                onPressItem={(item) => router.push(`/listings/${item.id}` as any)}
+                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
               />
             </>
           )}

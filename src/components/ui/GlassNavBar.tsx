@@ -90,7 +90,7 @@ export function GlassNavBar({ title, paddingTop, onBackPress, actions = [], hide
     <BlurView
       intensity={60}
       tint="light"
-      experimentalBlurMethod="dimezisBlurView"
+      blurMethod="dimezisBlurView"
       style={[s.navBarFixed, { paddingTop }, hideBottomBorder && s.noBorder]}
     >
       {content}

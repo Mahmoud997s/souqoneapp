@@ -74,7 +74,7 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
         entering={FadeIn.duration(400)}
         intensity={50}
         tint="light"
-        experimentalBlurMethod="dimezisBlurView"
+        blurMethod="dimezisBlurView"
         style={[s.banner, s.bannerLight]}
       >
         {/* Same wash + tint formula used across the rest of this session's glass surfaces */}

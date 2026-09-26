@@ -9,3 +9,9 @@ export const Typography = {
   labelMd:     { fontFamily: 'Almarai_700Bold',  fontSize: 12, lineHeight: 16, fontWeight: '700' as const },
   caption:     { fontFamily: 'Almarai_400Regular',  fontSize: 12, lineHeight: 16, fontWeight: '400' as const },
 } as const
+
+// Almarai's Arabic glyphs extend to ~1.56em (OS/2 win metrics) while its hhea line is 1.116em: keep lineHeight >= ~1.5x fontSize.
+export const ARABIC_LINE_HEIGHT_RATIO = 1.6
+
+export const lineHeightFor = (fontSize: number): number =>
+  Math.ceil(fontSize * ARABIC_LINE_HEIGHT_RATIO)
