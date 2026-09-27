@@ -31,6 +31,7 @@ import {
   statusCodes,
   isSuccessResponse,
   isErrorWithCode,
+  isGoogleSignInAvailable,
 } from '../../src/services/googleAuth'
 
 export default function LoginScreen() {
@@ -116,6 +117,14 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = async () => {
     setGeneralError('')
+    if (!isGoogleSignInAvailable() || !GoogleSignin) {
+      dialogService.alert(
+        'تنبيه',
+        'تسجيل الدخول عبر Google الأصلي يتطلب Development Build ولا يعمل داخل تطبيق Expo Go.\n\nيرجى تشغيل التطبيق بنسخة Development Build (npx expo run:ios أو npx expo run:android).'
+      )
+      return
+    }
+
     setGoogleLoading(true)
     try {
       if (Platform.OS === 'android') {
