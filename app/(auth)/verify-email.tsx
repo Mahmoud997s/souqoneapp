@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -102,6 +103,7 @@ export default function VerifyEmailScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       {/* Top Glass Navigation Bar like Profile Screen */}
       <GlassNavBar
         title="تأكيد البريد الإلكتروني"

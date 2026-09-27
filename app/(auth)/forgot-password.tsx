@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -57,6 +58,7 @@ export default function ForgotPasswordScreen() {
   if (success) {
     return (
       <View style={s.root}>
+        <StatusBar barStyle="dark-content" />
         <GlassNavBar
           title="تم إرسال الرمز"
           paddingTop={insets.top}
@@ -114,6 +116,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       {/* Top Glass Navigation Bar like Profile Screen */}
       <GlassNavBar
         title="استعادة الحساب"

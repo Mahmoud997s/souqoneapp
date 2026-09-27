@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -103,6 +104,7 @@ export default function LoginScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       {/* Floating Back / Dismiss Button */}
       <TouchableOpacity
         style={[s.floatingDismissBtn, { top: insets.top + Spacing.space3 }]}

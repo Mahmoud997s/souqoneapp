@@ -15,6 +15,7 @@ import {
   Platform,
   Modal,
   FlatList,
+  StatusBar,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -159,6 +160,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       {/* Top Glass Navigation Bar like Profile Screen */}
       <GlassNavBar
         title="إنشاء حساب"

@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -119,6 +120,7 @@ export default function ResetPasswordScreen() {
   if (success) {
     return (
       <View style={s.root}>
+        <StatusBar barStyle="dark-content" />
         <GlassNavBar
           title="تم التحديث بنجاح"
           paddingTop={insets.top}
@@ -157,6 +159,7 @@ export default function ResetPasswordScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       <GlassNavBar
         title="تغيير كلمة المرور"
         paddingTop={insets.top}
