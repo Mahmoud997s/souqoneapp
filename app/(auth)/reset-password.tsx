@@ -16,10 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { authApi } from '../../src/api/auth'
-import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { Gradients } from '../../src/constants/gradients'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { Colors } from '../../src/constants/colors'
 
 export default function ResetPasswordScreen() {
@@ -119,43 +118,60 @@ export default function ResetPasswordScreen() {
 
   if (success) {
     return (
-      <View style={[s.successRoot, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={Gradients.hero as any}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={s.successGrad}
+      <View style={s.root}>
+        <GlassNavBar
+          title="تم التحديث بنجاح"
+          paddingTop={insets.top}
+          onBackPress={() => router.replace('/(auth)/login')}
+        />
+        <ScrollView
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={s.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color="#ffffff" />
+          <View style={s.card}>
+            <View style={s.cardHero}>
+              <View style={[s.iconWrap, { backgroundColor: '#ECFDF5' }]}>
+                <Ionicons name="checkmark-circle-outline" size={40} color="#059669" />
+              </View>
+              <Text style={s.cardTitle}>تم تغيير كلمة المرور بنجاح!</Text>
+              <Text style={s.cardSubtitle}>
+                يمكنك الآن تسجيل الدخول مباشرة باستخدام كلمة المرور الجديدة الخاصة بك.
+              </Text>
+            </View>
+
+            <View style={{ marginTop: Spacing.space3 }}>
+              <AppButton
+                title="تسجيل الدخول الآن"
+                onPress={() => router.replace('/(auth)/login')}
+                icon="log-in-outline"
+              />
+            </View>
           </View>
-          <Text style={s.successTitle}>تم التحديث بنجاح!</Text>
-          <Text style={s.successDesc}>
-            تم تغيير كلمة المرور بنجاح.{'\n'}يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
-          </Text>
-          <TouchableOpacity
-            style={s.successBtn}
-            onPress={() => router.replace('/(auth)/login')}
-            activeOpacity={0.9}
-          >
-            <Text style={s.successBtnTxt}>تسجيل الدخول</Text>
-          </TouchableOpacity>
-        </LinearGradient>
+        </ScrollView>
       </View>
     )
   }
 
   return (
     <View style={s.root}>
-      <AppHeader title="تغيير كلمة المرور" showBack />
+      <GlassNavBar
+        title="تغيير كلمة المرور"
+        paddingTop={insets.top}
+        onBackPress={() => router.back()}
+      />
 
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -289,99 +305,92 @@ export default function ResetPasswordScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B2447' },
-  flex: { flex: 1, backgroundColor: '#f7f9fc' },
-  scroll: { padding: Spacing.space5, gap: Spacing.space4, paddingBottom: Spacing.space6 },
-  pageTitleWrap: { gap: Spacing.space2 },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  flex: { flex: 1 },
+  scroll: { paddingHorizontal: Spacing.space5, gap: Spacing.space4, paddingBottom: Spacing.space6 },
+  pageTitleWrap: { gap: Spacing.space1, marginTop: Spacing.space2, alignItems: 'center' },
   pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#111827',
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 22,
+    lineHeight: 30,
+    color: '#0F172A',
     writingDirection: 'rtl',
+    textAlign: 'center',
   },
   pageSubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
     lineHeight: 20,
-    color: '#4B5563',
+    color: '#64748B',
     writingDirection: 'rtl',
+    textAlign: 'center',
+    maxWidth: 300,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: Radius.lg,
-    padding: Spacing.space5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.xl,
+    padding: Spacing.space6,
     gap: Spacing.space4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     ...Shadows.card,
+  },
+  cardHero: {
+    alignItems: 'center',
+    gap: Spacing.space2,
+    marginBottom: Spacing.space2,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space1,
+  },
+  cardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
+    lineHeight: 28,
+    color: '#0F172A',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  cardSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#64748B',
+    textAlign: 'center',
+    maxWidth: 290,
+    writingDirection: 'rtl',
   },
   fieldGroup: { gap: Spacing.space2 },
   hints: { gap: Spacing.space1, marginTop: Spacing.space1 },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   hintTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 12,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
     lineHeight: 16,
-    color: '#4B5563',
+    color: '#64748B',
     writingDirection: 'rtl',
   },
   hintOk: { color: '#16a34a' },
-  divider: { height: 1, backgroundColor: '#E2E6EC' },
+  divider: { height: 1, backgroundColor: '#E2E8F0' },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
     color: '#dc2626',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   bottomBar: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(226,230,236,0.5)',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopColor: '#E2E8F0',
     paddingHorizontal: Spacing.space5,
     paddingTop: Spacing.space4,
     ...Shadows.card,
-  },
-  successRoot: { flex: 1 },
-  successGrad: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.space8,
-    gap: Spacing.space4,
-  },
-  successIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.space2,
-  },
-  successTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#ffffff',
-    writingDirection: 'rtl',
-  },
-  successDesc: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  successBtn: {
-    marginTop: Spacing.space4,
-    backgroundColor: '#ffffff',
-    borderRadius: Radius.md,
-    height: 52,
-    paddingHorizontal: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  successBtnTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
-    color: Colors.primary,
-    writingDirection: 'rtl',
   },
 })

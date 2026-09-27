@@ -24,7 +24,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { BackButton } from '../../src/components/ui/BackButton'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 
@@ -159,34 +159,35 @@ export default function RegisterScreen() {
 
   return (
     <View style={s.root}>
-      {/* Header */}
-      <LinearGradient
-        colors={Gradients.hero as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[s.header, { paddingTop: insets.top }]}
-      >
-        <View style={s.navRow}>
-          <BackButton style={s.backBtn} />
-          <Text style={s.headerTitle}>إنشاء حساب</Text>
-        </View>
-        {/* Progress bar */}
-        <View style={s.progressBar}>
-          <View style={[s.progressSeg, { backgroundColor: Colors.accent }]} />
-          <View style={[s.progressSeg, { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
-        </View>
-      </LinearGradient>
+      {/* Top Glass Navigation Bar like Profile Screen */}
+      <GlassNavBar
+        title="إنشاء حساب"
+        paddingTop={insets.top}
+        onBackPress={() => router.back()}
+      />
 
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={s.card}>
+            {/* Step and Progress bar */}
+            <View style={s.stepRow}>
+              <Text style={s.stepBadgeTxt}>الخطوة الأولى: البيانات الأساسية</Text>
+              <View style={s.progressBar}>
+                <View style={[s.progressSeg, { backgroundColor: Colors.primary }]} />
+                <View style={[s.progressSeg, { backgroundColor: '#E2E8F0' }]} />
+              </View>
+            </View>
+
             <Text style={s.sectionTitle}>معلوماتك الأساسية</Text>
             <Text style={s.sectionSubtitle}>يرجى إدخال بياناتك بدقة لإنشاء حسابك وتوثيقه.</Text>
 
@@ -354,46 +355,37 @@ export default function RegisterScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.surface },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
   flex: { flex: 1 },
-  header: { paddingHorizontal: Spacing.space5 },
-  navRow: {
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
+  scroll: { padding: Spacing.space5, paddingBottom: Spacing.space8, gap: 0 },
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    padding: Spacing.space5,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: Spacing.space4,
+    ...Shadows.card,
   },
-  backBtn: {
-    position: 'absolute',
-    start: 0,
-    top: 0,
-    bottom: 0,
-    width: Spacing.touch,
-    alignItems: 'center',
-    justifyContent: 'center',
+  stepRow: {
+    gap: Spacing.space2,
+    marginBottom: Spacing.space1,
+    paddingBottom: Spacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  headerTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
-    color: Colors.white,
-    textAlign: 'center',
+  stepBadgeTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: Colors.primary,
     writingDirection: 'rtl',
   },
   progressBar: {
     flexDirection: 'row',
     gap: Spacing.space1,
-    paddingBottom: Spacing.space3,
   },
-  progressSeg: { flex: 1, height: 6, borderRadius: 3 },
-  scroll: { padding: Spacing.space5, paddingBottom: Spacing.space2, gap: 0 },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.md,
-    padding: Spacing.space5,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.space3,
-    ...Shadows.card,
-  },
+  progressSeg: { flex: 1, height: 5, borderRadius: 3 },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',  fontSize: 18,
     lineHeight: 26,

@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { BackButton } from '../../src/components/ui/BackButton'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { Gradients } from '../../src/constants/gradients'
 import { Colors } from '../../src/constants/colors'
 
@@ -56,82 +56,95 @@ export default function ForgotPasswordScreen() {
 
   if (success) {
     return (
-      <View style={[s.root, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={Gradients.hero as any}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={s.successHero}
+      <View style={s.root}>
+        <GlassNavBar
+          title="تم إرسال الرمز"
+          paddingTop={insets.top}
+          onBackPress={() => router.back()}
+        />
+        <ScrollView
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={s.successIconWrap}>
-            <Ionicons name="checkmark-circle" size={64} color="#ffffff" />
+          <View style={s.card}>
+            <View style={s.cardHero}>
+              <View style={[s.iconWrap, { backgroundColor: '#ECFDF5' }]}>
+                <Ionicons name="checkmark-circle-outline" size={36} color="#059669" />
+              </View>
+              <Text style={s.cardTitle}>تحقق من بريدك الإلكتروني</Text>
+              <Text style={s.cardSubtitle}>
+                تم إرسال رمز التحقق (OTP) المكون من 6 أرقام إلى{'\n'}
+                <Text style={s.emailHighlight}>{email}</Text>
+              </Text>
+            </View>
+
+            <View style={s.infoBox}>
+              <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
+              <Text style={s.infoText}>
+                تحقق من صندوق الوارد أو مجلد الرسائل غير المرغوب فيها (Spam)، الرمز صالح لمدة 15 دقيقة.
+              </Text>
+            </View>
+
+            <View style={{ gap: Spacing.space3, marginTop: Spacing.space2 }}>
+              <AppButton
+                title="إدخال الرمز وتعيين كلمة المرور"
+                onPress={() =>
+                  router.replace({
+                    pathname: '/(auth)/reset-password',
+                    params: { email: email.trim().toLowerCase() },
+                  } as any)
+                }
+                icon="key-outline"
+              />
+              <AppButton
+                title="العودة لتسجيل الدخول"
+                variant="outline"
+                onPress={() => router.replace('/(auth)/login')}
+              />
+            </View>
           </View>
-          <Text style={s.successTitle}>تم إرسال الرمز!</Text>
-          <Text style={s.successDesc}>
-            تم إرسال رمز التحقق (OTP) إلى{'\n'}
-            <Text style={s.successEmail}>{email}</Text>
-          </Text>
-        </LinearGradient>
-        <View style={s.successBody}>
-          <Text style={s.successNote}>
-            تحقق من صندوق الوارد أو مجلد الرسائل غير المرغوب فيها (Spam)، الرمز صالح لمدة 15 دقيقة.
-          </Text>
-          <View style={{ gap: Spacing.space3 }}>
-            <AppButton
-              title="إدخال الرمز وتعيين كلمة المرور"
-              onPress={() =>
-                router.replace({
-                  pathname: '/(auth)/reset-password',
-                  params: { email: email.trim().toLowerCase() },
-                } as any)
-              }
-              icon="key-outline"
-            />
-            <AppButton
-              title="العودة لتسجيل الدخول"
-              variant="outline"
-              onPress={() => router.replace('/(auth)/login')}
-            />
-          </View>
-        </View>
+        </ScrollView>
       </View>
     )
   }
 
   return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
+    <View style={s.root}>
+      {/* Top Glass Navigation Bar like Profile Screen */}
+      <GlassNavBar
+        title="استعادة الحساب"
+        paddingTop={insets.top}
+        onBackPress={() => router.back()}
+      />
+
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <LinearGradient
-            colors={Gradients.hero as any}
-            locations={[0, 0.6, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.header}
-          >
-            <BackButton style={s.backBtn} />
-
-            <View style={s.lockIconWrap}>
-              <Ionicons name="lock-open-outline" size={36} color="#ffffff" />
-            </View>
-
-            <Text style={s.headerTitle}>استعادة الحساب</Text>
-            <Text style={s.headerSubtitle}>
-              سنرسل رمز تحقق مكون من 6 أرقام لبريدك الإلكتروني لإعادة تعيين كلمة المرور
-            </Text>
-          </LinearGradient>
-
           {/* Card */}
           <View style={s.card}>
+            <View style={s.cardHero}>
+              <View style={s.iconWrap}>
+                <Ionicons name="key-outline" size={32} color={Colors.primary} />
+              </View>
+              <Text style={s.cardTitle}>استعادة كلمة المرور</Text>
+              <Text style={s.cardSubtitle}>
+                أدخل بريدك الإلكتروني وسنرسل لك رمز تحقق مكون من 6 أرقام لإعادة تعيين كلمة المرور.
+              </Text>
+            </View>
+
             <AppInput
               label="البريد الإلكتروني"
               iconRight="mail-outline"
@@ -175,122 +188,83 @@ export default function ForgotPasswordScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingBottom: 40 },
-  header: {
-    paddingTop: 48,
-    paddingBottom: Spacing.space8,
-    paddingHorizontal: Spacing.space5,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    alignItems: 'center',
-    gap: Spacing.space2,
-    position: 'relative',
-    ...Shadows.card,
-  },
-  backBtn: {
-    position: 'absolute',
-    top: 48,
-    start: Spacing.space4,
-    width: Spacing.touch,
-    height: Spacing.touch,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  lockIconWrap: {
-    marginTop: Spacing.space8,
-    marginBottom: Spacing.space2,
-    width: 72,
-    height: 72,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 24,
-    lineHeight: 32,
-    color: '#ffffff',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  headerSubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-    maxWidth: 280,
-    writingDirection: 'rtl',
-  },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: Radius.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.xl,
     marginHorizontal: Spacing.space5,
-    marginTop: -16,
+    marginTop: Spacing.space4,
     padding: Spacing.space6,
     borderWidth: 1,
-    borderColor: '#E2E6EC',
-    gap: Spacing.space3,
+    borderColor: '#E2E8F0',
+    gap: Spacing.space4,
     ...Shadows.card,
+  },
+  cardHero: {
+    alignItems: 'center',
+    gap: Spacing.space2,
+    marginBottom: Spacing.space2,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space1,
+  },
+  cardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
+    lineHeight: 28,
+    color: '#0F172A',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  cardSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#64748B',
+    textAlign: 'center',
+    maxWidth: 290,
+    writingDirection: 'rtl',
+  },
+  emailHighlight: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#F1F5F9',
+    borderRadius: Radius.md,
+    padding: Spacing.space3,
+    gap: Spacing.space2,
+  },
+  infoText: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#475569',
+    writingDirection: 'rtl',
+    textAlign: 'left',
   },
   loginRow: { alignItems: 'center', marginTop: Spacing.space2 },
   loginTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
     lineHeight: 20,
-    color: '#4B5563',
+    color: '#64748B',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   loginLink: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.primary,
-  },
-  successHero: {
-    paddingTop: 64,
-    paddingBottom: 48,
-    paddingHorizontal: Spacing.space5,
-    alignItems: 'center',
-    gap: Spacing.space3,
-  },
-  successIconWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.space2,
-  },
-  successTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#ffffff',
-    writingDirection: 'rtl',
-  },
-  successDesc: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 22,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    maxWidth: 280,
-    writingDirection: 'rtl',
-  },
-  successEmail: {
-    fontFamily: 'Almarai_700Bold',  color: '#ffffff',
-  },
-  successBody: {
-    flex: 1,
-    paddingHorizontal: Spacing.space6,
-    paddingTop: Spacing.space8,
-    gap: Spacing.space6,
-  },
-  successNote: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 22,
-    color: '#4B5563',
-    textAlign: 'center',
-    writingDirection: 'rtl',
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
   },
 })

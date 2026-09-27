@@ -15,16 +15,18 @@ import {
   Platform,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets()
   const { redirect } = useLocalSearchParams<{ redirect?: string }>()
   const { setAuth } = useAuthStore()
   const [email, setEmail] = useState('')
@@ -101,29 +103,44 @@ export default function LoginScreen() {
 
   return (
     <View style={s.root}>
+      {/* Top Glass Navigation Bar like Profile Screen */}
+      <GlassNavBar
+        title="تسجيل الدخول"
+        paddingTop={insets.top}
+        onBackPress={() => {
+          if (router.canGoBack()) router.back()
+          else router.replace('/(tabs)' as any)
+        }}
+      />
+
       <KeyboardAvoidingView
-        style={s.root}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + 64 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero */}
-          <LinearGradient colors={Gradients.hero as any} style={s.hero}>
+          {/* Logo Brand Header */}
+          <View style={s.logoHero}>
             <Image
               source={require('../../assets/icon.png')}
               style={s.logoImg}
               contentFit="contain"
             />
-          </LinearGradient>
+            <Text style={s.brandTitle}>سوق وان</Text>
+            <Text style={s.brandSub}>منصتك الأولى للسيارات والخدمات في سلطنة عمان 🇴🇲</Text>
+          </View>
 
           {/* Card */}
           <View style={s.card}>
             <View style={s.cardHeader}>
-              <Text style={s.cardTitle}>أهلاً بك 👋</Text>
-              <Text style={s.cardSub}>سجّل دخولك للمتابعة</Text>
+              <Text style={s.cardTitle}>أهلاً بك مجدداً 👋</Text>
+              <Text style={s.cardSub}>سجّل دخولك للمتابعة والوصول لكافة الميزات</Text>
             </View>
 
             <View style={s.form}>
@@ -218,44 +235,57 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.primary },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingBottom: 40 },
 
-  // Stitch: header bg-gradient-to-b from-[#0B2447] to-[#004ac6] pt-16 pb-32
-  hero: {
-    paddingTop: 64,
-    paddingBottom: 128,
-    paddingHorizontal: Spacing.space5,
+  logoHero: {
     alignItems: 'center',
-    gap: Spacing.space4,
+    gap: Spacing.space1,
+    marginTop: Spacing.space2,
+    marginBottom: Spacing.space3,
+    paddingHorizontal: Spacing.space5,
   },
   logoImg: {
-    width: 180,
-    height: 120,
-    marginTop: 30,
+    width: 68,
+    height: 68,
+    borderRadius: Radius.lg,
     marginBottom: Spacing.space1,
   },
-  tagline: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: 'rgba(255,255,255,0.8)',
+  brandTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  brandSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#64748B',
+    textAlign: 'center',
+    maxWidth: 280,
+    writingDirection: 'rtl',
   },
 
-  // Stitch: rounded-[28px] shadow-[0_8px_30px_rgb(11,36,71,0.12)] p-6
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.xl,
     marginHorizontal: Spacing.space5,
-    marginTop: -96,
+    marginTop: Spacing.space1,
     padding: Spacing.space6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     ...Shadows.card,
-    gap: Spacing.space6,
+    gap: Spacing.space5,
   },
-  cardHeader: { alignItems: 'center', gap: Spacing.space2 },
+  cardHeader: { alignItems: 'center', gap: Spacing.space1 },
   cardTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 24,
-    lineHeight: 32,
-    color: Colors.text,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
+    lineHeight: 28,
+    color: '#0F172A',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
