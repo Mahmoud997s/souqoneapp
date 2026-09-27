@@ -19,7 +19,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
-import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { Ionicons } from '@expo/vector-icons'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { dialogService } from '../../src/store/dialogStore'
@@ -103,15 +103,20 @@ export default function LoginScreen() {
 
   return (
     <View style={s.root}>
-      {/* Top Glass Navigation Bar like Profile Screen */}
-      <GlassNavBar
-        title="تسجيل الدخول"
-        paddingTop={insets.top}
-        onBackPress={() => {
+      {/* Floating Back / Dismiss Button */}
+      <TouchableOpacity
+        style={[s.floatingDismissBtn, { top: insets.top + Spacing.space3 }]}
+        onPress={() => {
           if (router.canGoBack()) router.back()
           else router.replace('/(tabs)' as any)
         }}
-      />
+        activeOpacity={0.7}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityLabel="رجوع"
+        accessibilityRole="button"
+      >
+        <Ionicons name="close" size={20} color="#334155" />
+      </TouchableOpacity>
 
       <KeyboardAvoidingView
         style={s.flex}
@@ -120,7 +125,7 @@ export default function LoginScreen() {
         <ScrollView
           contentContainerStyle={[
             s.scroll,
-            { paddingTop: insets.top + 64 },
+            { paddingTop: insets.top + Spacing.space6 },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -238,6 +243,20 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8FAFC' },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingBottom: 40 },
+  floatingDismissBtn: {
+    position: 'absolute',
+    start: Spacing.space5,
+    zIndex: 50,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.card,
+  },
 
   logoHero: {
     alignItems: 'center',
