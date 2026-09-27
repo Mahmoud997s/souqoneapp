@@ -31,31 +31,69 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const pwRef = useRef<TextInput>(null)
 
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
+
   const handleLogin = async () => {
-    if (!email.trim() || !password) {
-      setError('يرجى إدخال البريد الإلكتروني وكلمة المرور')
+    setGeneralError('')
+    const newErrors: Record<string, string> = {}
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email.trim()) {
+      newErrors.email = 'يرجى إدخال البريد الإلكتروني'
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'البريد الإلكتروني غير صالح'
+    }
+
+    if (!password) {
+      newErrors.password = 'يرجى إدخال كلمة المرور'
+    } else if (password.length < 6) {
+      newErrors.password = 'كلمة المرور يجب أن تكون ٦ أحرف على الأقل'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
-    setError('')
+
     setLoading(true)
     try {
       const res = await authApi.login({ email: email.trim().toLowerCase(), password })
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
-        if (res.data.requiresVerification) {
+        if (!res.data.user?.isVerified || res.data.requiresVerification) {
           const emailParam = encodeURIComponent(email.trim())
           const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
-          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}`)
+          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
         } else {
           router.replace(resolveRedirect(redirect) as any)
         }
       }, 100)
     } catch (e: any) {
       console.error('[Login Error]', JSON.stringify(e?.response?.data), e?.message)
-      setError(e?.response?.data?.message || e?.message || 'بيانات الدخول غير صحيحة')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      const serverMsg = msg || e?.message || 'بيانات الدخول غير صحيحة'
+
+      if (serverMsg.includes('البريد')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -89,31 +127,41 @@ export default function LoginScreen() {
             </View>
 
             <View style={s.form}>
-              {error ? <Text style={s.errorTxt}>{error}</Text> : null}
+              {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
 
               <AppInput
+                label="البريد الإلكتروني"
                 iconRight="mail-outline"
                 value={email}
-                onChangeText={setEmail}
-                placeholder="البريد الإلكتروني"
+                onChangeText={(v) => {
+                  setEmail(v)
+                  clearFieldError('email')
+                }}
+                placeholder="name@example.com"
                 keyboardType="email-address"
                 textContentType="emailAddress"
                 autoCapitalize="none"
                 returnKeyType="next"
                 onSubmitEditing={() => pwRef.current?.focus()}
+                error={errors.email}
               />
 
               <AppInput
                 ref={pwRef}
+                label="كلمة المرور"
                 iconRight="lock-closed-outline"
                 iconLeft={showPw ? 'eye' : 'eye-off'}
-                onIconLeftPress={() => setShowPw(v => !v)}
+                onIconLeftPress={() => setShowPw((v) => !v)}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
                 placeholder="كلمة المرور"
                 secureTextEntry={!showPw}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
+                error={errors.password}
               />
 
               <TouchableOpacity

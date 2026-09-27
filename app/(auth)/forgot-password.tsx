@@ -30,17 +30,25 @@ export default function ForgotPasswordScreen() {
   const [success, setSuccess] = useState(false)
 
   const handleSubmit = async () => {
-    if (!email.trim()) {
+    const cleanEmail = email.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!cleanEmail) {
       setError('يرجى إدخال البريد الإلكتروني')
+      return
+    }
+    if (!emailRegex.test(cleanEmail)) {
+      setError('البريد الإلكتروني غير صالح')
       return
     }
     setError('')
     setLoading(true)
     try {
-      await authApi.forgotPassword(email.trim().toLowerCase())
+      await authApi.forgotPassword(cleanEmail)
       setSuccess(true)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      setError(msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
     } finally {
       setLoading(false)
     }
@@ -59,20 +67,33 @@ export default function ForgotPasswordScreen() {
           <View style={s.successIconWrap}>
             <Ionicons name="checkmark-circle" size={64} color="#ffffff" />
           </View>
-          <Text style={s.successTitle}>تم الإرسال!</Text>
+          <Text style={s.successTitle}>تم إرسال الرمز!</Text>
           <Text style={s.successDesc}>
-            تم إرسال رابط إعادة التعيين إلى{'\n'}
+            تم إرسال رمز التحقق (OTP) إلى{'\n'}
             <Text style={s.successEmail}>{email}</Text>
           </Text>
         </LinearGradient>
         <View style={s.successBody}>
           <Text style={s.successNote}>
-            تحقق من صندوق الوارد أو مجلد البريد العشوائي.
+            تحقق من صندوق الوارد أو مجلد الرسائل غير المرغوب فيها (Spam)، الرمز صالح لمدة 15 دقيقة.
           </Text>
-          <AppButton
-            title="العودة لتسجيل الدخول"
-            onPress={() => router.replace('/(auth)/login')}
-          />
+          <View style={{ gap: Spacing.space3 }}>
+            <AppButton
+              title="إدخال الرمز وتعيين كلمة المرور"
+              onPress={() =>
+                router.replace({
+                  pathname: '/(auth)/reset-password',
+                  params: { email: email.trim().toLowerCase() },
+                } as any)
+              }
+              icon="key-outline"
+            />
+            <AppButton
+              title="العودة لتسجيل الدخول"
+              variant="outline"
+              onPress={() => router.replace('/(auth)/login')}
+            />
+          </View>
         </View>
       </View>
     )
@@ -103,9 +124,9 @@ export default function ForgotPasswordScreen() {
               <Ionicons name="lock-open-outline" size={36} color="#ffffff" />
             </View>
 
-            <Text style={s.headerTitle}>نسيت كلمة المرور؟</Text>
+            <Text style={s.headerTitle}>استعادة الحساب</Text>
             <Text style={s.headerSubtitle}>
-              سنرسل لك رابط إعادة التعيين لبريدك الإلكتروني
+              سنرسل رمز تحقق مكون من 6 أرقام لبريدك الإلكتروني لإعادة تعيين كلمة المرور
             </Text>
           </LinearGradient>
 
@@ -115,8 +136,11 @@ export default function ForgotPasswordScreen() {
               label="البريد الإلكتروني"
               iconRight="mail-outline"
               value={email}
-              onChangeText={setEmail}
-              placeholder="أدخل بريدك الإلكتروني"
+              onChangeText={(v) => {
+                setEmail(v)
+                if (error) setError('')
+              }}
+              placeholder="name@example.com"
               keyboardType="email-address"
               textContentType="emailAddress"
               autoCapitalize="none"
@@ -126,7 +150,7 @@ export default function ForgotPasswordScreen() {
             />
 
             <AppButton
-              title="إرسال الرابط"
+              title="إرسال رمز التحقق"
               onPress={handleSubmit}
               loading={loading}
               icon="send-outline"

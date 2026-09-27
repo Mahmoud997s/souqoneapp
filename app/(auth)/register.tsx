@@ -46,29 +46,82 @@ export default function RegisterScreen() {
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const hasMinLength = password.length >= 8
+  const hasUpper = /[A-Z]/.test(password)
+  const hasDigit = /[0-9]/.test(password)
+  const isPasswordValid = hasMinLength && hasUpper && hasDigit
+
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
 
   const handleRegister = async () => {
-    if (!displayName.trim() || !username.trim() || !phone.trim() || !password) {
-      setError('يرجى ملء الحقول المطلوبة')
+    setGeneralError('')
+    const newErrors: Record<string, string> = {}
+
+    if (!displayName.trim()) {
+      newErrors.displayName = 'يرجى إدخال الاسم الكامل'
+    }
+
+    const cleanUsername = username.trim().toLowerCase()
+    if (!cleanUsername) {
+      newErrors.username = 'يرجى إدخال اسم المستخدم'
+    } else if (cleanUsername.length < 3) {
+      newErrors.username = 'اسم المستخدم يجب أن يكون ٣ أحرف على الأقل'
+    } else if (!/^[a-z0-9_]+$/.test(cleanUsername)) {
+      newErrors.username = 'أحرف إنجليزية وأرقام و _ فقط'
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email.trim()) {
+      newErrors.email = 'يرجى إدخال البريد الإلكتروني'
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'البريد الإلكتروني غير صالح'
+    }
+
+    const cleanPhone = phone.trim().replace(/\D/g, '')
+    if (!cleanPhone) {
+      newErrors.phone = 'يرجى إدخال رقم الهاتف'
+    } else if (!/^(7|9)\d{7}$/.test(cleanPhone)) {
+      newErrors.phone = 'رقم عماني غير صحيح (8 أرقام يبدأ بـ 7 أو 9)'
+    }
+
+    if (!password) {
+      newErrors.password = 'يرجى إدخال كلمة المرور'
+    } else if (!isPasswordValid) {
+      newErrors.password = 'يرجى استيفاء شروط كلمة المرور أدناه'
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'يرجى تأكيد كلمة المرور'
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'كلمتا المرور غير متطابقتين'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
-    if (password !== confirmPassword) {
-      setError('كلمتا المرور غير متطابقتين')
-      return
-    }
-    if (password.length < 8) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-      return
-    }
-    setError('')
+
     setLoading(true)
     try {
       const res = await authApi.register({
         displayName: displayName.trim(),
-        username: username.trim().toLowerCase(),
+        username: cleanUsername,
         email: email.trim().toLowerCase(),
-        phone: `+968${phone.trim()}`,
+        phone: `+968${cleanPhone}`,
+        governorate: govLabel || undefined,
+        city: wilayaLabel || undefined,
         governorateId: governorateId ?? undefined,
         wilayaId: wilayaId ?? undefined,
         country: 'OM',
@@ -88,7 +141,17 @@ export default function RegisterScreen() {
       console.error('[Register Error]', JSON.stringify(e?.response?.data), e?.message)
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
-      setError(msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
+      const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'
+
+      if (serverMsg.includes('البريد') || serverMsg.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('المستخدم') || serverMsg.toLowerCase().includes('username')) {
+        setErrors((prev) => ({ ...prev, username: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور') || serverMsg.toLowerCase().includes('password')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -125,93 +188,154 @@ export default function RegisterScreen() {
         >
           <View style={s.card}>
             <Text style={s.sectionTitle}>معلوماتك الأساسية</Text>
-            <Text style={s.sectionSubtitle}>يرجى إدخال بياناتك للمتابعة للخطوة التالية.</Text>
+            <Text style={s.sectionSubtitle}>يرجى إدخال بياناتك بدقة لإنشاء حسابك وتوثيقه.</Text>
 
-            {error ? <Text style={s.errorTxt}>{error}</Text> : null}
+            {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
 
             {/* الاسم الكامل */}
             <AppInput
+              label="الاسم الكامل"
               iconRight="person-outline"
               value={displayName}
-              onChangeText={setDisplayName}
-              placeholder="الاسم الكامل"
+              onChangeText={(v) => {
+                setDisplayName(v)
+                clearFieldError('displayName')
+              }}
+              placeholder="مثال: محمد العمري"
               returnKeyType="next"
+              error={errors.displayName}
             />
 
             {/* اسم المستخدم */}
             <AppInput
+              label="اسم المستخدم"
               iconRight="id-card-outline"
               value={username}
-              onChangeText={setUsername}
-              placeholder="اسم المستخدم"
+              onChangeText={(v) => {
+                setUsername(v)
+                clearFieldError('username')
+              }}
+              placeholder="username (بالإنجليزية)"
               autoCapitalize="none"
               returnKeyType="next"
+              error={errors.username}
             />
 
-            {/* البريد الإلكتروني - اختياري */}
+            {/* البريد الإلكتروني - إجباري */}
             <AppInput
+              label="البريد الإلكتروني"
               iconRight="mail-outline"
               value={email}
-              onChangeText={setEmail}
-              placeholder="البريد الإلكتروني (اختياري)"
+              onChangeText={(v) => {
+                setEmail(v)
+                clearFieldError('email')
+              }}
+              placeholder="name@example.com"
               keyboardType="email-address"
               textContentType="emailAddress"
               autoCapitalize="none"
               returnKeyType="next"
+              error={errors.email}
             />
 
             {/* رقم الهاتف */}
-            <View style={s.phoneWrap}>
-              <TextInput
-                style={s.phoneInput}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="رقم الهاتف"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="phone-pad"
-              />
-              <View style={s.phonePrefix}>
-                <Text style={s.phonePrefixTxt}>+968</Text>
+            <View style={s.phoneContainer}>
+              <Text style={s.fieldLabel}>رقم الهاتف</Text>
+              <View style={[s.phoneWrap, errors.phone ? s.phoneWrapError : null]}>
+                <TextInput
+                  style={s.phoneInput}
+                  value={phone}
+                  onChangeText={(v) => {
+                    setPhone(v)
+                    clearFieldError('phone')
+                  }}
+                  placeholder="9XXXXXXX أو 7XXXXXXX"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="phone-pad"
+                  maxLength={8}
+                />
+                <View style={s.phonePrefix}>
+                  <Text style={s.phonePrefixTxt}>+968</Text>
+                </View>
               </View>
+              {errors.phone ? <Text style={s.fieldErrorTxt}>{errors.phone}</Text> : null}
             </View>
 
             {/* المحافظة والولاية */}
-            <GovernorateWilayaSelect
-              governorateId={governorateId}
-              wilayaId={wilayaId}
-              onLocationChange={(gId, wId, gName, wName) => {
-                setGovernorateId(gId)
-                setWilayaId(wId)
-                setGovLabel(gName)
-                setWilayaLabel(wName)
-              }}
-              showCity={true}
-            />
+            <View style={{ gap: 4 }}>
+              <Text style={s.fieldLabel}>الموقع الجغرافي (اختياري)</Text>
+              <GovernorateWilayaSelect
+                governorateId={governorateId}
+                wilayaId={wilayaId}
+                onLocationChange={(gId, wId, gName, wName) => {
+                  setGovernorateId(gId)
+                  setWilayaId(wId)
+                  setGovLabel(gName)
+                  setWilayaLabel(wName)
+                }}
+                showCity={true}
+              />
+            </View>
 
             {/* كلمة المرور */}
-            <AppInput
-              iconRight="lock-closed-outline"
-              iconLeft={showPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowPw(v => !v)}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="كلمة المرور"
-              secureTextEntry={!showPw}
-              returnKeyType="next"
-              style={{ marginTop: Spacing.space2 } as any}
-            />
+            <View style={{ gap: 4 }}>
+              <AppInput
+                label="كلمة المرور"
+                iconRight="lock-closed-outline"
+                iconLeft={showPw ? 'eye' : 'eye-off'}
+                onIconLeftPress={() => setShowPw((v) => !v)}
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
+                placeholder="كلمة المرور"
+                secureTextEntry={!showPw}
+                returnKeyType="next"
+                error={errors.password}
+              />
+
+              {/* مؤشرات شروط كلمة المرور */}
+              <View style={s.pwHints}>
+                <View style={s.hintRow}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={13}
+                    color={hasMinLength ? '#16a34a' : '#94A3B8'}
+                  />
+                  <Text style={[s.hintTxt, hasMinLength && s.hintOk]}>
+                    ٨ أحرف على الأقل
+                  </Text>
+                </View>
+                <View style={s.hintRow}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={13}
+                    color={hasUpper && hasDigit ? '#16a34a' : '#94A3B8'}
+                  />
+                  <Text style={[s.hintTxt, hasUpper && hasDigit && s.hintOk]}>
+                    حرف كبير واحد (A-Z) ورقم واحد (0-9) على الأقل
+                  </Text>
+                </View>
+              </View>
+            </View>
 
             {/* تأكيد كلمة المرور */}
             <AppInput
+              label="تأكيد كلمة المرور"
               iconRight="lock-open-outline"
               iconLeft={showCPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowCPw(v => !v)}
+              onIconLeftPress={() => setShowCPw((v) => !v)}
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="تأكيد كلمة المرور"
+              onChangeText={(v) => {
+                setConfirmPassword(v)
+                clearFieldError('confirmPassword')
+              }}
+              placeholder="أعد إدخال كلمة المرور"
               secureTextEntry={!showCPw}
               returnKeyType="done"
               onSubmitEditing={handleRegister}
+              error={errors.confirmPassword}
             />
           </View>
         </ScrollView>
@@ -225,8 +349,6 @@ export default function RegisterScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-
-
     </View>
   )
 }
@@ -324,7 +446,18 @@ const s = StyleSheet.create({
     color: Colors.text,
     writingDirection: 'rtl',
   },
-  placeholderTxt: { color: Colors.textMuted },
+  fieldLabel: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#334155',
+    writingDirection: 'rtl',
+    marginBottom: 2,
+  },
+  phoneContainer: {
+    gap: 4,
+    width: '100%',
+  },
   phoneWrap: {
     height: 52,
     backgroundColor: Colors.surface,
@@ -332,6 +465,38 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
+  },
+  phoneWrapError: {
+    borderColor: Colors.error,
+  },
+  fieldErrorTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.error,
+    writingDirection: 'rtl',
+    marginTop: 2,
+  },
+  pwHints: {
+    gap: Spacing.space1,
+    marginTop: 2,
+    paddingHorizontal: 2,
+  },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  hintTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#64748B',
+    writingDirection: 'rtl',
+  },
+  hintOk: {
+    color: '#16a34a',
+    fontFamily: 'Almarai_700Bold',
   },
   phonePrefix: {
     position: 'absolute',

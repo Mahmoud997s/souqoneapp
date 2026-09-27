@@ -24,39 +24,94 @@ import { Colors } from '../../src/constants/colors'
 
 export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets()
-  const { token } = useLocalSearchParams<{ token?: string }>()
+  const { email: paramEmail } = useLocalSearchParams<{ email?: string }>()
 
+  const [email, setEmail] = useState(paramEmail ? decodeURIComponent(paramEmail) : '')
+  const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
 
   const hasMinLength = password.length >= 8
-  const hasUpperAndDigit = /[A-Z]/.test(password) && /[0-9]/.test(password)
+  const hasUpper = /[A-Z]/.test(password)
+  const hasDigit = /[0-9]/.test(password)
+  const hasUpperAndDigit = hasUpper && hasDigit
+  const isPasswordValid = hasMinLength && hasUpperAndDigit
+
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
 
   const handleReset = async () => {
-    if (!password || !confirm) {
-      setError('يرجى ملء جميع الحقول')
+    setGeneralError('')
+    const newErrors: Record<string, string> = {}
+
+    const cleanEmail = email.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!cleanEmail) {
+      newErrors.email = 'يرجى إدخال البريد الإلكتروني'
+    } else if (!emailRegex.test(cleanEmail)) {
+      newErrors.email = 'البريد الإلكتروني غير صالح'
+    }
+
+    const cleanCode = code.trim()
+    if (!cleanCode) {
+      newErrors.code = 'يرجى إدخال رمز التحقق'
+    } else if (cleanCode.length !== 6) {
+      newErrors.code = 'رمز التحقق يجب أن يكون ٦ أرقام'
+    }
+
+    if (!password) {
+      newErrors.password = 'يرجى إدخال كلمة المرور'
+    } else if (!isPasswordValid) {
+      newErrors.password = 'يرجى استيفاء شروط كلمة المرور أدناه'
+    }
+
+    if (!confirm) {
+      newErrors.confirm = 'يرجى تأكيد كلمة المرور'
+    } else if (password !== confirm) {
+      newErrors.confirm = 'كلمتا المرور غير متطابقتين'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
-    if (password !== confirm) {
-      setError('كلمتا المرور غير متطابقتين')
-      return
-    }
-    if (!hasMinLength) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-      return
-    }
-    setError('')
+
     setLoading(true)
     try {
-      await authApi.resetPassword(token || '', password)
+      await authApi.resetPassword({
+        email: cleanEmail,
+        code: cleanCode,
+        newPassword: password,
+      })
       setSuccess(true)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'
+
+      if (serverMsg.includes('رمز') || serverMsg.toLowerCase().includes('code')) {
+        setErrors((prev) => ({ ...prev, code: serverMsg }))
+      } else if (serverMsg.includes('البريد') || serverMsg.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور') || serverMsg.toLowerCase().includes('password')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -75,9 +130,9 @@ export default function ResetPasswordScreen() {
           <View style={s.successIcon}>
             <Ionicons name="checkmark-circle" size={80} color="#ffffff" />
           </View>
-          <Text style={s.successTitle}>تم التحديث!</Text>
+          <Text style={s.successTitle}>تم التحديث بنجاح!</Text>
           <Text style={s.successDesc}>
-            تم تغيير كلمة المرور بنجاح.{'\n'}يمكنك الآن تسجيل الدخول.
+            تم تغيير كلمة المرور بنجاح.{'\n'}يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
           </Text>
           <TouchableOpacity
             style={s.successBtn}
@@ -108,24 +163,65 @@ export default function ResetPasswordScreen() {
           <View style={s.pageTitleWrap}>
             <Text style={s.pageTitle}>تعيين كلمة مرور جديدة</Text>
             <Text style={s.pageSubtitle}>
-              أدخل كلمة المرور الجديدة أدناه لتأمين حسابك في سوق وان.
+              أدخل رمز التحقق المرسل لبريدك الإلكتروني وكلمة المرور الجديدة.
             </Text>
           </View>
 
           {/* Form card */}
           <View style={s.card}>
+            {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
+
+            {/* Email */}
+            <AppInput
+              label="البريد الإلكتروني"
+              iconRight="mail-outline"
+              value={email}
+              onChangeText={(v) => {
+                setEmail(v)
+                clearFieldError('email')
+              }}
+              placeholder="name@example.com"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              autoCapitalize="none"
+              returnKeyType="next"
+              error={errors.email}
+            />
+
+            {/* Verification Code */}
+            <AppInput
+              label="رمز التحقق (6 أرقام)"
+              iconRight="key-outline"
+              value={code}
+              onChangeText={(v) => {
+                setCode(v)
+                clearFieldError('code')
+              }}
+              placeholder="أدخل الرمز المكون من 6 أرقام"
+              keyboardType="number-pad"
+              maxLength={6}
+              returnKeyType="next"
+              error={errors.code}
+            />
+
+            <View style={s.divider} />
+
             {/* New password */}
             <View style={s.fieldGroup}>
               <AppInput
                 label="كلمة المرور الجديدة"
                 iconRight="lock-closed-outline"
                 iconLeft={showPw ? 'eye' : 'eye-off'}
-                onIconLeftPress={() => setShowPw(v => !v)}
+                onIconLeftPress={() => setShowPw((v) => !v)}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
                 placeholder="••••••••"
                 secureTextEntry={!showPw}
                 returnKeyType="next"
+                error={errors.password}
               />
 
               {/* Validation hints */}
@@ -147,29 +243,29 @@ export default function ResetPasswordScreen() {
                     color={hasUpperAndDigit ? '#16a34a' : '#c3c6d6'}
                   />
                   <Text style={[s.hintTxt, hasUpperAndDigit && s.hintOk]}>
-                    حرف واحد كبير ورقم واحد على الأقل
+                    حرف واحد كبير (A-Z) ورقم واحد (0-9) على الأقل
                   </Text>
                 </View>
               </View>
             </View>
-
-            <View style={s.divider} />
 
             {/* Confirm password */}
             <AppInput
               label="تأكيد كلمة المرور الجديدة"
               iconRight="lock-open-outline"
               iconLeft={showCPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowCPw(v => !v)}
+              onIconLeftPress={() => setShowCPw((v) => !v)}
               value={confirm}
-              onChangeText={setConfirm}
+              onChangeText={(v) => {
+                setConfirm(v)
+                clearFieldError('confirm')
+              }}
               placeholder="••••••••"
               secureTextEntry={!showCPw}
               returnKeyType="done"
               onSubmitEditing={handleReset}
+              error={errors.confirm}
             />
-
-            {error ? <Text style={s.errorTxt}>{error}</Text> : null}
           </View>
         </ScrollView>
 

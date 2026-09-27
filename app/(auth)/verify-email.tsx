@@ -50,6 +50,7 @@ export default function VerifyEmailScreen() {
     const next = [...otp]
     next[idx] = digit
     setOtp(next)
+    if (error) setError('')
     if (digit && idx < OTP_LENGTH - 1) {
       inputRefs.current[idx + 1]?.focus()
     }
@@ -64,17 +65,19 @@ export default function VerifyEmailScreen() {
   const handleVerify = async () => {
     const code = otp.join('')
     if (code.length < OTP_LENGTH) {
-      setError('يرجى إدخال الكود كاملاً')
+      setError('يرجى إدخال الكود كاملاً (6 أرقام)')
       return
     }
     setError('')
     setLoading(true)
     try {
-      const res = await authApi.verifyEmail(code)
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      await authApi.verifyEmail(code)
+      useAuthStore.getState().updateUser({ isVerified: true })
       router.replace(resolveRedirect(redirect) as any)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      setError(msg || e?.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية')
     } finally {
       setLoading(false)
     }
@@ -87,8 +90,11 @@ export default function VerifyEmailScreen() {
       await authApi.resendVerification()
       setCanResend(false)
       setTimer(45)
-    } catch {
-      // silent
+      setError('')
+    } catch (e: any) {
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      setError(msg || 'تعذر إرسال رمز جديد، حاول لاحقاً')
     } finally {
       setResendLoading(false)
     }
