@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Colors } from '../../src/constants/colors'
 import { Gradients } from '../../src/constants/gradients'
 import { Spacing } from '../../src/constants/spacing'
@@ -25,6 +25,13 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import {
+  configureGoogleSignIn,
+  GoogleSignin,
+  statusCodes,
+  isSuccessResponse,
+  isErrorWithCode,
+} from '../../src/services/googleAuth'
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets()
@@ -34,9 +41,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [generalError, setGeneralError] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const pwRef = useRef<TextInput>(null)
+
+  useEffect(() => {
+    configureGoogleSignIn()
+  }, [])
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -99,6 +111,52 @@ export default function LoginScreen() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setGeneralError('')
+    setGoogleLoading(true)
+    try {
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
+      }
+      const response = await GoogleSignin.signIn()
+      if (!isSuccessResponse(response)) {
+        return
+      }
+
+      const idToken = response.data?.idToken
+      if (!idToken) {
+        throw new Error('تعذر الحصول على رمز التحقق من Google. يرجى إعادة المحاولة.')
+      }
+
+      const res = await authApi.loginGoogle(idToken)
+      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+
+      setTimeout(() => {
+        router.replace(resolveRedirect(redirect) as any)
+      }, 100)
+    } catch (err: any) {
+      if (isErrorWithCode(err)) {
+        if (err.code === statusCodes.SIGN_IN_CANCELLED) {
+          return
+        }
+        if (err.code === statusCodes.IN_PROGRESS) {
+          return
+        }
+        if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          dialogService.alert('تنبيه', 'خدمات Google Play غير متوفرة على هذا الجهاز.')
+          return
+        }
+      }
+
+      console.error('[Google Login Error]', err?.response?.data || err?.message || err)
+      let msg = err?.response?.data?.message || err?.message || 'فشل تسجيل الدخول بواسطة Google'
+      if (Array.isArray(msg)) msg = msg[0]
+      dialogService.alert('خطأ في تسجيل الدخول', msg)
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -201,6 +259,7 @@ export default function LoginScreen() {
                   title="تسجيل الدخول"
                   onPress={handleLogin}
                   loading={loading}
+                  disabled={googleLoading}
                 />
 
                 <View style={s.divider}>
@@ -213,7 +272,9 @@ export default function LoginScreen() {
                   title="تسجيل بـ Google"
                   variant="outline"
                   icon="logo-google"
-                  onPress={() => dialogService.alert('تنبيه', 'تسجيل الدخول عبر Google غير مفعل حالياً')}
+                  loading={googleLoading}
+                  disabled={loading}
+                  onPress={handleGoogleLogin}
                 />
               </View>
             </View>
