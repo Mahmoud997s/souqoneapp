@@ -29,6 +29,7 @@ import { carsApi, CarBrand } from '../../src/api/cars'
 import { usePartWizardStore, PartFormData } from '../../src/store/partWizardStore'
 import { usePartFormLogic } from '../../src/hooks/usePartFormLogic'
 import { validateStep } from '../../src/hooks/usePartValidation'
+import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 
 import { PartStep1Category } from '../../src/components/parts/wizard/PartStep1Category'
 import { PartStep2Images } from '../../src/components/parts/wizard/PartStep2Images'
@@ -184,21 +185,21 @@ export default function NewPartListingScreen() {
             finalImageUrls.push(uri)
           } else {
             try {
+              const filePayload = buildUploadFilePayload(img, 'part')
+              if (!filePayload) continue
+
               const data = new FormData()
-              data.append('file', {
-                uri,
-                name: `part_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`,
-                type: 'image/jpeg',
-              } as any)
+              data.append('file', filePayload as any)
               const res = await uploadsApi.single(data)
               const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
               if (url) {
                 finalImageUrls.push(url)
                 newImageUrls.push(url)
               }
-            } catch (uploadErr) {
+            } catch (uploadErr: any) {
               console.warn('Image upload error for part:', uploadErr)
-              throw new Error('فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
+              const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
+              throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
             }
           }
         }

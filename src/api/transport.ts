@@ -16,13 +16,8 @@ export const transportApi = {
   update:    (id: string, data: Record<string, unknown>) => apiClient.patch<TransportRequest>(`/transport/requests/${id}`, data),
   uploadImages: (requestId: string, formData: FormData) =>
                   apiClient.post<any>(`/transport/requests/${requestId}/images`, formData, {
-                    transformRequest: (data, headers) => {
-                      if (headers) {
-                        delete headers['Content-Type']
-                        delete headers['content-type']
-                      }
-                      return data
-                    },
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    transformRequest: (data) => data,
                   }),
   cancel:    (id: string) => apiClient.patch<TransportRequest>(`/transport/requests/${id}/cancel`),
   myRequests:(params?: Record<string, unknown>) =>

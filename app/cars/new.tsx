@@ -27,6 +27,7 @@ import { uploadsApi } from '../../src/api/uploads'
 import { listingsApi } from '../../src/api/listings'
 import { useCarWizardStore } from '../../src/store/carWizardStore'
 import { useCarFormLogic } from '../../src/hooks/useCarFormLogic'
+import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 
 import { CarStep1Type } from '../../src/components/cars/wizard/CarStep1Type'
 import { CarStep2Images } from '../../src/components/cars/wizard/CarStep2Images'
@@ -176,21 +177,21 @@ export default function NewCarListingScreen() {
                 finalImageUrls.push(uri)
               } else {
                 try {
+                  const filePayload = buildUploadFilePayload(img, 'car')
+                  if (!filePayload) continue
+
                   const data = new FormData()
-                  data.append('file', {
-                    uri,
-                    name: (typeof img === 'object' && img.fileName) || `car_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`,
-                    type: (typeof img === 'object' && img.mimeType) || 'image/jpeg',
-                  } as any)
+                  data.append('file', filePayload as any)
                   const res = await uploadsApi.single(data)
                   const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
                   if (url) {
                     finalImageUrls.push(url)
                     newImageUrls.push(url)
                   }
-                } catch (uploadErr) {
+                } catch (uploadErr: any) {
                   console.warn('Image upload error:', uploadErr)
-                  throw new Error('فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
+                  const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
+                  throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
                 }
               }
             }

@@ -4,23 +4,13 @@ import { UploadResponse } from '../types/api.types'
 export const uploadsApi = {
   single:   (formData: FormData) =>
               apiClient.post<UploadResponse>('/uploads', formData, {
-                transformRequest: (data, headers) => {
-                  if (headers) {
-                    delete headers['Content-Type']
-                    delete headers['content-type']
-                  }
-                  return data
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
+                transformRequest: (data) => data,
               }),
   multiple: (formData: FormData) =>
               apiClient.post<UploadResponse[]>('/uploads/multiple', formData, {
-                transformRequest: (data, headers) => {
-                  if (headers) {
-                    delete headers['Content-Type']
-                    delete headers['content-type']
-                  }
-                  return data
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
+                transformRequest: (data) => data,
               }),
   removeListingImage: (listingId: string, imageId: string) =>
               apiClient.delete(`/uploads/listings/${listingId}/images/${imageId}`),

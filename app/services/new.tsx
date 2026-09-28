@@ -29,6 +29,7 @@ import { WORKING_DAYS_AR } from '../../src/constants/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
 import { validateStep } from '../../src/hooks/useServiceValidation'
+import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 
 import { ServiceStep1Type } from '../../src/components/services/wizard/ServiceStep1Type'
 import { ServiceStep2Images } from '../../src/components/services/wizard/ServiceStep2Images'
@@ -205,21 +206,21 @@ export default function NewServiceListingScreen() {
             finalImageUrls.push(uri)
           } else {
             try {
+              const filePayload = buildUploadFilePayload(img, 'service')
+              if (!filePayload) continue
+
               const data = new FormData()
-              data.append('file', {
-                uri,
-                name: `service_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`,
-                type: 'image/jpeg',
-              } as any)
+              data.append('file', filePayload as any)
               const res = await uploadsApi.single(data)
               const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
               if (url) {
                 finalImageUrls.push(url)
                 newImageUrls.push(url)
               }
-            } catch (uploadErr) {
+            } catch (uploadErr: any) {
               console.warn('Image upload error for service:', uploadErr)
-              throw new Error('فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
+              const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
+              throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
             }
           }
         }
