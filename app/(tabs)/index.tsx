@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Image } from 'expo-image'
 import { BlurView } from 'expo-blur'
@@ -11,6 +11,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Gradients } from '../../src/constants/gradients'
+import { CardSystem } from '../../src/constants/cardSystem'
 import { UnifiedCard, UnifiedCardItem } from '../../src/components/cards/UnifiedCard'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
@@ -22,6 +23,8 @@ import { TransportRequestCard } from '../../src/components/transport/TransportRe
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
+import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
+import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobsRaw } from '../../src/hooks/useJobs'
 import { useServices } from '../../src/hooks/useServices'
@@ -38,25 +41,15 @@ import { useQueryClient } from '@tanstack/react-query'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
-const CARD_W = 310
-const IMG_H = Math.round(CARD_W * 9 / 16)
-
-const CATEGORIES = [
-  { id: 'cars',      label: 'سيارات',    image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Automobile/3D/automobile_3d.png', route: '/cars', isMain: true },
-  { id: 'jobs',      label: 'وظائف',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Briefcase/3D/briefcase_3d.png', route: '/jobs', isMain: true },
-  { id: 'services',  label: 'خدمات',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrench/3D/wrench_3d.png', route: '/services', isMain: false },
-  { id: 'parts',     label: 'قطع غيار',  image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Nut%20and%20bolt/3D/nut_and_bolt_3d.png', route: '/parts', isMain: false },
-  { id: 'equipment', label: 'معدات',     image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Tractor/3D/tractor_3d.png', route: '/equipment', isMain: false },
-  { id: 'buses',     label: 'حافلات',    image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bus/3D/bus_3d.png', route: '/buses', isMain: false },
-  { id: 'transport', label: 'نقل',       image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Delivery%20truck/3D/delivery_truck_3d.png', route: '/transport', isMain: false },
-]
-
+const CARD_WIDTH = Math.round(SW * 0.6)
+const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 import { favoritesApi } from '../../src/api/favorites'
 
 interface SectionProps {
   title: string
-  icon: string
+  subTitle?: string
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
   iconColor?: string
   seeAllRoute: string
   data: UnifiedCardItem[] | undefined
@@ -69,10 +62,11 @@ interface SectionProps {
     disableImageSwipe?: boolean
     fullWidth?: boolean
     maxChips?: number
+    titleNumberOfLines?: number
   }>
 }
 
-function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
+function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
 
@@ -107,19 +101,17 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
       <View style={s.sectionHeader}>
         <View style={s.titleRow}>
-          <LinearGradient
-            colors={[iconColor || Colors.primary, (iconColor || Colors.primary) + '99']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.sectionIconWrap}
-          >
-            <Ionicons name={icon as any} size={14} color={Colors.white} />
-          </LinearGradient>
-          <Text style={s.sectionTitle}>{title}</Text>
+          <View style={s.sectionIconWrap}>
+            <MaterialCommunityIcons name={icon} size={16} color={iconColor || Colors.primary} />
+          </View>
+          <View style={s.titleCol}>
+            <Text style={s.sectionTitle}>{title}</Text>
+            {subTitle ? <Text style={s.sectionSubTitle}>{subTitle}</Text> : null}
+          </View>
         </View>
         <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push(seeAllRoute as any)} activeOpacity={0.8}>
-          <Text style={s.seeAll}>عرض الكل</Text>
-          <Ionicons name="arrow-back-outline" size={14} color={Colors.primary} />
+          <Text style={s.seeAll}>الكل</Text>
+          <Ionicons name="chevron-back" size={13} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -127,31 +119,31 @@ function CategorySection({ title, icon, iconColor, seeAllRoute, data, isLoading,
         <HorizontalScrollCard
           key="loading-skeletons"
           data={[1, 2, 3]}
-          cardWidth={CARD_W}
-          gap={Spacing.space4}
+          cardWidth={CARD_WIDTH}
+          gap={Spacing.space3}
           paddingEnd={Spacing.space5}
           keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={() => <SkeletonCard style={{ width: CARD_W }} />}
+          renderItem={() => <SkeletonCard style={{ width: CARD_WIDTH }} />}
         />
       ) : (
         <HorizontalScrollCard
           key="loaded-cards"
           data={data || []}
-          cardWidth={CARD_W}
-          gap={Spacing.space4}
+          cardWidth={CARD_WIDTH}
+          gap={Spacing.space3}
           paddingEnd={Spacing.space5}
           keyExtractor={(item) => item.id}
           onSeeAll={() => router.push(seeAllRoute as any)}
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`تصفح جميع ${title}`}
           renderItem={({ item }) => (
-            <View style={s.cardWrap}>
+            <View style={{ width: CARD_WIDTH }}>
               {CustomCard ? (
                 <CustomCard
                   item={item}
                   onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                  imageHeight={IMG_H}
                   disableImageSwipe={true}
+                  titleNumberOfLines={1}
                 />
               ) : (
                 <UnifiedCard
@@ -185,119 +177,49 @@ export default function HomeScreen() {
   const { scrollHandler, scrollY } = useScrollAwareNav()
   const { navHidden } = useNavVisibility()
 
-  // Constants
-  const COMPACT_HEIGHT = insets.top + 60
-  const HERO_HEIGHT    = insets.top + 140
-  const THRESHOLD  = 20
-  const ANIM_RANGE = 100
-  const ANIM_END   = THRESHOLD + ANIM_RANGE
-
-  // Header Animation
-  const headerAnimStyle = useAnimatedStyle(() => ({
-    height: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
-      Extrapolation.CLAMP
-    ),
-    borderBottomLeftRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [24, 24, 0],
-      Extrapolation.CLAMP
-    ),
-    borderBottomRightRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [24, 24, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
-  const heroContentAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.5],
-      [1, 1, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
-  const navSearchAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, THRESHOLD + ANIM_RANGE * 0.4, ANIM_END],
-      [0, 0, 1],
-      Extrapolation.CLAMP
-    ),
-  }))
+  // Actions
+  const handlePost = () => {
+    if (!user) {
+      router.push('/(auth)/login' as any)
+      return
+    }
+    router.push('/(modals)/post-category' as any)
+  }
 
   const userName = user?.displayName || user?.username || 'ضيف'
 
   return (
     <View style={s.root}>
-      {/* ── HEADER ── */}
-      <AnimatedLinearGradient
-        colors={Gradients.hero as any}
-        locations={[0, 0.6, 1]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[s.header, headerAnimStyle, { paddingTop: insets.top + 8, paddingHorizontal: 20 }]}
-      >
-        <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
-          <Svg width="100%" height="100%">
-            <Defs>
-              <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              </Pattern>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#grid)" />
-          </Svg>
-        </View>
-        
-        {/* ── TOP BAR (Always Visible) ── */}
-        <View style={s.heroTop}>
-          <View style={s.heroTopLeft}>
-            {/* User Info (Fades Out) */}
-            <Animated.View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'flex-start' }, heroContentAnimStyle]} pointerEvents={scrollY.value > THRESHOLD + ANIM_RANGE * 0.5 ? 'none' : 'auto'}>
-              <Text style={s.greeting}>
-                مرحباً بك في <Text style={{ fontFamily: 'Almarai_800ExtraBold', color: '#FFFFFF' }}>سوق <Text style={{ color: Colors.accent }}>ون</Text></Text>،
-              </Text>
-              <Text style={s.userName}>{userName} 👋</Text>
-            </Animated.View>
-
-            {/* Small Search (Fades In) */}
-            <Animated.View style={[StyleSheet.absoluteFill, { justifyContent: 'center', paddingEnd: 12 }, navSearchAnimStyle]} pointerEvents={scrollY.value < THRESHOLD + ANIM_RANGE * 0.5 ? 'none' : 'auto'}>
-              <TouchableOpacity style={s.navSearchInner} onPress={() => router.push('/(tabs)/search')} activeOpacity={0.9}>
-                <Ionicons name="search" size={16} color={Colors.white} style={{ opacity: 0.8 }} />
-                <Text style={s.navSearchTxt}>بحث...</Text>
-              </TouchableOpacity>
-            </Animated.View>
+      {/* ── ANIMATED STICKY HEADER (Unified Glassmorphism matching all landing pages) ── */}
+      <AnimatedHeroHeader
+        scrollY={scrollY}
+        hideBackButton
+        rightElement={
+          <View style={s.brandIconBtn}>
+            <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
           </View>
-
-          {/* Bell Icon (Always Visible) */}
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/profile/notifications')}>
-            <Ionicons name="notifications-outline" size={22} color={Colors.white} />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── HERO CENTER (Large Search - Fades Out) ── */}
-        <Animated.View style={[s.heroCenter, heroContentAnimStyle]} pointerEvents={scrollY.value > THRESHOLD + ANIM_RANGE * 0.5 ? 'none' : 'auto'}>
-          <TouchableOpacity style={s.searchBar} onPress={() => router.push('/(tabs)/search')} activeOpacity={0.9}>
-            <View style={s.searchInner}>
-              <Ionicons name="search" size={20} color={Colors.white} style={{ opacity: 0.8 }} />
-              <Text style={s.searchPlaceholder}>عن ماذا تبحث اليوم؟ (سيارات، وظائف...)</Text>
-            </View>
-            <View style={s.searchFilterBtn}>
-              <Ionicons name="options-outline" size={18} color={Colors.white} />
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-      </AnimatedLinearGradient>
+        }
+        title="ســوق ون"
+        titleAccent={`أهلاً بك، ${userName} 👋`}
+        heroSearchPlaceholder="عن ماذا تبحث اليوم؟ (سيارات، وظائف...)"
+        onHeroSearchPress={() => router.push('/(tabs)/search')}
+        navSearchPlaceholder="عن ماذا تبحث اليوم؟"
+        onNavSearchPress={() => router.push('/(tabs)/search')}
+        headerIcon="notifications-outline"
+        onHeaderIconPress={() => router.push('/profile/notifications')}
+        primaryCta={{
+          label: 'إضافة إعلان',
+          icon: 'add',
+          onPress: handlePost,
+        }}
+      />
 
       <Animated.ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={[s.content, { paddingBottom: 100, paddingTop: HERO_HEIGHT + 16 }]}
+        contentContainerStyle={[s.content, { 
+          paddingTop: insets.top + 114 + Spacing.space4, 
+          paddingBottom: 100 
+        }]}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
@@ -335,41 +257,143 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* ── CATEGORIES (Photographic Premium) ── */}
-        <View style={s.catsContainer}>
-          {/* Main Categories (Top 2) */}
-          <View style={s.mainCatsRow}>
-            {CATEGORIES.filter(c => c.isMain).map((cat, index) => (
-              <Animated.View key={cat.id} entering={FadeInDown.delay(index * 60).springify()} style={s.mainCatWrap}>
-                <TouchableOpacity onPress={() => router.push(cat.route as any)} style={s.mainCatCard} activeOpacity={0.8}>
-                  <Text style={s.mainCatLabel}>{cat.label}</Text>
-                  <Image source={{ uri: cat.image }} style={s.mainCatImage} contentFit="contain" />
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-          </View>
+        {/* ── OFFICIAL CATEGORIES GRID (Balanced 4x2) ── */}
+        <HomeCategoriesGrid />
 
-          {/* Sub Categories (Grid) */}
-          <View style={s.subCatsGrid}>
-            {CATEGORIES.filter(c => !c.isMain).map((cat, index) => (
-              <Animated.View key={cat.id} entering={FadeInDown.delay(120 + index * 40).springify()} style={s.subCatWrap}>
-                <TouchableOpacity onPress={() => router.push(cat.route as any)} style={s.subCatCard} activeOpacity={0.8}>
-                  <Image source={{ uri: cat.image }} style={s.subCatImage} contentFit="contain" />
-                  <Text style={s.subCatLabel} numberOfLines={1}>{cat.label}</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-          </View>
-        </View>
+        {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture) ── */}
+        <CategorySection
+          title="أحدث إعلانات السيارات"
+          subTitle="أفضل عروض البيع والإيجار المتاحة"
+          icon="car-sports"
+          iconColor={Colors.primary}
+          seeAllRoute="/cars/browse"
+          data={listings}
+          isLoading={loadingListings}
+          routeBase="cars"
+          CustomCard={({ item, onPress }) => (
+            <CarCard
+              item={item as any}
+              onPress={onPress}
+              maxChips={3}
+              disableImageSwipe={true}
+              titleNumberOfLines={1}
+            />
+          )}
+        />
 
-        {/* ── SECTIONS ── */}
-        <CategorySection title="أحدث إعلانات السيارات" icon="star" iconColor="#E8781E" seeAllRoute="/cars/browse" data={listings} isLoading={loadingListings} routeBase="cars" CustomCard={({ item, onPress }) => <CarCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
-        <CategorySection title="وظائف" icon="briefcase" iconColor="#10B981" seeAllRoute="/jobs" data={jobs as any} isLoading={loadingJobs} routeBase="jobs" CustomCard={({ item, onPress }) => <JobCard job={item as any} onPress={onPress} maxChips={3} />} />
-        <CategorySection title="خدمات" icon="build" iconColor="#3B82F6" seeAllRoute="/services" data={services} isLoading={loadingServices} routeBase="services" CustomCard={({ item, onPress }) => <ServiceCard item={item as any} onPress={onPress} fullWidth disableImageSwipe={true} />} />
-        <CategorySection title="قطع غيار" icon="construct" iconColor="#8B5CF6" seeAllRoute="/parts" data={parts} isLoading={loadingParts} routeBase="parts" CustomCard={({ item, onPress }) => <PartCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
-        <CategorySection title="حافلات" icon="bus" iconColor="#F59E0B" seeAllRoute="/buses" data={buses} isLoading={loadingBuses} routeBase="buses" CustomCard={({ item, onPress }) => <BusCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
-        <CategorySection title="معدات" icon="hardware-chip" iconColor="#64748B" seeAllRoute="/equipment" data={equipment} isLoading={loadingEquipment} routeBase="equipment" CustomCard={({ item, onPress }) => <EquipCard item={item as any} onPress={onPress} fullWidth maxChips={3} disableImageSwipe={true} />} />
-        <CategorySection title="طلبات نقل" icon="navigate" iconColor="#EC4899" seeAllRoute="/transport" data={transport?.items as any} isLoading={loadingTransport} routeBase="transport" CustomCard={({ item, onPress }) => <TransportRequestCard request={item as any} onPress={onPress} />} />
+        <CategorySection
+          title="وظائف وشواغر"
+          subTitle="فرص عمل وكفاءات مهنية جديدة"
+          icon="account-tie"
+          iconColor={Colors.forestGreen}
+          seeAllRoute="/jobs"
+          data={jobs as any}
+          isLoading={loadingJobs}
+          routeBase="jobs"
+          CustomCard={({ item, onPress }) => (
+            <JobCard
+              job={item as any}
+              onPress={onPress}
+              maxChips={3}
+            />
+          )}
+        />
+
+        <CategorySection
+          title="خدمات السيارات"
+          subTitle="صيانة وفحص وورش متخصصة"
+          icon="car-wrench"
+          iconColor={Colors.accent}
+          seeAllRoute="/services"
+          data={services}
+          isLoading={loadingServices}
+          routeBase="services"
+          CustomCard={({ item, onPress }) => (
+            <ServiceCard
+              item={item as any}
+              onPress={onPress}
+              disableImageSwipe={true}
+              titleNumberOfLines={1}
+            />
+          )}
+        />
+
+        <CategorySection
+          title="قطع الغيار"
+          subTitle="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
+          icon="car-cog"
+          iconColor={Colors.primary}
+          seeAllRoute="/parts"
+          data={parts}
+          isLoading={loadingParts}
+          routeBase="parts"
+          CustomCard={({ item, onPress }) => (
+            <PartCard
+              item={item as any}
+              onPress={onPress}
+              maxChips={3}
+              disableImageSwipe={true}
+              titleNumberOfLines={1}
+            />
+          )}
+        />
+
+        <CategorySection
+          title="حافلات ونقل ركاب"
+          subTitle="حافلات للبيع وللإيجار بمختلف السعات"
+          icon="bus-side"
+          iconColor={Colors.forestGreen}
+          seeAllRoute="/buses"
+          data={buses}
+          isLoading={loadingBuses}
+          routeBase="buses"
+          CustomCard={({ item, onPress }) => (
+            <BusCard
+              item={item as any}
+              onPress={onPress}
+              maxChips={3}
+              disableImageSwipe={true}
+              titleNumberOfLines={1}
+            />
+          )}
+        />
+
+        <CategorySection
+          title="معدات ومشغلون"
+          subTitle="معدات ثقيلة وخفيفة ومشغلون معتمدون"
+          icon="excavator"
+          iconColor={Colors.primary}
+          seeAllRoute="/equipment"
+          data={equipment}
+          isLoading={loadingEquipment}
+          routeBase="equipment"
+          CustomCard={({ item, onPress }) => (
+            <EquipCard
+              item={item as any}
+              onPress={onPress}
+              maxChips={3}
+              disableImageSwipe={true}
+              titleNumberOfLines={1}
+            />
+          )}
+        />
+
+        <CategorySection
+          title="طلبات الشحن والنقل"
+          subTitle="شحنات بضائع وطلبات نقل نشطة"
+          icon="truck-fast"
+          iconColor={Colors.accent}
+          seeAllRoute="/transport"
+          data={transport?.items as any}
+          isLoading={loadingTransport}
+          routeBase="transport"
+          CustomCard={({ item, onPress }) => (
+            <TransportRequestCard
+              request={item as any}
+              onPress={onPress}
+            />
+          )}
+        />
 
         {/* Need Help / Support Button */}
         <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space2, marginBottom: Spacing.space6 }} />
@@ -381,55 +405,22 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8F9FB' },
 
-  // Header
-  header: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
-    overflow: 'hidden',
-  },
-  
-  heroTop: {
-    flexDirection: 'row',
+  // Header & Brand Icon
+  brandIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 182, 155, 0.35)',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  heroTopLeft: {
-    flex: 1, height: 44, justifyContent: 'center'
-  },
-  
-  greeting: { fontFamily: 'Almarai_400Regular',  fontSize: 18, color: Colors.white, textAlign: 'left', lineHeight: 28, paddingVertical: 2 },
-  userName: { fontFamily: 'Almarai_400Regular',  fontSize: 17, color: 'rgba(255,255,255,0.85)', textAlign: 'left', lineHeight: 26, paddingBottom: 4 },
-  
-  navSearchInner: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    height: 38, borderRadius: 19,
-    paddingHorizontal: Spacing.space4, gap: 10,
-  },
-  navSearchTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: 'rgba(255,255,255,0.85)', flex: 1, textAlign: 'left', paddingTop: 2,
-  },
-
-  iconBtn: { 
-    width: 44, height: 44, borderRadius: 22, 
-    backgroundColor: 'rgba(255,255,255,0.15)', 
-    alignItems: 'center', justifyContent: 'center' 
-  },
-  
-  heroCenter: {
-    marginTop: Spacing.space3,
-  },
-  searchBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 48, borderRadius: Radius.xl,
-    paddingStart: Spacing.space4, paddingEnd: 4,
-  },
-  searchInner: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, paddingHorizontal: 4 },
-  searchPlaceholder: { fontFamily: 'Almarai_400Regular',  color: 'rgba(255,255,255,0.85)', fontSize: 13, flex: 1, textAlign: 'left', paddingTop: 2 },
-  searchFilterBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
 
   content: { },
 
@@ -493,54 +484,68 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Categories (3D Talabat Style - Small)
-  catsContainer: { paddingHorizontal: Spacing.space4, marginBottom: Spacing.space6, gap: Spacing.space3 },
-  
-  // Main Cards
-  mainCatsRow: { flexDirection: 'row', gap: Spacing.space3 },
-  mainCatWrap: { flex: 1 },
-  mainCatCard: { 
-    backgroundColor: Colors.white, height: 86, borderRadius: 16, 
-    padding: 12, justifyContent: 'flex-start',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-    overflow: 'hidden', borderWidth: 1, borderColor: '#F5F5F5'
-  },
-  mainCatLabel: { fontFamily: 'Almarai_800ExtraBold', fontSize: 14, color: Colors.text, zIndex: 2 },
-  mainCatImage: { width: 56, height: 56, position: 'absolute', bottom: -5, left: -5, zIndex: 1, transform: [{ rotate: '-5deg' }] },
-
-  // Sub Cards
-  subCatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  subCatWrap: { width: (SW - 32 - 24) / 4 }, // 4 columns
-  subCatCard: { 
-    backgroundColor: Colors.white, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 4,
-    alignItems: 'center', gap: 6,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
-    borderWidth: 1, borderColor: '#F5F5F5'
-  },
-  subCatImage: { width: 34, height: 34 },
-  subCatLabel: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: '#374151', textAlign: 'center' },
-
   // Section
-  section: { marginBottom: 36 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.space5, marginBottom: 16 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  section: {
+    marginBottom: 28,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.space4,
+    marginBottom: 12,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
   sectionIconWrap: { 
-    width: 28, height: 28, borderRadius: 8, 
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 3
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(35, 83, 71, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 182, 155, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: '#1E293B', letterSpacing: -0.2 },
+  titleCol: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#163832',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  sectionSubTitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#64748B',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginTop: 1,
+  },
   seeAllBtn: { 
-    flexDirection: 'row', alignItems: 'center', gap: 6, 
-    paddingVertical: 4, paddingHorizontal: 12, 
-    backgroundColor: Colors.primary + '0A', 
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4, 
+    paddingVertical: 4,
+    paddingHorizontal: 11, 
+    backgroundColor: 'rgba(218, 241, 222, 0.35)', 
     borderRadius: Radius.pill,
-    borderWidth: 1, borderColor: Colors.primary + '1A'
+    borderWidth: 1,
+    borderColor: 'rgba(142, 182, 155, 0.30)',
   },
-  seeAll: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary, paddingTop: 2 },
-
-  // Horizontal list
-  hList: { },
-  hWrap: { paddingHorizontal: Spacing.space5, paddingVertical: Spacing.space3, gap: Spacing.space4 },
-  cardWrap: { width: CARD_W },
+  seeAll: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11.5,
+    color: Colors.primary,
+    paddingTop: 1,
+  },
 })

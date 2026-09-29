@@ -1,5 +1,6 @@
 import React from 'react'
 import { useRouter } from 'expo-router'
+import { Colors } from '../../../constants/colors'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
@@ -13,24 +14,24 @@ export function BusCategoriesGrid() {
       id: 'used',
       label: 'مستعملة',
       icon: 'bus-outline',
-      iconBg: '#e0f2fe',
-      iconColor: '#0ea5e9',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
       onPress: () => router.push('/buses/browse?condition=USED' as any),
     },
     {
       id: 'new',
       label: 'جديدة',
       icon: 'sparkles',
-      iconBg: '#d1fae5',
-      iconColor: '#10b981',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
       onPress: () => router.push('/buses/browse?condition=NEW' as any),
     },
     {
       id: 'contract',
       label: 'بيع بعقد',
       icon: 'document-text-outline',
-      iconBg: '#ffedd5',
-      iconColor: '#ea580c',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
       onPress: () =>
         router.push(
           '/buses/browse?busListingType=BUS_SALE_WITH_CONTRACT' as any
@@ -40,8 +41,8 @@ export function BusCategoriesGrid() {
       id: 'rental',
       label: 'تأجير',
       icon: 'key',
-      iconBg: '#fef3c7',
-      iconColor: '#f59e0b',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
       onPress: () =>
         router.push('/buses/browse?busListingType=BUS_RENT' as any),
     },
@@ -49,11 +50,12 @@ export function BusCategoriesGrid() {
       id: 'wanted',
       label: 'مطلوب',
       icon: 'megaphone',
-      iconBg: '#ede9fe',
-      iconColor: '#8b5cf6',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
       onPress: () => router.push('/buses/browse?type=wanted' as any),
     },
   ]
 
   return <GlassCategoriesGrid items={tabs} />
 }
+

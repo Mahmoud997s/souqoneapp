@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
+import { Colors } from '../../constants/colors'
 import { Gradients } from '../../constants/gradients'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 
@@ -63,7 +64,7 @@ const s = StyleSheet.create({
     marginBottom: 14,
     ...Platform.select({
       ios: {
-        shadowColor: '#0B2447',
+        shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.16,
         shadowRadius: 10,

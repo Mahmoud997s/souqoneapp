@@ -298,8 +298,10 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space4,
     marginBottom: Spacing.space2,
     marginTop: Spacing.space2,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: 'rgba(218, 241, 222, 0.4)',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 182, 155, 0.35)',
     padding: 3,
   },
   segmentedContainer: {
@@ -330,13 +332,13 @@ const s = StyleSheet.create({
     backgroundColor: '#ffffff',
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.12,
         shadowRadius: 3,
       },
       android: {
-        elevation: 1,
+        elevation: 2,
       },
     }),
   },
@@ -347,7 +349,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 15.5,
-    color: '#64748b',
+    color: Colors.accent,
     textAlign: 'center',
     writingDirection: 'rtl',
   },

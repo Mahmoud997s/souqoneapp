@@ -4,6 +4,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { Colors } from '../../constants/colors'
 import { formatLocation } from '../../utils/mappers'
 import {
   POPULAR_PART_MAKES,
@@ -21,6 +22,7 @@ export interface PartCardProps {
   maxChips?: number
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
+  titleNumberOfLines?: number
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -55,6 +57,7 @@ export const PartCard: React.FC<PartCardProps> = ({
   maxChips = 3,
   actionMenu,
   disableImageSwipe = false,
+  titleNumberOfLines = 1,
 }) => {
   const rawData = item.raw || item
   const { data: brands } = useBrands()
@@ -151,32 +154,35 @@ export const PartCard: React.FC<PartCardProps> = ({
     badges.push({
       key: 'orig',
       label: 'أصلي وكالة',
-      backgroundColor: '#ea580c',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       iconName: 'shield-checkmark',
     })
   } else if (isOriginal === false) {
     badges.push({
       key: 'commercial',
       label: 'تجاري / بديل',
-      backgroundColor: '#475569',
+      backgroundColor: Colors.surfaceAlt,
+      textColor: Colors.text2,
     })
   }
 
   if (rawCondition === 'NEW') {
-    badges.push({ key: 'new', label: 'جديد', backgroundColor: '#10b981' })
+    badges.push({ key: 'new', label: 'جديد', backgroundColor: Colors.paleMint, textColor: Colors.primary })
   } else if (rawCondition === 'LIKE_NEW') {
-    badges.push({ key: 'like_new', label: 'شبه جديد', backgroundColor: '#14b8a6' })
+    badges.push({ key: 'like_new', label: 'شبه جديد', backgroundColor: Colors.forestGreen, textColor: Colors.white })
   } else if (rawCondition === 'USED') {
-    badges.push({ key: 'used', label: 'مستعمل', backgroundColor: '#64748b' })
+    badges.push({ key: 'used', label: 'مستعمل', backgroundColor: Colors.surfaceAlt, textColor: Colors.text2 })
   } else if (rawCondition === 'REFURBISHED') {
-    badges.push({ key: 'refurbished', label: 'مجدد', backgroundColor: '#d97706' })
+    badges.push({ key: 'refurbished', label: 'مجدد', backgroundColor: Colors.forestGreen, textColor: Colors.white })
   }
 
   if (rawData.isPremium || item.isPremium) {
     badges.push({
       key: 'premium',
       label: 'مميز',
-      backgroundColor: '#ef4444',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       iconName: 'star',
     })
   }
@@ -270,7 +276,7 @@ export const PartCard: React.FC<PartCardProps> = ({
       gridMode={gridMode}
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
-      titleNumberOfLines={2}
+      titleNumberOfLines={titleNumberOfLines}
       favoriteType="SPARE_PART"
       shareMessage={`شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\nhttps://souqone.app/parts/${rawData.id || item.id}`}
     />

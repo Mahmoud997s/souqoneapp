@@ -1,4 +1,5 @@
 import { Platform } from 'react-native'
+import { Colors } from './colors'
 
 export const CardSystem = {
   // Dimensions
@@ -25,11 +26,11 @@ export const CardSystem = {
   styles: {
     border: {
       borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.04)',
+      borderColor: Colors.border,
     },
     softShadow: Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
@@ -39,19 +40,19 @@ export const CardSystem = {
       },
     }),
     badgeShadow: {
-      shadowColor: '#000',
+      shadowColor: Colors.primaryDark,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
       elevation: 2,
     },
-    // Semantic Backgrounds for Pills
-    pillNeutral: { backgroundColor: '#f8fafc' },
-    pillBlue: { backgroundColor: '#eff6ff' },
-    pillAmber: { backgroundColor: '#fffbeb' },
-    pillGreen: { backgroundColor: '#ecfdf5' },
-    pillRed: { backgroundColor: '#fef2f2' },
-    pillOrange: { backgroundColor: '#fff7ed' },
+    // Semantic Backgrounds for Pills (Neutral Specs, Pale Mint for Negotiable Price)
+    pillNeutral: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+    pillBlue:    { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+    pillAmber:   { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+    pillGreen:   { backgroundColor: Colors.paleMint, borderWidth: 1, borderColor: '#BDE4C7' },
+    pillRed:     { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+    pillOrange:  { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   },
 
   // Common Typography configurations

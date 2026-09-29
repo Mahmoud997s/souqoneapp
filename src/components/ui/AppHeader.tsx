@@ -63,7 +63,7 @@ export function AppHeader({
       {!isLight && (
         <>
           <LinearGradient
-            colors={['#0B2447', '#1a3a6b', '#0d3060']}
+            colors={Gradients.hero as any}
             locations={[0, 0.6, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[StyleSheet.absoluteFill, { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}

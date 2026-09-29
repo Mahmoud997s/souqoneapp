@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { useAuthStore } from '../src/store/authStore'
 import { Gradients } from '../src/constants/gradients'
+import { Colors } from '../src/constants/colors'
 
 const { width, height } = Dimensions.get('window')
 
@@ -118,7 +119,7 @@ export default function SplashScreen() {
       </View>
       
       <LinearGradient
-        colors={['transparent', '#0B244780']}
+        colors={['transparent', Colors.primaryDark + '80']}
         style={s.overlay}
         pointerEvents="none"
       />
@@ -178,7 +179,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 4,
     borderColor: 'rgba(255,255,255,0.15)',
-    borderTopColor: '#E8781E',
+    borderTopColor: Colors.sage,
   },
   overlay: { position: 'absolute', bottom: 0, start: 0, end: 0, height: height * 0.4, zIndex: 1 },
 })

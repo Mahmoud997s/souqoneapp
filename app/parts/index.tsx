@@ -39,12 +39,11 @@ export default function PartsLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون لقطع الغيار"
         titleAccent="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
         navSearchPlaceholder="ابحث عن قطعة غيار..."

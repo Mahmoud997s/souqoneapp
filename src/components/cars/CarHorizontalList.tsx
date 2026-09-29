@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
 import { Listing } from '../../types/listing.types'
 import { SkeletonCard } from '../ui/SkeletonCard'
 import { CarCard } from './CarCard'
@@ -127,10 +128,12 @@ const s = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     gap: 4,
-    backgroundColor: '#EFF6FF', 
+    backgroundColor: Colors.paleMint, 
+    borderWidth: 1,
+    borderColor: 'rgba(142, 182, 155, 0.35)',
     paddingHorizontal: 12, 
     paddingVertical: 5, 
-    borderRadius: 20,
+    borderRadius: Radius.pill,
   },
   seeAllTxt: { 
     fontFamily: 'Almarai_700Bold', 

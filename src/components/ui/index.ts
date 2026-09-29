@@ -8,6 +8,7 @@ export { SectionHeader } from './SectionHeader'
 export { PriceBadge } from './PriceBadge'
 export { LocationRow } from './LocationRow'
 export { StatusBadge } from './StatusBadge'
+export { VerifiedBadge, type VerifiedBadgeProps } from './VerifiedBadge'
 export { ActionBanner } from './ActionBanner'
 export { SupportHelpButton } from './SupportHelpButton'
 

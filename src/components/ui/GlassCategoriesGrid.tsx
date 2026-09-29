@@ -29,8 +29,8 @@ export interface GlassCategoryTabItem {
   label: string
   icon: string | any
   iconType?: 'ion' | 'material'
-  iconColor: string
-  iconBg: string
+  iconColor?: string
+  iconBg?: string
   onPress: () => void
 }
 
@@ -128,12 +128,13 @@ export function GlassCategoriesGrid({
   })
 
   const renderIcon = (item: GlassCategoryTabItem, size: number) => {
+    const iconColor = item.iconColor || Colors.primary
     if (item.iconType === 'material') {
       return (
         <MaterialCommunityIcons
           name={item.icon}
           size={size}
-          color={item.iconColor}
+          color={iconColor}
         />
       )
     }
@@ -141,7 +142,7 @@ export function GlassCategoriesGrid({
       <Ionicons
         name={item.icon}
         size={size}
-        color={item.iconColor}
+        color={iconColor}
       />
     )
   }
@@ -183,7 +184,7 @@ export function GlassCategoriesGrid({
                       <View
                         style={[
                           s.catIconBox,
-                          { backgroundColor: item.iconBg },
+                          { backgroundColor: item.iconBg || Colors.paleMint },
                         ]}
                       >
                         {renderIcon(item, 20)}
@@ -221,7 +222,7 @@ export function GlassCategoriesGrid({
               style={[
                 s.catIconBox,
                 isCompact && s.catIconBoxCompact,
-                { backgroundColor: item.iconBg },
+                { backgroundColor: item.iconBg || Colors.paleMint },
               ]}
             >
               {renderIcon(item, isCompact ? 17 : 20)}
@@ -251,17 +252,17 @@ const s = StyleSheet.create({
   },
   catItem: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency
+    backgroundColor: 'rgba(255, 255, 255, 0.65)', // Glass transparency
     paddingVertical: 10,
     borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF', // 3D edge light reflection
-    shadowColor: '#94A3B8',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    borderColor: 'rgba(255, 255, 255, 0.95)', // 3D edge light reflection
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 3, // 3D floating shadow
   },
   catItemCompact: {
@@ -269,8 +270,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 2,
     borderRadius: Radius.md,
     borderWidth: 1.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
     elevation: 2,
   },
   catIconBox: {
@@ -325,18 +326,18 @@ const s = StyleSheet.create({
     top: 4,
   },
   catItemScrollable: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency
+    backgroundColor: 'rgba(255, 255, 255, 0.65)', // Glass transparency
     paddingVertical: 10,
     paddingHorizontal: 4,
     borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF', // 3D edge light reflection
-    shadowColor: '#94A3B8',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    borderColor: 'rgba(255, 255, 255, 0.95)', // 3D edge light reflection
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 3,
   },
   catLabelScrollable: {

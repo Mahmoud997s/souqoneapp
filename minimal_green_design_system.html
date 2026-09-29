@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام ألوان Minimal Green — SouqOne Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c1: #051F20;
+      --c2: #0B2B26;
+      --c3: #163832;
+      --c4: #235347;
+      --c5: #8EB69B;
+      --c6: #DAF1DE;
+      --surface: #F4F7F5;
+      --card-bg: #FFFFFF;
+      --border-subtle: #D4E5D9;
+      --font-ar: 'Almarai', -apple-system, sans-serif;
+      --font-en: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-ar);
+      background-color: #051F20;
+      color: #F4F7F5;
+      line-height: 1.6;
+      overflow-x: hidden;
+      padding: 0 0 60px 0;
+    }
+
+    /* Ambient Background Glow */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(35, 83, 71, 0.35) 0%, rgba(11, 43, 38, 0.15) 50%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 18px;
+      background: rgba(218, 241, 222, 0.12);
+      color: var(--c6);
+      border: 1px solid rgba(142, 182, 155, 0.3);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: var(--c5);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Palette Swatches Bar */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 55px;
+    }
+
+    .swatch-card {
+      background: rgba(11, 43, 38, 0.6);
+      border: 1px solid rgba(142, 182, 155, 0.2);
+      border-radius: 20px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .swatch-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--c5);
+      box-shadow: 0 14px 30px rgba(5, 31, 32, 0.6);
+    }
+
+    .swatch-preview {
+      width: 100%;
+      height: 90px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-en);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-en);
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+      direction: ltr;
+      text-align: right;
+    }
+
+    .swatch-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c5);
+      margin-bottom: 6px;
+    }
+
+    .swatch-role {
+      font-size: 12px;
+      color: rgba(244, 247, 245, 0.7);
+      line-height: 1.4;
+    }
+
+    /* Main Showcase: Split Layout (Interactive Mockup + Guide) */
+    .showcase-layout {
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 992px) {
+      .showcase-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mobile Phone Shell */
+    .mobile-mockup {
+      background: #000000;
+      border-radius: 46px;
+      padding: 12px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(142, 182, 155, 0.3);
+      position: sticky;
+      top: 30px;
+    }
+
+    .phone-screen {
+      background: var(--surface);
+      border-radius: 36px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 780px;
+      color: var(--c1);
+      box-shadow: inset 0 0 1px 1px rgba(255,255,255,0.2);
+    }
+
+    /* Phone Header (Hero Gradient) */
+    .phone-header {
+      background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);
+      padding: 24px 18px 20px 18px;
+      color: #FFFFFF;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 10px 25px rgba(5, 31, 32, 0.35);
+      position: relative;
+    }
+
+    .phone-status-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: var(--font-en);
+      font-weight: 700;
+      margin-bottom: 16px;
+      opacity: 0.85;
+      direction: ltr;
+    }
+
+    .phone-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--c6);
+      box-shadow: 0 0 10px var(--c6);
+    }
+
+    .phone-search-box {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--c5);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(5, 31, 32, 0.15);
+    }
+
+    .phone-search-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: var(--font-ar);
+      font-size: 12px;
+      color: var(--c1);
+      width: 100%;
+    }
+
+    .phone-search-input::placeholder {
+      color: var(--c5);
+    }
+
+    /* Phone Content Scroll */
+    .phone-content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* Glass Categories Grid (Landing Tabs Under Header - 100% Unified Colors) */
+    .mockup-glass-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(11, 43, 38, 0.08);
+    }
+    .glass-cat-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 4px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 10px rgba(11, 43, 38, 0.04);
+      transition: all 0.2s ease;
+    }
+    .glass-cat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--c5);
+    }
+    .glass-cat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      background: var(--c6); /* #DAF1DE - موحد 100% لكافة التابات */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      border: 1px solid rgba(142, 182, 155, 0.35);
+      color: var(--c3); /* #163832 - موحد 100% لكافة الأيقونات */
+    }
+    .glass-cat-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--c1); /* #051F20 - مقروئية عالية موحدة */
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Minimal Green Glass Listing Tabs */
+    .mockup-listing-tabs {
+      display: flex;
+      background: rgba(218, 241, 222, 0.45);
+      border: 1px solid rgba(142, 182, 155, 0.35);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .mockup-tab-pill {
+      flex: 1;
+      padding: 6px 10px;
+      border-radius: 9px;
+      text-align: center;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--c4);
+      transition: all 0.2s ease;
+    }
+    .mockup-tab-pill.active {
+      background: #FFFFFF;
+      color: var(--c3);
+      box-shadow: 0 2px 8px rgba(11, 43, 38, 0.1);
+    }
+
+    /* Category Chips */
+    .chips-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .chip {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .chip-active {
+      background: var(--c3);
+      color: #FFFFFF;
+      box-shadow: 0 3px 8px rgba(22, 56, 50, 0.3);
+    }
+
+    .chip-idle {
+      background: var(--c6);
+      color: var(--c4);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Section Title & See All Chip */
+    .sec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .sec-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--c1);
+    }
+
+    .see-all-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--c6);
+      color: var(--c3);
+      border: 1px solid rgba(142, 182, 155, 0.35);
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .see-all-chip:hover {
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(11, 43, 38, 0.1);
+      border-color: var(--c4);
+      transform: translateY(-1px);
+    }
+
+    /* See All Horizontal Card */
+    .mockup-see-all-card {
+      background: #FFFFFF;
+      border: 1.5px solid rgba(142, 182, 155, 0.25);
+      border-radius: 18px;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(11, 43, 38, 0.05);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .mockup-see-all-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--c5);
+      box-shadow: 0 6px 18px rgba(11, 43, 38, 0.08);
+    }
+    .see-all-icon-circle {
+      width: 46px;
+      height: 46px;
+      border-radius: 23px;
+      background: var(--c6);
+      border: 1px solid rgba(142, 182, 155, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c3);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .see-all-card-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--c1);
+      margin-bottom: 2px;
+    }
+    .see-all-card-sub {
+      font-size: 11px;
+      color: var(--c5);
+      margin-bottom: 10px;
+    }
+    .see-all-action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--c6);
+      border: 1px solid rgba(142, 182, 155, 0.35);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--c3);
+    }
+
+    /* How It Works Card */
+    .mockup-how-it-works {
+      background: #FFFFFF;
+      border: 1px solid rgba(142, 182, 155, 0.25);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(11, 43, 38, 0.05);
+    }
+    .hiw-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .hiw-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--c1);
+      margin-bottom: 2px;
+    }
+    .hiw-subtitle {
+      font-size: 10.5px;
+      color: var(--c5);
+    }
+    .hiw-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .hiw-step:last-child { margin-bottom: 0; }
+    .hiw-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      background: var(--c6);
+      border: 1px solid rgba(142, 182, 155, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .hiw-num-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      background: var(--c3);
+      color: #FFFFFF;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #FFFFFF;
+    }
+    .hiw-step-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--c1);
+      margin-bottom: 1px;
+    }
+    .hiw-step-desc {
+      font-size: 10px;
+      color: var(--c5);
+      line-height: 1.4;
+    }
+
+    /* Phone Tab Bar & Live Hover */
+    .phone-tab-bar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(142, 182, 155, 0.25);
+      padding: 8px 6px;
+      border-bottom-left-radius: 36px;
+      border-bottom-right-radius: 36px;
+    }
+    .phone-tab-bar .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--c5);
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .phone-tab-bar .tab-item:hover {
+      background: rgba(218, 241, 222, 0.45);
+      color: var(--c3);
+      transform: translateY(-1px);
+    }
+    .phone-tab-bar .tab-item.tab-active {
+      color: var(--c3);
+    }
+    .phone-tab-bar .tab-item.tab-active .tab-icon {
+      background: var(--c6);
+      border-radius: 12px;
+      padding: 2px 8px;
+    }
+    .phone-tab-bar .tab-fab {
+      width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      background: linear-gradient(135deg, var(--c3) 0%, var(--c4) 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(11, 43, 38, 0.3);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .phone-tab-bar .tab-fab:hover {
+      transform: scale(1.08);
+    }
+
+    /* Car Listing Card */
+    .mockup-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(11, 43, 38, 0.05);
+      transition: transform 0.2s;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      height: 125px;
+      background: linear-gradient(135deg, #163832 0%, #235347 100%);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(218, 241, 222, 0.6);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--c6);
+      color: var(--c3);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      gap: 6px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--c1);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Generic Pill (DEPRECATED - For comparison only) */
+    .verified-pill-old {
+      background: var(--c6);
+      color: var(--c3);
+      border: 1px solid #B5DCBF;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+
+    /* ============================================================
+       PREMIUM VERIFIED BADGE DESIGNS (Strictly No Capsules/Circles)
+       ============================================================ */
+
+    /* STYLE 1: الختم الثماني الملكي (The Royal Octagram Seal) */
+    .verified-badge-octagram {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #0B2B26;
+      border: 1px solid rgba(142, 182, 155, 0.45);
+      border-radius: 4px; /* زوايا مستقيمة معمارية راقية بدون أي بيضاوية */
+      padding: 2.5px 7px 2.5px 5px;
+      box-shadow: 0 2px 6px rgba(5, 31, 32, 0.25), inset 0 1px 0 rgba(218, 241, 222, 0.15);
+      transition: all 0.2s ease;
+    }
+    .verified-badge-octagram .badge-text {
+      color: #DAF1DE;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+    .verified-badge-octagram svg {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+    }
+
+    /* STYLE 2: درع الاعتماد ثلاثي الأبعاد المشطوف (The Sculpted 3D Crest) */
+    .verified-badge-shield {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, #163832 0%, #0B2B26 100%);
+      border: 1px solid #8EB69B;
+      clip-path: polygon(5px 0%, calc(100% - 5px) 0%, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0% calc(100% - 5px), 0% 5px);
+      padding: 3px 8px 3px 6px;
+      box-shadow: 0 2px 8px rgba(11, 43, 38, 0.3);
+      transition: all 0.2s ease;
+    }
+    .verified-badge-shield .badge-text {
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      line-height: 1;
+    }
+
+    /* STYLE 3: تاغ النخبة المشطوف الزوايا (The Precision Chamfer Tag) */
+    .verified-badge-chamfer {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #DAF1DE;
+      border: 1px solid #235347;
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); /* شطف هندسي مائل حاد */
+      padding: 3px 10px 3px 8px;
+      box-shadow: 0 2px 6px rgba(5, 31, 32, 0.15);
+      transition: all 0.2s ease;
+    }
+    .verified-badge-chamfer .badge-text {
+      color: #0B2B26;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    /* Badge Showcase Section Styles */
+    .badge-lab-wrapper {
+      background: rgba(11, 43, 38, 0.7);
+      border: 1px solid rgba(142, 182, 155, 0.3);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 50px;
+      backdrop-filter: blur(16px);
+    }
+    .badge-lab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .badge-lab-title h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+    .badge-lab-title p {
+      font-size: 14px;
+      color: var(--c5);
+    }
+    .badge-switcher-bar {
+      display: flex;
+      background: rgba(5, 31, 32, 0.7);
+      border: 1px solid rgba(142, 182, 155, 0.25);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 6px;
+    }
+    .badge-switch-btn {
+      background: transparent;
+      border: none;
+      color: var(--c5);
+      font-family: var(--font-ar);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-switch-btn:hover {
+      color: #FFFFFF;
+    }
+    .badge-switch-btn.active {
+      background: var(--c4);
+      color: #DAF1DE;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .badge-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .badge-inspect-card {
+      background: rgba(5, 31, 32, 0.85);
+      border: 1px solid rgba(142, 182, 155, 0.2);
+      border-radius: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .badge-inspect-card:hover {
+      border-color: var(--c5);
+      transform: translateY(-4px);
+    }
+    .badge-inspect-card.featured {
+      border-color: var(--c5);
+      background: linear-gradient(180deg, rgba(22, 56, 50, 0.9) 0%, rgba(11, 43, 38, 0.9) 100%);
+    }
+    .inspect-top-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--c4);
+      color: var(--c6);
+    }
+    .inspect-preview-box {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+      border: 1px solid rgba(218, 241, 222, 0.6);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .inspect-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+    .inspect-desc {
+      font-size: 12px;
+      color: var(--c5);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .inspect-points {
+      list-style: none;
+      font-size: 11.5px;
+      color: #DAF1DE;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .inspect-points li::before {
+      content: "✦ ";
+      color: var(--c5);
+    }
+
+    .card-specs {
+      font-size: 11px;
+      color: var(--c5);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    .card-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--c4);
+      font-family: var(--font-en);
+    }
+
+    .card-btn {
+      background: var(--c3);
+      color: #FFFFFF;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Phone Tab Bar */
+    .phone-tab-bar {
+      background: #FFFFFF;
+      border-top: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-active {
+      color: var(--c3);
+    }
+
+    .tab-idle {
+      color: var(--c5);
+    }
+
+    .tab-icon {
+      font-size: 18px;
+    }
+
+    /* Architecture Breakdown Guide */
+    .guide-section {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .guide-box {
+      background: rgba(11, 43, 38, 0.65);
+      border: 1px solid rgba(142, 182, 155, 0.2);
+      border-radius: 24px;
+      padding: 26px;
+      backdrop-filter: blur(16px);
+    }
+
+    .guide-box h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .guide-box h2 .icon-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--c4);
+      color: var(--c6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* Mapping Table */
+    .map-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .map-table th {
+      background: rgba(5, 31, 32, 0.6);
+      color: var(--c5);
+      text-align: right;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(142, 182, 155, 0.25);
+      font-weight: 700;
+    }
+
+    .map-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(142, 182, 155, 0.12);
+      color: #FFFFFF;
+    }
+
+    .tag-hex {
+      font-family: var(--font-en);
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      direction: ltr;
+      display: inline-block;
+    }
+
+    .code-chip {
+      font-family: var(--font-en);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--c6);
+      font-size: 12px;
+    }
+
+    /* Splash & Gradient Showcase */
+    .gradient-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .gradient-box {
+      border-radius: 16px;
+      padding: 20px;
+      color: #FFFFFF;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .gradient-box.hero-grad {
+      background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);
+    }
+
+    .gradient-box.btn-grad {
+      background: linear-gradient(135deg, var(--c2) 0%, var(--c4) 100%);
+    }
+
+    .gradient-box.soft-grad {
+      background: linear-gradient(135deg, var(--c4) 0%, var(--c5) 100%);
+      color: var(--c1);
+    }
+
+    .grad-name {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .grad-codes {
+      font-family: var(--font-en);
+      font-size: 11px;
+      opacity: 0.85;
+      direction: ltr;
+      text-align: right;
+    }
+
+    /* Benefits List */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .benefit-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(142, 182, 155, 0.15);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .benefit-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--c6);
+      margin-bottom: 4px;
+    }
+
+    .benefit-desc {
+      font-size: 12px;
+      color: var(--c5);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="badge">SOUQONE • ARCHITECTURAL PALETTE SPEC</div>
+      <h1>نظام ألوان Minimal Green الفاخر</h1>
+      <p class="subtitle">
+        توزيع معمارية باليتة الألوان الستة الخضراء المتناغمة على كافة مكونات وشاشات التطبيق لتقديم هوية بصرية ملكية، راقية ومريحة للعين.
+      </p>
+    </header>
+
+    <!-- Swatches Grid -->
+    <div class="palette-grid">
+      
+      <!-- 1 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c1); color: #FFF;">01</div>
+        <div class="swatch-hex">#051F20</div>
+        <div class="swatch-title">Darkest Deep Forest</div>
+        <div class="swatch-role">الدرجة الأعمق للهيدرات، وخلفيات القوائم، ولون النصوص الرئيسية فائقة الوضوح.</div>
+      </div>
+
+      <!-- 2 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c2); color: #FFF;">02</div>
+        <div class="swatch-hex">#0B2B26</div>
+        <div class="swatch-title">Deep Pine Green</div>
+        <div class="swatch-role">الهيدر العلوي الملكي، شاشة البداية (Splash)، وخلفية الأيقونة التكيفية.</div>
+      </div>
+
+      <!-- 3 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c3); color: #FFF;">03</div>
+        <div class="swatch-hex">#163832</div>
+        <div class="swatch-title">Rich Hunter Green</div>
+        <div class="swatch-role">اللون الأساسي (Primary): الأزرار الرئيسية، شريط التنقل السفلي، الشارات النشطة.</div>
+      </div>
+
+      <!-- 4 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c4); color: #FFF;">04</div>
+        <div class="swatch-hex">#235347</div>
+        <div class="swatch-title">Medium Forest Green</div>
+        <div class="swatch-role">اللون التفاعلي (Accent): أسعار الإعلانات، حدود التركيز في الحقول، الأزرار الثانوية.</div>
+      </div>
+
+      <!-- 5 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c5); color: #051F20;">05</div>
+        <div class="swatch-hex">#8EB69B</div>
+        <div class="swatch-title">Soft Sage Green</div>
+        <div class="swatch-role">أيقونات الحقول الهادئة، النصوص الوصفية، والحدود الفاصلة المطفأة.</div>
+      </div>
+
+      <!-- 6 -->
+      <div class="swatch-card">
+        <div class="swatch-preview" style="background: var(--c6); color: #051F20;">06</div>
+        <div class="swatch-hex">#DAF1DE</div>
+        <div class="swatch-title">Pale Mint / Tint</div>
+        <div class="swatch-role">خلفيات الرقاقات (Chips)، أوعية الشارات الناعمة، وتدرجات البطاقات الخفيفة.</div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         VERIFIED BADGE REDESIGN LAB (تصاميم شارة موثق الملكية المميزة)
+         ============================================================ -->
+    <div class="badge-lab-wrapper">
+      <div class="badge-lab-header">
+        <div class="badge-lab-title">
+          <div class="badge" style="margin-bottom: 8px;">مقارنة معمارية خاصة • لا للكبسولة والدائرة التقليدية</div>
+          <h2>مختبر تصاميم شارة «موثق» الحصرية (Distinctive Verified Badges)</h2>
+          <p>
+            بدائل فاخرة ومصممة هندسياً خصيصاً لسوق ون بالاعتماد الكامل على باليتة الأخضر الستة، متخلصة نهائياً من شكل الكبسولة والدوائر العادية.
+          </p>
+        </div>
+        <div class="badge-switcher-bar">
+          <button class="badge-switch-btn active" onclick="switchMockupBadge('octagram', this)">
+            <span>⭐ الختم الثماني الملكي</span>
+          </button>
+          <button class="badge-switch-btn" onclick="switchMockupBadge('shield', this)">
+            <span>🛡️ درع الاعتماد ثلاثي الأبعاد</span>
+          </button>
+          <button class="badge-switch-btn" onclick="switchMockupBadge('chamfer', this)">
+            <span>💎 تاغ النخبة المشطوف</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Distinct Inspection Cards -->
+      <div class="badge-cards-grid">
+
+        <!-- Card 1: Octagram Seal -->
+        <div class="badge-inspect-card featured">
+          <span class="inspect-top-tag">الأكثر تميزاً وفخامة (موصى به)</span>
+          <div class="inspect-title">1. الختم الثماني الملكي (The Royal Octagram Seal)</div>
+          <div class="inspect-desc">
+            مستوحى من الهندسة الإسلامية والتراث العماني الأصيل (نجمة ثمانية الأضلاع). يمنح إحساساً فورياً بالاعتماد الرسمي والسيادي بدلاً من الدوائر الرخيصة.
+          </div>
+          
+          <div class="inspect-preview-box">
+            <!-- Large Preview -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <polygon points="12,1.5 15,5 19.5,4.5 19,9 22.5,12 19,15 19.5,19.5 15,19 12,22.5 9,19 4.5,19.5 5,15 1.5,12 5,9 4.5,4.5 9,5" fill="#0B2B26" stroke="#8EB69B" stroke-width="1.2"/>
+                <path d="M8 12 L10.8 14.8 L16.5 8.5" stroke="#DAF1DE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="verified-badge-octagram">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <polygon points="12,1.5 15,5 19.5,4.5 19,9 22.5,12 19,15 19.5,19.5 15,19 12,22.5 9,19 4.5,19.5 5,15 1.5,12 5,9 4.5,4.5 9,5" fill="#DAF1DE"/>
+                  <path d="M8 12 L10.8 14.8 L16.5 8.5" stroke="#0B2B26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="badge-text">موثق</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; color: #163832; font-weight: 700;">عرض الشارة المدمجة والمستقلة على الكرت</span>
+          </div>
+
+          <ul class="inspect-points">
+            <li><strong>الهندسة:</strong> زوايا هندسية مستقيمة (4px) بدون انحناء كبسولي.</li>
+            <li><strong>الأيقونة:</strong> نجمة ثمانية أضلاع حادة محفور بداخلها علامة صح دقيقة.</li>
+            <li><strong>التأثير:</strong> ختم أصالة يشبه وثائق الوكالات المعتمدة.</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: 3D Sculpted Shield -->
+        <div class="badge-inspect-card">
+          <div class="inspect-title">2. درع الاعتماد ثلاثي الأبعاد (The Sculpted Crest)</div>
+          <div class="inspect-desc">
+            درع حماية معماري منقسم إلى واجهتين ضوئيتين لعكس عمق ثلاثي الأبعاد مع زوايا مقطوعة 45 درجة (Chamfered).
+          </div>
+          
+          <div class="inspect-preview-box">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="24" height="28" viewBox="0 0 20 24" fill="none">
+                <path d="M10 1.5 L2 4.5 C2 12 5 18 10 22 Z" fill="#0B2B26" stroke="#8EB69B" stroke-width="0.8"/>
+                <path d="M10 1.5 L18 4.5 C18 12 15 18 10 22 Z" fill="#163832" stroke="#8EB69B" stroke-width="0.8"/>
+                <path d="M6.5 11.5 L9.2 14.2 L14 8.5" stroke="#DAF1DE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="verified-badge-shield">
+                <svg width="12" height="15" viewBox="0 0 20 24" fill="none">
+                  <path d="M10 1.5 L2 4.5 C2 12 5 18 10 22 Z" fill="#8EB69B"/>
+                  <path d="M10 1.5 L18 4.5 C18 12 15 18 10 22 Z" fill="#DAF1DE"/>
+                  <path d="M6.5 11.5 L9.2 14.2 L14 8.5" stroke="#0B2B26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="badge-text">معتمد</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; color: #163832; font-weight: 700;">درع ذو زوايا مشطوفة مع خلفية متدرجة</span>
+          </div>
+
+          <ul class="inspect-points">
+            <li><strong>الهندسة:</strong> قص مشطوف للزوايا بدرجة 45° (Chamfered Clip).</li>
+            <li><strong>الأيقونة:</strong> درع حماية بدرجتين متناغمتين لعكس الإضاءة.</li>
+            <li><strong>التأثير:</strong> يعطي شعوراً بالأمان والضمان والاعتماد الفني.</li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Chamfered Diamond Tag -->
+        <div class="badge-inspect-card">
+          <div class="inspect-title">3. تاغ النخبة المشطوف (Precision Chamfer Tag)</div>
+          <div class="inspect-desc">
+            تصميم هندسي فائق الحداثة مستوحى من لوحات السيارات الفارهة والساعات السويسرية، بزوايا مائلة 100% بدون أي تدوير.
+          </div>
+          
+          <div class="inspect-preview-box">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
+                <polygon points="8,1 15,8 8,15 1,8" fill="#163832" stroke="#8EB69B" stroke-width="1"/>
+                <polygon points="8,4 12,8 8,12 4,8" fill="#DAF1DE"/>
+              </svg>
+              <div class="verified-badge-chamfer">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+                  <polygon points="8,1 15,8 8,15 1,8" fill="#235347"/>
+                  <circle cx="8" cy="8" r="2.2" fill="#DAF1DE"/>
+                </svg>
+                <span class="badge-text">موثق</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; color: #163832; font-weight: 700;">تاغ مائل ذو تباين عالٍ ومقروئية سريعة</span>
+          </div>
+
+          <ul class="inspect-points">
+            <li><strong>الهندسة:</strong> قص زوايا هندسي حاد (Parallelogram / Bevel).</li>
+            <li><strong>الأيقونة:</strong> معين هندسي ملكي (Diamond Insignia).</li>
+            <li><strong>التأثير:</strong> حداثة مطلقة وطابع رياضي فاخر.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main Showcase: Mobile Live Mockup + Guide -->
+    <div class="showcase-layout">
+
+      <!-- Interactive Mobile Mockup -->
+      <div class="mobile-mockup">
+        <div class="phone-screen">
+          
+          <!-- Header Area -->
+          <div class="phone-header">
+            <div class="phone-status-bar">
+              <span>9:41</span>
+              <span>5G • 100%</span>
+            </div>
+            
+            <div class="phone-nav-bar">
+              <div class="brand-title">
+                <span class="brand-dot"></span>
+                <span>سوق ون</span>
+              </div>
+              <span style="font-size: 18px;">🔔</span>
+            </div>
+
+            <!-- Search Field -->
+            <div class="phone-search-box">
+              <span style="font-size: 14px; color: var(--c5);">🔍</span>
+              <input type="text" class="phone-search-input" placeholder="ابحث عن سيارات، قطع غيار، باصات..." readonly value="كامري 2024">
+            </div>
+          </div>
+
+          <!-- Scrollable Body -->
+          <div class="phone-content">
+            
+            <!-- 3D Glassmorphism Category Tabs (Landing Pages Under Header) -->
+            <div style="font-size: 11px; font-weight: 800; color: var(--c3); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+              <span>تابات الأقسام (Glassmorphism + Minimal Green)</span>
+              <span style="font-size: 10px; color: var(--c5);">تحت الهيدر مباشرة</span>
+            </div>
+            <div class="mockup-glass-grid">
+              <div class="glass-cat-card active">
+                <div class="glass-cat-icon">🚗</div>
+                <span class="glass-cat-label">صالون</span>
+              </div>
+              <div class="glass-cat-card">
+                <div class="glass-cat-icon">🚙</div>
+                <span class="glass-cat-label">دفع رباعي</span>
+              </div>
+              <div class="glass-cat-card">
+                <div class="glass-cat-icon">🏎️</div>
+                <span class="glass-cat-label">رياضية</span>
+              </div>
+              <div class="glass-cat-card">
+                <div class="glass-cat-icon">⚡</div>
+                <span class="glass-cat-label">كهربائية</span>
+              </div>
+            </div>
+
+            <!-- Listing Tabs (All / Used / New) with Glassmorphism pale mint -->
+            <div class="mockup-listing-tabs">
+              <div class="mockup-tab-pill active">الكل (1,420)</div>
+              <div class="mockup-tab-pill">مستعمل (1,150)</div>
+              <div class="mockup-tab-pill">جديد وكالة (270)</div>
+            </div>
+
+            <div class="sec-header">
+              <span class="sec-title">أحدث الإعلانات المميزة</span>
+              <div class="see-all-chip">
+                <span>عرض الكل</span>
+                <span style="font-size: 11px;">←</span>
+              </div>
+            </div>
+
+            <!-- Card 1 (Toyota Camry with Interactive Badge) -->
+            <div class="mockup-card">
+              <div class="card-img-placeholder">
+                <span class="card-badge">جديد (#DAF1DE)</span>
+                <span>صورة السيارة (Photo Placeholder)</span>
+              </div>
+              <div class="card-title-row">
+                <div class="card-title">تويوتا كامري GLE • 2024 فل كامل</div>
+                
+                <!-- Live Interactive Badge Container -->
+                <div id="liveCardBadgeContainer">
+                  <div class="verified-badge-octagram">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <polygon points="12,1.5 15,5 19.5,4.5 19,9 22.5,12 19,15 19.5,19.5 15,19 12,22.5 9,19 4.5,19.5 5,15 1.5,12 5,9 4.5,4.5 9,5" fill="#DAF1DE"/>
+                      <path d="M8 12 L10.8 14.8 L16.5 8.5" stroke="#0B2B26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="badge-text">موثق</span>
+                  </div>
+                </div>
+
+              </div>
+              <div class="card-specs">مسقط • 0 كم • وكالة بهوان • بنزين</div>
+              <div class="card-footer">
+                <div class="card-price">12,400 ر.ع</div>
+                <button class="card-btn">تفاصيل الإعلان</button>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="mockup-card">
+              <div class="card-img-placeholder" style="background: linear-gradient(135deg, #0B2B26 0%, #163832 100%);">
+                <span class="card-badge">مميز</span>
+                <span>صورة الباص / المعدة</span>
+              </div>
+              <div class="card-title">حفار كوماتسو PC200 • موديل 2022</div>
+              <div class="card-specs">صحار • حالة ممتازة • مع سائق</div>
+              <div class="card-footer">
+                <div class="card-price">45 ر.ع / يوم</div>
+                <button class="card-btn">حجز الآن</button>
+              </div>
+            </div>
+
+            <!-- See All Horizontal Card Preview -->
+            <div class="mockup-see-all-card">
+              <div class="see-all-icon-circle">←</div>
+              <div class="see-all-card-title">عرض الكل</div>
+              <div class="see-all-card-sub">تصفح جميع الإعلانات في هذا القسم</div>
+              <div class="see-all-action-pill">
+                <span>تصفح المزيد</span>
+                <span style="font-size: 10px;">←</span>
+              </div>
+            </div>
+
+            <!-- How It Works Card Preview -->
+            <div class="mockup-how-it-works">
+              <div class="hiw-header">
+                <div class="hiw-title">كيف يعمل سوق وان؟</div>
+                <div class="hiw-subtitle">3 خطوات بسيطة وموثوقة</div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-icon-box">
+                  <span>🔍</span>
+                  <div class="hiw-num-badge">1</div>
+                </div>
+                <div>
+                  <div class="hiw-step-title">ابحث وقارن</div>
+                  <div class="hiw-step-desc">تصفح آلاف الإعلانات مع فلاتر دقيقة</div>
+                </div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-icon-box">
+                  <span>🛡️</span>
+                  <div class="hiw-num-badge">2</div>
+                </div>
+                <div>
+                  <div class="hiw-step-title">تأكد وافحص</div>
+                  <div class="hiw-step-desc">إعلانات موثقة وفحص فني معتمد</div>
+                </div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-icon-box">
+                  <span>🤝</span>
+                  <div class="hiw-num-badge">3</div>
+                </div>
+                <div>
+                  <div class="hiw-step-title">تواصل مباشرة</div>
+                  <div class="hiw-step-desc">اتصال وواتساب ومحادثة آمنة ومباشرة</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Tab Bar with Hover Simulation -->
+          <div class="phone-tab-bar">
+            <div class="tab-item tab-active">
+              <span class="tab-icon">🏠</span>
+              <span>الرئيسية</span>
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">🔍</span>
+              <span>تصفح</span>
+            </div>
+            <div class="tab-fab">
+              <span>➕</span>
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💬</span>
+              <span>الرسائل</span>
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👤</span>
+              <span>حسابي</span>
+            </div>
+          </div>
+
+      <!-- NEW LANDING HEADER MOCKUP (Minimal Green Edition) -->
+      <div class="interactive-sandbox" style="margin-top: 35px;">
+        <div class="sandbox-header">
+          <div>
+            <h2 style="font-family: var(--font-ar); font-size: 19px; color: #FFFFFF; font-weight: 800;">
+              ✨ هيدر صفحات اللاندنج المطور (LandingHeader — ثابت وأنيق بدون تقلص)
+            </h2>
+            <p style="font-size: 13px; color: var(--c5); margin-top: 4px;">
+              مطابق تماماً للمرجع المطلوب: خلفية بيضاء نقية، أيقونة القسم وعنوان مع سهم وسطر فرعي، زران دائريان (إشعارات بنقطة خضراء ورجوع)، وحقل بحث عصري كامل العرض مع فلتر.
+            </p>
+          </div>
+          <!-- Department Switcher Buttons -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="badge-switch-btn" onclick="switchLandingHeader('home', this)">🏠 الرئيسية (Home)</button>
+            <button class="badge-switch-btn active" onclick="switchLandingHeader('cars', this)">سيارات</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('buses', this)">حافلات</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('equipment', this)">معدات</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('parts', this)">قطع غيار</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('services', this)">خدمات</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('transport', this)">نقل</button>
+            <button class="badge-switch-btn" onclick="switchLandingHeader('jobs', this)">وظائف</button>
+          </div>
+        </div>
+
+        <div style="max-width: 440px; margin: 0 auto; background: #F4F7F5; border-radius: 28px; padding: 18px 16px 24px; border: 1px solid rgba(142, 182, 155, 0.3); box-shadow: 0 12px 30px rgba(0,0,0,0.25);">
+          <!-- Phone Status Bar Mock -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 8px 12px; color: #051F20; font-weight: 700; font-size: 13px;">
+            <span>9:41</span>
+            <div style="width: 100px; height: 18px; background: #051F20; border-radius: 10px;"></div>
+            <span>📶 🔋</span>
+          </div>
+
+          <!-- State Toggle: Expanded vs Compact -->
+          <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 14px;">
+            <button id="btnStateExpanded" class="badge-switch-btn active" onclick="setLandingHeaderState('expanded')">
+              🌱 الحالة 1: أعلى الشاشة (مع زر الإضافة)
+            </button>
+            <button id="btnStateCompact" class="badge-switch-btn" onclick="setLandingHeaderState('compact')">
+              ⚡ الحالة 2: صف واحد مدمج عند السكرول
+            </button>
+          </div>
+
+          <!-- THE LANDING HEADER COMPONENT (Glassmorphism Blur Background with Architectural Green Grid) -->
+          <div id="landingHeaderBox" style="position: relative; overflow: hidden; background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 18px; padding: 12px 14px; border: 1px solid rgba(142, 182, 155, 0.28); box-shadow: 0 4px 16px rgba(11, 43, 38, 0.05); transition: all 0.14s ease-out;">
+            <!-- Architectural Green Grid Pattern Overlay (Clarity: 5%) -->
+            <div style="position: absolute; inset: 0; pointer-events: none; border-radius: 18px; background-image: linear-gradient(to right, rgba(35, 83, 71, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(35, 83, 71, 0.05) 1px, transparent 1px); background-size: 30px 30px; z-index: 0;"></div>
+            
+            <!-- ROW 1 (100% RTL: Back Button on Right, Centered Titles with perfect spacing, Notification on Left) -->
+            <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 6px; height: 38px;">
+              <!-- 1. Back Button (Physical Right in RTL - Exact 38px circle) -->
+              <div id="headerBackBtn" style="width: 38px; height: 38px; border-radius: 19px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(142, 182, 155, 0.35); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; box-sizing: border-box;">
+                <span style="font-size: 16px; color: #163832;">➔</span>
+              </div>
+
+              <!-- 2. Center Column: In State 1 shows Title/Subtitle, in State 2 shows Compact Search Bar -->
+              <div style="flex: 1; min-width: 0; position: relative; height: 38px; display: flex; align-items: center;">
+                <!-- Layer A: Title & Subtitle (State 1) -->
+                <div id="headerTitleLayer" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 2px; transition: opacity 0.12s ease-out;">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <span id="landingHeaderTitle" style="font-family: var(--font-ar); font-size: 15px; font-weight: 800; color: #051F20; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ســوق ون للسيارات</span>
+                    <span id="headerChevron" style="font-size: 11px; color: #235347; transform: translateY(1px);">▼</span>
+                  </div>
+                  <div id="landingHeaderSub" style="font-family: var(--font-ar); font-size: 11px; color: #8EB69B; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    أفضل عروض وإعلانات السيارات
+                  </div>
+                </div>
+
+                <!-- Layer B: Compact Search Bar (State 2 - Expanded with minimal 6px gap to buttons) -->
+                <div id="headerCompactSearchLayer" style="position: absolute; inset: 0; display: none; align-items: center; background: rgba(244, 247, 245, 0.95); border: 1px solid rgba(142, 182, 155, 0.3); border-radius: 19px; padding: 0 10px; gap: 6px; transition: opacity 0.12s ease-out;">
+                  <span style="font-size: 13px; color: #163832; opacity: 0.85;">🔍</span>
+                  <span id="compactSearchText" style="font-family: var(--font-ar); font-size: 12px; color: #8EB69B; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">عن أي سيارة تبحث؟</span>
+                  <div style="width: 22px; height: 22px; border-radius: 11px; background: rgba(218, 241, 222, 0.7); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #163832;">
+                    ⚙️
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Left Action Buttons Group in RTL -->
+              <div id="headerLeftActionsGroup" style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <!-- Add Listing Button (Dark Primary Color with White Glass Border - Exact 38px Circle & Matching Subtle Shadow) -->
+                <div id="headerAddBtn" style="width: 38px; height: 38px; border-radius: 19px; background: #163832; border: 1px solid rgba(255, 255, 255, 0.65); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: opacity 0.1s ease-out, width 0.12s ease-out; flex-shrink: 0; box-sizing: border-box;">
+                  <span style="font-size: 20px; color: #FFFFFF; font-weight: 700; line-height: 1;">+</span>
+                </div>
+
+                <!-- Notification Bell with Green Dot (Exact 38px Circle) -->
+                <div style="width: 38px; height: 38px; border-radius: 19px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(142, 182, 155, 0.35); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; box-sizing: border-box;">
+                  <span style="font-size: 16px;">🔔</span>
+                  <!-- Green dot -->
+                  <div style="position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #10B981; border: 1.5px solid #FFFFFF;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 2: LARGE SEARCH BAR (Visible in State 1, collapsed in State 2) -->
+            <div id="landingHeaderRow2" style="margin-top: 10px; background: #F4F7F5; border-radius: 12px; border: 1px solid rgba(142, 182, 155, 0.28); height: 42px; display: flex; align-items: center; padding: 0 12px; gap: 8px; cursor: pointer; transition: all 0.14s ease-out;">
+              <span style="font-size: 15px; color: #163832; opacity: 0.85;">🔍</span>
+              <span id="landingHeaderSearch" style="font-family: var(--font-ar); font-size: 13px; color: #8EB69B; flex: 1;">عن أي سيارة تبحث؟</span>
+              <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(218, 241, 222, 0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #163832;">
+                ⚙️
+              </div>
+            </div>
+          </div>
+
+          <!-- OFFICIAL CATEGORIES GRID (Balanced 4x2 - Authentic Glassmorphism) -->
+          <div style="margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 0 4px;">
+              <span style="font-family: var(--font-ar); font-size: 13px; font-weight: 800; color: #163832;">الأقسام الرئيسية</span>
+              <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #235347; cursor: pointer;">عرض الكل ➔</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+              
+              <!-- 1. Cars -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 10.7 2 10.9 2 11.1V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">سيارات</span>
+              </div>
+
+              <!-- 2. Jobs -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="m11 11 1 3 1-3"/><path d="M11 14h2l-1 4z" fill="#235347"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">وظائف</span>
+              </div>
+
+              <!-- 3. Services -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">خدمات</span>
+              </div>
+
+              <!-- 4. Parts -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">قطع غيار</span>
+              </div>
+
+              <!-- 5. Equipment -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H9L5 7H2v4"/><circle cx="6" cy="19" r="2"/><circle cx="16" cy="19" r="2"/><path d="m14 11 4-6 4 2v4l-4 2"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">معدات</span>
+              </div>
+
+              <!-- 6. Buses -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M2 12h20"/><path d="M7 6v6"/><path d="M12 6v6"/><path d="M17 6v6"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">حافلات</span>
+              </div>
+
+              <!-- 7. Transport -->
+              <div style="background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.95); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.20); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/><path d="M-2 8h2"/><path d="M-4 12h3"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #1E3A34;">نقل وشحن</span>
+              </div>
+
+              <!-- 8. Browse All -->
+              <div style="background: rgba(218, 241, 222, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.90); box-shadow: 0 3px 10px rgba(11, 43, 38, 0.05); cursor: pointer;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(35, 83, 71, 0.14); border: 1px solid rgba(142, 182, 155, 0.30); display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#163832" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                </div>
+                <span style="font-family: var(--font-ar); font-size: 11px; font-weight: 700; color: #163832;">تصفح الكل</span>
+              </div>
+
+            </div>
+          </div>
+          <!-- PROPORTIONAL SECTIONS & DISPLAY CARDS PREVIEW (Scaled to 60% matching Landing Pages) -->
+          <div style="margin-top: 18px;">
+            <!-- Section 1: Cars -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 30px; height: 30px; border-radius: 9px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.25); display: flex; align-items: center; justify-content: center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163832" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 10.7 2 10.9 2 11.1V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-family: var(--font-ar); font-size: 13.5px; font-weight: 800; color: #163832; line-height: 1.2;">أحدث إعلانات السيارات</span>
+                  <span style="font-family: var(--font-ar); font-size: 10.5px; color: #64748B; margin-top: 1px;">أفضل عروض البيع والإيجار المتاحة</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 3px; padding: 3px 9px; background: rgba(218, 241, 222, 0.35); border-radius: 20px; border: 1px solid rgba(142, 182, 155, 0.3); font-family: var(--font-ar); font-size: 10.5px; font-weight: 700; color: #163832; cursor: pointer;">
+                <span>الكل</span>
+                <span style="font-size: 10px;">◀</span>
+              </div>
+            </div>
+
+            <!-- Horizontal Cards Scroll Row (60% Card Width + Peeking Effect) -->
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin: 0 -4px 16px -4px; padding-left: 4px; padding-right: 4px;">
+              
+              <!-- Card 1 (60% Width) -->
+              <div style="width: 210px; flex-shrink: 0; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(142, 182, 155, 0.22); overflow: hidden; box-shadow: 0 2px 8px rgba(11, 43, 38, 0.04); display: flex; flex-direction: column; cursor: pointer;">
+                <!-- Image Box -->
+                <div style="width: 100%; height: 115px; position: relative; background: linear-gradient(135deg, #163832 0%, #235347 100%); display: flex; align-items: center; justify-content: center;">
+                  <span style="font-size: 40px; opacity: 0.9;">🚙</span>
+                  <!-- Badges -->
+                  <div style="position: absolute; top: 7px; right: 7px; display: flex; gap: 4px;">
+                    <span style="background: #163832; color: #FFFFFF; font-family: var(--font-ar); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px;">للبيع</span>
+                    <span style="background: rgba(218, 241, 222, 0.92); color: #0B2B26; font-family: var(--font-ar); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px;">موثق ✓</span>
+                  </div>
+                  <!-- Favorite Heart -->
+                  <div style="position: absolute; bottom: 7px; left: 7px; width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #FFF;">
+                    ♡
+                  </div>
+                </div>
+                <!-- Content Box -->
+                <div style="padding: 10px;">
+                  <div style="font-family: var(--font-ar); font-size: 12px; font-weight: 800; color: #051F20; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    تويوتا لاندكروزر VXR 2024
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin: 3px 0 6px 0;">
+                    <div style="font-family: var(--font-ar); font-size: 13px; font-weight: 800; color: #235347;">
+                      32,500 <span style="font-size: 10px; font-weight: 700;">ر.ع</span>
+                    </div>
+                    <span style="background: #DAF1DE; border: 1px solid #BDE4C7; border-radius: 4px; padding: 1px 6px; font-size: 9px; font-family: var(--font-ar); font-weight: 700; color: #163832;">قابل للتفاوض</span>
+                  </div>
+                  <!-- Chips -->
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">2024</span>
+                    <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">أوتوماتيك</span>
+                    <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">مسقط</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2 (Peeking Card) -->
+              <div style="width: 210px; flex-shrink: 0; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(142, 182, 155, 0.22); overflow: hidden; box-shadow: 0 2px 8px rgba(11, 43, 38, 0.04); display: flex; flex-direction: column; cursor: pointer;">
+                <!-- Image Box -->
+                <div style="width: 100%; height: 115px; position: relative; background: linear-gradient(135deg, #0B2B26 0%, #163832 100%); display: flex; align-items: center; justify-content: center;">
+                  <span style="font-size: 40px; opacity: 0.9;">🚘</span>
+                  <!-- Badges -->
+                  <div style="position: absolute; top: 7px; right: 7px; display: flex; gap: 4px;">
+                    <span style="background: #163832; color: #FFFFFF; font-family: var(--font-ar); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px;">للبيع</span>
+                  </div>
+                  <!-- Favorite Heart -->
+                  <div style="position: absolute; bottom: 7px; left: 7px; width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #FFF;">
+                    ♡
+                  </div>
+                </div>
+                <!-- Content Box -->
+                <div style="padding: 10px;">
+                  <div style="font-family: var(--font-ar); font-size: 12px; font-weight: 800; color: #051F20; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    لكزس LX600 برستيج 2023
+                  </div>
+                  <div style="font-family: var(--font-ar); font-size: 13px; font-weight: 800; color: #235347; margin: 3px 0 6px 0;">
+                    41,000 <span style="font-size: 10px; font-weight: 700;">ر.ع</span>
+                  </div>
+                  <!-- Chips -->
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">2023</span>
+                    <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">الباطنة</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Section 2: Jobs -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 30px; height: 30px; border-radius: 9px; background: rgba(35, 83, 71, 0.08); border: 1px solid rgba(142, 182, 155, 0.25); display: flex; align-items: center; justify-content: center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#235347" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="m11 11 1 3 1-3"/><path d="M11 14h2l-1 4z" fill="#235347"/></svg>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-family: var(--font-ar); font-size: 13.5px; font-weight: 800; color: #163832; line-height: 1.2;">وظائف وشواغر</span>
+                  <span style="font-family: var(--font-ar); font-size: 10.5px; color: #64748B; margin-top: 1px;">فرص عمل وكفاءات مهنية جديدة</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 3px; padding: 3px 9px; background: rgba(218, 241, 222, 0.35); border-radius: 20px; border: 1px solid rgba(142, 182, 155, 0.3); font-family: var(--font-ar); font-size: 10.5px; font-weight: 700; color: #163832; cursor: pointer;">
+                <span>الكل</span>
+                <span style="font-size: 10px;">◀</span>
+              </div>
+            </div>
+
+            <!-- Horizontal Jobs Row -->
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin: 0 -4px; padding-left: 4px; padding-right: 4px;">
+              <div style="width: 210px; flex-shrink: 0; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(142, 182, 155, 0.22); padding: 12px; box-shadow: 0 2px 8px rgba(11, 43, 38, 0.04); display: flex; flex-direction: column; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(218, 241, 222, 0.6); display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                    🚛
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-family: var(--font-ar); font-size: 12px; font-weight: 800; color: #051F20; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">سائق نقل ثقيل</div>
+                    <div style="font-family: var(--font-ar); font-size: 10px; color: #64748B;">شركة الوفاق اللوجستية</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: auto;">
+                  <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #235347;">دوام كامل</span>
+                  <span style="background: #F4F7F5; border: 1px solid rgba(142, 182, 155, 0.25); border-radius: 4px; padding: 1px 5px; font-size: 9px; font-family: var(--font-ar); color: #64748B;">مسقط</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Architecture Breakdown Guide -->
+      <div class="guide-section">
+
+        <!-- Table of Components Mapping -->
+        <div class="guide-box">
+          <h2>
+            <span class="icon-circle">1</span>
+            <span>خريطة توظيف الألوان في المكونات (Component Mapping)</span>
+          </h2>
+          <table class="map-table">
+            <thead>
+              <tr>
+                <th>المكون في التطبيق</th>
+                <th>كود اللون</th>
+                <th>المتغير المعماري</th>
+                <th>التأثير البصري</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>الهيدر وشريط العنوان العلوي</td>
+                <td><span class="tag-hex" style="background: #0B2B26; color: #FFF;">#0B2B26</span></td>
+                <td><span class="code-chip">Colors.primaryDark</span></td>
+                <td>فخامة ملكية داكنة مع تدرج للأسفل</td>
+              </tr>
+              <tr>
+                <td>الأزرار الرئيسية وشريط التبويب النشط</td>
+                <td><span class="tag-hex" style="background: #163832; color: #FFF;">#163832</span></td>
+                <td><span class="code-chip">Colors.primary</span></td>
+                <td>وضوح استثنائي وجاذبية للنقر والتفاعل</td>
+              </tr>
+              <tr>
+                <td>الأسعار والشارات التفاعلية والأزرار الثانوية</td>
+                <td><span class="tag-hex" style="background: #235347; color: #FFF;">#235347</span></td>
+                <td><span class="code-chip">Colors.accent / primaryLight</span></td>
+                <td>تباين راقٍ يحل محل البرتقالي القديم</td>
+              </tr>
+              <tr>
+                <td>النصوص الوصفية والأيقونات الثانوية</td>
+                <td><span class="tag-hex" style="background: #8EB69B; color: #051F20;">#8EB69B</span></td>
+                <td><span class="code-chip">Colors.textMuted / sage</span></td>
+                <td>هدوء بصري يمنع التشتت والازدحام</td>
+              </tr>
+              <tr>
+                <td>خلفية الرقاقات (Chips) والشارات المضيئة</td>
+                <td><span class="tag-hex" style="background: #DAF1DE; color: #051F20;">#DAF1DE</span></td>
+                <td><span class="code-chip">Colors.paleMint</span></td>
+                <td>راحة فائقة للعين وخلفيات مريحة للشارات</td>
+              </tr>
+              <tr>
+                <td>العناوين والنصوص الأساسية</td>
+                <td><span class="tag-hex" style="background: #051F20; color: #FFF;">#051F20</span></td>
+                <td><span class="code-chip">Colors.text</span></td>
+                <td>أعلى درجات المقروئية والوضوح (High Contrast)</td>
+              </tr>
+              <tr>
+                <td>خلفية الشاشات والقوائم</td>
+                <td><span class="tag-hex" style="background: #F4F7F5; color: #051F20;">#F4F7F5</span></td>
+                <td><span class="code-chip">Colors.surface</span></td>
+                <td>أوف وايت ناعم ينسجم مع اللمسة الخضراء</td>
+              </tr>
+              <tr>
+                <td>تابات صفحات اللاندنج تحت الهيدر (Categories Grid)</td>
+                <td><span class="tag-hex" style="background: #DAF1DE; color: #051F20;">#DAF1DE + #163832</span></td>
+                <td><span class="code-chip">GlassCategoriesGrid</span></td>
+                <td>تأثير زجاجي ثلاثي الأبعاد (Glassmorphism) مع هوية خضراء موحدة بدلاً من ألوان الطيف</td>
+              </tr>
+              <tr>
+                <td>شريط تصنيف الإعلانات (ListingTabs: الكل / مستعمل / جديد)</td>
+                <td><span class="tag-hex" style="background: rgba(218,241,222,0.5); color: #0B2B26;">rgba(218,241,222,0.45)</span></td>
+                <td><span class="code-chip">ListingTabs</span></td>
+                <td>حاوية زجاجية بالنعناع الباهت مع كبسولة نشطة بيضاء بظلال خضراء ملكية</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Linear Gradients Breakdown -->
+        <div class="guide-box">
+          <h2>
+            <span class="icon-circle">2</span>
+            <span>التدرجات اللونية الفاخرة (Linear Gradients)</span>
+          </h2>
+          <p style="font-size: 13px; color: var(--c5); margin-bottom: 16px;">
+            تُستخدم التدرجات لإعطاء عمق بصري ثلاثي الأبعاد وروح عصرية بدلاً من الألوان المسطحة الميتة:
+          </p>
+          <div class="gradient-showcase">
+            
+            <div class="gradient-box hero-grad">
+              <span class="grad-name">Gradients.hero (الهيدر الرئيسي)</span>
+              <span class="grad-codes">#051F20 ➔ #0B2B26 ➔ #163832</span>
+            </div>
+
+            <div class="gradient-box btn-grad">
+              <span class="grad-name">Gradients.button (أزرار النشر والحفظ)</span>
+              <span class="grad-codes">#0B2B26 ➔ #235347</span>
+            </div>
+
+            <div class="gradient-box soft-grad">
+              <span class="grad-name">Gradients.badge (شارات التمييز)</span>
+              <span class="grad-codes">#235347 ➔ #8EB69B</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Architectural Advantages -->
+        <div class="guide-box">
+          <h2>
+            <span class="icon-circle">3</span>
+            <span>مزايا هذا التوزيع للهوية والتطبيق</span>
+          </h2>
+          <div class="benefits-grid">
+            <div class="benefit-item">
+              <div class="benefit-title">🍃 هوية موحدة 100%</div>
+              <div class="benefit-desc">التخلص التام من أي تضارب لوني أو تشتت بين الكحلي والبرتقالي والأصفر.</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-title">👁️ راحة العين والأناقة</div>
+              <div class="benefit-desc">درجات الأخضر المستوحاة من الطبيعة الصنوبرية توفر شعوراً بالفخامة والموثوقية العالية.</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-title">⚡ سهولة التطبيق بملف واحد</div>
+              <div class="benefit-desc">تغيير المتغيرات في ملف الثوابت المركزي ينعكس فورياً في كل أرجاء التطبيق.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const badgeTemplates = {
+      octagram: `
+        <div class="verified-badge-octagram">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <polygon points="12,1.5 15,5 19.5,4.5 19,9 22.5,12 19,15 19.5,19.5 15,19 12,22.5 9,19 4.5,19.5 5,15 1.5,12 5,9 4.5,4.5 9,5" fill="#DAF1DE"/>
+            <path d="M8 12 L10.8 14.8 L16.5 8.5" stroke="#0B2B26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="badge-text">موثق</span>
+        </div>
+      `,
+      shield: `
+        <div class="verified-badge-shield">
+          <svg width="11" height="14" viewBox="0 0 20 24" fill="none">
+            <path d="M10 1.5 L2 4.5 C2 12 5 18 10 22 Z" fill="#8EB69B"/>
+            <path d="M10 1.5 L18 4.5 C18 12 15 18 10 22 Z" fill="#DAF1DE"/>
+            <path d="M6.5 11.5 L9.2 14.2 L14 8.5" stroke="#0B2B26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="badge-text">معتمد</span>
+        </div>
+      `,
+      chamfer: `
+        <div class="verified-badge-chamfer">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <polygon points="8,1 15,8 8,15 1,8" fill="#235347"/>
+            <circle cx="8" cy="8" r="2.2" fill="#DAF1DE"/>
+          </svg>
+          <span class="badge-text">موثق</span>
+        </div>
+      `
+    };
+
+    function switchMockupBadge(style, btn) {
+      const container = document.getElementById('liveCardBadgeContainer');
+      if (container && badgeTemplates[style]) {
+        container.innerHTML = badgeTemplates[style];
+      }
+      document.querySelectorAll('.badge-switch-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    const landingDepts = {
+      home: { isHome: true, icon: '🏠', title: 'مرحباً بك في سوق ون،', sub: 'ضيف 👋', search: 'عن ماذا تبحث اليوم؟ (سيارات، وظائف...)' },
+      cars: { icon: '🚗', title: 'ســوق ون للسيارات', sub: 'أفضل عروض وإعلانات السيارات', search: 'عن أي سيارة تبحث؟' },
+      buses: { icon: '🚌', title: 'ســوق ون للحافلات', sub: 'حافلات للبيع وللإيجار ونقل الركاب', search: 'عن أي حافلة تبحث؟' },
+      equipment: { icon: '🚜', title: 'ســوق ون للمعدات', sub: 'معدات ثقيلة وخفيفة ومشغلون معتمدون', search: 'عن أي معدة أو مشغل تبحث؟' },
+      parts: { icon: '⚙️', title: 'ســوق ون لقطع الغيار', sub: 'قطع أصلية وتجارية وسكراب بأفضل الأسعار', search: 'عن أي قطعة تبحث؟ (محرك، فحمات...)' },
+      services: { icon: '🔧', title: 'ســوق ون لخدمات السيارات', sub: 'صيانة، فحص، وغسيل بكافة المحافظات', search: 'عن أي خدمة تبحث؟' },
+      transport: { icon: '📦', title: 'ســوق ون للنقل والشحن', sub: 'شحن موثوق لأي مكان في سلطنة عمــان', search: 'عن أي شحنة أو ناقل تبحث؟' },
+      jobs: { icon: '💼', title: 'ســوق ون للوظائف', sub: 'وظيفة او سائقك المهني المثالي', search: 'ابحث عن وظيفة أو سائق...' }
+    };
+
+    function switchLandingHeader(deptKey, btn) {
+      const data = landingDepts[deptKey];
+      if (!data) return;
+      const headerBox = document.getElementById('landingHeaderBox');
+      const titleEl = document.getElementById('landingHeaderTitle');
+      const subEl = document.getElementById('landingHeaderSub');
+      const searchEl = document.getElementById('landingHeaderSearch');
+      const compactSearchText = document.getElementById('compactSearchText');
+      const backBtn = document.getElementById('headerBackBtn');
+      const chevron = document.getElementById('headerChevron');
+      const row2 = document.getElementById('landingHeaderRow2');
+      const compactLayer = document.getElementById('headerCompactSearchLayer');
+
+      if (data.isHome) {
+        if (headerBox) {
+          headerBox.style.background = 'rgba(255, 255, 255, 0.82)';
+          headerBox.style.borderColor = 'rgba(142, 182, 155, 0.28)';
+          headerBox.style.boxShadow = '0 4px 16px rgba(11, 43, 38, 0.05)';
+        }
+        if (titleEl) {
+          titleEl.innerText = data.title;
+          titleEl.style.color = '#051F20';
+        }
+        if (subEl) {
+          subEl.innerText = data.sub;
+          subEl.style.color = '#8EB69B';
+          subEl.style.fontWeight = '400';
+          subEl.style.fontSize = '11px';
+        }
+        if (backBtn) {
+          backBtn.style.display = 'flex';
+          backBtn.innerHTML = '<span style="font-size: 16px; color: #163832;">🏪</span>';
+        }
+        if (chevron) chevron.style.display = 'none';
+        if (row2) {
+          row2.style.background = '#F4F7F5';
+          row2.style.borderColor = 'rgba(142, 182, 155, 0.28)';
+        }
+        if (compactLayer) {
+          compactLayer.style.background = 'rgba(244, 247, 245, 0.95)';
+          compactLayer.style.borderColor = 'rgba(142, 182, 155, 0.3)';
+        }
+        if (searchEl) searchEl.style.color = '#8EB69B';
+        if (compactSearchText) compactSearchText.style.color = '#8EB69B';
+      } else {
+        if (headerBox) {
+          headerBox.style.background = 'rgba(255, 255, 255, 0.82)';
+          headerBox.style.borderColor = 'rgba(142, 182, 155, 0.28)';
+          headerBox.style.boxShadow = '0 4px 16px rgba(11, 43, 38, 0.05)';
+        }
+        if (titleEl) {
+          titleEl.innerText = data.title;
+          titleEl.style.color = '#051F20';
+        }
+        if (subEl) {
+          subEl.innerText = data.sub;
+          subEl.style.color = '#8EB69B';
+          subEl.style.fontWeight = '400';
+          subEl.style.fontSize = '11px';
+        }
+        if (backBtn) {
+          backBtn.style.display = 'flex';
+          backBtn.innerHTML = '<span style="font-size: 16px; color: #163832;">➔</span>';
+        }
+        if (chevron) chevron.style.display = 'inline';
+        if (row2) {
+          row2.style.background = '#F4F7F5';
+          row2.style.borderColor = 'rgba(142, 182, 155, 0.28)';
+        }
+        if (compactLayer) {
+          compactLayer.style.background = 'rgba(244, 247, 245, 0.95)';
+          compactLayer.style.borderColor = 'rgba(142, 182, 155, 0.3)';
+        }
+        if (searchEl) searchEl.style.color = '#8EB69B';
+        if (compactSearchText) compactSearchText.style.color = '#8EB69B';
+      }
+
+      if (searchEl) searchEl.innerText = data.search;
+      if (compactSearchText) compactSearchText.innerText = data.search;
+
+      if (btn) {
+        btn.parentElement.querySelectorAll('.badge-switch-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    }
+
+    function setLandingHeaderState(state) {
+      const isCompact = state === 'compact';
+      document.getElementById('btnStateExpanded').classList.toggle('active', !isCompact);
+      document.getElementById('btnStateCompact').classList.toggle('active', isCompact);
+
+      const headerTitleLayer = document.getElementById('headerTitleLayer');
+      const headerCompactSearch = document.getElementById('headerCompactSearchLayer');
+      const headerAddBtn = document.getElementById('headerAddBtn');
+      const headerLeftActionsGroup = document.getElementById('headerLeftActionsGroup');
+      const row2 = document.getElementById('landingHeaderRow2');
+
+      if (isCompact) {
+        headerTitleLayer.style.opacity = '0';
+        headerTitleLayer.style.pointerEvents = 'none';
+
+        headerCompactSearch.style.display = 'flex';
+        setTimeout(() => {
+          headerCompactSearch.style.opacity = '1';
+        }, 10);
+
+        headerAddBtn.style.display = 'none';
+        headerAddBtn.style.opacity = '0';
+        if (headerLeftActionsGroup) headerLeftActionsGroup.style.gap = '0px';
+
+        row2.style.opacity = '0';
+        row2.style.height = '0px';
+        row2.style.marginTop = '0px';
+        row2.style.overflow = 'hidden';
+        row2.style.pointerEvents = 'none';
+      } else {
+        headerTitleLayer.style.opacity = '1';
+        headerTitleLayer.style.pointerEvents = 'auto';
+
+        headerCompactSearch.style.opacity = '0';
+        setTimeout(() => {
+          headerCompactSearch.style.display = 'none';
+        }, 120);
+
+        headerAddBtn.style.display = 'flex';
+        if (headerLeftActionsGroup) headerLeftActionsGroup.style.gap = '6px';
+        headerAddBtn.style.width = '38px';
+        setTimeout(() => {
+          headerAddBtn.style.opacity = '1';
+          headerAddBtn.style.pointerEvents = 'auto';
+        }, 10);
+
+        row2.style.display = 'flex';
+        row2.style.height = '42px';
+        row2.style.marginTop = '10px';
+        setTimeout(() => {
+          row2.style.opacity = '1';
+          row2.style.pointerEvents = 'auto';
+        }, 10);
+      }
+    }
+  </script>
+</body>
+</html>
+

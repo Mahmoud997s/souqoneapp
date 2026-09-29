@@ -4,6 +4,7 @@ import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { Gradients } from '../../constants/gradients'
 
 interface EditProfileAvatarProps {
   displayAvatar: string | null
@@ -18,7 +19,7 @@ export function EditProfileAvatar({ displayAvatar, onPress }: EditProfileAvatarP
           <Image source={{ uri: displayAvatar }} style={s.avatar} contentFit="cover" />
         ) : (
           <LinearGradient
-            colors={['#1e3a6e', '#0f2952', '#0B2447']}
+            colors={Gradients.hero as any}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[s.avatar, s.avatarFallback]}

@@ -27,7 +27,8 @@ import { useOperatorItem, useUpdateOperator } from '../../../../src/hooks/useEqu
 import { useOperatorFormLogic } from '../../../../src/hooks/useOperatorFormLogic'
 import { validateOperatorStep } from '../../../../src/hooks/useOperatorValidation'
 import { buildOperatorPayload } from '../../../../src/utils/operator-payload'
-import { OperatorFormData, OperatorFormErrors } from '../../../../src/types/operatorForm.types'
+import { OperatorWizardFormData as OperatorFormData } from '../../../../src/store/operatorWizardStore'
+import { OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
 
 import { OperatorRoleStep } from '../../../../src/components/operators/OperatorRoleStep'
 import { OperatorEquipCertsStep } from '../../../../src/components/operators/OperatorEquipCertsStep'
@@ -55,6 +56,7 @@ export default function EditOperatorScreen() {
     certifications: [],
     dailyRate: '',
     hourlyRate: '',
+    currency: 'OMR',
     isPriceNegotiable: true,
     governorateId: null,
     wilayaId: null,
@@ -62,6 +64,7 @@ export default function EditOperatorScreen() {
     wilayaName: '',
     contactPhone: '',
     whatsapp: '',
+    profileImageUrl: '',
   })
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function EditOperatorScreen() {
         certifications: operatorData.certifications || [],
         dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
         hourlyRate: operatorData.hourlyRate ? String(operatorData.hourlyRate) : '',
+        currency: operatorData.currency || 'OMR',
         isPriceNegotiable: operatorData.isPriceNegotiable ?? (operatorData as any).isNegotiable ?? true,
         governorateId: operatorData.governorateId ?? null,
         wilayaId: operatorData.wilayaId ?? null,
@@ -83,6 +87,7 @@ export default function EditOperatorScreen() {
         wilayaName: (operatorData as any).wilaya?.nameAr || (operatorData as any).wilayaName || '',
         contactPhone: operatorData.contactPhone || '',
         whatsapp: operatorData.whatsapp || operatorData.contactPhone || '',
+        profileImageUrl: operatorData.profileImageUrl || '',
       })
     }
   }, [operatorData])

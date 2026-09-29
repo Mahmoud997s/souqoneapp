@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { Colors } from '../../constants/colors'
 
 export interface EquipCardProps {
   item: Listing
@@ -15,6 +16,7 @@ export interface EquipCardProps {
   maxChips?: number
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
+  titleNumberOfLines?: number
 }
 
 export const EquipCard = ({
@@ -26,6 +28,7 @@ export const EquipCard = ({
   maxChips = 3,
   actionMenu,
   disableImageSwipe = false,
+  titleNumberOfLines = 1,
 }: EquipCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -112,15 +115,16 @@ export const EquipCard = ({
     badges.push({
       key: 'rental',
       label: 'إيجار',
-      backgroundColor: '#fffbeb',
-      textColor: '#d97706',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primaryDark,
     })
   }
   if (isRental && item.withDriver) {
     badges.push({
       key: 'driver',
       label: 'مع سائق/مشغل',
-      backgroundColor: '#10b981',
+      backgroundColor: Colors.primary,
+      textColor: Colors.white,
       iconName: 'person',
     })
   }
@@ -128,35 +132,40 @@ export const EquipCard = ({
     badges.push({
       key: 'new',
       label: 'جديدة',
-      backgroundColor: '#3b82f6',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primary,
     })
   }
   if (isSale && eqCondition === 'LIKE_NEW') {
     badges.push({
       key: 'like_new',
       label: 'شبه جديدة',
-      backgroundColor: '#14b8a6',
+      backgroundColor: Colors.forestGreen,
+      textColor: Colors.white,
     })
   }
   if (isSale && eqCondition === 'USED') {
     badges.push({
       key: 'used',
       label: 'مستعملة',
-      backgroundColor: '#64748b',
+      backgroundColor: Colors.surfaceAlt,
+      textColor: Colors.text2,
     })
   }
   if (isSale && eqCondition === 'REFURBISHED') {
     badges.push({
       key: 'refurbished',
       label: 'مجددة',
-      backgroundColor: '#d97706',
+      backgroundColor: Colors.forestGreen,
+      textColor: Colors.white,
     })
   }
   if (item.isPremium) {
     badges.push({
       key: 'premium',
       label: 'مميز',
-      backgroundColor: '#ef4444',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       iconName: 'star',
     })
   }
@@ -216,7 +225,7 @@ export const EquipCard = ({
       gridMode={gridMode}
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
-      titleNumberOfLines={2}
+      titleNumberOfLines={titleNumberOfLines}
       favoriteType="EQUIPMENT"
       shareMessage={`شاهد هذه المعدة المعروضة على سوق ون: ${equipName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />

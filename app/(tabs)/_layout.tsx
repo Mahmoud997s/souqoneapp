@@ -31,7 +31,7 @@ import { Typography } from '../../src/constants/typography'
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const T = {
   primary:    Colors.primary,
-  primaryBg:  '#EEF3FF', // custom light bg for active icon
+  primaryBg:  Colors.paleMint, // minimal green pale mint for active icon bubble
   accent:     Colors.accent,
   inactive:   Colors.textMuted,
   label:      Colors.text,
@@ -106,7 +106,11 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
   return (
     <Pressable
       onPress={handlePress}
-      style={s.tabItem}
+      style={({ pressed, hovered }: any) => [
+        s.tabItem,
+        hovered && s.tabItemHovered,
+        pressed && s.tabItemPressed,
+      ]}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
       accessibilityLabel={meta.label}
@@ -334,6 +338,14 @@ const s = StyleSheet.create({
     gap: 1,
     paddingTop: 3,
     paddingBottom: 4,
+    borderRadius: 14,
+  },
+  tabItemHovered: {
+    backgroundColor: 'rgba(218, 241, 222, 0.4)',
+  },
+  tabItemPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
   },
 
   // Icon container holds the bg bubble + icon + badge

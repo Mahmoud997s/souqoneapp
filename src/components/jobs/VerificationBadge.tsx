@@ -1,45 +1,31 @@
 import React from 'react'
-import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../constants/colors'
-import { View, StyleSheet, Text } from 'react-native'
+import { StyleProp, ViewStyle } from 'react-native'
+import { VerifiedBadge as BaseVerifiedBadge } from '../ui/VerifiedBadge'
 import { STRINGS } from '../../constants/jobs'
 
-interface VerificationBadgeProps {
+export interface VerificationBadgeProps {
   size?: number
   showText?: boolean
+  variant?: 'dark' | 'mint'
+  style?: StyleProp<ViewStyle>
 }
 
-export function VerificationBadge({ size = 14, showText = false }: VerificationBadgeProps) {
-  if (showText) {
-    return (
-      <View style={s.textBadge}>
-        <Ionicons name="checkmark-circle" size={10} color="#2563eb" />
-        <Text style={s.badgeText}>{STRINGS.VERIFIED}</Text>
-      </View>
-    )
-  }
-  
+export function VerificationBadge({
+  size = 14,
+  showText = false,
+  variant = 'dark',
+  style,
+}: VerificationBadgeProps) {
   return (
-    <Ionicons name="checkmark-circle" size={size} color={Colors.primary} style={s.icon} />
+    <BaseVerifiedBadge
+      size={size}
+      showText={showText}
+      text={STRINGS.VERIFIED}
+      variant={variant}
+      style={style}
+    />
   )
 }
 
-const s = StyleSheet.create({
-  icon: {
-    alignSelf: 'center',
-  },
-  textBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#EFF6FF', // bg-blue-50
-    borderRadius: 100,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    alignSelf: 'flex-start',
-  },
-  badgeText: {
-    color: '#2563eb', // text-blue-600
-    fontSize: 10,
-    fontFamily: 'Almarai_700Bold',  }
-})
+export default VerificationBadge
+

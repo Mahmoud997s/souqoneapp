@@ -21,6 +21,9 @@ export interface OperatorWizardFormData {
   wilayaName?: string
   contactPhone: string
   whatsapp: string
+  profileImageUrl?: string | null
+  isEditMode?: boolean
+  editListingId?: string | null
 }
 
 interface OperatorWizardState {
@@ -59,6 +62,7 @@ export const DEFAULT_OPERATOR_WIZARD_DATA: OperatorWizardFormData = {
   wilayaName: '',
   contactPhone: '',
   whatsapp: '',
+  profileImageUrl: '',
 }
 
 export const useOperatorWizardStore = create<OperatorWizardState>()(

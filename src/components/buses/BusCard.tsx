@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { Colors } from '../../constants/colors'
 
 const BUS_TYPE_NAMES: Record<string, string> = {
   MINI_BUS: 'ميني باص',
@@ -23,6 +24,7 @@ export interface BusCardProps {
   maxChips?: number
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
+  titleNumberOfLines?: number
 }
 
 export const BusCard = ({
@@ -34,6 +36,7 @@ export const BusCard = ({
   maxChips = 3,
   actionMenu,
   disableImageSwipe = false,
+  titleNumberOfLines = 1,
 }: BusCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -125,15 +128,16 @@ export const BusCard = ({
     badges.push({
       key: 'rental',
       label: 'إيجار',
-      backgroundColor: '#FFCC00',
-      textColor: '#000000',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primaryDark,
     })
   }
   if (listingTypeStr === 'BUS_SALE_WITH_CONTRACT') {
     badges.push({
       key: 'contract',
       label: 'بيع مع عقد تشغيل',
-      backgroundColor: '#8b5cf6',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       borderColor: 'rgba(255,255,255,0.3)',
       iconName: 'document-text',
     })
@@ -142,7 +146,8 @@ export const BusCard = ({
     badges.push({
       key: 'driver',
       label: 'مع سائق',
-      backgroundColor: '#10b981',
+      backgroundColor: Colors.primary,
+      textColor: Colors.white,
       iconName: 'person',
     })
   }
@@ -150,21 +155,24 @@ export const BusCard = ({
     badges.push({
       key: 'new',
       label: 'جديدة',
-      backgroundColor: '#3b82f6',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primary,
     })
   }
   if (isSale && condition === 'USED') {
     badges.push({
       key: 'used',
       label: 'مستعملة',
-      backgroundColor: '#64748b',
+      backgroundColor: Colors.surfaceAlt,
+      textColor: Colors.text2,
     })
   }
   if (item.isPremium) {
     badges.push({
       key: 'premium',
       label: 'مميز',
-      backgroundColor: '#ef4444',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       iconName: 'star',
     })
   }
@@ -232,6 +240,7 @@ export const BusCard = ({
       gridMode={gridMode}
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
+      titleNumberOfLines={titleNumberOfLines}
       shareMessage={`شاهد هذه الحافلة المعروضة على سوق ون: ${busName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

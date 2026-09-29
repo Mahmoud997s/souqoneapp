@@ -14,7 +14,7 @@ export const MY_LISTINGS_SECTIONS_CONFIG: readonly ListingSectionConfig[] = [
     entityType: 'car',
     title: 'إعلانات السيارات',
     icon: 'car-sport',
-    gradient: ['#E8781E', '#FBBF24'],
+    gradient: ['#0B2B26', '#235347'],
     categoryId: 'cars',
   },
   {

@@ -195,7 +195,11 @@ function TabItem({
 
   return (
     <Pressable
-      style={s.tabItem}
+      style={({ pressed, hovered }: any) => [
+        s.tabItem,
+        hovered && s.tabItemHovered,
+        pressed && s.tabItemPressed,
+      ]}
       onPress={handlePress}
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       accessibilityRole="tab"
@@ -307,7 +311,7 @@ export function UnifiedBottomBar({
   onTabPress,
   onPostPress,
   activeColor = Colors.primary,
-  activeBgColor = '#EFF6FF',
+  activeBgColor = Colors.paleMint,
   scrollAware = true,
 }: UnifiedBottomBarProps) {
   const insets = useSafeAreaInsets();
@@ -501,6 +505,14 @@ const s = StyleSheet.create({
     gap: 1,
     paddingTop: 3,
     paddingBottom: 4,
+    borderRadius: 14,
+  },
+  tabItemHovered: {
+    backgroundColor: 'rgba(218, 241, 222, 0.4)',
+  },
+  tabItemPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
   },
   iconContainer: {
     width: 36,

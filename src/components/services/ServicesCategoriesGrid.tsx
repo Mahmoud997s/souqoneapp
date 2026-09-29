@@ -7,15 +7,15 @@ import {
 } from '../ui/GlassCategoriesGrid'
 
 const CATEGORIES = [
-  { id: 'MAINTENANCE', label: 'صيانة', icon: 'wrench', color: '#16a34a', bg: '#dcfce7' },
-  { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'INSPECTION', label: 'فحص', icon: 'magnify', color: '#9333ea', bg: '#f3e8ff' },
-  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: 'spray', color: '#ea580c', bg: '#ffedd5' },
-  { id: 'MODIFICATION', label: 'تعديل', icon: 'tune', color: '#eab308', bg: '#fef9c3' },
-  { id: 'TOWING', label: 'ونش وإنقاذ', icon: 'tow-truck', color: '#dc2626', bg: '#fee2e2' },
-  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: 'key', color: '#0891b2', bg: '#cffafe' },
-  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: 'car-shift-pattern', color: '#b45309', bg: '#fef3c7' },
-  { id: 'all', label: 'عرض الكل', icon: 'view-grid', color: Colors.primary, bg: '#EFF6FF' },
+  { id: 'MAINTENANCE', label: 'صيانة', icon: 'wrench', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'INSPECTION', label: 'فحص', icon: 'magnify', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: 'spray', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'MODIFICATION', label: 'تعديل', icon: 'tune', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'TOWING', label: 'ونش وإنقاذ', icon: 'tow-truck', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: 'key', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: 'car-shift-pattern', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'all', label: 'عرض الكل', icon: 'view-grid', color: Colors.primary, bg: Colors.paleMint },
 ]
 
 export const ServicesCategoriesGrid = () => {

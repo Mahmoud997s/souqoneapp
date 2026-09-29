@@ -54,7 +54,7 @@ const ICON_CONFIG: Record<string, { name: string; color: string; bgColor: string
   error:       { name: 'close-circle-outline',     color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
   warning:     { name: 'alert-circle-outline',     color: '#D97706', bgColor: '#FEF3C7', borderColor: '#FDE68A' },
   info:        { name: 'information-circle-outline', color: '#0284C7', bgColor: '#F0F9FF', borderColor: '#BAE6FD' },
-  confirm:     { name: 'help-circle-outline',      color: '#0B2447', bgColor: '#EEF3FF', borderColor: '#CBD5E1' },
+  confirm:     { name: 'help-circle-outline',      color: Colors.primaryDark, bgColor: Colors.paleMint, borderColor: Colors.border },
   destructive: { name: 'trash-outline',              color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
   options:     { name: 'ellipsis-horizontal',     color: Colors.primary, bgColor: '#F1F5F9', borderColor: '#E2E8F0' },
 };

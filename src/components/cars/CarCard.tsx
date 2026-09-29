@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { Colors } from '../../constants/colors'
 
 export interface CarCardProps {
   item: Listing
@@ -15,6 +16,7 @@ export interface CarCardProps {
   maxChips?: number
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
+  titleNumberOfLines?: number
 }
 
 export const CarCard = ({
@@ -26,6 +28,7 @@ export const CarCard = ({
   maxChips = 3,
   actionMenu,
   disableImageSwipe = false,
+  titleNumberOfLines = 1,
 }: CarCardProps) => {
   const displayImages = (item.images || [])
     .map((img: any) => (typeof img === 'string' ? img : img?.url))
@@ -122,7 +125,7 @@ export const CarCard = ({
     badges.push({
       key: 'driver',
       label: 'مع سائق',
-      backgroundColor: '#10b981',
+      backgroundColor: Colors.primary,
       iconName: 'person',
     })
   }
@@ -130,28 +133,32 @@ export const CarCard = ({
     badges.push({
       key: 'new',
       label: 'جديد',
-      backgroundColor: '#3b82f6',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primary,
     })
   }
   if (isSale && item.condition === 'LIKE_NEW') {
     badges.push({
       key: 'like_new',
       label: 'شبه جديد',
-      backgroundColor: '#14b8a6',
+      backgroundColor: Colors.forestGreen,
+      textColor: Colors.white,
     })
   }
   if (isSale && item.condition === 'USED') {
     badges.push({
       key: 'used',
       label: 'مستعمل',
-      backgroundColor: '#64748b',
+      backgroundColor: Colors.surfaceAlt,
+      textColor: Colors.text2,
     })
   }
   if (item.isPremium) {
     badges.push({
       key: 'premium',
       label: 'مميز',
-      backgroundColor: '#ef4444',
+      backgroundColor: Colors.primaryDark,
+      textColor: Colors.white,
       iconName: 'star',
     })
   }
@@ -245,6 +252,7 @@ export const CarCard = ({
       gridMode={gridMode}
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
+      titleNumberOfLines={titleNumberOfLines}
       shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

@@ -22,6 +22,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { VerifiedBadge } from '../ui/VerifiedBadge'
 
 export interface UnifiedCardItem {
   id: string
@@ -195,10 +196,7 @@ export function UnifiedCard({
                 {item.title}
               </Text>
               {item.isVerified && (
-                <View style={styles.verifiedPill}>
-                  <Ionicons name="checkmark-circle" size={12} color={Colors.primary} />
-                  <Text style={styles.verifiedText}>عميل موثق</Text>
-                </View>
+                <VerifiedBadge variant="dark" showText text="عميل موثق" size={11} />
               )}
             </View>
             {typeLabel ? (
@@ -473,19 +471,4 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   compactLocText: { ...CardSystem.typography.subtitle, color: Colors.textMuted },
-  verifiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-    gap: 3,
-  },
-  verifiedText: {
-    ...CardSystem.typography.badgeText,
-    color: Colors.primary,
-  },
 })
