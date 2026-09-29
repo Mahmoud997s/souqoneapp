@@ -12,9 +12,6 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.souqone.app",
-      "config": {
-        "googleMapsApiKey": "AIzaSyDT7aik5y9KetS55fp-HsQbj2t0shJVHU8"
-      },
       "runtimeVersion": {
         "policy": "appVersion"
       },
