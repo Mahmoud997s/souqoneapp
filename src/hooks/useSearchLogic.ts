@@ -23,12 +23,13 @@ export function useSearchLogic() {
   const [category, setCategory] = useState<CategoryFilterType>(initialCategory)
 
   // Sorting
-  const [sortBy, setSortBy] = useState<SortBy>('createdAt:desc')
+  const [sortBy, setSortBy] = useState<SortBy>('newest')
 
-  // Numeric & Condition Filters from URL params or local state
+  // Numeric, Condition & Location Filters from URL params or local state
   const minPrice = params.minPrice ? Number(params.minPrice) : undefined
   const maxPrice = params.maxPrice ? Number(params.maxPrice) : undefined
   const condition = params.condition as string | undefined
+  const governorateId = params.governorateId ? Number(params.governorateId) : undefined
 
   // Calculate active filters count (excluding search text)
   const activeFiltersCount = useMemo(() => {
@@ -37,8 +38,9 @@ export function useSearchLogic() {
     if (minPrice !== undefined) count += 1
     if (maxPrice !== undefined) count += 1
     if (condition && condition !== 'ALL') count += 1
+    if (governorateId !== undefined) count += 1
     return count
-  }, [category, minPrice, maxPrice, condition])
+  }, [category, minPrice, maxPrice, condition, governorateId])
 
   // Whether user has entered any search or filter criteria
   const hasActiveCriteria = useMemo(() => {
@@ -47,9 +49,10 @@ export function useSearchLogic() {
       category !== 'all' ||
       minPrice !== undefined ||
       maxPrice !== undefined ||
-      (condition && condition !== 'ALL')
+      (condition && condition !== 'ALL') ||
+      governorateId !== undefined
     )
-  }, [query, category, minPrice, maxPrice, condition])
+  }, [query, category, minPrice, maxPrice, condition, governorateId])
 
   // Autocomplete Query
   const shouldFetchAutocomplete = Boolean(query.trim().length >= 2 && query !== debouncedQuery)
@@ -88,7 +91,7 @@ export function useSearchLogic() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['search-results', debouncedQuery, resolvedEntityType, minPrice, maxPrice, condition, sortBy],
+    queryKey: ['search-results', debouncedQuery, resolvedEntityType, minPrice, maxPrice, condition, governorateId, sortBy],
     queryFn: async ({ pageParam = 1 }) => {
       const searchParams: SearchParams = {
         page: pageParam,
@@ -108,6 +111,12 @@ export function useSearchLogic() {
       if (maxPrice !== undefined) {
         searchParams.maxPrice = maxPrice
       }
+      if (condition && condition !== 'ALL') {
+        searchParams.condition = condition
+      }
+      if (governorateId !== undefined) {
+        searchParams.governorateId = governorateId
+      }
 
       const res = await searchApi.search(searchParams)
       const raw = res.data
@@ -121,8 +130,16 @@ export function useSearchLogic() {
         total = raw.length
       } else if (raw && typeof raw === 'object') {
         items = Array.isArray(raw.items) ? raw.items : Array.isArray(raw.data) ? raw.data : []
-        total = typeof raw.total === 'number' ? raw.total : items.length
-        totalPages = typeof raw.totalPages === 'number' ? raw.totalPages : Math.ceil(total / 20) || 1
+        total = typeof raw.meta?.total === 'number'
+          ? raw.meta.total
+          : typeof raw.total === 'number'
+          ? raw.total
+          : items.length
+        totalPages = typeof raw.meta?.totalPages === 'number'
+          ? raw.meta.totalPages
+          : typeof raw.totalPages === 'number'
+          ? raw.totalPages
+          : Math.ceil(total / 20) || 1
       }
 
       return {
@@ -177,7 +194,7 @@ export function useSearchLogic() {
     })
   }, [])
 
-  const removeSingleFilter = useCallback((filterKey: 'minPrice' | 'maxPrice' | 'condition') => {
+  const removeSingleFilter = useCallback((filterKey: 'minPrice' | 'maxPrice' | 'condition' | 'governorateId') => {
     const newParams = { ...params }
     delete newParams[filterKey]
     router.replace({
@@ -197,6 +214,7 @@ export function useSearchLogic() {
     minPrice,
     maxPrice,
     condition,
+    governorateId,
     activeFiltersCount,
     hasActiveCriteria,
     autocompleteSuggestions,

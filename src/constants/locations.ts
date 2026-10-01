@@ -227,3 +227,17 @@ export const getPostCityLabel = (govValue: string, cityValue: string): string =>
   const city = gov.wilayats.find(w => w.id === cityValue || w.labelAr === cityValue || normalizeLoc(w.labelEn || '') === cityValNorm || normalizeLoc(w.id) === cityValNorm || normalizeLoc(w.labelAr) === cityValNorm);
   return city ? city.labelAr : '';
 };
+
+export const OMAN_GOVERNORATES_INDEXED = [
+  { id: 1, nameAr: 'مسقط', nameEn: 'Muscat' },
+  { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
+  { id: 3, nameAr: 'مسندم', nameEn: 'Musandam' },
+  { id: 4, nameAr: 'البريمي', nameEn: 'Al Buraimi' },
+  { id: 5, nameAr: 'الداخلية', nameEn: 'Ad Dakhiliyah' },
+  { id: 6, nameAr: 'شمال الباطنة', nameEn: 'Al Batinah North' },
+  { id: 7, nameAr: 'جنوب الباطنة', nameEn: 'Al Batinah South' },
+  { id: 8, nameAr: 'جنوب الشرقية', nameEn: 'Ash Sharqiyah South' },
+  { id: 9, nameAr: 'شمال الشرقية', nameEn: 'Ash Sharqiyah North' },
+  { id: 10, nameAr: 'الظاهرة', nameEn: 'Ad Dhahirah' },
+  { id: 11, nameAr: 'الوسطى', nameEn: 'Al Wusta' },
+];

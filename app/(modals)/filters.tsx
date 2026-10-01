@@ -1,34 +1,70 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Platform,
+} from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
 import { Spacing } from '../../src/constants/spacing'
+import { OMAN_GOVERNORATES_INDEXED } from '../../src/constants/locations'
 
 export default function FiltersModal() {
   const params = useLocalSearchParams()
   const [minPrice, setMinPrice] = useState((params.minPrice as string) || '')
   const [maxPrice, setMaxPrice] = useState((params.maxPrice as string) || '')
   const [condition, setCondition] = useState((params.condition as string) || 'ALL')
+  const [governorateId, setGovernorateId] = useState((params.governorateId as string) || '')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleApply = () => {
+    const minVal = minPrice.trim() ? Number(minPrice.trim()) : undefined
+    const maxVal = maxPrice.trim() ? Number(maxPrice.trim()) : undefined
+
+    if (minVal !== undefined && maxVal !== undefined && minVal > maxVal) {
+      setErrorMsg('الحد الأدنى لا يمكن أن يكون أكبر من الحد الأعلى')
+      return
+    }
+
+    setErrorMsg(null)
+
+    const targetParams: Record<string, string> = {}
+    if (params.category) targetParams.category = params.category as string
+    if (params.q) targetParams.q = params.q as string
+    if (minVal !== undefined && !isNaN(minVal)) targetParams.minPrice = String(minVal)
+    if (maxVal !== undefined && !isNaN(maxVal)) targetParams.maxPrice = String(maxVal)
+    if (condition && condition !== 'ALL') targetParams.condition = condition
+    if (governorateId) targetParams.governorateId = governorateId
+
     router.navigate({
       pathname: '/(tabs)/search',
-      params: {
-        ...(params.category ? { category: params.category } : {}),
-        ...(params.q ? { q: params.q } : {}),
-        minPrice,
-        maxPrice,
-        condition,
-      },
+      params: targetParams,
     })
+    router.back()
   }
 
   const handleReset = () => {
     setMinPrice('')
     setMaxPrice('')
     setCondition('ALL')
+    setGovernorateId('')
+    setErrorMsg(null)
+
+    const targetParams: Record<string, string> = {}
+    if (params.category) targetParams.category = params.category as string
+    if (params.q) targetParams.q = params.q as string
+
+    router.navigate({
+      pathname: '/(tabs)/search',
+      params: targetParams,
+    })
+    router.back()
   }
 
   return (
@@ -36,7 +72,7 @@ export default function FiltersModal() {
       <View style={styles.handle} />
       <View style={styles.header}>
         <Text style={styles.title}>تصفية النتائج</Text>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12} activeOpacity={0.7}>
           <Ionicons name="close" size={24} color={Colors.text} />
         </TouchableOpacity>
       </View>
@@ -47,29 +83,44 @@ export default function FiltersModal() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* ── نطاق السعر (RTL: من الحد الأدنى على اليمين إلى الحد الأعلى على اليسار) ── */}
         <Text style={s.label}>نطاق السعر (ر.ع)</Text>
         <View style={s.priceRow}>
-          <TextInput
-            style={s.input}
-            placeholder="الحد الأعلى"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="numeric"
-            value={maxPrice}
-            onChangeText={setMaxPrice}
-            textAlign="right"
-          />
-          <Text style={s.dash}>-</Text>
-          <TextInput
-            style={s.input}
-            placeholder="الحد الأدنى"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="numeric"
-            value={minPrice}
-            onChangeText={setMinPrice}
-            textAlign="right"
-          />
-        </View>
+          <View style={s.inputWrapper}>
+            <TextInput
+              style={[s.input, Boolean(errorMsg) && s.inputError]}
+              placeholder="الحد الأدنى"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="numeric"
+              value={minPrice}
+              onChangeText={(val) => {
+                setMinPrice(val)
+                if (errorMsg) setErrorMsg(null)
+              }}
+              textAlign="right"
+            />
+          </View>
 
+          <Text style={s.dash}>-</Text>
+
+          <View style={s.inputWrapper}>
+            <TextInput
+              style={[s.input, Boolean(errorMsg) && s.inputError]}
+              placeholder="الحد الأعلى"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="numeric"
+              value={maxPrice}
+              onChangeText={(val) => {
+                setMaxPrice(val)
+                if (errorMsg) setErrorMsg(null)
+              }}
+              textAlign="right"
+            />
+          </View>
+        </View>
+        {errorMsg && <Text style={s.errorText}>{errorMsg}</Text>}
+
+        {/* ── الحالة ── */}
         <Text style={s.label}>الحالة</Text>
         <View style={s.chipRow}>
           {[
@@ -90,8 +141,43 @@ export default function FiltersModal() {
             )
           })}
         </View>
+
+        {/* ── المحافظة (Location) ── */}
+        <Text style={s.label}>الموقع (المحافظة)</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.govScrollContainer}
+        >
+          <TouchableOpacity
+            style={[s.govChip, !governorateId && s.govChipActive]}
+            onPress={() => setGovernorateId('')}
+            activeOpacity={0.7}
+          >
+            <Text style={[s.govChipTxt, !governorateId && s.govChipTxtActive]}>
+              كل المحافظات
+            </Text>
+          </TouchableOpacity>
+
+          {OMAN_GOVERNORATES_INDEXED.map((gov) => {
+            const isActive = governorateId === String(gov.id)
+            return (
+              <TouchableOpacity
+                key={gov.id}
+                style={[s.govChip, isActive && s.govChipActive]}
+                onPress={() => setGovernorateId(isActive ? '' : String(gov.id))}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.govChipTxt, isActive && s.govChipTxtActive]}>
+                  {gov.nameAr}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
       </ScrollView>
 
+      {/* ── Footer Actions ── */}
       <View style={s.footer}>
         <TouchableOpacity style={s.resetBtn} onPress={handleReset} activeOpacity={0.7}>
           <Text style={s.resetTxt}>إعادة ضبط</Text>
@@ -126,7 +212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
@@ -134,7 +220,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 17,
-    lineHeight: 23,
+    lineHeight: 24,
     color: Colors.text,
   },
 })
@@ -154,8 +240,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  input: {
+  inputWrapper: {
     flex: 1,
+  },
+  input: {
     height: 48,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -163,16 +251,28 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: 20,
     color: Colors.text,
     backgroundColor: '#F8FAFC',
     writingDirection: 'rtl',
   },
+  inputError: {
+    borderColor: Colors.error,
+    backgroundColor: '#FEF2F2',
+  },
   dash: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 18,
-    lineHeight: 22,
+    lineHeight: 24,
     color: Colors.textMuted,
+  },
+  errorText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.error,
+    marginTop: 6,
+    writingDirection: 'rtl',
   },
   chipRow: {
     flexDirection: 'row',
@@ -202,6 +302,34 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     color: Colors.primary,
   },
+  govScrollContainer: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  govChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  govChipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: '#ECFDF5',
+  },
+  govChipTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.text2,
+  },
+  govChipTxtActive: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+  },
   footer: {
     flexDirection: 'row',
     width: '100%',
@@ -224,7 +352,7 @@ const s = StyleSheet.create({
   resetTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: 20,
     color: Colors.text2,
   },
   applyBtn: {
@@ -243,7 +371,7 @@ const s = StyleSheet.create({
   applyTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: 20,
     color: Colors.white,
   },
 })

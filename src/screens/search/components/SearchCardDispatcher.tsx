@@ -6,6 +6,7 @@ import { EquipCard } from '../../../components/cards/EquipCard'
 import { PartCard } from '../../../components/parts/PartCard'
 import { ServiceCard } from '../../../components/services/ServiceCard'
 import { JobCard } from '../../../components/cards/JobCard'
+import { OperatorCard } from '../../../components/cards/OperatorCard'
 import { getListingDetailRoute } from '../../../utils/navigationHelper'
 
 interface SearchCardDispatcherProps {
@@ -23,9 +24,11 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
   }
 
   const rawEntity = String(
+    item._entityType ||
     item.entityType ||
     item.type ||
     item.category ||
+    item.raw?._entityType ||
     item.raw?.entityType ||
     item.raw?.category ||
     ''
@@ -84,6 +87,15 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           job={item}
           onPress={handlePress}
           fullWidth
+        />
+      )
+
+    case 'operator':
+    case 'operators':
+      return (
+        <OperatorCard
+          item={item}
+          onPress={handlePress}
         />
       )
 

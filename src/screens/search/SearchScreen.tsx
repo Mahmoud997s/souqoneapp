@@ -26,7 +26,7 @@ import { SearchEmptyState } from './components/SearchEmptyState'
 import { SortBy } from '../../api/search'
 
 const SORT_OPTIONS: { id: SortBy; label: string }[] = [
-  { id: 'createdAt:desc', label: 'الأحدث أولاً' },
+  { id: 'newest', label: 'الأحدث أولاً' },
   { id: 'price:asc', label: 'الأقل سعراً' },
   { id: 'price:desc', label: 'الأعلى سعراً' },
 ]
@@ -42,6 +42,7 @@ export function SearchScreen() {
     minPrice,
     maxPrice,
     condition,
+    governorateId,
     activeFiltersCount,
     hasActiveCriteria,
     autocompleteSuggestions,
@@ -73,6 +74,7 @@ export function SearchScreen() {
         minPrice: minPrice !== undefined ? String(minPrice) : '',
         maxPrice: maxPrice !== undefined ? String(maxPrice) : '',
         condition: condition || 'ALL',
+        governorateId: governorateId !== undefined ? String(governorateId) : '',
       },
     } as any)
   }
@@ -206,6 +208,7 @@ export function SearchScreen() {
         minPrice={minPrice}
         maxPrice={maxPrice}
         condition={condition}
+        governorateId={governorateId}
         onRemoveFilter={removeSingleFilter}
         onClearAll={clearAllFilters}
       />

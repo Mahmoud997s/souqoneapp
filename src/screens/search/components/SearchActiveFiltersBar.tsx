@@ -5,11 +5,14 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 
+import { OMAN_GOVERNORATES_INDEXED } from '../../../constants/locations'
+
 interface SearchActiveFiltersBarProps {
   minPrice?: number
   maxPrice?: number
   condition?: string
-  onRemoveFilter: (key: 'minPrice' | 'maxPrice' | 'condition') => void
+  governorateId?: number
+  onRemoveFilter: (key: 'minPrice' | 'maxPrice' | 'condition' | 'governorateId') => void
   onClearAll: () => void
 }
 
@@ -17,10 +20,20 @@ export const SearchActiveFiltersBar = React.memo(function SearchActiveFiltersBar
   minPrice,
   maxPrice,
   condition,
+  governorateId,
   onRemoveFilter,
   onClearAll,
 }: SearchActiveFiltersBarProps) {
-  const hasFilters = Boolean(minPrice !== undefined || maxPrice !== undefined || (condition && condition !== 'ALL'))
+  const govName = governorateId
+    ? OMAN_GOVERNORATES_INDEXED.find((g) => g.id === governorateId)?.nameAr
+    : undefined
+
+  const hasFilters = Boolean(
+    minPrice !== undefined ||
+    maxPrice !== undefined ||
+    (condition && condition !== 'ALL') ||
+    govName
+  )
   if (!hasFilters) return null
 
   const conditionLabels: Record<string, string> = {
@@ -35,6 +48,16 @@ export const SearchActiveFiltersBar = React.memo(function SearchActiveFiltersBar
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={s.container}
       >
+        {govName && (
+          <View style={s.pill}>
+            <Ionicons name="location-outline" size={13} color={Colors.primary} />
+            <Text style={s.pillText}>{govName}</Text>
+            <TouchableOpacity onPress={() => onRemoveFilter('governorateId')} hitSlop={8} style={s.removeBtn}>
+              <Ionicons name="close" size={13} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {minPrice !== undefined && (
           <View style={s.pill}>
             <Text style={s.pillText}>من {minPrice} ر.ع</Text>
