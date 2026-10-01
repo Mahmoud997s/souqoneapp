@@ -11,15 +11,15 @@ import { InlineError } from '../../ui/InlineError';
 
 import { getServiceLabel } from '../../../constants/transport';
 
-const SERVICE_TYPES: { key: TransportServiceType; label: string; icon: any; color: string; desc: string }[] = [
-  { key: 'GOODS', label: getServiceLabel('GOODS'), desc: 'نقل البضائع والمواد التجارية', icon: 'package-variant-closed', color: '#10b981' },
-  { key: 'FURNITURE', label: getServiceLabel('FURNITURE'), desc: 'نقل العفش والمفروشات المنزلية', icon: 'sofa-outline', color: '#8b5cf6' },
-  { key: 'CONSTRUCTION', label: getServiceLabel('CONSTRUCTION'), desc: 'الإسمنت، الحديد، الرمل والطابوق', icon: 'crane', color: '#64748b' },
-  { key: 'HEAVY', label: getServiceLabel('HEAVY'), desc: 'المركبات، الحاويات، والأوزان الكبيرة', icon: 'truck-trailer', color: '#ef4444' },
-  { key: 'BACKLOAD', label: getServiceLabel('BACKLOAD'), desc: 'حمولات بأسعار مخفضة لشاحنات عائدة', icon: 'truck-check-outline', color: '#d946ef' },
-  { key: 'EQUIPMENT', label: getServiceLabel('EQUIPMENT'), desc: 'حفارات، رافعات، ومعدات صناعية', icon: 'excavator', color: '#f59e0b' },
-  { key: 'CARS', label: getServiceLabel('CARS'), desc: 'نقل سيارات، دراجات، ومركبات', icon: 'tow-truck', color: '#3b82f6' },
-  { key: 'LIVESTOCK', label: getServiceLabel('LIVESTOCK'), desc: 'نقل مواشي، طيور، وحيوانات', icon: 'cow', color: '#ec4899' },
+const SERVICE_TYPES: { key: TransportServiceType; label: string; icon: any; desc: string }[] = [
+  { key: 'GOODS', label: getServiceLabel('GOODS'), desc: 'نقل البضائع والمواد التجارية', icon: 'package-variant-closed' },
+  { key: 'FURNITURE', label: getServiceLabel('FURNITURE'), desc: 'نقل العفش والمفروشات المنزلية', icon: 'sofa-outline' },
+  { key: 'CONSTRUCTION', label: getServiceLabel('CONSTRUCTION'), desc: 'الإسمنت، الحديد، الرمل والطابوق', icon: 'crane' },
+  { key: 'HEAVY', label: getServiceLabel('HEAVY'), desc: 'المركبات، الحاويات، والأوزان الكبيرة', icon: 'truck-trailer' },
+  { key: 'BACKLOAD', label: getServiceLabel('BACKLOAD'), desc: 'حمولات بأسعار مخفضة لشاحنات عائدة', icon: 'truck-check-outline' },
+  { key: 'EQUIPMENT', label: getServiceLabel('EQUIPMENT'), desc: 'حفارات، رافعات، ومعدات صناعية', icon: 'excavator' },
+  { key: 'CARS', label: getServiceLabel('CARS'), desc: 'نقل سيارات، دراجات، ومركبات', icon: 'tow-truck' },
+  { key: 'LIVESTOCK', label: getServiceLabel('LIVESTOCK'), desc: 'نقل مواشي، طيور، وحيوانات', icon: 'cow' },
 ];
 
 export function TransportStep1Service() {
@@ -43,20 +43,24 @@ export function TransportStep1Service() {
               }}
               activeOpacity={0.85}
             >
-              <View style={[styles.iconBox, { backgroundColor: isSelected ? st.color + '15' : '#f1f5f9' }]}>
-                <MaterialCommunityIcons name={st.icon as any} size={28} color={isSelected ? st.color : Colors.textMuted} />
+              <View style={[styles.iconBox, isSelected && styles.iconBoxActive]}>
+                <MaterialCommunityIcons 
+                  name={st.icon as any} 
+                  size={28} 
+                  color={isSelected ? Colors.primary : Colors.primary} 
+                />
               </View>
               <Text style={[styles.cardLabel, isSelected && styles.cardLabelActive]}>
                 {st.label}
               </Text>
-              <Text style={[styles.cardDesc, isSelected && { color: st.color }]}>
+              <Text style={[styles.cardDesc, isSelected && styles.cardDescActive]}>
                 {st.desc}
               </Text>
               {isSelected && (
                 <Ionicons
                   name="checkmark-circle"
                   size={20}
-                  color={st.color}
+                  color={Colors.primary}
                   style={styles.checkIcon}
                 />
               )}
@@ -111,15 +115,19 @@ const styles = StyleSheet.create({
   },
   cardActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
   },
   iconBox: {
     width: 50,
     height: 50,
     borderRadius: 14,
+    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
+  },
+  iconBoxActive: {
+    backgroundColor: Colors.white,
   },
   cardLabel: {
     fontSize: 14,
@@ -133,9 +141,12 @@ const styles = StyleSheet.create({
   cardDesc: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    color: Colors.text2,
+    color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 16,
+  },
+  cardDescActive: {
+    color: Colors.text,
   },
   checkIcon: {
     position: 'absolute',

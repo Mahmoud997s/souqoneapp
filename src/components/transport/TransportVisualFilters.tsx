@@ -10,15 +10,15 @@ import {
 
 // ─── STATIC DATA ───
 const SERVICE_TYPES_DATA = [
-  { id: 'GOODS', label: 'بضائع عامة', icon: 'cube-send', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'FURNITURE', label: 'عفش وأثاث', icon: 'truck-cargo-container', color: '#0891b2', bg: '#cffafe' },
-  { id: 'VEHICLES', label: 'سيارات ومركبات', icon: 'car-multiple', color: '#ea580c', bg: '#ffedd5' },
-  { id: 'HEAVY', label: 'معدات وثقيل', icon: 'excavator', color: '#d97706', bg: '#fef3c7' },
-  { id: 'CONSTRUCTION', label: 'مواد بناء', icon: 'hammer-wrench', color: '#dc2626', bg: '#fee2e2' },
-  { id: 'FOOD_COLD', label: 'شحن مبرد', icon: 'snowflake', color: '#0284c7', bg: '#e0f2fe' },
-  { id: 'LIVESTOCK', label: 'مواشي وحيوانات', icon: 'cow', color: '#16a34a', bg: '#dcfce7' },
-  { id: 'EXPRESS', label: 'شحن مستعجل', icon: 'flash', color: '#eab308', bg: '#fef9c3' },
-  { id: 'BACKLOAD', label: 'نقل راجع', icon: 'swap-horizontal', color: '#9333ea', bg: '#f3e8ff' },
+  { id: 'GOODS', label: 'بضائع عامة', icon: 'cube-send' },
+  { id: 'FURNITURE', label: 'عفش وأثاث', icon: 'truck-cargo-container' },
+  { id: 'VEHICLES', label: 'سيارات ومركبات', icon: 'car-multiple' },
+  { id: 'HEAVY', label: 'معدات وثقيل', icon: 'excavator' },
+  { id: 'CONSTRUCTION', label: 'مواد بناء', icon: 'hammer-wrench' },
+  { id: 'FOOD_COLD', label: 'شحن مبرد', icon: 'snowflake' },
+  { id: 'LIVESTOCK', label: 'مواشي وحيوانات', icon: 'cow' },
+  { id: 'EXPRESS', label: 'شحن مستعجل', icon: 'flash' },
+  { id: 'BACKLOAD', label: 'نقل راجع', icon: 'swap-horizontal' },
 ];
 
 const GOVERNORATES_DATA = [
@@ -36,9 +36,9 @@ const GOVERNORATES_DATA = [
 ];
 
 const TIMING_DATA = [
-  { id: 'asap', label: 'فوري (أسرع وقت)', icon: 'timer-sand-full', color: '#ef4444', bg: '#fee2e2' },
-  { id: 'scheduled', label: 'مجدول بموعد', icon: 'calendar-clock', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'flexible', label: 'مرن في التوقيت', icon: 'check-decagram-outline', color: '#16a34a', bg: '#dcfce7' },
+  { id: 'asap', label: 'فوري (أسرع وقت)', icon: 'timer-sand-full' },
+  { id: 'scheduled', label: 'مجدول بموعد', icon: 'calendar-clock' },
+  { id: 'flexible', label: 'مرن في التوقيت', icon: 'check-decagram-outline' },
 ];
 
 const BUDGET_DATA = [
@@ -50,8 +50,8 @@ const BUDGET_DATA = [
 ];
 
 const HELPER_DATA = [
-  { id: 'helper_yes', label: 'يحتاج عمال تحميل', value: true, icon: 'account-multiple-plus', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'helper_no', label: 'بدون عمال تحميل', value: false, icon: 'account-off-outline', color: '#64748b', bg: '#f1f5f9' },
+  { id: 'helper_yes', label: 'يحتاج عمال تحميل', value: true, icon: 'account-multiple-plus' },
+  { id: 'helper_no', label: 'بدون عمال تحميل', value: false, icon: 'account-off-outline' },
 ];
 
 export interface TransportVisualFiltersProps {
@@ -96,11 +96,11 @@ export function TransportVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : Colors.inputBg }]}>
                 <MaterialCommunityIcons
                   name={item.icon as any}
                   size={14}
-                  color={isSelected ? Colors.white : item.color}
+                  color={isSelected ? Colors.white : Colors.primary}
                 />
               </View>
             ),
@@ -127,7 +127,7 @@ export function TransportVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : Colors.inputBg }]}>
                 <Ionicons
                   name={isSelected ? 'location' : 'location-outline'}
                   size={14}
@@ -158,11 +158,11 @@ export function TransportVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : Colors.inputBg }]}>
                 <MaterialCommunityIcons
                   name={item.icon as any}
                   size={14}
-                  color={isSelected ? Colors.white : item.color}
+                  color={isSelected ? Colors.white : Colors.primary}
                 />
               </View>
             ),
@@ -191,7 +191,7 @@ export function TransportVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : Colors.inputBg }]}>
                 <Ionicons
                   name={isSelected ? 'wallet' : 'wallet-outline'}
                   size={14}
@@ -222,11 +222,11 @@ export function TransportVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : item.bg }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : Colors.inputBg }]}>
                 <MaterialCommunityIcons
                   name={item.icon as any}
                   size={14}
-                  color={isSelected ? Colors.white : item.color}
+                  color={isSelected ? Colors.white : Colors.primary}
                 />
               </View>
             ),

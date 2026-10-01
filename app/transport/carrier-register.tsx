@@ -29,7 +29,7 @@ export default function CarrierRegisterIntroScreen() {
         <View style={s.featuresList}>
           <View style={s.featureItem}>
             <View style={s.featureIcon}>
-              <Ionicons name="cash-outline" size={24} color="#10b981" />
+              <Ionicons name="cash-outline" size={24} color={Colors.primary} />
             </View>
             <View style={s.featureTextWrap}>
               <Text style={s.featureTitle}>أرباح أعلى وفرص مستمرة</Text>
@@ -39,7 +39,7 @@ export default function CarrierRegisterIntroScreen() {
 
           <View style={s.featureItem}>
             <View style={s.featureIcon}>
-              <Ionicons name="time-outline" size={24} color="#f59e0b" />
+              <Ionicons name="time-outline" size={24} color={Colors.primary} />
             </View>
             <View style={s.featureTextWrap}>
               <Text style={s.featureTitle}>مرونة تامة في العمل</Text>
@@ -49,7 +49,7 @@ export default function CarrierRegisterIntroScreen() {
 
           <View style={s.featureItem}>
             <View style={s.featureIcon}>
-              <Ionicons name="shield-checkmark-outline" size={24} color="#3b82f6" />
+              <Ionicons name="shield-checkmark-outline" size={24} color={Colors.primary} />
             </View>
             <View style={s.featureTextWrap}>
               <Text style={s.featureTitle}>بيئة عمل آمنة وموثوقة</Text>
@@ -152,15 +152,17 @@ const s = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 22,
-    color: '#0f172a',
+    color: Colors.text,
     textAlign: 'left',
     marginBottom: 12,
     paddingVertical: 4,
@@ -168,7 +170,7 @@ const s = StyleSheet.create({
   subtitle: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 15,
-    color: '#64748b',
+    color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 10,
@@ -186,11 +188,11 @@ const s = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: Colors.border,
   },
   featureTextWrap: {
     flex: 1,
@@ -198,7 +200,7 @@ const s = StyleSheet.create({
   featureTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    color: '#0f172a',
+    color: Colors.text,
     marginBottom: 4,
     textAlign: 'left',
     paddingVertical: 4,
@@ -206,7 +208,7 @@ const s = StyleSheet.create({
   featureDesc: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 22,
     textAlign: 'left',
     paddingVertical: 4,
@@ -215,8 +217,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    backgroundColor: '#fff',
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.white,
   },
   startBtn: {
     flexDirection: 'row',
@@ -279,11 +281,11 @@ const s = StyleSheet.create({
   sheetTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 20,
-    color: '#0f172a',
+    color: Colors.text,
   },
   sheetCloseBtn: {
     padding: 4,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     borderRadius: 16,
   },
   sheetScrollContent: {
@@ -292,7 +294,7 @@ const s = StyleSheet.create({
   termsHeading: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    color: '#0f172a',
+    color: Colors.text,
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'left',
@@ -300,7 +302,7 @@ const s = StyleSheet.create({
   termsParagraph: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 24,
     textAlign: 'left',
     marginBottom: 6,

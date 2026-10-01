@@ -161,7 +161,7 @@ export default function CarrierOnboardingScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f8fafc' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   content: {
     padding: 16,
     paddingBottom: 120,
@@ -173,9 +173,9 @@ const s = StyleSheet.create({
     end: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: Colors.border,
   },
   nextBtn: {
     backgroundColor: Colors.primary,

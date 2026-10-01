@@ -134,7 +134,7 @@ const s = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.35)',
+    borderColor: Colors.border,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: Radius.pill,

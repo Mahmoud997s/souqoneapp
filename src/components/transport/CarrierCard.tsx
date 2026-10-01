@@ -5,7 +5,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { CarrierProfile } from '../../types/transport.types'
-import { VerificationBadge } from '../jobs/VerificationBadge'
+import { VerifiedBadge } from '../ui/VerifiedBadge'
 import RatingBadges from '../jobs/RatingBadges'
 import { getInitials, getAvatarColor } from '../../utils/format'
 import { formatLocation } from '../../utils/mappers'
@@ -47,7 +47,7 @@ export function CarrierCard({ carrier, onPress, compact = false, maxChips = 3 }:
         <View style={s.infoContainer}>
           <View style={s.nameRow}>
             <Text style={s.nameText} numberOfLines={1}>{name}</Text>
-            {isVerified && <VerificationBadge size={14} />}
+            {isVerified && <VerifiedBadge size={14} variant="dark" />}
           </View>
           
           <View style={s.locationRow}>
@@ -162,7 +162,7 @@ const s = StyleSheet.create({
   nameText: {
     ...CardSystem.typography.title,
     fontSize: 13.5,
-    color: '#0f172a',
+    color: Colors.text,
     textAlign: 'left',
     lineHeight: 19,
   },
@@ -174,7 +174,7 @@ const s = StyleSheet.create({
   locationText: {
     ...CardSystem.typography.subtitle,
     fontSize: 10.5,
-    color: '#64748b',
+    color: Colors.textMuted,
     textAlign: 'left',
     lineHeight: 15,
   },
@@ -208,31 +208,31 @@ const s = StyleSheet.create({
   chip: {
     paddingVertical: 3.5,
     paddingHorizontal: 7,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     borderRadius: CardSystem.radius.inner,
   },
   chipText: {
     ...CardSystem.typography.pillText,
     fontSize: 10,
-    color: '#475569',
+    color: Colors.text,
     lineHeight: 14,
   },
   chipExtra: {
     paddingVertical: 3.5,
     paddingHorizontal: 7,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: Colors.border,
     borderRadius: CardSystem.radius.inner,
   },
   chipExtraText: {
     ...CardSystem.typography.pillText,
     fontSize: 10,
-    color: '#334155',
+    color: Colors.text,
     lineHeight: 14,
   },
 
   footerDivider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.border,
     marginBottom: 8,
   },
   footerRow: {
@@ -248,7 +248,7 @@ const s = StyleSheet.create({
   statsText: {
     ...CardSystem.typography.subtitle,
     fontSize: 11,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 16,
   },
   ctaWrap: {

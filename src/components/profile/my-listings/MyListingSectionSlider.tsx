@@ -172,7 +172,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
   },
   seeAllBtn: {
     flexDirection: 'row',
@@ -183,7 +183,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.paleMint,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.35)',
+    borderColor: Colors.border,
   },
   seeAllText: {
     fontFamily: 'Almarai_700Bold',

@@ -49,7 +49,7 @@ const s = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.35)',
+    borderColor: Colors.border,
   },
   action: {
     fontFamily: 'Almarai_700Bold',

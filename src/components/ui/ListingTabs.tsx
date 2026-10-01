@@ -51,10 +51,10 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space4,
     marginTop: Spacing.space2,
     marginBottom: 2,
-    backgroundColor: 'rgba(218, 241, 222, 0.4)', // Glass pale mint
+    backgroundColor: Colors.paleMint,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.35)',
+    borderColor: Colors.border,
     padding: 3,
   },
   typeTab: {
@@ -76,7 +76,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', 
     fontSize: 11.5,
     lineHeight: 15.5,
-    color: Colors.accent,
+    color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
   },

@@ -341,7 +341,7 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   tabItemHovered: {
-    backgroundColor: 'rgba(218, 241, 222, 0.4)',
+    backgroundColor: T.primaryBg,
   },
   tabItemPressed: {
     opacity: 0.85,

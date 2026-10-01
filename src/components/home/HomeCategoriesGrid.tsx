@@ -53,7 +53,7 @@ export function HomeCategoriesGrid() {
                   <MaterialCommunityIcons
                     name={cat.icon}
                     size={21}
-                    color={isAction ? Colors.primary : Colors.forestGreen}
+                    color={Colors.primary}
                   />
                 </View>
                 <Text
@@ -87,51 +87,51 @@ const s = StyleSheet.create({
     marginBottom: 0,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+    backgroundColor: Colors.surfaceAlt,
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: 1,
+    borderColor: Colors.border,
     shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
   },
   actionCard: {
-    backgroundColor: 'rgba(218, 241, 222, 0.35)',
-    borderColor: 'rgba(255, 255, 255, 0.90)',
+    backgroundColor: Colors.paleMint,
+    borderColor: Colors.primary,
   },
   iconBox: {
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: 'rgba(35, 83, 71, 0.08)',
+    backgroundColor: Colors.inputBg,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.20)',
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
   },
   actionIconBox: {
-    backgroundColor: 'rgba(35, 83, 71, 0.14)',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(142, 182, 155, 0.30)',
+    borderColor: 'rgba(0, 156, 181, 0.25)',
   },
   label: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#1E3A34',
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
     paddingTop: 1,
   },
   actionLabel: {
     color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_800ExtraBold',
   },
 })

@@ -65,7 +65,7 @@ export function TransportStep5Review() {
       </View>
       
       <View style={styles.infoBanner}>
-        <Ionicons name="shield-checkmark" size={24} color="#059669" />
+        <Ionicons name="shield-checkmark" size={24} color={Colors.primary} />
         <Text style={styles.infoText}>لن يتم دفع أي مبالغ الآن. ستتلقى عروض الأسعار وتختار الأنسب لك.</Text>
       </View>
     </View>
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     marginEnd: 12,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: Colors.text2,
+    color: Colors.textMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginBottom: 4,
@@ -141,16 +141,18 @@ const styles = StyleSheet.create({
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.paleMint,
     padding: Spacing.space4,
     borderRadius: Radius.md,
     gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   infoText: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#065F46',
+    color: Colors.primaryDark,
     writingDirection: 'rtl',
     textAlign: 'left',
     lineHeight: 24,

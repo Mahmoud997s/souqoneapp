@@ -202,7 +202,7 @@ export default function LoginScreen() {
           {/* Logo Brand Header */}
           <View style={s.logoHero}>
             <Image
-              source={require('../../assets/icon.png')}
+              source={require('../../assets/logo.png')}
               style={s.logoImg}
               contentFit="contain"
             />
@@ -338,9 +338,9 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space5,
   },
   logoImg: {
-    width: 68,
-    height: 68,
-    borderRadius: Radius.lg,
+    width: 72,
+    height: 72,
+    backgroundColor: 'transparent',
     marginBottom: Spacing.space1,
   },
   brandTitle: {

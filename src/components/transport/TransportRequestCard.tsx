@@ -72,15 +72,15 @@ interface Props {
   maxPills?: number;
 }
 
-const SERVICE_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
-  GOODS: { icon: 'package-variant-closed', color: '#10b981', bg: '#ecfdf5' },
-  FURNITURE: { icon: 'sofa-outline', color: '#8b5cf6', bg: '#f5f3ff' },
-  CONSTRUCTION: { icon: 'crane', color: '#64748b', bg: '#f8fafc' },
-  HEAVY: { icon: 'truck-trailer', color: '#ef4444', bg: '#fef2f2' },
-  BACKLOAD: { icon: 'truck-check-outline', color: '#d946ef', bg: '#fdf4ff' },
-  EQUIPMENT: { icon: 'excavator', color: '#f59e0b', bg: '#fffbeb' },
-  CARS: { icon: 'tow-truck', color: '#3b82f6', bg: '#eff6ff' },
-  LIVESTOCK: { icon: 'cow', color: '#ec4899', bg: '#fdf2f8' },
+const SERVICE_CONFIG: Record<string, { icon: any }> = {
+  GOODS: { icon: 'package-variant-closed' },
+  FURNITURE: { icon: 'sofa-outline' },
+  CONSTRUCTION: { icon: 'crane' },
+  HEAVY: { icon: 'truck-trailer' },
+  BACKLOAD: { icon: 'truck-check-outline' },
+  EQUIPMENT: { icon: 'excavator' },
+  CARS: { icon: 'tow-truck' },
+  LIVESTOCK: { icon: 'cow' },
 };
 
 function formatRelativeTime(dateString?: string) {
@@ -112,7 +112,7 @@ export function TransportRequestCard({
   onDelete,
   maxPills = 3,
 }: Props) {
-  const config = SERVICE_CONFIG[request.serviceType] || { icon: 'truck-outline', color: Colors.primary, bg: Colors.primary + '15' };
+  const config = SERVICE_CONFIG[request.serviceType] || { icon: 'truck-outline' };
   const serviceLabelText = getServiceLabel(request.serviceType);
   
   const fromLoc = request.fromCity ? `${request.fromGovernorate}، ${request.fromCity}` : request.fromGovernorate;
@@ -206,8 +206,8 @@ export function TransportRequestCard({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.serviceTypeRow}>
-          <View style={[styles.iconBox, { backgroundColor: config.bg }]}>
-            <MaterialCommunityIcons name={config.icon} size={18} color={config.color} />
+          <View style={styles.iconBox}>
+            <MaterialCommunityIcons name={config.icon} size={18} color={Colors.primary} />
           </View>
           <View>
             <Text style={styles.serviceTitle} numberOfLines={1}>{serviceLabelText}</Text>
@@ -286,8 +286,8 @@ export function TransportRequestCard({
       {/* Footer Row (Budget, Quotes, and Views) */}
       <View style={styles.footerRow}>
         <View style={[styles.detailPill, isNegotiable ? styles.pillNeutral : styles.pillGreen, { flex: 1 }]}>
-          <Ionicons name="wallet-outline" size={14} color={isNegotiable ? '#64748b' : '#059669'} />
-          <Text style={[styles.budgetValText, !isNegotiable && { color: '#059669' }]} numberOfLines={1}>{budgetText}</Text>
+          <Ionicons name="wallet-outline" size={14} color={isNegotiable ? Colors.textMuted : Colors.primary} />
+          <Text style={[styles.budgetValText, !isNegotiable && { color: Colors.primary }]} numberOfLines={1}>{budgetText}</Text>
         </View>
         
         {request.quotesCount != null && request.quotesCount > 0 && (
@@ -349,13 +349,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   serviceTitle: {
     ...CardSystem.typography.title,
     fontSize: 13.5,
-    color: '#0f172a',
+    color: Colors.text,
     writingDirection: 'rtl',
     lineHeight: 19,
   },
@@ -366,9 +369,9 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   locationsContainerHorizontal: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.inputBg,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: Colors.border,
     borderRadius: 10,
     paddingHorizontal: 8,
     marginBottom: 8,
@@ -413,7 +416,7 @@ const styles = StyleSheet.create({
   locationLabel: {
     fontSize: 9.5,
     fontFamily: 'Almarai_400Regular',
-    color: '#64748b',
+    color: Colors.textMuted,
     marginTop: 2,
     marginBottom: 1,
     textAlign: 'center',
@@ -422,7 +425,7 @@ const styles = StyleSheet.create({
   locationTextHorizontal: {
     fontSize: 11.5,
     fontFamily: 'Almarai_700Bold',
-    color: '#1e293b',
+    color: Colors.text,
     textAlign: 'center',
     lineHeight: 16,
   },
@@ -438,17 +441,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: Colors.border,
     top: '50%',
   },
   truckIconContainer: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.inputBg,
     paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cargoBox: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 8,
     height: 26,
@@ -458,13 +463,13 @@ const styles = StyleSheet.create({
   cargoText: {
     fontSize: 11,
     fontFamily: 'Almarai_400Regular',
-    color: '#475569',
+    color: Colors.text,
     lineHeight: 16,
     writingDirection: 'rtl',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.border,
     marginVertical: 6,
   },
   detailsScroll: {
@@ -497,13 +502,13 @@ const styles = StyleSheet.create({
   pillOrange: CardSystem.styles.pillOrange,
   detailText: {
     ...CardSystem.typography.pillText,
-    color: '#475569',
+    color: Colors.text,
     writingDirection: 'rtl',
   },
   budgetValText: {
     fontSize: 11.5,
     fontFamily: 'Almarai_800ExtraBold',
-    color: '#64748b',
+    color: Colors.text,
     lineHeight: 16,
     writingDirection: 'rtl',
   },

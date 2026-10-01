@@ -31,15 +31,15 @@ const SERVICE_ICONS: Record<string, any> = {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  OPEN:        { bg: '#dcfce7', text: '#16a34a' },
-  QUOTED:      { bg: '#dbeafe', text: '#2563eb' },
+  OPEN:        { bg: Colors.paleMint, text: Colors.primary },
+  QUOTED:      { bg: Colors.paleMint, text: Colors.primaryDark },
   ACCEPTED:    { bg: '#fef3c7', text: '#d97706' },
-  IN_PROGRESS: { bg: '#f3e8ff', text: '#7c3aed' },
-  COMPLETED:   { bg: '#d1fae5', text: '#059669' },
+  IN_PROGRESS: { bg: Colors.paleMint, text: Colors.primary },
+  COMPLETED:   { bg: '#dcfce7', text: '#16a34a' },
   CANCELLED:   { bg: '#fee2e2', text: '#dc2626' },
-  EXPIRED:     { bg: '#f3f4f6', text: '#6b7280' },
+  EXPIRED:     { bg: Colors.inputBg, text: Colors.textMuted },
 }
-const QUOTE_STATUS_COLORS: Record<string, string> = { PENDING: '#d97706', ACCEPTED: '#16a34a', REJECTED: '#dc2626', WITHDRAWN: '#6b7280' }
+const QUOTE_STATUS_COLORS: Record<string, string> = { PENDING: '#d97706', ACCEPTED: Colors.primary, REJECTED: '#dc2626', WITHDRAWN: Colors.textMuted }
 
 export default function TransportDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -256,7 +256,7 @@ export default function TransportDetailScreen() {
               </View>
 
               <View style={s.locationWrap}>
-                <Ionicons name="swap-horizontal-outline" size={14} color="#475569" />
+                <Ionicons name="swap-horizontal-outline" size={14} color={Colors.textMuted} />
                 <Text style={s.locationTxtMeta}>{fromLabel} - {toLabel}</Text>
               </View>
             </View>
@@ -264,7 +264,7 @@ export default function TransportDetailScreen() {
 
           {isOwner && isOpen && (
             <TouchableOpacity 
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f5f9', paddingVertical: 12, borderRadius: 12, marginBottom: 24, gap: 8, borderWidth: 1, borderColor: '#e2e8f0' }}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.inputBg, paddingVertical: 12, borderRadius: 12, marginBottom: 24, gap: 8, borderWidth: 1, borderColor: Colors.border }}
               onPress={() => router.push(`/transport/requests/${id}/edit` as any)}
             >
               <Ionicons name="create-outline" size={20} color={Colors.primary} />
@@ -455,9 +455,9 @@ export default function TransportDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' },
-  errorTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#0f172a', marginTop: 12 },
+  root: { flex: 1, backgroundColor: Colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surfaceAlt },
+  errorTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text, marginTop: 12 },
   retryBtn: { marginTop: 16, backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 100 },
   retryTxt: { fontFamily: 'Almarai_700Bold',  color: '#fff', fontSize: 14 },
   
@@ -469,11 +469,11 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
   },
 
-  imgBox: { width: SW, height: SW * 0.65, backgroundColor: '#f1f5f9' },
+  imgBox: { width: SW, height: SW * 0.65, backgroundColor: Colors.inputBg },
   mainImg: { width: SW, height: '100%' },
   imgGradientTop: { position: 'absolute', top: 0, width: '100%', height: 80 },
   imgFallback: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  imgFallbackTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: '#94a3b8', marginTop: 12 },
+  imgFallbackTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.textMuted, marginTop: 12 },
   imgCounter: {
     position: 'absolute', bottom: 16, right: 16,
     flexDirection: 'row', alignItems: 'center',
@@ -482,62 +482,62 @@ const s = StyleSheet.create({
   },
   imgCounterTxt: { fontFamily: 'Almarai_700Bold',  color: '#fff', fontSize: 12 },
 
-  body: { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -20, padding: 20 },
+  body: { flex: 1, backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -20, padding: 20 },
   
   headerArea: { marginBottom: 20 },
-  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: '#0f172a', writingDirection: 'rtl', lineHeight: 28 },
+  title: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl', lineHeight: 28 },
   
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  typeBadgeInline: { backgroundColor: '#e0f2fe', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
-  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: '#0284c7' },
+  typeBadgeInline: { backgroundColor: Colors.paleMint, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
+  typeBadgeTxtInline: { fontFamily: 'Almarai_700Bold',  fontSize: 11, color: Colors.primary },
   condBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
   condTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 11 },
   locationWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationTxtMeta: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: '#475569' },
+  locationTxtMeta: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.textMuted },
 
   priceCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#f8fafc', padding: 16, borderRadius: 16, marginBottom: 24,
-    borderWidth: 1, borderColor: '#e2e8f0',
+    backgroundColor: Colors.surfaceAlt, padding: 16, borderRadius: 16, marginBottom: 24,
+    borderWidth: 1, borderColor: Colors.border,
   },
   priceRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  iconBgWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' },
+  iconBgWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.paleMint, alignItems: 'center', justifyContent: 'center' },
   priceLabelWrap: { gap: 2 },
-  priceLabelTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: '#64748b', writingDirection: 'rtl' },
-  negotiable: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: '#10b981' },
+  priceLabelTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.textMuted, writingDirection: 'rtl' },
+  negotiable: { fontFamily: 'Almarai_700Bold',  fontSize: 10, color: Colors.primary },
   priceLeft: { alignItems: 'flex-end' },
   price: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.primary },
-  currency: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: '#64748b' },
+  currency: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.textMuted },
 
   specsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   specItem: {
     flex: 1, minWidth: '28%',
-    backgroundColor: '#f8fafc', padding: 12, borderRadius: 16,
+    backgroundColor: Colors.surfaceAlt, padding: 12, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#e2e8f0',
+    borderWidth: 1, borderColor: Colors.border,
   },
-  specLabel: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: '#64748b', marginBottom: 2 },
-  specValue: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#0f172a', textAlign: 'center' },
+  specLabel: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted, marginBottom: 2 },
+  specValue: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, textAlign: 'center' },
 
-  divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 24 },
+  divider: { height: 1, backgroundColor: Colors.border, marginVertical: 24 },
 
   section: { marginBottom: 8 },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: '#0f172a', marginBottom: 16, writingDirection: 'rtl' },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 16, color: Colors.text, marginBottom: 16, writingDirection: 'rtl' },
   
-  table: { backgroundColor: '#f8fafc', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0' },
+  table: { backgroundColor: Colors.surfaceAlt, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
   tableRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 14 },
-  tableRowAlt: { backgroundColor: '#fff' },
-  tableLabel: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: '#64748b' },
-  tableValue: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: '#0f172a', writingDirection: 'rtl', flex: 1, textAlign: 'left', marginStart: 16 },
+  tableRowAlt: { backgroundColor: Colors.white },
+  tableLabel: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
+  tableValue: { fontFamily: 'Almarai_700Bold',  fontSize: 13, color: Colors.text, writingDirection: 'rtl', flex: 1, textAlign: 'left', marginStart: 16 },
 
-  descText: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: '#334155', lineHeight: 26, writingDirection: 'rtl' },
+  descText: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, lineHeight: 26, writingDirection: 'rtl' },
 
   noQuotes: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted, textAlign: 'center', paddingVertical: 12 },
   quotesList: { gap: 10 },
-  quoteCard: { backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', gap: 8 },
+  quoteCard: { backgroundColor: Colors.surfaceAlt, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, gap: 8 },
   quoteCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   quoteCarrier: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  quoteAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#e0e7ff', alignItems: 'center', justifyContent: 'center' },
+  quoteAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.paleMint, alignItems: 'center', justifyContent: 'center' },
   quoteAvatarText: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.primary },
   quoteCarrierName: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.text },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
@@ -545,22 +545,22 @@ const s = StyleSheet.create({
   quotePrice: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 15, color: Colors.primary },
   quoteStatusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100, marginTop: 4 },
   quoteStatusText: { fontFamily: 'Almarai_700Bold',  fontSize: 10 },
-  quoteHours: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.text2 },
-  quoteMessage: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
-  acceptBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 8, backgroundColor: Colors.primary + '12', borderWidth: 1, borderColor: Colors.primary + '30' },
+  quoteHours: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted },
+  quoteMessage: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text, writingDirection: 'rtl' },
+  acceptBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 8, backgroundColor: Colors.paleMint, borderWidth: 1, borderColor: Colors.primary },
   acceptBtnText: { fontFamily: 'Almarai_700Bold',  fontSize: 12, color: Colors.primary },
 
-  quoteFormCard: { borderWidth: 1.5, borderColor: Colors.primary + '40', padding: 16, borderRadius: 16, backgroundColor: '#f8fafc', marginTop: 16 },
+  quoteFormCard: { borderWidth: 1.5, borderColor: Colors.primary + '40', padding: 16, borderRadius: 16, backgroundColor: Colors.surfaceAlt, marginTop: 16 },
   quoteFormHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   quoteFormTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 15, color: Colors.text },
-  quoteInput: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, height: 44, paddingHorizontal: 14, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text, textAlign: 'right', writingDirection: 'rtl', marginBottom: 10 },
+  quoteInput: { backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, height: 44, paddingHorizontal: 14, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text, textAlign: 'right', writingDirection: 'rtl', marginBottom: 10 },
   submitQuoteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: 12, backgroundColor: Colors.primary, marginTop: 4 },
   submitQuoteTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: '#fff' },
 
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#fff',
-    borderTopWidth: 1, borderTopColor: '#e2e8f0',
+    backgroundColor: Colors.white,
+    borderTopWidth: 1, borderTopColor: Colors.border,
     paddingHorizontal: 20, paddingTop: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 10,
   },
@@ -571,8 +571,8 @@ const s = StyleSheet.create({
   },
   chatTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 15, color: '#fff' },
   callBtn: {
-    width: 50, height: 50, borderRadius: 25, backgroundColor: '#eff6ff',
+    width: 50, height: 50, borderRadius: 25, backgroundColor: Colors.paleMint,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#bfdbfe',
+    borderWidth: 1, borderColor: Colors.border,
   },
-})
+});

@@ -30,10 +30,10 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
 }) => {
   const isDark = variant === 'dark';
 
-  // ألوان الختم والنص حسب النمط المختار من باليتة Minimal Green
-  const starFill = isDark ? Colors.paleMint : Colors.primaryDark;
-  const checkStroke = isDark ? Colors.primaryDark : Colors.paleMint;
-  const textColor = isDark ? Colors.paleMint : Colors.primaryDark;
+  // ألوان الختم والنص حسب النمط المختار من باليتة الفيروزي والكحلي الرسمية
+  const starFill = Colors.primary;
+  const checkStroke = '#FFFFFF';
+  const textColor = isDark ? Colors.paleMint : Colors.primary;
 
   // رسم الختم الثماني الهندسي (8-Pointed Star) مع علامة توثيق حادة بالداخل
   const renderOctagramSeal = (emblemSize: number) => (
@@ -103,8 +103,8 @@ const s = StyleSheet.create({
     borderWidth: 1,
   },
   containerDark: {
-    backgroundColor: Colors.primaryDark, // #0B2B26
-    borderColor: 'rgba(142, 182, 155, 0.45)', // #8EB69B بلمسة ناعمة
+    backgroundColor: Colors.primaryDark, // #192435
+    borderColor: 'rgba(0, 156, 181, 0.35)', // لمسة فيروزية ناعمة
     shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 1.5 },
     shadowOpacity: 0.15,
@@ -112,8 +112,8 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   containerMint: {
-    backgroundColor: Colors.paleMint, // #DAF1DE
-    borderColor: '#B5DCBF',
+    backgroundColor: Colors.paleMint, // #ECF8FA
+    borderColor: Colors.border,
   },
   text: {
     fontFamily: 'Almarai_700Bold',

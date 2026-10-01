@@ -54,7 +54,7 @@ export default function CarrierStep3Location() {
       </View>
 
       <View style={s.infoBox}>
-        <Ionicons name="information-circle" size={24} color="#0ea5e9" />
+        <Ionicons name="information-circle" size={24} color={Colors.primary} />
         <Text style={s.infoText}>سيتيح لك التطبيق لاحقاً استقبال الطلبات من جميع المحافظات، لكن تحديد موقعك الأساسي سيساعدنا في عرض الطلبات الأقرب إليك أولاً.</Text>
       </View>
 
@@ -84,7 +84,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
-    color: '#0f172a',
+    color: Colors.text,
     marginBottom: 4,
     textAlign: 'left',
     paddingVertical: 4,
@@ -92,7 +92,7 @@ const s = StyleSheet.create({
   subtitle: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 22,
     textAlign: 'center',
     paddingVertical: 4,
@@ -102,7 +102,7 @@ const s = StyleSheet.create({
     padding: 16,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   mapButton: {
     flexDirection: 'row',
@@ -111,10 +111,10 @@ const s = StyleSheet.create({
     gap: 8,
     marginTop: 16,
     paddingVertical: 12,
-    backgroundColor: '#eff6ff',
+    backgroundColor: Colors.paleMint,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: Colors.border,
   },
   mapButtonText: {
     fontFamily: 'Almarai_700Bold',
@@ -127,22 +127,22 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     marginTop: 8,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.surfaceAlt,
     paddingVertical: 6,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   coordText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: '#64748b',
+    color: Colors.textMuted,
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#f0f9ff',
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: '#bae6fd',
+    borderColor: Colors.border,
     borderRadius: Radius.md,
     padding: 16,
     marginTop: 24,
@@ -152,7 +152,7 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#0369a1',
+    color: Colors.primaryDark,
     lineHeight: 22,
     textAlign: 'left',
     paddingVertical: 4,

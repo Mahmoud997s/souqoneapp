@@ -22,7 +22,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0B2B26"
+        "backgroundColor": "#03060B"
       },
       "package": "com.souqone.app",
       "config": {
@@ -51,7 +51,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B2B26",
+          "backgroundColor": "#03060B",
           "image": "./assets/splash.png",
           "imageWidth": 200,
           "resizeMode": "contain"

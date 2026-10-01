@@ -50,7 +50,7 @@ export const CardSystem = {
     pillNeutral: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
     pillBlue:    { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
     pillAmber:   { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-    pillGreen:   { backgroundColor: Colors.paleMint, borderWidth: 1, borderColor: '#BDE4C7' },
+    pillGreen:   { backgroundColor: Colors.paleMint, borderWidth: 1, borderColor: Colors.border },
     pillRed:     { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
     pillOrange:  { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   },
