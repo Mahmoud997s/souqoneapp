@@ -231,4 +231,115 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     // 1st call = original, 2nd call = retried, no 3rd call
     expect(calls).toBe(2);
   });
+
+  it('7. should NOT leak rejected refreshPromise when no refresh token exists, allowing subsequent 401 to refresh successfully', async () => {
+    // Stage 1: No refresh token stored
+    delete (secureStoreState as any).refreshToken;
+
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      throw new AxiosError('Unauthorized', '401', config, null, {
+        status: 401,
+        statusText: 'Unauthorized',
+        data: {},
+        headers: {},
+        config,
+      });
+    };
+
+    // First 401 request with no refresh token -> should fail and trigger logout once
+    await expect(apiClient.get('/user/data')).rejects.toThrow();
+    expect(mockLogout).toHaveBeenCalledTimes(1);
+    expect(axiosPostSpy).not.toHaveBeenCalled();
+
+    // Stage 2: User logs in or stores a new valid refresh token
+    secureStoreState.refreshToken = 'new-valid-refresh-token';
+    axiosPostSpy.mockResolvedValueOnce({
+      data: {
+        accessToken: 'brand-new-access-token',
+        refreshToken: 'brand-new-refresh-token',
+      },
+    });
+
+    let secondAttemptCount = 0;
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      secondAttemptCount++;
+      if (secondAttemptCount === 1) {
+        throw new AxiosError('Unauthorized', '401', config, null, {
+          status: 401,
+          statusText: 'Unauthorized',
+          data: {},
+          headers: {},
+          config,
+        });
+      }
+      return {
+        data: { success: true, token: config.headers?.Authorization },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config,
+      };
+    };
+
+    // Second 401 request -> must initiate a REAL refresh call, NOT return a stuck rejected promise
+    const result = await apiClient.get('/user/data-after-login');
+    expect(axiosPostSpy).toHaveBeenCalledTimes(1);
+    expect(result.data.success).toBe(true);
+    expect(result.data.token).toBe('Bearer brand-new-access-token');
+  });
+
+  it('8. should initiate a fresh refresh call on subsequent 401 after a previous refresh network failure', async () => {
+    // 1st cycle: Refresh fails with network error
+    axiosPostSpy.mockRejectedValueOnce(new AxiosError('Network Error', 'ERR_NETWORK'));
+
+    let attempt1 = 0;
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      attempt1++;
+      throw new AxiosError('Unauthorized', '401', config, null, {
+        status: 401,
+        statusText: 'Unauthorized',
+        data: {},
+        headers: {},
+        config,
+      });
+    };
+
+    await expect(apiClient.get('/feed')).rejects.toThrow();
+    expect(axiosPostSpy).toHaveBeenCalledTimes(1);
+    expect(mockLogout).not.toHaveBeenCalled();
+
+    // 2nd cycle: Network recovers, subsequent 401 must initiate a fresh refresh call
+    axiosPostSpy.mockResolvedValueOnce({
+      data: {
+        accessToken: 'recovered-access-token',
+        refreshToken: 'recovered-refresh-token',
+      },
+    });
+
+    let attempt2 = 0;
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      attempt2++;
+      if (attempt2 === 1) {
+        throw new AxiosError('Unauthorized', '401', config, null, {
+          status: 401,
+          statusText: 'Unauthorized',
+          data: {},
+          headers: {},
+          config,
+        });
+      }
+      return {
+        data: { ok: true, token: config.headers?.Authorization },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config,
+      };
+    };
+
+    const res = await apiClient.get('/feed');
+    expect(axiosPostSpy).toHaveBeenCalledTimes(2);
+    expect(res.data.ok).toBe(true);
+    expect(res.data.token).toBe('Bearer recovered-access-token');
+  });
 });
