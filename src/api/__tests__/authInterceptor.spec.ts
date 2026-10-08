@@ -30,6 +30,7 @@ jest.mock('../../services/socket', () => ({
 
 // Import apiClient after mocks are set up
 import { apiClient } from '../client';
+import { dialogService } from '../../store/dialogStore';
 
 describe('Auth Interceptor & Token Refresh Mechanism', () => {
   let axiosPostSpy: jest.SpyInstance;
@@ -342,4 +343,53 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     expect(res.data.ok).toBe(true);
     expect(res.data.token).toBe('Bearer recovered-access-token');
   });
+
+  it('9. should suppress error dialog when skipErrorDialog is true on 500 or Network Error', async () => {
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      throw new AxiosError('Server Error', '500', config, null, {
+        status: 500,
+        statusText: 'Internal Server Error',
+        data: {},
+        headers: {},
+        config,
+      });
+    };
+
+    await expect(apiClient.get('/search/autocomplete', { skipErrorDialog: true } as any)).rejects.toThrow();
+    expect(dialogService.alert).not.toHaveBeenCalled();
+
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      const err = new AxiosError('Network Error', 'ERR_NETWORK', config);
+      throw err;
+    };
+
+    await expect(apiClient.get('/search/autocomplete', { skipErrorDialog: true } as any)).rejects.toThrow();
+    expect(dialogService.alert).not.toHaveBeenCalled();
+  });
+
+  it('10. should show error dialog when skipErrorDialog is not set on 500 or Network Error', async () => {
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      throw new AxiosError('Server Error', '500', config, null, {
+        status: 500,
+        statusText: 'Internal Server Error',
+        data: {},
+        headers: {},
+        config,
+      });
+    };
+
+    await expect(apiClient.get('/items')).rejects.toThrow();
+    expect(dialogService.alert).toHaveBeenCalledWith('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error');
+
+    (dialogService.alert as jest.Mock).mockClear();
+
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      const err = new AxiosError('Network Error', 'ERR_NETWORK', config);
+      throw err;
+    };
+
+    await expect(apiClient.get('/items')).rejects.toThrow();
+    expect(dialogService.alert).toHaveBeenCalledWith('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning');
+  });
 });
+
