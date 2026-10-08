@@ -41,9 +41,13 @@ export const BusCard = ({
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
     ? item.images
-    : (rawData.images || [])
+    : (rawData.images && rawData.images.length > 0)
+      ? rawData.images
+      : ((item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image)
+        ? [(item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image]
+        : []
   const displayImages = rawImages
-    .map((img: any) => (typeof img === 'string' ? img : img?.url))
+    .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
     .filter(Boolean) as string[]
 
   const imageCount =

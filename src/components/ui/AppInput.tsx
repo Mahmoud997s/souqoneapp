@@ -41,7 +41,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
   ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
     const isSm = size === 'sm'
-    const inputHeight = isSm ? 42 : 48
+    const inputHeight = isSm ? 38 : 44
     const isNumericField = Boolean(rest.keyboardType && NUMERIC_KEYBOARD_TYPES.includes(rest.keyboardType))
 
     const handleChangeText = (val: string) => {
@@ -63,8 +63,8 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
         ]}>
           {/* Leading icon – physical RIGHT */}
           {iconRight ? (
-            <View style={[s.iconRight, { height: inputHeight, width: isSm ? 32 : 38 }]}>
-              <Ionicons name={iconRight as any} size={isSm ? 17 : 19} color={Colors.textMuted} />
+            <View style={[s.iconRight, { height: inputHeight, width: isSm ? 30 : 34 }]}>
+              <Ionicons name={iconRight as any} size={isSm ? 16 : 18} color={Colors.textMuted} />
             </View>
           ) : null}
 
@@ -73,17 +73,17 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             style={[
               s.input,
               { 
-                fontSize: isSm ? 13 : 14,
-                lineHeight: isSm ? 18 : 21,
+                fontSize: isSm ? 12.5 : 13.5,
+                lineHeight: isSm ? 17 : 19,
                 minHeight: rest.multiline ? 76 : (inputHeight - 4),
                 paddingVertical: rest.multiline 
                   ? (Platform.OS === 'ios' ? 8 : 6)
-                  : (Platform.OS === 'ios' ? 10 : 6),
-                paddingHorizontal: 14,
+                  : (Platform.OS === 'ios' ? 8 : 4),
+                paddingHorizontal: 12,
                 textAlignVertical: rest.multiline ? 'top' : 'center',
               },
-              iconRight ? { paddingStart: isSm ? 40 : 46 } : null,
-              iconLeft ? { paddingEnd: isSm ? 40 : 46 } : null,
+              iconRight ? { paddingStart: isSm ? 36 : 42 } : null,
+              iconLeft ? { paddingEnd: isSm ? 36 : 42 } : null,
               rest.keyboardType === 'numeric' ? { writingDirection: 'ltr' } : null,
               ltr ? { textAlign: 'left', writingDirection: 'ltr' } : null,
               style,
@@ -123,18 +123,18 @@ const s = StyleSheet.create({
   container: { gap: 5, width: '100%' },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
-    lineHeight: 18,
-    color: '#334155',
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.text,
     alignSelf: 'stretch',
     writingDirection: 'rtl',
     marginBottom: 1,
   },
   inputWrap: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.surfaceAlt,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -144,6 +144,7 @@ const s = StyleSheet.create({
   },
   inputError: {
     borderColor: Colors.error,
+    backgroundColor: '#FEF2F2',
   },
   iconRight: {
     position: 'absolute',
@@ -164,17 +165,18 @@ const s = StyleSheet.create({
   input: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
-    color: '#0F172A',
+    color: Colors.text,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',
+    fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
     color: Colors.error,
     writingDirection: 'rtl',
     marginTop: 2,
+    marginStart: 2,
   },
 })
 

@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -23,6 +24,9 @@ import { authApi } from '../../src/api/auth'
 import { Ionicons } from '@expo/vector-icons'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
+import { GoogleIcon } from '../../src/components/ui/GoogleIcon'
+import { BlurView } from 'expo-blur'
+import { validateLogin } from '../../src/utils/authValidation'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import {
@@ -37,7 +41,7 @@ import {
 export default function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { redirect } = useLocalSearchParams<{ redirect?: string }>()
-  const { setAuth } = useAuthStore()
+  const { setAuth, setGuest } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -64,23 +68,10 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setGeneralError('')
-    const newErrors: Record<string, string> = {}
+    const result = validateLogin({ email, password })
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!email.trim()) {
-      newErrors.email = 'يرجى إدخال البريد الإلكتروني'
-    } else if (!emailRegex.test(email.trim())) {
-      newErrors.email = 'البريد الإلكتروني غير صالح'
-    }
-
-    if (!password) {
-      newErrors.password = 'يرجى إدخال كلمة المرور'
-    } else if (password.length < 6) {
-      newErrors.password = 'كلمة المرور يجب أن تكون ٦ أحرف على الأقل'
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    if (!result.isValid) {
+      setErrors(result.errors)
       return
     }
 
@@ -172,20 +163,6 @@ export default function LoginScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="dark-content" />
-      {/* Floating Back / Dismiss Button */}
-      <TouchableOpacity
-        style={[s.floatingDismissBtn, { top: insets.top + Spacing.space3 }]}
-        onPress={() => {
-          if (router.canGoBack()) router.back()
-          else router.replace('/(tabs)' as any)
-        }}
-        activeOpacity={0.7}
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        accessibilityLabel="رجوع"
-        accessibilityRole="button"
-      >
-        <Ionicons name="close" size={20} color="#334155" />
-      </TouchableOpacity>
 
       <KeyboardAvoidingView
         style={s.flex}
@@ -201,22 +178,29 @@ export default function LoginScreen() {
         >
           {/* Logo Brand Header */}
           <View style={s.logoHero}>
-            <Image
-              source={require('../../assets/logo.png')}
-              style={s.logoImg}
-              contentFit="contain"
-            />
-            <Text style={s.brandTitle}>سوق وان</Text>
+            {/* Unified Brand Lockup */}
+            <View style={s.brandLockup} accessible={true} accessibilityRole="header" accessibilityLabel="سوق ون">
+              <Image
+                source={require('../../assets/logo.png')}
+                style={s.logoImg}
+                contentFit="contain"
+              />
+              <Text style={s.brandTitle}>
+                <Text style={s.brandTitleTurquoise}>سوق </Text>
+                <Text style={s.brandTitleOrange}>ون</Text>
+              </Text>
+            </View>
             <Text style={s.brandSub}>منصتك الأولى للسيارات والخدمات في سلطنة عمان 🇴🇲</Text>
           </View>
 
-          {/* Card */}
-          <View style={s.card}>
-            <View style={s.cardHeader}>
-              <Text style={s.cardTitle}>أهلاً بك مجدداً 👋</Text>
-              <Text style={s.cardSub}>سجّل دخولك للمتابعة والوصول لكافة الميزات</Text>
-            </View>
-
+          {/* Glassmorphism Card */}
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 70 : 85}
+            tint="light"
+            blurMethod="dimezisBlurView"
+            style={s.card}
+          >
+            <View style={s.glassWash} pointerEvents="none" />
             <View style={s.form}>
               {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
 
@@ -228,7 +212,7 @@ export default function LoginScreen() {
                   setEmail(v)
                   clearFieldError('email')
                 }}
-                placeholder="name@example.com"
+                placeholder="أدخل بريدك الإلكتروني"
                 keyboardType="email-address"
                 textContentType="emailAddress"
                 autoCapitalize="none"
@@ -248,7 +232,7 @@ export default function LoginScreen() {
                   setPassword(v)
                   clearFieldError('password')
                 }}
-                placeholder="كلمة المرور"
+                placeholder="أدخل كلمة المرور"
                 secureTextEntry={!showPw}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
@@ -277,34 +261,55 @@ export default function LoginScreen() {
                   <View style={s.dividerLine} />
                 </View>
 
-                <AppButton
-                  title="تسجيل بـ Google"
-                  variant="outline"
-                  icon="logo-google"
-                  loading={googleLoading}
-                  disabled={loading}
+                {/* Google Sign In Button */}
+                <TouchableOpacity
+                  style={s.googleBtn}
                   onPress={handleGoogleLogin}
-                />
+                  disabled={loading || googleLoading}
+                  activeOpacity={0.8}
+                >
+                  {googleLoading ? (
+                    <ActivityIndicator size="small" color="#3C4043" />
+                  ) : (
+                    <>
+                      <GoogleIcon size={18} />
+                      <Text style={s.googleBtnTxt}>متابعة باستخدام Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* Continue as Guest Button */}
+                <TouchableOpacity
+                  style={s.guestBtn}
+                  onPress={() => {
+                    setGuest(true)
+                    router.replace('/(tabs)')
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="compass-outline" size={17} color={Colors.primary} />
+                  <Text style={s.guestBtnTxt}>المتابعة كزائر واستكشاف التطبيق</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={s.signupRow}>
+                <Text style={s.signupTxt}>
+                  ليس لديك حساب؟{'  '}
+                  <Text
+                    style={s.signupLink}
+                    onPress={() => {
+                      const target = redirect
+                        ? `/(auth)/register?redirect=${encodeURIComponent(redirect)}`
+                        : '/(auth)/register'
+                      router.push(target as any)
+                    }}
+                  >
+                    إنشاء حساب
+                  </Text>
+                </Text>
               </View>
             </View>
-
-            <View style={s.signupRow}>
-              <Text style={s.signupTxt}>
-                ليس لديك حساب؟{'  '}
-                <Text
-                  style={s.signupLink}
-                  onPress={() => {
-                    const target = redirect
-                      ? `/(auth)/register?redirect=${encodeURIComponent(redirect)}`
-                      : '/(auth)/register'
-                    router.push(target as any)
-                  }}
-                >
-                  إنشاء حساب
-                </Text>
-              </Text>
-            </View>
-          </View>
+          </BlurView>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -312,121 +317,161 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingBottom: 40 },
-  floatingDismissBtn: {
-    position: 'absolute',
-    start: Spacing.space5,
-    zIndex: 50,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.card,
-  },
 
   logoHero: {
     alignItems: 'center',
-    gap: Spacing.space1,
+    gap: 3,
     marginTop: Spacing.space2,
-    marginBottom: Spacing.space3,
+    marginBottom: Spacing.space2,
     paddingHorizontal: Spacing.space5,
   },
+  brandLockup: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 0,
+  },
   logoImg: {
-    width: 72,
-    height: 72,
+    width: 150,
+    height: 150,
     backgroundColor: 'transparent',
-    marginBottom: Spacing.space1,
+    marginBottom: 0,
   },
   brandTitle: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 22,
-    lineHeight: 28,
-    color: '#0F172A',
+    fontSize: 25,
+    lineHeight: 32,
     textAlign: 'center',
+    writingDirection: 'rtl',
+    marginTop: -25,
+    marginBottom: 3.5,
+  },
+  brandTitleTurquoise: {
+    color: Colors.primary,
+  },
+  brandTitleOrange: {
+    color: '#F18B29',
   },
   brandSub: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
+    fontSize: 12.5,
     lineHeight: 18,
-    color: '#64748B',
+    color: Colors.textMuted,
     textAlign: 'center',
-    maxWidth: 280,
+    maxWidth: 260,
     writingDirection: 'rtl',
   },
 
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    marginHorizontal: Spacing.space5,
-    marginTop: Spacing.space1,
-    padding: Spacing.space6,
+    overflow: 'hidden',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.72)' : 'rgba(255, 255, 255, 0.88)',
+    borderRadius: Radius.lg,
+    marginHorizontal: Spacing.space4,
+    marginTop: 4,
+    padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...Shadows.card,
-    gap: Spacing.space5,
+    borderColor: 'rgba(255, 255, 255, 0.85)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+      },
+      android: { elevation: 2 },
+    }),
+    gap: 12,
   },
-  cardHeader: { alignItems: 'center', gap: Spacing.space1 },
-  cardTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 20,
-    lineHeight: 28,
-    color: '#0F172A',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text2,
-    textAlign: 'center',
-    writingDirection: 'rtl',
+  glassWash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
 
-  form: { gap: Spacing.space3 },
+  form: { gap: 10 },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 17,
     color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  forgotRow: { alignSelf: 'flex-end' },
+  forgotRow: { alignSelf: 'flex-end', marginTop: 1 },
   forgotTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
     lineHeight: 16,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
-  actions: { gap: Spacing.space4, marginTop: Spacing.space2 },
+  actions: { gap: 8, marginTop: 2 },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space4,
-    marginVertical: Spacing.space2,
+    gap: Spacing.space2,
+    marginVertical: 1,
   },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 12,
-    lineHeight: 16,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.textMuted,
   },
 
-  signupRow: { alignItems: 'center' },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    borderRadius: Radius.md,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DADCE0',
+    gap: 8,
+    ...Shadows.sm,
+  },
+  googleBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#3C4043',
+  },
+
+  guestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 38,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Colors.border,
+    gap: 6,
+    marginTop: 1,
+  },
+  guestBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text,
+  },
+
+  signupRow: { alignItems: 'center', marginTop: 2 },
   signupTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text2,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   signupLink: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 19,
     color: Colors.primary,
   },
 })

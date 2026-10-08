@@ -26,23 +26,26 @@ export const SearchAutocompleteList = React.memo(function SearchAutocompleteList
     <View style={s.container}>
       <FlatList
         data={suggestions}
-        keyExtractor={(item, index) => `${item}-${index}`}
+        keyExtractor={(item, index) => `${typeof item === 'string' ? item : (item as any)?.id || index}-${index}`}
         keyboardShouldPersistTaps="handled"
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={s.row}
-            onPress={() => onSelectSuggestion(item)}
-            activeOpacity={0.65}
-          >
-            <View style={s.textRow}>
-              <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.icon} />
-              <Text style={s.text} numberOfLines={1}>
-                {item}
-              </Text>
-            </View>
-            <Ionicons name="arrow-back-outline" size={15} color={Colors.textMuted} />
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          const label = typeof item === 'string' ? item : (item as any)?.title || ''
+          return (
+            <TouchableOpacity
+              style={s.row}
+              onPress={() => onSelectSuggestion(label)}
+              activeOpacity={0.65}
+            >
+              <View style={s.textRow}>
+                <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.icon} />
+                <Text style={s.text} numberOfLines={1}>
+                  {label}
+                </Text>
+              </View>
+              <Ionicons name="arrow-back-outline" size={15} color={Colors.textMuted} />
+            </TouchableOpacity>
+          )
+        }}
       />
     </View>
   )

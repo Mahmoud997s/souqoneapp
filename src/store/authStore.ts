@@ -6,8 +6,10 @@ import { clearAllUserData } from '../utils/clearUserData'
 interface AuthState {
   user: User | null
   isLoggedIn: boolean
+  isGuest: boolean
   isLoading: boolean
   setAuth: (user: User, accessToken: string, refreshToken: string) => Promise<void>
+  setGuest: (isGuest: boolean) => void
   logout: () => Promise<void>
   initialize: () => Promise<void>
   updateUser: (updates: Partial<User>) => void
@@ -16,12 +18,17 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoggedIn: false,
+  isGuest: false,
   isLoading: true,
 
   setAuth: async (user, accessToken, refreshToken) => {
     await SecureStore.setItemAsync('accessToken', accessToken)
     await SecureStore.setItemAsync('refreshToken', refreshToken)
-    set({ user, isLoggedIn: true })
+    set({ user, isLoggedIn: true, isGuest: false })
+  },
+
+  setGuest: (isGuest) => {
+    set({ isGuest })
   },
 
   logout: async () => {
@@ -33,7 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } finally {
       await clearAllUserData()
-      set({ user: null, isLoggedIn: false })
+      set({ user: null, isLoggedIn: false, isGuest: false })
     }
   },
 

@@ -109,9 +109,9 @@ const s = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F7F9',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: '#B3E7EE',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.pill,

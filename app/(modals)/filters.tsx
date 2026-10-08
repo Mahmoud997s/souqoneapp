@@ -46,7 +46,6 @@ export default function FiltersModal() {
       pathname: '/(tabs)/search',
       params: targetParams,
     })
-    router.back()
   }
 
   const handleReset = () => {
@@ -64,7 +63,6 @@ export default function FiltersModal() {
       pathname: '/(tabs)/search',
       params: targetParams,
     })
-    router.back()
   }
 
   return (

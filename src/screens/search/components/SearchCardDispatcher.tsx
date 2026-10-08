@@ -18,19 +18,35 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
 }: SearchCardDispatcherProps) {
   if (!item) return null
 
+  // Normalize item images and properties from Meilisearch flat document
+  const normalizedItem = React.useMemo(() => {
+    const copy = { ...item }
+    const singleUrl = copy.imageUrl || copy.image || copy.raw?.imageUrl || copy.raw?.image
+    if ((!copy.images || copy.images.length === 0) && singleUrl) {
+      copy.images = [{ url: singleUrl }]
+    }
+    if (copy.raw) {
+      copy.raw = { ...copy.raw }
+      if ((!copy.raw.images || copy.raw.images.length === 0) && singleUrl) {
+        copy.raw.images = [{ url: singleUrl }]
+      }
+    }
+    return copy
+  }, [item])
+
   const handlePress = () => {
-    const route = getListingDetailRoute(item)
+    const route = getListingDetailRoute(normalizedItem)
     router.push(route as any)
   }
 
   const rawEntity = String(
-    item._entityType ||
-    item.entityType ||
-    item.type ||
-    item.category ||
-    item.raw?._entityType ||
-    item.raw?.entityType ||
-    item.raw?.category ||
+    normalizedItem._entityType ||
+    normalizedItem.entityType ||
+    normalizedItem.type ||
+    normalizedItem.category ||
+    normalizedItem.raw?._entityType ||
+    normalizedItem.raw?.entityType ||
+    normalizedItem.raw?.category ||
     ''
   ).toLowerCase()
 
@@ -39,7 +55,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'buses':
       return (
         <BusCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
           fullWidth
           showChips
@@ -50,7 +66,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'equipment':
       return (
         <EquipCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
           fullWidth
           showChips
@@ -62,7 +78,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'parts':
       return (
         <PartCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
           fullWidth
           showChips
@@ -74,7 +90,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'services':
       return (
         <ServiceCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
           fullWidth
         />
@@ -84,7 +100,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'jobs':
       return (
         <JobCard
-          job={item}
+          job={normalizedItem}
           onPress={handlePress}
           fullWidth
         />
@@ -94,7 +110,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     case 'operators':
       return (
         <OperatorCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
         />
       )
@@ -106,7 +122,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
     default:
       return (
         <CarCard
-          item={item}
+          item={normalizedItem}
           onPress={handlePress}
           fullWidth
           showChips

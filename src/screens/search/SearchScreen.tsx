@@ -71,6 +71,7 @@ export function SearchScreen() {
       pathname: '/(modals)/filters',
       params: {
         category,
+        q: query,
         minPrice: minPrice !== undefined ? String(minPrice) : '',
         maxPrice: maxPrice !== undefined ? String(maxPrice) : '',
         condition: condition || 'ALL',
@@ -213,16 +214,20 @@ export function SearchScreen() {
         onClearAll={clearAllFilters}
       />
 
-      {/* ── Autocomplete Suggestions Dropdown ── */}
-      {autocompleteSuggestions.length > 0 && query.trim().length >= 2 && (
-        <SearchAutocompleteList
-          suggestions={autocompleteSuggestions}
-          onSelectSuggestion={handleSelectAutocomplete}
-        />
-      )}
-
       {/* ── Main Dynamic Content ── */}
-      <View style={s.mainBody}>{renderContent()}</View>
+      <View style={s.mainBody}>
+        {renderContent()}
+
+        {/* ── Autocomplete Suggestions Dropdown (Floats over content) ── */}
+        {autocompleteSuggestions.length > 0 && query.trim().length >= 2 && (
+          <View style={s.autocompleteOverlay}>
+            <SearchAutocompleteList
+              suggestions={autocompleteSuggestions}
+              onSelectSuggestion={handleSelectAutocomplete}
+            />
+          </View>
+        )}
+      </View>
 
       {/* ── Sort Selection Modal ── */}
       <Modal
@@ -269,6 +274,15 @@ const s = StyleSheet.create({
   },
   mainBody: {
     flex: 1,
+    position: 'relative',
+  },
+  autocompleteOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
+    elevation: 8,
   },
   resultsHeader: {
     flexDirection: 'row',
@@ -287,9 +301,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F7F9',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: '#B3E7EE',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: Radius.pill,
@@ -389,7 +403,7 @@ const s = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   sortOptionSelected: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F7F9',
     borderColor: Colors.primary,
   },
   sortOptionText: {

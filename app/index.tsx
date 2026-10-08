@@ -95,91 +95,103 @@ export default function SplashScreen() {
   })
 
   return (
-    <LinearGradient colors={Gradients.hero as any} locations={[0, 0.6, 1]} style={s.container}>
-      {/* Center Logo */}
+    <LinearGradient colors={['#FFFFFF', '#F7F8FA']} locations={[0, 1]} style={s.container}>
+      {/* Center Logo Section */}
       <View style={s.centerSection}>
         <Animated.View style={[s.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
-          <Image
-            source={require('../assets/icon.png')}
-            style={s.appIcon}
-            contentFit="contain"
-          />
+          <View style={s.logoBox}>
+            <Image
+              source={require('../assets/logo.png')}
+              style={s.appIcon}
+              contentFit="contain"
+            />
+          </View>
+        </Animated.View>
+
+        <Animated.View style={{ opacity: textOpacity, transform: [{ translateY: textTranslateY }], alignItems: 'center', marginTop: 12 }}>
+          <Text style={s.brandTitle}>سوق وان</Text>
+          <Text style={s.tagline}>منصة المركبات والخدمات الأولى في سلطنة عُمان 🇴🇲</Text>
         </Animated.View>
       </View>
 
-      {/* Bottom Text and Spinner */}
+      {/* Bottom Spinner Section */}
       <View style={s.bottomSection}>
-        <Animated.View style={{ opacity: textOpacity, transform: [{ translateY: textTranslateY }], alignItems: 'center' }}>
-          <Text style={s.tagline}>منصة المركبات الأولى في عُمان</Text>
-        </Animated.View>
-        
         <Animated.View style={[s.spinWrap, { opacity: spinnerOpacity }]}>
           <Animated.View style={[s.spinner, { transform: [{ rotate }] }]} />
         </Animated.View>
       </View>
-      
-      <LinearGradient
-        colors={['transparent', Colors.primaryDark + '80']}
-        style={s.overlay}
-        pointerEvents="none"
-      />
     </LinearGradient>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
   centerSection: {
     position: 'absolute',
     top: 0, bottom: 0, left: 0, right: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 24,
     zIndex: 2,
   },
   logoContainer: {
-    // Removed elevation/shadow as animating scale on elevated views causes native crashes on Android
     alignItems: 'center',
     justifyContent: 'center',
   },
+  logoBox: {
+    width: 88,
+    height: 88,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#009CB5',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 3,
+  },
   appIcon: { 
-    width: 150, 
-    height: 150, 
-    borderRadius: 32,
-    backgroundColor: 'transparent'
+    width: 60, 
+    height: 60, 
+  },
+  brandTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 22,
+    lineHeight: 30,
+    color: '#11232E',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  tagline: {
+    fontFamily: 'Almarai_700Bold', 
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#6B7280',
+    textAlign: 'center',
+    maxWidth: 260,
   },
   bottomSection: {
     position: 'absolute',
-    bottom: height * 0.15, // Put text and spinner slightly above the bottom
+    bottom: height * 0.12,
     alignItems: 'center',
     zIndex: 3,
     width: '100%',
   },
-  tagline: {
-    fontFamily: 'Almarai_700Bold', 
-     
-    fontSize: 18,
-    lineHeight: 26,
-    color: 'rgba(255,255,255,0.95)',
-    textAlign: 'center',
-    maxWidth: 280,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
   spinWrap: {
-    marginTop: 40,
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
   spinner: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.15)',
-    borderTopColor: Colors.sage,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#E5E7EB',
+    borderTopColor: '#009CB5',
   },
-  overlay: { position: 'absolute', bottom: 0, start: 0, end: 0, height: height * 0.4, zIndex: 1 },
 })

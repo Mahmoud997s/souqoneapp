@@ -13,14 +13,13 @@ import {
   StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { Colors } from '../../src/constants/colors'
+import { validateResetPassword } from '../../src/utils/authValidation'
 
 export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -41,7 +40,6 @@ export default function ResetPasswordScreen() {
   const hasUpper = /[A-Z]/.test(password)
   const hasDigit = /[0-9]/.test(password)
   const hasUpperAndDigit = hasUpper && hasDigit
-  const isPasswordValid = hasMinLength && hasUpperAndDigit
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -56,39 +54,21 @@ export default function ResetPasswordScreen() {
 
   const handleReset = async () => {
     setGeneralError('')
-    const newErrors: Record<string, string> = {}
 
-    const cleanEmail = email.trim().toLowerCase()
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!cleanEmail) {
-      newErrors.email = 'يرجى إدخال البريد الإلكتروني'
-    } else if (!emailRegex.test(cleanEmail)) {
-      newErrors.email = 'البريد الإلكتروني غير صالح'
-    }
+    const valResult = validateResetPassword({
+      email,
+      code,
+      password,
+      confirmPassword: confirm,
+    })
 
-    const cleanCode = code.trim()
-    if (!cleanCode) {
-      newErrors.code = 'يرجى إدخال رمز التحقق'
-    } else if (cleanCode.length !== 6) {
-      newErrors.code = 'رمز التحقق يجب أن يكون ٦ أرقام'
-    }
-
-    if (!password) {
-      newErrors.password = 'يرجى إدخال كلمة المرور'
-    } else if (!isPasswordValid) {
-      newErrors.password = 'يرجى استيفاء شروط كلمة المرور أدناه'
-    }
-
-    if (!confirm) {
-      newErrors.confirm = 'يرجى تأكيد كلمة المرور'
-    } else if (password !== confirm) {
-      newErrors.confirm = 'كلمتا المرور غير متطابقتين'
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    if (!valResult.isValid) {
+      setErrors(valResult.errors)
       return
     }
+
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanCode = code.trim()
 
     setLoading(true)
     try {
@@ -121,16 +101,23 @@ export default function ResetPasswordScreen() {
     return (
       <View style={s.root}>
         <StatusBar barStyle="dark-content" />
-        <GlassNavBar
-          title="تم التحديث بنجاح"
-          paddingTop={insets.top}
-          onBackPress={() => router.replace('/(auth)/login')}
-        />
+
+        {/* Floating Minimal Header */}
+        <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+          <TouchableOpacity
+            style={s.floatingBackBtn}
+            onPress={() => router.replace('/(auth)/login')}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={s.topHeaderTitle}>تم التحديث بنجاح</Text>
+          <View style={{ width: 36 }} />
+        </View>
+
         <ScrollView
-          contentContainerStyle={[
-            s.scroll,
-            { paddingTop: insets.top + 64 },
-          ]}
+          contentContainerStyle={s.scroll}
           showsVerticalScrollIndicator={false}
         >
           <View style={s.card}>
@@ -160,21 +147,27 @@ export default function ResetPasswordScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="dark-content" />
-      <GlassNavBar
-        title="تغيير كلمة المرور"
-        paddingTop={insets.top}
-        onBackPress={() => router.back()}
-      />
+
+      {/* Floating Minimal Header */}
+      <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+        <TouchableOpacity
+          style={s.floatingBackBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={s.topHeaderTitle}>تغيير كلمة المرور</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[
-            s.scroll,
-            { paddingTop: insets.top + 64 },
-          ]}
+          contentContainerStyle={s.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -199,7 +192,7 @@ export default function ResetPasswordScreen() {
                 setEmail(v)
                 clearFieldError('email')
               }}
-              placeholder="name@example.com"
+              placeholder="أدخل بريدك الإلكتروني"
               keyboardType="email-address"
               textContentType="emailAddress"
               autoCapitalize="none"
@@ -216,7 +209,7 @@ export default function ResetPasswordScreen() {
                 setCode(v)
                 clearFieldError('code')
               }}
-              placeholder="أدخل الرمز المكون من 6 أرقام"
+              placeholder="أدخل رمز التحقق (6 أرقام)"
               keyboardType="number-pad"
               maxLength={6}
               returnKeyType="next"
@@ -237,7 +230,7 @@ export default function ResetPasswordScreen() {
                   setPassword(v)
                   clearFieldError('password')
                 }}
-                placeholder="••••••••"
+                placeholder="أدخل كلمة المرور الجديدة"
                 secureTextEntry={!showPw}
                 returnKeyType="next"
                 error={errors.password}
@@ -279,7 +272,7 @@ export default function ResetPasswordScreen() {
                 setConfirm(v)
                 clearFieldError('confirm')
               }}
-              placeholder="••••••••"
+              placeholder="أعد إدخال كلمة المرور الجديدة للتأكيد"
               secureTextEntry={!showCPw}
               returnKeyType="done"
               onSubmitEditing={handleReset}
@@ -308,15 +301,46 @@ export default function ResetPasswordScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: Spacing.space5, gap: Spacing.space4, paddingBottom: Spacing.space6 },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space2,
+  },
+  floatingBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  topHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  scroll: {
+    paddingHorizontal: Spacing.space5,
+    gap: Spacing.space4,
+    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space6,
+  },
   pageTitleWrap: { gap: Spacing.space1, marginTop: Spacing.space2, alignItems: 'center' },
   pageTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 22,
     lineHeight: 30,
-    color: '#0F172A',
+    color: Colors.text,
     writingDirection: 'rtl',
     textAlign: 'center',
   },
@@ -324,18 +348,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 20,
-    color: '#64748B',
+    color: Colors.text2,
     writingDirection: 'rtl',
     textAlign: 'center',
     maxWidth: 300,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: Radius.xl,
     padding: Spacing.space6,
     gap: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     ...Shadows.card,
   },
   cardHero: {
@@ -347,7 +371,7 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.space1,
@@ -356,7 +380,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 20,
     lineHeight: 28,
-    color: '#0F172A',
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -364,7 +388,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 20,
-    color: '#64748B',
+    color: Colors.text2,
     textAlign: 'center',
     maxWidth: 290,
     writingDirection: 'rtl',
@@ -376,24 +400,24 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.text2,
     writingDirection: 'rtl',
   },
   hintOk: { color: '#16a34a' },
-  divider: { height: 1, backgroundColor: '#E2E8F0' },
+  divider: { height: 1, backgroundColor: Colors.border },
   errorTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#dc2626',
+    lineHeight: 18,
+    color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   bottomBar: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.border,
     paddingHorizontal: Spacing.space5,
     paddingTop: Spacing.space4,
-    ...Shadows.card,
   },
 })

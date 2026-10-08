@@ -7,9 +7,11 @@ export function getListingDetailRoute(item: any): string {
 
   // Check explicit entityType
   const entityType = String(
+    item._entityType ||
     item.entityType ||
     item.type ||
     item.category ||
+    item.raw?._entityType ||
     item.raw?.entityType ||
     item.raw?.category ||
     ''

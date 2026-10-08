@@ -128,7 +128,18 @@ export function UnifiedCard({
   const { user } = useAuthStore()
   const [isFav, setIsFav] = useState(item.isFavorite ?? false)
 
-  const displayImages = (item.images || []).slice(0, 5)
+  const rawImages = (item.images && item.images.length > 0)
+    ? item.images
+    : (item.raw?.images && item.raw.images.length > 0)
+      ? item.raw.images
+      : ((item as any).imageUrl || item.raw?.imageUrl || (item as any).image || item.raw?.image)
+        ? [(item as any).imageUrl || item.raw?.imageUrl || (item as any).image || item.raw?.image]
+        : []
+
+  const displayImages = rawImages
+    .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
+    .filter(Boolean)
+    .slice(0, 5)
   const currentImg = displayImages[0]
   const isPremium = item.isPremium || item.isElite
   const condLabel = CONDITION_LABELS[item.condition?.toUpperCase() ?? '']

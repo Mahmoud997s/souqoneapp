@@ -17,10 +17,10 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
-import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import { validateOtp } from '../../src/utils/authValidation'
 
 const OTP_LENGTH = 6
 
@@ -63,10 +63,12 @@ export default function VerifyEmailScreen() {
 
   const handleVerify = async () => {
     const code = otp.join('')
-    if (code.length < OTP_LENGTH) {
-      setError('يرجى إدخال الكود كاملاً (6 أرقام)')
+    const valResult = validateOtp(code)
+    if (!valResult.isValid) {
+      setError(valResult.errors.code || valResult.errors.otp || 'يرجى إدخال الكود كاملاً (6 أرقام)')
       return
     }
+
     setError('')
     setLoading(true)
     try {
@@ -104,18 +106,23 @@ export default function VerifyEmailScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="dark-content" />
-      {/* Top Glass Navigation Bar like Profile Screen */}
-      <GlassNavBar
-        title="تأكيد البريد الإلكتروني"
-        paddingTop={insets.top}
-        onBackPress={() => router.back()}
-      />
+
+      {/* Floating Minimal Header */}
+      <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+        <TouchableOpacity
+          style={s.floatingBackBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={s.topHeaderTitle}>تأكيد البريد الإلكتروني</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
       <ScrollView
-        contentContainerStyle={[
-          s.scroll,
-          { paddingTop: insets.top + 64 },
-        ]}
+        contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -199,7 +206,7 @@ export default function VerifyEmailScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="create-outline" size={16} color="#64748B" />
+          <Ionicons name="create-outline" size={16} color={Colors.text2} />
           <Text style={s.changeEmailTxt}>تغيير البريد الإلكتروني</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -208,17 +215,46 @@ export default function VerifyEmailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space2,
+  },
+  floatingBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  topHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing.space5,
+    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space8,
+  },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: Radius.xl,
-    marginHorizontal: Spacing.space5,
-    marginTop: Spacing.space4,
     padding: Spacing.space6,
     ...Shadows.card,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     alignItems: 'center',
     gap: Spacing.space4,
   },
@@ -231,7 +267,7 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.space1,
@@ -240,7 +276,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 20,
     lineHeight: 28,
-    color: '#0F172A',
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -248,7 +284,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 20,
-    color: '#64748B',
+    color: Colors.text2,
     textAlign: 'center',
     maxWidth: 290,
     writingDirection: 'rtl',
@@ -261,7 +297,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#334155',
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -275,26 +311,31 @@ const s = StyleSheet.create({
     height: 52,
     borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
     textAlign: 'center',
     fontFamily: 'Almarai_700Bold',
     fontSize: 20,
     lineHeight: 28,
     color: Colors.primary,
   },
-  otpFilled: { borderColor: Colors.primary, backgroundColor: '#EFF6FF' },
+  otpFilled: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.paleMint,
+  },
   errorTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#DC2626',
+    lineHeight: 18,
+    color: Colors.error,
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   notReceivedTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 18,
-    color: '#64748B',
+    color: Colors.text2,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -305,10 +346,10 @@ const s = StyleSheet.create({
     width: '100%',
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space3,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
   },
   resendBtn: {
     flexDirection: 'row',
@@ -317,8 +358,8 @@ const s = StyleSheet.create({
   },
   resendTxt: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
@@ -348,9 +389,9 @@ const s = StyleSheet.create({
   },
   changeEmailTxt: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
+    fontSize: 13.5,
     lineHeight: 20,
-    color: '#64748B',
+    color: Colors.text2,
     writingDirection: 'rtl',
   },
 })

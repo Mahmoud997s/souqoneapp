@@ -33,6 +33,7 @@ export const SearchHeaderBar = React.memo(function SearchHeaderBar({
     <AppHeader
       showBack={false}
       theme="dark"
+      leftSlot={<View style={{ width: 0 }} />}
       centerSlot={
         <View style={s.searchBarContainer}>
           <Ionicons name="search" size={18} color="rgba(255, 255, 255, 0.75)" style={s.searchIcon} />

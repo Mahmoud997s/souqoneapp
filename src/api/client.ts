@@ -43,10 +43,13 @@ apiClient.interceptors.response.use(
         return Promise.reject(error)
       }
     }
-    if (error.response?.status >= 500) {
-      dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
-    } else if (error.message === 'Network Error') {
-      dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning')
+    const skipDialog = Boolean(error.config?.skipErrorDialog)
+    if (!skipDialog) {
+      if (error.response?.status >= 500) {
+        dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
+      } else if (error.message === 'Network Error') {
+        dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning')
+      }
     }
     return Promise.reject(error)
   }

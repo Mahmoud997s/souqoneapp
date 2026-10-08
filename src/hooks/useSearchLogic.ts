@@ -25,6 +25,20 @@ export function useSearchLogic() {
   // Sorting
   const [sortBy, setSortBy] = useState<SortBy>('newest')
 
+  // Sync URL params to local state on navigation
+  useEffect(() => {
+    if (typeof params.q === 'string' && params.q !== query) {
+      setQuery(params.q)
+    }
+  }, [params.q])
+
+  useEffect(() => {
+    const navCategory = ((params.category || params.entityType) as CategoryFilterType) || 'all'
+    if (navCategory && navCategory !== category) {
+      setCategory(navCategory)
+    }
+  }, [params.category, params.entityType])
+
   // Numeric, Condition & Location Filters from URL params or local state
   const minPrice = params.minPrice ? Number(params.minPrice) : undefined
   const maxPrice = params.maxPrice ? Number(params.maxPrice) : undefined
@@ -62,10 +76,16 @@ export function useSearchLogic() {
       if (!debouncedAutocompleteQuery || debouncedAutocompleteQuery.trim().length < 2) return []
       try {
         const res = await searchApi.autocomplete(debouncedAutocompleteQuery.trim(), 6)
-        if (Array.isArray(res.data)) return res.data
-        if (Array.isArray(res.data?.items)) return res.data.items
-        if (Array.isArray(res.data?.data)) return res.data.data
-        return []
+        const raw = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.items)
+            ? res.data.items
+            : Array.isArray(res.data?.data)
+              ? res.data.data
+              : []
+        return raw
+          .map((item: any) => (typeof item === 'string' ? item : item?.title || item?.name || ''))
+          .filter((t: string) => Boolean(t && t.trim()))
       } catch {
         return []
       }
@@ -183,7 +203,15 @@ export function useSearchLogic() {
   // Clear Handlers
   const clearQuery = useCallback(() => {
     setQuery('')
-  }, [])
+    if (params.q) {
+      const newParams = { ...params }
+      delete newParams.q
+      router.replace({
+        pathname: '/(tabs)/search',
+        params: newParams,
+      })
+    }
+  }, [params])
 
   const clearAllFilters = useCallback(() => {
     setQuery('')

@@ -30,15 +30,22 @@ export const CarCard = ({
   disableImageSwipe = false,
   titleNumberOfLines = 1,
 }: CarCardProps) => {
-  const displayImages = (item.images || [])
-    .map((img: any) => (typeof img === 'string' ? img : img?.url))
+  const rawData = (item as any).raw || item
+  const rawImages = (item.images && item.images.length > 0)
+    ? item.images
+    : (rawData.images && rawData.images.length > 0)
+      ? rawData.images
+      : ((item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image)
+        ? [(item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image]
+        : []
+
+  const displayImages = rawImages
+    .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
     .filter(Boolean) as string[]
 
   const listingTypeStr = String(item.listingType || (item as any).type || '')
   const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
   const isSale = listingTypeStr === 'SALE' || listingTypeStr === 'EQUIPMENT_SALE'
-
-  const rawData = (item as any).raw || item
   const isSellerVerified =
     (item as any).isVerified ??
     rawData.user?.isVerified ??

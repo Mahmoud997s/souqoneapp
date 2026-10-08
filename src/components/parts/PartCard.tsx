@@ -63,7 +63,15 @@ export const PartCard: React.FC<PartCardProps> = ({
   const { data: brands } = useBrands()
 
   // Images
-  const displayImages = (rawData.images || item.images || [])
+  const rawImages = (rawData.images && rawData.images.length > 0)
+    ? rawData.images
+    : (item.images && item.images.length > 0)
+      ? item.images
+      : (item.imageUrl || rawData.imageUrl || item.image || rawData.image)
+        ? [item.imageUrl || rawData.imageUrl || item.image || rawData.image]
+        : []
+
+  const displayImages = rawImages
     .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
     .filter(Boolean) as string[]
 

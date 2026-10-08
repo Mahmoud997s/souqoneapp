@@ -21,5 +21,5 @@ export interface SearchParams {
 
 export const searchApi = {
   search:       (params: SearchParams)      => apiClient.get('/search', { params }),
-  autocomplete: (q: string, limit = 8)     => apiClient.get('/search/autocomplete', { params: { q, limit } }),
+  autocomplete: (q: string, limit = 8)     => apiClient.get('/search/autocomplete', { params: { q, limit }, skipErrorDialog: true } as any),
 }

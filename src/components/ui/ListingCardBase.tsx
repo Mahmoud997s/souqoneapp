@@ -170,7 +170,11 @@ export const ListingCardBase = ({
       <View
         style={[
           s.imageContainer,
-          imageHeight ? { height: imageHeight, aspectRatio: undefined } : undefined,
+          imageHeight
+            ? { height: imageHeight, aspectRatio: undefined }
+            : fullWidth
+            ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+            : { height: CardSystem.aspectRatioHeight, aspectRatio: undefined },
         ]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
@@ -428,6 +432,7 @@ const s = StyleSheet.create({
     ...CardSystem.styles.softShadow,
   },
   imageContainer: {
+    width: '100%',
     position: 'relative',
     backgroundColor: '#F8F9FA',
     overflow: 'hidden',

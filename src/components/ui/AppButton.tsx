@@ -42,7 +42,7 @@ export function AppButton({
   style,
   textStyle,
 }: AppButtonProps) {
-  const height = size === 'sm' ? 46 : 54
+  const height = size === 'sm' ? 38 : 46
 
   if (variant === 'primary') {
     return (
@@ -115,12 +115,11 @@ const s = StyleSheet.create({
   wrap: {
     borderRadius: Radius.md,
     ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 12 },
-      android: { elevation: 6 },
+      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
+      android: { elevation: 1.5 },
     }),
   },
   gradient: {
-    height: 54,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,12 +128,13 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryTxt: {
-    fontFamily: 'Almarai_800ExtraBold', fontSize: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14.5,
+    lineHeight: 20,
     color: Colors.white,
     writingDirection: 'rtl',
   },
   outlineBtn: {
-    height: 54,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -145,7 +145,9 @@ const s = StyleSheet.create({
     gap: Spacing.space2,
   },
   outlineTxt: {
-    fontFamily: 'Almarai_800ExtraBold', fontSize: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14.5,
+    lineHeight: 20,
     color: Colors.text,
     writingDirection: 'rtl',
   },
