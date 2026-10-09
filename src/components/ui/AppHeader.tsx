@@ -49,6 +49,8 @@ export function AppHeader({
         { paddingTop: insets.top },
         isLight && { 
           backgroundColor: Colors.white,
+          borderBottomWidth: 1,
+          borderBottomColor: '#F1F5F9',
           ...Platform.select({ ios: { shadowOpacity: 0.03, shadowRadius: 3 }, android: { elevation: 1 } }) 
         }
       ]}
@@ -61,7 +63,7 @@ export function AppHeader({
       {!isLight && (
         <>
           <LinearGradient
-            colors={['#0B2447', '#1a3a6b', '#0d3060']}
+            colors={Gradients.hero as any}
             locations={[0, 0.6, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[StyleSheet.absoluteFill, { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}
@@ -173,6 +175,8 @@ const s = StyleSheet.create({
   },
   iconBtnLight: {
     backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
   spacer: { width: 32 },
 })

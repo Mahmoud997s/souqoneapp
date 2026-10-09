@@ -1,14 +1,15 @@
 import { Stack } from 'expo-router'
 import { StatusBar } from 'react-native'
+import { Colors } from '../../src/constants/colors'
 
 export default function AuthLayout() {
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2447" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#0B2447' },
+          contentStyle: { backgroundColor: Colors.surfaceAlt },
         }}
       >
         <Stack.Screen name="onboarding" />

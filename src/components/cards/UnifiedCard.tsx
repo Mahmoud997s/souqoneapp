@@ -22,6 +22,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { VerifiedBadge } from '../ui/VerifiedBadge'
 
 export interface UnifiedCardItem {
   id: string
@@ -127,7 +128,18 @@ export function UnifiedCard({
   const { user } = useAuthStore()
   const [isFav, setIsFav] = useState(item.isFavorite ?? false)
 
-  const displayImages = (item.images || []).slice(0, 5)
+  const rawImages = (item.images && item.images.length > 0)
+    ? item.images
+    : (item.raw?.images && item.raw.images.length > 0)
+      ? item.raw.images
+      : ((item as any).imageUrl || item.raw?.imageUrl || (item as any).image || item.raw?.image)
+        ? [(item as any).imageUrl || item.raw?.imageUrl || (item as any).image || item.raw?.image]
+        : []
+
+  const displayImages = rawImages
+    .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
+    .filter(Boolean)
+    .slice(0, 5)
   const currentImg = displayImages[0]
   const isPremium = item.isPremium || item.isElite
   const condLabel = CONDITION_LABELS[item.condition?.toUpperCase() ?? '']
@@ -195,10 +207,7 @@ export function UnifiedCard({
                 {item.title}
               </Text>
               {item.isVerified && (
-                <View style={styles.verifiedPill}>
-                  <Ionicons name="checkmark-circle" size={12} color={Colors.primary} />
-                  <Text style={styles.verifiedText}>عميل موثق</Text>
-                </View>
+                <VerifiedBadge variant="dark" showText text="عميل موثق" size={11} />
               )}
             </View>
             {typeLabel ? (
@@ -473,19 +482,4 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   compactLocText: { ...CardSystem.typography.subtitle, color: Colors.textMuted },
-  verifiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-    gap: 3,
-  },
-  verifiedText: {
-    ...CardSystem.typography.badgeText,
-    color: Colors.primary,
-  },
 })

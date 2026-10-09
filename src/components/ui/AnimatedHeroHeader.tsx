@@ -1,311 +1,508 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  SharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
-import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
-import { Gradients } from '../../constants/gradients';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-
-const THRESHOLD = 40;
-const ANIM_RANGE = 140;
-const ANIM_END = THRESHOLD + ANIM_RANGE;
-
 export interface AnimatedHeroHeaderProps {
-  scrollY: SharedValue<number>;
+  scrollY?: SharedValue<number>;
   
   // Customization
-  gradientColors?: string[]; // Defaults to Gradients.hero
+  gradientColors?: string[];
   title: string;
   titleAccent?: string;
+  departmentIcon?: keyof typeof Ionicons.glyphMap;
   
   // Top Bar Search
-  navSearchPlaceholder: string;
-  onNavSearchPress: () => void;
+  navSearchPlaceholder?: string;
+  onNavSearchPress?: () => void;
   
   // Hero Search
-  heroSearchPlaceholder: string;
-  onHeroSearchPress: () => void;
+  heroSearchPlaceholder?: string;
+  onHeroSearchPress?: () => void;
   
-  // Back Action
-  onBackPress: () => void;
+  // Back Action / Right Element
+  onBackPress?: () => void;
+  hideBackButton?: boolean;
+  rightElement?: React.ReactNode;
 
   // Right Icon (Left in RTL)
   headerIcon?: keyof typeof Ionicons.glyphMap;
   onHeaderIconPress?: () => void;
   headerIconBadgeCount?: number;
   
-  // CTA Buttons
-  primaryCta: { 
+  // CTA Buttons (Preserved for compatibility)
+  primaryCta?: { 
     label: string; 
     icon: string; 
     onPress: () => void;
     bgColor?: string;
     textColor?: string;
-    iconFamily?: 'Ionicons' | 'MaterialCommunityIcons';
+    iconFamily?: any;
   };
-  outlineCta: { 
+  outlineCta?: { 
     label: string; 
     icon: string; 
-    iconFamily?: 'Ionicons' | 'MaterialCommunityIcons'; 
+    iconFamily?: any; 
     onPress: () => void;
     textColor?: string;
   };
 }
 
+const SCROLL_THRESHOLD = 5;
+const SCROLL_RANGE = 30;
+const SCROLL_END = SCROLL_THRESHOLD + SCROLL_RANGE; // 35px - Snappy & imperceptible
+
+/**
+ * LandingHeader (formerly AnimatedHeroHeader)
+ * Pixel-Perfect Morphing Glassmorphic Header for landing pages.
+ * - Background: Pure glassmorphism blur (BlurView with subtle wash & tint) matching Profile screen.
+ * - State 1 (Top / Unscrolled):
+ *     Row 1: [ Back Button 38px ] ... Title & Subtitle ... [ Add Button 38px ] [ Notification Bell 38px ]
+ *     Row 2: Full-width modern Search Bar with search icon and filter options button
+ * - State 2 (Scrolled down / Collapsed Single Row):
+ *     Row 1: [ Back Button 38px ] [ Compact Search Bar 38px ] [ Notification Bell 38px ]
+ *     Row 2: Fades out and clips away, height shrinks smoothly from 114px to 58px.
+ */
 export function AnimatedHeroHeader({
   scrollY,
-  gradientColors,
   title,
   titleAccent,
+  departmentIcon,
   navSearchPlaceholder,
   onNavSearchPress,
   heroSearchPlaceholder,
   onHeroSearchPress,
   onBackPress,
-  headerIcon = 'grid-outline',
+  hideBackButton = false,
+  rightElement,
+  headerIcon = 'notifications-outline',
   onHeaderIconPress,
   headerIconBadgeCount = 0,
   primaryCta,
-  outlineCta,
 }: AnimatedHeroHeaderProps) {
   const insets = useSafeAreaInsets();
-  const COMPACT_HEIGHT = insets.top + 58; // Exactly fits 50px topBar + 8px paddings
-  const HERO_HEIGHT = insets.top + 106; // Adjusted for 40px search row
+  const topPad = insets.top > 0 ? insets.top : 12;
 
-  const headerAnimStyle = useAnimatedStyle(() => ({
-    height: interpolate(
+  const HERO_HEIGHT = topPad + 114;
+  const COMPACT_HEIGHT = topPad + 58;
+
+  const searchPlaceholder = heroSearchPlaceholder || navSearchPlaceholder || 'عن ماذا تبحث اليوم؟';
+  const handleSearchPress = onHeroSearchPress || onNavSearchPress;
+
+  // ── ANIMATED STYLES ──
+  const headerAnimStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { height: HERO_HEIGHT };
+    const height = interpolate(
       scrollY.value,
-      [0, THRESHOLD, ANIM_END],
+      [0, SCROLL_THRESHOLD, SCROLL_END],
       [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
       Extrapolation.CLAMP
-    ),
-    borderBottomLeftRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [32, 32, 0],
-      Extrapolation.CLAMP
-    ),
-    borderBottomRightRadius: interpolate(
-      scrollY.value,
-      [0, THRESHOLD, ANIM_END],
-      [32, 32, 0],
-      Extrapolation.CLAMP
-    ),
-  }));
+    );
+    return { height };
+  });
 
-  const heroContentAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
+  const expandedTitleStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { opacity: 1 };
+    const opacity = interpolate(
       scrollY.value,
-      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.5],
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 10],
       [1, 1, 0],
       Extrapolation.CLAMP
-    ),
-  }));
+    );
+    return {
+      opacity,
+      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 10 ? 'none' : 'auto',
+    };
+  });
 
-  const heroSearchAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
+  const compactSearchStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { opacity: 0 };
+    const opacity = interpolate(
       scrollY.value,
-      [0, THRESHOLD, THRESHOLD + ANIM_RANGE * 0.6],
+      [SCROLL_THRESHOLD + 8, SCROLL_END],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 8 ? 'none' : 'auto',
+    };
+  });
+
+  const addBtnAnimStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { opacity: 1, width: 38, marginEnd: 6 };
+    const opacity = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 8],
       [1, 1, 0],
       Extrapolation.CLAMP
-    ),
-  }));
-
-  const navSearchAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
+    );
+    const width = interpolate(
       scrollY.value,
-      [0, THRESHOLD + ANIM_RANGE * 0.4, ANIM_END],
-      [0, 0, 1],
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 14],
+      [38, 38, 0],
       Extrapolation.CLAMP
-    ),
-  }));
+    );
+    const marginEnd = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 14],
+      [6, 6, 0],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+      width,
+      marginEnd,
+      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 8 ? 'none' : 'auto',
+    };
+  });
 
-  const colorsToUse = gradientColors || Gradients.hero;
+  const row2AnimStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { opacity: 1 };
+    const opacity = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 12],
+      [1, 1, 0],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 12 ? 'none' : 'auto',
+    };
+  });
 
   return (
     <>
-      <StatusBar barStyle="light-content" />
-      <AnimatedLinearGradient
-        colors={colorsToUse as any}
-        locations={[0, 0.6, 1]}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={[s.stickyHeader, { paddingTop: insets.top + 4 }, headerAnimStyle]}
-      >
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <Animated.View style={[s.stickyHeader, { paddingTop: topPad + 6 }, headerAnimStyle]}>
+        
+        {/* ── GLASSMORPHISM BLUR BACKGROUND (Matches Profile GlassNavBar) ── */}
+        <BlurView
+          intensity={65}
+          tint="light"
+          blurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={s.whiteWash} pointerEvents="none" />
+        <View style={s.tintOverlay} pointerEvents="none" />
+
+        {/* ── ARCHITECTURAL GREEN GRID PATTERN OVERLAY (5% Opacity) ── */}
         <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
           <Svg width="100%" height="100%">
             <Defs>
-              <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+              <Pattern id="headerGreenGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <Path d="M 30 0 L 0 0 0 30" fill="none" stroke={Colors.forestGreen} strokeWidth="1" strokeOpacity="0.05" />
               </Pattern>
             </Defs>
-            <Rect width="100%" height="100%" fill="url(#grid)" />
+            <Rect width="100%" height="100%" fill="url(#headerGreenGrid)" />
           </Svg>
         </View>
 
-        {/* SECTION 1: STATIC TOP BAR */}
-        <View style={s.staticTopBar}>
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={onBackPress}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-forward-outline" size={24} color={Colors.white} />
-          </TouchableOpacity>
-
-          {/* NAVBAR SEARCH */}
-          <Animated.View style={[s.navSearch, navSearchAnimStyle]}>
+        {/* ── ROW 1: BACK BUTTON / RIGHT ELEMENT, CENTER (TITLE/SEARCH), ACTION BUTTONS (100% RTL Compliant) ── */}
+        <View style={s.row1}>
+          {/* 1. Back Button or Custom Right Element (Physical Right in RTL — Fixed 38px circle) */}
+          {!hideBackButton && onBackPress ? (
             <TouchableOpacity
-              style={s.navSearchInner}
-              onPress={onNavSearchPress}
-              activeOpacity={0.9}
+              style={s.circularBtn}
+              onPress={onBackPress}
+              activeOpacity={0.7}
+              accessibilityLabel="رجوع"
             >
-              <Ionicons name="search" size={20} color={Colors.white} style={{ opacity: 0.8 }} />
-              <Text style={s.navSearchTxt} numberOfLines={1}>{navSearchPlaceholder}</Text>
+              <Ionicons name="arrow-forward-outline" size={19} color={Colors.primary} />
             </TouchableOpacity>
-          </Animated.View>
+          ) : rightElement ? (
+            rightElement
+          ) : null}
 
-          {onHeaderIconPress ? (
-            <TouchableOpacity style={s.iconBtn} onPress={onHeaderIconPress} activeOpacity={0.7}>
-              <Ionicons name={headerIcon as any} size={24} color={Colors.white} />
-              {headerIconBadgeCount > 0 && (
-                <View style={s.badge}>
-                  <Text style={s.badgeText}>
-                    {headerIconBadgeCount > 99 ? '+99' : headerIconBadgeCount}
-                  </Text>
+          {/* 2. Center Container (flex: 1) — Holds Title in expanded state & Search Bar in compact state */}
+          <View style={s.centerContainer}>
+            {/* Expanded Layer: Title & Subtitle */}
+            <Animated.View style={[StyleSheet.absoluteFill, s.titleTextCol, expandedTitleStyle]}>
+              <View style={s.titleRow}>
+                <Text style={s.mainTitle} numberOfLines={1}>
+                  {title}
+                </Text>
+                {departmentIcon ? (
+                  <Ionicons name={departmentIcon} size={15} color={Colors.accent} style={s.chevronIcon} />
+                ) : !hideBackButton ? (
+                  <Ionicons name="chevron-down" size={13} color={Colors.accent} style={s.chevronIcon} />
+                ) : null}
+              </View>
+              <Text style={s.subTitle} numberOfLines={1}>
+                {titleAccent || 'تصفح كافة العروض والإعلانات المتاحة'}
+              </Text>
+            </Animated.View>
+
+            {/* Compact Layer: Compact Search Bar (Height 38px, matches circular buttons!) */}
+            <Animated.View style={[StyleSheet.absoluteFill, s.compactSearchWrapper, compactSearchStyle]}>
+              <TouchableOpacity
+                style={s.compactSearchBar}
+                onPress={handleSearchPress}
+                activeOpacity={0.88}
+              >
+                <Ionicons name="search" size={16} color={Colors.primary} style={{ opacity: 0.8 }} />
+                <Text style={s.compactSearchTxt} numberOfLines={1}>
+                  {searchPlaceholder}
+                </Text>
+                <View style={s.compactFilterBtn}>
+                  <Ionicons name="options-outline" size={15} color={Colors.primary} />
                 </View>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <View style={{ width: 40, height: 40 }} />
-          )}
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
 
-          {/* ABSOLUTE TITLE (Overlaps nav search gracefully, fades out on scroll) */}
-          <Animated.View style={[s.absoluteTitleContainer, heroContentAnimStyle]} pointerEvents="none">
-            <Text style={s.heroTitle} numberOfLines={1}>
-              {title}
+          {/* 3. Left Action Buttons Group in RTL */}
+          <View style={s.leftButtonsGroup}>
+            {/* Add Listing Button (Visible in expanded state, smoothly collapses on scroll) */}
+            {primaryCta && (
+              <Animated.View style={[s.addBtnWrapper, addBtnAnimStyle]}>
+                <TouchableOpacity
+                  style={[s.circularBtn, s.addBtn]}
+                  onPress={primaryCta.onPress}
+                  activeOpacity={0.7}
+                  accessibilityLabel={primaryCta.label || 'إضافة إعلان'}
+                >
+                  <Ionicons name="add" size={22} color="#FFFFFF" />
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+
+            {/* Notification Bell (Always visible in both states!) */}
+            <TouchableOpacity
+              style={s.circularBtn}
+              onPress={onHeaderIconPress}
+              activeOpacity={0.7}
+              accessibilityLabel="الإشعارات"
+            >
+              <Ionicons name={headerIcon as any} size={19} color={Colors.primary} />
+              <View style={s.greenDot} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── ROW 2: LARGE SEARCH BAR (Fades out and translates up on scroll) ── */}
+        <Animated.View style={[s.row2, row2AnimStyle]}>
+          <TouchableOpacity
+            style={s.searchBar}
+            onPress={handleSearchPress}
+            activeOpacity={0.88}
+          >
+            <Ionicons name="search" size={18} color={Colors.primary} style={{ opacity: 0.8 }} />
+            <Text style={s.searchPlaceholder} numberOfLines={1}>
+              {searchPlaceholder}
             </Text>
-            {titleAccent && <Text style={s.heroTitleAccent} numberOfLines={1}>{titleAccent}</Text>}
-          </Animated.View>
-        </View>
+            <View style={s.filterBtnInner}>
+              <Ionicons name="options-outline" size={17} color={Colors.primary} />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
 
-        {/* SECTION 2: ANIMATED HERO CONTENT */}
-        <View style={s.animatedHeroContent} pointerEvents="box-none">
-          {/* HERO SEARCH BAR & ADD BUTTON */}
-          <Animated.View style={[s.heroSearchRow, heroSearchAnimStyle]}>
-            <TouchableOpacity style={s.searchBar} onPress={onHeroSearchPress} activeOpacity={0.9}>
-              <View style={s.searchInnerWrapper}>
-                <Ionicons name="search" size={20} color={Colors.white} style={{ opacity: 0.8 }} />
-                <Text style={s.searchPlaceholder} numberOfLines={1}>{heroSearchPlaceholder}</Text>
-              </View>
-              <View style={s.searchFilterBtn}>
-                <Ionicons name="options-outline" size={20} color={Colors.white} />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[s.addBtnHero, { backgroundColor: primaryCta.bgColor || Colors.white }]} onPress={primaryCta.onPress} activeOpacity={0.9}>
-              <Ionicons name="add" size={24} color={primaryCta.textColor || Colors.primary} />
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-
-      </AnimatedLinearGradient>
+      </Animated.View>
     </>
   );
 }
 
+// Export LandingHeader alias for future-proof imports
+export { AnimatedHeroHeader as LandingHeader };
+
 const s = StyleSheet.create({
   stickyHeader: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: 7,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
     overflow: 'hidden',
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: { elevation: 3 },
+    }),
   },
-  // -- Section 1: Static Top Bar --
-  staticTopBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    height: 50, zIndex: 10,
+  whiteWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
   },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+  tintOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.primary,
+    opacity: 0.03,
   },
-  badge: {
-    position: 'absolute', top: 0, right: 0,
-    backgroundColor: '#EF4444', minWidth: 20, height: 20, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#0B2447',
-  },
-  badgeText: {
-    fontFamily: 'Almarai_700Bold', fontSize: 10, color: '#FFFFFF', textAlign: 'center',
-  },
-  navSearch: {
-    flex: 1, marginHorizontal: Spacing.space3,
-  },
-  navSearchInner: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)',
-    height: 40, borderRadius: 20, paddingHorizontal: Spacing.space3, gap: Spacing.space2,
-  },
-  navSearchTxt: {
-    fontFamily: 'Almarai_400Regular', fontSize: 13, lineHeight: 20, paddingTop: 2, color: 'rgba(255,255,255,0.85)', textAlign: 'left', flex: 1, writingDirection: 'rtl'
-  },
-  absoluteTitleContainer: {
-    position: 'absolute', top: 0, left: 52, right: 52, bottom: -4, // allows it to hang slightly below top bar elegantly
-    alignItems: 'center', justifyContent: 'center', zIndex: -1,
-  },
-  
-  // -- Section 2: Animated Hero Content --
-  animatedHeroContent: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 12, // plenty of breathing room between search and CTA
-  },
-  heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold', fontSize: 20, lineHeight: 28,
-    color: Colors.white, textAlign: 'center',
-  },
-  heroTitleAccent: {
-    fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: 22,
-    color: Colors.accent,
-  },
-  heroSearchRow: {
+  row1: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space3,
-    alignSelf: 'stretch',
+    paddingHorizontal: Spacing.space3,
+    height: 44,
+    gap: 6,
+  },
+  centerContainer: {
+    flex: 1,
+    height: 38,
+    justifyContent: 'center',
+    position: 'relative',
+    marginHorizontal: 0,
+  },
+  titleTextCol: {
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  mainTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 16,
+    lineHeight: 22,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  chevronIcon: {
+    marginTop: 2,
+  },
+  subTitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  compactSearchWrapper: {
+    justifyContent: 'center',
+  },
+  compactSearchBar: {
+    height: 38,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(238, 242, 245, 0.95)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    gap: 6,
+  },
+  compactSearchTxt: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    paddingTop: 1,
+  },
+  compactFilterBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.paleMint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leftButtonsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addBtnWrapper: {
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  circularBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  addBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.65)',
+  },
+  greenDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: Colors.primary,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  row2: {
+    paddingHorizontal: Spacing.space4,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   searchBar: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 40, borderRadius: 20,
-    paddingStart: Spacing.space3, paddingEnd: 4, gap: Spacing.space2,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: 'rgba(238, 242, 245, 0.85)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    gap: 8,
   },
-  searchInnerWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2 },
-  searchPlaceholder: { 
-    fontFamily: 'Almarai_400Regular', color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 20, paddingTop: 2, flex: 1, 
-    textAlign: 'left', writingDirection: 'rtl' 
+  searchPlaceholder: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    paddingTop: 1,
   },
-  searchFilterBtn: { 
-    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', 
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
-  },
-  addBtnHero: {
-    width: 38, height: 38, borderRadius: 19, 
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+  filterBtnInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: Colors.paleMint,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

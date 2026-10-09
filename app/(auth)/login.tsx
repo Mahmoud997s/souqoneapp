@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Colors } from '../../src/constants/colors'
 import { Gradients } from '../../src/constants/gradients'
 import { Spacing } from '../../src/constants/spacing'
@@ -13,107 +13,230 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
+import { Ionicons } from '@expo/vector-icons'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
+import { GoogleIcon } from '../../src/components/ui/GoogleIcon'
+import { BlurView } from 'expo-blur'
+import { validateLogin } from '../../src/utils/authValidation'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import {
+  configureGoogleSignIn,
+  GoogleSignin,
+  statusCodes,
+  isSuccessResponse,
+  isErrorWithCode,
+  isGoogleSignInAvailable,
+} from '../../src/services/googleAuth'
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets()
   const { redirect } = useLocalSearchParams<{ redirect?: string }>()
-  const { setAuth } = useAuthStore()
+  const { setAuth, setGuest } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const pwRef = useRef<TextInput>(null)
 
+  useEffect(() => {
+    configureGoogleSignIn()
+  }, [])
+
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
+
   const handleLogin = async () => {
-    if (!email.trim() || !password) {
-      setError('يرجى إدخال البريد الإلكتروني وكلمة المرور')
+    setGeneralError('')
+    const result = validateLogin({ email, password })
+
+    if (!result.isValid) {
+      setErrors(result.errors)
       return
     }
-    setError('')
+
     setLoading(true)
     try {
       const res = await authApi.login({ email: email.trim().toLowerCase(), password })
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
-        if (res.data.requiresVerification) {
+        if (!res.data.user?.isVerified || res.data.requiresVerification) {
           const emailParam = encodeURIComponent(email.trim())
           const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
-          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}`)
+          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
         } else {
           router.replace(resolveRedirect(redirect) as any)
         }
       }, 100)
     } catch (e: any) {
       console.error('[Login Error]', JSON.stringify(e?.response?.data), e?.message)
-      setError(e?.response?.data?.message || e?.message || 'بيانات الدخول غير صحيحة')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      const serverMsg = msg || e?.message || 'بيانات الدخول غير صحيحة'
+
+      if (serverMsg.includes('البريد')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
   }
 
+  const handleGoogleLogin = async () => {
+    setGeneralError('')
+    if (!isGoogleSignInAvailable() || !GoogleSignin) {
+      dialogService.alert(
+        'تنبيه',
+        'تسجيل الدخول عبر Google الأصلي يتطلب Development Build ولا يعمل داخل تطبيق Expo Go.\n\nيرجى تشغيل التطبيق بنسخة Development Build (npx expo run:ios أو npx expo run:android).'
+      )
+      return
+    }
+
+    setGoogleLoading(true)
+    try {
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
+      }
+      const response = await GoogleSignin.signIn()
+      if (!isSuccessResponse(response)) {
+        return
+      }
+
+      const idToken = response.data?.idToken
+      if (!idToken) {
+        throw new Error('تعذر الحصول على رمز التحقق من Google. يرجى إعادة المحاولة.')
+      }
+
+      const res = await authApi.loginGoogle(idToken)
+      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+
+      setTimeout(() => {
+        router.replace(resolveRedirect(redirect) as any)
+      }, 100)
+    } catch (err: any) {
+      if (isErrorWithCode(err)) {
+        if (err.code === statusCodes.SIGN_IN_CANCELLED) {
+          return
+        }
+        if (err.code === statusCodes.IN_PROGRESS) {
+          return
+        }
+        if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          dialogService.alert('تنبيه', 'خدمات Google Play غير متوفرة على هذا الجهاز.')
+          return
+        }
+      }
+
+      console.error('[Google Login Error]', err?.response?.data || err?.message || err)
+      let msg = err?.response?.data?.message || err?.message || 'فشل تسجيل الدخول بواسطة Google'
+      if (Array.isArray(msg)) msg = msg[0]
+      dialogService.alert('خطأ في تسجيل الدخول', msg)
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
+
       <KeyboardAvoidingView
-        style={s.root}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: insets.top + Spacing.space6 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero */}
-          <LinearGradient colors={Gradients.hero as any} style={s.hero}>
-            <Image
-              source={require('../../assets/icon.png')}
-              style={s.logoImg}
-              contentFit="contain"
-            />
-          </LinearGradient>
-
-          {/* Card */}
-          <View style={s.card}>
-            <View style={s.cardHeader}>
-              <Text style={s.cardTitle}>أهلاً بك 👋</Text>
-              <Text style={s.cardSub}>سجّل دخولك للمتابعة</Text>
+          {/* Logo Brand Header */}
+          <View style={s.logoHero}>
+            {/* Unified Brand Lockup */}
+            <View style={s.brandLockup} accessible={true} accessibilityRole="header" accessibilityLabel="سوق ون">
+              <Image
+                source={require('../../assets/logo.png')}
+                style={s.logoImg}
+                contentFit="contain"
+              />
+              <Text style={s.brandTitle}>
+                <Text style={s.brandTitleTurquoise}>سوق </Text>
+                <Text style={s.brandTitleOrange}>ون</Text>
+              </Text>
             </View>
+            <Text style={s.brandSub}>منصتك الأولى للسيارات والخدمات في سلطنة عمان 🇴🇲</Text>
+          </View>
 
+          {/* Glassmorphism Card */}
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 70 : 85}
+            tint="light"
+            blurMethod="dimezisBlurView"
+            style={s.card}
+          >
+            <View style={s.glassWash} pointerEvents="none" />
             <View style={s.form}>
-              {error ? <Text style={s.errorTxt}>{error}</Text> : null}
+              {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
 
               <AppInput
+                label="البريد الإلكتروني"
                 iconRight="mail-outline"
                 value={email}
-                onChangeText={setEmail}
-                placeholder="البريد الإلكتروني"
+                onChangeText={(v) => {
+                  setEmail(v)
+                  clearFieldError('email')
+                }}
+                placeholder="أدخل بريدك الإلكتروني"
                 keyboardType="email-address"
                 textContentType="emailAddress"
                 autoCapitalize="none"
                 returnKeyType="next"
                 onSubmitEditing={() => pwRef.current?.focus()}
+                error={errors.email}
               />
 
               <AppInput
                 ref={pwRef}
+                label="كلمة المرور"
                 iconRight="lock-closed-outline"
                 iconLeft={showPw ? 'eye' : 'eye-off'}
-                onIconLeftPress={() => setShowPw(v => !v)}
+                onIconLeftPress={() => setShowPw((v) => !v)}
                 value={password}
-                onChangeText={setPassword}
-                placeholder="كلمة المرور"
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
+                placeholder="أدخل كلمة المرور"
                 secureTextEntry={!showPw}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
+                error={errors.password}
               />
 
               <TouchableOpacity
@@ -129,6 +252,7 @@ export default function LoginScreen() {
                   title="تسجيل الدخول"
                   onPress={handleLogin}
                   loading={loading}
+                  disabled={googleLoading}
                 />
 
                 <View style={s.divider}>
@@ -137,32 +261,55 @@ export default function LoginScreen() {
                   <View style={s.dividerLine} />
                 </View>
 
-                <AppButton
-                  title="تسجيل بـ Google"
-                  variant="outline"
-                  icon="logo-google"
-                  onPress={() => dialogService.alert('تنبيه', 'تسجيل الدخول عبر Google غير مفعل حالياً')}
-                />
+                {/* Google Sign In Button */}
+                <TouchableOpacity
+                  style={s.googleBtn}
+                  onPress={handleGoogleLogin}
+                  disabled={loading || googleLoading}
+                  activeOpacity={0.8}
+                >
+                  {googleLoading ? (
+                    <ActivityIndicator size="small" color="#3C4043" />
+                  ) : (
+                    <>
+                      <GoogleIcon size={18} />
+                      <Text style={s.googleBtnTxt}>متابعة باستخدام Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* Continue as Guest Button */}
+                <TouchableOpacity
+                  style={s.guestBtn}
+                  onPress={() => {
+                    setGuest(true)
+                    router.replace('/(tabs)')
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="compass-outline" size={17} color={Colors.primary} />
+                  <Text style={s.guestBtnTxt}>المتابعة كزائر واستكشاف التطبيق</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={s.signupRow}>
+                <Text style={s.signupTxt}>
+                  ليس لديك حساب؟{'  '}
+                  <Text
+                    style={s.signupLink}
+                    onPress={() => {
+                      const target = redirect
+                        ? `/(auth)/register?redirect=${encodeURIComponent(redirect)}`
+                        : '/(auth)/register'
+                      router.push(target as any)
+                    }}
+                  >
+                    إنشاء حساب
+                  </Text>
+                </Text>
               </View>
             </View>
-
-            <View style={s.signupRow}>
-              <Text style={s.signupTxt}>
-                ليس لديك حساب؟{'  '}
-                <Text
-                  style={s.signupLink}
-                  onPress={() => {
-                    const target = redirect
-                      ? `/(auth)/register?redirect=${encodeURIComponent(redirect)}`
-                      : '/(auth)/register'
-                    router.push(target as any)
-                  }}
-                >
-                  إنشاء حساب
-                </Text>
-              </Text>
-            </View>
-          </View>
+          </BlurView>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -170,94 +317,161 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.primary },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
+  flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingBottom: 40 },
 
-  // Stitch: header bg-gradient-to-b from-[#0B2447] to-[#004ac6] pt-16 pb-32
-  hero: {
-    paddingTop: 64,
-    paddingBottom: 128,
-    paddingHorizontal: Spacing.space5,
+  logoHero: {
     alignItems: 'center',
-    gap: Spacing.space4,
+    gap: 3,
+    marginTop: Spacing.space2,
+    marginBottom: Spacing.space2,
+    paddingHorizontal: Spacing.space5,
+  },
+  brandLockup: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 0,
   },
   logoImg: {
-    width: 180,
-    height: 120,
-    marginTop: 30,
-    marginBottom: Spacing.space1,
+    width: 150,
+    height: 150,
+    backgroundColor: 'transparent',
+    marginBottom: 0,
   },
-  tagline: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: 'rgba(255,255,255,0.8)',
-  },
-
-  // Stitch: rounded-[28px] shadow-[0_8px_30px_rgb(11,36,71,0.12)] p-6
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    marginHorizontal: Spacing.space5,
-    marginTop: -96,
-    padding: Spacing.space6,
-    ...Shadows.card,
-    gap: Spacing.space6,
-  },
-  cardHeader: { alignItems: 'center', gap: Spacing.space2 },
-  cardTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 24,
+  brandTitle: {
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 25,
     lineHeight: 32,
-    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
+    marginTop: -25,
+    marginBottom: 3.5,
   },
-  cardSub: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text2,
+  brandTitleTurquoise: {
+    color: Colors.primary,
+  },
+  brandTitleOrange: {
+    color: '#F18B29',
+  },
+  brandSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: Colors.textMuted,
     textAlign: 'center',
+    maxWidth: 260,
     writingDirection: 'rtl',
   },
 
-  form: { gap: Spacing.space3 },
+  card: {
+    overflow: 'hidden',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.72)' : 'rgba(255, 255, 255, 0.88)',
+    borderRadius: Radius.lg,
+    marginHorizontal: Spacing.space4,
+    marginTop: 4,
+    padding: Spacing.space4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.85)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+      },
+      android: { elevation: 2 },
+    }),
+    gap: 12,
+  },
+  glassWash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+
+  form: { gap: 10 },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 17,
     color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  forgotRow: { alignSelf: 'flex-end' },
+  forgotRow: { alignSelf: 'flex-end', marginTop: 1 },
   forgotTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
     lineHeight: 16,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
-  actions: { gap: Spacing.space4, marginTop: Spacing.space2 },
+  actions: { gap: 8, marginTop: 2 },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space4,
-    marginVertical: Spacing.space2,
+    gap: Spacing.space2,
+    marginVertical: 1,
   },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 12,
-    lineHeight: 16,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.textMuted,
   },
 
-  signupRow: { alignItems: 'center' },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    borderRadius: Radius.md,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DADCE0',
+    gap: 8,
+    ...Shadows.sm,
+  },
+  googleBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#3C4043',
+  },
+
+  guestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 38,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Colors.border,
+    gap: 6,
+    marginTop: 1,
+  },
+  guestBtnTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text,
+  },
+
+  signupRow: { alignItems: 'center', marginTop: 2 },
   signupTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text2,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   signupLink: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 19,
     color: Colors.primary,
   },
 })

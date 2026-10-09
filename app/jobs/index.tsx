@@ -343,12 +343,11 @@ export default function JobsLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as any}
         title="ســوق ون للوظائف"
         titleAccent="وظيفة او سائقك المثالي"
         navSearchPlaceholder="ابحث عن وظيفة..."

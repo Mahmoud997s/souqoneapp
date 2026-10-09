@@ -22,9 +22,14 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0B2447"
+        "backgroundColor": "#FFFFFF"
       },
       "package": "com.souqone.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDT7aik5y9KetS55fp-HsQbj2t0shJVHU8"
+        }
+      },
       "supportsRtl": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
@@ -46,7 +51,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B2447",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/splash.png",
           "imageWidth": 200,
           "resizeMode": "contain"
@@ -75,7 +80,13 @@
       "@react-native-community/datetimepicker",
       "expo-font",
       "expo-image",
-      "expo-asset"
+      "expo-asset",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.1012134031692-o6e428ak1oqrbvgi4ud86rsqfja9ej1k"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

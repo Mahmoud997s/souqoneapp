@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   timingBtnActive: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(23, 44, 100, 0.05)',
+    backgroundColor: Colors.paleMint,
   },
   timingBtnTitle: {
     fontFamily: 'Almarai_700Bold',

@@ -58,13 +58,13 @@ export default function BusesLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ── STICKY HEADER ── */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للحافلات"
+        titleAccent="حافلات للبيع وللإيجار ونقل الركاب"
         navSearchPlaceholder="ابحث عن حافلة..."
         onNavSearchPress={() => router.push('/buses/browse' as any)}
         heroSearchPlaceholder="عن أي حافلة تبحث؟"

@@ -23,10 +23,14 @@ export interface UseGestureSwiperOptions {
   invertedGesture?: boolean
   /** Callback fired when snap animation completes with the new index */
   onActiveIndexChange?: (index: number) => void
-  /** Sensitivity threshold for velocity flicks in px/s (default: 400) */
+  /** Sensitivity threshold for velocity flicks in px/s (default: 150) */
   velocityThreshold?: number
   /** Resistance factor when dragging past bounds (default: 0.25) */
   rubberBandFactor?: number
+  /**
+   * Minimum displacement ratio (0-1) of card step required to trigger an intentional advance without flick velocity (default: 0.20)
+   */
+  dragThresholdRatio?: number
   /**
    * Whether to strictly enforce paging by 1 item at a time (default: false).
    * When true (e.g. CardImageSwiper), each swipe advances at most 1 card/image.
@@ -55,6 +59,7 @@ export interface UseGestureSwiperOptions {
  * - Fail-safe offset boundaries for vertical scrolling (failOffsetY)
  * - Soft rubber-band resistance when pulling past index 0 or index (count - 1)
  * - Velocity-based flick recognition & fluid momentum projection
+ * - Intent-based threshold (20% step displacement) preventing unnatural snap-backs
  * - Smooth spring physics with velocity preservation for liquid 60fps animations
  */
 export function useGestureSwiper({
@@ -63,8 +68,9 @@ export function useGestureSwiper({
   initialIndex = 0,
   invertedGesture,
   onActiveIndexChange,
-  velocityThreshold = 400,
+  velocityThreshold = 150,
   rubberBandFactor = 0.25,
+  dragThresholdRatio = 0.2,
   paging = false,
   momentumFactor = 0.22,
   maxScrollCards = 5,
@@ -95,7 +101,7 @@ export function useGestureSwiper({
 
   const panGesture = useMemo(() => {
     return Gesture.Pan()
-      .activeOffsetX([-10, 10]) // Don't trigger on tiny taps, allowing child clicks
+      .activeOffsetX([-5, 5])   // Immediate 1:1 touch response while preserving taps
       .failOffsetY([-15, 15])   // Fail quickly on vertical scrolls so screen ScrollView works smoothly
       .onStart(() => {
         cancelAnimation(translateX)
@@ -120,28 +126,31 @@ export function useGestureSwiper({
       })
       .onEnd((event) => {
         if (count <= 1 || step <= 0) {
-          translateX.value = withSpring(0, { damping: 20, stiffness: 200 })
+          translateX.value = withSpring(0, { damping: 26, stiffness: 150 })
           return
         }
 
         const vx = event.velocityX * directionMultiplier
         const currentPos = translateX.value
+        const deltaX = currentPos - startX.value
         const rawIndex = step > 0 ? currentPos / step : 0
+        const deltaRatio = step > 0 ? Math.abs(deltaX) / step : 0
         let targetIndex = Math.round(rawIndex)
 
         if (paging) {
-          // Strictly 1 card/page at a time (e.g. CardImageSwiper)
+          // Strictly 1 card/page at a time (e.g. CardImageSwiper, ImageGallery)
           if (Math.abs(vx) > velocityThreshold) {
             if (vx > 0) {
-              targetIndex = Math.ceil(rawIndex)
-              if (targetIndex === currentIndex.value && targetIndex < count - 1) {
-                targetIndex += 1
-              }
+              targetIndex = currentIndex.value + 1
             } else {
-              targetIndex = Math.floor(rawIndex)
-              if (targetIndex === currentIndex.value && targetIndex > 0) {
-                targetIndex -= 1
-              }
+              targetIndex = currentIndex.value - 1
+            }
+          } else {
+            // Gentle drag without high velocity: advance if user dragged past intent threshold
+            if (deltaRatio >= dragThresholdRatio) {
+              targetIndex = deltaX > 0 ? currentIndex.value + 1 : currentIndex.value - 1
+            } else {
+              targetIndex = currentIndex.value
             }
           }
         } else {
@@ -167,8 +176,17 @@ export function useGestureSwiper({
               targetIndex = currentIndex.value + Math.sign(delta) * maxScrollCards
             }
           } else {
-            // Gentle drag without high velocity flick: snap to nearest card
-            targetIndex = Math.round(rawIndex)
+            // Gentle drag without high velocity flick: check intent threshold
+            if (deltaRatio >= dragThresholdRatio) {
+              if (deltaX > 0) {
+                targetIndex = Math.max(currentIndex.value + 1, Math.round(rawIndex))
+              } else {
+                targetIndex = Math.min(currentIndex.value - 1, Math.round(rawIndex))
+              }
+            } else {
+              // Minor drag under threshold: stay at original index
+              targetIndex = currentIndex.value
+            }
           }
         }
 
@@ -180,8 +198,8 @@ export function useGestureSwiper({
           targetX,
           {
             velocity: vx,
-            damping: 24,
-            stiffness: 135,
+            damping: 26,
+            stiffness: 150,
             mass: 0.8,
             overshootClamping: false,
           },
@@ -201,6 +219,7 @@ export function useGestureSwiper({
     handleSnapComplete,
     velocityThreshold,
     rubberBandFactor,
+    dragThresholdRatio,
     paging,
     momentumFactor,
     maxScrollCards,

@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
+import { Gradients } from '../../constants/gradients';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 
@@ -13,7 +14,7 @@ export interface ActionBannerProps {
   iconName: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
-  gradientColors?: [string, string, string];
+  gradientColors?: readonly [string, string, ...string[]];
 }
 
 export function ActionBanner({
@@ -23,7 +24,7 @@ export function ActionBanner({
   iconName,
   onPress,
   style,
-  gradientColors = ['#0B2447', '#1a3a6b', '#0d3060'],
+  gradientColors = Gradients.hero,
 }: ActionBannerProps) {
   return (
     <View style={[styles.wrapper, style]}>
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16.5,
-    color: '#0B2447',
+    color: Colors.primaryDark,
     textAlign: 'center',
     writingDirection: 'rtl',
     paddingTop: Platform.OS === 'android' ? 1 : 0,

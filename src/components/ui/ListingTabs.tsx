@@ -51,8 +51,10 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space4,
     marginTop: Spacing.space2,
     marginBottom: 2,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 7,
+    backgroundColor: Colors.paleMint,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
     padding: 3,
   },
   typeTab: {
@@ -60,25 +62,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
-    borderRadius: 5.5,
+    borderRadius: 6,
     backgroundColor: 'transparent',
   },
   typeTabActive: {
     backgroundColor: Colors.white,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
-      android: { elevation: 1 },
+      ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 1.5 }, shadowOpacity: 0.12, shadowRadius: 3 },
+      android: { elevation: 2 },
     })
   },
   typeTabTxt: {
     fontFamily: 'Almarai_700Bold', 
     fontSize: 11.5,
     lineHeight: 15.5,
-    color: '#64748B',
+    color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   typeTabTxtActive: {
     color: Colors.primary,
+    fontFamily: 'Almarai_800ExtraBold',
   }
 });

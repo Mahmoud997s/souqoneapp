@@ -213,7 +213,7 @@ const s = StyleSheet.create({
 
   bookingCard: {
     backgroundColor: '#fff', borderRadius: Radius.lg, padding: 16, gap: 12,
-    ...Platform.select({ ios: { shadowColor: '#0B2447', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 }, android: { elevation: 2 } }),
+    ...Platform.select({ ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 }, android: { elevation: 2 } }),
   },
   bookingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   bookingPrice: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.primary },

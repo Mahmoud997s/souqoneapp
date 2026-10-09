@@ -53,6 +53,10 @@ export interface HorizontalScrollCardProps<T> {
   paging?: boolean
   /** Momentum projection factor in seconds (default: 0.22) */
   momentumFactor?: number
+  /** Velocity threshold for flicks in px/s (default: 150) */
+  velocityThreshold?: number
+  /** Intent threshold ratio (0-1) for gentle drags without flick (default: 0.20) */
+  dragThresholdRatio?: number
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -88,6 +92,8 @@ export function HorizontalScrollCard<T>({
   renderSeeAllCard,
   paging = false,
   momentumFactor = 0.22,
+  velocityThreshold,
+  dragThresholdRatio,
 }: HorizontalScrollCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH)
   const [measuredHeight, setMeasuredHeight] = useState<number | undefined>(cardHeight)
@@ -107,6 +113,8 @@ export function HorizontalScrollCard<T>({
     onActiveIndexChange,
     paging,
     momentumFactor,
+    velocityThreshold,
+    dragThresholdRatio,
   })
 
 

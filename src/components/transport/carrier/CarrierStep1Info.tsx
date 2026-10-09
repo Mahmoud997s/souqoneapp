@@ -99,7 +99,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
-    color: '#0f172a',
+    color: Colors.text,
     marginBottom: 4,
     textAlign: 'left',
     paddingVertical: 4,
@@ -107,7 +107,7 @@ const s = StyleSheet.create({
   subtitle: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 22,
     textAlign: 'center',
     paddingVertical: 4,
@@ -118,25 +118,25 @@ const s = StyleSheet.create({
   label: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    color: '#334155',
+    color: Colors.text,
     textAlign: 'left',
     paddingVertical: 4,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
     borderRadius: Radius.md,
     height: 52,
     paddingHorizontal: 16,
     fontFamily: 'Almarai_400Regular',
     fontSize: 15,
-    color: '#0f172a',
+    color: Colors.text,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
   inputError: {
-    borderColor: '#ef4444',
+    borderColor: Colors.error,
   },
   textArea: {
     height: 100,

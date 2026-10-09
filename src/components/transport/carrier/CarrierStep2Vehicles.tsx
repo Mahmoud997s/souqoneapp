@@ -51,7 +51,7 @@ export default function CarrierStep2Vehicles() {
           return (
             <TouchableOpacity
               key={item.key}
-              style={[s.card, isSelected && s.cardActive, errors.vehicleTypes ? { borderColor: '#ef4444' } : null]}
+              style={[s.card, isSelected && s.cardActive, errors.vehicleTypes ? { borderColor: Colors.error } : null]}
               onPress={() => {
                 toggleArrayItem('vehicleTypes', item.key);
                 useCarrierWizardStore.getState().setErrors({ ...errors, vehicleTypes: '' });
@@ -59,7 +59,7 @@ export default function CarrierStep2Vehicles() {
               activeOpacity={0.7}
             >
               <View style={[s.iconBox, isSelected && s.iconBoxActive]}>
-                <MaterialCommunityIcons name={item.icon as any} size={24} color={isSelected ? Colors.primary : '#64748b'} />
+                <MaterialCommunityIcons name={item.icon as any} size={24} color={isSelected ? Colors.primary : Colors.primary} />
               </View>
               <Text style={[s.cardLabel, isSelected && s.cardLabelActive]}>{item.label}</Text>
             </TouchableOpacity>
@@ -76,7 +76,7 @@ export default function CarrierStep2Vehicles() {
           return (
             <TouchableOpacity
               key={item.key}
-              style={[s.card, isSelected && s.cardActive, errors.serviceTypes ? { borderColor: '#ef4444' } : null]}
+              style={[s.card, isSelected && s.cardActive, errors.serviceTypes ? { borderColor: Colors.error } : null]}
               onPress={() => {
                 toggleArrayItem('serviceTypes', item.key);
                 useCarrierWizardStore.getState().setErrors({ ...errors, serviceTypes: '' });
@@ -84,7 +84,7 @@ export default function CarrierStep2Vehicles() {
               activeOpacity={0.7}
             >
               <View style={[s.iconBox, isSelected && s.iconBoxActive]}>
-                <MaterialCommunityIcons name={item.icon as any} size={24} color={isSelected ? Colors.primary : '#64748b'} />
+                <MaterialCommunityIcons name={item.icon as any} size={24} color={isSelected ? Colors.primary : Colors.primary} />
               </View>
               <Text style={[s.cardLabel, isSelected && s.cardLabelActive]}>{item.label}</Text>
             </TouchableOpacity>
@@ -107,7 +107,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
-    color: '#0f172a',
+    color: Colors.text,
     marginBottom: 4,
     textAlign: 'left',
     paddingVertical: 4,
@@ -115,7 +115,7 @@ const s = StyleSheet.create({
   subtitle: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: '#64748b',
+    color: Colors.textMuted,
     lineHeight: 22,
     textAlign: 'center',
     paddingVertical: 4,
@@ -123,7 +123,7 @@ const s = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    color: '#1e293b',
+    color: Colors.text,
     marginBottom: 12,
     textAlign: 'left',
     paddingVertical: 4,
@@ -136,9 +136,9 @@ const s = StyleSheet.create({
   },
   card: {
     width: '31%',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
@@ -146,23 +146,23 @@ const s = StyleSheet.create({
   },
   cardActive: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '08',
+    backgroundColor: Colors.paleMint,
   },
   iconBox: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconBoxActive: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.white,
   },
   cardLabel: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#475569',
+    color: Colors.text,
     textAlign: 'center',
     paddingVertical: 4,
   },

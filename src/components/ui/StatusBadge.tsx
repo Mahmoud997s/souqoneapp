@@ -12,10 +12,10 @@ interface StatusBadgeProps {
 }
 
 const VARIANTS: Record<BadgeVariant, { bg: string; text: string; border?: string }> = {
-  premium:  { bg: Colors.accent,    text: Colors.white },
-  featured: { bg: 'rgba(0,74,198,0.1)', text: Colors.primary },
-  category: { bg: Colors.inputBg,    text: Colors.text2 },
-  neutral:  { bg: Colors.surface,    text: Colors.text2 },
+  premium:  { bg: Colors.primaryDark, text: Colors.white },
+  featured: { bg: Colors.paleMint,    text: Colors.primary, border: Colors.border },
+  category: { bg: Colors.paleMint,    text: Colors.primaryDark },
+  neutral:  { bg: Colors.surface,     text: Colors.text2 },
 }
 
 export function StatusBadge({

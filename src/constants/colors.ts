@@ -1,41 +1,49 @@
 export const Colors = {
-  // Primary (Matching Gradients.hero)
-  primary:      '#0d3060',
-  primaryDark:  '#0B2447',
-  primaryMid:   '#1a3a6b',
-  primaryLight: '#2a5298',
-  primaryDeep:  '#081b36',
+  // Official SouqOne Turquoise (#009CB5)
+  primary:      '#009CB5', // الفيروزي الرئيسي: للأزرار الرئيسية، أيقونات الأقسام، والعناصر النشطة
+  primaryDark:  '#192435', // الكحلي: لخلفية البانر الداكن والبطاقات العميقة
+  primaryMid:   '#009CB5', // الفيروزي الرئيسي
+  primaryLight: '#009CB5', // الفيروزي الرئيسي
+  primaryDeep:  '#11232E', // الفحمي: للعناوين، أسماء الأقسام، أسماء السيارات، والأسعار
 
-  // Accent
-  accent:       '#E8781E',
-  brandOrange:  '#fe5e00',
+  // Accent & Brand
+  accent:       '#009CB5',
+  brandOrange:  '#009CB5',
+
+  // Backward-compatible token aliases mapped to the new palette
+  darkForest:   '#11232E',
+  pineGreen:    '#192435',
+  hunterGreen:  '#009CB5',
+  forestGreen:  '#009CB5',
+  sage:         '#009CB5',
+  paleMint:     '#ECF8FA', // الفيروزي الفاتح: لخلفية القسم المحدد وخلفية أيقونة الرئيسية النشطة
 
   // Equipment Theme
-  equipmentPrimary: '#EAB308', // Golden Yellow
-  equipmentDark:    '#CA8A04',
-  equipmentLight:   '#FEF08A',
-  equipmentBg:      '#FEFCE8',
+  equipmentPrimary: '#009CB5',
+  equipmentDark:    '#192435',
+  equipmentLight:   '#ECF8FA',
+  equipmentBg:      '#F7F8FA',
 
-  // Surface
-  surface:      '#F5F7FA',
-  surfaceAlt:   '#f7f9fc',
-  white:        '#FFFFFF',
-  inputBg:      '#f2f4f7',
+  // Surfaces & Backgrounds
+  surface:      '#FFFFFF', // الأبيض: للخلفية العامة، بطاقات الإعلانات، والشريط السفلي
+  surfaceAlt:   '#F7F8FA', // الرمادي الفاتح جدًا: لخلفيات بطاقات الأقسام
+  white:        '#FFFFFF', // الأبيض
+  inputBg:      '#EEF2F5', // الرمادي الفاتح: لمربعات الأيقونات وحقول الإدخال والبحث
 
-  // Text
-  text:         '#111827',
-  text2:        '#4B5563',
-  textMuted:    '#9CA3AF',
-  placeholder:  '#737685',
+  // Text & Typography (100% Opacity)
+  text:         '#11232E', // الفحمي: للعناوين، أسماء الأقسام، أسماء السيارات، والأسعار
+  text2:        '#11232E',
+  textMuted:    '#6B7280', // الرمادي للنصوص: للموقع، الوصف، والنصوص والأيقونات غير النشطة
+  placeholder:  '#6B7280',
 
-  // Borders
-  border:       '#E2E6EC',
-  borderStrong: '#c3c6d6',
+  // Borders & Dividers
+  border:       '#E5E7EB', // الحدود والفواصل: للإطارات والخطوط الفاصلة الخفيفة
+  borderStrong: '#009CB5', // حدود العناصر النشطة والمركّزة
 
   // Semantic
-  success:      '#16a34a',
-  successDeep:  '#059669',
+  success:      '#009CB5',
+  successDeep:  '#192435',
   error:        '#dc2626',
-  warning:      '#d97706',
-  info:         '#4ade80',
+  warning:      '#f59e0b',
+  info:         '#009CB5',
 } as const

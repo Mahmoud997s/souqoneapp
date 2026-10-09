@@ -175,12 +175,11 @@ export default function TransportLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للنقل"
         titleAccent="شحن موثوق لأي مكان في سلطنة عمــان"
         navSearchPlaceholder="ابحث عن طلب شحن..."
@@ -335,10 +334,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderRadius: 20,
+    borderRadius: 100,
   },
   seeAllTxt: {
     fontFamily: 'Almarai_700Bold',

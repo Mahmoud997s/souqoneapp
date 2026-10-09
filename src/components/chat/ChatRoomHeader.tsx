@@ -201,7 +201,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#0B2447',
+    backgroundColor: Colors.primaryDark,
     position: 'relative',
     overflow: 'hidden',
     zIndex: 10,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 5.5,
     backgroundColor: '#34D399',
     borderWidth: 2,
-    borderColor: '#0B2447',
+    borderColor: Colors.primaryDark,
   },
   actionBtn: {
     width: 38,

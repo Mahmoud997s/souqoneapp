@@ -83,7 +83,7 @@ export function OperatorCard({ item, onPress }: Props) {
           )}
           {isVerified && (
             <View style={s.verifiedIconBadge}>
-              <Ionicons name="checkmark-circle" size={13} color="#1877F2" />
+              <Ionicons name="checkmark-circle" size={13} color={Colors.primary} />
             </View>
           )}
         </View>

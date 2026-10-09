@@ -46,6 +46,16 @@ export interface RegisterDto {
   accountType?: 'private' | 'company'
 }
 
+export interface ResetPasswordDto {
+  email: string
+  code: string
+  newPassword: string
+}
+
+export interface VerifyEmailResponse {
+  message: string
+}
+
 export interface UserSummary {
   id: string
   username: string

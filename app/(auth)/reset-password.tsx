@@ -10,53 +10,88 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { authApi } from '../../src/api/auth'
-import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { Gradients } from '../../src/constants/gradients'
 import { Colors } from '../../src/constants/colors'
+import { validateResetPassword } from '../../src/utils/authValidation'
 
 export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets()
-  const { token } = useLocalSearchParams<{ token?: string }>()
+  const { email: paramEmail } = useLocalSearchParams<{ email?: string }>()
 
+  const [email, setEmail] = useState(paramEmail ? decodeURIComponent(paramEmail) : '')
+  const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
 
   const hasMinLength = password.length >= 8
-  const hasUpperAndDigit = /[A-Z]/.test(password) && /[0-9]/.test(password)
+  const hasUpper = /[A-Z]/.test(password)
+  const hasDigit = /[0-9]/.test(password)
+  const hasUpperAndDigit = hasUpper && hasDigit
+
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
 
   const handleReset = async () => {
-    if (!password || !confirm) {
-      setError('يرجى ملء جميع الحقول')
+    setGeneralError('')
+
+    const valResult = validateResetPassword({
+      email,
+      code,
+      password,
+      confirmPassword: confirm,
+    })
+
+    if (!valResult.isValid) {
+      setErrors(valResult.errors)
       return
     }
-    if (password !== confirm) {
-      setError('كلمتا المرور غير متطابقتين')
-      return
-    }
-    if (!hasMinLength) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-      return
-    }
-    setError('')
+
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanCode = code.trim()
+
     setLoading(true)
     try {
-      await authApi.resetPassword(token || '', password)
+      await authApi.resetPassword({
+        email: cleanEmail,
+        code: cleanCode,
+        newPassword: password,
+      })
       setSuccess(true)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'
+
+      if (serverMsg.includes('رمز') || serverMsg.toLowerCase().includes('code')) {
+        setErrors((prev) => ({ ...prev, code: serverMsg }))
+      } else if (serverMsg.includes('البريد') || serverMsg.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور') || serverMsg.toLowerCase().includes('password')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -64,36 +99,68 @@ export default function ResetPasswordScreen() {
 
   if (success) {
     return (
-      <View style={[s.successRoot, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={Gradients.hero as any}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={s.successGrad}
-        >
-          <View style={s.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color="#ffffff" />
-          </View>
-          <Text style={s.successTitle}>تم التحديث!</Text>
-          <Text style={s.successDesc}>
-            تم تغيير كلمة المرور بنجاح.{'\n'}يمكنك الآن تسجيل الدخول.
-          </Text>
+      <View style={s.root}>
+        <StatusBar barStyle="dark-content" />
+
+        {/* Floating Minimal Header */}
+        <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
           <TouchableOpacity
-            style={s.successBtn}
+            style={s.floatingBackBtn}
             onPress={() => router.replace('/(auth)/login')}
-            activeOpacity={0.9}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={s.successBtnTxt}>تسجيل الدخول</Text>
+            <Ionicons name="arrow-forward" size={18} color={Colors.text} />
           </TouchableOpacity>
-        </LinearGradient>
+          <Text style={s.topHeaderTitle}>تم التحديث بنجاح</Text>
+          <View style={{ width: 36 }} />
+        </View>
+
+        <ScrollView
+          contentContainerStyle={s.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={s.card}>
+            <View style={s.cardHero}>
+              <View style={[s.iconWrap, { backgroundColor: '#ECFDF5' }]}>
+                <Ionicons name="checkmark-circle-outline" size={40} color="#059669" />
+              </View>
+              <Text style={s.cardTitle}>تم تغيير كلمة المرور بنجاح!</Text>
+              <Text style={s.cardSubtitle}>
+                يمكنك الآن تسجيل الدخول مباشرة باستخدام كلمة المرور الجديدة الخاصة بك.
+              </Text>
+            </View>
+
+            <View style={{ marginTop: Spacing.space3 }}>
+              <AppButton
+                title="تسجيل الدخول الآن"
+                onPress={() => router.replace('/(auth)/login')}
+                icon="log-in-outline"
+              />
+            </View>
+          </View>
+        </ScrollView>
       </View>
     )
   }
 
   return (
     <View style={s.root}>
-      <AppHeader title="تغيير كلمة المرور" showBack />
+      <StatusBar barStyle="dark-content" />
+
+      {/* Floating Minimal Header */}
+      <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+        <TouchableOpacity
+          style={s.floatingBackBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={s.topHeaderTitle}>تغيير كلمة المرور</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
       <KeyboardAvoidingView
         style={s.flex}
@@ -108,24 +175,65 @@ export default function ResetPasswordScreen() {
           <View style={s.pageTitleWrap}>
             <Text style={s.pageTitle}>تعيين كلمة مرور جديدة</Text>
             <Text style={s.pageSubtitle}>
-              أدخل كلمة المرور الجديدة أدناه لتأمين حسابك في سوق وان.
+              أدخل رمز التحقق المرسل لبريدك الإلكتروني وكلمة المرور الجديدة.
             </Text>
           </View>
 
           {/* Form card */}
           <View style={s.card}>
+            {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
+
+            {/* Email */}
+            <AppInput
+              label="البريد الإلكتروني"
+              iconRight="mail-outline"
+              value={email}
+              onChangeText={(v) => {
+                setEmail(v)
+                clearFieldError('email')
+              }}
+              placeholder="أدخل بريدك الإلكتروني"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              autoCapitalize="none"
+              returnKeyType="next"
+              error={errors.email}
+            />
+
+            {/* Verification Code */}
+            <AppInput
+              label="رمز التحقق (6 أرقام)"
+              iconRight="key-outline"
+              value={code}
+              onChangeText={(v) => {
+                setCode(v)
+                clearFieldError('code')
+              }}
+              placeholder="أدخل رمز التحقق (6 أرقام)"
+              keyboardType="number-pad"
+              maxLength={6}
+              returnKeyType="next"
+              error={errors.code}
+            />
+
+            <View style={s.divider} />
+
             {/* New password */}
             <View style={s.fieldGroup}>
               <AppInput
                 label="كلمة المرور الجديدة"
                 iconRight="lock-closed-outline"
                 iconLeft={showPw ? 'eye' : 'eye-off'}
-                onIconLeftPress={() => setShowPw(v => !v)}
+                onIconLeftPress={() => setShowPw((v) => !v)}
                 value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
+                placeholder="أدخل كلمة المرور الجديدة"
                 secureTextEntry={!showPw}
                 returnKeyType="next"
+                error={errors.password}
               />
 
               {/* Validation hints */}
@@ -147,29 +255,29 @@ export default function ResetPasswordScreen() {
                     color={hasUpperAndDigit ? '#16a34a' : '#c3c6d6'}
                   />
                   <Text style={[s.hintTxt, hasUpperAndDigit && s.hintOk]}>
-                    حرف واحد كبير ورقم واحد على الأقل
+                    حرف واحد كبير (A-Z) ورقم واحد (0-9) على الأقل
                   </Text>
                 </View>
               </View>
             </View>
-
-            <View style={s.divider} />
 
             {/* Confirm password */}
             <AppInput
               label="تأكيد كلمة المرور الجديدة"
               iconRight="lock-open-outline"
               iconLeft={showCPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowCPw(v => !v)}
+              onIconLeftPress={() => setShowCPw((v) => !v)}
               value={confirm}
-              onChangeText={setConfirm}
-              placeholder="••••••••"
+              onChangeText={(v) => {
+                setConfirm(v)
+                clearFieldError('confirm')
+              }}
+              placeholder="أعد إدخال كلمة المرور الجديدة للتأكيد"
               secureTextEntry={!showCPw}
               returnKeyType="done"
               onSubmitEditing={handleReset}
+              error={errors.confirm}
             />
-
-            {error ? <Text style={s.errorTxt}>{error}</Text> : null}
           </View>
         </ScrollView>
 
@@ -193,99 +301,123 @@ export default function ResetPasswordScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B2447' },
-  flex: { flex: 1, backgroundColor: '#f7f9fc' },
-  scroll: { padding: Spacing.space5, gap: Spacing.space4, paddingBottom: Spacing.space6 },
-  pageTitleWrap: { gap: Spacing.space2 },
-  pageTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#111827',
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
+  flex: { flex: 1 },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space2,
+  },
+  floatingBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  topHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+    textAlign: 'center',
     writingDirection: 'rtl',
+  },
+  scroll: {
+    paddingHorizontal: Spacing.space5,
+    gap: Spacing.space4,
+    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space6,
+  },
+  pageTitleWrap: { gap: Spacing.space1, marginTop: Spacing.space2, alignItems: 'center' },
+  pageTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 22,
+    lineHeight: 30,
+    color: Colors.text,
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
   pageSubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
     lineHeight: 20,
-    color: '#4B5563',
+    color: Colors.text2,
     writingDirection: 'rtl',
+    textAlign: 'center',
+    maxWidth: 300,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: Radius.lg,
-    padding: Spacing.space5,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    padding: Spacing.space6,
     gap: Spacing.space4,
+    borderWidth: 1,
+    borderColor: Colors.border,
     ...Shadows.card,
+  },
+  cardHero: {
+    alignItems: 'center',
+    gap: Spacing.space2,
+    marginBottom: Spacing.space2,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.paleMint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space1,
+  },
+  cardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
+    lineHeight: 28,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  cardSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.text2,
+    textAlign: 'center',
+    maxWidth: 290,
+    writingDirection: 'rtl',
   },
   fieldGroup: { gap: Spacing.space2 },
   hints: { gap: Spacing.space1, marginTop: Spacing.space1 },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   hintTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 12,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
     lineHeight: 16,
-    color: '#4B5563',
+    color: Colors.text2,
     writingDirection: 'rtl',
   },
   hintOk: { color: '#16a34a' },
-  divider: { height: 1, backgroundColor: '#E2E6EC' },
+  divider: { height: 1, backgroundColor: Colors.border },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: '#dc2626',
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   bottomBar: {
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(226,230,236,0.5)',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopColor: Colors.border,
     paddingHorizontal: Spacing.space5,
     paddingTop: Spacing.space4,
-    ...Shadows.card,
-  },
-  successRoot: { flex: 1 },
-  successGrad: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.space8,
-    gap: Spacing.space4,
-  },
-  successIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.space2,
-  },
-  successTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#ffffff',
-    writingDirection: 'rtl',
-  },
-  successDesc: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  successBtn: {
-    marginTop: Spacing.space4,
-    backgroundColor: '#ffffff',
-    borderRadius: Radius.md,
-    height: 52,
-    paddingHorizontal: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  successBtnTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
-    color: Colors.primary,
-    writingDirection: 'rtl',
   },
 })

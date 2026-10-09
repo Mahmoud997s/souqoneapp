@@ -126,6 +126,7 @@ const s = StyleSheet.create({
   infoColumn: {
     flex: 1,
     gap: 2,
+    alignItems: 'flex-start',
   },
   nameRow: {
     flexDirection: 'row',
@@ -137,6 +138,8 @@ const s = StyleSheet.create({
     fontSize: 14,
     lineHeight: lineHeightFor(14),
     color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   verifiedIcon: {
     marginTop: 1,
@@ -146,6 +149,8 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   accountBadge: {
     alignSelf: 'flex-start',
@@ -162,6 +167,8 @@ const s = StyleSheet.create({
     fontSize: 10,
     lineHeight: lineHeightFor(10),
     color: '#0D9488',
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   chevronWrapper: {
     paddingStart: Spacing.space2,

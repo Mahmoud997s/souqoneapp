@@ -13,29 +13,31 @@ import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
+import { useAuthStore } from '../../src/store/authStore'
 
 const SLIDES = [
   {
     key: '1',
     icon: 'car-sport' as const,
-    title: 'اعثر على سيارة أحلامك',
-    subtitle: 'آلاف الإعلانات في مكان واحد',
+    title: 'سوق المركبات المتكامل في عُمان',
+    subtitle: 'سيارات، نقل وشاحنات، باصات، ومعدات ثقيلة في مكان واحد',
   },
   {
     key: '2',
-    icon: 'pricetag' as const,
-    title: 'بع سيارتك بسهولة',
-    subtitle: 'أضف إعلانك في دقائق',
+    icon: 'construct' as const,
+    title: 'سوق قطع الغيار والإكسسوارات',
+    subtitle: 'اطلب واعثر على قطع الغيار الأصلية والمستعملة بكل سهولة',
   },
   {
     key: '3',
     icon: 'chatbubbles' as const,
-    title: 'تواصل مع البائعين',
-    subtitle: 'دردشة مباشرة وآمنة',
+    title: 'تواصل مباشر وصفقات موثوقة',
+    subtitle: 'دردشة فورية ومفاوضات آمنة مع المشترين والتجار الموثقين',
   },
 ]
 
 export default function OnboardingScreen() {
+  const setGuest = useAuthStore((st) => st.setGuest)
   const [index, setIndex] = useState(0)
   const slide = SLIDES[index]
 
@@ -51,6 +53,17 @@ export default function OnboardingScreen() {
     <SafeAreaView style={s.container}>
       <View style={s.topBar}>
         <TouchableOpacity
+          onPress={() => {
+            setGuest(true)
+            router.replace('/(tabs)')
+          }}
+          style={s.guestPill}
+          activeOpacity={0.7}
+        >
+          <Text style={s.guestPillTxt}>المتابعة كزائر ←</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={() => router.replace('/(auth)/login')}
           style={s.skipBtn}
           activeOpacity={0.7}
@@ -63,7 +76,7 @@ export default function OnboardingScreen() {
         <View style={s.illustrationWrap}>
           <View style={s.illustrationBg} />
           <View style={s.iconCircle}>
-            <Ionicons name={slide.icon} size={100} color={Colors.primary} />
+            <Ionicons name={slide.icon} size={64} color={Colors.primary} />
           </View>
         </View>
         <View style={s.textWrap}>
@@ -102,13 +115,37 @@ export default function OnboardingScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f9fc' },
-  topBar: { alignItems: 'flex-start', paddingHorizontal: Spacing.space5, paddingTop: Spacing.space1 },
-  skipBtn: { paddingHorizontal: Spacing.space4, paddingVertical: Spacing.space2, borderRadius: 999 },
+  container: { flex: 1, backgroundColor: Colors.surfaceAlt },
+  topBar: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: Spacing.space5, 
+    paddingTop: Spacing.space2 
+  },
+  guestPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 156, 181, 0.25)',
+  },
+  guestPillTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    color: Colors.primary,
+  },
+  skipBtn: { 
+    paddingHorizontal: Spacing.space3, 
+    paddingVertical: Spacing.space1, 
+    borderRadius: Radius.pill 
+  },
   skipTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
-    lineHeight: 16,
-    color: '#4B5563',
+    fontFamily: 'Almarai_700Bold',  
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: Colors.textMuted,
     writingDirection: 'rtl',
   },
   slide: {
@@ -116,72 +153,76 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.space5,
-    gap: Spacing.space6,
+    gap: Spacing.space4,
   },
   illustrationWrap: {
-    width: '100%',
-    aspectRatio: 1,
+    width: 200,
+    height: 200,
     alignItems: 'center',
     justifyContent: 'center',
   },
   illustrationBg: {
     position: 'absolute',
-    width: '80%',
-    height: '80%',
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,53,148,0.05)',
-    transform: [{ scale: 1.25 }],
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: Colors.paleMint,
   },
   iconCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#ffffff',
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.card,
   },
-  textWrap: { alignItems: 'center', gap: Spacing.space3 },
+  textWrap: { alignItems: 'center', gap: Spacing.space2 },
   slideTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 24,
-    lineHeight: 32,
-    color: Colors.primary,
+    fontFamily: 'Almarai_800ExtraBold',  
+    fontSize: 20,
+    lineHeight: 28,
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   slideSubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: '#4B5563',
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 13.5,
+    lineHeight: 21,
+    color: Colors.textMuted,
     textAlign: 'center',
-    maxWidth: 280,
+    maxWidth: 270,
     writingDirection: 'rtl',
   },
   bottomPanel: {
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: Spacing.space5,
-    paddingTop: Spacing.space8,
-    paddingBottom: 40,
-    gap: Spacing.space6,
+    paddingTop: Spacing.space6,
+    paddingBottom: 36,
+    gap: Spacing.space5,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
     ...Shadows.card,
   },
   dots: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.space2,
+    gap: 6,
   },
-  dot: { height: 8, borderRadius: 4 },
-  dotActive: { width: 32, backgroundColor: Colors.primary },
-  dotInactive: { width: 8, backgroundColor: '#c3c6d6' },
+  dot: { height: 6, borderRadius: 3 },
+  dotActive: { width: 24, backgroundColor: Colors.primary },
+  dotInactive: { width: 6, backgroundColor: Colors.border },
   loginTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: '#4B5563',
+    fontFamily: 'Almarai_400Regular',  
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  loginLink: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
+  loginLink: { fontFamily: 'Almarai_700Bold', color: Colors.primary },
 })

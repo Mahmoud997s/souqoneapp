@@ -44,13 +44,13 @@ export default function CarsLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للسيارات"
+        titleAccent="أفضل عروض وإعلانات السيارات"
         navSearchPlaceholder="ابحث عن سيارة..."
         onNavSearchPress={() => router.push('/cars/browse' as any)}
         heroSearchPlaceholder="عن أي سيارة تبحث؟"

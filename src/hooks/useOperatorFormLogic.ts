@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { uploadsApi } from '../api/uploads'
 import { dialogService } from '../store/dialogStore'
+import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 
 interface UseOperatorFormLogicProps {
   certifications: string[]
@@ -55,12 +56,11 @@ export function useOperatorFormLogic({
       setIsUploading(true)
       const uploadedUrls: string[] = []
       for (const asset of result.assets) {
+        const filePayload = buildUploadFilePayload(asset, 'cert')
+        if (!filePayload) continue
+
         const data = new FormData()
-        data.append('file', {
-          uri: asset.uri,
-          name: asset.fileName || `cert_${Date.now()}.jpg`,
-          type: asset.mimeType || 'image/jpeg',
-        } as any)
+        data.append('file', filePayload as any)
 
         const res = await uploadsApi.single(data)
         const url = (res.data as any)?.url ?? (res.data as any)?.path

@@ -9,6 +9,7 @@ import { Radius } from '../../../constants/radius';
 import { Spacing } from '../../../constants/spacing';
 import { useBusWizardStore } from '../../../store/busWizardStore';
 import { uploadsApi } from '../../../api/uploads';
+import { buildUploadFilePayload } from '../../../utils/fileUploadHelper';
 
 const MAX_IMAGES = 10;
 
@@ -42,19 +43,19 @@ export function BusStep1Images() {
     try {
       const uploaded: string[] = [];
       for (const asset of result.assets) {
+        const filePayload = buildUploadFilePayload(asset, 'bus');
+        if (!filePayload) continue;
+
         const formData = new FormData();
-        formData.append('file', {
-          uri: asset.uri,
-          type: asset.mimeType ?? 'image/jpeg',
-          name: asset.fileName ?? 'photo.jpg',
-        } as any);
+        formData.append('file', filePayload as any);
         const res = await uploadsApi.single(formData);
         const url = (res.data as any)?.url ?? (res.data as any)?.path;
         if (url) uploaded.push(url);
       }
       setData({ images: [...data.images, ...uploaded] });
-    } catch {
-      dialogService.alert('خطأ', 'فشل رفع الصور، يرجى المحاولة مجدداً', 'error');
+    } catch (err: any) {
+      const serverMsg = err?.response?.data?.message || err?.message;
+      dialogService.alert('خطأ', serverMsg || 'فشل رفع الصور، يرجى المحاولة مجدداً', 'error');
     } finally {
       setUploading(false);
     }

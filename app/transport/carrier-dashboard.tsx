@@ -94,15 +94,15 @@ export default function CarrierDashboardScreen() {
         {/* Quick Stats Grid */}
         <View style={s.statsGrid}>
           <View style={s.statBox}>
-            <View style={[s.statIconWrap, { backgroundColor: '#dcfce7' }]}>
-              <Ionicons name="checkmark-done-circle" size={24} color="#16a34a" />
+            <View style={[s.statIconWrap, { backgroundColor: Colors.paleMint }]}>
+              <Ionicons name="checkmark-done-circle" size={24} color={Colors.primary} />
             </View>
             <Text style={s.statValue}>{profile?.averageRating ?? '0.0'}</Text>
             <Text style={s.statLabel}>التقييم العام</Text>
           </View>
           <View style={s.statBox}>
-            <View style={[s.statIconWrap, { backgroundColor: '#e0f2fe' }]}>
-              <Ionicons name="cube" size={24} color="#0284c7" />
+            <View style={[s.statIconWrap, { backgroundColor: Colors.inputBg }]}>
+              <Ionicons name="cube" size={24} color={Colors.primary} />
             </View>
             <Text style={s.statValue}>{profile?.totalTrips ?? 0}</Text>
             <Text style={s.statLabel}>الرحلات المكتملة</Text>
@@ -131,7 +131,7 @@ export default function CarrierDashboardScreen() {
 
         {recommendations?.length === 0 ? (
           <View style={s.emptyBox}>
-            <Ionicons name="sad-outline" size={40} color="#94a3b8" />
+            <Ionicons name="sad-outline" size={40} color={Colors.textMuted} />
             <Text style={s.emptyText}>لا توجد فرص مطابقة حالياً.</Text>
           </View>
         ) : (
@@ -160,22 +160,22 @@ export default function CarrierDashboardScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f8fafc' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: '#0f172a' },
-  subtitle: { fontFamily: 'Almarai_400Regular', fontSize: 15, color: '#64748b', textAlign: 'center', lineHeight: 22 },
+  title: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: Colors.text, textAlign: 'center' },
+  subtitle: { fontFamily: 'Almarai_400Regular', fontSize: 15, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 },
   btn: { backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md, marginTop: 12 },
   btnText: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: '#fff' },
   
   content: { padding: 16 },
 
   statusCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   statusHeader: {
     flexDirection: 'row',
@@ -183,8 +183,8 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
   },
   statusInfo: { flex: 1, alignItems: 'flex-start' },
-  statusTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#0f172a', marginBottom: 4, textAlign: 'left', writingDirection: 'rtl' },
-  statusSub: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
+  statusTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text, marginBottom: 4, textAlign: 'left', writingDirection: 'rtl' },
+  statusSub: { fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.textMuted, textAlign: 'left', writingDirection: 'rtl' },
 
   statsGrid: {
     flexDirection: 'row',
@@ -193,12 +193,12 @@ const s = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   statIconWrap: {
     width: 48,
@@ -208,8 +208,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  statValue: { fontFamily: 'Almarai_800ExtraBold', fontSize: 24, color: '#0f172a', marginBottom: 4 },
-  statLabel: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#64748b' },
+  statValue: { fontFamily: 'Almarai_800ExtraBold', fontSize: 24, color: Colors.text, marginBottom: 4 },
+  statLabel: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.textMuted },
 
   actionsRow: {
     flexDirection: 'row',
@@ -221,12 +221,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     paddingVertical: 14,
     borderRadius: Radius.lg,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   actionBtnTxt: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.primary },
 
@@ -236,21 +236,21 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: '#0f172a' },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text },
   seeAll: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.primary },
 
   emptyBox: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
     borderStyle: 'dashed',
   },
-  emptyText: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: '#64748b' },
+  emptyText: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted },
 
   list: { gap: 12 },
 });

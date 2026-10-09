@@ -50,12 +50,11 @@ export default function ServicesLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون لخدمات السيارات"
         titleAccent="صيانة، فحص، وغسيل"
         navSearchPlaceholder="ابحث عن خدمة..."

@@ -20,7 +20,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
-import MapView, { Marker, PROVIDER_GOOGLE } from '../../components/ui/Map'
+import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { dialogService } from '../../store/dialogStore'
@@ -354,7 +354,6 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
                 <>
                   <MapView
                     style={{ width: '100%', height: '100%' }}
-                    provider={PROVIDER_GOOGLE}
                     initialRegion={{
                       latitude: vm.location.latitude,
                       longitude: vm.location.longitude,

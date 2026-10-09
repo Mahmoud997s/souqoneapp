@@ -44,7 +44,7 @@ export function useDepartmentBottomBar({
   favoritesTab,
   postRoute,
   activeColor = Colors.primary,
-  activeBgColor = '#EFF6FF',
+  activeBgColor = Colors.paleMint,
   onPost,
   onHomePress,
   scrollAware = true,
@@ -193,7 +193,7 @@ export function useCarsBottomBar() {
   return useDepartmentBottomBar({
     category: 'cars',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     onPost: navigateToCarForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/cars' },
@@ -210,7 +210,7 @@ export function useTransportBottomBar() {
     category: 'transport',
     postRoute: '/transport/new',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/transport' },
       { id: 'browse', label: 'الطلبات', icon: 'package-variant', iconOutline: 'package-variant-closed', family: 'MaterialCommunityIcons', route: '/transport/browse' },
@@ -225,7 +225,7 @@ export function useServicesBottomBar() {
   return useDepartmentBottomBar({
     category: 'services',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     onPost: navigateToServiceForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/services' },
@@ -241,7 +241,7 @@ export function usePartsBottomBar() {
   return useDepartmentBottomBar({
     category: 'parts',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     onPost: navigateToPartForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/parts' },
@@ -257,8 +257,8 @@ export function useEquipmentBottomBar() {
   return useDepartmentBottomBar({
     category: 'equipment',
     onPost: navigateToEquipmentForm,
-    activeColor: '#d97706',
-    activeBgColor: '#FEF3C7',
+    activeColor: Colors.primary,
+    activeBgColor: Colors.paleMint,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'hammer-wrench', iconOutline: 'hammer-wrench', family: 'MaterialCommunityIcons', route: '/equipment' },
       { id: 'browse', label: 'المعدات', icon: 'excavator', iconOutline: 'excavator', family: 'MaterialCommunityIcons', route: '/equipment/browse' },
@@ -273,7 +273,7 @@ export function useBusesBottomBar() {
   return useDepartmentBottomBar({
     category: 'buses',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     onPost: navigateToBusForm,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/buses' },
@@ -290,7 +290,7 @@ export function useJobsBottomBar() {
     category: 'jobs',
     postRoute: '/jobs/create',
     activeColor: Colors.primary,
-    activeBgColor: '#EFF6FF',
+    activeBgColor: Colors.paleMint,
     customTabs: [
       { id: 'home', label: 'الرئيسية', icon: 'briefcase', iconOutline: 'briefcase-outline', family: 'MaterialCommunityIcons', route: '/jobs' },
       { id: 'browse', label: 'الوظائف', icon: 'briefcase-search', iconOutline: 'briefcase-search-outline', family: 'MaterialCommunityIcons', route: '/jobs/browse' },

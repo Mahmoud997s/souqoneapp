@@ -91,13 +91,13 @@ export default function EquipmentLandingScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
-        gradientColors={Gradients.hero as unknown as string[]}
         title="ســوق ون للمعدات"
+        titleAccent="معدات ثقيلة وخفيفة ومشغلون معتمدون"
         navSearchPlaceholder="ابحث عن معدة أو مشغل..."
         onNavSearchPress={() => router.push('/equipment/browse' as any)}
         heroSearchPlaceholder="عن أي معدة أو مشغل تبحث؟"

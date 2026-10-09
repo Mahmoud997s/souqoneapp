@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Colors } from '../../src/constants/colors'
+import { Gradients } from '../../src/constants/gradients'
 import { useEditProfile } from '../../src/hooks/useEditProfile'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { EditProfileAvatar } from '../../src/components/profile/EditProfileAvatar'
@@ -169,7 +170,7 @@ export default function EditProfileScreen() {
                     <Image source={{ uri: displayAvatar }} style={s.avatarSheetImg} contentFit="cover" />
                   ) : (
                     <LinearGradient
-                      colors={['#1e3a6e', '#0f2952', '#0B2447']}
+                      colors={Gradients.hero as any}
                       start={{ x: 0.1, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={s.avatarSheetImg}

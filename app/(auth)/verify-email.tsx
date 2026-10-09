@@ -10,18 +10,17 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  StatusBar,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
-import { AppHeader } from '../../src/components/ui/AppHeader'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { Gradients } from '../../src/constants/gradients'
 import { Colors } from '../../src/constants/colors'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import { validateOtp } from '../../src/utils/authValidation'
 
 const OTP_LENGTH = 6
 
@@ -50,6 +49,7 @@ export default function VerifyEmailScreen() {
     const next = [...otp]
     next[idx] = digit
     setOtp(next)
+    if (error) setError('')
     if (digit && idx < OTP_LENGTH - 1) {
       inputRefs.current[idx + 1]?.focus()
     }
@@ -63,18 +63,22 @@ export default function VerifyEmailScreen() {
 
   const handleVerify = async () => {
     const code = otp.join('')
-    if (code.length < OTP_LENGTH) {
-      setError('يرجى إدخال الكود كاملاً')
+    const valResult = validateOtp(code)
+    if (!valResult.isValid) {
+      setError(valResult.errors.code || valResult.errors.otp || 'يرجى إدخال الكود كاملاً (6 أرقام)')
       return
     }
+
     setError('')
     setLoading(true)
     try {
-      const res = await authApi.verifyEmail(code)
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      await authApi.verifyEmail(code)
+      useAuthStore.getState().updateUser({ isVerified: true })
       router.replace(resolveRedirect(redirect) as any)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية')
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      setError(msg || e?.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية')
     } finally {
       setLoading(false)
     }
@@ -87,8 +91,11 @@ export default function VerifyEmailScreen() {
       await authApi.resendVerification()
       setCanResend(false)
       setTimer(45)
-    } catch {
-      // silent
+      setError('')
+    } catch (e: any) {
+      let msg = e?.response?.data?.message
+      if (Array.isArray(msg)) msg = msg[0]
+      setError(msg || 'تعذر إرسال رمز جديد، حاول لاحقاً')
     } finally {
       setResendLoading(false)
     }
@@ -98,34 +105,41 @@ export default function VerifyEmailScreen() {
 
   return (
     <View style={s.root}>
-      <AppHeader title="SouqOne" showBack />
+      <StatusBar barStyle="dark-content" />
+
+      {/* Floating Minimal Header */}
+      <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+        <TouchableOpacity
+          style={s.floatingBackBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={s.topHeaderTitle}>تأكيد البريد الإلكتروني</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
       <ScrollView
         contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <LinearGradient
-          colors={Gradients.hero as any}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={s.hero}
-        >
-          <View style={s.heroIcon}>
-            <Ionicons name="mail-open-outline" size={40} color="#ffffff" />
-          </View>
-          <Text style={s.heroTitle}>تحقق من بريدك</Text>
-          <Text style={s.heroDesc}>
-            أرسلنا كود تحقق يتكون من 6 أرقام إلى
-          </Text>
-          <Text style={s.heroEmail}>{email || 'بريدك الإلكتروني'}</Text>
-        </LinearGradient>
-
-        {/* Form card */}
+        {/* Card */}
         <View style={s.card}>
-          <Text style={s.label}>أدخل الكود المكون من 6 أرقام</Text>
+          <View style={s.cardHero}>
+            <View style={s.iconWrap}>
+              <Ionicons name="mail-open-outline" size={32} color={Colors.primary} />
+            </View>
+            <Text style={s.cardTitle}>تحقق من بريدك الإلكتروني</Text>
+            <Text style={s.cardSubtitle}>
+              أرسلنا رمز تحقق مكون من 6 أرقام إلى{'\n'}
+              <Text style={s.emailHighlight}>{email || 'بريدك الإلكتروني'}</Text>
+            </Text>
+          </View>
+
+          <Text style={s.label}>أدخل الرمز المكون من 6 أرقام</Text>
 
           {/* OTP inputs — LTR direction */}
           <View style={s.otpRow}>
@@ -148,7 +162,7 @@ export default function VerifyEmailScreen() {
 
           {/* Verify button */}
           <AppButton
-            title="تأكيد الكود"
+            title="تأكيد الرمز"
             onPress={handleVerify}
             loading={loading}
             icon="checkmark-circle-outline"
@@ -156,12 +170,12 @@ export default function VerifyEmailScreen() {
           />
 
           {/* Resend */}
-          <Text style={s.notReceivedTxt}>لم تستلم الكود؟</Text>
+          <Text style={s.notReceivedTxt}>لم تستلم الرمز؟</Text>
 
           <View style={s.resendBox}>
             {!canResend && (
               <View style={s.timerBadge}>
-                <Ionicons name="time-outline" size={14} color="#d97706" />
+                <Ionicons name="time-outline" size={14} color="#D97706" />
                 <Text style={s.timerTxt}>{timerStr}</Text>
               </View>
             )}
@@ -176,7 +190,7 @@ export default function VerifyEmailScreen() {
                 <ActivityIndicator size="small" color={Colors.primary} />
               ) : (
                 <>
-                  <Ionicons name="refresh-outline" size={18} color={canResend ? Colors.primary : '#c3c6d6'} />
+                  <Ionicons name="refresh-outline" size={18} color={canResend ? Colors.primary : '#94A3B8'} />
                   <Text style={[s.resendTxt, !canResend && s.resendDisabled]}>
                     إعادة الإرسال
                   </Text>
@@ -192,7 +206,7 @@ export default function VerifyEmailScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="create-outline" size={16} color="#4B5563" />
+          <Ionicons name="create-outline" size={16} color={Colors.text2} />
           <Text style={s.changeEmailTxt}>تغيير البريد الإلكتروني</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -201,66 +215,89 @@ export default function VerifyEmailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B2447' },
-  scroll: { flexGrow: 1, paddingBottom: 40, backgroundColor: '#f7f9fc' },
-  hero: {
-    paddingTop: 48,
-    paddingBottom: 96,
-    paddingHorizontal: Spacing.space5,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
+  topRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
-    overflow: 'hidden',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space2,
   },
-  heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  floatingBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.space4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    ...Shadows.sm,
   },
-  heroTitle: {
-    fontFamily: 'Almarai_800ExtraBold',  fontSize: 28,
-    lineHeight: 36,
-    color: '#ffffff',
+  topHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  heroDesc: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: '#b4c5ff',
-    textAlign: 'center',
-    maxWidth: 280,
-    writingDirection: 'rtl',
-  },
-  heroEmail: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    lineHeight: 20,
-    color: '#ffffff',
-    textAlign: 'center',
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing.space5,
+    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space8,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    marginHorizontal: Spacing.space5,
-    marginTop: -48,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
     padding: Spacing.space6,
     ...Shadows.card,
     borderWidth: 1,
-    borderColor: '#E2E6EC',
+    borderColor: Colors.border,
     alignItems: 'center',
     gap: Spacing.space4,
   },
+  cardHero: {
+    alignItems: 'center',
+    gap: Spacing.space2,
+    marginBottom: Spacing.space1,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.paleMint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space1,
+  },
+  cardTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
+    lineHeight: 28,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  cardSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.text2,
+    textAlign: 'center',
+    maxWidth: 290,
+    writingDirection: 'rtl',
+  },
+  emailHighlight: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+  },
   label: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
-    lineHeight: 16,
-    color: '#434654',
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -270,27 +307,35 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   otpInput: {
-    width: 42,
+    width: 44,
     height: 52,
     borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: '#c3c6d6',
-    backgroundColor: '#f7f9fc',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
     textAlign: 'center',
-    fontFamily: 'Almarai_700Bold',  fontSize: 20,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 20,
     lineHeight: 28,
     color: Colors.primary,
   },
-  otpFilled: { borderColor: Colors.primary },
+  otpFilled: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.paleMint,
+  },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
-    color: '#dc2626',
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.error,
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   notReceivedTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
-    color: '#4B5563',
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.text2,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -301,10 +346,10 @@ const s = StyleSheet.create({
     width: '100%',
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space3,
-    backgroundColor: '#f2f4f7',
-    borderRadius: Radius.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E6EC',
+    borderColor: Colors.border,
   },
   resendBtn: {
     flexDirection: 'row',
@@ -312,39 +357,41 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
   },
   resendTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 20,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
-  resendDisabled: { color: '#c3c6d6' },
+  resendDisabled: { color: '#94A3B8' },
   timerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.space1,
-    backgroundColor: 'rgba(217,119,6,0.1)',
+    backgroundColor: '#FEF3C7',
     paddingHorizontal: Spacing.space2,
     paddingVertical: Spacing.space1,
     borderRadius: 6,
   },
   timerTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 12,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
     lineHeight: 16,
-    color: '#d97706',
+    color: '#D97706',
   },
   changeEmailBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.space1,
-    marginTop: 'auto',
-    paddingTop: Spacing.space8,
-    paddingBottom: Spacing.space4,
+    marginTop: Spacing.space6,
+    paddingVertical: Spacing.space3,
   },
   changeEmailTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13.5,
     lineHeight: 20,
-    color: '#4B5563',
+    color: Colors.text2,
     writingDirection: 'rtl',
   },
 })

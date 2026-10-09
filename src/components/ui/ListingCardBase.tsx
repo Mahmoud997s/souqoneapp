@@ -22,6 +22,7 @@ import { favoritesApi } from '../../api/favorites'
 import { formatDate } from '../../utils/format'
 import { resolveListingLocation } from '../../utils/listingLocation'
 import { CardImageSwiper } from './CardImageSwiper'
+import { VerifiedBadge } from './VerifiedBadge'
 
 export interface ListingCardPill {
   key: string
@@ -169,7 +170,11 @@ export const ListingCardBase = ({
       <View
         style={[
           s.imageContainer,
-          imageHeight ? { height: imageHeight, aspectRatio: undefined } : undefined,
+          imageHeight
+            ? { height: imageHeight, aspectRatio: undefined }
+            : fullWidth
+            ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+            : { height: CardSystem.aspectRatioHeight, aspectRatio: undefined },
         ]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
@@ -291,10 +296,7 @@ export const ListingCardBase = ({
             {title}
           </Text>
           {isSellerVerified && (
-            <View style={s.verifiedRow}>
-              <Ionicons name="checkmark-circle" size={12} color="#1877F2" />
-              <Text style={s.verifiedTxt}>موثق</Text>
-            </View>
+            <VerifiedBadge variant="dark" showText size={12} style={{ marginTop: 2 }} />
           )}
         </View>
 
@@ -328,30 +330,8 @@ export const ListingCardBase = ({
             return (
               <>
                 {visiblePills.map((pill) => {
-                  const pillBgStyle =
-                    pill.variant === 'blue'
-                      ? s.pillBlue
-                      : pill.variant === 'amber'
-                      ? s.pillAmber
-                      : pill.variant === 'green'
-                      ? s.pillGreen
-                      : pill.variant === 'red'
-                      ? s.pillRed
-                      : pill.variant === 'orange'
-                      ? s.pillOrange
-                      : s.pillNeutral
-
-                  const defaultTextColor =
-                    pill.variant === 'blue'
-                      ? '#3b82f6'
-                      : pill.variant === 'amber'
-                      ? '#d97706'
-                      : pill.variant === 'green'
-                      ? '#059669'
-                      : pill.variant === 'red'
-                      ? '#ef4444'
-                      : '#475569'
-
+                  const pillBgStyle = s.pillNeutral
+                  const defaultTextColor = Colors.text2
                   const textColor = pill.textColor || defaultTextColor
 
                   return (
@@ -405,12 +385,12 @@ export const ListingCardBase = ({
             <Ionicons
               name="wallet-outline"
               size={15}
-              color={isPriceNegotiable ? '#059669' : '#64748b'}
+              color={isPriceNegotiable ? Colors.primary : Colors.text2}
             />
             <Text
               style={[
                 s.budgetValText,
-                isPriceNegotiable && { color: '#059669' },
+                isPriceNegotiable && { color: Colors.primary },
               ]}
             >
               {priceLabel}
@@ -422,7 +402,7 @@ export const ListingCardBase = ({
               <Text
                 style={[
                   s.detailText,
-                  { color: '#059669', fontFamily: 'Almarai_700Bold' },
+                  { color: Colors.primary, fontFamily: 'Almarai_700Bold' },
                 ]}
               >
                 قابل للتفاوض
@@ -452,6 +432,7 @@ const s = StyleSheet.create({
     ...CardSystem.styles.softShadow,
   },
   imageContainer: {
+    width: '100%',
     position: 'relative',
     backgroundColor: '#F8F9FA',
     overflow: 'hidden',
@@ -595,27 +576,11 @@ const s = StyleSheet.create({
   },
   cardTitle: {
     ...CardSystem.typography.title,
-    color: '#0f172a',
+    color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  verifiedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    marginTop: 2,
-  },
-  verifiedTxt: {
-    ...CardSystem.typography.badgeText,
-    color: '#2563eb',
-    writingDirection: 'rtl',
-  },
+
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -686,7 +651,7 @@ const s = StyleSheet.create({
   pillOrange: CardSystem.styles.pillOrange,
   detailText: {
     ...CardSystem.typography.pillText,
-    color: '#475569',
+    color: Colors.text2,
     writingDirection: 'rtl',
     flexShrink: 1,
   },
@@ -696,7 +661,7 @@ const s = StyleSheet.create({
   },
   remainingText: {
     fontFamily: 'Almarai_700Bold',
-    color: '#64748b',
+    color: Colors.text2,
     fontSize: 9.5,
   },
   footerRow: {
@@ -708,7 +673,7 @@ const s = StyleSheet.create({
   budgetValText: {
     fontSize: 11.5,
     fontFamily: 'Almarai_800ExtraBold',
-    color: '#64748b',
+    color: Colors.accent,
     lineHeight: 15,
     writingDirection: 'rtl',
   },

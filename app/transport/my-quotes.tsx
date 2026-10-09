@@ -180,7 +180,7 @@ const s = StyleSheet.create({
 
   quoteCard: {
     backgroundColor: '#fff', borderRadius: Radius.lg, padding: 16, gap: 10,
-    ...Platform.select({ ios: { shadowColor: '#0B2447', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 }, android: { elevation: 2 } }),
+    ...Platform.select({ ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 }, android: { elevation: 2 } }),
   },
   quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   quoteInfo: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },

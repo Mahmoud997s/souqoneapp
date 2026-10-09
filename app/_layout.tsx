@@ -9,6 +9,7 @@ import {
 } from '@expo-google-fonts/almarai'
 import * as SplashScreen from 'expo-splash-screen'
 import * as Notifications from 'expo-notifications'
+import * as Updates from 'expo-updates'
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../src/api/queryClient'
@@ -36,6 +37,7 @@ export default function RootLayout() {
     if (!I18nManager.isRTL) {
       I18nManager.allowRTL(true)
       I18nManager.forceRTL(true)
+      Updates.reloadAsync().catch(() => {})
     }
     setRtlReady(true)
   }, [])
@@ -46,7 +48,7 @@ export default function RootLayout() {
     Almarai_800ExtraBold,
   })
 
-  const { isLoggedIn, isLoading, initialize } = useAuthStore()
+  const { isLoggedIn, isGuest, isLoading, initialize } = useAuthStore()
   const segments = useSegments()
   const router = useRouter()
 
@@ -78,20 +80,24 @@ export default function RootLayout() {
     if (isLoading || !fontsLoaded) return
     SplashScreen.hideAsync().catch(() => {})
 
-    const inAuth = segments[0] === '(auth)'
+    const currentSegments = segments as readonly string[]
+    const isRoot = currentSegments.length === 0 || currentSegments[0] === 'index'
+    if (isRoot) return
+
+    const inAuth = currentSegments[0] === '(auth)'
 
     if (isLoggedIn && inAuth) {
-      if (segments[1] === 'verify-email' || segments[1] === 'register') {
+      if (currentSegments[1] === 'verify-email' || currentSegments[1] === 'register') {
         return // Allow verify-email to display, and allow register to finish its transition
       }
       router.replace('/(tabs)')
       return
     }
 
-    if (!isLoggedIn && !inAuth) {
+    if (!isLoggedIn && !isGuest && !inAuth) {
       router.replace('/(auth)/login')
     }
-  }, [isLoggedIn, isLoading, fontsLoaded, segments])
+  }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments])
 
   if (!rtlReady || !fontsLoaded || isLoading) return null
 

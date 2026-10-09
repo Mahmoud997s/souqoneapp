@@ -29,6 +29,7 @@ import { useBusWizardStore, BusWizardData } from '../../src/store/busWizardStore
 import { useBusFormLogic } from '../../src/hooks/useBusFormLogic'
 import { validateStep } from '../../src/hooks/useBusValidation'
 import { buildBusPayload } from '../../src/utils/busPayload'
+import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 
 import { BusStep1TypeCategory } from '../../src/components/buses/wizard/BusStep1TypeCategory'
 import { BusStep2Images } from '../../src/components/buses/wizard/BusStep2Images'
@@ -199,12 +200,11 @@ export default function NewBusListingScreen() {
           if (uri.startsWith('http://') || uri.startsWith('https://')) {
             finalImageUrls.push(uri)
           } else {
+            const filePayload = buildUploadFilePayload(img, 'bus')
+            if (!filePayload) continue
+
             const uploadData = new FormData()
-            uploadData.append('file', {
-              uri,
-              name: `bus_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`,
-              type: 'image/jpeg',
-            } as any)
+            uploadData.append('file', filePayload as any)
             const res = await uploadsApi.single(uploadData)
             const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
             if (url) {
@@ -216,9 +216,10 @@ export default function NewBusListingScreen() {
       }
     } catch (uploadErr: any) {
       console.warn('Error uploading bus images:', uploadErr)
+      const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
       dialogService.alert(
         'خطأ في رفع الصور',
-        uploadErr.message || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً',
+        serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً',
         'error'
       )
       setIsUploadingImages(false)

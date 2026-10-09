@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Colors } from '../../src/constants/colors'
-import { Gradients } from '../../src/constants/gradients'
 import { Spacing } from '../../src/constants/spacing'
 import { Shadows } from '../../src/constants/shadows'
 import { Radius } from '../../src/constants/radius'
@@ -13,20 +12,18 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Modal,
-  FlatList,
+  StatusBar,
 } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
 import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
-import { BackButton } from '../../src/components/ui/BackButton'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import { validateRegister } from '../../src/utils/authValidation'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
@@ -46,29 +43,53 @@ export default function RegisterScreen() {
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [generalError, setGeneralError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const hasMinLength = password.length >= 8
+  const hasUpper = /[A-Z]/.test(password)
+  const hasDigit = /[0-9]/.test(password)
+
+  const clearFieldError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+    if (generalError) setGeneralError('')
+  }
 
   const handleRegister = async () => {
-    if (!displayName.trim() || !username.trim() || !phone.trim() || !password) {
-      setError('يرجى ملء الحقول المطلوبة')
+    setGeneralError('')
+
+    const valResult = validateRegister({
+      displayName,
+      username,
+      email,
+      phone,
+      password,
+      confirmPassword,
+    })
+
+    if (!valResult.isValid) {
+      setErrors(valResult.errors)
       return
     }
-    if (password !== confirmPassword) {
-      setError('كلمتا المرور غير متطابقتين')
-      return
-    }
-    if (password.length < 8) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-      return
-    }
-    setError('')
+
+    const cleanUsername = username.trim().toLowerCase()
+    const cleanPhone = phone.trim().replace(/\D/g, '')
+
     setLoading(true)
     try {
       const res = await authApi.register({
         displayName: displayName.trim(),
-        username: username.trim().toLowerCase(),
+        username: cleanUsername,
         email: email.trim().toLowerCase(),
-        phone: `+968${phone.trim()}`,
+        phone: `+968${cleanPhone}`,
+        governorate: govLabel || undefined,
+        city: wilayaLabel || undefined,
         governorateId: governorateId ?? undefined,
         wilayaId: wilayaId ?? undefined,
         country: 'OM',
@@ -88,7 +109,19 @@ export default function RegisterScreen() {
       console.error('[Register Error]', JSON.stringify(e?.response?.data), e?.message)
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
-      setError(msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً')
+      const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'
+
+      if (serverMsg.includes('البريد') || serverMsg.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: serverMsg }))
+      } else if (serverMsg.includes('المستخدم') || serverMsg.toLowerCase().includes('username')) {
+        setErrors((prev) => ({ ...prev, username: serverMsg }))
+      } else if (serverMsg.includes('الهاتف') || serverMsg.toLowerCase().includes('phone')) {
+        setErrors((prev) => ({ ...prev, phone: serverMsg }))
+      } else if (serverMsg.includes('كلمة المرور') || serverMsg.toLowerCase().includes('password')) {
+        setErrors((prev) => ({ ...prev, password: serverMsg }))
+      } else {
+        setGeneralError(serverMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -96,23 +129,21 @@ export default function RegisterScreen() {
 
   return (
     <View style={s.root}>
-      {/* Header */}
-      <LinearGradient
-        colors={Gradients.hero as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[s.header, { paddingTop: insets.top }]}
-      >
-        <View style={s.navRow}>
-          <BackButton style={s.backBtn} />
-          <Text style={s.headerTitle}>إنشاء حساب</Text>
-        </View>
-        {/* Progress bar */}
-        <View style={s.progressBar}>
-          <View style={[s.progressSeg, { backgroundColor: Colors.accent }]} />
-          <View style={[s.progressSeg, { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
-        </View>
-      </LinearGradient>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Floating Minimal Header */}
+      <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
+        <TouchableOpacity
+          style={s.floatingBackBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={s.topHeaderTitle}>إنشاء حساب جديد</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
       <KeyboardAvoidingView
         style={s.flex}
@@ -124,94 +155,164 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={s.card}>
-            <Text style={s.sectionTitle}>معلوماتك الأساسية</Text>
-            <Text style={s.sectionSubtitle}>يرجى إدخال بياناتك للمتابعة للخطوة التالية.</Text>
+            {/* Step and Progress bar */}
+            <View style={s.stepRow}>
+              <Text style={s.stepBadgeTxt}>البيانات الأساسية للحساب</Text>
+              <View style={s.progressBar}>
+                <View style={[s.progressSeg, { backgroundColor: Colors.primary }]} />
+                <View style={[s.progressSeg, { backgroundColor: Colors.border }]} />
+              </View>
+            </View>
 
-            {error ? <Text style={s.errorTxt}>{error}</Text> : null}
+            <Text style={s.sectionTitle}>معلوماتك الأساسية</Text>
+            <Text style={s.sectionSubtitle}>يرجى إدخال بياناتك بدقة لإنشاء حسابك وتوثيقه.</Text>
+
+            {generalError ? <Text style={s.errorTxt}>{generalError}</Text> : null}
 
             {/* الاسم الكامل */}
             <AppInput
+              label="الاسم الكامل"
               iconRight="person-outline"
               value={displayName}
-              onChangeText={setDisplayName}
-              placeholder="الاسم الكامل"
+              onChangeText={(v) => {
+                setDisplayName(v)
+                clearFieldError('displayName')
+              }}
+              placeholder="أدخل اسمك الكامل الثلاثي"
               returnKeyType="next"
+              error={errors.displayName}
             />
 
             {/* اسم المستخدم */}
             <AppInput
+              label="اسم المستخدم"
               iconRight="id-card-outline"
               value={username}
-              onChangeText={setUsername}
-              placeholder="اسم المستخدم"
+              onChangeText={(v) => {
+                setUsername(v)
+                clearFieldError('username')
+              }}
+              placeholder="أدخل اسم المستخدم بالإنجليزية (بدون مسافات)"
               autoCapitalize="none"
               returnKeyType="next"
+              error={errors.username}
             />
 
-            {/* البريد الإلكتروني - اختياري */}
+            {/* البريد الإلكتروني - إجباري */}
             <AppInput
+              label="البريد الإلكتروني"
               iconRight="mail-outline"
               value={email}
-              onChangeText={setEmail}
-              placeholder="البريد الإلكتروني (اختياري)"
+              onChangeText={(v) => {
+                setEmail(v)
+                clearFieldError('email')
+              }}
+              placeholder="أدخل بريدك الإلكتروني"
               keyboardType="email-address"
               textContentType="emailAddress"
               autoCapitalize="none"
               returnKeyType="next"
+              error={errors.email}
             />
 
             {/* رقم الهاتف */}
-            <View style={s.phoneWrap}>
-              <TextInput
-                style={s.phoneInput}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="رقم الهاتف"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="phone-pad"
-              />
-              <View style={s.phonePrefix}>
-                <Text style={s.phonePrefixTxt}>+968</Text>
+            <View style={s.phoneContainer}>
+              <Text style={s.fieldLabel}>رقم الهاتف</Text>
+              <View style={[s.phoneWrap, errors.phone ? s.phoneWrapError : null]}>
+                <TextInput
+                  style={s.phoneInput}
+                  value={phone}
+                  onChangeText={(v) => {
+                    setPhone(v)
+                    clearFieldError('phone')
+                  }}
+                  placeholder="أدخل رقم هاتفك (يبدأ بـ 9 أو 7)"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="phone-pad"
+                  maxLength={8}
+                />
+                <View style={s.phonePrefix}>
+                  <Text style={s.phonePrefixTxt}>+968</Text>
+                </View>
               </View>
+              {errors.phone ? <Text style={s.fieldErrorTxt}>{errors.phone}</Text> : null}
             </View>
 
             {/* المحافظة والولاية */}
-            <GovernorateWilayaSelect
-              governorateId={governorateId}
-              wilayaId={wilayaId}
-              onLocationChange={(gId, wId, gName, wName) => {
-                setGovernorateId(gId)
-                setWilayaId(wId)
-                setGovLabel(gName)
-                setWilayaLabel(wName)
-              }}
-              showCity={true}
-            />
+            <View style={{ gap: 4 }}>
+              <Text style={s.fieldLabel}>الموقع الجغرافي (اختياري)</Text>
+              <GovernorateWilayaSelect
+                governorateId={governorateId}
+                wilayaId={wilayaId}
+                onLocationChange={(gId, wId, gName, wName) => {
+                  setGovernorateId(gId)
+                  setWilayaId(wId)
+                  setGovLabel(gName)
+                  setWilayaLabel(wName)
+                }}
+                showCity={true}
+              />
+            </View>
 
             {/* كلمة المرور */}
-            <AppInput
-              iconRight="lock-closed-outline"
-              iconLeft={showPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowPw(v => !v)}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="كلمة المرور"
-              secureTextEntry={!showPw}
-              returnKeyType="next"
-              style={{ marginTop: Spacing.space2 } as any}
-            />
+            <View style={{ gap: 4 }}>
+              <AppInput
+                label="كلمة المرور"
+                iconRight="lock-closed-outline"
+                iconLeft={showPw ? 'eye' : 'eye-off'}
+                onIconLeftPress={() => setShowPw((v) => !v)}
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v)
+                  clearFieldError('password')
+                }}
+                placeholder="أدخل كلمة مرور قوية"
+                secureTextEntry={!showPw}
+                returnKeyType="next"
+                error={errors.password}
+              />
+
+              {/* مؤشرات شروط كلمة المرور */}
+              <View style={s.pwHints}>
+                <View style={s.hintRow}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={13}
+                    color={hasMinLength ? '#16a34a' : '#94A3B8'}
+                  />
+                  <Text style={[s.hintTxt, hasMinLength && s.hintOk]}>
+                    ٨ أحرف على الأقل
+                  </Text>
+                </View>
+                <View style={s.hintRow}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={13}
+                    color={hasUpper && hasDigit ? '#16a34a' : '#94A3B8'}
+                  />
+                  <Text style={[s.hintTxt, hasUpper && hasDigit && s.hintOk]}>
+                    حرف كبير واحد (A-Z) ورقم واحد (0-9) على الأقل
+                  </Text>
+                </View>
+              </View>
+            </View>
 
             {/* تأكيد كلمة المرور */}
             <AppInput
+              label="تأكيد كلمة المرور"
               iconRight="lock-open-outline"
               iconLeft={showCPw ? 'eye' : 'eye-off'}
-              onIconLeftPress={() => setShowCPw(v => !v)}
+              onIconLeftPress={() => setShowCPw((v) => !v)}
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="تأكيد كلمة المرور"
+              onChangeText={(v) => {
+                setConfirmPassword(v)
+                clearFieldError('confirmPassword')
+              }}
+              placeholder="أعد إدخال كلمة المرور للتأكيد"
               secureTextEntry={!showCPw}
               returnKeyType="done"
               onSubmitEditing={handleRegister}
+              error={errors.confirmPassword}
             />
           </View>
         </ScrollView>
@@ -225,106 +326,107 @@ export default function RegisterScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-
-
     </View>
   )
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.surface },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   flex: { flex: 1 },
-  header: { paddingHorizontal: Spacing.space5 },
-  navRow: {
-    height: 56,
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.space5,
+    paddingBottom: Spacing.space2,
+  },
+  floatingBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Shadows.sm,
   },
-  backBtn: {
-    position: 'absolute',
-    start: 0,
-    top: 0,
-    bottom: 0,
-    width: Spacing.touch,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
-    color: Colors.white,
+  topHeaderTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
     textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  scroll: {
+    padding: Spacing.space5,
+    paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space8,
+    gap: 0,
+  },
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    padding: Spacing.space5,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.space4,
+    ...Shadows.card,
+  },
+  stepRow: {
+    gap: Spacing.space2,
+    marginBottom: Spacing.space1,
+    paddingBottom: Spacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  stepBadgeTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: Colors.primary,
     writingDirection: 'rtl',
   },
   progressBar: {
     flexDirection: 'row',
     gap: Spacing.space1,
-    paddingBottom: Spacing.space3,
   },
-  progressSeg: { flex: 1, height: 6, borderRadius: 3 },
-  scroll: { padding: Spacing.space5, paddingBottom: Spacing.space2, gap: 0 },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.md,
-    padding: Spacing.space5,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.space3,
-    ...Shadows.card,
-  },
+  progressSeg: { flex: 1, height: 5, borderRadius: 3 },
   sectionTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 18,
     lineHeight: 26,
     color: Colors.primary,
     writingDirection: 'rtl',
   },
   sectionSubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13.5,
     lineHeight: 20,
     color: Colors.text2,
     writingDirection: 'rtl',
   },
   errorTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 13,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
     color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  govInputWrap: {
-    height: 52,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  govIconRight: {
-    position: 'absolute',
-    start: 0,
-    top: 0,
-    bottom: 0,
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  govIconLeft: {
-    position: 'absolute',
-    end: 0,
-    top: 0,
-    bottom: 0,
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectInner: { flex: 1, paddingStart: 48, paddingEnd: 48, justifyContent: 'center' },
-  selectTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    lineHeight: 20,
+  fieldLabel: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
     color: Colors.text,
     writingDirection: 'rtl',
+    marginBottom: 2,
   },
-  placeholderTxt: { color: Colors.textMuted },
+  phoneContainer: {
+    gap: 4,
+    width: '100%',
+  },
   phoneWrap: {
     height: 52,
     backgroundColor: Colors.surface,
@@ -332,6 +434,39 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
+  },
+  phoneWrapError: {
+    borderColor: Colors.error,
+    backgroundColor: '#FEF2F2',
+  },
+  fieldErrorTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.error,
+    writingDirection: 'rtl',
+    marginTop: 2,
+  },
+  pwHints: {
+    gap: Spacing.space1,
+    marginTop: 2,
+    paddingHorizontal: 2,
+  },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  hintTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#64748B',
+    writingDirection: 'rtl',
+  },
+  hintOk: {
+    color: '#16a34a',
+    fontFamily: 'Almarai_700Bold',
   },
   phonePrefix: {
     position: 'absolute',
@@ -346,14 +481,17 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   phonePrefixTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 20,
     color: Colors.text2,
   },
   phoneInput: {
     height: 52,
     paddingEnd: 80,
     paddingStart: Spacing.space4,
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
     color: Colors.text,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -365,47 +503,4 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space5,
     paddingTop: Spacing.space4,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '70%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: Spacing.space4,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    lineHeight: 26,
-    color: Colors.text,
-    writingDirection: 'rtl',
-  },
-  govItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
-  },
-  govItemActive: { backgroundColor: Colors.surface },
-  govItemTxt: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 16,
-    lineHeight: 24,
-    color: Colors.text,
-    writingDirection: 'rtl',
-  },
-  govItemTxtActive: { fontFamily: 'Almarai_700Bold',  color: Colors.primary },
 })

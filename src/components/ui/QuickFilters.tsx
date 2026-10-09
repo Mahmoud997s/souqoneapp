@@ -79,16 +79,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     gap: 5,
     ...Platform.select({
       ios: { 
-        shadowColor: '#000', 
+        shadowColor: Colors.primaryDark, 
         shadowOffset: { width: 0, height: 1 }, 
         shadowOpacity: 0.05, 
         shadowRadius: 2 

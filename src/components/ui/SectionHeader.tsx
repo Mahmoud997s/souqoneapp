@@ -21,7 +21,7 @@ export function SectionHeader({
     <View style={[s.row, style]}>
       <Text style={s.title}>{title}</Text>
       {onAction ? (
-        <TouchableOpacity onPress={onAction} activeOpacity={0.7}>
+        <TouchableOpacity style={s.actionBtn} onPress={onAction} activeOpacity={0.75}>
           <Text style={s.action}>{actionLabel}</Text>
         </TouchableOpacity>
       ) : null}
@@ -37,14 +37,24 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,
   },
   title: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 18,
     lineHeight: 26,
     color: Colors.text,
     writingDirection: 'rtl',
   },
+  actionBtn: {
+    backgroundColor: Colors.paleMint,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   action: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    lineHeight: 20,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 18,
     color: Colors.primary,
     writingDirection: 'rtl',
   },

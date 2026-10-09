@@ -4,6 +4,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { Colors } from '../../constants/colors'
 import { UnifiedCardItem } from '../cards/UnifiedCard'
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {
@@ -31,6 +32,7 @@ export interface ServiceCardProps {
   fullWidth?: boolean
   gridMode?: boolean
   disableImageSwipe?: boolean
+  titleNumberOfLines?: number
 }
 
 export const ServiceCard = ({
@@ -39,12 +41,20 @@ export const ServiceCard = ({
   fullWidth = false,
   gridMode = false,
   disableImageSwipe = false,
+  titleNumberOfLines = 1,
 }: ServiceCardProps) => {
-  const displayImages = (item.images || [])
-    .map((img: any) => (typeof img === 'string' ? img : img?.url))
-    .filter(Boolean) as string[]
-
   const rawData = item.raw || {}
+  const rawImages = (item.images && item.images.length > 0)
+    ? item.images
+    : (rawData.images && rawData.images.length > 0)
+      ? rawData.images
+      : ((item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image)
+        ? [(item as any).imageUrl || rawData.imageUrl || (item as any).image || rawData.image]
+        : []
+
+  const displayImages = rawImages
+    .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
+    .filter(Boolean) as string[]
   const providerName = rawData.providerName || ''
   const providerType = rawData.providerType || ''
   const isHomeService = rawData.isHomeService || false
@@ -72,7 +82,8 @@ export const ServiceCard = ({
     badges.push({
       key: 'home',
       label: 'خدمة متنقلة',
-      backgroundColor: '#10b981',
+      backgroundColor: Colors.primary,
+      textColor: Colors.white,
       iconName: 'home',
     })
   }
@@ -80,7 +91,8 @@ export const ServiceCard = ({
     badges.push({
       key: 'type',
       label: serviceTypeLabel,
-      backgroundColor: '#3b82f6',
+      backgroundColor: Colors.paleMint,
+      textColor: Colors.primary,
     })
   }
 
@@ -125,7 +137,7 @@ export const ServiceCard = ({
       fullWidth={fullWidth}
       gridMode={gridMode}
       disableImageSwipe={disableImageSwipe}
-      titleNumberOfLines={2}
+      titleNumberOfLines={titleNumberOfLines}
       favoriteType="CAR_SERVICE"
       shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\nhttps://souqone.app/services/${item.id}`}
     />

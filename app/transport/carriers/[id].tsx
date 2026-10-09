@@ -10,7 +10,7 @@ import { Colors } from '../../../src/constants/colors';
 import { Radius } from '../../../src/constants/radius';
 import { formatLocation, resolveLocationGov } from '../../../src/utils/mappers';
 import { getServiceLabel, getVehicleTypeLabel } from '../../../src/constants/transport';
-import { VerificationBadge } from '../../../src/components/jobs/VerificationBadge';
+import { VerifiedBadge } from '../../../src/components/ui/VerifiedBadge';
 import { getInitials, getAvatarColor } from '../../../src/utils/format';
 import { useAuthStore } from '../../../src/store/authStore';
 
@@ -85,7 +85,7 @@ export default function CarrierProfileScreen() {
           
           <View style={s.nameRow}>
             <Text style={s.name}>{profile.companyName || profile.user?.displayName || 'ناقل في سوق ون'}</Text>
-            {(profile.isVerified || profile.user?.isVerified) && <VerificationBadge size={18} />}
+            {(profile.isVerified || profile.user?.isVerified) && <VerifiedBadge size={18} />}
           </View>
           
           <View style={s.ratingRow}>
@@ -203,73 +203,73 @@ export default function CarrierProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f8fafc' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  loadingText: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: '#64748b' },
-  errorText: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: '#0f172a' },
+  loadingText: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.textMuted },
+  errorText: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, color: Colors.text },
   btn: { backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
   btnText: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: '#fff' },
 
   content: { padding: 16 },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
     alignItems: 'center',
   },
   avatarWrap: {
-            width: 72, height: 72,
-            borderRadius: 36,
-            backgroundColor: '#f1f5f9',
-            alignItems: 'center', justifyContent: 'center',
-            marginBottom: 16,
-            overflow: 'hidden',
-          },
-          avatarImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-          avatarFallback: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
-          avatarInitials: { fontFamily: 'Almarai_800ExtraBold', fontSize: 24, color: '#fff', paddingTop: 6 },
-          nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-          name: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: '#0f172a' },
-          ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 12 },
-          rating: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#0f172a' },
-          trips: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: '#64748b' },
-          memberSince: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: '#94a3b8' },
+    width: 72, height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.inputBg,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  avatarImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  avatarFallback: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  avatarInitials: { fontFamily: 'Almarai_800ExtraBold', fontSize: 24, color: '#fff', paddingTop: 6 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  name: { fontFamily: 'Almarai_800ExtraBold', fontSize: 20, color: Colors.text },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 12 },
+  rating: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text },
+  trips: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted },
+  memberSince: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.textMuted },
 
   tagsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#f8fafc', borderRadius: 100, borderWidth: 1, borderColor: '#e2e8f0' },
-  tagAvailable: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
+  tag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: Colors.inputBg, borderRadius: 100, borderWidth: 1, borderColor: Colors.border },
+  tagAvailable: { backgroundColor: Colors.paleMint, borderColor: Colors.primary + '40' },
   tagBusy: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  tagText: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#475569' },
+  tagText: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: Colors.text },
 
   bio: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14, color: '#475569',
+    fontSize: 14, color: Colors.text,
     textAlign: 'center',
     lineHeight: 22,
     marginTop: 8,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: Colors.border,
     width: '100%',
   },
 
-  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#0f172a', marginBottom: 12, textAlign: 'left', width: '100%' },
+  sectionTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: Colors.text, marginBottom: 12, textAlign: 'left', width: '100%' },
   
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%', justifyContent: 'flex-start' },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#f8fafc', borderRadius: Radius.md, borderWidth: 1, borderColor: '#e2e8f0' },
-  chipText: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#334155' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: Colors.inputBg, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border },
+  chipText: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.text },
 
   footer: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: Colors.border,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -279,10 +279,9 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     gap: 6,
   },
-  callBtn: { backgroundColor: '#0f172a' },
+  callBtn: { backgroundColor: Colors.primaryDark },
   waBtn: { backgroundColor: '#25D366' },
-  editBtn: { backgroundColor: '#2f4b8bff' },
+  editBtn: { backgroundColor: Colors.primary },
   actionBtnTxt: { fontFamily: 'Almarai_800ExtraBold', fontSize: 16, color: '#fff' },
   actionBtnTxtSmall: { fontFamily: 'Almarai_700Bold', fontSize: 13, color: '#fff' },
-
 });

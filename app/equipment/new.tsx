@@ -28,6 +28,7 @@ import { equipmentApi } from '../../src/api/equipment'
 import { useCreateEquipment, useUpdateEquipment } from '../../src/hooks/useEquipment'
 import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
 import { useEquipmentFormLogic } from '../../src/hooks/useEquipmentFormLogic'
+import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 
 import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type'
 import { EquipmentStep2Images } from '../../src/components/equipment/wizard/EquipmentStep2Images'
@@ -195,28 +196,32 @@ export default function NewEquipmentListingScreen() {
                 finalImageUrls.push(uri)
               } else {
                 try {
+                  const filePayload = buildUploadFilePayload(img, 'equip')
+                  if (!filePayload) continue
+
                   const data = new FormData()
-                  data.append('file', {
-                    uri,
-                    name: (typeof img === 'object' && img.fileName) || `equip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`,
-                    type: (typeof img === 'object' && img.mimeType) || 'image/jpeg',
-                  } as any)
+                  data.append('file', filePayload as any)
                   const res = await uploadsApi.single(data)
                   const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
                   if (url) {
                     finalImageUrls.push(url)
                     newImageUrls.push(url)
                   }
-                } catch (uploadErr) {
+                } catch (uploadErr: any) {
                   console.warn('Image upload error:', uploadErr)
+                  const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
+                  throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
                 }
               }
             }
           }
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Error uploading images before submit:', e)
+      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      setIsUploadingImages(false)
+      return
     } finally {
       setIsUploadingImages(false)
     }
