@@ -67,3 +67,25 @@ testsprite_chat_prd.md
 .agent/
 .agents/
 docs/
+
+# ── Security & Certificates ───────────────────
+*.keystore
+*.jks
+*.p8
+*.p12
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+
+# ── Coverage & Testing ────────────────────────
+coverage/
+
+# ── OS Metadata ───────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Patches & Backups ─────────────────────────
+*.orig
+*.rej
+stash-backup-*.txt
