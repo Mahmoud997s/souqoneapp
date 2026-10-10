@@ -35,17 +35,70 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const OMANI_PHONE_REGEX = /^(7|9)\d{7}$/
 const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/
 
+export const SERVER_EMAIL_ERROR = 'البريد الإلكتروني غير صالح'
+
+/**
+ * Unicode category \p{Cf} explicit code point ranges fallback for Hermes.
+ * Generated algorithmically in Node.js by scanning Unicode code points 0..0x10FFFF against /\p{Cf}/u.
+ */
+export const UNICODE_CF_FALLBACK_PATTERN =
+  '[\\u00AD\\u0600-\\u0605\\u061C\\u06DD\\u070F\\u0890-\\u0891\\u08E2\\u180E\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u2064\\u2066-\\u206F\\uFEFF\\uFFF9-\\uFFFB\\u{110BD}\\u{110CD}\\u{13430}-\\u{1343F}\\u{1BCA0}-\\u{1BCA3}\\u{1D173}-\\u{1D17A}\\u{E0001}\\u{E0020}-\\u{E007F}]'
+
+/**
+ * Creates the Unicode Cf stripping regex.
+ * Tries dynamic \p{Cf} first; falls back safely to explicit code point ranges.
+ */
+export function createUnicodeCfRegex(forceFallback = false): RegExp {
+  if (!forceFallback) {
+    try {
+      return new RegExp('\\p{Cf}', 'gu')
+    } catch {
+      // Fallback if Hermes engine does not support \p{Cf}
+    }
+  }
+  return new RegExp(UNICODE_CF_FALLBACK_PATTERN, 'gu')
+}
+
+const UNICODE_CF_REGEX = createUnicodeCfRegex()
+
+/**
+ * Normalizes email:
+ * 1. Strips all Unicode category Cf formatting marks (BiDi, ZWSP, BOM, etc.).
+ * 2. Trims whitespace (including non-breaking spaces U+00A0).
+ * 3. Converts to lowercase.
+ */
+export function normalizeEmail(raw: string | null | undefined, forceFallback = false): string {
+  if (typeof raw !== 'string') return ''
+  const pattern = forceFallback ? createUnicodeCfRegex(true) : UNICODE_CF_REGEX
+  return raw.replace(new RegExp(pattern.source, pattern.flags), '').trim().toLowerCase()
+}
+
+/**
+ * Checks whether an already normalized email is strictly valid:
+ * 1. Non-empty and <= 254 characters (RFC 5321 limit).
+ * 2. ASCII characters only (rejects Arabic/non-ASCII letters).
+ * 3. Matches standard email format.
+ */
+export function isValidNormalizedEmail(cleanEmail: string): boolean {
+  if (typeof cleanEmail !== 'string') return false
+  if (!cleanEmail || cleanEmail.length > 254) return false
+  if (/[^\x20-\x7E]/.test(cleanEmail)) return false
+  return EMAIL_REGEX.test(cleanEmail)
+}
+
 /**
  * Validates Login Form
  */
 export function validateLogin(input: LoginValidationInput): ValidationResult {
   const errors: Record<string, string> = {}
 
-  const emailTrimmed = (input.email || '').trim()
-  if (!emailTrimmed) {
+  const cleanEmail = normalizeEmail(input.email)
+  const rawTrimmed = (input.email || '').trim()
+
+  if (!rawTrimmed) {
     errors.email = 'يرجى إدخال البريد الإلكتروني'
-  } else if (!EMAIL_REGEX.test(emailTrimmed)) {
-    errors.email = 'صيغة البريد الإلكتروني غير صحيحة'
+  } else if (!isValidNormalizedEmail(cleanEmail)) {
+    errors.email = SERVER_EMAIL_ERROR
   }
 
   if (!input.password) {
@@ -85,11 +138,12 @@ export function validateRegister(input: RegisterValidationInput): ValidationResu
   }
 
   // 3. Email
-  const emailTrimmed = (input.email || '').trim()
-  if (!emailTrimmed) {
+  const cleanEmail = normalizeEmail(input.email)
+  const rawEmailTrimmed = (input.email || '').trim()
+  if (!rawEmailTrimmed) {
     errors.email = 'يرجى إدخال البريد الإلكتروني'
-  } else if (!EMAIL_REGEX.test(emailTrimmed)) {
-    errors.email = 'صيغة البريد الإلكتروني غير صحيحة'
+  } else if (!isValidNormalizedEmail(cleanEmail)) {
+    errors.email = SERVER_EMAIL_ERROR
   }
 
   // 4. Omani Phone (+968)
@@ -128,12 +182,13 @@ export function validateRegister(input: RegisterValidationInput): ValidationResu
  */
 export function validateForgotPassword(email: string): ValidationResult {
   const errors: Record<string, string> = {}
-  const emailTrimmed = (email || '').trim()
+  const cleanEmail = normalizeEmail(email)
+  const rawEmailTrimmed = (email || '').trim()
 
-  if (!emailTrimmed) {
+  if (!rawEmailTrimmed) {
     errors.email = 'يرجى إدخال البريد الإلكتروني المسجل'
-  } else if (!EMAIL_REGEX.test(emailTrimmed)) {
-    errors.email = 'صيغة البريد الإلكتروني غير صحيحة'
+  } else if (!isValidNormalizedEmail(cleanEmail)) {
+    errors.email = SERVER_EMAIL_ERROR
   }
 
   return {
@@ -149,11 +204,12 @@ export function validateResetPassword(input: ResetPasswordValidationInput): Vali
   const errors: Record<string, string> = {}
 
   if (input.email !== undefined) {
-    const emailTrimmed = (input.email || '').trim()
-    if (!emailTrimmed) {
+    const cleanEmail = normalizeEmail(input.email)
+    const rawEmailTrimmed = (input.email || '').trim()
+    if (!rawEmailTrimmed) {
       errors.email = 'يرجى إدخال البريد الإلكتروني'
-    } else if (!EMAIL_REGEX.test(emailTrimmed)) {
-      errors.email = 'صيغة البريد الإلكتروني غير صحيحة'
+    } else if (!isValidNormalizedEmail(cleanEmail)) {
+      errors.email = SERVER_EMAIL_ERROR
     }
   }
 

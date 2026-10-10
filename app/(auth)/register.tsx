@@ -23,7 +23,7 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
-import { validateRegister } from '../../src/utils/authValidation'
+import { validateRegister, normalizeEmail } from '../../src/utils/authValidation'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
@@ -64,10 +64,11 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     setGeneralError('')
 
+    const cleanEmail = normalizeEmail(email)
     const valResult = validateRegister({
       displayName,
       username,
-      email,
+      email: cleanEmail,
       phone,
       password,
       confirmPassword,
@@ -86,7 +87,7 @@ export default function RegisterScreen() {
       const res = await authApi.register({
         displayName: displayName.trim(),
         username: cleanUsername,
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         phone: `+968${cleanPhone}`,
         governorate: govLabel || undefined,
         city: wilayaLabel || undefined,
@@ -98,7 +99,7 @@ export default function RegisterScreen() {
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
         if (res.data.requiresVerification) {
-          const emailParam = encodeURIComponent(email.trim())
+          const emailParam = encodeURIComponent(cleanEmail)
           const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
           router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
         } else {

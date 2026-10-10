@@ -26,7 +26,7 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { GoogleIcon } from '../../src/components/ui/GoogleIcon'
 import { BlurView } from 'expo-blur'
-import { validateLogin } from '../../src/utils/authValidation'
+import { validateLogin, normalizeEmail } from '../../src/utils/authValidation'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import {
@@ -68,7 +68,8 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setGeneralError('')
-    const result = validateLogin({ email, password })
+    const cleanEmail = normalizeEmail(email)
+    const result = validateLogin({ email: cleanEmail, password })
 
     if (!result.isValid) {
       setErrors(result.errors)
@@ -77,11 +78,11 @@ export default function LoginScreen() {
 
     setLoading(true)
     try {
-      const res = await authApi.login({ email: email.trim().toLowerCase(), password })
+      const res = await authApi.login({ email: cleanEmail, password })
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       setTimeout(() => {
         if (!res.data.user?.isVerified || res.data.requiresVerification) {
-          const emailParam = encodeURIComponent(email.trim())
+          const emailParam = encodeURIComponent(cleanEmail)
           const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
           router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
         } else {

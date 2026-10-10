@@ -19,7 +19,7 @@ import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
-import { validateForgotPassword } from '../../src/utils/authValidation'
+import { validateForgotPassword, normalizeEmail } from '../../src/utils/authValidation'
 
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -29,13 +29,13 @@ export default function ForgotPasswordScreen() {
   const [success, setSuccess] = useState(false)
 
   const handleSubmit = async () => {
-    const valResult = validateForgotPassword(email)
+    const cleanEmail = normalizeEmail(email)
+    const valResult = validateForgotPassword(cleanEmail)
     if (!valResult.isValid) {
       setError(valResult.errors.email || 'يرجى إدخال البريد الإلكتروني')
       return
     }
 
-    const cleanEmail = email.trim().toLowerCase()
     setError('')
     setLoading(true)
     try {
@@ -99,7 +99,7 @@ export default function ForgotPasswordScreen() {
                 onPress={() =>
                   router.replace({
                     pathname: '/(auth)/reset-password',
-                    params: { email: email.trim().toLowerCase() },
+                    params: { email: normalizeEmail(email) },
                   } as any)
                 }
                 icon="key-outline"
