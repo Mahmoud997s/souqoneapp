@@ -19,7 +19,7 @@ import { authApi } from '../../src/api/auth'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
-import { validateResetPassword } from '../../src/utils/authValidation'
+import { validateResetPassword, normalizeEmail } from '../../src/utils/authValidation'
 
 export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -55,8 +55,9 @@ export default function ResetPasswordScreen() {
   const handleReset = async () => {
     setGeneralError('')
 
+    const cleanEmail = normalizeEmail(email)
     const valResult = validateResetPassword({
-      email,
+      email: cleanEmail,
       code,
       password,
       confirmPassword: confirm,
@@ -67,7 +68,6 @@ export default function ResetPasswordScreen() {
       return
     }
 
-    const cleanEmail = email.trim().toLowerCase()
     const cleanCode = code.trim()
 
     setLoading(true)
