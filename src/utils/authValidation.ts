@@ -31,9 +31,11 @@ export interface ResetPasswordValidationInput {
   confirmPassword?: string
 }
 
+import { normalizeDigits } from './digits'
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const OMANI_PHONE_REGEX = /^(7|9)\d{7}$/
-const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/
+const USERNAME_REGEX = /^[a-z0-9_.]{3,30}$/
 
 export const SERVER_EMAIL_ERROR = 'البريد الإلكتروني غير صالح'
 
@@ -103,8 +105,6 @@ export function validateLogin(input: LoginValidationInput): ValidationResult {
 
   if (!input.password) {
     errors.password = 'يرجى إدخال كلمة المرور'
-  } else if (input.password.length < 6) {
-    errors.password = 'كلمة المرور يجب أن تتكون من 6 أحرف على الأقل'
   }
 
   return {
@@ -123,18 +123,16 @@ export function validateRegister(input: RegisterValidationInput): ValidationResu
   const nameTrimmed = (input.displayName || '').trim()
   if (!nameTrimmed) {
     errors.displayName = 'يرجى إدخال الاسم الكامل'
-  } else if (nameTrimmed.length < 3) {
-    errors.displayName = 'الاسم الكامل يجب أن يتكون من 3 أحرف على الأقل'
+  } else if (nameTrimmed.length < 2) {
+    errors.displayName = 'الاسم الكامل يجب أن يتكون من حرفين على الأقل'
   }
 
   // 2. Username
   const usernameClean = (input.username || '').trim().toLowerCase()
   if (!usernameClean) {
     errors.username = 'يرجى إدخال اسم المستخدم'
-  } else if (usernameClean.length < 3) {
-    errors.username = 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'
   } else if (!USERNAME_REGEX.test(usernameClean)) {
-    errors.username = 'أحرف إنجليزية وأرقام و _ فقط بدون مسافات'
+    errors.username = 'من 3 إلى 30 حرفاً إنجليزياً صغيراً أو أرقاماً أو _ أو .'
   }
 
   // 3. Email
@@ -147,7 +145,7 @@ export function validateRegister(input: RegisterValidationInput): ValidationResu
   }
 
   // 4. Omani Phone (+968)
-  const phoneClean = (input.phone || '').trim().replace(/\D/g, '')
+  const phoneClean = normalizeDigits(input.phone || '').trim().replace(/\D/g, '')
   if (!phoneClean) {
     errors.phone = 'يرجى إدخال رقم الهاتف'
   } else if (!OMANI_PHONE_REGEX.test(phoneClean)) {
@@ -213,10 +211,10 @@ export function validateResetPassword(input: ResetPasswordValidationInput): Vali
     }
   }
 
-  const tokenClean = (input.code || input.tokenOrOtp || '').trim()
+  const tokenClean = normalizeDigits(input.code || input.tokenOrOtp || '').trim()
   if (!tokenClean) {
     errors.code = 'يرجى إدخال رمز التحقق'
-  } else if (tokenClean.length < 6) {
+  } else if (!/^\d{6}$/.test(tokenClean)) {
     errors.code = 'رمز التحقق يجب أن يتكون من 6 أرقام'
   }
 
@@ -246,7 +244,7 @@ export function validateResetPassword(input: ResetPasswordValidationInput): Vali
  */
 export function validateOtp(code: string): ValidationResult {
   const errors: Record<string, string> = {}
-  const cleaned = (code || '').trim().replace(/\D/g, '')
+  const cleaned = normalizeDigits(code || '').trim().replace(/\D/g, '')
 
   if (!cleaned) {
     errors.code = 'يرجى إدخال رمز التحقق'
