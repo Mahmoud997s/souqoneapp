@@ -12,6 +12,7 @@ import { router } from 'expo-router'
 import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { usersApi } from '../../src/api/users'
+import { storeRotatedTokens } from '../../src/utils/storeRotatedTokens'
 import { dialogService } from '../../src/store/dialogStore'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
@@ -46,10 +47,11 @@ export default function ChangePasswordScreen() {
 
     try {
       setLoading(true)
-      await usersApi.changePassword({
+      const res = await usersApi.changePassword({
         currentPassword,
         newPassword,
       })
+      await storeRotatedTokens(res?.data)
 
       dialogService.alert('نجاح', 'تم تغيير كلمة المرور بنجاح!', 'success')
       router.back()
