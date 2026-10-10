@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { normalizeDigits as normalizeDigitsFromAppInput } from '../components/ui/AppInput'
 import { normalizeDigits } from '../utils/digits'
 import {
@@ -172,4 +174,38 @@ describe('Auth Input Validation Suite (Mobile)', () => {
       expect(res.isValid).toBe(false)
     });
   });
+
+  describe('5. Hermes-safe digits & direction marks validation (AUTH-4A2-MOBILE-FIX)', () => {
+    it('normalizes ASCII digits wrapped in direction marks \\u200F and \\u200E', () => {
+      expect(normalizeDigits('\u200F123456\u200E')).toBe('123456')
+    });
+
+    it('normalizes Arabic-Indic digits containing embedded direction mark \\u200F', () => {
+      expect(normalizeDigits('١٢٣\u200F٤٥٦')).toBe('123456')
+    });
+
+    it('validateOtp accepts code containing direction mark \\u200F123456', () => {
+      const res = validateOtp('\u200F123456')
+      expect(res.errors.code).toBeUndefined()
+      expect(res.isValid).toBe(true)
+    });
+
+    it('validateResetPassword accepts code containing direction mark \\u200F123456', () => {
+      const res = validateResetPassword({
+        code: '\u200F123456',
+        password: 'Password1',
+        confirmPassword: 'Password1',
+      })
+      expect(res.errors.code).toBeUndefined()
+      expect(res.isValid).toBe(true)
+    });
+
+    it('src/utils/digits.ts does not contain \\p{ or regex literal with u flag (Hermes safety)', () => {
+      const filePath = path.resolve(__dirname, '../utils/digits.ts')
+      const content = fs.readFileSync(filePath, 'utf8')
+      expect(content.includes('\\p{')).toBe(false)
+      expect(/\/[^\n\/]+\/[a-z]*u[a-z]*/.test(content)).toBe(false)
+    });
+  });
 });
+
