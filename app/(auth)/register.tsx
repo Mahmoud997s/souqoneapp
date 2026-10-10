@@ -24,6 +24,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { validateRegister, normalizeEmail } from '../../src/utils/authValidation'
+import { normalizeDigits } from '../../src/utils/digits'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
@@ -80,7 +81,7 @@ export default function RegisterScreen() {
     }
 
     const cleanUsername = username.trim().toLowerCase()
-    const cleanPhone = phone.trim().replace(/\D/g, '')
+    const cleanPhone = normalizeDigits(phone).trim().replace(/\D/g, '')
 
     setLoading(true)
     try {

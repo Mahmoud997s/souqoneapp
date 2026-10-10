@@ -20,6 +20,7 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { validateResetPassword, normalizeEmail } from '../../src/utils/authValidation'
+import { normalizeDigits } from '../../src/utils/digits'
 
 export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -68,7 +69,7 @@ export default function ResetPasswordScreen() {
       return
     }
 
-    const cleanCode = code.trim()
+    const cleanCode = normalizeDigits(code).trim()
 
     setLoading(true)
     try {

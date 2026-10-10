@@ -21,6 +21,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { validateOtp } from '../../src/utils/authValidation'
+import { normalizeDigits } from '../../src/utils/digits'
 
 const OTP_LENGTH = 6
 
@@ -45,7 +46,22 @@ export default function VerifyEmailScreen() {
   }, [timer])
 
   const handleChange = (val: string, idx: number) => {
-    const digit = val.replace(/[^0-9]/g, '').slice(-1)
+    const clean = normalizeDigits(val).replace(/[^0-9]/g, '')
+    if (clean.length > 1) {
+      const next = [...otp]
+      const digits = clean.slice(0, OTP_LENGTH).split('')
+      for (let i = 0; i < digits.length; i++) {
+        if (idx + i < OTP_LENGTH) {
+          next[idx + i] = digits[i]
+        }
+      }
+      setOtp(next)
+      if (error) setError('')
+      const nextFocus = Math.min(idx + digits.length, OTP_LENGTH - 1)
+      inputRefs.current[nextFocus]?.focus()
+      return
+    }
+    const digit = clean.slice(-1)
     const next = [...otp]
     next[idx] = digit
     setOtp(next)
