@@ -30,6 +30,7 @@ import { useBusFormLogic } from '../../src/hooks/useBusFormLogic'
 import { validateStep } from '../../src/hooks/useBusValidation'
 import { buildBusPayload } from '../../src/utils/busPayload'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
+import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
 
 import { BusStep1TypeCategory } from '../../src/components/buses/wizard/BusStep1TypeCategory'
 import { BusStep2Images } from '../../src/components/buses/wizard/BusStep2Images'
@@ -49,6 +50,7 @@ export default function NewBusListingScreen() {
     errors,
     editMode,
     editListingId,
+    editVersion,
     setStep,
     nextStep: storeNextStep,
     prevStep,
@@ -168,6 +170,17 @@ export default function NewBusListingScreen() {
   }
 
   const executeSubmit = async () => {
+    // 0. Edit needs the listing's `version` (the API rejects PATCH without it). A draft restored
+    //    from storage by an older app build has none -> ask the user to reopen the listing.
+    if (editMode && editVersion == null) {
+      dialogService.alert(
+        'تحديث مطلوب',
+        'تعذر تحديد نسخة الإعلان الحالية. يرجى فتح الإعلان من جديد والضغط على تعديل.',
+        'warning'
+      )
+      return
+    }
+
     // 1. Validation loop for Steps 1-5
     for (let s = 1; s <= 5; s++) {
       const result = validateStep(s, data)
@@ -234,7 +247,7 @@ export default function NewBusListingScreen() {
     // 4. Submit Mutation (Update or Create)
     if (editMode && editListingId) {
       updateMutation.mutate(
-        { id: editListingId, payload },
+        { id: editListingId, payload: { ...payload, version: editVersion } },
         {
           onSuccess: async () => {
             let imagesSuccess = true
@@ -265,8 +278,11 @@ export default function NewBusListingScreen() {
             router.back()
           },
           onError: (err: any) => {
-            if (err?.response?.status === 409) {
-              dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
+            if (isOptimisticLockError(err)) {
+              dialogService.alert(
+                'تعارض في البيانات',
+                'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
+              )
             } else if (err?.response?.status === 429) {
               dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
             } else {

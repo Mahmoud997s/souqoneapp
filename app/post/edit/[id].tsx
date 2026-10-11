@@ -101,7 +101,7 @@ export default function EditListingLoader() {
             removedImageIds: [],
             contactPhone: listing.contactPhone || '',
             whatsapp: listing.whatsapp || '',
-          })
+          }, listing.version)
           router.replace('/buses/new')
           return
         }

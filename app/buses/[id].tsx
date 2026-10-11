@@ -248,7 +248,7 @@ export default function ListingDetailScreen() {
       removedImageIds: [],
       contactPhone: raw.contactPhone || '',
       whatsapp: raw.whatsapp || '',
-    })
+    }, raw.version)
     router.push('/buses/new' as any)
   }
 

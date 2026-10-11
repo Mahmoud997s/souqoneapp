@@ -96,6 +96,8 @@ interface BusWizardState {
   errors: Record<string, string>
   editMode: boolean
   editListingId: string | null
+  /** `version` of the listing when edit started (optimistic concurrency token for PATCH /buses/:id) */
+  editVersion: number | null
   
   setStep: (step: number) => void
   nextStep: () => void
@@ -105,7 +107,7 @@ interface BusWizardState {
   clearError: (field: string) => void
   reset: () => void
   setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void
-  setEditMode: (id: string, initialData: Partial<BusWizardData>) => void
+  setEditMode: (id: string, initialData: Partial<BusWizardData>, version?: number | null) => void
 }
 
 export const useBusWizardStore = create<BusWizardState>()(
@@ -116,6 +118,7 @@ export const useBusWizardStore = create<BusWizardState>()(
       errors: {},
       editMode: false,
       editListingId: null,
+      editVersion: null,
 
       setStep: (step) => set({ currentStep: step }),
       nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 6) })),
@@ -145,12 +148,14 @@ export const useBusWizardStore = create<BusWizardState>()(
         data: DEFAULT_DATA,
         errors: {},
         editMode: false,
-        editListingId: null
+        editListingId: null,
+        editVersion: null,
       }),
       
-      setEditMode: (id, initialData) => set({
+      setEditMode: (id, initialData, version) => set({
         editMode: true,
         editListingId: id,
+        editVersion: typeof version === 'number' && Number.isFinite(version) ? version : null,
         data: { ...DEFAULT_DATA, ...initialData },
         currentStep: 1,
         errors: {}
@@ -164,6 +169,7 @@ export const useBusWizardStore = create<BusWizardState>()(
         currentStep: state.currentStep,
         editMode: state.editMode,
         editListingId: state.editListingId,
+        editVersion: state.editVersion,
       }),
     }
   )
