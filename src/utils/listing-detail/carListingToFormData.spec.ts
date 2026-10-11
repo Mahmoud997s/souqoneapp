@@ -4,7 +4,7 @@ import { carListingToFormData } from './carListingToFormData'
 import { validateCarStep } from '../../hooks/useCarValidation'
 
 /**
- * Compile-time and runtime list of all 49 properties defined in CarFormData.
+ * Compile-time and runtime list of all 50 properties defined in CarFormData.
  * If any property is added or removed from CarFormData, this type assertion
  * and the unit test will immediately flag the disparity.
  */
@@ -38,6 +38,7 @@ const ALL_CAR_FORM_KEYS: (keyof CarFormData)[] = [
   'cancellationPolicy',
   'deliveryAvailable',
   'insuranceIncluded',
+  'whatsappEnabled',
   'governorateId',
   'wilayaId',
   'latitude',
@@ -209,10 +210,10 @@ const mockSaleListing: CarDetailApi = {
 
 describe('carListingToFormData', () => {
   describe('1. Completeness & Parity (Proving the 16-field gap is closed)', () => {
-    it('populates EVERY single key of CarFormData (all 49 fields) without undefined or placeholder values', () => {
+    it('populates EVERY single key of CarFormData (all 50 fields) without undefined or placeholder values', () => {
       const formData = carListingToFormData(mockRentalListing)
 
-      expect(ALL_CAR_FORM_KEYS).toHaveLength(49)
+      expect(ALL_CAR_FORM_KEYS).toHaveLength(50)
 
       ALL_CAR_FORM_KEYS.forEach((key) => {
         expect(formData).toHaveProperty(key)

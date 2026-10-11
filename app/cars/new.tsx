@@ -228,6 +228,7 @@ export default function NewCarListingScreen() {
       features: formData.features.length > 0 ? formData.features : undefined,
 
       isPriceNegotiable: formData.isPriceNegotiable,
+      whatsappEnabled: formData.whatsappEnabled === true,
       
       governorateId: formData.governorateId ? Number(formData.governorateId) : undefined,
       wilayaId: formData.wilayaId ? Number(formData.wilayaId) : undefined,

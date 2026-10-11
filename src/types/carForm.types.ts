@@ -28,6 +28,7 @@ export type CarFormField =
   | 'cancellationPolicy'
   | 'deliveryAvailable'
   | 'insuranceIncluded'
+  | 'whatsappEnabled'
   | 'governorateId'
   | 'wilayaId'
   | 'latitude'
@@ -80,6 +81,9 @@ export interface CarFormData {
   cancellationPolicy: string
   deliveryAvailable: boolean
   insuranceIncluded: boolean
+
+  // Contact: the number is always the owner's account phone; this only shows the WhatsApp button
+  whatsappEnabled: boolean
 
   // Location
   governorateId: number | null

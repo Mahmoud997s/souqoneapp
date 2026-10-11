@@ -266,6 +266,27 @@ export function CarStep4Location({
         )}
       </WizardCard>
 
+      {/* Contact: number is always the registered account's phone; only the WhatsApp switch is here */}
+      <WizardCard
+        title="التواصل"
+        subtitle="يتواصل المشترون معك عبر رقم هاتف حسابك المسجل في سوق ون"
+      >
+        <View style={s.contactSwitchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.switchTitle}>تفعيل الواتساب للتواصل</Text>
+            <Text style={s.switchSub}>
+              إظهار زر الواتساب في إعلانك، على نفس رقم حسابك المسجل. لتغيير الرقم عدّله من إعدادات حسابك.
+            </Text>
+          </View>
+          <Switch
+            value={formData.whatsappEnabled === true}
+            onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            testID="whatsapp-enabled-switch"
+          />
+        </View>
+      </WizardCard>
+
       {/* Modal for Map Picking */}
       <MapLocationPicker
         isVisible={mapVisible}
@@ -286,6 +307,11 @@ export function CarStep4Location({
 const s = StyleSheet.create({
   stepWrap: {
     gap: Spacing.space3,
+  },
+  contactSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   row: {
     flexDirection: 'row',
