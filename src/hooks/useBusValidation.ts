@@ -94,7 +94,12 @@ export function validateStep4(data: BusWizardData): ValidationResult {
   return { isValid: Object.keys(errors).length === 0, errors };
 }
 
-export function validateStep5(data: BusWizardData): ValidationResult {
+export interface ValidateOptions {
+  /** Editing an existing listing: the API no longer returns contactPhone, so don't demand it again. */
+  editMode?: boolean;
+}
+
+export function validateStep5(data: BusWizardData, options: ValidateOptions = {}): ValidationResult {
   const errors: Record<string, string> = {};
 
   if (data.governorateId === null || data.governorateId === undefined) {
@@ -103,14 +108,14 @@ export function validateStep5(data: BusWizardData): ValidationResult {
   if (data.wilayaId === null || data.wilayaId === undefined) {
     errors.wilayaId = 'الرجاء اختيار الولاية';
   }
-  if (!data.contactPhone || !data.contactPhone.trim()) {
+  if (!options.editMode && (!data.contactPhone || !data.contactPhone.trim())) {
     errors.contactPhone = 'الرجاء إدخال رقم الجوال';
   }
 
   return { isValid: Object.keys(errors).length === 0, errors };
 }
 
-export function validateStep(step: number, data: BusWizardData): ValidationResult {
+export function validateStep(step: number, data: BusWizardData, options: ValidateOptions = {}): ValidationResult {
   switch (step) {
     case 1:
       return validateStep1(data);
@@ -121,7 +126,7 @@ export function validateStep(step: number, data: BusWizardData): ValidationResul
     case 4:
       return validateStep4(data);
     case 5:
-      return validateStep5(data);
+      return validateStep5(data, options);
     case 6:
       return { isValid: true, errors: {} };
     default:
