@@ -74,8 +74,7 @@ const mockData: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 };
 
 describe('BusStep3Details', () => {

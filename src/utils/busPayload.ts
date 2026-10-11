@@ -77,13 +77,8 @@ export function buildBusPayload(data: BusWizardData) {
   if (data.latitude != null) payload.latitude = data.latitude
   if (data.longitude != null) payload.longitude = data.longitude
 
-  // Contact
-  if (data.contactPhone && data.contactPhone.trim()) {
-    payload.contactPhone = data.contactPhone.trim()
-  }
-  if (data.whatsapp && data.whatsapp.trim()) {
-    payload.whatsapp = data.whatsapp.trim()
-  }
+  // Contact: numbers always come from the owner's account; only the WhatsApp switch is sent
+  payload.whatsappEnabled = data.whatsappEnabled === true
 
   return payload
 }

@@ -477,23 +477,13 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
             </View>
           ) : null}
 
-          {data.contactPhone ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="call-outline" size={16} color="#64748B" />
-                <Text style={s.label}>رقم الهاتف</Text>
-              </View>
-              <Text style={s.value}>{data.contactPhone}</Text>
-            </View>
-          ) : null}
-
-          {data.whatsapp ? (
+          {data.whatsappEnabled ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
                 <Ionicons name="logo-whatsapp" size={16} color="#059669" />
-                <Text style={s.label}>رقم الواتساب</Text>
+                <Text style={s.label}>التواصل عبر الواتساب</Text>
               </View>
-              <Text style={s.value}>{data.whatsapp}</Text>
+              <Text style={s.value}>مفعّل</Text>
             </View>
           ) : null}
         </View>

@@ -38,8 +38,7 @@ const baseData: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '91234567',
-  whatsapp: '99887766',
+  whatsappEnabled: true,
 }
 
 describe('buildBusPayload', () => {
@@ -70,8 +69,7 @@ describe('buildBusPayload', () => {
       isPriceNegotiable: true,
       latitude: 23.588,
       longitude: 58.3829,
-      contactPhone: '91234567',
-      whatsapp: '99887766',
+      whatsappEnabled: true,
     })
   })
 

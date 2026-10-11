@@ -56,8 +56,7 @@ const baseMockData: BusWizardData = {
   images: ['https://example.com/bus1.jpg', 'https://example.com/bus2.jpg'],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '91234567',
-  whatsapp: '99887766',
+  whatsappEnabled: true,
 }
 
 describe('BusStep6Review', () => {
@@ -109,8 +108,12 @@ describe('BusStep6Review', () => {
     // Location & Contact Card
     expect(screen.getByText('مسقط - السيب')).toBeTruthy()
     expect(screen.getByText(/23.6143/)).toBeTruthy()
-    expect(screen.getByText('91234567')).toBeTruthy()
-    expect(screen.getByText('99887766')).toBeTruthy()
+    // no phone numbers on the review screen; only the WhatsApp switch state
+    expect(screen.queryByText('91234567')).toBeNull()
+    expect(screen.queryByText('99887766')).toBeNull()
+    expect(screen.queryByText('رقم الهاتف')).toBeNull()
+    expect(screen.queryByText('رقم الواتساب')).toBeNull()
+    expect(screen.getByText('التواصل عبر الواتساب')).toBeTruthy()
   })
 
   it('triggers onEditStep with correct step number for each edit button', async () => {

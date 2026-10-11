@@ -45,8 +45,7 @@ const mockDefaultData: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 };
 
 describe('useBusValidation', () => {
@@ -204,20 +203,24 @@ describe('useBusValidation', () => {
   });
 
   describe('Step 5: Location & Contact Validation', () => {
-    it('fails when governorateId, wilayaId, or contactPhone are missing', () => {
+    it('fails when governorateId or wilayaId are missing', () => {
       const result = validateStep5(mockDefaultData);
       expect(result.isValid).toBe(false);
       expect(result.errors.governorateId).toBe('الرجاء اختيار المحافظة');
       expect(result.errors.wilayaId).toBe('الرجاء اختيار الولاية');
-      expect(result.errors.contactPhone).toBe('الرجاء إدخال رقم الجوال');
     });
 
-    it('passes when governorateId, wilayaId, and contactPhone are provided', () => {
+    it('does NOT validate any phone: contactPhone is no longer part of the form', () => {
+      const result = validateStep5(mockDefaultData);
+      expect(result.errors).not.toHaveProperty('contactPhone');
+      expect(result.errors).not.toHaveProperty('whatsapp');
+    });
+
+    it('passes with just governorateId and wilayaId (no phone needed), add or edit', () => {
       const result = validateStep5({
         ...mockDefaultData,
         governorateId: 1,
         wilayaId: 2,
-        contactPhone: '96899999999',
       });
       expect(result.isValid).toBe(true);
       expect(result.errors).toEqual({});
