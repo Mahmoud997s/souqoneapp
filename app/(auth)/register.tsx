@@ -25,6 +25,8 @@ import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWila
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { validateRegister, normalizeEmail } from '../../src/utils/authValidation'
 import { normalizeDigits } from '../../src/utils/digits'
+import { needsVerification, pickVerificationToken } from '../../src/utils/verificationFlow'
+import { usePendingVerificationStore } from '../../src/store/pendingVerificationStore'
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets()
@@ -97,15 +99,23 @@ export default function RegisterScreen() {
         country: 'OM',
         password,
       })
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      if (needsVerification(res.data)) {
+        usePendingVerificationStore.getState().setPending({
+          email: cleanEmail,
+          token: pickVerificationToken(res.data),
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
+          user: res.data.user,
+        })
+        const emailParam = encodeURIComponent(cleanEmail)
+        const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
+        router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
+        return
+      }
+
+      await setAuth(res.data.user!, res.data.accessToken!, res.data.refreshToken!)
       setTimeout(() => {
-        if (res.data.requiresVerification) {
-          const emailParam = encodeURIComponent(cleanEmail)
-          const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
-          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
-        } else {
-          router.replace(resolveRedirect(redirect) as any)
-        }
+        router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (e: any) {
       console.error('[Register Error]', JSON.stringify(e?.response?.data), e?.message)

@@ -10,21 +10,26 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use(async (config) => {
+  if (config.headers?.Authorization) {
+    return config
+  }
   const token = await SecureStore.getItemAsync('accessToken')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
-const AUTH_EXCLUDED_URLS = [
+export const AUTH_EXCLUDED_URLS = [
   '/auth/login',
   '/auth/signup',
   '/auth/google',
   '/auth/refresh',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/auth/verify-email',
+  '/auth/resend-verification',
 ]
 
-function isAuthExcludedUrl(url?: string): boolean {
+export function isAuthExcludedUrl(url?: string): boolean {
   if (!url) return false
   return AUTH_EXCLUDED_URLS.some((path) => url.includes(path))
 }

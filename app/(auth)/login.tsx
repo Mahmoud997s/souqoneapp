@@ -29,6 +29,8 @@ import { BlurView } from 'expo-blur'
 import { validateLogin, normalizeEmail } from '../../src/utils/authValidation'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
+import { needsVerification, pickVerificationToken } from '../../src/utils/verificationFlow'
+import { usePendingVerificationStore } from '../../src/store/pendingVerificationStore'
 import {
   configureGoogleSignIn,
   GoogleSignin,
@@ -79,15 +81,23 @@ export default function LoginScreen() {
     setLoading(true)
     try {
       const res = await authApi.login({ email: cleanEmail, password })
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      if (needsVerification(res.data)) {
+        usePendingVerificationStore.getState().setPending({
+          email: cleanEmail,
+          token: pickVerificationToken(res.data),
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
+          user: res.data.user,
+        })
+        const emailParam = encodeURIComponent(cleanEmail)
+        const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
+        router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
+        return
+      }
+
+      await setAuth(res.data.user!, res.data.accessToken!, res.data.refreshToken!)
       setTimeout(() => {
-        if (!res.data.user?.isVerified || res.data.requiresVerification) {
-          const emailParam = encodeURIComponent(cleanEmail)
-          const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
-          router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
-        } else {
-          router.replace(resolveRedirect(redirect) as any)
-        }
+        router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (e: any) {
       console.error('[Login Error]', JSON.stringify(e?.response?.data), e?.message)
@@ -133,7 +143,7 @@ export default function LoginScreen() {
       }
 
       const res = await authApi.loginGoogle(idToken)
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      await setAuth(res.data.user!, res.data.accessToken!, res.data.refreshToken!)
 
       setTimeout(() => {
         router.replace(resolveRedirect(redirect) as any)

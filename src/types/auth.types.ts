@@ -21,10 +21,12 @@ export interface User {
 }
 
 export interface AuthResponse {
-  accessToken: string
-  refreshToken: string
-  user: User
+  accessToken?: string
+  refreshToken?: string
+  user?: User
   requiresVerification?: boolean
+  verificationToken?: string
+  emailSent?: boolean
 }
 
 export interface LoginDto {
@@ -53,7 +55,10 @@ export interface ResetPasswordDto {
 }
 
 export interface VerifyEmailResponse {
-  message: string
+  message?: string
+  accessToken?: string
+  refreshToken?: string
+  user?: User
 }
 
 export interface UserSummary {
