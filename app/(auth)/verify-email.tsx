@@ -11,17 +11,21 @@ import {
   ActivityIndicator,
   ScrollView,
   StatusBar,
+  BackHandler,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
+import { usePendingVerificationStore } from '../../src/store/pendingVerificationStore'
+import { resolveVerifiedSession } from '../../src/utils/verificationFlow'
 import { authApi } from '../../src/api/auth'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { validateOtp } from '../../src/utils/authValidation'
 import { normalizeDigits } from '../../src/utils/digits'
+import { dialogService } from '../../src/store/dialogStore'
 
 const OTP_LENGTH = 6
 
@@ -29,6 +33,7 @@ export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets()
   const { email, redirect } = useLocalSearchParams<{ email?: string; redirect?: string }>()
   const { setAuth } = useAuthStore()
+  const { pending, clear } = usePendingVerificationStore()
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [loading, setLoading] = useState(false)
@@ -38,6 +43,17 @@ export default function VerifyEmailScreen() {
   const [canResend, setCanResend] = useState(false)
 
   const inputRefs = useRef<(TextInput | null)[]>(Array(OTP_LENGTH).fill(null))
+
+  useEffect(() => {
+    if (!pending) {
+      router.replace('/(auth)/login')
+    }
+  }, [pending])
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () => sub.remove()
+  }, [])
 
   useEffect(() => {
     if (timer <= 0) { setCanResend(true); return }
@@ -70,12 +86,25 @@ export default function VerifyEmailScreen() {
       return
     }
 
+    if (!pending) {
+      router.replace('/(auth)/login')
+      return
+    }
+
     setError('')
     setLoading(true)
     try {
-      await authApi.verifyEmail(code)
-      useAuthStore.getState().updateUser({ isVerified: true })
-      router.replace(resolveRedirect(redirect) as any)
+      const res = await authApi.verifyEmail(code, pending.token)
+      const session = resolveVerifiedSession(res.data, pending)
+      if (session) {
+        await setAuth(session.user, session.accessToken, session.refreshToken)
+        clear()
+        router.replace(resolveRedirect(redirect) as any)
+      } else {
+        clear()
+        dialogService.alert('تأكيد الحساب', 'تم تأكيد الحساب بنجاح، يرجى تسجيل الدخول')
+        router.replace('/(auth)/login')
+      }
     } catch (e: any) {
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
@@ -87,9 +116,13 @@ export default function VerifyEmailScreen() {
 
   const handleResend = async () => {
     if (!canResend) return
+    if (!pending) {
+      router.replace('/(auth)/login')
+      return
+    }
     setResendLoading(true)
     try {
-      await authApi.resendVerification()
+      await authApi.resendVerification(pending.token)
       setCanResend(false)
       setTimer(45)
       setError('')
@@ -110,14 +143,7 @@ export default function VerifyEmailScreen() {
 
       {/* Floating Minimal Header */}
       <View style={[s.topRow, { paddingTop: insets.top + Spacing.space2 }]}>
-        <TouchableOpacity
-          style={s.floatingBackBtn}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="arrow-forward" size={18} color={Colors.text} />
-        </TouchableOpacity>
+        <View style={{ width: 36 }} />
         <Text style={s.topHeaderTitle}>تأكيد البريد الإلكتروني</Text>
         <View style={{ width: 36 }} />
       </View>
@@ -136,7 +162,7 @@ export default function VerifyEmailScreen() {
             <Text style={s.cardTitle}>تحقق من بريدك الإلكتروني</Text>
             <Text style={s.cardSubtitle}>
               أرسلنا رمز تحقق مكون من 6 أرقام إلى{'\n'}
-              <Text style={s.emailHighlight}>{email || 'بريدك الإلكتروني'}</Text>
+              <Text style={s.emailHighlight}>{pending?.email || email || 'بريدك الإلكتروني'}</Text>
             </Text>
           </View>
 
@@ -204,7 +230,10 @@ export default function VerifyEmailScreen() {
         {/* Change email — outside card, at bottom */}
         <TouchableOpacity
           style={s.changeEmailBtn}
-          onPress={() => router.back()}
+          onPress={() => {
+            clear()
+            router.replace('/(auth)/register')
+          }}
           activeOpacity={0.7}
         >
           <Ionicons name="create-outline" size={16} color={Colors.text2} />
