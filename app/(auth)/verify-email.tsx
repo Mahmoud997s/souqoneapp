@@ -43,9 +43,10 @@ export default function VerifyEmailScreen() {
   const [canResend, setCanResend] = useState(false)
 
   const inputRefs = useRef<(TextInput | null)[]>(Array(OTP_LENGTH).fill(null))
+  const doneRef = useRef(false)
 
   useEffect(() => {
-    if (!pending) {
+    if (!pending && !doneRef.current) {
       router.replace('/(auth)/login')
     }
   }, [pending])
@@ -98,9 +99,11 @@ export default function VerifyEmailScreen() {
       const session = resolveVerifiedSession(res.data, pending)
       if (session) {
         await setAuth(session.user, session.accessToken, session.refreshToken)
+        doneRef.current = true
         clear()
         router.replace(resolveRedirect(redirect) as any)
       } else {
+        doneRef.current = true
         clear()
         dialogService.alert('تأكيد الحساب', 'تم تأكيد الحساب بنجاح، يرجى تسجيل الدخول')
         router.replace('/(auth)/login')
@@ -231,6 +234,7 @@ export default function VerifyEmailScreen() {
         <TouchableOpacity
           style={s.changeEmailBtn}
           onPress={() => {
+            doneRef.current = true
             clear()
             router.replace('/(auth)/register')
           }}
