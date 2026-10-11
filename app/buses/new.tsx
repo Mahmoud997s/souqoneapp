@@ -79,7 +79,7 @@ export default function NewBusListingScreen() {
   })
 
   const validateCurrentStep = () => {
-    const result = validateStep(currentStep, data)
+    const result = validateStep(currentStep, data, { editMode })
     if (!result.isValid) {
       setErrors(result.errors)
       return false
@@ -183,7 +183,7 @@ export default function NewBusListingScreen() {
 
     // 1. Validation loop for Steps 1-5
     for (let s = 1; s <= 5; s++) {
-      const result = validateStep(s, data)
+      const result = validateStep(s, data, { editMode })
       if (!result.isValid) {
         setErrors(result.errors)
         setStep(s)

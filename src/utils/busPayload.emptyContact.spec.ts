@@ -10,6 +10,7 @@ const base = (): BusWizardData => ({
   model: 'Coaster',
   year: '2020',
   capacity: '30',
+  mileage: '50000',
   price: '10000',
   title: 'Bus title',
   description: 'Bus description',
@@ -48,14 +49,56 @@ describe('buildBusPayload - empty contactPhone / whatsapp are OMITTED (never sen
   })
 })
 
-describe('FINDING - step 5 still REQUIRES contactPhone, so an edit form prefilled with "" cannot be submitted', () => {
-  it('validateStep(5) rejects an empty contactPhone', () => {
+describe('step 5 contactPhone: required when ADDING, not required when EDITING', () => {
+  it('empty + add mode (default) -> error (unchanged)', () => {
     const r = validateStep(5, { ...base(), contactPhone: '' })
     expect(r.isValid).toBe(false)
     expect(r.errors.contactPhone).toBe('الرجاء إدخال رقم الجوال')
   })
 
-  it('validateStep(5) passes once a phone is typed', () => {
+  it('empty + add mode (explicit editMode:false) -> error', () => {
+    expect(validateStep(5, { ...base(), contactPhone: '' }, { editMode: false }).isValid).toBe(false)
+  })
+
+  it('empty + edit mode -> accepted', () => {
+    const r = validateStep(5, { ...base(), contactPhone: '' }, { editMode: true })
+    expect(r.isValid).toBe(true)
+    expect(r.errors).toEqual({})
+  })
+
+  it('edit mode still enforces the other step-5 rules (governorate / wilaya)', () => {
+    const r = validateStep(5, { ...base(), contactPhone: '', governorateId: null, wilayaId: null }, { editMode: true })
+    expect(r.isValid).toBe(false)
+    expect(r.errors.governorateId).toBeDefined()
+    expect(r.errors.wilayaId).toBeDefined()
+    expect(r.errors.contactPhone).toBeUndefined()
+  })
+
+  it('phone typed + add mode -> valid', () => {
     expect(validateStep(5, { ...base(), contactPhone: '91234567' }).isValid).toBe(true)
+  })
+
+  it('END-TO-END (logic): edit a bus without typing a phone -> all steps 1-5 pass and the PATCH body carries version but no contactPhone', () => {
+    // API response no longer contains contactPhone/whatsapp -> the form is opened with ''
+    useBusWizardStore.getState().setEditMode(
+      'bus-1',
+      { ...base(), contactPhone: '', whatsapp: '', existingImages: [{ id: 'i1', url: 'https://x/y.jpg' }] },
+      4,
+    )
+    const st = useBusWizardStore.getState()
+    for (let s = 1; s <= 5; s++) {
+      const r = validateStep(s, st.data, { editMode: st.editMode })
+      expect({ step: s, ok: r.isValid, errors: r.errors }).toEqual({ step: s, ok: true, errors: {} })
+    }
+    const body = { ...buildBusPayload(st.data), version: st.editVersion }
+    expect(body.version).toBe(4)
+    expect('contactPhone' in body).toBe(false)
+    expect('whatsapp' in body).toBe(false)
+  })
+
+  it('SAME form in ADD mode (not edit) still stops at step 5 without a phone', () => {
+    useBusWizardStore.getState().reset()
+    const r = validateStep(5, { ...base(), contactPhone: '' }, { editMode: useBusWizardStore.getState().editMode })
+    expect(r.isValid).toBe(false)
   })
 })
