@@ -59,6 +59,9 @@ export function carListingToFormData(raw: CarDetailApi): CarFormData {
     deliveryAvailable: isRental ? Boolean(raw.deliveryAvailable) : false,
     insuranceIncluded: isRental ? Boolean(raw.insuranceIncluded) : false,
 
+    // Contact (applies to every listing type)
+    whatsappEnabled: raw.whatsappEnabled === true,
+
     // 4. Location
     governorateId: raw.governorateId ?? null,
     wilayaId: raw.wilayaId ?? null,

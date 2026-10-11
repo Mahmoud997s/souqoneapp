@@ -209,6 +209,7 @@ export default function EditListingLoader() {
             cancellationPolicy: listing.cancellationPolicy || '',
             deliveryAvailable: listing.deliveryAvailable || false,
             insuranceIncluded: listing.insuranceIncluded || false,
+            whatsappEnabled: listing.whatsappEnabled === true,
             existingImages: existingImgs,
             images: [],
             removedImageIds: [],

@@ -128,7 +128,7 @@ jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
 // ── FIXTURES & CONSTANTS ───────────────────────────────────────────────────
 
 /**
- * Compile-time and runtime array of all 49 fields in CarFormData.
+ * Compile-time and runtime array of all 50 fields in CarFormData.
  * Guarantees that any field added or deleted from the form contract is accounted for.
  */
 const ALL_CAR_FORM_KEYS: (keyof CarFormData)[] = [
@@ -161,6 +161,7 @@ const ALL_CAR_FORM_KEYS: (keyof CarFormData)[] = [
   'cancellationPolicy',
   'deliveryAvailable',
   'insuranceIncluded',
+  'whatsappEnabled',
   'governorateId',
   'wilayaId',
   'latitude',
@@ -311,7 +312,7 @@ const mockRentalViewModel: CarDetailViewModel = {
 
 // ── TEST SUITE ─────────────────────────────────────────────────────────────
 
-describe('CarDetailScreen Edit Flow & 49-Field Parity Regression', () => {
+describe('CarDetailScreen Edit Flow & 50-Field Parity Regression', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = { id: 'user-77', username: 'oman_rentals' }
@@ -324,10 +325,10 @@ describe('CarDetailScreen Edit Flow & 49-Field Parity Regression', () => {
     }
   })
 
-  it('1. Contract Guard: ALL_CAR_FORM_KEYS contains exactly 49 keys matching CarFormData', () => {
-    expect(ALL_CAR_FORM_KEYS).toHaveLength(49)
+  it('1. Contract Guard: ALL_CAR_FORM_KEYS contains exactly 50 keys matching CarFormData', () => {
+    expect(ALL_CAR_FORM_KEYS).toHaveLength(50)
     const uniqueKeys = new Set(ALL_CAR_FORM_KEYS)
-    expect(uniqueKeys.size).toBe(49)
+    expect(uniqueKeys.size).toBe(50)
   })
 
   it('2. Core Integration: pressing edit button triggers carListingToFormData, populates setEditMode and navigates to /cars/new', async () => {
@@ -344,7 +345,7 @@ describe('CarDetailScreen Edit Flow & 49-Field Parity Regression', () => {
     expect(mockRouterPush).toHaveBeenCalledWith('/cars/new')
   })
 
-  it('3. Complete 49-Field Parity: every single CarFormData key exists and is non-undefined in setEditMode payload', async () => {
+  it('3. Complete 50-Field Parity: every single CarFormData key exists and is non-undefined in setEditMode payload', async () => {
     await render(<CarDetailScreen id="car-rental-101" />)
 
     fireEvent.press(screen.getByTestId('btn-owner-edit'))

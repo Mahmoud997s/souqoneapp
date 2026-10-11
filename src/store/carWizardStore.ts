@@ -51,6 +51,9 @@ const initialFormData: CarFormData = {
   deliveryAvailable: false,
   insuranceIncluded: false,
 
+  // Contact
+  whatsappEnabled: false,
+
   // Location
   governorateId: null,
   wilayaId: null,

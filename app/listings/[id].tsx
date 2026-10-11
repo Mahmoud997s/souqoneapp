@@ -216,6 +216,7 @@ export default function ListingDetailScreen() {
         existingImages: raw.images ?? [],
         version: raw.version ?? 1,
         isPriceNegotiable: raw.isPriceNegotiable ?? false,
+        whatsappEnabled: raw.whatsappEnabled === true,
         currency: raw.currency ?? 'OMR',
         governorateId: raw.governorateId ?? null,
         wilayaId: raw.wilayaId ?? null,
