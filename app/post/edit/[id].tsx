@@ -99,8 +99,7 @@ export default function EditListingLoader() {
             })),
             images: [],
             removedImageIds: [],
-            contactPhone: listing.contactPhone || '',
-            whatsapp: listing.whatsapp || '',
+            whatsappEnabled: listing.whatsappEnabled === true,
           }, listing.version)
           router.replace('/buses/new')
           return

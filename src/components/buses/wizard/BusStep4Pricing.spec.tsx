@@ -75,8 +75,7 @@ const baseMockData: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '91234567',
-  whatsapp: '91234567',
+  whatsappEnabled: false,
 }
 
 describe('BusStep4Pricing', () => {

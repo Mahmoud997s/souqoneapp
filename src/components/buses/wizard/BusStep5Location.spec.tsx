@@ -98,8 +98,7 @@ const baseMockData: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 }
 
 describe('BusStep5Location', () => {
@@ -114,7 +113,7 @@ describe('BusStep5Location', () => {
     cleanup()
   })
 
-  it('renders location and contact cards with proper fields', async () => {
+  it('renders the location card and the WhatsApp switch card', async () => {
     await render(
       <BusStep5Location
         data={baseMockData}
@@ -126,8 +125,7 @@ describe('BusStep5Location', () => {
 
     expect(screen.getByTestId('mock-gov-wilaya-select-wrap')).toBeTruthy()
     expect(screen.getByTestId('open-map-picker-btn')).toBeTruthy()
-    expect(screen.getByTestId('contact-phone-input')).toBeTruthy()
-    expect(screen.getByTestId('whatsapp-input')).toBeTruthy()
+    expect(screen.getByTestId('whatsapp-enabled-switch')).toBeTruthy()
     expect(screen.queryByTestId('coords-box')).toBeNull()
   })
 
@@ -217,7 +215,7 @@ describe('BusStep5Location', () => {
     expect(mockOnUpdateField).toHaveBeenCalledWith('longitude', null)
   })
 
-  it('updates contactPhone (required) and whatsapp (optional) inputs on text change', async () => {
+  it('has NO phone / whatsapp text inputs, only the WhatsApp switch', async () => {
     await render(
       <BusStep5Location
         data={baseMockData}
@@ -227,23 +225,59 @@ describe('BusStep5Location', () => {
       />
     )
 
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId('contact-phone-input'), '91234567')
-    })
-    expect(mockOnUpdateField).toHaveBeenCalledWith('contactPhone', '91234567')
-
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId('whatsapp-input'), '99887766')
-    })
-    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsapp', '99887766')
+    expect(screen.queryByTestId('contact-phone-input')).toBeNull()
+    expect(screen.queryByTestId('whatsapp-input')).toBeNull()
+    expect(screen.queryByText('رقم الهاتف للتواصل *')).toBeNull()
+    expect(screen.getByTestId('whatsapp-enabled-switch')).toBeTruthy()
+    expect(screen.getByText('تفعيل الواتساب للتواصل')).toBeTruthy()
+    // hint explains the number is the registered account's number
+    expect(screen.getByText(/رقم هاتف حسابك المسجل/)).toBeTruthy()
   })
 
-  it('displays validation errors for required governorate, wilaya, and contactPhone', async () => {
+  it('switch reflects whatsappEnabled=false for a new listing', async () => {
+    await render(
+      <BusStep5Location
+        data={{ ...baseMockData, whatsappEnabled: false }}
+        errors={{}}
+        onUpdateField={mockOnUpdateField}
+        onLocationChange={mockOnLocationChange}
+      />
+    )
+    expect(screen.getByTestId('whatsapp-enabled-switch').props.value).toBe(false)
+  })
+
+  it('switch opens ON when editing a listing that already has WhatsApp enabled', async () => {
+    await render(
+      <BusStep5Location
+        data={{ ...baseMockData, whatsappEnabled: true }}
+        errors={{}}
+        onUpdateField={mockOnUpdateField}
+        onLocationChange={mockOnLocationChange}
+      />
+    )
+    expect(screen.getByTestId('whatsapp-enabled-switch').props.value).toBe(true)
+  })
+
+  it('toggling the switch updates only whatsappEnabled', async () => {
+    await render(
+      <BusStep5Location
+        data={baseMockData}
+        errors={{}}
+        onUpdateField={mockOnUpdateField}
+        onLocationChange={mockOnLocationChange}
+      />
+    )
+    await act(async () => {
+      fireEvent(screen.getByTestId('whatsapp-enabled-switch'), 'valueChange', true)
+    })
+    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsappEnabled', true)
+    expect(mockOnUpdateField).toHaveBeenCalledTimes(1)
+  })
+
+  it('displays validation errors for required governorate and wilaya', async () => {
     const errors = {
       governorateId: 'الرجاء اختيار المحافظة',
       wilayaId: 'الرجاء اختيار الولاية',
-      contactPhone: 'الرجاء إدخال رقم الجوال',
-      whatsapp: 'رقم الواتساب غير صالح',
     }
 
     await render(
@@ -261,7 +295,5 @@ describe('BusStep5Location', () => {
     expect(screen.getByTestId('mock-city-error')).toBeTruthy()
     expect(screen.getByText('الرجاء اختيار الولاية')).toBeTruthy()
 
-    expect(screen.getByText('الرجاء إدخال رقم الجوال')).toBeTruthy()
-    expect(screen.getByText('رقم الواتساب غير صالح')).toBeTruthy()
   })
 })

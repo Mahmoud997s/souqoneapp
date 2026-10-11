@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Switch,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
-import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
@@ -118,32 +118,28 @@ export function BusStep5Location({
         )}
       </WizardCard>
 
-      {/* ── 2. بطاقة معلومات التواصل ── */}
+      {/* ── 2. بطاقة التواصل: الرقم دايماً رقم حساب البائع، والمستخدم بيتحكم في الواتساب بس ── */}
       <WizardCard
-        title="بيانات التواصل *"
-        subtitle="أرقام التواصل التي ستظهر للمشترين والمستأجرين المهتمين"
+        title="التواصل"
+        subtitle="يتواصل المشترون معك عبر رقم هاتف حسابك المسجل في سوق ون"
       >
-        <AppInput
-          label="رقم الهاتف للتواصل *"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={data.contactPhone}
-          onChangeText={(val) => onUpdateField('contactPhone', val)}
-          maxLength={15}
-          error={errors.contactPhone}
-          testID="contact-phone-input"
-        />
-
-        <AppInput
-          label="رقم الواتساب (اختياري)"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={data.whatsapp}
-          onChangeText={(val) => onUpdateField('whatsapp', val)}
-          maxLength={15}
-          error={errors.whatsapp}
-          testID="whatsapp-input"
-        />
+        <View style={s.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.switchTitle}>تفعيل الواتساب للتواصل</Text>
+            <Text style={s.switchSub}>
+              إظهار زر الواتساب في إعلانك، على نفس رقم حسابك المسجل. لتغيير الرقم عدّله من إعدادات حسابك.
+            </Text>
+          </View>
+          <Switch
+            value={data.whatsappEnabled === true}
+            onValueChange={(val) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              onUpdateField('whatsappEnabled', val)
+            }}
+            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            testID="whatsapp-enabled-switch"
+          />
+        </View>
       </WizardCard>
 
       {/* ── Modal لتحديد الموقع على الخريطة ── */}
@@ -167,6 +163,28 @@ export function BusStep5Location({
 const s = StyleSheet.create({
   stepWrap: {
     gap: Spacing.space3,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  switchTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#1E293B',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  switchSub: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    marginTop: 2,
   },
   mapSectionDivider: {
     height: 1,

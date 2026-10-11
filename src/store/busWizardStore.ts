@@ -45,8 +45,8 @@ export interface BusWizardData {
   existingImages: any[]
   removedImageIds: string[]
   
-  contactPhone: string
-  whatsapp: string
+  /** Show the WhatsApp button on the listing. The number is always the owner's account phone. */
+  whatsappEnabled: boolean
 }
 
 const DEFAULT_DATA: BusWizardData = {
@@ -86,8 +86,7 @@ const DEFAULT_DATA: BusWizardData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 }
 
 interface BusWizardState {

@@ -246,8 +246,7 @@ export default function ListingDetailScreen() {
       })),
       images: [],
       removedImageIds: [],
-      contactPhone: raw.contactPhone || '',
-      whatsapp: raw.whatsapp || '',
+      whatsappEnabled: raw.whatsappEnabled === true,
     }, raw.version)
     router.push('/buses/new' as any)
   }
