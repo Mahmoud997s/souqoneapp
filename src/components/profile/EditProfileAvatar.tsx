@@ -19,7 +19,7 @@ export function EditProfileAvatar({ displayAvatar, onPress }: EditProfileAvatarP
           <Image source={{ uri: displayAvatar }} style={s.avatar} contentFit="cover" />
         ) : (
           <LinearGradient
-            colors={Gradients.hero as any}
+            colors={Gradients.hero}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[s.avatar, s.avatarFallback]}

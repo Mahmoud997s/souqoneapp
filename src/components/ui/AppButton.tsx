@@ -29,6 +29,7 @@ interface AppButtonProps {
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<import('react-native').TextStyle>
   children?: ReactNode
+  testID?: string
 }
 
 export function AppButton({
@@ -41,12 +42,14 @@ export function AppButton({
   disabled,
   style,
   textStyle,
+  testID,
 }: AppButtonProps) {
   const height = size === 'sm' ? 38 : 46
 
   if (variant === 'primary') {
     return (
       <TouchableOpacity
+        testID={testID}
         onPress={onPress}
         activeOpacity={0.9}
         disabled={loading || disabled}
@@ -76,6 +79,7 @@ export function AppButton({
   if (variant === 'outline') {
     return (
       <TouchableOpacity
+        testID={testID}
         onPress={onPress}
         activeOpacity={0.8}
         disabled={loading || disabled}
@@ -98,6 +102,7 @@ export function AppButton({
   // ghost
   return (
     <TouchableOpacity
+      testID={testID}
       onPress={onPress}
       activeOpacity={0.7}
       disabled={loading || disabled}

@@ -1,17 +1,25 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { BackHandler } from 'react-native'
-import { router } from 'expo-router'
+import { router, useNavigation } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import * as Haptics from 'expo-haptics'
 import { useAuthStore } from '../store/authStore'
 import { usersApi } from '../api/users'
-import { authApi } from '../api/auth'
 import { uploadsApi } from '../api/uploads'
 import { locationsApi } from '../api/locations'
 import { queryClient } from '../api/queryClient'
 import { GovernorateRef, WilayaRef } from '../types/location.types'
 import { Config } from '../constants/config'
 import { dialogService } from '../store/dialogStore'
+import { buildUploadFilePayload } from '../utils/fileUploadHelper'
+import {
+  validateProfileForm,
+  buildProfilePatch,
+  hasProfileUnsavedChanges,
+  shouldBlockForFailedAvatarUpload,
+} from '../utils/profileValidation'
+import { normalizeOmaniPhoneDigits } from '../utils/authValidation'
+import { invalidateProfileQueries } from '../utils/profileQueryInvalidation'
 
 function normalizeArabic(text: string): string {
   return text
@@ -22,16 +30,37 @@ function normalizeArabic(text: string): string {
     .trim()
 }
 
+function extractApiErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object') {
+    const res = (err as { response?: { data?: { message?: unknown } } }).response
+    const msg = res?.data?.message ?? (err as { message?: unknown }).message ?? fallback
+    if (Array.isArray(msg) && msg.length > 0) {
+      return String(msg[0])
+    }
+    if (typeof msg === 'string' && msg.trim()) {
+      return msg.trim()
+    }
+  }
+  return fallback
+}
+
 export function useEditProfile() {
   const { user } = useAuthStore()
+  let navigation: any = null
+  try {
+    navigation = typeof useNavigation === 'function' ? useNavigation() : null
+  } catch {
+    navigation = null
+  }
 
-  const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [bio, setBio] = useState('')
+  const [displayName, setDisplayName] = useState(user?.displayName || '')
+  const [email, setEmail] = useState(user?.email || '')
+  const [phone, setPhone] = useState(normalizeOmaniPhoneDigits(user?.phone))
+  const [bio, setBio] = useState(user?.bio || '')
 
-  // Focus states
+  // Focus & Inline Errors
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [errors, setErrors] = useState<{ displayName?: string; phone?: string; bio?: string }>({})
 
   // Location IDs & Display Names
   const [governorateId, setGovernorateId] = useState<number | null>(null)
@@ -39,10 +68,16 @@ export function useEditProfile() {
   const [wilayaId, setWilayaId] = useState<number | null>(null)
   const [wilayaName, setWilayaName] = useState('')
 
-  // null = not yet loaded, '' = explicitly cleared, string = URL/URI
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  // Avatar Management:
+  // avatarAction: 'unchanged' | 'deleted' | 'uploaded'
+  const [avatarAction, setAvatarAction] = useState<'unchanged' | 'deleted' | 'uploaded'>('unchanged')
+  const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showAvatarSheet, setShowAvatarSheet] = useState(false)
+
+  // Navigation & Dialog Guards
+  const isSaveSuccessfulRef = useRef(false)
+  const isShowingConfirmRef = useRef(false)
 
   // Location Selector Modal State
   const [modalType, setModalType] = useState<'governorate' | 'wilaya' | null>(null)
@@ -51,116 +86,140 @@ export function useEditProfile() {
   const [governoratesList, setGovernoratesList] = useState<GovernorateRef[]>([])
   const [wilayasList, setWilayasList] = useState<WilayaRef[]>([])
 
-  // Initialize fields
+  // Initialize fields from authenticated user
   useEffect(() => {
     if (user) {
       setDisplayName(user.displayName || '')
       setEmail(user.email || '')
-      setPhone(user.phone || '')
+      setPhone(normalizeOmaniPhoneDigits(user.phone))
       setBio(user.bio || '')
       setGovernorateId(user.governorateId || null)
       setWilayaId(user.wilayaId || null)
       setGovernorateName(user.governorateRef?.nameAr || user.governorate || '')
       setWilayaName(user.wilayaRef?.nameAr || user.city || '')
-      setAvatarUrl(user.avatarUrl || user.avatar || null)
+      setAvatarAction('unchanged')
+      setLocalAvatarUri(null)
     }
   }, [user])
 
   // Resolve governorate name if user had ID but no name
   useEffect(() => {
     if (governorateId && !governorateName) {
-      locationsApi.getGovernorates().then((list) => {
-        const found = list.find((g) => g.id === governorateId)
-        if (found) setGovernorateName(found.nameAr)
-      }).catch(() => {})
+      locationsApi
+        .getGovernorates()
+        .then((list) => {
+          const found = list.find((g) => g.id === governorateId)
+          if (found) setGovernorateName(found.nameAr)
+        })
+        .catch(() => {})
     }
   }, [governorateId, governorateName])
 
   // Resolve wilaya name if user had ID but no name
   useEffect(() => {
     if (governorateId && wilayaId && !wilayaName) {
-      locationsApi.getWilayas(governorateId).then((list) => {
-        const found = list.find((w) => w.id === wilayaId)
-        if (found) setWilayaName(found.nameAr)
-      }).catch(() => {})
+      locationsApi
+        .getWilayas(governorateId)
+        .then((list) => {
+          const found = list.find((w) => w.id === wilayaId)
+          if (found) setWilayaName(found.nameAr)
+        })
+        .catch(() => {})
     }
   }, [governorateId, wilayaId, wilayaName])
 
-  // avatarUrl === null → not loaded yet (use user fallback)
-  // avatarUrl === '' → user explicitly cleared it
-  // avatarUrl === string → new URI or existing URL
-  const resolvedAvatar =
-    avatarUrl === null
-      ? (user?.avatarUrl || user?.avatar || null)
-      : avatarUrl || null
+  // Derived Avatar for display
+  const displayAvatar = useMemo(() => {
+    if (avatarAction === 'deleted') return null
+    if (avatarAction === 'uploaded' && localAvatarUri) return localAvatarUri
 
-  const displayAvatar = resolvedAvatar
-    ? resolvedAvatar.startsWith('http') || resolvedAvatar.startsWith('file')
-      ? resolvedAvatar
-      : `${Config.apiUrl}${resolvedAvatar.startsWith('/') ? '' : '/'}${resolvedAvatar}`
-    : null
+    const orig = user?.avatarUrl || user?.avatar || null
+    if (!orig) return null
+    if (orig.startsWith('http') || orig.startsWith('file')) return orig
+    return `${Config.apiUrl}${orig.startsWith('/') ? '' : '/'}${orig}`
+  }, [avatarAction, localAvatarUri, user?.avatarUrl, user?.avatar])
+
+  // Clear specific field error on change
+  const handleDisplayNameChange = (value: string) => {
+    setDisplayName(value)
+    if (errors.displayName) {
+      setErrors((prev) => ({ ...prev, displayName: undefined }))
+    }
+  }
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value)
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: undefined }))
+    }
+  }
+
+  const handleBioChange = (value: string) => {
+    setBio(value)
+    if (errors.bio) {
+      setErrors((prev) => ({ ...prev, bio: undefined }))
+    }
+  }
 
   const pickFromGallery = async () => {
-    console.log('🟢 [pickFromGallery] Clicked')
     try {
-      console.log('🟢 [pickFromGallery] Requesting permissions...')
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      console.log('🟢 [pickFromGallery] Permission status:', status)
       if (status !== 'granted') {
         dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز')
         return
       }
 
-      console.log('🟢 [pickFromGallery] Launching ImageLibrary...')
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
       })
-      console.log('🟢 [pickFromGallery] Result:', result)
 
       if (!result.canceled && result.assets?.[0]?.uri) {
-        setAvatarUrl(result.assets[0].uri)
+        setAvatarAction('uploaded')
+        setLocalAvatarUri(result.assets[0].uri)
       }
-    } catch (err: any) {
-      console.error('❌ [pickFromGallery] Error:', err)
-      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح المعرض: ' + (err?.message || ''))
+    } catch (err: unknown) {
+      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء فتح المعرض')
+      dialogService.alert('خطأ', msg)
     } finally {
       setShowAvatarSheet(false)
     }
   }
 
   const pickFromCamera = async () => {
-    console.log('🟢 [pickFromCamera] Clicked')
     try {
-      console.log('🟢 [pickFromCamera] Requesting camera permissions...')
       const { status } = await ImagePicker.requestCameraPermissionsAsync()
-      console.log('🟢 [pickFromCamera] Camera permission status:', status)
       if (status !== 'granted') {
         dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى الكاميرا من إعدادات الجهاز')
         return
       }
 
-      console.log('🟢 [pickFromCamera] Launching Camera...')
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
         quality: 0.8,
       })
-      console.log('🟢 [pickFromCamera] Result:', result)
 
       if (!result.canceled && result.assets?.[0]?.uri) {
-        setAvatarUrl(result.assets[0].uri)
+        setAvatarAction('uploaded')
+        setLocalAvatarUri(result.assets[0].uri)
       }
-    } catch (err: any) {
-      console.error('❌ [pickFromCamera] Error:', err)
-      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الكاميرا: ' + (err?.message || ''))
+    } catch (err: unknown) {
+      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء فتح الكاميرا')
+      dialogService.alert('خطأ', msg)
     } finally {
       setShowAvatarSheet(false)
     }
   }
 
+  const handleDeleteAvatar = () => {
+    setAvatarAction('deleted')
+    setLocalAvatarUri(null)
+    setShowAvatarSheet(false)
+  }
+
   const handlePickImage = () => setShowAvatarSheet(true)
 
-  // Open Governorates Modal
+  // Location Pickers
   const openGovernoratePicker = async () => {
     setSearchQuery('')
     setModalType('governorate')
@@ -177,7 +236,6 @@ export function useEditProfile() {
     }
   }
 
-  // Open Wilayas Modal
   const openWilayaPicker = async () => {
     if (!governorateId) {
       dialogService.alert('تنبيه', 'يرجى اختيار المحافظة أولاً')
@@ -204,11 +262,11 @@ export function useEditProfile() {
     setWilayaName('')
     setModalType(null)
 
-    // Auto open wilaya picker for smooth UX
     setTimeout(() => {
       setModalType('wilaya')
       setLoadingLocations(true)
-      locationsApi.getWilayas(gov.id)
+      locationsApi
+        .getWilayas(gov.id)
         .then((data) => setWilayasList(data))
         .catch(() => {})
         .finally(() => setLoadingLocations(false))
@@ -222,7 +280,6 @@ export function useEditProfile() {
     setModalType(null)
   }
 
-  // Filtered List
   const filteredList = useMemo(() => {
     const rawList = modalType === 'governorate' ? governoratesList : wilayasList
     if (!searchQuery.trim()) return rawList
@@ -235,150 +292,152 @@ export function useEditProfile() {
     })
   }, [modalType, searchQuery, governoratesList, wilayasList])
 
+  // Check for unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return hasProfileUnsavedChanges(user, {
+      displayName,
+      phone,
+      bio,
+      governorateId,
+      wilayaId,
+      avatarAction,
+    })
+  }, [user, displayName, phone, bio, governorateId, wilayaId, avatarAction])
+
+  // Handle Save
   const handleSave = async () => {
-    if (!displayName.trim()) {
-      dialogService.alert('تنبيه', 'يرجى إدخال الاسم المستعار')
+    // 1. Local Validation
+    const validation = validateProfileForm({ displayName, phone, bio }, user)
+    if (!validation.isValid) {
+      setErrors(validation.errors)
       return
     }
+    setErrors({})
 
     try {
       setLoading(true)
-      let avatarPayload: string | null | undefined = undefined
 
-      if (avatarUrl === '') {
-        // User explicitly deleted avatar -> send null to delete from DB
-        avatarPayload = null
-      } else if (avatarUrl && !avatarUrl.startsWith('http')) {
-        // Local file URI -> upload first
-        const filename = avatarUrl.split('/').pop() || 'avatar.jpg'
-        const match = /\.(\w+)$/.exec(filename)
-        const type = match ? `image/${match[1]}` : `image/jpeg`
-
-        const formData = new FormData()
-        formData.append('file', {
-          uri: avatarUrl,
-          name: filename,
-          type,
-        } as any)
-
-        const uploadRes = await uploadsApi.single(formData)
-        if (uploadRes.data?.url) {
-          avatarPayload = uploadRes.data.url
+      // 2. Upload avatar if a new local image was selected
+      let uploadedAvatarUrl: string | null = null
+      if (avatarAction === 'uploaded' && localAvatarUri) {
+        if (localAvatarUri.startsWith('http://') || localAvatarUri.startsWith('https://')) {
+          uploadedAvatarUrl = localAvatarUri
+        } else {
+          try {
+            const filePayload = buildUploadFilePayload(localAvatarUri, 'avatar')
+            if (filePayload) {
+              const formData = new FormData()
+              formData.append('file', filePayload as unknown as Blob)
+              const uploadRes = await uploadsApi.single(formData)
+              const resData = uploadRes.data as { url?: string; path?: string } | undefined
+              uploadedAvatarUrl = resData?.url ?? resData?.path ?? null
+            }
+          } catch {
+            uploadedAvatarUrl = null
+          }
         }
-      } else if (avatarUrl) {
-        avatarPayload = avatarUrl
-      } else {
-        // avatarUrl === null -> no local override -> do not modify
-        avatarPayload = undefined
       }
 
-      console.log('📤 [handleSave] avatarPayload:', avatarPayload)
+      // If avatar upload was attempted but failed or produced no URL, abort save immediately
+      if (shouldBlockForFailedAvatarUpload(avatarAction, uploadedAvatarUrl)) {
+        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى')
+        return
+      }
 
-      const res = await usersApi.updateProfile({
-        displayName: displayName.trim(),
-        phone: phone.trim() || undefined,
-        bio: bio.trim() || undefined,
-        governorateId: governorateId ?? undefined,
-        wilayaId: wilayaId ?? undefined,
-        avatarUrl: avatarPayload,
+      // 3. Build minimal PATCH payload
+      const patch = buildProfilePatch(user, {
+        displayName,
+        phone,
+        bio,
+        governorateId,
+        wilayaId,
+        avatarAction,
+        uploadedAvatarUrl,
       })
 
-      console.log('📥 [handleSave] API updateProfile response:', res.data)
+      // If no fields changed, inform user and exit
+      if (Object.keys(patch).length === 0) {
+        dialogService.alert('تنبيه', 'لم يتم تغيير أي بيانات', 'info')
+        return
+      }
+
+      // 4. Send PATCH /users/me
+      const res = await usersApi.updateProfile(patch)
 
       if (res.data) {
-        useAuthStore.getState().updateUser?.(res.data)
-        useAuthStore.setState((state) => {
-          if (!state.user) return { user: res.data }
-          const updatedUser = {
-            ...state.user,
-            ...res.data,
-            avatarUrl: avatarPayload === null ? undefined : (res.data.avatarUrl ?? state.user.avatarUrl),
-            avatar: avatarPayload === null ? undefined : (res.data.avatar ?? state.user.avatar),
-            governorateRef: governorateId && governorateName ? { id: governorateId, nameAr: governorateName } : state.user.governorateRef,
-            wilayaRef: wilayaId && wilayaName ? { id: wilayaId, nameAr: wilayaName } : state.user.wilayaRef,
-          }
-          if (avatarPayload === null) {
-            delete (updatedUser as any).avatar
-            delete (updatedUser as any).avatarUrl
-          }
-          return { user: updatedUser }
-        })
+        // 5. Update authStore once with server response
+        useAuthStore.setState((state) => ({
+          user: state.user
+            ? { ...state.user, ...res.data, avatar: res.data.avatarUrl ?? undefined }
+            : res.data,
+        }))
 
-        const currentUserId = useAuthStore.getState().user?.id
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['user'] }),
-          currentUserId ? queryClient.invalidateQueries({ queryKey: ['user', currentUserId] }) : Promise.resolve(),
-          queryClient.invalidateQueries({ queryKey: ['profile'] }),
-          queryClient.invalidateQueries({ queryKey: ['me'] }),
-          queryClient.invalidateQueries({ queryKey: ['my-carrier-profile'] }),
-          queryClient.invalidateQueries({ queryKey: ['driver-profile', 'me'] }),
-          queryClient.invalidateQueries({ queryKey: ['employer-profile', 'me'] }),
-          queryClient.invalidateQueries({ queryKey: ['verification-status'] }),
-        ])
+        // 6. Invalidate active queries
+        const currentUserId = res.data.id || useAuthStore.getState().user?.id
+        await invalidateProfileQueries(queryClient, currentUserId)
 
-        try {
-          const freshMe = await authApi.me()
-          const data = freshMe.data as any
-          const freshUser = data?.user ?? data
-          if (freshUser?.id) {
-            useAuthStore.getState().updateUser?.(freshUser)
-          }
-        } catch {
-          // If network hiccups, store already updated from res.data
-        }
-
-        console.log('💾 [handleSave] useAuthStore user after save:', useAuthStore.getState().user)
+        // 7. Mark saved and return
+        isSaveSuccessfulRef.current = true
         dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')
         router.back()
       }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'حدث خطأ أثناء التحديث'
-      dialogService.alert('خطأ', typeof msg === 'string' ? msg : Array.isArray(msg) ? msg[0] : 'حدث خطأ')
+    } catch (err: unknown) {
+      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء التحديث')
+      dialogService.alert('خطأ', msg)
     } finally {
       setLoading(false)
     }
   }
 
-  // Check for unsaved changes
-  const hasUnsavedChanges = useMemo(() => {
-    if (!user) return false
-    const origDisplayName = user.displayName || ''
-    const origPhone = user.phone || ''
-    const origBio = user.bio || ''
-    const origGovernorateId = user.governorateId || null
-    const origWilayaId = user.wilayaId || null
-    const origAvatar = user.avatarUrl || user.avatar || null
-
-    return (
-      displayName.trim() !== origDisplayName.trim() ||
-      phone.trim() !== origPhone.trim() ||
-      bio.trim() !== origBio.trim() ||
-      governorateId !== origGovernorateId ||
-      wilayaId !== origWilayaId ||
-      (avatarUrl !== null && avatarUrl !== origAvatar)
-    )
-  }, [user, displayName, phone, bio, governorateId, wilayaId, avatarUrl])
-
-  const handleBackPress = () => {
-    if (hasUnsavedChanges) {
-      dialogService.confirm(
-        'تغييرات غير محفوظة',
-        'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
-        () => router.back(),
-        'تجاهل والخروج',
-        'متابعة التعديل',
-        true
-      )
-    } else {
-      router.back()
+  // Intercept navigation beforeRemove (covers iOS swipe back, Android hardware back, and header back button)
+  useEffect(() => {
+    if (!navigation || typeof navigation.addListener !== 'function') {
+      return
     }
-  }
 
-  // Intercept Android hardware back button
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      if (!hasUnsavedChanges || isSaveSuccessfulRef.current) {
+        return
+      }
+
+      // Prevent navigation action
+      e.preventDefault()
+
+      if (isShowingConfirmRef.current) return
+      isShowingConfirmRef.current = true
+
+      dialogService.show({
+        type: 'confirm',
+        title: 'تغييرات غير محفوظة',
+        message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
+        actions: [
+          {
+            text: 'متابعة التعديل',
+            style: 'cancel',
+            onPress: () => {
+              isShowingConfirmRef.current = false
+            },
+          },
+          {
+            text: 'تجاهل والخروج',
+            style: 'destructive',
+            onPress: () => {
+              isShowingConfirmRef.current = false
+              navigation.dispatch(e.data.action)
+            },
+          },
+        ],
+      })
+    })
+
+    return unsubscribe
+  }, [navigation, hasUnsavedChanges])
+
+  // Android hardware back handler fallback
   useEffect(() => {
     const backAction = () => {
       if (hasUnsavedChanges) {
-        handleBackPress()
+        router.back()
         return true
       }
       return false
@@ -388,14 +447,18 @@ export function useEditProfile() {
     return () => subscription.remove()
   }, [hasUnsavedChanges])
 
+  const handleBackPress = () => {
+    router.back()
+  }
+
   return {
     displayName,
     email,
     phone,
     bio,
     focusedField,
+    errors,
 
-    avatarUrl,
     displayAvatar,
     showAvatarSheet,
     loading,
@@ -412,18 +475,18 @@ export function useEditProfile() {
 
     hasUnsavedChanges,
 
-    setDisplayName,
+    setDisplayName: handleDisplayNameChange,
     setEmail,
-    setPhone,
-    setBio,
+    setPhone: handlePhoneChange,
+    setBio: handleBioChange,
     setFocusedField,
-    setAvatarUrl,
     setShowAvatarSheet,
     setSearchQuery,
     setModalType,
 
     pickFromGallery,
     pickFromCamera,
+    handleDeleteAvatar,
     handlePickImage,
 
     openGovernoratePicker,

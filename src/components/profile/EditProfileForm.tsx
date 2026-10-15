@@ -5,11 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  I18nManager,
   Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { Radius } from '../../constants/radius'
+import { ProfilePhoneInput } from './ProfilePhoneInput'
 
 interface EditProfileFormProps {
   displayName: string
@@ -33,6 +34,14 @@ interface EditProfileFormProps {
 
   onGovernoratePress: () => void
   onWilayaPress: () => void
+
+  errors?: {
+    displayName?: string
+    phone?: string
+    bio?: string
+  }
+
+  phoneTrailingAccessory?: React.ReactNode
 }
 
 export function EditProfileForm({
@@ -52,10 +61,12 @@ export function EditProfileForm({
   onBioChange,
   onGovernoratePress,
   onWilayaPress,
+  errors = {},
+  phoneTrailingAccessory,
 }: EditProfileFormProps) {
   return (
     <>
-      {/* ── Section 1: Basic Info ── */}
+      {/* ── Section 1: Basic Info (RTL Arabic Fields) ── */}
       <View style={s.sectionWrap}>
         <Text style={s.sectionHeaderTitle}>المعلومات الأساسية</Text>
         <View style={s.cardGroup}>
@@ -67,15 +78,28 @@ export function EditProfileForm({
                 <Text style={s.badgeRequiredText}>مطلوب</Text>
               </View>
             </View>
-            <View style={[s.inputBox, focusedField === 'displayName' && s.inputBoxFocused]}>
+            <View
+              style={[
+                s.inputBox,
+                focusedField === 'displayName' && s.inputBoxFocused,
+                !!errors.displayName && s.inputBoxError,
+              ]}
+            >
               <Ionicons
                 name="person-outline"
                 size={18}
-                color={focusedField === 'displayName' ? Colors.primary : '#64748B'}
+                color={
+                  errors.displayName
+                    ? '#DC2626'
+                    : focusedField === 'displayName'
+                      ? Colors.primary
+                      : '#64748B'
+                }
                 style={s.fieldIconStart}
               />
               <TextInput
-                style={s.textInput}
+                testID="edit-profile-display-name-input"
+                style={s.textInputRtl}
                 placeholder="اكتب اسمك ليظهر للآخرين"
                 placeholderTextColor="#94A3B8"
                 value={displayName}
@@ -83,26 +107,49 @@ export function EditProfileForm({
                 onFocus={() => onFocusField('displayName')}
                 onBlur={onBlurField}
                 textAlign="right"
+                textAlignVertical="center"
+                maxLength={50}
               />
             </View>
+            {errors.displayName ? (
+              <Text style={s.errorText} testID="edit-profile-display-name-error">
+                {errors.displayName}
+              </Text>
+            ) : null}
           </View>
 
           {/* Bio Field */}
           <View style={s.fieldWrapper}>
             <View style={s.fieldLabelRow}>
-              <Text style={s.label}>نبذة عنك</Text>
+              <View style={s.rowWithCounter}>
+                <Text style={s.label}>نبذة عنك</Text>
+                <Text style={s.charCounter}>{bio.length}/500</Text>
+              </View>
               <View style={s.badgeOptional}>
                 <Text style={s.badgeOptionalText}>اختياري</Text>
               </View>
             </View>
-            <View style={[s.inputBoxMultiline, focusedField === 'bio' && s.inputBoxFocused]}>
+            <View
+              style={[
+                s.inputBoxMultiline,
+                focusedField === 'bio' && s.inputBoxFocused,
+                !!errors.bio && s.inputBoxError,
+              ]}
+            >
               <Ionicons
                 name="document-text-outline"
                 size={18}
-                color={focusedField === 'bio' ? Colors.primary : '#64748B'}
+                color={
+                  errors.bio
+                    ? '#DC2626'
+                    : focusedField === 'bio'
+                      ? Colors.primary
+                      : '#64748B'
+                }
                 style={s.fieldIconMultilineStart}
               />
               <TextInput
+                testID="edit-profile-bio-input"
                 style={s.textInputMultiline}
                 placeholder="اكتب نبذة مختصرة عن نفسك أو نشاطك التجاري..."
                 placeholderTextColor="#94A3B8"
@@ -111,44 +158,38 @@ export function EditProfileForm({
                 onFocus={() => onFocusField('bio')}
                 onBlur={onBlurField}
                 multiline
+                maxLength={500}
                 textAlign="right"
+                textAlignVertical="top"
               />
             </View>
+            {errors.bio ? (
+              <Text style={s.errorText} testID="edit-profile-bio-error">
+                {errors.bio}
+              </Text>
+            ) : null}
           </View>
         </View>
       </View>
 
-      {/* ── Section 2: Contact Info ── */}
+      {/* ── Section 2: Contact Info (LTR Phone & Email) ── */}
       <View style={s.sectionWrap}>
         <Text style={s.sectionHeaderTitle}>معلومات التواصل</Text>
         <View style={s.cardGroup}>
-          {/* Phone Field */}
-          <View style={s.fieldWrapper}>
-            <View style={s.fieldLabelRow}>
-              <Text style={s.label}>رقم الهاتف</Text>
-            </View>
-            <View style={[s.inputBox, focusedField === 'phone' && s.inputBoxFocused]}>
-              <Ionicons
-                name="call-outline"
-                size={18}
-                color={focusedField === 'phone' ? Colors.primary : '#64748B'}
-                style={[s.fieldIconStart, I18nManager.isRTL && { transform: [{ scaleX: -1 }] }]}
-              />
-              <TextInput
-                style={[s.textInput, s.textInputLtr]}
-                placeholder="مثال: 98765432"
-                placeholderTextColor="#94A3B8"
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={onPhoneChange}
-                onFocus={() => onFocusField('phone')}
-                onBlur={onBlurField}
-                textAlign="left"
-              />
-            </View>
-          </View>
+          {/* Phone Field (LTR with trailingAccessory slot) */}
+          <ProfilePhoneInput
+            value={phone}
+            onChangeText={onPhoneChange}
+            onFocus={() => onFocusField('phone')}
+            onBlur={onBlurField}
+            isFocused={focusedField === 'phone'}
+            hasError={!!errors.phone}
+            error={errors.phone}
+            trailingAccessory={phoneTrailingAccessory}
+            testID="edit-profile-phone-input"
+          />
 
-          {/* Email Field (Read Only) */}
+          {/* Email Field (Read Only, LTR) */}
           <View style={s.fieldWrapper}>
             <View style={s.fieldLabelRow}>
               <Text style={s.label}>البريد الإلكتروني</Text>
@@ -157,16 +198,25 @@ export function EditProfileForm({
                 <Text style={s.badgeLockedText}>ثابت</Text>
               </View>
             </View>
-            <View style={[s.inputBox, s.inputBoxDisabled]}>
-              <Ionicons name="mail-outline" size={18} color="#94A3B8" style={[s.fieldIconStart, I18nManager.isRTL && { transform: [{ scaleX: -1 }] }]} />
+            <View style={[s.inputBoxLtr, s.inputBoxDisabled]}>
+              <Ionicons
+                name="mail-outline"
+                size={18}
+                color="#94A3B8"
+                style={s.fieldIconLtrStart}
+              />
               <TextInput
-                style={[s.textInput, s.textInputLtr, { color: '#64748B' }]}
+                testID="edit-profile-email-input"
+                style={s.textInputLtr}
                 placeholder="بريدك الإلكتروني"
                 placeholderTextColor="#94A3B8"
                 keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
                 value={email}
                 editable={false}
                 textAlign="left"
+                textAlignVertical="center"
               />
             </View>
           </View>
@@ -183,6 +233,7 @@ export function EditProfileForm({
               <Text style={s.label}>المحافظة</Text>
             </View>
             <TouchableOpacity
+              testID="edit-profile-governorate-btn"
               style={[s.inputBox, governorateId !== null && s.inputBoxActive]}
               activeOpacity={0.75}
               onPress={onGovernoratePress}
@@ -214,6 +265,7 @@ export function EditProfileForm({
               <Text style={s.label}>الولاية / المدينة</Text>
             </View>
             <TouchableOpacity
+              testID="edit-profile-wilaya-btn"
               style={[
                 s.inputBox,
                 !governorateId && s.inputBoxDisabled,
@@ -280,7 +332,7 @@ const s = StyleSheet.create({
   },
   cardGroup: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: Radius.lg,
     padding: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -290,13 +342,19 @@ const s = StyleSheet.create({
 
   /* Form Fields */
   fieldWrapper: {
-    gap: 6,
+    gap: 4,
   },
   fieldLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 2,
+    marginBottom: 2,
+  },
+  rowWithCounter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
@@ -305,6 +363,13 @@ const s = StyleSheet.create({
     color: '#1E293B',
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  charCounter: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#94A3B8',
+    writingDirection: 'ltr',
   },
   badgeRequired: {
     backgroundColor: '#FEF2F2',
@@ -361,6 +426,20 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
   },
+  inputBoxLtr: {
+    height: 48,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    ...Platform.select({
+      ios: { direction: 'ltr' as const },
+      default: {},
+    }),
+  },
   inputBoxMultiline: {
     minHeight: 88,
     backgroundColor: '#F8FAFC',
@@ -380,6 +459,10 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: '#FFFFFF',
   },
+  inputBoxError: {
+    borderColor: '#DC2626',
+    backgroundColor: '#FFFBFB',
+  },
   inputBoxDisabled: {
     backgroundColor: '#F1F5F9',
     borderColor: '#E2E8F0',
@@ -387,6 +470,9 @@ const s = StyleSheet.create({
 
   /* Field Icons */
   fieldIconStart: {
+    marginEnd: 10,
+  },
+  fieldIconLtrStart: {
     marginEnd: 10,
   },
   fieldIconMultilineStart: {
@@ -398,7 +484,7 @@ const s = StyleSheet.create({
   },
 
   /* Text Inputs */
-  textInput: {
+  textInputRtl: {
     flex: 1,
     height: '100%',
     fontFamily: 'Almarai_700Bold',
@@ -407,12 +493,28 @@ const s = StyleSheet.create({
     color: '#0F172A',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textAlignVertical: 'center',
     paddingVertical: 0,
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      default: {},
+    }),
   },
   textInputLtr: {
+    flex: 1,
+    height: '100%',
     fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: '#64748B',
     textAlign: 'left',
     writingDirection: 'ltr',
+    textAlignVertical: 'center',
+    paddingVertical: 0,
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      default: {},
+    }),
   },
   textInputMultiline: {
     flex: 1,
@@ -425,6 +527,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     textAlignVertical: 'top',
     paddingTop: 0,
+    paddingBottom: 0,
   },
   inputTextDisplay: {
     flex: 1,
@@ -434,9 +537,28 @@ const s = StyleSheet.create({
     color: '#0F172A',
     textAlign: 'left',
     writingDirection: 'rtl',
+    textAlignVertical: 'center',
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      default: {},
+    }),
   },
   placeholderText: {
     fontFamily: 'Almarai_400Regular',
     color: '#94A3B8',
+  },
+
+  /* Hints and Errors */
+  errorText: {
+    width: '100%',
+    alignSelf: 'stretch',
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#DC2626',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginTop: 2,
+    paddingHorizontal: 2,
   },
 })

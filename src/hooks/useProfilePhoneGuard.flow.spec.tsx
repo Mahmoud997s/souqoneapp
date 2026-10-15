@@ -122,16 +122,16 @@ describe('Profile Phone Guard & Cache Flow (Spec 3)', () => {
     })
 
     await act(async () => {
-      editProfileHook.setPhone('+96891234567')
+      editProfileHook.setPhone('91234567')
     })
 
     await act(async () => {
       await editProfileHook.handleSave()
     })
 
-    // Assert queryClient invalidated queries
+    // Assert queryClient invalidated queries (active queries)
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['user'] }))
-    expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['profile'] }))
+    expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['my-carrier-profile'] }))
 
     // Assert authStore user was updated directly
     expect(useAuthStore.getState().user?.phone).toBe('+96891234567')

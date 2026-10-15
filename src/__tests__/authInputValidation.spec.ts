@@ -65,6 +65,22 @@ describe('Auth Input Validation Suite (Mobile)', () => {
       expect(res.isValid).toBe(true)
     });
 
+    it('accepts valid 8-digit Omani phone "91234567" and strictly rejects prefix "96891234567"', () => {
+      const valid = validateRegister({
+        ...baseValidInput,
+        phone: '91234567',
+      })
+      expect(valid.errors.phone).toBeUndefined()
+      expect(valid.isValid).toBe(true)
+
+      const invalid = validateRegister({
+        ...baseValidInput,
+        phone: '96891234567',
+      })
+      expect(invalid.errors.phone).toBe('رقم عماني غير صحيح (8 أرقام يبدأ بـ 9 أو 7)')
+      expect(invalid.isValid).toBe(false)
+    });
+
     it('accepts username with dot "a.b_c"', () => {
       const res = validateRegister({
         ...baseValidInput,

@@ -89,6 +89,28 @@ export function isValidNormalizedEmail(cleanEmail: string): boolean {
 }
 
 /**
+ * Normalizes digits and strips non-numeric characters for phone inspection.
+ * Automatically handles and strips Omani country codes (+968 or 00968).
+ */
+export function normalizeOmaniPhoneDigits(rawPhone: string | null | undefined): string {
+  let digits = normalizeDigits(rawPhone || '').trim().replace(/\D/g, '')
+  if (digits.startsWith('00968') && digits.length === 13) {
+    digits = digits.slice(5)
+  } else if (digits.startsWith('968') && digits.length === 11) {
+    digits = digits.slice(3)
+  }
+  return digits
+}
+
+/**
+ * Checks if a given raw or normalized phone string conforms to Omani 8-digit mobile number starting with 7 or 9.
+ */
+export function isValidOmaniPhone(rawPhone: string | null | undefined): boolean {
+  const phoneClean = normalizeOmaniPhoneDigits(rawPhone)
+  return OMANI_PHONE_REGEX.test(phoneClean)
+}
+
+/**
  * Validates Login Form
  */
 export function validateLogin(input: LoginValidationInput): ValidationResult {

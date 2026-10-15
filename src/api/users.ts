@@ -3,7 +3,7 @@ import { User } from '../types/auth.types'
 
 export interface UpdateProfilePayload {
   displayName?: string
-  bio?: string
+  bio?: string | null
   phone?: string
   country?: string
   governorateId?: number
