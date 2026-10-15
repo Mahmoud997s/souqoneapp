@@ -17,8 +17,7 @@ interface OperatorPayloadInput {
   isPriceNegotiable: boolean
   governorateId?: number | null
   wilayaId?: number | null
-  contactPhone: string
-  whatsapp: string
+  whatsappEnabled: boolean
 }
 
 /**
@@ -46,7 +45,6 @@ export function buildOperatorPayload(formData: OperatorPayloadInput): Record<str
     isPriceNegotiable: formData.isPriceNegotiable,
     governorateId: Number(formData.governorateId),
     wilayaId: Number(formData.wilayaId),
-    contactPhone: formData.contactPhone.trim(),
-    whatsapp: formData.whatsapp.trim() || formData.contactPhone.trim(),
+    whatsappEnabled: formData.whatsappEnabled === true,
   }
 }

@@ -9,6 +9,8 @@ import { partsApi } from '../api/parts'
 import { servicesApi } from '../api/services'
 import { jobsApi } from '../api/jobs'
 import { dialogService } from '../store/dialogStore'
+import { useAuthStore } from '../store/authStore'
+import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { MyListingItem, MyListingEntityType } from '../types/my-listings.types'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { GroupedSectionData } from '../components/profile/my-listings/MyListingsAllView'
@@ -338,6 +340,14 @@ export function useMyListingsScreen() {
 
   const confirmStatusChange = (item: MyListingItem, action: 'mark-sold' | 'archive' | 'restore') => {
     if (isChangingStatus.current) return
+
+    if (action === 'restore') {
+      const user = useAuthStore.getState().user
+      if (!user?.phone) {
+        promptProfilePhoneRequired()
+        return
+      }
+    }
 
     console.log('[DIAG] confirmStatusChange called with action:', action)
     

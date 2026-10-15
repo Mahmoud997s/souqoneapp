@@ -2,6 +2,7 @@ import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import { dialogService } from '../store/dialogStore'
 import { Config } from '../constants/config'
+import { isProfilePhoneRequiredError, promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 
 export const apiClient = axios.create({
   baseURL: Config.apiUrl,
@@ -108,7 +109,9 @@ apiClient.interceptors.response.use(
 
     const skipDialog = Boolean(error.config?.skipErrorDialog)
     if (!skipDialog) {
-      if (error.response?.status >= 500) {
+      if (isProfilePhoneRequiredError(error)) {
+        promptProfilePhoneRequired()
+      } else if (error.response?.status >= 500) {
         dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
       } else if (error.message === 'Network Error') {
         dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning')

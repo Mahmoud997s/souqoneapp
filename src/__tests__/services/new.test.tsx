@@ -35,8 +35,12 @@ jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
 }))
 
+import { useAuthStore } from '../../store/authStore'
+
 jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query')
   return {
+    ...actual,
     useMutation: ({ mutationFn }: any) => ({
       mutate: jest.fn((data, options) => {
         mutationFn(data)
@@ -73,6 +77,7 @@ jest.mock('../../store/dialogStore', () => ({
 describe('NewServiceListingScreen (Wizard Route)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    useAuthStore.setState({ user: { id: 'u1', phone: '+96891234567' } as any })
     useServiceWizardStore.setState({
       currentStep: 1,
       formData: { ...defaultServiceFormData },

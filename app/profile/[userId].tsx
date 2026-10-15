@@ -32,9 +32,7 @@ export default function PublicProfileScreen() {
     )
   }
 
-  const phoneToUse = profile?.phone || 
-    (userListings?.[0] as any)?.raw?.seller?.phone || 
-    (userListings?.[0] as any)?.raw?.user?.phone
+  const phoneToUse = profile?.phone
 
   const displayName = profile?.displayName ?? profile?.username ?? 'مستخدم'
   const joinYear = profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '—'

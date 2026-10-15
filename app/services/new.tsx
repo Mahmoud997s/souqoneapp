@@ -37,11 +37,14 @@ import { ServiceStep3Details } from '../../src/components/services/wizard/Servic
 import { ServiceStep4Schedule } from '../../src/components/services/wizard/ServiceStep4Schedule'
 import { ServiceStep5Pricing } from '../../src/components/services/wizard/ServiceStep5Pricing'
 import { ServiceStep6Review } from '../../src/components/services/wizard/ServiceStep6Review'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 6
 
 export default function NewServiceListingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
 
   const createMutation = useMutation({
     mutationFn: (data: any) => servicesApi.create(data),
@@ -263,8 +266,7 @@ export default function NewServiceListingScreen() {
       address: formData.address ? formData.address.trim() : undefined,
       latitude: formData.latitude != null ? Number(formData.latitude) : undefined,
       longitude: formData.longitude != null ? Number(formData.longitude) : undefined,
-      contactPhone: formData.contactPhone ? formData.contactPhone.trim() : undefined,
-      whatsapp: formData.whatsapp ? formData.whatsapp.trim() : undefined,
+      whatsappEnabled: formData.whatsappEnabled === true,
       website: formData.website ? formData.website.trim() : undefined,
       images: finalImageUrls,
     }
@@ -346,6 +348,24 @@ export default function NewServiceListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (!hasPhone && !formData.editMode) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <GlassNavBar
+          title="إضافة خدمة"
+          paddingTop={0}
+          onBackPress={() => router.back()}
+        />
+        <ProfilePhoneGuardView
+          title="إضافة خدمة"
+          onBack={() => router.back()}
+        />
+      </View>
+    )
+  }
 
   return (
     <KeyboardAvoidingView

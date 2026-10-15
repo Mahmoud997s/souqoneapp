@@ -22,6 +22,7 @@ import { BUS_FEATURES, BUS_CONTRACT_TYPES, BUS_TYPES, BUS_MAKES } from '../../sr
 import { BusContractDashboard } from '../../src/components/buses/BusContractDashboard'
 import { useBusWizardStore } from '../../src/store/busWizardStore'
 import { busesApi } from '../../src/api/buses'
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact'
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -54,6 +55,7 @@ export default function ListingDetailScreen() {
   const { user } = useAuthStore()
   const insets = useSafeAreaInsets()
   const { data: item, isLoading, isError } = useBus(id)
+  const contact = useListingContact('BUS_LISTING', id ?? '', `/buses/${id}`, (item as any)?.title)
   const [imgIdx, setImgIdx] = useState(0)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
   const [isSpecsExpanded, setIsSpecsExpanded] = useState(false)
@@ -777,42 +779,28 @@ export default function ListingDetailScreen() {
             )}
             <TouchableOpacity
               style={[s.chatIconBtn, isSold && s.disabledBtn]}
-              onPress={isSold ? undefined : handleChat}
+              onPress={isSold ? undefined : contact.chat}
               activeOpacity={isSold ? 1 : 0.9}
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
             </TouchableOpacity>
-            {seller?.phone && (
+            {raw.whatsappEnabled !== false && (
               <TouchableOpacity
                 style={[s.waBtn, isSold && s.disabledBtn]}
-                onPress={isSold ? undefined : () => {
-                  const msg = encodeURIComponent(`مرحباً، بخصوص إعلانك: ${raw.title}`)
-                  Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}&text=${msg}`)
-                }}
+                onPress={isSold ? undefined : contact.whatsApp}
                 activeOpacity={isSold ? 1 : 0.9}
               >
                 <Ionicons name="logo-whatsapp" size={22} color="#fff" />
               </TouchableOpacity>
             )}
-            {seller?.phone ? (
-              <TouchableOpacity
-                style={[s.callWideBtn, isSold && s.disabledBtn]}
-                onPress={isSold ? undefined : () => Linking.openURL(`tel:${seller.phone}`)}
-                activeOpacity={isSold ? 1 : 0.9}
-              >
-                <Ionicons name="call" size={22} color={Colors.white} />
-                <Text style={s.callWideTxt}>{isSold ? 'تم البيع' : 'اتصال'}</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[s.callWideBtn, isSold && s.disabledBtn]}
-                onPress={isSold ? undefined : handleChat}
-                activeOpacity={isSold ? 1 : 0.9}
-              >
-                <Ionicons name="chatbubbles" size={22} color={Colors.white} />
-                <Text style={s.callWideTxt}>{isSold ? 'تم البيع' : 'تواصل'}</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[s.callWideBtn, isSold && s.disabledBtn]}
+              onPress={isSold ? undefined : contact.call}
+              activeOpacity={isSold ? 1 : 0.9}
+            >
+              <Ionicons name="call" size={22} color={Colors.white} />
+              <Text style={s.callWideTxt}>{isSold ? 'تم البيع' : 'اتصال'}</Text>
+            </TouchableOpacity>
           </>
         )}
       </View>

@@ -104,6 +104,7 @@ export interface CarrierProfile {
   wilayaId?: number;
   contactPhone?: string;
   whatsapp?: string;
+  whatsappEnabled?: boolean;
   
   serviceAreas?: string[];
   isAvailable: boolean;

@@ -39,8 +39,7 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
     latitude: 23.588,
     longitude: 58.3829,
 
-    contactPhone: '96891234567',
-    whatsapp: '96891234567',
+    whatsappEnabled: true,
 
     images: [{ uri: 'file:///local/photo1.jpg' }],
     existingImages: [],
@@ -478,8 +477,7 @@ describe('Heavy Equipment Wizard (Add & Edit Tests)', () => {
         latitude: form.latitude || undefined,
         longitude: form.longitude || undefined,
 
-        contactPhone: form.contactPhone.trim() || undefined,
-        whatsapp: form.whatsapp.trim() || undefined,
+        whatsappEnabled: form.whatsappEnabled,
         ...(form.editMode ? {} : { images: finalImages.length > 0 ? finalImages : undefined }),
       }
 

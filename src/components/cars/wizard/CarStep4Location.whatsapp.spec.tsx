@@ -42,8 +42,8 @@ describe('Car wizard - WhatsApp switch', () => {
   it.each(['SALE', 'RENTAL', 'WANTED'])('shows the switch (with the account-phone hint) for listingType=%s', async (listingType) => {
     await renderStep({ ...freshForm(), listingType })
     expect(screen.getByTestId('whatsapp-enabled-switch')).toBeTruthy()
-    expect(screen.getByText('تفعيل الواتساب للتواصل')).toBeTruthy()
-    expect(screen.getByText(/رقم هاتف حسابك المسجل/)).toBeTruthy()
+    expect(screen.getByText('التواصل عبر واتساب')).toBeTruthy()
+    expect(screen.getByText(/يظهر زر واتساب للمشتري على رقم بروفايلك/)).toBeTruthy()
   })
 
   it('new listing: switch opens OFF', async () => {

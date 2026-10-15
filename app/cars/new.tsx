@@ -36,10 +36,14 @@ import { CarStep4Location } from '../../src/components/cars/wizard/CarStep4Locat
 import { CarStep5Review } from '../../src/components/cars/wizard/CarStep5Review'
 import { validateCarStep } from '../../src/hooks/useCarValidation'
 
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
+
 const TOTAL_STEPS = 5
 
 export default function NewCarListingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
 
   const createMutation = useMutation({
     mutationFn: (data: any) => listingsApi.create(data),
@@ -351,6 +355,19 @@ export default function NewCarListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (!hasPhone && !formData.editMode) {
+    return (
+      <View style={s.root}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <ProfilePhoneGuardView
+          title="إضافة إعلان سيارة"
+          onBack={() => router.back()}
+        />
+      </View>
+    )
+  }
 
   return (
     <KeyboardAvoidingView

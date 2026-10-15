@@ -19,8 +19,7 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
     wilayaId: 101,
     governorateName: 'مسقط',
     wilayaName: 'السيب',
-    contactPhone: '96891234567',
-    whatsapp: '96891234567',
+    whatsappEnabled: true,
     profileImageUrl: null,
     isEditMode: false,
     editListingId: null,
@@ -197,22 +196,11 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(errors.city).toBeDefined()
     })
 
-    it('should fail if contactPhone is missing or less than 8 digits', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, contactPhone: '1234567' })
-      expect(isValid).toBe(false)
-      expect(errors.contactPhone).toBeDefined()
-    })
-
-    it('should fail if contactPhone is empty', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, contactPhone: '' })
-      expect(isValid).toBe(false)
-      expect(errors.contactPhone).toBeDefined()
-    })
-
-    it('should fail if whatsapp is missing or less than 8 digits', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, whatsapp: '12345' })
-      expect(isValid).toBe(false)
-      expect(errors.whatsapp).toBeDefined()
+    it('does NOT validate phone or whatsapp on step 3 (handled by profile phone guard)', () => {
+      const { isValid, errors } = validateOperatorStep(3, baseValidForm)
+      expect(isValid).toBe(true)
+      expect(errors).not.toHaveProperty('contactPhone')
+      expect(errors).not.toHaveProperty('whatsapp')
     })
 
     it('should accumulate all step 3 errors when everything is invalid', () => {
@@ -222,16 +210,14 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
         hourlyRate: '',
         governorateId: null,
         wilayaId: null,
-        contactPhone: '',
-        whatsapp: '',
       })
       expect(isValid).toBe(false)
       expect(errors.dailyRate).toBeDefined()
       expect(errors.hourlyRate).toBeDefined()
       expect(errors.governorate).toBeDefined()
       expect(errors.city).toBeDefined()
-      expect(errors.contactPhone).toBeDefined()
-      expect(errors.whatsapp).toBeDefined()
+      expect(errors).not.toHaveProperty('contactPhone')
+      expect(errors).not.toHaveProperty('whatsapp')
     })
   })
 
@@ -258,15 +244,7 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(hookResult.errors.city).toBe('يرجى اختيار المدينة / الولاية')
     })
 
-    it('should return identical error messages from hook for step 3 short contactPhone', () => {
-      const hookResult = validateOperatorStep(3, { ...baseValidForm, contactPhone: '123' })
-      expect(hookResult.errors.contactPhone).toBe('رقم هاتف الاتصال المباشر مطلوب (8 أرقام على الأقل)')
-    })
 
-    it('should return identical error messages from hook for step 3 short whatsapp', () => {
-      const hookResult = validateOperatorStep(3, { ...baseValidForm, whatsapp: '123' })
-      expect(hookResult.errors.whatsapp).toBe('رقم الواتساب مطلوب (8 أرقام على الأقل)')
-    })
   })
 
   // ── 5. Payload Shape Verification ───────────────────────────────────────
@@ -302,9 +280,11 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(payload.currency).toBe('OMR')
     })
 
-    it('whatsapp should fallback to contactPhone when empty', () => {
-      const payload = buildOperatorPayload({ ...baseValidForm, whatsapp: '' })
-      expect(payload.whatsapp).toBe(baseValidForm.contactPhone.trim())
+    it('payload carries whatsappEnabled and NO contactPhone/whatsapp keys', () => {
+      const payload = buildOperatorPayload({ ...baseValidForm, whatsappEnabled: true })
+      expect(payload.whatsappEnabled).toBe(true)
+      expect(payload).not.toHaveProperty('contactPhone')
+      expect(payload).not.toHaveProperty('whatsapp')
     })
   })
 })

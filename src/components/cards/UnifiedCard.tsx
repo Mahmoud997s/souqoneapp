@@ -15,6 +15,7 @@ import { Colors } from '../../constants/colors'
 import { CardSystem } from '../../constants/cardSystem'
 import { Spacing } from '../../constants/spacing'
 import { chatApi } from '../../api/chat'
+import { contactApi } from '../../api/contact'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
 import {
@@ -286,12 +287,18 @@ export function UnifiedCard({
     <View style={styles.cardActionsRow}>
       <TouchableOpacity
         style={styles.actionBtnCall}
-        onPress={() => {
-          const phone =
-            item.phoneNumber ||
-            item.raw?.seller?.phone ||
-            item.raw?.user?.phone ||
-            item.raw?.phone
+        onPress={async () => {
+          let phone = item.phoneNumber
+          if (!phone) {
+            try {
+              const cat = item.category || 'LISTING'
+              const entityType = cat.toUpperCase() === 'CARS' ? 'LISTING' : cat.toUpperCase()
+              const res = await contactApi.getContact(entityType, item.id)
+              phone = res.data?.phone ?? undefined
+            } catch {
+              // fallback
+            }
+          }
           if (phone) {
             Linking.openURL(`tel:${phone}`)
           } else {

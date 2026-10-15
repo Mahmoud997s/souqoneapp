@@ -412,25 +412,13 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
             </View>
           ) : null}
 
-          {formData.contactPhone ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="call-outline" size={16} color="#64748B" />
-                <Text style={s.label}>رقم الهاتف</Text>
-              </View>
-              <Text style={s.value}>{formData.contactPhone}</Text>
+          <View style={s.row}>
+            <View style={s.rowIconLabel}>
+              <Ionicons name="logo-whatsapp" size={16} color="#059669" />
+              <Text style={s.label}>التواصل عبر واتساب</Text>
             </View>
-          ) : null}
-
-          {formData.whatsapp ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="logo-whatsapp" size={16} color="#059669" />
-                <Text style={s.label}>رقم الواتساب</Text>
-              </View>
-              <Text style={s.value}>{formData.whatsapp}</Text>
-            </View>
-          ) : null}
+            <Text style={s.value}>{formData.whatsappEnabled ? 'مفعّل' : 'معطّل'}</Text>
+          </View>
         </View>
       </BlurView>
     </View>

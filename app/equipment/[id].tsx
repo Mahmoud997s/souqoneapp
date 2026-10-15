@@ -19,6 +19,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { formatLocation, translateEnum } from '../../src/utils/mappers'
 import { EQUIPMENT_CONDITIONS, EQUIPMENT_LISTING_TYPES } from '../../src/utils/equipment-mappers'
 import { dialogService } from '../../src/store/dialogStore'
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact'
 
 
 import MapView, { Marker } from '../../src/components/ui/Map';
@@ -40,6 +41,7 @@ export default function EquipmentDetailScreen() {
   const { user } = useAuthStore()
   const insets = useSafeAreaInsets()
   const { data: item, isLoading, isError } = useEquipmentItem(id)
+  const contact = useListingContact('EQUIPMENT_LISTING', id ?? '', `/equipment/${id}`, (item as any)?.title)
   const [imgIdx, setImgIdx] = useState(0)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false)
@@ -589,42 +591,28 @@ export default function EquipmentDetailScreen() {
             )}
             <TouchableOpacity
               style={s.chatIconBtn}
-              onPress={handleChat}
+              onPress={contact.chat}
               activeOpacity={0.9}
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
             </TouchableOpacity>
-            {seller?.phone && (
+            {raw.whatsappEnabled !== false && (
               <TouchableOpacity
                 style={s.waBtn}
-                onPress={() => {
-                  const msg = encodeURIComponent(`مرحباً، بخصوص إعلان المعدة: ${raw.title}`)
-                  Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}&text=${msg}`)
-                }}
+                onPress={contact.whatsApp}
                 activeOpacity={0.9}
               >
                 <Ionicons name="logo-whatsapp" size={22} color="#fff" />
               </TouchableOpacity>
             )}
-            {seller?.phone ? (
-              <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={() => Linking.openURL(`tel:${seller.phone}`)}
-                activeOpacity={0.9}
-              >
-                <Ionicons name="call" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>اتصال</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={handleChat}
-                activeOpacity={0.9}
-              >
-                <Ionicons name="chatbubble-ellipses" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>محادثة</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={s.callWideBtn}
+              onPress={contact.call}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="call" size={22} color={Colors.primary} />
+              <Text style={s.callWideTxt}>اتصال</Text>
+            </TouchableOpacity>
           </>
         )}
       </View>

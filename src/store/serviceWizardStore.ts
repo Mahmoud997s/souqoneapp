@@ -46,8 +46,7 @@ export interface ServiceFormData {
   address: string;
   latitude: number | null;
   longitude: number | null;
-  contactPhone: string;
-  whatsapp: string;
+  whatsappEnabled: boolean;
   website: string;
 
   // Wizard
@@ -88,8 +87,7 @@ export const defaultServiceFormData: ServiceFormData = {
   address: '',
   latitude: null,
   longitude: null,
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
   website: '',
 
   // Wizard

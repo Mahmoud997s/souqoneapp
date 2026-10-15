@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useRouter } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 import { useAuthStore } from '../../store/authStore'
 
 export interface UseRequireAuthReturn {
@@ -16,8 +16,17 @@ export interface UseRequireAuthReturn {
  * this parameter, which is separate auth flow work; this hook routes guests there correctly.
  */
 export function useRequireAuth(): UseRequireAuthReturn {
-  const router = useRouter()
   const { isLoggedIn } = useAuthStore()
+
+  let navRouter: any = router
+  try {
+    if (typeof useRouter === 'function') {
+      const r = useRouter()
+      if (r && typeof r.push === 'function') {
+        navRouter = r
+      }
+    }
+  } catch {}
 
   const requireAuth = useCallback(
     (redirectPath: string, then: () => void) => {
@@ -27,9 +36,9 @@ export function useRequireAuth(): UseRequireAuthReturn {
       }
 
       const encodedRedirect = encodeURIComponent(redirectPath)
-      router.push(`/(auth)/login?redirect=${encodedRedirect}` as any)
+      navRouter.push(`/(auth)/login?redirect=${encodedRedirect}` as any)
     },
-    [isLoggedIn, router]
+    [isLoggedIn, navRouter]
   )
 
   return { requireAuth }

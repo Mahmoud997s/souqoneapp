@@ -46,12 +46,6 @@ export function validateOperatorStep(step: number, formData: Partial<OperatorWiz
     if (!formData.wilayaId) {
       errors.city = 'يرجى اختيار المدينة / الولاية'
     }
-    if (!formData.contactPhone || formData.contactPhone.trim().length < 8) {
-      errors.contactPhone = 'رقم هاتف الاتصال المباشر مطلوب (8 أرقام على الأقل)'
-    }
-    if (!formData.whatsapp || formData.whatsapp.trim().length < 8) {
-      errors.whatsapp = 'رقم الواتساب مطلوب (8 أرقام على الأقل)'
-    }
   }
 
   return {

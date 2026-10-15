@@ -29,8 +29,7 @@ export type EquipmentFormField =
   | 'city'
   | 'latitude'
   | 'longitude'
-  | 'contactPhone'
-  | 'whatsapp'
+  | 'whatsappEnabled'
   | 'images'
   | 'existingImages'
   | 'removedImageIds'
@@ -71,8 +70,7 @@ export interface EquipmentFormData {
   latitude: number | null
   longitude: number | null
 
-  contactPhone: string
-  whatsapp: string
+  whatsappEnabled: boolean
 
   images: any[]
   existingImages: any[]

@@ -12,6 +12,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { BusWizardData } from '../../../store/busWizardStore'
@@ -119,28 +120,10 @@ export function BusStep5Location({
       </WizardCard>
 
       {/* ── 2. بطاقة التواصل: الرقم دايماً رقم حساب البائع، والمستخدم بيتحكم في الواتساب بس ── */}
-      <WizardCard
-        title="التواصل"
-        subtitle="يتواصل المشترون معك عبر رقم هاتف حسابك المسجل في سوق ون"
-      >
-        <View style={s.switchRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.switchTitle}>تفعيل الواتساب للتواصل</Text>
-            <Text style={s.switchSub}>
-              إظهار زر الواتساب في إعلانك، على نفس رقم حسابك المسجل. لتغيير الرقم عدّله من إعدادات حسابك.
-            </Text>
-          </View>
-          <Switch
-            value={data.whatsappEnabled === true}
-            onValueChange={(val) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              onUpdateField('whatsappEnabled', val)
-            }}
-            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-            testID="whatsapp-enabled-switch"
-          />
-        </View>
-      </WizardCard>
+      <WhatsappToggle
+        value={data.whatsappEnabled === true}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+      />
 
       {/* ── Modal لتحديد الموقع على الخريطة ── */}
       <MapLocationPicker

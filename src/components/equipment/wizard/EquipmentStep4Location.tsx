@@ -9,6 +9,7 @@ import { AppInput } from '../../ui/AppInput'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { WizardCard } from '../../ui/WizardCard'
+import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { EquipmentStep4Props } from '../../../types/equipmentForm.types'
 
 export function EquipmentStep4Location({
@@ -236,29 +237,11 @@ export function EquipmentStep4Location({
         )}
       </WizardCard>
 
-      {/* 3. Direct Contact Info Card */}
-      <WizardCard
-        title="بيانات التواصل المباشر (اختياري)"
-        subtitle="أرقام التواصل التي ستظهر في الإعلان (تُملأ تلقائياً من حسابك)"
-      >
-        <AppInput
-          label="رقم هاتف الاتصال"
-          placeholder="مثال: 96891234567"
-          keyboardType="phone-pad"
-          value={formData.contactPhone}
-          onChangeText={(val) => onUpdateField('contactPhone', val)}
-          error={errors.contactPhone}
-        />
-
-        <AppInput
-          label="رقم الواتساب"
-          placeholder="مثال: 96891234567"
-          keyboardType="phone-pad"
-          value={formData.whatsapp}
-          onChangeText={(val) => onUpdateField('whatsapp', val)}
-          error={errors.whatsapp}
-        />
-      </WizardCard>
+      {/* 3. WhatsApp Toggle */}
+      <WhatsappToggle
+        value={formData.whatsappEnabled === true}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+      />
 
       {/* Modal for Map Picking */}
       <MapLocationPicker

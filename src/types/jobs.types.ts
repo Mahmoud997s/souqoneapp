@@ -29,6 +29,7 @@ export interface DriverProfile {
   city?: string
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
   isAvailable: boolean
   isVerified: boolean
   averageRating: number
@@ -51,6 +52,7 @@ export interface EmployerProfile {
   city?: string
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
   averageRating: number
   reviewCount: number
   createdAt: string
@@ -87,6 +89,7 @@ export interface DriverJob {
   contactPhone?: string
   contactEmail?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
   status: JobStatus
   viewCount: number
   _count: { applications: number }
@@ -143,6 +146,7 @@ export interface CreateJobDto {
   contactPhone?: string
   contactEmail?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
 }
 
 export interface CreateApplicationDto {
@@ -162,6 +166,7 @@ export interface CreateDriverProfileDto {
   wilayaId?: number
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
 }
 
 export interface CreateEmployerProfileDto {
@@ -173,4 +178,5 @@ export interface CreateEmployerProfileDto {
   wilayaId?: number
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
 }

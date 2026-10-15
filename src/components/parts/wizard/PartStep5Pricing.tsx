@@ -8,6 +8,7 @@ import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
+import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { PartStep5Props } from '../../../types/partForm.types'
 
 export function PartStep5Pricing({
@@ -129,33 +130,12 @@ export function PartStep5Pricing({
         )}
       </WizardCard>
 
-      {/* 3. Contact Information Card */}
-      <WizardCard
-        title="بيانات التواصل (اختياري)"
-        subtitle="أرقام التواصل تظهر للمشترين للتواصل المباشر"
-      >
-        <AppInput
-          label="رقم الهاتف للتواصل"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={formData.contactPhone}
-          onChangeText={(val) => onUpdateField('contactPhone', val)}
-          maxLength={15}
-          error={errors.contactPhone}
-          testID="contact-phone-input"
-        />
-
-        <AppInput
-          label="رقم الواتساب"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={formData.whatsapp}
-          onChangeText={(val) => onUpdateField('whatsapp', val)}
-          maxLength={15}
-          error={errors.whatsapp}
-          testID="whatsapp-input"
-        />
-      </WizardCard>
+      {/* 3. Contact / WhatsApp Toggle */}
+      <WhatsappToggle
+        value={formData.whatsappEnabled}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+        variant="card"
+      />
 
       {/* Modal for Map Location Picking */}
       <MapLocationPicker

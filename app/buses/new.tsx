@@ -38,11 +38,14 @@ import { BusStep3Details } from '../../src/components/buses/wizard/BusStep3Detai
 import { BusStep4Pricing } from '../../src/components/buses/wizard/BusStep4Pricing'
 import { BusStep5Location } from '../../src/components/buses/wizard/BusStep5Location'
 import { BusStep6Review } from '../../src/components/buses/wizard/BusStep6Review'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 6
 
 export default function NewBusListingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
 
   const {
     currentStep,
@@ -327,6 +330,24 @@ export default function NewBusListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (!hasPhone && !editMode) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <GlassNavBar
+          title="إضافة حافلة"
+          paddingTop={0}
+          onBackPress={() => router.back()}
+        />
+        <ProfilePhoneGuardView
+          title="إضافة حافلة"
+          onBack={() => router.back()}
+        />
+      </View>
+    )
+  }
 
   return (
     <KeyboardAvoidingView

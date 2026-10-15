@@ -130,19 +130,14 @@ describe('PartStep5Pricing', () => {
     expect(mockOnUpdateField).toHaveBeenCalledWith('longitude', null);
   });
 
-  it('updates contactPhone and whatsapp correctly', async () => {
+  it('toggles whatsappEnabled switch correctly', async () => {
     await render(<PartStep5Pricing {...defaultProps} />);
 
-    const phoneInput = screen.getByTestId('contact-phone-input');
+    const switchComponent = screen.getByTestId('whatsapp-enabled-switch');
     await act(async () => {
-      fireEvent.changeText(phoneInput, '91234567');
+      fireEvent(switchComponent, 'valueChange', true);
     });
-    expect(mockOnUpdateField).toHaveBeenCalledWith('contactPhone', '91234567');
 
-    const whatsappInput = screen.getByTestId('whatsapp-input');
-    await act(async () => {
-      fireEvent.changeText(whatsappInput, '99887766');
-    });
-    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsapp', '99887766');
+    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsappEnabled', true);
   });
 });

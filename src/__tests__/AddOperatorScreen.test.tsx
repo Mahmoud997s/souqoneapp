@@ -72,7 +72,9 @@ jest.mock('../components/ui/AppButton', () => ({
 describe('AddOperatorScreen Safety Net', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({ user: { id: 'user1' } })
+    const mockUser = { id: 'user1', phone: '+96891234567' }
+    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({ user: mockUser })
+    ;(useAuthStore as any).getState = jest.fn().mockReturnValue({ user: mockUser })
     ;(useCreateOperator as jest.Mock).mockReturnValue({ mutate: jest.fn(), isPending: false })
     ;(useOperatorWizardStore as unknown as jest.Mock).mockReturnValue({
       currentStep: 1,

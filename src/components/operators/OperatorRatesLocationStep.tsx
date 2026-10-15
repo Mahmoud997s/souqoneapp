@@ -7,6 +7,7 @@ import { AppInput } from '../ui/AppInput'
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import { WizardCard } from '../ui/WizardCard'
+import { WhatsappToggle } from '../ui/WhatsappToggle'
 
 export interface OperatorRatesLocationStepProps {
   formData: OperatorWizardFormData
@@ -74,26 +75,11 @@ export function OperatorRatesLocationStep({
         />
       </WizardCard>
 
-      {/* Contact numbers */}
-      <WizardCard title="بيانات الاتصال والتواصل *">
-        <AppInput
-          label="رقم الهاتف للاتصال المباشر *"
-          placeholder="مثال: 96891234567"
-          keyboardType="phone-pad"
-          value={formData.contactPhone}
-          onChangeText={(val) => onUpdateField('contactPhone', val)}
-          error={errors.contactPhone}
-        />
-
-        <AppInput
-          label="رقم الواتساب للتواصل السريع *"
-          placeholder="مثال: 96891234567"
-          keyboardType="phone-pad"
-          value={formData.whatsapp}
-          onChangeText={(val) => onUpdateField('whatsapp', val)}
-          error={errors.whatsapp}
-        />
-      </WizardCard>
+      {/* WhatsApp Toggle */}
+      <WhatsappToggle
+        value={formData.whatsappEnabled === true}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+      />
     </View>
   )
 }

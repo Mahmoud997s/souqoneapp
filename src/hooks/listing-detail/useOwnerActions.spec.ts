@@ -9,6 +9,7 @@ import { render, waitFor, act } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useOwnerActions, isOptimisticLockError } from './useOwnerActions'
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
+import { useAuthStore } from '../../store/authStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -134,6 +135,7 @@ const ids = (result: ReturnType<typeof useOwnerActions>) =>
 describe('useOwnerActions — D-19 action matrix', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    useAuthStore.setState({ user: { id: 's1', phone: '+96891234567' } as any })
   })
 
   it('ACTIVE + SALE → edit, markSold, archive, delete', async () => {
@@ -353,7 +355,10 @@ describe('useOwnerActions — run() dispatch', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('useOwnerActions — 409 conflict surfacing', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    useAuthStore.setState({ user: { id: 's1', phone: '+96891234567' } as any })
+  })
 
   it('re-throws 409 error from status mutation without swallowing it', async () => {
     const conflict409 = { response: { status: 409 } }

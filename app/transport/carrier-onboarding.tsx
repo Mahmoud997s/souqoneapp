@@ -15,10 +15,13 @@ import { Radius } from '../../src/constants/radius';
 import CarrierStep1Info from '../../src/components/transport/carrier/CarrierStep1Info';
 import CarrierStep2Vehicles from '../../src/components/transport/carrier/CarrierStep2Vehicles';
 import CarrierStep3Location from '../../src/components/transport/carrier/CarrierStep3Location';
-import { dialogService } from '../../src/store/dialogStore'
+import { dialogService } from '../../src/store/dialogStore';
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard';
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView';
 
 export default function CarrierOnboardingScreen() {
   const insets = useSafeAreaInsets();
+  const { hasPhone } = useProfilePhoneGuard();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -33,13 +36,22 @@ export default function CarrierOnboardingScreen() {
     city,
     baseLat,
     baseLng,
-    contactPhone,
-    whatsapp,
     reset,
   } = useCarrierWizardStore();
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const {
+        companyName,
+        bio,
+        vehicleTypes,
+        serviceTypes,
+        governorateId,
+        wilayaId,
+        baseLat,
+        baseLng,
+        whatsappEnabled,
+      } = useCarrierWizardStore.getState();
       return transportApi.createCarrierProfile({
         companyName: companyName || undefined,
         bio: bio || undefined,
@@ -49,8 +61,7 @@ export default function CarrierOnboardingScreen() {
         wilayaId,
         baseLat,
         baseLng,
-        contactPhone: contactPhone || undefined,
-        whatsapp: whatsapp || undefined,
+        whatsappEnabled,
       });
     },
     onSuccess: () => {
@@ -72,8 +83,6 @@ export default function CarrierOnboardingScreen() {
     if (currentStep === 1) {
       if (!companyName?.trim()) storeErrors.companyName = 'اسم الشركة / الشخص مطلوب';
       if (!bio?.trim()) storeErrors.bio = 'نبذة تعريفية مطلوبة';
-      if (!contactPhone?.trim()) storeErrors.contactPhone = 'رقم الهاتف الرئيسي مطلوب';
-      if (!whatsapp?.trim()) storeErrors.whatsapp = 'رقم الواتساب مطلوب';
       
       if (Object.keys(storeErrors).length > 0) {
         useCarrierWizardStore.getState().setErrors(storeErrors);
@@ -117,6 +126,22 @@ export default function CarrierOnboardingScreen() {
       default: return 'انضم كناقل';
     }
   };
+
+  if (!hasPhone) {
+    return (
+      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+        <AppHeader
+          title="انضم كناقل"
+          showBack
+          onLeftPress={() => router.back()}
+        />
+        <ProfilePhoneGuardView
+          title="انضم كناقل"
+          onBack={() => router.back()}
+        />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView 

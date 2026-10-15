@@ -33,8 +33,7 @@ export function buildPartSubmitPayload(
     wilayaId: formData.wilayaId != null ? Number(formData.wilayaId) : undefined,
     latitude: formData.latitude != null ? formData.latitude : undefined,
     longitude: formData.longitude != null ? formData.longitude : undefined,
-    contactPhone: formData.contactPhone ? formData.contactPhone.trim() : undefined,
-    whatsapp: formData.whatsapp ? formData.whatsapp.trim() : undefined,
+    whatsappEnabled: formData.whatsappEnabled,
     hasWarranty: formData.hasWarranty,
     warrantyDuration:
       formData.hasWarranty && formData.warrantyDuration
@@ -74,8 +73,7 @@ describe('buildPartSubmitPayload', () => {
       wilayaId: 10,
       latitude: 23.588,
       longitude: 58.3829,
-      contactPhone: '  91234567  ',
-      whatsapp: '  91234567  ',
+      whatsappEnabled: true,
       hasWarranty: true,
       warrantyDuration: 'THREE_MONTHS',
       quantity: 'ONE',
@@ -94,6 +92,7 @@ describe('buildPartSubmitPayload', () => {
     expect(payload.price).toBe(350)
     expect(payload.governorateId).toBe(1)
     expect(payload.wilayaId).toBe(10)
+    expect(payload.whatsappEnabled).toBe(true)
     expect(payload.hasWarranty).toBe(true)
     expect(payload.warrantyDuration).toBe('THREE_MONTHS')
     expect(payload.compatibleVehicleTypes).toEqual(['CAR'])
@@ -141,8 +140,7 @@ describe('buildPartSubmitPayload', () => {
       compatibleMakes: [],
       compatibleModels: [],
       compatibleVehicleTypes: [],
-      contactPhone: '',
-      whatsapp: '',
+      whatsappEnabled: false,
     }
 
     const payload = buildPartSubmitPayload(formData)
@@ -150,7 +148,6 @@ describe('buildPartSubmitPayload', () => {
     expect(payload.compatibleMakes).toBeUndefined()
     expect(payload.compatibleModels).toBeUndefined()
     expect(payload.compatibleVehicleTypes).toBeUndefined()
-    expect(payload.contactPhone).toBeUndefined()
-    expect(payload.whatsapp).toBeUndefined()
+    expect(payload.whatsappEnabled).toBe(false)
   })
 })

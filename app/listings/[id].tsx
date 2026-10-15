@@ -19,6 +19,7 @@ import { CAR_FEATURE_KEYS, CAR_COLORS, DRIVE_TYPES } from '../../src/constants/c
 import { dialogService } from '../../src/store/dialogStore'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 import { useCarWizardStore } from '../../src/store/carWizardStore';
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -90,6 +91,13 @@ export default function ListingDetailScreen() {
   const condColor = COND_COLORS[raw.condition?.toUpperCase()] ?? COND_COLORS.USED
   const isRental = raw.listingType === 'RENTAL'
   const isOwner = user?.id === seller?.id
+
+  const contact = useListingContact(
+    (raw.type === 'bus' ? 'BUS_LISTING' : 'LISTING') as any,
+    id ?? '',
+    `/listings/${id}`,
+    raw.title
+  )
 
   let priceLabel = ''
   let priceSub = ''
@@ -634,37 +642,25 @@ export default function ListingDetailScreen() {
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
             </TouchableOpacity>
-            {seller?.phone && (
+            {raw.whatsappEnabled !== false && (
               <TouchableOpacity
                 style={s.waBtn}
-                onPress={() => {
-                  const msg = encodeURIComponent(`مرحباً، بخصوص إعلانك: ${raw.title}`)
-                  Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}&text=${msg}`)
-                }}
+                onPress={contact.whatsApp}
+                disabled={contact.busy}
                 activeOpacity={0.9}
               >
                 <Ionicons name="logo-whatsapp" size={22} color="#fff" />
               </TouchableOpacity>
             )}
-            {seller?.phone ? (
-              <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={() => Linking.openURL(`tel:${seller.phone}`)}
-                activeOpacity={0.9}
-              >
-                <Ionicons name="call" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>اتصال</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={s.callWideBtn}
-                onPress={handleChat}
-                activeOpacity={0.9}
-              >
-                <Ionicons name="chatbubble-ellipses" size={22} color={Colors.primary} />
-                <Text style={s.callWideTxt}>محادثة</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={s.callWideBtn}
+              onPress={contact.call}
+              disabled={contact.busy}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="call" size={22} color={Colors.primary} />
+              <Text style={s.callWideTxt}>اتصال</Text>
+            </TouchableOpacity>
           </>
         )}
       </View>
