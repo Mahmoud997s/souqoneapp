@@ -2,6 +2,7 @@ import {
   validateProfileForm,
   buildProfilePatch,
   hasProfileUnsavedChanges,
+  shouldBlockForFailedAvatarUpload,
   ProfileOriginalData,
 } from '../utils/profileValidation'
 
@@ -198,7 +199,7 @@ describe('Profile Edit Logic & Validation Suite', () => {
       expect(patch.wilayaId).toBeUndefined()
     })
 
-    it('sends normalized phone digits when phone is changed', () => {
+    it('sends +968 followed by 8 digits when phone is changed', () => {
       const patch = buildProfilePatch(baseOriginal, {
         displayName: 'محمود أحمد',
         phone: '٩٩١١٢٢٣٣',
@@ -208,7 +209,57 @@ describe('Profile Edit Logic & Validation Suite', () => {
         avatarAction: 'unchanged',
       })
 
-      expect(patch.phone).toBe('99112233')
+      expect(patch.phone).toBe('+96899112233')
+    })
+
+    it('does NOT send phone in patch when stored phone is +96891234567 and form phone is 91234567 (unchanged)', () => {
+      const originalWithPlus: ProfileOriginalData = {
+        ...baseOriginal,
+        phone: '+96891234567',
+      }
+      const patch = buildProfilePatch(originalWithPlus, {
+        displayName: 'محمود الجديد',
+        phone: '91234567',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+
+      expect(patch.displayName).toBe('محمود الجديد')
+      expect(patch.phone).toBeUndefined()
+    })
+
+    it('does NOT send phone in patch when stored phone is 8-digits 91234567 and form phone is 91234567 (unchanged)', () => {
+      const patch = buildProfilePatch(baseOriginal, {
+        displayName: 'محمود الجديد',
+        phone: '91234567',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+
+      expect(patch.displayName).toBe('محمود الجديد')
+      expect(patch.phone).toBeUndefined()
+    })
+
+    it('does NOT send phone in patch when legacy non-standard phone is unchanged', () => {
+      const legacyOriginal: ProfileOriginalData = {
+        ...baseOriginal,
+        phone: '12345',
+      }
+      const patch = buildProfilePatch(legacyOriginal, {
+        displayName: 'محمود الجديد',
+        phone: '12345',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+
+      expect(patch.displayName).toBe('محمود الجديد')
+      expect(patch.phone).toBeUndefined()
     })
 
     it('sends null for avatarUrl when avatar is deleted', () => {
@@ -383,6 +434,50 @@ describe('Profile Edit Logic & Validation Suite', () => {
       expect(changed).toBe(true)
     })
 
+    it('returns false when stored phone has +968 prefix and form phone is 8 digits without prefix', () => {
+      const originalWithPlus: ProfileOriginalData = {
+        ...baseOriginal,
+        phone: '+96891234567',
+      }
+      const changed = hasProfileUnsavedChanges(originalWithPlus, {
+        displayName: 'محمود أحمد',
+        phone: '91234567',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+      expect(changed).toBe(false)
+    })
+
+    it('returns false when stored phone is 8 digits and form phone matches', () => {
+      const changed = hasProfileUnsavedChanges(baseOriginal, {
+        displayName: 'محمود أحمد',
+        phone: '91234567',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+      expect(changed).toBe(false)
+    })
+
+    it('returns false when legacy non-standard phone is untouched', () => {
+      const legacyOriginal: ProfileOriginalData = {
+        ...baseOriginal,
+        phone: '12345',
+      }
+      const changed = hasProfileUnsavedChanges(legacyOriginal, {
+        displayName: 'محمود أحمد',
+        phone: '12345',
+        bio: 'نبذة شخصية قديمة',
+        governorateId: 1,
+        wilayaId: 10,
+        avatarAction: 'unchanged',
+      })
+      expect(changed).toBe(false)
+    })
+
     it('returns true when avatarAction is "deleted"', () => {
       const changed = hasProfileUnsavedChanges(baseOriginal, {
         displayName: 'محمود أحمد',
@@ -405,6 +500,34 @@ describe('Profile Edit Logic & Validation Suite', () => {
         avatarAction: 'uploaded',
       })
       expect(changed).toBe(true)
+    })
+  })
+
+  /* ─────────────────────────────────────────────────────────────
+   * 4. shouldBlockForFailedAvatarUpload
+   * ───────────────────────────────────────────────────────────── */
+  describe('4. shouldBlockForFailedAvatarUpload', () => {
+    it('returns true when avatarAction is "uploaded" and uploadedAvatarUrl is null, undefined, or empty', () => {
+      expect(shouldBlockForFailedAvatarUpload('uploaded', null)).toBe(true)
+      expect(shouldBlockForFailedAvatarUpload('uploaded', undefined)).toBe(true)
+      expect(shouldBlockForFailedAvatarUpload('uploaded', '')).toBe(true)
+      expect(shouldBlockForFailedAvatarUpload('uploaded', '   ')).toBe(true)
+    })
+
+    it('returns false when avatarAction is "uploaded" and a valid uploadedAvatarUrl is provided', () => {
+      expect(
+        shouldBlockForFailedAvatarUpload('uploaded', 'https://cdn.souqone.om/uploads/avatar.jpg')
+      ).toBe(false)
+    })
+
+    it('returns false when avatarAction is "unchanged" even if url is null', () => {
+      expect(shouldBlockForFailedAvatarUpload('unchanged', null)).toBe(false)
+      expect(shouldBlockForFailedAvatarUpload('unchanged', undefined)).toBe(false)
+    })
+
+    it('returns false when avatarAction is "deleted" even if url is null', () => {
+      expect(shouldBlockForFailedAvatarUpload('deleted', null)).toBe(false)
+      expect(shouldBlockForFailedAvatarUpload('deleted', undefined)).toBe(false)
     })
   })
 })

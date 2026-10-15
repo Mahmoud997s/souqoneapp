@@ -73,9 +73,10 @@ export function validateProfileForm(
   if (!rawPhoneTrimmed) {
     errors.phone = 'رقم الهاتف مطلوب'
   } else {
-    // Stored phone check: only validate format if user altered the phone
-    const origPhoneTrimmed = (original?.phone || '').trim()
-    const isPhoneChanged = rawPhoneTrimmed !== origPhoneTrimmed
+    // Stored phone check: only validate format if user altered the phone after normalization
+    const origPhoneClean = normalizeOmaniPhoneDigits(original?.phone)
+    const currPhoneClean = normalizeOmaniPhoneDigits(rawPhoneTrimmed)
+    const isPhoneChanged = currPhoneClean !== origPhoneClean
 
     if (isPhoneChanged) {
       if (!isValidOmaniPhone(rawPhoneTrimmed)) {
@@ -93,7 +94,7 @@ export function validateProfileForm(
 /**
  * Pure function to construct a minimal PATCH payload sending ONLY modified fields.
  * - bio: cleared sends null, changed sends trimmed text, unchanged omitted
- * - phone: sent only if changed
+ * - phone: sent only if changed, formatted as +968XXXXXXXX
  * - governorateId & wilayaId: sent together only if changed and both valid positive numbers (never null)
  * - avatarUrl: sent only if changed (new uploaded URL or null if deleted); never re-sends stored URL
  */
@@ -110,11 +111,11 @@ export function buildProfilePatch(
     patch.displayName = currName
   }
 
-  // 2. Phone
-  const origPhone = (original?.phone || '').trim()
-  const currPhone = (form.phone || '').trim()
-  if (currPhone !== origPhone && currPhone.length > 0) {
-    patch.phone = normalizeOmaniPhoneDigits(currPhone)
+  // 2. Phone: compared normalized; sent as +968XXXXXXXX when changed
+  const origPhoneClean = normalizeOmaniPhoneDigits(original?.phone)
+  const currPhoneClean = normalizeOmaniPhoneDigits(form.phone)
+  if (currPhoneClean !== origPhoneClean && currPhoneClean.length > 0) {
+    patch.phone = `+968${currPhoneClean}`
   }
 
   // 3. Bio
@@ -167,9 +168,9 @@ export function hasProfileUnsavedChanges(
   const currName = (current.displayName || '').trim()
   if (currName !== origName) return true
 
-  const origPhone = (original.phone || '').trim()
-  const currPhone = (current.phone || '').trim()
-  if (currPhone !== origPhone) return true
+  const origPhoneClean = normalizeOmaniPhoneDigits(original.phone)
+  const currPhoneClean = normalizeOmaniPhoneDigits(current.phone)
+  if (currPhoneClean !== origPhoneClean) return true
 
   const origBio = (original.bio || '').trim()
   const currBio = (current.bio || '').trim()
@@ -192,3 +193,16 @@ export function hasProfileUnsavedChanges(
 
   return false
 }
+
+/**
+ * Pure guard function to determine if profile save must be blocked
+ * due to failed avatar upload.
+ * Returns true if user selected a new avatar upload, but no valid URL was produced.
+ */
+export function shouldBlockForFailedAvatarUpload(
+  avatarAction: 'unchanged' | 'deleted' | 'uploaded',
+  uploadedAvatarUrl?: string | null
+): boolean {
+  return avatarAction === 'uploaded' && (!uploadedAvatarUrl || uploadedAvatarUrl.trim().length === 0)
+}
+

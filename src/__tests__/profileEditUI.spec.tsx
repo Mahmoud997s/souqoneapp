@@ -137,7 +137,7 @@ describe('Profile Edit UI Enhancements (Spec 086)', () => {
       expect(style.textAlignVertical).toBe('center')
     })
 
-    it('renders explanatory hint with strict RTL direction and full width', () => {
+    it('renders explanatory hint with natural RTL start alignment and full width', () => {
       let tree: TestRenderer.ReactTestRenderer
       act(() => {
         tree = TestRenderer.create(
@@ -155,12 +155,11 @@ describe('Profile Edit UI Enhancements (Spec 086)', () => {
         ? Object.assign({}, ...hint.props.style)
         : hint.props.style
 
-      expect(style.textAlign).toBe('right')
-      expect(style.writingDirection).toBe('rtl')
+      expect(style.textAlign).toBe('left')
       expect(style.alignSelf).toBe('stretch')
     })
 
-    it('renders error message with strict RTL direction and full width', () => {
+    it('renders error message with natural RTL start alignment and full width', () => {
       let tree: TestRenderer.ReactTestRenderer
       act(() => {
         tree = TestRenderer.create(
@@ -179,8 +178,7 @@ describe('Profile Edit UI Enhancements (Spec 086)', () => {
         ? Object.assign({}, ...error.props.style)
         : error.props.style
 
-      expect(style.textAlign).toBe('right')
-      expect(style.writingDirection).toBe('rtl')
+      expect(style.textAlign).toBe('left')
       expect(style.alignSelf).toBe('stretch')
     })
   })

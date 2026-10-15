@@ -109,21 +109,17 @@ export function ProfilePhoneInput({
         ) : null}
       </View>
 
-      {/* Inline Error Message (isolated in RTL full-width container) */}
+      {/* Inline Error Message */}
       {error ? (
-        <View style={s.rtlBlock}>
-          <Text style={s.errorText} testID="edit-profile-phone-error">
-            {error}
-          </Text>
-        </View>
+        <Text style={s.errorText} testID="edit-profile-phone-error">
+          {error}
+        </Text>
       ) : null}
 
-      {/* Explanatory Hint (isolated in RTL full-width container) */}
-      <View style={s.rtlBlock}>
-        <Text style={s.fieldHint}>
-          رقمك بيظهر للمشتري عند الاتصال أو الواتساب فقط
-        </Text>
-      </View>
+      {/* Explanatory Hint */}
+      <Text style={s.fieldHint}>
+        رقمك بيظهر للمشتري عند الاتصال أو الواتساب فقط
+      </Text>
     </View>
   )
 }
@@ -146,7 +142,7 @@ const s = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     color: '#1E293B',
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   badgeRequired: {
@@ -239,16 +235,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /* RTL Blocks for Hint and Error (Guarantees right edge alignment) */
-  rtlBlock: {
-    width: '100%',
-    alignSelf: 'stretch',
-    alignItems: 'flex-start',
-    ...Platform.select({
-      ios: { direction: 'rtl' as const },
-      default: {},
-    }),
-  },
+  /* Hints and Errors (Direct full-width stretch with natural RTL start alignment) */
   errorText: {
     width: '100%',
     alignSelf: 'stretch',
@@ -256,8 +243,7 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#DC2626',
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    textAlign: 'left',
     marginTop: 2,
     paddingHorizontal: 2,
   },
@@ -268,8 +254,7 @@ const s = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 16,
     color: Colors.textMuted,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    textAlign: 'left',
     marginTop: 3,
     paddingHorizontal: 2,
   },

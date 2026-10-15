@@ -167,10 +167,10 @@ export function validateRegister(input: RegisterValidationInput): ValidationResu
   }
 
   // 4. Omani Phone (+968)
-  const phoneClean = normalizeOmaniPhoneDigits(input.phone)
+  const phoneClean = normalizeDigits(input.phone || '').trim().replace(/\D/g, '')
   if (!phoneClean) {
     errors.phone = 'يرجى إدخال رقم الهاتف'
-  } else if (!isValidOmaniPhone(input.phone)) {
+  } else if (!OMANI_PHONE_REGEX.test(phoneClean)) {
     errors.phone = 'رقم عماني غير صحيح (8 أرقام يبدأ بـ 9 أو 7)'
   }
 

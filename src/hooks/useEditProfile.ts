@@ -16,7 +16,9 @@ import {
   validateProfileForm,
   buildProfilePatch,
   hasProfileUnsavedChanges,
+  shouldBlockForFailedAvatarUpload,
 } from '../utils/profileValidation'
+import { normalizeOmaniPhoneDigits } from '../utils/authValidation'
 import { invalidateProfileQueries } from '../utils/profileQueryInvalidation'
 
 function normalizeArabic(text: string): string {
@@ -51,10 +53,10 @@ export function useEditProfile() {
     navigation = null
   }
 
-  const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [bio, setBio] = useState('')
+  const [displayName, setDisplayName] = useState(user?.displayName || '')
+  const [email, setEmail] = useState(user?.email || '')
+  const [phone, setPhone] = useState(normalizeOmaniPhoneDigits(user?.phone))
+  const [bio, setBio] = useState(user?.bio || '')
 
   // Focus & Inline Errors
   const [focusedField, setFocusedField] = useState<string | null>(null)
@@ -89,7 +91,7 @@ export function useEditProfile() {
     if (user) {
       setDisplayName(user.displayName || '')
       setEmail(user.email || '')
-      setPhone(user.phone || '')
+      setPhone(normalizeOmaniPhoneDigits(user.phone))
       setBio(user.bio || '')
       setGovernorateId(user.governorateId || null)
       setWilayaId(user.wilayaId || null)
@@ -321,15 +323,25 @@ export function useEditProfile() {
         if (localAvatarUri.startsWith('http://') || localAvatarUri.startsWith('https://')) {
           uploadedAvatarUrl = localAvatarUri
         } else {
-          const filePayload = buildUploadFilePayload(localAvatarUri, 'avatar')
-          if (filePayload) {
-            const formData = new FormData()
-            formData.append('file', filePayload as unknown as Blob)
-            const uploadRes = await uploadsApi.single(formData)
-            const resData = uploadRes.data as { url?: string; path?: string } | undefined
-            uploadedAvatarUrl = resData?.url ?? resData?.path ?? null
+          try {
+            const filePayload = buildUploadFilePayload(localAvatarUri, 'avatar')
+            if (filePayload) {
+              const formData = new FormData()
+              formData.append('file', filePayload as unknown as Blob)
+              const uploadRes = await uploadsApi.single(formData)
+              const resData = uploadRes.data as { url?: string; path?: string } | undefined
+              uploadedAvatarUrl = resData?.url ?? resData?.path ?? null
+            }
+          } catch {
+            uploadedAvatarUrl = null
           }
         }
+      }
+
+      // If avatar upload was attempted but failed or produced no URL, abort save immediately
+      if (shouldBlockForFailedAvatarUpload(avatarAction, uploadedAvatarUrl)) {
+        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى')
+        return
       }
 
       // 3. Build minimal PATCH payload
