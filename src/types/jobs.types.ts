@@ -27,8 +27,6 @@ export interface DriverProfile {
   bio?: string
   governorate: string
   city?: string
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
   isAvailable: boolean
   isVerified: boolean
@@ -50,8 +48,6 @@ export interface EmployerProfile {
   bio?: string
   governorate: string
   city?: string
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
   averageRating: number
   reviewCount: number
@@ -86,9 +82,7 @@ export interface DriverJob {
   wilayaId?: number  
   governorateRef?: { id: number; nameAr: string; nameEn: string }
   wilayaRef?: { id: number; nameAr: string; nameEn: string }
-  contactPhone?: string
   contactEmail?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
   status: JobStatus
   viewCount: number
@@ -143,9 +137,7 @@ export interface CreateJobDto {
   hasOwnVehicle: boolean
   governorateId: number
   wilayaId?: number
-  contactPhone?: string
   contactEmail?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
 }
 
@@ -164,8 +156,6 @@ export interface CreateDriverProfileDto {
   bio?: string
   governorateId: number
   wilayaId?: number
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
 }
 
@@ -176,7 +166,5 @@ export interface CreateEmployerProfileDto {
   bio?: string
   governorateId: number
   wilayaId?: number
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
 }

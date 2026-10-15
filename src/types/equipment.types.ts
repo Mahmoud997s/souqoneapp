@@ -76,8 +76,6 @@ export interface EquipmentListing {
   longitude?: number
 
   // Contact
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
 
   status: ListingStatus
@@ -99,7 +97,6 @@ export interface OperatorListing {
   userId: string
   user?: UserSummary & {
     isVerified?: boolean
-    phone?: string
     avatarUrl?: string
     avatar?: string
     displayName?: string
@@ -132,8 +129,7 @@ export interface OperatorListing {
   latitude?: number
   longitude?: number
 
-  contactPhone?: string
-  whatsapp?: string
+  whatsappEnabled?: boolean
 
   status?: ListingStatus
   isPremium?: boolean

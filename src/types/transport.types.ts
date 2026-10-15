@@ -102,8 +102,6 @@ export interface CarrierProfile {
   serviceTypes?: string[];
   governorateId?: number;
   wilayaId?: number;
-  contactPhone?: string;
-  whatsapp?: string;
   whatsappEnabled?: boolean;
   
   serviceAreas?: string[];
@@ -120,7 +118,6 @@ export interface CarrierProfile {
   user?: {
     id: string;
     displayName: string;
-    phone: string;
     avatar?: string;
     avatarUrl?: string;
     isVerified?: boolean;

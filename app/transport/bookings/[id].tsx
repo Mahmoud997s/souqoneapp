@@ -64,7 +64,7 @@ export default function BookingDetailsScreen() {
 
   const isShipper = user?.id === booking.shipperId;
   const isCarrier = user?.id === booking.carrier?.userId;
-  const otherParty = isShipper ? booking.carrier?.user : booking.shipper;
+  const otherParty: { id?: string; displayName?: string; phone?: string } | undefined = isShipper ? booking.carrier?.user as any : booking.shipper;
   const otherPartyName = isShipper ? (booking.carrier?.companyName || otherParty?.displayName || 'الناقل') : (otherParty?.displayName || 'العميل');
 
   const handleStart = () => {
