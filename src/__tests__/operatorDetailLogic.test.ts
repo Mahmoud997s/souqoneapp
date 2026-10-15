@@ -25,25 +25,19 @@ describe('Operator Detail Screen - Business & Display Logic', () => {
     })
   })
 
-  describe('Fix 2: whatsappNumber resolution priority', () => {
-    it('prefers operator.whatsapp over contactPhone for WhatsApp action', () => {
+  describe('Fix 2: whatsappEnabled controls WhatsApp action availability', () => {
+    it('enables WhatsApp action when whatsappEnabled is true', () => {
       const operator = {
-        whatsapp: '96899112233',
-        contactPhone: '96891234567',
+        whatsappEnabled: true,
       }
-      const whatsappNumber = operator.whatsapp || operator.contactPhone
-
-      expect(whatsappNumber).toBe('96899112233')
+      expect(operator.whatsappEnabled).toBe(true)
     })
 
-    it('falls back to contactPhone if whatsapp is not set', () => {
+    it('disables WhatsApp action when whatsappEnabled is false or omitted', () => {
       const operator = {
-        whatsapp: null as string | null,
-        contactPhone: '96891234567',
+        whatsappEnabled: false,
       }
-      const whatsappNumber = operator.whatsapp || operator.contactPhone
-
-      expect(whatsappNumber).toBe('96891234567')
+      expect(operator.whatsappEnabled).toBe(false)
     })
   })
 
@@ -167,10 +161,9 @@ describe('Operator Detail Screen - Business & Display Logic', () => {
       expect(decodeURIComponent(msg)).toContain('بخصوص ملفك كمشغل في تطبيق سوق ون: مشغل رافعة برجية محترف')
     })
 
-    it('Fix 4: resolves sellerId and sellerPhone directly without obsolete .raw fallbacks', () => {
+    it('Fix 4: resolves sellerId and attributes directly without obsolete .raw fallbacks', () => {
       const cleanOperator = {
         userId: 'user-999',
-        contactPhone: '96899887766',
         profileImageUrl: 'https://cloudinary.com/op.jpg',
         user: {
           avatarUrl: 'https://cloudinary.com/user.jpg',
@@ -181,7 +174,6 @@ describe('Operator Detail Screen - Business & Display Logic', () => {
       }
 
       expect(cleanOperator.userId).toBe('user-999')
-      expect(cleanOperator.contactPhone).toBe('96899887766')
       expect(cleanOperator.isPriceNegotiable).toBe(true)
       expect(Boolean(cleanOperator.user?.isVerified)).toBe(true)
     })

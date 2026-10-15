@@ -86,9 +86,8 @@ export interface Service {
   workingHoursClose?: string
   workingDays?: string[]
   address?: string
-  contactPhone?: string
-  whatsapp?: string
   website?: string
+  whatsappEnabled?: boolean
   governorateId?: number
   wilayaId?: number
   governorateRef?: { id: number; nameAr: string; nameEn: string }
@@ -121,8 +120,6 @@ export interface Part {
   price: number
   isPriceNegotiable?: boolean
   currency?: 'OMR' | 'USD'
-  contactPhone?: string
-  whatsapp?: string
   whatsappEnabled?: boolean
   governorateId?: number
   wilayaId?: number
