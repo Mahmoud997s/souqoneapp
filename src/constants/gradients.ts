@@ -8,7 +8,7 @@ export const Gradients = {
   whatsapp: ['#25D366', '#25D366'] as const,
 
   // Design System additions (Solid Flat Colors)
-  hero: ['#192435', '#192435'] as const, // الكحلي: لخلفية البانر الداكن
+  hero: ['#192435', '#192435', '#192435'] as const, // الكحلي: لخلفية البانر الداكن (3 stops matching locations [0, 0.6, 1])
   button: [Colors.primary, Colors.primary] as const, // الفيروزي الرئيسي للأزرار
   driver: [Colors.primary, Colors.primary] as const,
   employer: ['#192435', '#192435'] as const,

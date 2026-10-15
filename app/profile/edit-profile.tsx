@@ -6,17 +6,16 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
-  KeyboardAvoidingView,
   Modal,
-  ActivityIndicator,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { router } from 'expo-router'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
 import { Colors } from '../../src/constants/colors'
 import { Gradients } from '../../src/constants/gradients'
+import { Spacing } from '../../src/constants/spacing'
 import { useEditProfile } from '../../src/hooks/useEditProfile'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { EditProfileAvatar } from '../../src/components/profile/EditProfileAvatar'
@@ -32,8 +31,8 @@ export default function EditProfileScreen() {
     phone,
     bio,
     focusedField,
+    errors,
 
-    avatarUrl,
     displayAvatar,
     showAvatarSheet,
     loading,
@@ -52,13 +51,13 @@ export default function EditProfileScreen() {
     setPhone,
     setBio,
     setFocusedField,
-    setAvatarUrl,
     setShowAvatarSheet,
     setSearchQuery,
     setModalType,
 
     pickFromGallery,
     pickFromCamera,
+    handleDeleteAvatar,
     handlePickImage,
 
     openGovernoratePicker,
@@ -71,80 +70,70 @@ export default function EditProfileScreen() {
   } = useEditProfile()
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#F8FAFC' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <View style={s.root}>
-        {/* ── Fixed Navigation Bar ── */}
-        <GlassNavBar
-          title="تعديل الملف الشخصي"
-          paddingTop={insets.top}
-          onBackPress={handleBackPress}
-          actions={[
-            { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
-            { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
-          ]}
+    <View style={s.root}>
+      {/* ── Fixed Navigation Bar (Back, Title, Messages, Save) ── */}
+      <GlassNavBar
+        title="تعديل الملف الشخصي"
+        paddingTop={insets.top}
+        onBackPress={handleBackPress}
+        actions={[
+          {
+            icon: 'chatbubble-outline',
+            onPress: () => router.push('/(tabs)/chat'),
+            accessibilityLabel: 'الرسائل والمحادثات',
+            testID: 'edit-profile-messages-btn',
+          },
+          {
+            icon: 'checkmark-outline',
+            onPress: handleSave,
+            accessibilityLabel: 'حفظ التعديلات',
+            testID: 'edit-profile-save-btn',
+            loading: loading,
+            disabled: loading,
+            iconColor: Colors.primary,
+          },
+        ]}
+      />
+
+      <ScrollView
+        contentContainerStyle={[
+          s.content,
+          {
+            paddingTop: insets.top + 60,
+            paddingBottom: Math.max(insets.bottom, 16) + 24,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Avatar Section ── */}
+        <EditProfileAvatar
+          displayAvatar={displayAvatar}
+          onPress={handlePickImage}
         />
 
-        <ScrollView
-          contentContainerStyle={[
-            s.content,
-            {
-              paddingTop: insets.top + 66,
-              paddingBottom: Math.max(insets.bottom, 16) + 21,
-            },
-          ]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── Avatar Section ── */}
-          <EditProfileAvatar
-            displayAvatar={displayAvatar}
-            onPress={handlePickImage}
-          />
-
-          {/* ── Form Sections (Basic, Contact, Location) ── */}
-          <EditProfileForm
-            displayName={displayName}
-            email={email}
-            phone={phone}
-            bio={bio}
-            focusedField={focusedField}
-            onFocusField={setFocusedField}
-            onBlurField={() => setFocusedField(null)}
-            governorateId={governorateId}
-            governorateName={governorateName}
-            wilayaId={wilayaId}
-            wilayaName={wilayaName}
-            onDisplayNameChange={setDisplayName}
-            onPhoneChange={setPhone}
-            onBioChange={setBio}
-            onGovernoratePress={openGovernoratePicker}
-            onWilayaPress={openWilayaPicker}
-          />
-
-          {/* ── Save Changes Button ── */}
-          <View style={s.saveWrap}>
-            <TouchableOpacity
-              style={[s.saveBtn, loading && s.saveBtnDisabled]}
-              onPress={handleSave}
-              activeOpacity={0.8}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle-outline" size={19} color="#FFFFFF" style={{ marginEnd: 8 }} />
-                  <Text style={s.saveTxt}>حفظ التعديلات</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+        {/* ── Form Sections (Basic, Contact, Location) ── */}
+        <EditProfileForm
+          displayName={displayName}
+          email={email}
+          phone={phone}
+          bio={bio}
+          focusedField={focusedField}
+          onFocusField={setFocusedField}
+          onBlurField={() => setFocusedField(null)}
+          governorateId={governorateId}
+          governorateName={governorateName}
+          wilayaId={wilayaId}
+          wilayaName={wilayaName}
+          onDisplayNameChange={setDisplayName}
+          onPhoneChange={setPhone}
+          onBioChange={setBio}
+          onGovernoratePress={openGovernoratePicker}
+          onWilayaPress={openWilayaPicker}
+          errors={errors}
+        />
+      </ScrollView>
 
         {/* ── Avatar Options Bottom Sheet ── */}
         <Modal
@@ -154,7 +143,6 @@ export default function EditProfileScreen() {
           onRequestClose={() => setShowAvatarSheet(false)}
         >
           <View style={s.modalOverlay}>
-            {/* Top area touchable to dismiss */}
             <TouchableOpacity
               style={s.modalBackdropTop}
               activeOpacity={1}
@@ -170,7 +158,7 @@ export default function EditProfileScreen() {
                     <Image source={{ uri: displayAvatar }} style={s.avatarSheetImg} contentFit="cover" />
                   ) : (
                     <LinearGradient
-                      colors={Gradients.hero as any}
+                      colors={Gradients.hero}
                       start={{ x: 0.1, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={s.avatarSheetImg}
@@ -223,7 +211,7 @@ export default function EditProfileScreen() {
                     <TouchableOpacity
                       style={s.avatarOption}
                       activeOpacity={0.7}
-                      onPress={() => { setAvatarUrl(''); setShowAvatarSheet(false) }}
+                      onPress={handleDeleteAvatar}
                     >
                       <View style={[s.avatarOptionIcon, { backgroundColor: '#FFF1F2' }]}>
                         <Ionicons name="trash-outline" size={20} color="#E11D48" />
@@ -241,7 +229,7 @@ export default function EditProfileScreen() {
           </View>
         </Modal>
 
-        {/* ── Location Picker Modal ── */}
+        {/* ── Location Selector Modal ── */}
         <LocationPickerModal
           visible={modalType !== null}
           modalType={modalType}
@@ -255,8 +243,7 @@ export default function EditProfileScreen() {
           onSelectGovernorate={handleSelectGovernorate}
           onSelectWilaya={handleSelectWilaya}
         />
-      </View>
-    </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -267,42 +254,6 @@ const s = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 40,
-  },
-
-  /* Save Button */
-  saveWrap: {
-    marginTop: 6,
-    marginBottom: 10,
-  },
-  saveBtn: {
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: Colors.primaryDark,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  saveBtnDisabled: {
-    opacity: 0.7,
-  },
-  saveTxt: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
 
   /* Bottom Sheet Modal */

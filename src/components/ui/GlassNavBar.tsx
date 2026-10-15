@@ -1,13 +1,18 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Colors } from '../../constants/colors'
 
 export interface GlassNavBarAction {
-  icon: React.ComponentProps<typeof Ionicons>['name']
+  icon?: React.ComponentProps<typeof Ionicons>['name']
   onPress: () => void
   accessibilityLabel: string
+  testID?: string
+  loading?: boolean
+  disabled?: boolean
+  iconColor?: string
+  customContent?: React.ReactNode
 }
 
 interface GlassNavBarProps {
@@ -59,17 +64,28 @@ export function GlassNavBar({ title, paddingTop, onBackPress, actions = [], hide
         {/* Action Buttons (Left in RTL), or a placeholder to keep the title centered */}
         {actions.length > 0 ? (
           <View style={s.navActions}>
-            {actions.map((action, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={s.navBtn}
-                activeOpacity={0.75}
-                onPress={action.onPress}
-                accessibilityLabel={action.accessibilityLabel}
-              >
-                <Ionicons name={action.icon} size={17} color="#1E293B" />
-              </TouchableOpacity>
-            ))}
+            {actions.map((action, idx) => {
+              const isDisabled = action.disabled || action.loading
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  testID={action.testID}
+                  style={[s.navBtn, isDisabled && s.navBtnDisabled]}
+                  activeOpacity={0.75}
+                  onPress={action.onPress}
+                  disabled={isDisabled}
+                  accessibilityLabel={action.accessibilityLabel}
+                >
+                  {action.loading ? (
+                    <ActivityIndicator size="small" color={action.iconColor || Colors.primary} />
+                  ) : action.customContent ? (
+                    action.customContent
+                  ) : action.icon ? (
+                    <Ionicons name={action.icon} size={17} color={action.iconColor || '#1E293B'} />
+                  ) : null}
+                </TouchableOpacity>
+              )
+            })}
           </View>
         ) : (
           <View style={s.navBtnPlaceholder} />
@@ -187,5 +203,8 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  navBtnDisabled: {
+    opacity: 0.6,
   },
 })
