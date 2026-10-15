@@ -161,7 +161,7 @@ describe('Profile Phone Guard & Error Handling', () => {
     it('renders requirement message and handles navigation', async () => {
       await render(<ProfilePhoneGuardView title="إضافة إعلان" />);
 
-      expect(screen.getByText('إضافة رقم الهاتف مطلوبة')).toBeTruthy();
+      expect(screen.getByText('أضف رقم هاتفك الأول')).toBeTruthy();
       expect(
         screen.getByText('لازم تضيف رقم هاتفك في بروفايلك الأول عشان المشترين يقدروا يتواصلوا معاك')
       ).toBeTruthy();

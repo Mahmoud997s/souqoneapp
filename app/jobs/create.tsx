@@ -65,13 +65,11 @@ export default function CreateStep1() {
 
   if (!hasPhone) {
     return (
-      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
-        <AppHeader title="نشر إعلان" showBack variant="jobs" />
-        <ProfilePhoneGuardView
-          title="نشر إعلان وظيفة"
-          onBack={() => router.back()}
-        />
-      </View>
+      <ProfilePhoneGuardView
+        title="نشر إعلان"
+        headerVariant="jobs"
+        onBack={() => router.back()}
+      />
     )
   }
 

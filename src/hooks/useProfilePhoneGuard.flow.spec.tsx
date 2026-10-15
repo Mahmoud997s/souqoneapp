@@ -111,7 +111,7 @@ describe('Profile Phone Guard & Cache Flow (Spec 3)', () => {
     await render(<TestContainer />)
 
     // Guard should be visible
-    expect(screen.getByText('إضافة رقم الهاتف مطلوبة')).toBeTruthy()
+    expect(screen.getByText('أضف رقم هاتفك الأول')).toBeTruthy()
     expect(screen.getByTestId('guard-add-phone-btn')).toBeTruthy()
     expect(screen.queryByTestId('form-content')).toBeNull()
 
@@ -144,7 +144,7 @@ describe('Profile Phone Guard & Cache Flow (Spec 3)', () => {
     }
 
     // Guard should NO longer be displayed
-    expect(screen.queryByText('إضافة رقم الهاتف مطلوبة')).toBeNull()
+    expect(screen.queryByText('أضف رقم هاتفك الأول')).toBeNull()
     // Form content should be visible
     expect(screen.getByTestId('form-content')).toBeTruthy()
     // Displayed profile should show the updated phone number

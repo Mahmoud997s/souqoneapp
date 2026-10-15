@@ -358,14 +358,14 @@ export default function NewCarListingScreen() {
 
   if (!hasPhone && !formData.editMode) {
     return (
-      <View style={s.root}>
+      <>
         <Stack.Screen options={{ headerShown: false }} />
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <ProfilePhoneGuardView
           title="إضافة إعلان سيارة"
+          headerVariant="glass"
           onBack={() => router.back()}
         />
-      </View>
+      </>
     )
   }
 

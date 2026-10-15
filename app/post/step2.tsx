@@ -136,13 +136,11 @@ export default function PostStep2Screen() {
 
   if (!hasPhone) {
     return (
-      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
-        <AppHeader title="إضافة إعلان" showBack onLeftPress={() => router.back()} />
-        <ProfilePhoneGuardView
-          title="إضافة إعلان"
-          onBack={() => router.back()}
-        />
-      </View>
+      <ProfilePhoneGuardView
+        title="إضافة إعلان"
+        headerVariant="app"
+        onBack={() => router.back()}
+      />
     )
   }
 

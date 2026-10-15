@@ -326,19 +326,14 @@ export default function NewEquipmentListingScreen() {
 
   if (!hasPhone && !formData.editMode) {
     return (
-      <View style={[s.root, { paddingTop: insets.top }]}>
+      <>
         <Stack.Screen options={{ headerShown: false }} />
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <GlassNavBar
-          title="إضافة معدة"
-          paddingTop={0}
-          onBackPress={() => router.back()}
-        />
         <ProfilePhoneGuardView
           title="إضافة معدة"
+          headerVariant="glass"
           onBack={() => router.back()}
         />
-      </View>
+      </>
     )
   }
 

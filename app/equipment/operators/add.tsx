@@ -139,15 +139,14 @@ export default function AddOperatorScreen() {
 
   if (!hasPhone) {
     return (
-      <View style={[s.root, { paddingTop: insets.top }]}>
+      <>
         <Stack.Screen options={{ headerShown: false }} />
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <GlassNavBar title="إضافة بطاقة مهنية" paddingTop={0} onBackPress={() => router.back()} />
         <ProfilePhoneGuardView
           title="إضافة بطاقة مهنية"
+          headerVariant="glass"
           onBack={() => router.back()}
         />
-      </View>
+      </>
     )
   }
 

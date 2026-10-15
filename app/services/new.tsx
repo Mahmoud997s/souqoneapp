@@ -351,19 +351,14 @@ export default function NewServiceListingScreen() {
 
   if (!hasPhone && !formData.editMode) {
     return (
-      <View style={[s.root, { paddingTop: insets.top }]}>
+      <>
         <Stack.Screen options={{ headerShown: false }} />
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <GlassNavBar
-          title="إضافة خدمة"
-          paddingTop={0}
-          onBackPress={() => router.back()}
-        />
         <ProfilePhoneGuardView
-          title="إضافة خدمة"
+          title="إضافة خدمة سيارات"
+          headerVariant="glass"
           onBack={() => router.back()}
         />
-      </View>
+      </>
     )
   }
 

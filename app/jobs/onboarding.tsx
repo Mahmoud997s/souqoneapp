@@ -38,13 +38,11 @@ export default function OnboardingScreen() {
 
   if (!hasPhone) {
     return (
-      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
-        <AppHeader title="إنشاء بروفايل" showBack variant="jobs" />
-        <ProfilePhoneGuardView
-          title="إنشاء بروفايل مهني"
-          onBack={() => router.back()}
-        />
-      </View>
+      <ProfilePhoneGuardView
+        title="إنشاء بروفايل"
+        headerVariant="jobs"
+        onBack={() => router.back()}
+      />
     )
   }
 

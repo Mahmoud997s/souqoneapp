@@ -129,17 +129,11 @@ export default function CarrierOnboardingScreen() {
 
   if (!hasPhone) {
     return (
-      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
-        <AppHeader
-          title="انضم كناقل"
-          showBack
-          onLeftPress={() => router.back()}
-        />
-        <ProfilePhoneGuardView
-          title="انضم كناقل"
-          onBack={() => router.back()}
-        />
-      </View>
+      <ProfilePhoneGuardView
+        title="انضم كناقل"
+        headerVariant="app"
+        onBack={() => router.back()}
+      />
     );
   }
 
