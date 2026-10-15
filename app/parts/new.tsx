@@ -37,11 +37,14 @@ import { PartStep3Details } from '../../src/components/parts/wizard/PartStep3Det
 import { PartStep4Compatibility } from '../../src/components/parts/wizard/PartStep4Compatibility'
 import { PartStep5Pricing } from '../../src/components/parts/wizard/PartStep5Pricing'
 import { PartStep6Review } from '../../src/components/parts/wizard/PartStep6Review'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 6
 
 export default function NewPartListingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
 
   const [brands, setBrands] = useState<CarBrand[]>([])
 
@@ -232,8 +235,7 @@ export default function NewPartListingScreen() {
       wilayaId: formData.wilayaId != null ? Number(formData.wilayaId) : undefined,
       latitude: formData.latitude != null ? formData.latitude : undefined,
       longitude: formData.longitude != null ? formData.longitude : undefined,
-      contactPhone: formData.contactPhone ? formData.contactPhone.trim() : undefined,
-      whatsapp: formData.whatsapp ? formData.whatsapp.trim() : undefined,
+      whatsappEnabled: formData.whatsappEnabled === true,
       hasWarranty: formData.hasWarranty,
       warrantyDuration: formData.hasWarranty && formData.warrantyDuration ? formData.warrantyDuration : undefined,
       quantity: formData.quantity || undefined,
@@ -321,6 +323,19 @@ export default function NewPartListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (!hasPhone && !formData.editMode) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ProfilePhoneGuardView
+          title="إضافة قطعة غيار"
+          headerVariant="glass"
+          onBack={() => router.back()}
+        />
+      </>
+    )
+  }
 
   return (
     <KeyboardAvoidingView

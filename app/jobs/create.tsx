@@ -16,11 +16,14 @@ import { JOB_POST_TYPES, Role } from '../../src/constants/jobs'
 import { useJobProfileStore } from '../../src/store/jobProfileStore'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { InlineError } from '../../src/components/ui/InlineError'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 4
 
 export default function CreateStep1() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
   const { jobType, title, description, set, reset } = useJobPostStore()
   const { activeRole } = useJobProfileStore()
 
@@ -58,6 +61,16 @@ export default function CreateStep1() {
     }
     setErrors({})
     router.push('/jobs/create-step2')
+  }
+
+  if (!hasPhone) {
+    return (
+      <ProfilePhoneGuardView
+        title="نشر إعلان"
+        headerVariant="jobs"
+        onBack={() => router.back()}
+      />
+    )
   }
 
   return (

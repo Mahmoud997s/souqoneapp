@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { getServiceLabel, getVehicleTypeLabel } from '../../../src/constants/tra
 import { VerifiedBadge } from '../../../src/components/ui/VerifiedBadge';
 import { getInitials, getAvatarColor } from '../../../src/utils/format';
 import { useAuthStore } from '../../../src/store/authStore';
+import { useListingContact } from '../../../src/hooks/listing-detail/useListingContact';
 
 export default function CarrierProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,16 +29,12 @@ export default function CarrierProfileScreen() {
     enabled: !!id,
   });
 
-  const handleCall = () => {
-    if (profile?.contactPhone) Linking.openURL(`tel:${profile.contactPhone}`);
-  };
-
-  const handleWhatsApp = () => {
-    if (profile?.whatsapp) {
-      const msg = "مرحباً، لقد رأيت ملفك كناقل في منصة سوق ون وأرغب بالتواصل معك.";
-      Linking.openURL(`whatsapp://send?phone=${profile.whatsapp}&text=${encodeURIComponent(msg)}`);
-    }
-  };
+  const contact = useListingContact(
+    'CARRIER_PROFILE',
+    id ?? '',
+    `/transport/carriers/${id}`,
+    profile?.companyName || profile?.user?.displayName || 'ناقل'
+  );
 
   if (isLoading) {
     return (
@@ -182,15 +179,21 @@ export default function CarrierProfileScreen() {
               <Text style={s.actionBtnTxtSmall}>طلب سعر</Text>
             </TouchableOpacity>
 
-            {profile.contactPhone && (
-              <TouchableOpacity style={[s.actionBtn, s.callBtn, { flex: 1 }]} onPress={handleCall}>
-                <Ionicons name="call" size={18} color="#fff" />
-                <Text style={s.actionBtnTxtSmall}>اتصال</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[s.actionBtn, s.callBtn, { flex: 1 }]}
+              onPress={contact.call}
+              disabled={contact.busy}
+            >
+              <Ionicons name="call" size={18} color="#fff" />
+              <Text style={s.actionBtnTxtSmall}>اتصال</Text>
+            </TouchableOpacity>
 
-            {profile.whatsapp && (
-              <TouchableOpacity style={[s.actionBtn, s.waBtn, { flex: 1 }]} onPress={handleWhatsApp}>
+            {profile.whatsappEnabled === true && (
+              <TouchableOpacity
+                style={[s.actionBtn, s.waBtn, { flex: 1 }]}
+                onPress={contact.whatsApp}
+                disabled={contact.busy}
+              >
                 <Ionicons name="logo-whatsapp" size={18} color="#fff" />
                 <Text style={s.actionBtnTxtSmall}>واتساب</Text>
               </TouchableOpacity>

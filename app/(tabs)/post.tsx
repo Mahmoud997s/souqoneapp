@@ -15,6 +15,8 @@ import { router } from 'expo-router'
 import { usePostStore } from '../../src/store/postStore'
 
 import { navigateToCarForm, navigateToBusForm, navigateToPartForm, navigateToServiceForm, navigateToEquipmentForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { promptProfilePhoneRequired } from '../../src/utils/profilePhoneGuard'
 
 const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-outline' },
@@ -29,6 +31,7 @@ const CATEGORIES = [
 export default function PostScreen() {
   const insets = useSafeAreaInsets()
   const store = usePostStore()
+  const { hasPhone } = useProfilePhoneGuard()
 
   const navigateToForm = (id: string) => {
     if (id === 'equipment') {
@@ -49,6 +52,10 @@ export default function PostScreen() {
   }
 
   const handleSelect = (id: string) => {
+    if (!hasPhone) {
+      promptProfilePhoneRequired()
+      return
+    }
     if (id === 'equipment') {
       navigateToEquipmentForm('push')
       return

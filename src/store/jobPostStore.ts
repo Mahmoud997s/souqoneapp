@@ -24,9 +24,8 @@ interface JobPostState {
   wilayaNameAr: string
   governorate: string
   city: string
-  contactPhone: string
+  whatsappEnabled: boolean
   contactEmail: string
-  whatsapp: string
 
   setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void
   set: (updates: Partial<Omit<JobPostState, 'set' | 'reset' | 'setLocation'>>) => void
@@ -54,9 +53,8 @@ const initial: Omit<JobPostState, 'set' | 'reset' | 'setLocation'> = {
   wilayaNameAr: '',
   governorate: '',
   city: '',
-  contactPhone: '',
+  whatsappEnabled: false,
   contactEmail: '',
-  whatsapp: '',
 }
 
 export const useJobPostStore = create<JobPostState>()(

@@ -8,6 +8,7 @@ import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
+import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { ServiceStep5Props } from '../../../types/serviceForm.types'
 
 export function ServiceStep5Pricing({
@@ -142,33 +143,18 @@ export function ServiceStep5Pricing({
         )}
       </WizardCard>
 
-      {/* 3. Contact Details */}
+      {/* 3. Contact / WhatsApp Toggle */}
+      <WhatsappToggle
+        value={formData.whatsappEnabled}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+        variant="card"
+      />
+
+      {/* 4. Website (Optional) */}
       <WizardCard
-        title="بيانات التواصل (اختياري)"
+        title="الموقع الإلكتروني / رابط الحساب (اختياري)"
         subtitle="وسائل التواصل المباشرة المتاحة للعملاء"
       >
-        <AppInput
-          label="رقم الهاتف للتواصل"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={formData.contactPhone}
-          onChangeText={(val) => onUpdateField('contactPhone', val)}
-          maxLength={15}
-          error={errors.contactPhone}
-          testID="contact-phone-input"
-        />
-
-        <AppInput
-          label="رقم الواتساب"
-          placeholder="مثال: 91234567"
-          keyboardType="phone-pad"
-          value={formData.whatsapp}
-          onChangeText={(val) => onUpdateField('whatsapp', val)}
-          maxLength={15}
-          error={errors.whatsapp}
-          testID="whatsapp-input"
-        />
-
         <AppInput
           label="الموقع الإلكتروني / رابط الحساب (اختياري)"
           placeholder="مثال: https://instagram.com/mygarage أو mygarage.om"

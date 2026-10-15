@@ -19,8 +19,7 @@ export interface OperatorWizardFormData {
   wilayaId?: number | null
   governorateName?: string
   wilayaName?: string
-  contactPhone: string
-  whatsapp: string
+  whatsappEnabled: boolean
   profileImageUrl?: string | null
   isEditMode?: boolean
   editListingId?: string | null
@@ -60,8 +59,7 @@ export const DEFAULT_OPERATOR_WIZARD_DATA: OperatorWizardFormData = {
   wilayaId: null,
   governorateName: '',
   wilayaName: '',
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
   profileImageUrl: '',
 }
 

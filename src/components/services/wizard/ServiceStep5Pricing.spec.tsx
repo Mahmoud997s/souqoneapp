@@ -115,8 +115,7 @@ describe('ServiceStep5Pricing', () => {
     await render(<ServiceStep5Pricing {...defaultProps} />)
 
     const addressInput = screen.getByTestId('address-input')
-    const phoneInput = screen.getByTestId('contact-phone-input')
-    const whatsappInput = screen.getByTestId('whatsapp-input')
+    const whatsappSwitch = screen.getByTestId('whatsapp-enabled-switch')
     const websiteInput = screen.getByTestId('website-input')
 
     await act(async () => {
@@ -125,14 +124,9 @@ describe('ServiceStep5Pricing', () => {
     expect(mockOnUpdateField).toHaveBeenCalledWith('address', 'شارع رقم 8، المعبيلة الصناعية')
 
     await act(async () => {
-      fireEvent.changeText(phoneInput, '91234567')
+      fireEvent(whatsappSwitch, 'valueChange', true)
     })
-    expect(mockOnUpdateField).toHaveBeenCalledWith('contactPhone', '91234567')
-
-    await act(async () => {
-      fireEvent.changeText(whatsappInput, '97654321')
-    })
-    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsapp', '97654321')
+    expect(mockOnUpdateField).toHaveBeenCalledWith('whatsappEnabled', true)
 
     await act(async () => {
       fireEvent.changeText(websiteInput, 'https://mygarage.om')

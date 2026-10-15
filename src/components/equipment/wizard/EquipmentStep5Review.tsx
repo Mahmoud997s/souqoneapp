@@ -403,25 +403,15 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
             </View>
           ) : null}
 
-          {formData.contactPhone ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="call-outline" size={16} color={Colors.primary} />
-                <Text style={s.label}>هاتف الاتصال</Text>
-              </View>
-              <Text style={s.phoneValue}>{formData.contactPhone}</Text>
+          <View style={s.row}>
+            <View style={s.rowIconLabel}>
+              <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+              <Text style={s.label}>التواصل عبر واتساب</Text>
             </View>
-          ) : null}
-
-          {formData.whatsapp ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
-                <Text style={s.label}>رقم الواتساب</Text>
-              </View>
-              <Text style={s.whatsappValue}>{formData.whatsapp}</Text>
-            </View>
-          ) : null}
+            <Text style={[s.value, { color: formData.whatsappEnabled ? '#16A34A' : Colors.textMuted }]}>
+              {formData.whatsappEnabled ? 'مفعّل' : 'غير مفعّل'}
+            </Text>
+          </View>
         </View>
       </BlurView>
     </View>

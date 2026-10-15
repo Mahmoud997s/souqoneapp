@@ -13,11 +13,9 @@ export interface CarrierWizardState {
   city: string;
   baseLat?: number;
   baseLng?: number;
-  contactPhone: string;
-  whatsapp: string;
+  whatsappEnabled: boolean;
   errors: Record<string, string>;
   
-  // Actions
   // Actions
   setLocation: (govId: number, wilId: number, govName: string, wilName: string) => void;
   setField: <K extends keyof CarrierWizardState>(field: K, value: CarrierWizardState[K]) => void;
@@ -39,8 +37,7 @@ const initialState = {
   city: '',
   baseLat: undefined,
   baseLng: undefined,
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
   errors: {},
 };
 

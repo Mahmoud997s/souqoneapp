@@ -14,6 +14,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { usePartWizardStore } from '../../src/store/partWizardStore'
 import { partsApi } from '../../src/api/parts'
 import { dialogService } from '../../src/store/dialogStore'
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact'
 
 const ACCENT = '#ea580c' // Orange Accent
 
@@ -35,6 +36,7 @@ export default function PartDetailScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuthStore()
   const { data: item, isLoading, isError } = usePart(id)
+  const contact = useListingContact('SPARE_PART', id ?? '', `/parts/${id}`, (item as any)?.title)
   const { data: brands } = useBrands()
   const [imgIdx, setImgIdx] = useState(0)
 
@@ -90,8 +92,7 @@ export default function PartDetailScreen() {
       price: Number(raw.price) || null,
       currency: raw.currency ?? 'OMR',
       isPriceNegotiable: raw.isPriceNegotiable ?? false,
-      contactPhone: raw.contactPhone ?? '',
-      whatsapp: raw.whatsapp ?? '',
+      whatsappEnabled: Boolean(raw.whatsappEnabled),
       governorateId: raw.governorateId ? Number(raw.governorateId) : null,
       wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
       governorateNameAr: raw.governorateRef?.nameAr ?? raw.governorate ?? '',
@@ -295,19 +296,19 @@ export default function PartDetailScreen() {
           </View>
         ) : (
           <>
-            {seller?.phone && (
-              <TouchableOpacity style={s.callBtn} onPress={() => Linking.openURL(`tel:${seller.phone}`)}>
-                <Ionicons name="call-outline" size={20} color={ACCENT} />
-                <Text style={s.callTxt}>اتصال</Text>
-              </TouchableOpacity>
-            )}
-            {seller?.phone && (
-              <TouchableOpacity style={s.waBtn} onPress={() => Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}`)}>
+            <TouchableOpacity style={s.callBtn} onPress={contact.call}>
+              <Ionicons name="call-outline" size={20} color={ACCENT} />
+              <Text style={s.callTxt}>اتصال</Text>
+            </TouchableOpacity>
+
+            {(item as any)?.whatsappEnabled === true && (
+              <TouchableOpacity style={s.waBtn} onPress={contact.whatsApp}>
                 <Ionicons name="logo-whatsapp" size={20} color="#fff" />
                 <Text style={s.waTxt}>واتساب</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={s.chatBtn} onPress={handleChat}>
+
+            <TouchableOpacity style={s.chatBtn} onPress={contact.chat}>
               <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
               <Text style={s.chatTxt}>محادثة</Text>
             </TouchableOpacity>

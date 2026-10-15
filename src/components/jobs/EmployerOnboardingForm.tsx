@@ -10,6 +10,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { AppButton } from '../ui/AppButton'
+import { WhatsappToggle } from '../ui/WhatsappToggle'
 import { useCreateEmployerProfile } from '../../hooks/useEmployerProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
 import { dialogService } from '../../store/dialogStore'
@@ -23,7 +24,7 @@ export function EmployerOnboardingForm() {
   const [empGovId, setEmpGovId] = useState<number | null>(null)
   const [empWilId, setEmpWilId] = useState<number | null>(null)
   const [empBio, setEmpBio] = useState('')
-  const [empPhone, setEmpPhone] = useState('')
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false)
 
   const handleSubmit = async () => {
     if (!empGovId) {
@@ -37,7 +38,7 @@ export function EmployerOnboardingForm() {
         governorateId: empGovId,
         wilayaId: empWilId || undefined,
         bio: empBio || undefined,
-        contactPhone: empPhone || undefined,
+        whatsappEnabled,
       })
       setActiveRole('employer')
       router.replace('/jobs/dashboard')
@@ -98,7 +99,7 @@ export function EmployerOnboardingForm() {
         <View style={s.cardGroup}>
           <View style={s.cardHeader}>
             <Ionicons name="location-outline" size={22} color={Colors.primary} />
-            <Text style={s.cardTitle}>الموقع والتواصل</Text>
+            <Text style={s.cardTitle}>الموقع</Text>
           </View>
 
           <View style={s.inputGroup}>
@@ -112,19 +113,13 @@ export function EmployerOnboardingForm() {
               showCity={false}
             />
           </View>
-
-          <View style={s.inputGroup}>
-            <Text style={s.inputLabel}>رقم التواصل (اختياري)</Text>
-            <TextInput
-              style={s.input}
-              value={empPhone}
-              onChangeText={setEmpPhone}
-              placeholder="+968 XXXX XXXX"
-              placeholderTextColor={Colors.textMuted}
-              keyboardType="phone-pad"
-            />
-          </View>
         </View>
+
+        <WhatsappToggle
+          value={whatsappEnabled}
+          onValueChange={setWhatsappEnabled}
+          variant="card"
+        />
       </ScrollView>
 
       <View style={s.stickyFooter}>

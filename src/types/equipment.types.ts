@@ -78,6 +78,7 @@ export interface EquipmentListing {
   // Contact
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
 
   status: ListingStatus
   isPremium: boolean

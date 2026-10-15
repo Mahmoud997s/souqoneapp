@@ -6,6 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
+import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { CarStep4Props } from '../../../types/carForm.types'
@@ -266,26 +267,11 @@ export function CarStep4Location({
         )}
       </WizardCard>
 
-      {/* Contact: number is always the registered account's phone; only the WhatsApp switch is here */}
-      <WizardCard
-        title="التواصل"
-        subtitle="يتواصل المشترون معك عبر رقم هاتف حسابك المسجل في سوق ون"
-      >
-        <View style={s.contactSwitchRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.switchTitle}>تفعيل الواتساب للتواصل</Text>
-            <Text style={s.switchSub}>
-              إظهار زر الواتساب في إعلانك، على نفس رقم حسابك المسجل. لتغيير الرقم عدّله من إعدادات حسابك.
-            </Text>
-          </View>
-          <Switch
-            value={formData.whatsappEnabled === true}
-            onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
-            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-            testID="whatsapp-enabled-switch"
-          />
-        </View>
-      </WizardCard>
+      {/* Contact: number is always the registered account's phone; WhatsApp switch via shared WhatsappToggle */}
+      <WhatsappToggle
+        value={formData.whatsappEnabled === true}
+        onValueChange={(val) => onUpdateField('whatsappEnabled', val)}
+      />
 
       {/* Modal for Map Picking */}
       <MapLocationPicker

@@ -13,6 +13,7 @@ import { servicesApi } from '../../src/api/services'
 import { dialogService } from '../../src/store/dialogStore'
 import { formatLocation } from '../../src/utils/mappers'
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../src/constants/services'
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -21,6 +22,7 @@ export default function ServiceDetailScreen() {
   const { user } = useAuthStore()
   const insets = useSafeAreaInsets()
   const { data: item, isLoading, isError } = useService(id)
+  const contact = useListingContact('CAR_SERVICE', id ?? '', `/services/${id}`, (item as any)?.title)
   const [imgIdx, setImgIdx] = useState(0)
 
   if (isLoading) {
@@ -83,8 +85,7 @@ export default function ServiceDetailScreen() {
       priceFrom: raw.priceFrom != null ? Number(raw.priceFrom) : (raw.price != null ? Number(raw.price) : null),
       priceTo: raw.priceTo != null ? Number(raw.priceTo) : null,
       currency: raw.currency ?? 'OMR',
-      contactPhone: raw.contactPhone ?? '',
-      whatsapp: raw.whatsapp ?? '',
+      whatsappEnabled: Boolean(raw.whatsappEnabled),
       website: raw.website ?? '',
       governorateId: raw.governorateId ? Number(raw.governorateId) : null,
       wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
@@ -309,19 +310,19 @@ export default function ServiceDetailScreen() {
           </View>
         ) : (
           <>
-            {seller?.phone && (
-              <TouchableOpacity style={s.callBtn} onPress={() => Linking.openURL(`tel:${seller.phone}`)}>
-                <Ionicons name="call-outline" size={20} color={Colors.primary} />
-                <Text style={s.callTxt}>اتصال</Text>
-              </TouchableOpacity>
-            )}
-            {seller?.phone && (
-              <TouchableOpacity style={s.waBtn} onPress={() => Linking.openURL(`whatsapp://send?phone=${seller.phone.replace('+', '')}`)}>
+            <TouchableOpacity style={s.callBtn} onPress={contact.call}>
+              <Ionicons name="call-outline" size={20} color={Colors.primary} />
+              <Text style={s.callTxt}>اتصال</Text>
+            </TouchableOpacity>
+
+            {(item as any)?.whatsappEnabled === true && (
+              <TouchableOpacity style={s.waBtn} onPress={contact.whatsApp}>
                 <Ionicons name="logo-whatsapp" size={20} color="#fff" />
                 <Text style={s.waTxt}>واتساب</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={s.bookBtn} onPress={handleChat}>
+
+            <TouchableOpacity style={s.bookBtn} onPress={contact.chat}>
               <Ionicons name="calendar-outline" size={20} color="#fff" />
               <Text style={s.bookTxt}>حجز</Text>
             </TouchableOpacity>

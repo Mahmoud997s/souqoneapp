@@ -31,11 +31,14 @@ import { buildOperatorPayload } from '../../../src/utils/operator-payload'
 import { OperatorRoleStep } from '../../../src/components/operators/OperatorRoleStep'
 import { OperatorEquipCertsStep } from '../../../src/components/operators/OperatorEquipCertsStep'
 import { OperatorRatesLocationStep } from '../../../src/components/operators/OperatorRatesLocationStep'
+import { useProfilePhoneGuard } from '../../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 3
 
 export default function AddOperatorScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
   const { user } = useAuthStore()
   const createMutation = useCreateOperator()
   const { data: myOperators, isLoading: loadingMyOp } = useMyOperators(!!user)
@@ -60,15 +63,7 @@ export default function AddOperatorScreen() {
     resetDraft,
   } = useOperatorWizardStore()
 
-  // Auto-fill phone from auth user if empty
-  useEffect(() => {
-    if (user?.phone && !formData.contactPhone) {
-      setFormField('contactPhone', user.phone)
-      if (!formData.whatsapp) {
-        setFormField('whatsapp', user.phone)
-      }
-    }
-  }, [user?.phone])
+
 
   const formLogic = useOperatorFormLogic({
     certifications: formData.certifications,
@@ -140,6 +135,19 @@ export default function AddOperatorScreen() {
   // Prevent UI flash while checking/redirecting
   if (loadingMyOp || (myOperators && myOperators.length > 0)) {
     return <View style={{ flex: 1, backgroundColor: '#F8F9FA' }} />
+  }
+
+  if (!hasPhone) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ProfilePhoneGuardView
+          title="إضافة بطاقة مهنية"
+          headerVariant="glass"
+          onBack={() => router.back()}
+        />
+      </>
+    )
   }
 
   return (

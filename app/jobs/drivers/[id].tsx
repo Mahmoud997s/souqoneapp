@@ -2,7 +2,7 @@ import React from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image, ActivityIndicator,
-  Linking, Dimensions
+  Dimensions
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -23,6 +23,7 @@ import { getInitials, getAvatarColor } from '../../../src/utils/format'
 import { chatApi } from '../../../src/api/chat'
 import { useAuthStore } from '../../../src/store/authStore'
 import { dialogService } from '../../../src/store/dialogStore'
+import { useListingContact } from '../../../src/hooks/listing-detail/useListingContact'
 
 const SW = Dimensions.get('window').width
 
@@ -32,6 +33,14 @@ export default function DriverProfileScreen() {
   const { data: driver, isLoading, isError } = useDriver(id ?? '')
   const [isChatting, setIsChatting] = React.useState(false)
   const { user } = useAuthStore()
+
+  const name = driver ? (driver.user?.displayName ?? driver.user?.username ?? 'سائق') : 'سائق'
+  const contact = useListingContact(
+    'DRIVER_PROFILE',
+    id ?? '',
+    `/jobs/drivers/${id}`,
+    name
+  )
 
   const handleChat = async () => {
     if (!user) {
@@ -82,22 +91,8 @@ export default function DriverProfileScreen() {
     )
   }
 
-  const name = driver.user?.displayName ?? driver.user?.username ?? 'سائق'
   const initials = getInitials(name)
   const avatarColor = getAvatarColor(driver.userId)
-
-  const openPhone = (number: string) => {
-    Linking.openURL(`tel:${number}`).catch(() =>
-      dialogService.alert('خطأ', 'لا يمكن فتح التطبيق الهاتفي')
-    )
-  }
-
-  const openWhatsApp = (number: string) => {
-    const clean = number.replace(/[^0-9]/g, '')
-    Linking.openURL(`https://wa.me/${clean}`).catch(() =>
-      dialogService.alert('خطأ', 'تأكد من تثبيت واتساب')
-    )
-  }
 
   return (
     <View style={s.root}>
@@ -220,10 +215,11 @@ export default function DriverProfileScreen() {
 
       {/* FIXED CONTACT BAR */}
       <View style={[s.contactBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 12 }]}>
-        {driver.whatsapp && (
+        {driver.whatsappEnabled === true && (
           <TouchableOpacity
             style={s.chatIconBtn}
-            onPress={() => openWhatsApp(driver.whatsapp!)}
+            onPress={contact.whatsApp}
+            disabled={contact.busy}
             activeOpacity={0.9}
           >
             <Ionicons name="logo-whatsapp" size={24} color="#fff" />
@@ -248,16 +244,15 @@ export default function DriverProfileScreen() {
           </TouchableOpacity>
         )}
 
-        {driver.contactPhone && (
-          <TouchableOpacity
-            style={s.callWideBtn}
-            onPress={() => openPhone(driver.contactPhone!)}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="call" size={20} color={Colors.primary} />
-            <Text style={s.callWideTxt}>اتصال</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={s.callWideBtn}
+          onPress={contact.call}
+          disabled={contact.busy}
+          activeOpacity={0.9}
+        >
+          <Ionicons name="call" size={20} color={Colors.primary} />
+          <Text style={s.callWideTxt}>اتصال</Text>
+        </TouchableOpacity>
       </View>
     </View>
   )

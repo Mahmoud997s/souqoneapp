@@ -17,8 +17,7 @@ interface OperatorPayloadInput {
   isPriceNegotiable: boolean
   governorateId?: number | null
   wilayaId?: number | null
-  contactPhone: string
-  whatsapp: string
+  whatsappEnabled: boolean
 }
 
 /**
@@ -28,7 +27,7 @@ interface OperatorPayloadInput {
  * Rules:
  * - All numeric fields are cast with Number()
  * - currency: formData.currency with fallback to 'OMR'
- * - whatsapp: falls back to contactPhone if empty
+ * - whatsappEnabled: boolean flag based on user selection
  * - No text-based location keys (governorate/city strings) sent to backend
  */
 export function buildOperatorPayload(formData: OperatorPayloadInput): Record<string, unknown> {
@@ -46,7 +45,6 @@ export function buildOperatorPayload(formData: OperatorPayloadInput): Record<str
     isPriceNegotiable: formData.isPriceNegotiable,
     governorateId: Number(formData.governorateId),
     wilayaId: Number(formData.wilayaId),
-    contactPhone: formData.contactPhone.trim(),
-    whatsapp: formData.whatsapp.trim() || formData.contactPhone.trim(),
+    whatsappEnabled: formData.whatsappEnabled === true,
   }
 }

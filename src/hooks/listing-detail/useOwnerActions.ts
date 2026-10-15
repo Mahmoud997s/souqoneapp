@@ -7,6 +7,8 @@ import {
 } from './useChangeCarListingStatus'
 import { isOptimisticLockError } from './useUpdateCarListing'
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
+import { useAuthStore } from '../../store/authStore'
+import { promptProfilePhoneRequired } from '../../utils/profilePhoneGuard'
 
 // OwnerActionId is the single source of truth — exported from OwnerManageBar.tsx.
 // This hook only ever produces/accepts the 8 backend-supported ids.
@@ -216,6 +218,14 @@ export function useOwnerActions(vm: CarDetailViewModel): UseOwnerActionsResult {
   const run = async (id: OwnerActionId): Promise<void> => {
     // Edit is navigation-only — the caller handles routing.
     if (id === 'edit') return
+
+    if (id === 'restore' || id === 'submit') {
+      const user = useAuthStore.getState().user
+      if (!user?.phone) {
+        promptProfilePhoneRequired()
+        return
+      }
+    }
 
     if (id === 'delete') {
       await deleteMutation.mutateAsync(vm.id)

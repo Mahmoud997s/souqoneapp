@@ -62,8 +62,7 @@ export default function EditOperatorScreen() {
     wilayaId: null,
     governorateName: '',
     wilayaName: '',
-    contactPhone: '',
-    whatsapp: '',
+    whatsappEnabled: false,
     profileImageUrl: '',
   })
 
@@ -85,8 +84,7 @@ export default function EditOperatorScreen() {
         wilayaId: operatorData.wilayaId ?? null,
         governorateName: (operatorData as any).governorate?.nameAr || (operatorData as any).governorateName || '',
         wilayaName: (operatorData as any).wilaya?.nameAr || (operatorData as any).wilayaName || '',
-        contactPhone: operatorData.contactPhone || '',
-        whatsapp: operatorData.whatsapp || operatorData.contactPhone || '',
+        whatsappEnabled: operatorData.whatsappEnabled === true,
         profileImageUrl: operatorData.profileImageUrl || '',
       })
     }

@@ -12,6 +12,7 @@ import { LicenseType } from '../../types/jobs.types'
 import { LICENSE_TYPE_LABELS, LANGUAGE_OPTIONS } from '../../constants/jobs'
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { AppButton } from '../ui/AppButton'
+import { WhatsappToggle } from '../ui/WhatsappToggle'
 import { useCreateDriverProfile } from '../../hooks/useDriverProfile'
 import { useJobProfileStore } from '../../store/jobProfileStore'
 import { dialogService } from '../../store/dialogStore'
@@ -30,8 +31,7 @@ export function DriverOnboardingForm() {
   const [governorateId, setGovernorateId] = useState<number | null>(null)
   const [wilayaId, setWilayaId] = useState<number | null>(null)
   const [bio, setBio] = useState('')
-  const [contactPhone, setContactPhone] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false)
 
   const toggleItem = <T,>(arr: T[], setArr: (v: T[]) => void, item: T) => {
     setArr(arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item])
@@ -56,8 +56,7 @@ export function DriverOnboardingForm() {
         governorateId,
         wilayaId: wilayaId || undefined,
         bio: bio || undefined,
-        contactPhone: contactPhone || undefined,
-        whatsapp: whatsapp || undefined,
+        whatsappEnabled,
       })
       setActiveRole('driver')
       router.replace('/jobs/dashboard')
@@ -170,35 +169,11 @@ export function DriverOnboardingForm() {
           </View>
         </View>
 
-        <View style={s.cardGroup}>
-          <View style={s.cardHeader}>
-            <Ionicons name="call-outline" size={22} color={Colors.primary} />
-            <Text style={s.cardTitle}>معلومات التواصل</Text>
-          </View>
-
-          <View style={s.inputGroup}>
-            <Text style={s.inputLabel}>رقم الهاتف (اختياري)</Text>
-            <TextInput
-              style={s.input}
-              value={contactPhone}
-              onChangeText={setContactPhone}
-              placeholder="+968 XXXX XXXX"
-              placeholderTextColor={Colors.textMuted}
-              keyboardType="phone-pad"
-            />
-          </View>
-          <View style={s.inputGroup}>
-            <Text style={s.inputLabel}>واتساب (اختياري)</Text>
-            <TextInput
-              style={s.input}
-              value={whatsapp}
-              onChangeText={setWhatsapp}
-              placeholder="+968 XXXX XXXX"
-              placeholderTextColor={Colors.textMuted}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </View>
+        <WhatsappToggle
+          value={whatsappEnabled}
+          onValueChange={setWhatsappEnabled}
+          variant="card"
+        />
       </ScrollView>
 
       <View style={s.stickyFooter}>

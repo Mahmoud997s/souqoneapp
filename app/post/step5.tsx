@@ -422,8 +422,7 @@ export default function PostStep5Screen() {
     }
   }
 
-  const contactPhone = store.details?.contactPhone
-  const whatsappNumber = store.details?.whatsapp
+  const whatsappEnabled = store.details?.whatsappEnabled === true
   const listingTypeLabel = store.details?.listingType || store.details?.type || null
 
   return (
@@ -537,32 +536,23 @@ export default function PostStep5Screen() {
           ) : null}
 
           {/* ── 6. بيانات التواصل ── */}
-          {(contactPhone || whatsappNumber) && (
-            <View style={s.card}>
-              <View style={s.cardHeader}>
-                <View style={s.headerIconWrap}>
-                  <Ionicons name="call-outline" size={14} color={Colors.primary} />
-                </View>
-                <Text style={s.cardTitle}>بيانات التواصل</Text>
+          <View style={s.card}>
+            <View style={s.cardHeader}>
+              <View style={s.headerIconWrap}>
+                <Ionicons name="logo-whatsapp" size={14} color="#16A34A" />
               </View>
+              <Text style={s.cardTitle}>التواصل عبر واتساب</Text>
+            </View>
 
-              <View style={s.contactRow}>
-                {contactPhone ? (
-                  <View style={s.contactItem}>
-                    <Ionicons name="call" size={14} color={Colors.primary} />
-                    <Text style={s.contactTxt}>{contactPhone}</Text>
-                  </View>
-                ) : null}
-
-                {whatsappNumber ? (
-                  <View style={[s.contactItem, s.whatsappItem]}>
-                    <Ionicons name="logo-whatsapp" size={14} color="#16A34A" />
-                    <Text style={[s.contactTxt, { color: '#16A34A' }]}>{whatsappNumber}</Text>
-                  </View>
-                ) : null}
+            <View style={s.contactRow}>
+              <View style={[s.contactItem, s.whatsappItem]}>
+                <Ionicons name="logo-whatsapp" size={14} color="#16A34A" />
+                <Text style={[s.contactTxt, { color: '#16A34A' }]}>
+                  {whatsappEnabled ? 'مفعّل للمشتري' : 'معطّل'}
+                </Text>
               </View>
             </View>
-          )}
+          </View>
 
           <View style={{ height: 16 }} />
         </View>

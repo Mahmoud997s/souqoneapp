@@ -60,8 +60,7 @@ export interface PartFormData {
   wilayaNameAr: string
   latitude: number | null
   longitude: number | null
-  contactPhone: string
-  whatsapp: string
+  whatsappEnabled: boolean
 
   editMode: boolean
   editListingId: string | null
@@ -100,8 +99,7 @@ export const defaultPartFormData: PartFormData = {
   wilayaNameAr: '',
   latitude: null,
   longitude: null,
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 
   editMode: false,
   editListingId: null,

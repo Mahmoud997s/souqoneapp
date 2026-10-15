@@ -4,9 +4,10 @@ import { useCarrierWizardStore } from '../../../store/carrierWizardStore';
 import { Colors } from '../../../constants/colors';
 import { Radius } from '../../../constants/radius';
 import { InlineError } from '../../ui/InlineError';
+import { WhatsappToggle } from '../../ui/WhatsappToggle';
 
 export default function CarrierStep1Info() {
-  const { companyName, bio, contactPhone, whatsapp, setField, errors } = useCarrierWizardStore();
+  const { companyName, bio, whatsappEnabled, setField, errors } = useCarrierWizardStore();
 
   return (
     <View style={s.container}>
@@ -47,41 +48,11 @@ export default function CarrierStep1Info() {
           <InlineError message={errors.bio} />
         </View>
 
-        <View style={s.header}>
-          <Text style={s.title}>معلومات التواصل</Text>
-        </View>
-
-        <View style={s.inputGroup}>
-          <Text style={s.label}>رقم الهاتف الرئيسي *</Text>
-          <TextInput
-            style={[s.input, errors.contactPhone ? s.inputError : null]}
-            placeholder="مثال: 96890000000"
-            placeholderTextColor="#94a3b8"
-            keyboardType="phone-pad"
-            value={contactPhone}
-            onChangeText={(v) => {
-              setField('contactPhone', v);
-              useCarrierWizardStore.getState().setErrors({ ...errors, contactPhone: '' });
-            }}
-          />
-          <InlineError message={errors.contactPhone} />
-        </View>
-
-        <View style={s.inputGroup}>
-          <Text style={s.label}>رقم الواتساب *</Text>
-          <TextInput
-            style={[s.input, errors.whatsapp ? s.inputError : null]}
-            placeholder="رقم الواتساب لسهولة التواصل"
-            placeholderTextColor="#94a3b8"
-            keyboardType="phone-pad"
-            value={whatsapp}
-            onChangeText={(v) => {
-              setField('whatsapp', v);
-              useCarrierWizardStore.getState().setErrors({ ...errors, whatsapp: '' });
-            }}
-          />
-          <InlineError message={errors.whatsapp} />
-        </View>
+        <WhatsappToggle
+          value={whatsappEnabled}
+          onValueChange={(val) => setField('whatsappEnabled', val)}
+          variant="card"
+        />
 
       </View>
   );

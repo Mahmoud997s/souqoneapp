@@ -229,9 +229,9 @@ describe('BusStep5Location', () => {
     expect(screen.queryByTestId('whatsapp-input')).toBeNull()
     expect(screen.queryByText('رقم الهاتف للتواصل *')).toBeNull()
     expect(screen.getByTestId('whatsapp-enabled-switch')).toBeTruthy()
-    expect(screen.getByText('تفعيل الواتساب للتواصل')).toBeTruthy()
+    expect(screen.getByText('التواصل عبر واتساب')).toBeTruthy()
     // hint explains the number is the registered account's number
-    expect(screen.getByText(/رقم هاتف حسابك المسجل/)).toBeTruthy()
+    expect(screen.getByText(/رقم بروفايلك/)).toBeTruthy()
   })
 
   it('switch reflects whatsappEnabled=false for a new listing', async () => {

@@ -13,6 +13,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { WhatsappToggle } from '../../src/components/ui/WhatsappToggle'
 import { useJobPostStore } from '../../src/store/jobPostStore'
 import { Stepper } from '../../src/components/ui/Stepper'
 import {
@@ -50,13 +51,12 @@ export default function CreateStep4() {
   const qc = useQueryClient()
   const store = useJobPostStore()
 
-  const [contactPhone, setContactPhone] = useState(store.contactPhone)
+  const [whatsappEnabled, setWhatsappEnabled] = useState(store.whatsappEnabled ?? false)
   const [contactEmail, setContactEmail] = useState(store.contactEmail)
-  const [whatsapp, setWhatsapp] = useState(store.whatsapp)
 
   const publishMutation = useMutation({
     mutationFn: () => {
-      store.set({ contactPhone, contactEmail, whatsapp })
+      store.set({ whatsappEnabled, contactEmail })
       return jobsApi.create({
         jobType: store.jobType,
         title: store.title,
@@ -74,9 +74,8 @@ export default function CreateStep4() {
         hasOwnVehicle: store.hasOwnVehicle,
         governorateId: store.governorateId as number,
         wilayaId: store.wilayaId as number | undefined,
-        contactPhone: contactPhone || undefined,
+        whatsappEnabled,
         contactEmail: contactEmail || undefined,
-        whatsapp: whatsapp || undefined,
       })
     },
     onSuccess: (res) => {
@@ -177,45 +176,15 @@ export default function CreateStep4() {
             )}
           </View>
 
-          {/* Contact Info */}
-          <Text style={s.sectionTitle}>معلومات التواصل *</Text>
-          <Text style={s.sectionDesc}>
-            أضف طرق تواصل إضافية إلى جانب البريد الإلكتروني الافتراضي لحسابك
-          </Text>
+          {/* WhatsApp Toggle */}
+          <WhatsappToggle
+            value={whatsappEnabled}
+            onValueChange={setWhatsappEnabled}
+            variant="card"
+          />
 
+          {/* Optional Email */}
           <View style={s.contactCard}>
-            <View style={s.contactRowInput}>
-              <View style={s.contactIconBoxInput}>
-                <Ionicons name="call" size={18} color={Colors.primary} />
-              </View>
-              <TextInput
-                style={s.contactInputInner}
-                value={contactPhone}
-                onChangeText={setContactPhone}
-                placeholder="رقم الهاتف (إجباري) *"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                textContentType="telephoneNumber"
-              />
-            </View>
-            <View style={s.dividerLine} />
-            <View style={s.contactRowInput}>
-              <View style={s.contactIconBoxInput}>
-                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-              </View>
-              <TextInput
-                style={s.contactInputInner}
-                value={whatsapp}
-                onChangeText={setWhatsapp}
-                placeholder="رقم واتساب (اختياري)"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                textContentType="telephoneNumber"
-              />
-            </View>
-            <View style={s.dividerLine} />
             <View style={s.contactRowInput}>
               <View style={s.contactIconBoxInput}>
                 <Ionicons name="mail" size={18} color={Colors.primary} />
@@ -257,10 +226,6 @@ export default function CreateStep4() {
               title="نشر الإعلان"
               size="sm"
               onPress={() => {
-                if (!contactPhone || contactPhone.trim() === '') {
-                  dialogService.alert('تنبيه', 'الرجاء إدخال رقم الهاتف للتواصل')
-                  return
-                }
                 publishMutation.mutate()
               }}
               disabled={publishMutation.isPending}

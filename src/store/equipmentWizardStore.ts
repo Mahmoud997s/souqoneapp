@@ -62,8 +62,7 @@ const initialFormData: EquipmentFormData = {
   longitude: null,
 
   // Contact
-  contactPhone: '',
-  whatsapp: '',
+  whatsappEnabled: false,
 
   // Media
   images: [],
@@ -192,8 +191,7 @@ export const useEquipmentWizardStore = create<EquipmentWizardState>()(
             latitude: listing.latitude || null,
             longitude: listing.longitude || null,
 
-            contactPhone: listing.contactPhone || '',
-            whatsapp: listing.whatsapp || '',
+            whatsappEnabled: listing.whatsappEnabled === true,
 
             images: [],
             existingImages: existingImgs,

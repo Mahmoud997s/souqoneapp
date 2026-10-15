@@ -16,6 +16,7 @@ import { transportApi } from '../../src/api/transport'
 import { useAuthStore } from '../../src/store/authStore'
 import { resolveLocationGov } from '../../src/utils/mappers'
 import { getServiceLabel, getRequestStatusLabel, getQuoteStatusLabel } from '../../src/constants/transport'
+import { useListingContact } from '../../src/hooks/listing-detail/useListingContact'
 import MapView, { Marker } from '../../src/components/ui/Map';
 
 const { width: SW } = Dimensions.get('window')
@@ -102,6 +103,7 @@ export default function TransportDetailScreen() {
   const toLabel   = resolveLocationGov(raw.toGovernorate)   + (raw.toCity   ? `، ${raw.toCity}`   : '')
 
   const title = `نقل ${serviceLabel} من ${resolveLocationGov(raw.fromGovernorate)}`
+  const contact = useListingContact('TRANSPORT_REQUEST', id as string, `/transport/${id}`, title)
   
   const budgetMin = parseFloat(String(raw.budgetMin ?? 0))
   const budgetMax = parseFloat(String(raw.budgetMax ?? 0))
@@ -139,7 +141,7 @@ export default function TransportDetailScreen() {
     }
   }
 
-  const handleCall = () => { if (owner?.phone) Linking.openURL(`tel:${owner.phone}`) }
+  const handleCall = () => { contact.call() }
 
   const handleSubmitQuote = async () => {
     if (!user) { router.push('/(auth)/login' as any); return }

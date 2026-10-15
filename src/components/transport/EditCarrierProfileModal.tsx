@@ -7,6 +7,7 @@ import { CarrierProfile } from '../../types/transport.types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { transportApi } from '../../api/transport';
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect';
+import { WhatsappToggle } from '../ui/WhatsappToggle';
 import { dialogService } from '../../store/dialogStore'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,7 +22,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
   const insets = useSafeAreaInsets();
   const [companyName, setCompanyName] = useState('');
   const [bio, setBio] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
   const [governorateId, setGovernorateId] = useState<number | null>(null);
   const [wilayaId, setWilayaId] = useState<number | null>(null);
 
@@ -29,7 +30,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
     if (visible && profile) {
       setCompanyName(profile.companyName || '');
       setBio(profile.bio || '');
-      setContactPhone(profile.contactPhone || '');
+      setWhatsappEnabled(profile.whatsappEnabled === true);
       setGovernorateId(profile.governorateId || null);
       setWilayaId(profile.wilayaId || null);
     }
@@ -51,14 +52,14 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
   });
 
   const handleSave = () => {
-    if (!companyName.trim() || !contactPhone.trim() || !governorateId) {
-      dialogService.alert('بيانات ناقصة', 'يرجى إكمال اسم الشركة، ورقم الهاتف، والمحافظة');
+    if (!companyName.trim() || !governorateId) {
+      dialogService.alert('بيانات ناقصة', 'يرجى إكمال اسم الشركة والمحافظة');
       return;
     }
     updateMutation.mutate({
       companyName,
       bio,
-      contactPhone,
+      whatsappEnabled,
       governorateId,
       wilayaId: wilayaId || undefined,
     });
@@ -114,14 +115,10 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
             </View>
 
             <View style={s.field}>
-              <Text style={s.label}>رقم التواصل</Text>
-              <TextInput
-                style={s.input}
-                value={contactPhone}
-                onChangeText={setContactPhone}
-                placeholder="رقم الهاتف"
-                keyboardType="phone-pad"
-                textAlign="right"
+              <WhatsappToggle
+                value={whatsappEnabled}
+                onValueChange={setWhatsappEnabled}
+                variant="row"
               />
             </View>
 

@@ -14,9 +14,12 @@ import { Role } from '../../src/constants/jobs'
 import { useJobProfileStore } from '../../src/store/jobProfileStore'
 import { DriverOnboardingForm } from '../../src/components/jobs/DriverOnboardingForm'
 import { EmployerOnboardingForm } from '../../src/components/jobs/EmployerOnboardingForm'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
   const { activeRole } = useJobProfileStore()
 
   useEffect(() => {
@@ -31,6 +34,16 @@ export default function OnboardingScreen() {
   const handleStep1Continue = () => {
     if (!role) return
     setStep(2)
+  }
+
+  if (!hasPhone) {
+    return (
+      <ProfilePhoneGuardView
+        title="إنشاء بروفايل"
+        headerVariant="jobs"
+        onBack={() => router.back()}
+      />
+    )
   }
 
   return (

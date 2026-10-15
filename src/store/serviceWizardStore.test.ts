@@ -42,8 +42,7 @@ describe('serviceWizardStore (Phase 1)', () => {
       expect(state.formData.address).toBe('');
       expect(state.formData.latitude).toBeNull();
       expect(state.formData.longitude).toBeNull();
-      expect(state.formData.contactPhone).toBe('');
-      expect(state.formData.whatsapp).toBe('');
+      expect(state.formData.whatsappEnabled).toBe(false);
       expect(state.formData.website).toBe('');
 
       expect(state.formData.editMode).toBe(false);
@@ -74,8 +73,7 @@ describe('serviceWizardStore (Phase 1)', () => {
         address: 'شارع رقم 8، المعبيلة الصناعية',
         latitude: 23.588,
         longitude: 58.3829,
-        contactPhone: '91234567',
-        whatsapp: '91234567',
+        whatsappEnabled: true,
         website: 'https://garage.om',
         existingImages: [{ id: 'img-1', url: 'https://img.com/1.jpg', isPrimary: true }],
       };
@@ -104,8 +102,7 @@ describe('serviceWizardStore (Phase 1)', () => {
       expect(state.address).toBe('شارع رقم 8، المعبيلة الصناعية');
       expect(state.latitude).toBe(23.588);
       expect(state.longitude).toBe(58.3829);
-      expect(state.contactPhone).toBe('91234567');
-      expect(state.whatsapp).toBe('91234567');
+      expect(state.whatsappEnabled).toBe(true);
       expect(state.website).toBe('https://garage.om');
       expect(state.existingImages).toEqual([{ id: 'img-1', url: 'https://img.com/1.jpg', isPrimary: true }]);
     });

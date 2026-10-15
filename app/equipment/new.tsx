@@ -35,11 +35,14 @@ import { EquipmentStep2Images } from '../../src/components/equipment/wizard/Equi
 import { EquipmentStep3Details } from '../../src/components/equipment/wizard/EquipmentStep3Details'
 import { EquipmentStep4Location } from '../../src/components/equipment/wizard/EquipmentStep4Location'
 import { EquipmentStep5Review } from '../../src/components/equipment/wizard/EquipmentStep5Review'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 5
 
 export default function NewEquipmentListingScreen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
   const { user } = useAuthStore()
   const createMutation = useCreateEquipment()
   const updateMutation = useUpdateEquipment()
@@ -60,15 +63,7 @@ export default function NewEquipmentListingScreen() {
 
   const [isUploadingImages, setIsUploadingImages] = useState(false)
 
-  // Auto-fill phone from auth user if empty
-  useEffect(() => {
-    if (user?.phone && !formData.contactPhone) {
-      setFormField('contactPhone', user.phone)
-      if (!formData.whatsapp) {
-        setFormField('whatsapp', user.phone)
-      }
-    }
-  }, [user?.phone])
+
 
   const formLogic = useEquipmentFormLogic({
     images: formData.images,
@@ -252,8 +247,7 @@ export default function NewEquipmentListingScreen() {
       latitude: formData.latitude || undefined,
       longitude: formData.longitude || undefined,
 
-      contactPhone: formData.contactPhone.trim() || undefined,
-      whatsapp: formData.whatsapp.trim() || undefined,
+      whatsappEnabled: formData.whatsappEnabled === true,
       ...(formData.editMode ? {} : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
     }
 
@@ -329,6 +323,19 @@ export default function NewEquipmentListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (!hasPhone && !formData.editMode) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ProfilePhoneGuardView
+          title="إضافة معدة"
+          headerVariant="glass"
+          onBack={() => router.back()}
+        />
+      </>
+    )
+  }
 
   return (
     <KeyboardAvoidingView

@@ -42,8 +42,7 @@ describe('ServiceStep6Review', () => {
     governorateNameAr: 'مسقط',
     wilayaNameAr: 'السيب',
     address: 'شارع 8، المعبيلة',
-    contactPhone: '91234567',
-    whatsapp: '97654321',
+    whatsappEnabled: true,
     website: 'https://garage.om',
   }
 
@@ -78,7 +77,7 @@ describe('ServiceStep6Review', () => {
     expect(screen.getByText('من 50 إلى 150 ر.ع')).toBeTruthy()
     expect(screen.getByText('مسقط - السيب')).toBeTruthy()
     expect(screen.getByText('شارع 8، المعبيلة')).toBeTruthy()
-    expect(screen.getByText('91234567')).toBeTruthy()
+    expect(screen.getByText('مفعّل')).toBeTruthy()
   })
 
   it('calls onEditStep with corresponding step number on edit buttons press', async () => {

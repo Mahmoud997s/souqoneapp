@@ -15,6 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
+import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
+import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const MAX_IMAGES = 10
 
@@ -22,6 +24,7 @@ const SKIP_IMAGES_CATEGORIES = ['transport']
 
 export default function PostStep2Screen() {
   const insets = useSafeAreaInsets()
+  const { hasPhone } = useProfilePhoneGuard()
   const { images, existingImages = [], removedImageIds = [], category, set } = usePostStore()
   const [uploading, setUploading] = useState(false)
 
@@ -130,6 +133,16 @@ export default function PostStep2Screen() {
     ...existingImages.map(img => img.url),
     ...images
   ]
+
+  if (!hasPhone) {
+    return (
+      <ProfilePhoneGuardView
+        title="إضافة إعلان"
+        headerVariant="app"
+        onBack={() => router.back()}
+      />
+    )
+  }
 
   return (
     <View style={s.root}>

@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { dialogService } from '../../../src/store/dialogStore'
 import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../../src/utils/equipment-mappers'
+import { useListingContact } from '../../../src/hooks/listing-detail/useListingContact'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -40,6 +41,7 @@ export default function OperatorDetailScreen() {
   const insets = useSafeAreaInsets()
 
   const { data: operator, isLoading, isError } = useOperatorItem(id as string)
+  const contact = useListingContact('OPERATOR_LISTING', id as string, `/equipment/operators/${id}`, operator?.title)
   const [isDescExpanded, setIsDescExpanded] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
@@ -93,9 +95,7 @@ export default function OperatorDetailScreen() {
   }
 
   const sellerId = operator.userId
-  const sellerPhone = operator.contactPhone
   const avatarUrl = operator.profileImageUrl || operator.user?.avatarUrl
-  const whatsappNumber = operator.whatsapp || operator.contactPhone
   const displayName = operator.user?.displayName || operator.user?.name || 'مشغل معتمد'
   const isVerified = Boolean(operator.user?.isVerified)
   const isOwner = user?.id === sellerId
@@ -103,47 +103,6 @@ export default function OperatorDetailScreen() {
   const locationText = formatLocation(operator)
   const reviewsUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}`
   const writeReviewUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}&write=true`
-
-  const handleCall = () => {
-    if (sellerPhone) {
-      Linking.openURL(`tel:${sellerPhone}`)
-    } else {
-      dialogService.alert('تنبيه', 'رقم الهاتف غير متوفر لهذا المشغل')
-    }
-  }
-
-  const handleWhatsApp = () => {
-    if (whatsappNumber) {
-      const cleanPhone = whatsappNumber.replace(/[^0-9+]/g, '')
-      const msg = encodeURIComponent(`مرحباً ${displayName}، بخصوص ملفك كمشغل في تطبيق سوق ون: ${operator.title}`)
-      Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${msg}`)
-    } else {
-      dialogService.alert('تنبيه', 'رقم الواتساب غير متوفر')
-    }
-  }
-
-  const handleChat = async () => {
-    if (!user) {
-      router.push('/(auth)/login')
-      return
-    }
-    if (user.id === sellerId) {
-      dialogService.alert('تنبيه', 'لا يمكنك مراسلة نفسك')
-      return
-    }
-    try {
-      const res = await chatApi.createRoom({
-        entityType: 'OPERATOR',
-        entityId: operator.id,
-        receiverId: sellerId,
-      })
-      if (res.data?.id) {
-        router.push(`/chat/${res.data.id}` as any)
-      }
-    } catch (e) {
-      dialogService.alert('خطأ', 'تعذر فتح المحادثة، يرجى المحاولة لاحقاً')
-    }
-  }
 
   const currency = operator.currency === 'USD' ? '$' : 'ر.ع.'
 
@@ -480,21 +439,19 @@ export default function OperatorDetailScreen() {
           </View>
         ) : (
           <View style={s.contactBtnGroup}>
-            {sellerPhone ? (
-              <TouchableOpacity style={s.callBtn} onPress={handleCall} activeOpacity={0.85}>
-                <Ionicons name="call" size={18} color={Colors.white} />
-                <Text style={s.callBtnTxt}>اتصال</Text>
-              </TouchableOpacity>
-            ) : null}
+            <TouchableOpacity style={s.callBtn} onPress={contact.call} activeOpacity={0.85}>
+              <Ionicons name="call" size={18} color={Colors.white} />
+              <Text style={s.callBtnTxt}>اتصال</Text>
+            </TouchableOpacity>
 
-            {whatsappNumber ? (
-              <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.85}>
+            {operator.whatsappEnabled === true ? (
+              <TouchableOpacity style={s.whatsappBtn} onPress={contact.whatsApp} activeOpacity={0.85}>
                 <Ionicons name="logo-whatsapp" size={18} color={Colors.white} />
                 <Text style={s.whatsappBtnTxt}>واتساب</Text>
               </TouchableOpacity>
             ) : null}
 
-            <TouchableOpacity style={s.chatBtn} onPress={handleChat} activeOpacity={0.85}>
+            <TouchableOpacity style={s.chatBtn} onPress={contact.chat} activeOpacity={0.85}>
               <Ionicons name="chatbubble-ellipses" size={18} color={Colors.primary} />
               <Text style={s.chatBtnTxt}>محادثة</Text>
             </TouchableOpacity>

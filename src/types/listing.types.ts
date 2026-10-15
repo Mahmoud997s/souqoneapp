@@ -123,6 +123,7 @@ export interface Part {
   currency?: 'OMR' | 'USD'
   contactPhone?: string
   whatsapp?: string
+  whatsappEnabled?: boolean
   governorateId?: number
   wilayaId?: number
   governorateRef?: { id: number; nameAr: string; nameEn: string }

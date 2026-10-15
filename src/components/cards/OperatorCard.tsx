@@ -9,6 +9,7 @@ import { CardSystem } from '../../constants/cardSystem'
 import { UnifiedCardItem } from './UnifiedCard'
 import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
 import { dialogService } from '../../store/dialogStore'
+import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 
 interface Props {
   item: UnifiedCardItem
@@ -17,10 +18,9 @@ interface Props {
 
 export function OperatorCard({ item, onPress }: Props) {
   const { title, price, priceText, priceLabel, currency, governorate, raw } = item
+  const contact = useListingContact('OPERATOR_LISTING', item.id, `/equipment/operators/${item.id}`, title)
   const isVerified = (item as any).isVerified ?? raw?.user?.isVerified ?? false
   const userAvatar = (item as any).avatar || raw?.user?.avatarUrl || raw?.user?.avatar
-  const contactPhone = raw?.contactPhone || raw?.user?.phone || (item as any).phone
-  const whatsapp = raw?.whatsapp || contactPhone
 
   // Extract data from raw
   const operatorType = getOperatorTypeLabel(raw?.operatorType)
@@ -50,23 +50,12 @@ export function OperatorCard({ item, onPress }: Props) {
 
   const handleCall = (e: any) => {
     e.stopPropagation?.()
-    if (contactPhone) {
-      Linking.openURL(`tel:${contactPhone}`)
-    } else {
-      dialogService.alert('تنبيه', 'رقم الهاتف غير متوفر لهذا المشغل')
-    }
+    contact.call()
   }
 
   const handleWhatsApp = (e: any) => {
     e.stopPropagation?.()
-    const targetPhone = whatsapp || contactPhone
-    if (targetPhone) {
-      const cleanPhone = targetPhone.replace(/[^0-9+]/g, '')
-      const msg = encodeURIComponent(`مرحباً، بخصوص إعلانك كمشغل: ${title}`)
-      Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${msg}`)
-    } else {
-      dialogService.alert('تنبيه', 'رقم الواتساب غير متوفر')
-    }
+    contact.whatsApp()
   }
 
   return (
@@ -185,10 +174,12 @@ export function OperatorCard({ item, onPress }: Props) {
           <Text style={s.callBtnTxt}>اتصال</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.8}>
-          <Ionicons name="logo-whatsapp" size={13} color="#16A34A" />
-          <Text style={s.whatsappBtnTxt}>واتساب</Text>
-        </TouchableOpacity>
+        {(item.whatsappEnabled === true || raw?.whatsappEnabled === true) && (
+          <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.8}>
+            <Ionicons name="logo-whatsapp" size={13} color="#16A34A" />
+            <Text style={s.whatsappBtnTxt}>واتساب</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   )
