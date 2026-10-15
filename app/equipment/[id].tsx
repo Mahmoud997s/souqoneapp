@@ -596,7 +596,7 @@ export default function EquipmentDetailScreen() {
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
             </TouchableOpacity>
-            {raw.whatsappEnabled !== false && (
+            {raw.whatsappEnabled === true && (
               <TouchableOpacity
                 style={s.waBtn}
                 onPress={contact.whatsApp}

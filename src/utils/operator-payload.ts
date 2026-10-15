@@ -27,7 +27,7 @@ interface OperatorPayloadInput {
  * Rules:
  * - All numeric fields are cast with Number()
  * - currency: formData.currency with fallback to 'OMR'
- * - whatsapp: falls back to contactPhone if empty
+ * - whatsappEnabled: boolean flag based on user selection
  * - No text-based location keys (governorate/city strings) sent to backend
  */
 export function buildOperatorPayload(formData: OperatorPayloadInput): Record<string, unknown> {

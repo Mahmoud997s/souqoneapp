@@ -18,6 +18,8 @@ import { chatApi } from '../../api/chat'
 import { contactApi } from '../../api/contact'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { useListingContact } from '../../hooks/listing-detail/useListingContact'
+import { resolveContactEntityType } from '../../utils/contactEntityType'
 import {
   ListingCardBase,
   ListingCardPill,
@@ -45,8 +47,7 @@ export interface UnifiedCardItem {
   isElite?: boolean
   isFavorite?: boolean
   isVerified?: boolean
-  phoneNumber?: string
-  whatsappNumber?: string
+  whatsappEnabled?: boolean
   href?: string
 }
 
@@ -283,58 +284,50 @@ export function UnifiedCard({
     })
   }
 
+  const entityType = resolveContactEntityType(item.category, item)
+  const contact = useListingContact(
+    entityType,
+    item.id,
+    item.href || (item.category ? `/${item.category}/${item.id}` : `/listings/${item.id}`),
+    item.title
+  )
+  const hasWhatsapp = item.whatsappEnabled === true || item.raw?.whatsappEnabled === true
+
   const renderCardActions = () => (
     <View style={styles.cardActionsRow}>
       <TouchableOpacity
         style={styles.actionBtnCall}
-        onPress={async () => {
-          let phone = item.phoneNumber
-          if (!phone) {
-            try {
-              const cat = item.category || 'LISTING'
-              const entityType = cat.toUpperCase() === 'CARS' ? 'LISTING' : cat.toUpperCase()
-              const res = await contactApi.getContact(entityType, item.id)
-              phone = res.data?.phone ?? undefined
-            } catch {
-              // fallback
-            }
-          }
-          if (phone) {
-            Linking.openURL(`tel:${phone}`)
-          } else {
-            dialogService.alert('تنبيه', 'رقم الهاتف غير متوفر')
-          }
+        onPress={(e: any) => {
+          e?.stopPropagation?.()
+          contact.call()
         }}
+        activeOpacity={0.8}
       >
         <Ionicons name="call-outline" size={16} color={Colors.primary} />
         <Text style={styles.actionBtnCallText}>اتصال</Text>
       </TouchableOpacity>
 
+      {hasWhatsapp && (
+        <TouchableOpacity
+          style={styles.actionBtnWhatsapp}
+          onPress={(e: any) => {
+            e?.stopPropagation?.()
+            contact.whatsApp()
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="logo-whatsapp" size={16} color="#16A34A" />
+          <Text style={styles.actionBtnWhatsappText}>واتساب</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={{ flex: 1 }}
-        onPress={async () => {
-          if (!user) {
-            router.push('/(auth)/login' as any)
-            return
-          }
-          try {
-            const sellerId =
-              item.raw?.seller?.id || item.raw?.user?.id || item.raw?.userId
-            const cat = item.category || 'LISTING'
-            const entityType = cat.toUpperCase()
-
-            const res = await chatApi.createRoom({
-              entityType: entityType === 'CARS' ? 'LISTING' : entityType,
-              entityId: item.id,
-              receiverId: sellerId,
-            })
-            if (res.data?.id) {
-              router.push(`/chat/${res.data.id}` as any)
-            }
-          } catch (e) {
-            dialogService.alert('خطأ', 'تعذر فتح المحادثة')
-          }
+        onPress={(e: any) => {
+          e?.stopPropagation?.()
+          contact.chat()
         }}
+        activeOpacity={0.8}
       >
         <LinearGradient
           colors={[Colors.primary, '#003B9E']}
@@ -412,6 +405,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     color: Colors.primary,
+  },
+  actionBtnWhatsapp: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 40,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: '#16A34A',
+    backgroundColor: '#F0FDF4',
+  },
+  actionBtnWhatsappText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    color: '#16A34A',
   },
   actionBtnChat: {
     flexDirection: 'row',

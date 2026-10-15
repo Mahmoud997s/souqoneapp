@@ -5,8 +5,10 @@ import * as ImagePicker from 'expo-image-picker'
 import * as Haptics from 'expo-haptics'
 import { useAuthStore } from '../store/authStore'
 import { usersApi } from '../api/users'
+import { authApi } from '../api/auth'
 import { uploadsApi } from '../api/uploads'
 import { locationsApi } from '../api/locations'
+import { queryClient } from '../api/queryClient'
 import { GovernorateRef, WilayaRef } from '../types/location.types'
 import { Config } from '../constants/config'
 import { dialogService } from '../store/dialogStore'
@@ -284,6 +286,7 @@ export function useEditProfile() {
       console.log('📥 [handleSave] API updateProfile response:', res.data)
 
       if (res.data) {
+        useAuthStore.getState().updateUser?.(res.data)
         useAuthStore.setState((state) => {
           if (!state.user) return { user: res.data }
           const updatedUser = {
@@ -300,6 +303,29 @@ export function useEditProfile() {
           }
           return { user: updatedUser }
         })
+
+        const currentUserId = useAuthStore.getState().user?.id
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['user'] }),
+          currentUserId ? queryClient.invalidateQueries({ queryKey: ['user', currentUserId] }) : Promise.resolve(),
+          queryClient.invalidateQueries({ queryKey: ['profile'] }),
+          queryClient.invalidateQueries({ queryKey: ['me'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-carrier-profile'] }),
+          queryClient.invalidateQueries({ queryKey: ['driver-profile', 'me'] }),
+          queryClient.invalidateQueries({ queryKey: ['employer-profile', 'me'] }),
+          queryClient.invalidateQueries({ queryKey: ['verification-status'] }),
+        ])
+
+        try {
+          const freshMe = await authApi.me()
+          const data = freshMe.data as any
+          const freshUser = data?.user ?? data
+          if (freshUser?.id) {
+            useAuthStore.getState().updateUser?.(freshUser)
+          }
+        } catch {
+          // If network hiccups, store already updated from res.data
+        }
 
         console.log('💾 [handleSave] useAuthStore user after save:', useAuthStore.getState().user)
         dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')

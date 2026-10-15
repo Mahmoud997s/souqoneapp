@@ -30,7 +30,7 @@ export function EditCarrierProfileModal({ visible, onClose, profile }: Props) {
     if (visible && profile) {
       setCompanyName(profile.companyName || '');
       setBio(profile.bio || '');
-      setWhatsappEnabled(Boolean(profile.whatsappEnabled));
+      setWhatsappEnabled(profile.whatsappEnabled === true);
       setGovernorateId(profile.governorateId || null);
       setWilayaId(profile.wilayaId || null);
     }

@@ -154,6 +154,7 @@ export function mapListingToCard(item: any): UnifiedCardItem {
     isVerified: item.seller?.isVerified ?? false,
     category: item.category ?? 'cars',
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -192,6 +193,7 @@ export function mapJobToCard(item: any): UnifiedCardItem {
     category: 'jobs',
     listingType: item.jobType === 'HIRING' ? 'HIRING' : 'OFFERING',
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     description: item.description,
     raw: item,
   }
@@ -215,6 +217,7 @@ export function mapServiceToCard(item: any): UnifiedCardItem {
     images: extractImages(item.images),
     category: 'services',
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -309,6 +312,7 @@ export function mapPartToCard(item: any): UnifiedCardItem {
     category: 'parts',
     listingType: (item.listingType || item.type)?.toUpperCase(),
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -376,6 +380,7 @@ export function mapBusToCard(item: any): UnifiedCardItem {
     listingType: (item.busListingType || item.listingType || item.type)?.toUpperCase(),
     category: 'buses',
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -454,6 +459,7 @@ export function mapEquipmentToCard(item: any): UnifiedCardItem {
     category: 'equipment',
     listingType: (item.listingType || item.type)?.toUpperCase(),
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -501,6 +507,7 @@ export function mapOperatorToCard(item: any): UnifiedCardItem {
     category: 'operators',
     listingType: 'OPERATOR',
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     raw: item,
   }
 }
@@ -537,6 +544,7 @@ export function mapTransportToCard(item: any): UnifiedCardItem {
     category: 'transport',
     listingType: REQUEST_STATUS_LABELS[item.status] ?? item.status,
     details: details.length > 0 ? details : undefined,
+    whatsappEnabled: item.whatsappEnabled === true,
     description: item.cargoDescription,
     raw: item,
   }

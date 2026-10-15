@@ -215,7 +215,7 @@ export default function DriverProfileScreen() {
 
       {/* FIXED CONTACT BAR */}
       <View style={[s.contactBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 12 }]}>
-        {driver.whatsappEnabled !== false && (
+        {driver.whatsappEnabled === true && (
           <TouchableOpacity
             style={s.chatIconBtn}
             onPress={contact.whatsApp}

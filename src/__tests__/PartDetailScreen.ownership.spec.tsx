@@ -59,6 +59,7 @@ const mockPartData = {
   price: 45,
   currency: 'OMR',
   isPriceNegotiable: false,
+  whatsappEnabled: true,
   contactPhone: '91234567',
   whatsapp: '91234567',
   governorateId: 1,

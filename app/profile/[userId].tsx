@@ -32,8 +32,6 @@ export default function PublicProfileScreen() {
     )
   }
 
-  const phoneToUse = profile?.phone
-
   const displayName = profile?.displayName ?? profile?.username ?? 'مستخدم'
   const joinYear = profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '—'
   const handleChat = async () => {
@@ -142,24 +140,6 @@ export default function PublicProfileScreen() {
       </ScrollView>
 
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        {phoneToUse && (
-          <TouchableOpacity
-            style={s.callBtn}
-            onPress={() => Linking.openURL(`tel:${phoneToUse}`)}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="call" size={22} color={Colors.primary} />
-          </TouchableOpacity>
-        )}
-        {phoneToUse && (
-          <TouchableOpacity
-            style={s.waBtn}
-            onPress={() => Linking.openURL(`whatsapp://send?phone=${phoneToUse.replace('+', '')}`)}
-            activeOpacity={0.9}
-          >
-            <Ionicons name="logo-whatsapp" size={22} color="#fff" />
-          </TouchableOpacity>
-        )}
         <TouchableOpacity
           style={s.chatBtn}
           onPress={handleChat}

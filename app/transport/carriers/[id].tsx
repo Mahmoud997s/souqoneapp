@@ -188,7 +188,7 @@ export default function CarrierProfileScreen() {
               <Text style={s.actionBtnTxtSmall}>اتصال</Text>
             </TouchableOpacity>
 
-            {profile.whatsappEnabled !== false && (
+            {profile.whatsappEnabled === true && (
               <TouchableOpacity
                 style={[s.actionBtn, s.waBtn, { flex: 1 }]}
                 onPress={contact.whatsApp}

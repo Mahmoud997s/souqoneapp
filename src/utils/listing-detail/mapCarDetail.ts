@@ -360,7 +360,7 @@ export function mapCarDetail(raw: CarDetailApi): CarDetailViewModel {
     images,
     location,
     seller,
-    whatsappEnabled: raw.whatsappEnabled !== false,
+    whatsappEnabled: raw.whatsappEnabled === true,
     postedAtLabel: formatRelativeTimeAr(raw.createdAt),
     viewCount: raw.viewCount,
 

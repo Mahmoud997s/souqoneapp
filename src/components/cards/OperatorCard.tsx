@@ -174,7 +174,7 @@ export function OperatorCard({ item, onPress }: Props) {
           <Text style={s.callBtnTxt}>اتصال</Text>
         </TouchableOpacity>
 
-        {raw?.whatsappEnabled !== false && (
+        {(item.whatsappEnabled === true || raw?.whatsappEnabled === true) && (
           <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.8}>
             <Ionicons name="logo-whatsapp" size={13} color="#16A34A" />
             <Text style={s.whatsappBtnTxt}>واتساب</Text>

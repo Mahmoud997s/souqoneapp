@@ -301,7 +301,7 @@ export default function PartDetailScreen() {
               <Text style={s.callTxt}>اتصال</Text>
             </TouchableOpacity>
 
-            {(item as any)?.whatsappEnabled !== false && (
+            {(item as any)?.whatsappEnabled === true && (
               <TouchableOpacity style={s.waBtn} onPress={contact.whatsApp}>
                 <Ionicons name="logo-whatsapp" size={20} color="#fff" />
                 <Text style={s.waTxt}>واتساب</Text>

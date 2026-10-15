@@ -95,9 +95,7 @@ export default function OperatorDetailScreen() {
   }
 
   const sellerId = operator.userId
-  const sellerPhone = operator.contactPhone
   const avatarUrl = operator.profileImageUrl || operator.user?.avatarUrl
-  const whatsappNumber = operator.whatsapp || operator.contactPhone
   const displayName = operator.user?.displayName || operator.user?.name || 'مشغل معتمد'
   const isVerified = Boolean(operator.user?.isVerified)
   const isOwner = user?.id === sellerId
@@ -446,7 +444,7 @@ export default function OperatorDetailScreen() {
               <Text style={s.callBtnTxt}>اتصال</Text>
             </TouchableOpacity>
 
-            {operator.whatsappEnabled !== false ? (
+            {operator.whatsappEnabled === true ? (
               <TouchableOpacity style={s.whatsappBtn} onPress={contact.whatsApp} activeOpacity={0.85}>
                 <Ionicons name="logo-whatsapp" size={18} color={Colors.white} />
                 <Text style={s.whatsappBtnTxt}>واتساب</Text>
