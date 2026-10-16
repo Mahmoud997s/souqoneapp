@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
+import { SUPPORT_MAILTO } from '../../constants/support';
 
 export interface SupportHelpButtonProps {
   title?: string;
@@ -35,7 +36,7 @@ export function SupportHelpButton({
     if (onPress) {
       onPress();
     } else {
-      Linking.openURL('mailto:support@souqone.com').catch(() => {});
+      Linking.openURL(SUPPORT_MAILTO).catch(() => {});
     }
   };
 

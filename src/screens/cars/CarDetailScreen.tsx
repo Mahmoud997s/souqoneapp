@@ -20,6 +20,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { SUPPORT_MAILTO } from '../../constants/support'
 import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
@@ -166,7 +167,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   }
 
   const handleSupportPress = () => {
-    Linking.openURL('mailto:support@souqone.com').catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
   }
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
