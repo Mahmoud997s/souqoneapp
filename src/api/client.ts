@@ -68,10 +68,16 @@ export async function refreshAuthToken(): Promise<string> {
       return data.accessToken
     } catch (refreshError: any) {
       const status = refreshError.response?.status
-      // Logout ONLY if the refresh token is rejected by backend (401 or 403)
-      if (status === 401 || status === 403) {
+      const data = refreshError.response?.data
+      const code = data?.code
+
+      // If refresh fails with 403 ACCOUNT_BANNED or ACCOUNT_SUSPENDED
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        handleBlockedOrSuspended(code, data?.suspendedUntil)
+      } else if (status === 401 || status === 403) {
+        // Logout ONLY if the refresh token is rejected by backend (401 or 403)
         const { useAuthStore } = require('../store/authStore')
-        useAuthStore.getState().logout()
+        useAuthStore.getState().logout().catch(() => {})
       }
       // On network errors, timeouts, 5xx: DO NOT logout. Re-throw to caller.
       throw refreshError
@@ -83,13 +89,51 @@ export async function refreshAuthToken(): Promise<string> {
   return refreshPromise
 }
 
+export function handleBlockedOrSuspended(code: string, suspendedUntil?: string | null) {
+  const { useBlockedStore } = require('../store/blockedStore')
+  const { isBlocked } = useBlockedStore.getState()
+  if (isBlocked) {
+    // Single-flight: already blocked, do not duplicate logout or navigation
+    return
+  }
+
+  // 1. setBlocked first
+  useBlockedStore.getState().setBlocked({
+    code: code as 'ACCOUNT_BANNED' | 'ACCOUNT_SUSPENDED',
+    suspendedUntil: suspendedUntil ?? null,
+  })
+
+  // 2. logout second
+  const { useAuthStore } = require('../store/authStore')
+  useAuthStore.getState().logout().catch(() => {})
+
+  // 3. router.replace third
+  const { router } = require('expo-router')
+  router.replace('/(auth)/account-blocked')
+}
+
 apiClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
     const status = error.response?.status
+    const data = error.response?.data
+    const code = data?.code
 
-    // Single-flight refresh on 401 (excluding auth endpoints and already retried requests)
+    // 1. Handle live session 401 with blocked/suspended codes
+    if (status === 401 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+      handleBlockedOrSuspended(code, data?.suspendedUntil)
+      return Promise.reject(error)
+    }
+
+    // 2. Handle live session 401 with ACCOUNT_INACTIVE (logout without blocked screen)
+    if (status === 401 && code === 'ACCOUNT_INACTIVE') {
+      const { useAuthStore } = require('../store/authStore')
+      useAuthStore.getState().logout().catch(() => {})
+      return Promise.reject(error)
+    }
+
+    // 3. Single-flight refresh on 401 (excluding auth endpoints and already retried requests)
     if (
       status === 401 &&
       original &&

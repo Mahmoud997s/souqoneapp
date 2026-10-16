@@ -24,6 +24,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setAuth: async (user, accessToken, refreshToken) => {
     await SecureStore.setItemAsync('accessToken', accessToken)
     await SecureStore.setItemAsync('refreshToken', refreshToken)
+    try {
+      const { useBlockedStore } = await import('./blockedStore')
+      useBlockedStore.getState().clear()
+    } catch {}
     set({ user, isLoggedIn: true, isGuest: false })
   },
 

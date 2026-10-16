@@ -14,6 +14,7 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../src/api/queryClient'
 import { useAuthStore } from '../src/store/authStore'
+import { useBlockedStore } from '../src/store/blockedStore'
 import { registerForPushNotifications } from '../src/services/notifications'
 import { navigateFromNotification } from '../src/utils/notificationRouter'
 import { usersApi } from '../src/api/users'
@@ -49,6 +50,7 @@ export default function RootLayout() {
   })
 
   const { isLoggedIn, isGuest, isLoading, initialize } = useAuthStore()
+  const isBlocked = useBlockedStore((s) => s.isBlocked)
   const segments = useSegments()
   const router = useRouter()
 
@@ -85,6 +87,20 @@ export default function RootLayout() {
     if (isRoot) return
 
     const inAuth = currentSegments[0] === '(auth)'
+    const isBlockedScreen = inAuth && currentSegments[1] === 'account-blocked'
+
+    // If blocked, lock user on the blocked screen. Never redirect to main app.
+    if (isBlocked) {
+      if (!isBlockedScreen) {
+        router.replace('/(auth)/account-blocked')
+      }
+      return
+    }
+
+    // If user is on the blocked screen (e.g. before state clears), don't redirect away
+    if (isBlockedScreen) {
+      return
+    }
 
     if (isLoggedIn && inAuth) {
       if (currentSegments[1] === 'verify-email' || currentSegments[1] === 'register') {
@@ -97,7 +113,7 @@ export default function RootLayout() {
     if (!isLoggedIn && !isGuest && !inAuth) {
       router.replace('/(auth)/login')
     }
-  }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments])
+  }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments, isBlocked])
 
   if (!rtlReady || !fontsLoaded || isLoading) return null
 
