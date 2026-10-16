@@ -20,6 +20,7 @@ import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '../../src/store/authStore'
+import { useBlockedStore } from '../../src/store/blockedStore'
 import { authApi } from '../../src/api/auth'
 import { Ionicons } from '@expo/vector-icons'
 import { AppInput } from '../../src/components/ui/AppInput'
@@ -100,6 +101,19 @@ export default function LoginScreen() {
         router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (e: any) {
+      const status = e?.response?.status
+      const data = e?.response?.data
+      const code = data?.code
+
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        useBlockedStore.getState().setBlocked({
+          code,
+          suspendedUntil: data?.suspendedUntil,
+        })
+        router.replace('/(auth)/account-blocked')
+        return
+      }
+
       console.error('[Login Error]', JSON.stringify(e?.response?.data), e?.message)
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
@@ -149,6 +163,19 @@ export default function LoginScreen() {
         router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (err: any) {
+      const status = err?.response?.status
+      const data = err?.response?.data
+      const code = data?.code
+
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        useBlockedStore.getState().setBlocked({
+          code,
+          suspendedUntil: data?.suspendedUntil,
+        })
+        router.replace('/(auth)/account-blocked')
+        return
+      }
+
       if (isErrorWithCode(err)) {
         if (err.code === statusCodes.SIGN_IN_CANCELLED) {
           return

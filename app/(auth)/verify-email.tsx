@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuthStore } from '../../src/store/authStore'
+import { useBlockedStore } from '../../src/store/blockedStore'
 import { usePendingVerificationStore } from '../../src/store/pendingVerificationStore'
 import { resolveVerifiedSession } from '../../src/utils/verificationFlow'
 import { authApi } from '../../src/api/auth'
@@ -109,6 +110,21 @@ export default function VerifyEmailScreen() {
         router.replace('/(auth)/login')
       }
     } catch (e: any) {
+      const status = e?.response?.status
+      const data = e?.response?.data
+      const code = data?.code
+
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        doneRef.current = true
+        clear()
+        useBlockedStore.getState().setBlocked({
+          code,
+          suspendedUntil: data?.suspendedUntil,
+        })
+        router.replace('/(auth)/account-blocked')
+        return
+      }
+
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       setError(msg || e?.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية')
@@ -130,6 +146,21 @@ export default function VerifyEmailScreen() {
       setTimer(45)
       setError('')
     } catch (e: any) {
+      const status = e?.response?.status
+      const data = e?.response?.data
+      const code = data?.code
+
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        doneRef.current = true
+        clear()
+        useBlockedStore.getState().setBlocked({
+          code,
+          suspendedUntil: data?.suspendedUntil,
+        })
+        router.replace('/(auth)/account-blocked')
+        return
+      }
+
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       setError(msg || 'تعذر إرسال رمز جديد، حاول لاحقاً')

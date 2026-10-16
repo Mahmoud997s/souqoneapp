@@ -43,6 +43,21 @@ class SocketService {
       })
     })
 
+    this.socket.on('account-status', (payload: any) => {
+      const code = payload?.code
+      if (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED') {
+        if (this.socket) {
+          try {
+            this.socket.io.opts.reconnection = false
+          } catch {}
+          this.socket.disconnect()
+          this.socket = null
+        }
+        const { handleBlockedOrSuspended } = require('../api/client')
+        handleBlockedOrSuspended(code, null)
+      }
+    })
+
     this.socket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected:', reason)
       useSocketStore.setState({ isConnected: false })
@@ -67,6 +82,9 @@ class SocketService {
 
   disconnect() {
     if (this.socket) {
+      try {
+        this.socket.io.opts.reconnection = false
+      } catch {}
       this.socket.disconnect()
       this.socket = null
       console.log('[Socket] Manual disconnect triggered')
