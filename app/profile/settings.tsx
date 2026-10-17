@@ -19,6 +19,7 @@ import { dialogService } from '../../src/store/dialogStore'
 import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { SUPPORT_MAILTO } from '../../src/constants/support'
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
@@ -199,7 +200,7 @@ export default function SettingsScreen() {
               icon="headset-outline"
               iconColor="#059669"
               title="الدعم الفني والمساعدة"
-              onPress={() => Linking.openURL('mailto:support@souqone.com').catch(() => {})}
+              onPress={() => Linking.openURL(SUPPORT_MAILTO).catch(() => {})}
             />
             <SettingItem
               icon="document-text-outline"

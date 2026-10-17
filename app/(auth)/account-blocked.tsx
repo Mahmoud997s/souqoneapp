@@ -16,12 +16,11 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Shadows } from '../../src/constants/shadows'
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '../../src/constants/support'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { useBlockedStore } from '../../src/store/blockedStore'
 import { useAuthStore } from '../../src/store/authStore'
 import { formatSuspensionDate } from '../../src/utils/formatSuspensionDate'
-
-const SUPPORT_EMAIL = 'support@souqone.com'
 
 export default function AccountBlockedScreen() {
   const insets = useSafeAreaInsets()
@@ -48,7 +47,7 @@ export default function AccountBlockedScreen() {
   }, [handleReturnToLogin])
 
   const handleSupportPress = () => {
-    Linking.openURL(`mailto:${SUPPORT_EMAIL}`).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
   }
 
   // Determine copy and colors
@@ -57,12 +56,15 @@ export default function AccountBlockedScreen() {
   const iconColor = isSuspended ? Colors.warning : Colors.error
 
   let subtitle = 'تم حظر حسابك لمخالفة شروط الاستخدام.'
+  let formattedSuspendedDate: string | null = null
+
   if (isSuspended) {
     const formatted = formatSuspensionDate(suspendedUntil)
     if (formatted === 'حتى إشعار آخر') {
       subtitle = 'تم إيقاف حسابك مؤقتاً حتى إشعار آخر.'
     } else {
-      subtitle = `تم إيقاف حسابك مؤقتاً حتى ${formatted}.`
+      subtitle = 'تم إيقاف حسابك مؤقتاً. سيُعاد تفعيله تلقائياً في:'
+      formattedSuspendedDate = formatted
     }
   }
 
@@ -81,8 +83,6 @@ export default function AccountBlockedScreen() {
         >
           <Ionicons name="arrow-forward" size={18} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={s.topHeaderTitle}>{title}</Text>
-        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView
@@ -92,27 +92,34 @@ export default function AccountBlockedScreen() {
         <View style={s.card}>
           <View style={s.cardHero}>
             <View style={s.iconWrap}>
-              <Ionicons testID="account-blocked-icon" name={iconName} size={36} color={iconColor} />
+              <Ionicons testID="account-blocked-icon" name={iconName} size={40} color={iconColor} />
             </View>
             <Text style={s.cardTitle}>{title}</Text>
             <Text style={s.cardSubtitle}>{subtitle}</Text>
+            {formattedSuspendedDate ? (
+              <Text testID="account-blocked-suspended-date" style={s.suspendedDateText}>
+                {formattedSuspendedDate}
+              </Text>
+            ) : null}
           </View>
 
           {/* Support Information Box */}
           <View style={s.infoBox}>
-            <Ionicons name="mail-outline" size={20} color={Colors.primary} />
-            <View style={s.infoTextWrap}>
-              <Text style={s.infoText}>
-                للمساعدة أو الاستفسار، يمكنك التواصل مع فريق الدعم عبر:
-              </Text>
-              <TouchableOpacity onPress={handleSupportPress} activeOpacity={0.7}>
-                <Text style={s.emailHighlight}>{SUPPORT_EMAIL}</Text>
-              </TouchableOpacity>
-            </View>
+            <Ionicons name="mail-outline" size={24} color={Colors.primary} />
+            <Text style={s.infoText}>
+              للمساعدة أو الاستفسار، يمكنك التواصل مع فريق الدعم عبر:
+            </Text>
+            <TouchableOpacity
+              onPress={handleSupportPress}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
+            >
+              <Text style={s.emailHighlight}>{SUPPORT_EMAIL}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Action Button */}
-          <View style={{ marginTop: Spacing.space2 }}>
+          <View style={s.actionWrap}>
             <AppButton
               testID="account-blocked-return-btn"
               title="العودة لتسجيل الدخول"
@@ -129,11 +136,9 @@ export default function AccountBlockedScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: Spacing.space5,
     paddingBottom: Spacing.space2,
+    alignItems: 'flex-start',
   },
   floatingBackBtn: {
     width: 36,
@@ -145,14 +150,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.sm,
-  },
-  topHeaderTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: 24,
-    color: Colors.text,
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
   scroll: {
     flexGrow: 1,
@@ -173,12 +170,11 @@ const s = StyleSheet.create({
   cardHero: {
     alignItems: 'center',
     gap: Spacing.space2,
-    marginBottom: Spacing.space2,
   },
   iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: Colors.surfaceAlt,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -188,47 +184,59 @@ const s = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 22,
+    lineHeight: 30,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   cardSubtitle: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 24,
     color: Colors.text2,
     textAlign: 'center',
-    maxWidth: 290,
     writingDirection: 'rtl',
+    paddingHorizontal: Spacing.space1,
+  },
+  suspendedDateText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.warning,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginTop: Spacing.space1,
   },
   infoBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.space3,
+    paddingVertical: Spacing.space4,
+    paddingHorizontal: Spacing.space3,
     gap: Spacing.space2,
-  },
-  infoTextWrap: {
-    flex: 1,
-    gap: 2,
   },
   infoText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 22,
     color: Colors.text2,
+    textAlign: 'center',
     writingDirection: 'rtl',
-    textAlign: 'left',
   },
   emailHighlight: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
+    fontSize: 15,
+    lineHeight: 22,
     color: Colors.primary,
-    textAlign: 'left',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  actionWrap: {
+    width: '100%',
+    marginTop: Spacing.space2,
   },
 })
