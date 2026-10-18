@@ -20,6 +20,7 @@ import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SUPPORT_MAILTO } from '../../src/constants/support'
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '../../src/constants/legal'
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
@@ -206,13 +207,13 @@ export default function SettingsScreen() {
               icon="document-text-outline"
               iconColor="#64748B"
               title="سياسة الخصوصية"
-              onPress={() => Linking.openURL('https://souqone.com/privacy').catch(() => {})}
+              onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}
             />
             <SettingItem
               icon="information-circle-outline"
               iconColor="#64748B"
               title="شروط الاستخدام"
-              onPress={() => Linking.openURL('https://souqone.com/terms').catch(() => {})}
+              onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL).catch(() => {})}
               isLast
             />
           </View>
