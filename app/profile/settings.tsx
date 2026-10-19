@@ -19,12 +19,13 @@ import { dialogService } from '../../src/store/dialogStore'
 import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { SUPPORT_MAILTO } from '../../src/constants/support'
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '../../src/constants/legal'
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
-  const { logout, user } = useAuthStore()
+  const { logout, user, isGuest } = useAuthStore()
   const [msgNotif, setMsgNotif] = useState((user as any)?.preferences?.msgNotif ?? true)
   const [adNotif, setAdNotif] = useState((user as any)?.preferences?.adNotif ?? true)
 
@@ -66,6 +67,8 @@ export default function SettingsScreen() {
     onSwitch,
     onPress,
     isLast,
+    danger,
+    accessibilityLabel,
   }: {
     icon: keyof typeof Ionicons.glyphMap
     iconColor?: string
@@ -76,43 +79,50 @@ export default function SettingsScreen() {
     onSwitch?: (val: boolean) => void
     onPress?: () => void
     isLast?: boolean
-  }) => (
-    <TouchableOpacity
-      style={s.optionRow}
-      disabled={hasSwitch}
-      onPress={onPress}
-      activeOpacity={0.6}
-    >
-      <View style={s.optionRight}>
-        <View style={s.optionIconWrap}>
-          <Ionicons name={icon} size={18} color={iconColor} />
-        </View>
-        <Text style={s.optionTitle} numberOfLines={1}>
-          {title}
-        </Text>
-      </View>
-
-      {hasSwitch ? (
-        <Switch
-          value={switchVal}
-          onValueChange={onSwitch}
-          trackColor={{ false: '#CBD5E1', true: Colors.primary }}
-          thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : '#F1F5F9') : undefined}
-        />
-      ) : value ? (
-        <View style={s.valRow}>
-          <View style={s.badgePill}>
-            <Text style={s.badgeText}>{value}</Text>
+    danger?: boolean
+    accessibilityLabel?: string
+  }) => {
+    const finalIconColor = danger ? '#DC2626' : iconColor
+    return (
+      <TouchableOpacity
+        style={s.optionRow}
+        disabled={hasSwitch}
+        onPress={onPress}
+        activeOpacity={0.6}
+        accessibilityRole={hasSwitch ? undefined : 'button'}
+        accessibilityLabel={accessibilityLabel || title}
+      >
+        <View style={s.optionRight}>
+          <View style={[s.optionIconWrap, danger && s.optionIconWrapDanger]}>
+            <Ionicons name={icon} size={18} color={finalIconColor} />
           </View>
-          <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+          <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={1}>
+            {title}
+          </Text>
         </View>
-      ) : (
-        <Ionicons name="chevron-back" size={15} color="#94A3B8" />
-      )}
 
-      {!isLast && <View style={s.optionDivider} />}
-    </TouchableOpacity>
-  )
+        {hasSwitch ? (
+          <Switch
+            value={switchVal}
+            onValueChange={onSwitch}
+            trackColor={{ false: '#CBD5E1', true: Colors.primary }}
+            thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : '#F1F5F9') : undefined}
+          />
+        ) : value ? (
+          <View style={s.valRow}>
+            <View style={s.badgePill}>
+              <Text style={s.badgeText}>{value}</Text>
+            </View>
+            <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+          </View>
+        ) : (
+          <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+        )}
+
+        {!isLast && <View style={s.optionDivider} />}
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <View style={s.root}>
@@ -136,6 +146,9 @@ export default function SettingsScreen() {
           },
         ]}
       >
+        {/* ── Scheduled Deletion Banner ── */}
+        <DeletionScheduledBanner />
+
         {/* ── Section 1: Account ── */}
         <View style={s.sectionWrap}>
           <Text style={s.sectionHeaderTitle}>الحساب والأمان</Text>
@@ -157,8 +170,18 @@ export default function SettingsScreen() {
               iconColor="#059669"
               title="التحقق من الهوية"
               onPress={() => dialogService.alert('قريباً', 'ميزة التحقق من الهوية ستكون متاحة قريباً', 'info')}
-              isLast
+              isLast={isGuest || !user}
             />
+            {!isGuest && user && (
+              <SettingItem
+                icon="trash-outline"
+                title="حذف الحساب"
+                danger
+                onPress={() => router.push('/profile/delete-account' as any)}
+                isLast
+                accessibilityLabel="حذف الحساب"
+              />
+            )}
           </View>
         </View>
 
@@ -301,6 +324,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  optionIconWrapDanger: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
   optionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
@@ -308,6 +335,9 @@ const s = StyleSheet.create({
     color: '#1E293B',
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  optionTitleDanger: {
+    color: '#DC2626',
   },
   optionDivider: {
     position: 'absolute',

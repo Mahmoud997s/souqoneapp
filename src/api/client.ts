@@ -56,6 +56,13 @@ export async function refreshAuthToken(): Promise<string> {
       await SecureStore.setItemAsync('accessToken', data.accessToken)
       await SecureStore.setItemAsync('refreshToken', data.refreshToken)
 
+      if (data?.deletionScheduledAt !== undefined) {
+        try {
+          const { useAuthStore } = require('../store/authStore')
+          useAuthStore.getState().updateUser({ deletionScheduledAt: data.deletionScheduledAt ?? null })
+        } catch {}
+      }
+
       try {
         const { socketService } = require('../services/socket')
         socketService.refreshTokenAndReconnect(data.accessToken)

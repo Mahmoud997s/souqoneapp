@@ -25,6 +25,7 @@ import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCa
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
+import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
 import { useJobsRaw } from '../../src/hooks/useJobs'
 import { useServices } from '../../src/hooks/useServices'
@@ -223,7 +224,10 @@ export default function HomeScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
-
+        {/* ── Scheduled Deletion Banner ── */}
+        <View style={{ paddingHorizontal: 16 }}>
+          <DeletionScheduledBanner />
+        </View>
 
         {/* ── CAR DETAIL SANDBOX QUICK ACCESS ── */}
         <Animated.View entering={FadeInDown.duration(300)} style={s.sandboxBannerWrap}>

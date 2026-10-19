@@ -18,6 +18,8 @@ export interface User {
   avatar?: string
   avatarUrl?: string
   createdAt: string
+  deletionScheduledAt?: string | null
+  deletionReauthMethod?: 'password' | 'google' | 'confirmation'
 }
 
 export interface AuthResponse {
