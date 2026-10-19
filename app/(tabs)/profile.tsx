@@ -6,6 +6,7 @@ import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { useProfileOverview } from '../../src/hooks/useProfileOverview'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard'
+import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { ProfilePremiumBanner } from '../../src/components/profile/ProfilePremiumBanner'
 import { ProfileSectionCard } from '../../src/components/profile/ProfileSectionCard'
 import { ProfileLogoutSection } from '../../src/components/profile/ProfileLogoutSection'
@@ -54,6 +55,9 @@ export default function ProfileScreen() {
           },
         ]}
       >
+        {/* ── Scheduled Deletion Banner ── */}
+        <DeletionScheduledBanner />
+
         {/* ── User Profile Card ── */}
         <ProfileHeroCard
           displayName={displayName}
