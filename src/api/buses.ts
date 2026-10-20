@@ -5,14 +5,26 @@ import { PaginationMeta } from '../types/my-listings.types'
 
 export { BusManufacturer, BusModel }
 
+export interface BusStatusUpdatePayload {
+  version: number
+  status: string
+}
+
+export type BusUpdatePayload = Partial<BusListing> & {
+  version?: number
+}
+
 export const busesApi = {
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<BusListing>>('/buses', { params }),
   getById: (id: string) => apiClient.get<BusListing>(`/buses/${id}`),
+  getSimilar: (id: string, limit = 8) =>
+    apiClient.get<BusListing[]>(`/buses/${id}/similar`, { params: { limit } }),
   getMy: (params?: { page?: number; limit?: number }) =>
     apiClient.get<{ items: BusListing[]; meta: PaginationMeta }>('/buses/my', { params }),
   create: (data: Partial<BusListing>) => apiClient.post<BusListing>('/buses', data),
-  update: (id: string, data: Partial<BusListing>) => apiClient.patch<BusListing>(`/buses/${id}`, data),
+  update: (id: string, data: BusUpdatePayload | BusStatusUpdatePayload) =>
+    apiClient.patch<BusListing>(`/buses/${id}`, data),
   remove: (id: string) => apiClient.delete(`/buses/${id}`),
   addImages: (id: string, urls: string[]) => apiClient.post(`/buses/${id}/images`, { urls }),
   removeImage: (imageId: string) => apiClient.delete(`/buses/images/${imageId}`),
