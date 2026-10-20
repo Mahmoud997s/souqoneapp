@@ -4,6 +4,9 @@ import DeleteAccountScreen from '../../app/profile/delete-account'
 import { useAuthStore } from '../store/authStore'
 import { authApi } from '../api/auth'
 import { usersApi } from '../api/users'
+import { Platform } from 'react-native'
+import { dialogService } from '../store/dialogStore'
+import * as appleAuthService from '../services/appleAuth'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -34,9 +37,19 @@ jest.mock('../services/googleAuth', () => ({
   statusCodes: { SIGN_IN_CANCELLED: '1', IN_PROGRESS: '2' },
 }))
 
+jest.mock('../services/appleAuth', () => ({
+  isAppleAuthAvailable: jest.fn().mockResolvedValue(true),
+  performAppleReauth: jest.fn().mockResolvedValue({
+    appleIdentityToken: 'mock-apple-id-token',
+    appleNonce: 'mock-apple-raw-nonce',
+    appleAuthorizationCode: 'mock-apple-auth-code',
+  }),
+}))
+
 describe('DeleteAccountScreen UI', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    Platform.OS = 'ios'
     useAuthStore.setState({
       user: {
         id: 'u-1',
@@ -193,5 +206,187 @@ describe('DeleteAccountScreen UI', () => {
 
     expect(screen.getByText('تأكيد بحساب Google')).toBeTruthy()
     expect(screen.queryByTestId('delete-account-password-input')).toBeNull()
+  })
+
+  it('renders Apple re-authentication button when deletionReauthMethod is apple on iOS', async () => {
+    Platform.OS = 'ios'
+    ;(appleAuthService.isAppleAuthAvailable as jest.Mock).mockResolvedValue(true)
+
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple',
+        email: 'apple@souqone.om',
+        username: 'appleuser',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    expect(screen.getByText('تأكيد بحساب Apple')).toBeTruthy()
+    expect(screen.queryByTestId('delete-account-password-input')).toBeNull()
+    expect(screen.queryByTestId('delete-account-google-btn')).toBeNull()
+
+    // Submit button is disabled before Apple confirmation
+    const submitBtn = screen.getByTestId('delete-account-submit-btn')
+    expect(submitBtn.props.accessibilityState?.disabled).toBe(true)
+  })
+
+  it('completes Apple re-authentication, displays confirmed row, and enables submit', async () => {
+    Platform.OS = 'ios'
+    ;(appleAuthService.isAppleAuthAvailable as jest.Mock).mockResolvedValue(true)
+    ;(appleAuthService.performAppleReauth as jest.Mock).mockResolvedValue({
+      appleIdentityToken: 'mock-apple-id-token',
+      appleNonce: 'mock-apple-raw-nonce',
+      appleAuthorizationCode: 'mock-apple-auth-code',
+    })
+
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-2',
+        email: 'apple2@souqone.om',
+        username: 'appleuser2',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    const appleBtn = screen.getByTestId('delete-account-apple-btn')
+    await act(async () => {
+      fireEvent.press(appleBtn)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('تم التأكيد بحساب Apple')).toBeTruthy()
+    })
+
+    // Now enter confirmation phrase
+    const confInput = screen.getByTestId('delete-account-confirm-input')
+    await act(async () => {
+      fireEvent.changeText(confInput, 'حذف حسابي')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-submit-btn').props.accessibilityState?.disabled).toBe(false)
+    })
+  })
+
+  it('submits all 3 Apple fields together in deleteAccount payload', async () => {
+    Platform.OS = 'ios'
+    ;(appleAuthService.isAppleAuthAvailable as jest.Mock).mockResolvedValue(true)
+    ;(appleAuthService.performAppleReauth as jest.Mock).mockResolvedValue({
+      appleIdentityToken: 'mock-apple-id-token',
+      appleNonce: 'mock-apple-raw-nonce',
+      appleAuthorizationCode: 'mock-apple-auth-code',
+    })
+
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-3',
+        email: 'apple3@souqone.om',
+        username: 'appleuser3',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    const deleteSpy = jest.spyOn(usersApi, 'deleteAccount').mockResolvedValue({
+      data: { message: 'ok', deletionScheduledAt: '2026-10-25T00:00:00Z' },
+    } as any)
+
+    jest.spyOn(dialogService, 'confirm').mockImplementation((title, msg, onConfirm) => {
+      onConfirm()
+    })
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('delete-account-apple-btn'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('تم التأكيد بحساب Apple')).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('delete-account-confirm-input'), 'حذف حسابي')
+    })
+
+    const submitBtn = screen.getByTestId('delete-account-submit-btn')
+    await act(async () => {
+      fireEvent.press(submitBtn)
+    })
+
+    await waitFor(() => {
+      expect(deleteSpy).toHaveBeenCalledWith({
+        confirmation: 'حذف حسابي',
+        appleIdentityToken: 'mock-apple-id-token',
+        appleNonce: 'mock-apple-raw-nonce',
+        appleAuthorizationCode: 'mock-apple-auth-code',
+      })
+    })
+  })
+
+  it('renders unsupported message on Android and keeps submit disabled', async () => {
+    Platform.OS = 'android'
+    ;(appleAuthService.isAppleAuthAvailable as jest.Mock).mockResolvedValue(false)
+
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-android',
+        email: 'apple.android@souqone.om',
+        username: 'appleandroid',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('apple-unsupported-message')).toBeTruthy()
+    })
+
+    expect(
+      screen.getByText(/حسابك مسجل باستخدام Apple. لإتمام حذف الحساب، يرجى المتابعة من جهاز iOS أو تعيين كلمة مرور لحسابك أولاً/)
+    ).toBeTruthy()
+
+    // Apple button is not present
+    expect(screen.queryByTestId('delete-account-apple-btn')).toBeNull()
+
+    // Even if confirmation phrase is typed, submit remains disabled
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('delete-account-confirm-input'), 'حذف حسابي')
+    })
+
+    const submitBtn = screen.getByTestId('delete-account-submit-btn')
+    expect(submitBtn.props.accessibilityState?.disabled).toBe(true)
   })
 })
