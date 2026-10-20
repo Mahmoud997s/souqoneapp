@@ -19,7 +19,17 @@ export interface User {
   avatarUrl?: string
   createdAt: string
   deletionScheduledAt?: string | null
-  deletionReauthMethod?: 'password' | 'google' | 'confirmation'
+  deletionReauthMethod?: 'password' | 'google' | 'apple' | 'confirmation'
+}
+
+export interface AppleLoginPayload {
+  identityToken: string
+  nonce: string
+  fullName?: {
+    givenName?: string
+    familyName?: string
+  }
+  authorizationCode?: string
 }
 
 export interface AuthResponse {
