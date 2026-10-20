@@ -65,7 +65,10 @@ testsprite_chat_prd.md
 *.png.bak
 
 .agent/
-.agents/
+.agents/*
+!.agents/rules/
+.agents/rules/*
+!.agents/rules/souqone_hard_rules.md
 docs/
 
 # ── Security & Certificates ───────────────────
