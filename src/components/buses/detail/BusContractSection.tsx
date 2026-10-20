@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -11,6 +11,8 @@ import { PriceView } from '../../../types/listingDetail.types'
 import { BusListingType } from '../../../types/bus.types'
 import { formatNumberWestern } from '../../../utils/listing-detail/formatters'
 import { computeBusContractEstimate } from '../../../utils/listing-detail/computeBusContractEstimate'
+import { BusContractLockedCard } from './BusContractLockedCard'
+import { BusContractMetricsGrid } from './BusContractMetricsGrid'
 
 export interface BusContractSectionProps {
   contract: BusContractView
@@ -43,41 +45,10 @@ export function BusContractSection({
 
   if (contract.access === 'locked') {
     return (
-      <View style={s.card}>
-        <View style={s.headerRow}>
-          <View style={s.iconBadge}>
-            <Ionicons name="lock-closed-outline" size={20} color={Colors.primary} />
-          </View>
-          <View style={s.headerTextWrap}>
-            <Text style={s.cardTitle} maxFontSizeMultiplier={1.3}>
-              عقد التشغيل
-            </Text>
-            {contract.typeLabel ? (
-              <Text style={s.cardSub} maxFontSizeMultiplier={1.3}>
-                {contract.typeLabel}
-              </Text>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={s.lockedContent}>
-          <Text style={s.lockedNotice} maxFontSizeMultiplier={1.3}>
-            سجّل الدخول لعرض تفاصيل عقد التشغيل
-          </Text>
-          <TouchableOpacity
-            style={s.loginButton}
-            onPress={onRequireLogin}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="تسجيل الدخول"
-          >
-            <Ionicons name="log-in-outline" size={18} color={Colors.white} />
-            <Text style={s.loginButtonText} maxFontSizeMultiplier={1.3}>
-              تسجيل الدخول
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <BusContractLockedCard
+        contract={contract}
+        onRequireLogin={onRequireLogin}
+      />
     )
   }
 
@@ -163,51 +134,7 @@ export function BusContractSection({
       </View>
 
       {/* Financial Estimates Grid (shown only if values exist) */}
-      {(estimate.remainingIncome !== null ||
-        estimate.annualYieldPercent !== null ||
-        estimate.paybackMonths !== null) && (
-        <View style={s.estimatesContainer}>
-          <View style={s.tilesRow}>
-            {estimate.remainingIncome !== null ? (
-              <View style={s.tile}>
-                <Text style={s.tileLabel} maxFontSizeMultiplier={1.3}>
-                  إجمالي الدخل المتبقي
-                </Text>
-                <Text style={s.tileValue} maxFontSizeMultiplier={1.3}>
-                  {formatNumberWestern(estimate.remainingIncome)} ر.ع
-                </Text>
-                {estimate.recoveryPercent !== null ? (
-                  <Text style={s.tileSub} maxFontSizeMultiplier={1.3}>
-                    نسبة الاسترداد: {formatNumberWestern(estimate.recoveryPercent)}%
-                  </Text>
-                ) : null}
-              </View>
-            ) : null}
-
-            {estimate.annualYieldPercent !== null ? (
-              <View style={s.tile}>
-                <Text style={s.tileLabel} maxFontSizeMultiplier={1.3}>
-                  العائد السنوي
-                </Text>
-                <Text style={s.tileValue} maxFontSizeMultiplier={1.3}>
-                  {estimate.annualYieldPercent}%
-                </Text>
-              </View>
-            ) : null}
-
-            {estimate.paybackMonths !== null ? (
-              <View style={s.tile}>
-                <Text style={s.tileLabel} maxFontSizeMultiplier={1.3}>
-                  مدة السداد
-                </Text>
-                <Text style={s.tileValue} maxFontSizeMultiplier={1.3}>
-                  {formatNumberWestern(estimate.paybackMonths)} شهر
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      )}
+      <BusContractMetricsGrid estimate={estimate} />
 
       {/* Mandatory Disclaimer Note */}
       <Text style={s.disclaimerText} maxFontSizeMultiplier={1.3}>
@@ -258,34 +185,6 @@ const s = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: 2,
   },
-  lockedContent: {
-    alignItems: 'center',
-    paddingVertical: Spacing.space4,
-    gap: Spacing.space3,
-  },
-  lockedNotice: {
-    ...RTLText,
-    fontSize: 14,
-    color: Colors.textMuted,
-    textAlign: 'center',
-  },
-  loginButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.space2,
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.space2,
-    paddingHorizontal: Spacing.space5,
-    minHeight: Spacing.touch,
-  },
-  loginButtonText: {
-    ...RTLText,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
-  },
   termsList: {
     borderTopWidth: 1,
     borderTopColor: Colors.border,
@@ -314,46 +213,6 @@ const s = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: Colors.primary,
-  },
-  estimatesContainer: {
-    marginTop: Spacing.space3,
-    paddingTop: Spacing.space3,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  tilesRow: {
-    flexDirection: 'row',
-    gap: Spacing.space2,
-  },
-  tile: {
-    flex: 1,
-    backgroundColor: Colors.surfaceAlt,
-    borderRadius: Radius.md,
-    padding: Spacing.space2,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tileLabel: {
-    ...RTLText,
-    fontSize: 11,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  tileValue: {
-    ...RTLText,
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  tileSub: {
-    ...RTLText,
-    fontSize: 10,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    marginTop: 2,
   },
   disclaimerText: {
     ...RTLText,
