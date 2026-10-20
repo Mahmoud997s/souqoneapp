@@ -9,6 +9,8 @@ export const busesApi = {
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<BusListing>>('/buses', { params }),
   getById: (id: string) => apiClient.get<BusListing>(`/buses/${id}`),
+  getSimilar: (id: string, limit = 8) =>
+    apiClient.get<BusListing[]>(`/buses/${id}/similar`, { params: { limit } }),
   getMy: (params?: { page?: number; limit?: number }) =>
     apiClient.get<{ items: BusListing[]; meta: PaginationMeta }>('/buses/my', { params }),
   create: (data: Partial<BusListing>) => apiClient.post<BusListing>('/buses', data),
