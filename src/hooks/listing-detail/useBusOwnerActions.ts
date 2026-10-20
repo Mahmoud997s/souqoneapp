@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
 import type { BusDetailViewModel } from '../../types/busDetailViewModel.types'
-import { busesApi } from '../../api/buses'
+import { busesApi, BusStatusUpdatePayload } from '../../api/buses'
 import { busQueryKeys, invalidateBusListingQueries } from '../../utils/listing-detail/busQueryKeys'
 import { useAuthStore } from '../../store/authStore'
 import { promptProfilePhoneRequired } from '../../utils/profilePhoneGuard'
@@ -187,7 +187,7 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
       await busesApi.update(vm.id, {
         version: vm.version,
         status: nextStatus,
-      } as any)
+      } as BusStatusUpdatePayload)
       await invalidateBusListingQueries(queryClient, vm.id)
     } catch (err: any) {
       if (err?.response?.status === 409) {
