@@ -21,6 +21,9 @@ export interface ChangePasswordPayload {
 export interface DeleteAccountPayload {
   password?: string
   googleIdToken?: string
+  appleIdentityToken?: string
+  appleNonce?: string
+  appleAuthorizationCode?: string
   confirmation: string
 }
 

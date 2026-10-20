@@ -1,10 +1,11 @@
 import { apiClient } from './client'
-import { AuthResponse, LoginDto, RegisterDto, ResetPasswordDto, VerifyEmailResponse } from '../types/auth.types'
+import { AppleLoginPayload, AuthResponse, LoginDto, RegisterDto, ResetPasswordDto, VerifyEmailResponse } from '../types/auth.types'
 
 export const authApi = {
   login:          (dto: LoginDto)           => apiClient.post<AuthResponse>('/auth/login', dto),
   register:       (dto: RegisterDto)        => apiClient.post<AuthResponse>('/auth/signup', dto),
   loginGoogle:    (credential: string)      => apiClient.post<AuthResponse>('/auth/google', { credential }),
+  loginApple:     (payload: AppleLoginPayload) => apiClient.post<AuthResponse>('/auth/apple', payload),
   refresh:        (refreshToken: string)    => apiClient.post<AuthResponse>('/auth/refresh', { refreshToken }),
   logout:         (refreshToken: string)    => apiClient.post('/auth/logout', { refreshToken }),
   verifyEmail:    (code: string, token?: string) =>

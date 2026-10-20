@@ -31,6 +31,12 @@ import {
   isErrorWithCode,
   statusCodes,
 } from '../../src/services/googleAuth'
+import {
+  isAppleAuthAvailable,
+  performAppleReauth,
+  AppleReauthResult,
+  AppleAuthError,
+} from '../../src/services/appleAuth'
 
 export default function DeleteAccountScreen() {
   const insets = useSafeAreaInsets()
@@ -43,7 +49,7 @@ export default function DeleteAccountScreen() {
   const [initialError, setInitialError] = useState(false)
 
   // Reauth method determined by server
-  const [reauthMethod, setReauthMethod] = useState<'password' | 'google' | 'confirmation'>(
+  const [reauthMethod, setReauthMethod] = useState<'password' | 'google' | 'apple' | 'confirmation'>(
     user?.deletionReauthMethod || 'confirmation'
   )
 
@@ -52,6 +58,9 @@ export default function DeleteAccountScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [googleIdToken, setGoogleIdToken] = useState<string | null>(null)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleCredentials, setAppleCredentials] = useState<AppleReauthResult | null>(null)
+  const [appleLoading, setAppleLoading] = useState(false)
+  const [appleAvailable, setAppleAvailable] = useState<boolean | null>(null)
   const [confirmation, setConfirmation] = useState('')
 
   // Field Focus & Blur States
@@ -85,6 +94,7 @@ export default function DeleteAccountScreen() {
 
   useEffect(() => {
     fetchInitialData()
+    isAppleAuthAvailable().then(setAppleAvailable)
   }, [fetchInitialData])
 
   // Google Sign-In Confirmation
@@ -122,6 +132,31 @@ export default function DeleteAccountScreen() {
     }
   }
 
+  // Apple Sign-In Confirmation
+  const handleAppleConfirm = async () => {
+    setAppleLoading(true)
+    try {
+      const creds = await performAppleReauth()
+      if (!creds) {
+        return
+      }
+      if (!creds.appleAuthorizationCode) {
+        dialogService.alert('خطأ', 'لم يتم استلام رمز التفويض من Apple. يرجى المحاولة مرة أخرى.')
+        return
+      }
+      setAppleCredentials(creds)
+    } catch (err: any) {
+      console.error('[Apple Reauth Error]', err)
+      const msg =
+        err instanceof AppleAuthError
+          ? err.message
+          : 'فشل التحقق عبر حساب Apple. يرجى إعادة المحاولة.'
+      dialogService.alert('خطأ', msg)
+    } finally {
+      setAppleLoading(false)
+    }
+  }
+
   // Confirmation phrase validation
   const cleanConfirmation = confirmation.trim()
   const isPhraseValid = cleanConfirmation === 'حذف حسابي' || cleanConfirmation === 'DELETE'
@@ -130,7 +165,14 @@ export default function DeleteAccountScreen() {
   // Submission eligibility
   const isPasswordReady = reauthMethod !== 'password' || password.length > 0
   const isGoogleReady = reauthMethod !== 'google' || Boolean(googleIdToken)
-  const isSubmitDisabled = !isPhraseValid || !isPasswordReady || !isGoogleReady || submitting
+  const isAppleReady =
+    reauthMethod !== 'apple' ||
+    Boolean(
+      appleCredentials?.appleIdentityToken &&
+      appleCredentials?.appleNonce &&
+      appleCredentials?.appleAuthorizationCode
+    )
+  const isSubmitDisabled = !isPhraseValid || !isPasswordReady || !isGoogleReady || !isAppleReady || submitting
 
   // Submission Handler
   const handleSubmit = () => {
@@ -146,6 +188,13 @@ export default function DeleteAccountScreen() {
             confirmation: cleanConfirmation,
             ...(reauthMethod === 'password' ? { password } : {}),
             ...(reauthMethod === 'google' ? { googleIdToken: googleIdToken! } : {}),
+            ...(reauthMethod === 'apple' && appleCredentials
+              ? {
+                  appleIdentityToken: appleCredentials.appleIdentityToken,
+                  appleNonce: appleCredentials.appleNonce,
+                  appleAuthorizationCode: appleCredentials.appleAuthorizationCode,
+                }
+              : {}),
           }
 
           await usersApi.deleteAccount(payload)
@@ -167,12 +216,24 @@ export default function DeleteAccountScreen() {
           // 3. Navigate to login screen ONCE
           router.replace('/(auth)/login')
         } catch (err: any) {
+          if (reauthMethod === 'apple') {
+            setAppleCredentials(null)
+          }
+
           const status = err?.response?.status
           const serverMessage = err?.response?.data?.message
+          const errorCode = err?.response?.data?.code
 
           let errorMsg = 'تعذر إتمام طلب حذف الحساب. يرجى المحاولة مرة أخرى.'
 
-          if (typeof serverMessage === 'string') {
+          if (status === 401 && errorCode === 'APPLE_REAUTH_REQUIRED') {
+            errorMsg = 'يرجى إعادة المصادقة باستخدام Apple لمتابعة حذف الحساب.'
+          } else if (
+            status === 503 &&
+            (errorCode === 'APPLE_REVOCATION_UNAVAILABLE' || errorCode === 'APPLE_SERVICE_ERROR')
+          ) {
+            errorMsg = 'تعذر إتمام الحذف الآن، حاول لاحقاً'
+          } else if (typeof serverMessage === 'string') {
             errorMsg = serverMessage
           } else if (Array.isArray(serverMessage) && serverMessage.length > 0) {
             errorMsg = serverMessage[0]
@@ -484,6 +545,49 @@ export default function DeleteAccountScreen() {
                             </Text>
                           )}
                         </>
+                      )}
+                    </View>
+                  )}
+
+                  {reauthMethod === 'apple' && (
+                    <View style={s.fieldWrapper}>
+                      <View style={s.fieldLabelRow}>
+                        <Text style={s.label}>التحقق بحساب Apple</Text>
+                        <View style={s.badgeRequired}>
+                          <Text style={s.badgeRequiredText}>مطلوب</Text>
+                        </View>
+                      </View>
+                      {appleCredentials ? (
+                        <View style={s.googleConfirmedRow}>
+                          <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+                          <Text style={s.googleConfirmedText}>تم التأكيد بحساب Apple</Text>
+                        </View>
+                      ) : Platform.OS !== 'ios' || appleAvailable === false ? (
+                        <View style={s.unsupportedCard}>
+                          <Ionicons name="information-circle-outline" size={22} color="#D97706" />
+                          <Text style={s.unsupportedText} testID="apple-unsupported-message">
+                            حسابك مسجل باستخدام Apple. لإتمام حذف الحساب، يرجى المتابعة من جهاز iOS أو تعيين كلمة مرور لحسابك أولاً.
+                          </Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          testID="delete-account-apple-btn"
+                          style={s.appleConfirmBtn}
+                          onPress={handleAppleConfirm}
+                          disabled={appleLoading}
+                          activeOpacity={0.8}
+                          accessibilityRole="button"
+                          accessibilityLabel="تأكيد بحساب Apple"
+                        >
+                          {appleLoading ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                          ) : (
+                            <>
+                              <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
+                              <Text style={s.appleConfirmBtnText}>تأكيد بحساب Apple</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
                       )}
                     </View>
                   )}
@@ -930,6 +1034,40 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     color: '#166534',
+  },
+  /* Apple Button & Unsupported Card */
+  appleConfirmBtn: {
+    height: 48,
+    borderRadius: 13,
+    backgroundColor: '#000000',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  appleConfirmBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13.5,
+    color: '#FFFFFF',
+  },
+  unsupportedCard: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 13,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  unsupportedText: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#92400E',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 
   /* Fixed Bottom Footer */
