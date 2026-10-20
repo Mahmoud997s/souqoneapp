@@ -22,7 +22,6 @@ export interface BusDetailApiLocationRef {
   id: number
   nameAr: string
   nameEn?: string | null
-  code?: string
 }
 
 export interface BusDetailApi {
