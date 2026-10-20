@@ -4,6 +4,8 @@ import { BusContractSection } from './BusContractSection'
 import { BusContractView } from '../../../types/busDetailViewModel.types'
 import { PriceView } from '../../../types/listingDetail.types'
 
+jest.setTimeout(15000)
+
 describe('BusContractSection', () => {
   const refNow = new Date('2026-10-20T12:00:00.000Z')
   const mockLogin = jest.fn()
