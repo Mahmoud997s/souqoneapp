@@ -5,6 +5,7 @@ import { useBusDetail, UseBusDetailResult } from './useBusDetail'
 import { busesApi } from '../../api/buses'
 import { BusDetailApi } from '../../types/busDetailApi.types'
 import { useAuthStore } from '../../store/authStore'
+import { busQueryKeys, invalidateBusListingQueries } from '../../utils/listing-detail/busQueryKeys'
 
 jest.mock('../../api/buses', () => ({
   busesApi: {
@@ -227,5 +228,41 @@ describe('useBusDetail', () => {
       expect(hook.current.state).toBe('error')
     })
     expect(hook.current.vm).toBeUndefined()
+  })
+
+  it('preserves ready state and mapped vm when cached data exists even if background refetch fails', async () => {
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(busQueryKeys.detail('bus-123', false), mockBusData)
+
+    const networkError = { isAxiosError: true, code: 'ERR_NETWORK', message: 'Offline' }
+    ;(busesApi.getById as jest.Mock).mockRejectedValueOnce(networkError)
+
+    const hook = renderBusDetailHook('bus-123', queryClient, { now: mockNow })
+
+    await waitFor(() => {
+      expect(hook.current.state).toBe('ready')
+    })
+
+    expect(hook.current.vm).toBeDefined()
+    expect(hook.current.vm?.id).toBe('bus-123')
+    expect(hook.current.raw?.id).toBe('bus-123')
+  })
+
+  describe('busQueryKeys.detail auth awareness', () => {
+    it('returns auth key for logged in users and guest key for guests', () => {
+      expect(busQueryKeys.detail('bus-99', true)).toEqual(['bus-detail', 'bus-99', 'auth'])
+      expect(busQueryKeys.detail('bus-99', false)).toEqual(['bus-detail', 'bus-99', 'guest'])
+      expect(busQueryKeys.detail('bus-99')).toEqual(['bus-detail', 'bus-99'])
+      expect(busQueryKeys.detailPrefix('bus-99')).toEqual(['bus-detail', 'bus-99'])
+    })
+
+    it('invalidateBusListingQueries clears both auth and guest queries via prefix matching', async () => {
+      const queryClient = createTestQueryClient()
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
+
+      await invalidateBusListingQueries(queryClient, 'bus-99')
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bus-detail', 'bus-99'] })
+    })
   })
 })

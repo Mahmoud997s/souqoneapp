@@ -59,7 +59,7 @@ export function useBusDetail(
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
 
   const query = useQuery<BusDetailApi, unknown>({
-    queryKey: busQueryKeys.detail(id ?? ''),
+    queryKey: busQueryKeys.detail(id ?? '', Boolean(isLoggedIn)),
     queryFn: async () => {
       if (!id) {
         throw new Error('Bus listing ID is required')
@@ -77,6 +77,13 @@ export function useBusDetail(
 
   if (!id) {
     state = 'error'
+  } else if (query.data) {
+    state = 'ready'
+    raw = query.data
+    vm = mapBusDetail(query.data, {
+      isAuthenticated: Boolean(isLoggedIn),
+      now: options?.now,
+    })
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
@@ -87,13 +94,6 @@ export function useBusDetail(
     } else {
       state = 'error'
     }
-  } else if (query.data) {
-    state = 'ready'
-    raw = query.data
-    vm = mapBusDetail(query.data, {
-      isAuthenticated: Boolean(isLoggedIn),
-      now: options?.now,
-    })
   }
 
   return {

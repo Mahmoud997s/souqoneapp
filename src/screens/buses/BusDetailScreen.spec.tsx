@@ -417,15 +417,32 @@ describe('BusDetailScreen', () => {
           id: 'sim-1',
           title: 'باص ميتسوبيشي روزا 2021',
           price: 18000,
-          currency: 'ر.ع',
+          currency: 'OMR',
           governorateNameAr: 'مسقط',
           images: ['https://images.souqone.om/rosa.jpg'],
+        },
+        {
+          id: 'sim-2',
+          title: 'باص للإيجار اليومي',
+          dailyPrice: 45,
+          currency: 'OMR',
+          governorateNameAr: 'ظفار',
+        },
+        {
+          id: 'sim-3',
+          title: 'باص للإيجار الشهري',
+          monthlyPrice: 650,
+          currency: 'OMR',
+          governorateNameAr: 'الباطنة',
         },
       ]
       await render(<BusDetailScreen id="bus-101" />)
 
       expect(screen.getByText('إعلانات مشابهة')).toBeTruthy()
       expect(screen.getByText('باص ميتسوبيشي روزا 2021')).toBeTruthy()
+      expect(screen.getByText('18,000 ر.ع')).toBeTruthy()
+      expect(screen.getByText('45 ر.ع / يوم')).toBeTruthy()
+      expect(screen.getByText('650 ر.ع / شهر')).toBeTruthy()
     })
 
     it('omits similar listings grid when items list is empty', async () => {

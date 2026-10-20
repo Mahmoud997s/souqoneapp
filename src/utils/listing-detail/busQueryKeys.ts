@@ -4,7 +4,11 @@ import { QueryClient } from '@tanstack/react-query'
  * Single source of truth for bus listing query keys across the application.
  */
 export const busQueryKeys = {
-  detail: (id: string) => ['bus-detail', id] as const,
+  detail: (id: string, isAuthenticated?: boolean) =>
+    isAuthenticated !== undefined
+      ? (['bus-detail', id, isAuthenticated ? 'auth' : 'guest'] as const)
+      : (['bus-detail', id] as const),
+  detailPrefix: (id: string) => ['bus-detail', id] as const,
   similar: (id: string, limit = 8) => ['bus-similar', id, limit] as const,
   buses: (params?: unknown) => ['buses', params] as const,
   busesInfinite: (params?: unknown) => ['buses_infinite', params] as const,

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View,
   TextInput,
@@ -11,6 +11,8 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
+  useAnimatedReaction,
+  runOnJS,
   type SharedValue,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
@@ -55,6 +57,18 @@ export function BusDetailNavBar({
   placeholder = 'ابحث في تفاصيل الحافلة...',
   paddingTop,
 }: BusDetailNavBarProps) {
+  const [searchInteractive, setSearchInteractive] = useState(false)
+
+  useAnimatedReaction(
+    () => scrollY.value >= 85,
+    (current, previous) => {
+      if (current !== previous) {
+        runOnJS(setSearchInteractive)(current)
+      }
+    },
+    [scrollY]
+  )
+
   const solidBgStyle = useAnimatedStyle(() => {
     const opacity = interpolate(scrollY.value, [40, 100], [0, 1], Extrapolation.CLAMP)
     return { opacity }
@@ -95,7 +109,10 @@ export function BusDetailNavBar({
         </TouchableOpacity>
 
         {/* Search Bar (Centered / Animated) */}
-        <Animated.View style={[s.searchContainer, searchBarStyle]}>
+        <Animated.View
+          style={[s.searchContainer, searchBarStyle]}
+          pointerEvents={searchInteractive ? 'auto' : 'none'}
+        >
           <Ionicons name="search-outline" size={17} color={Colors.placeholder} style={s.searchIcon} />
           <TextInput
             style={s.searchInput}

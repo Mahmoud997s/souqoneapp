@@ -48,7 +48,7 @@ function translateFromConstants(
 /**
  * Normalizes currency code into display symbol.
  */
-function normalizeCurrency(code?: string | null): string {
+export function normalizeCurrency(code?: string | null): string {
   if (!code) return 'ر.ع'
   const upper = code.trim().toUpperCase()
   if (upper === 'OMR') return 'ر.ع'

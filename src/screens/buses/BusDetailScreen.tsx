@@ -40,6 +40,7 @@ import {
 } from '../../hooks/listing-detail/useBusSimilarListings'
 import { busListingToFormData } from '../../utils/listing-detail/busListingToFormData'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
+import { normalizeCurrency } from '../../utils/listing-detail/mapBusDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import {
   BUYER_SAFETY_TIPS_TITLE,
@@ -399,6 +400,13 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
             const rawImg = bus.images?.[0]
             const imgUri = typeof rawImg === 'string' ? rawImg : rawImg?.url
             const priceVal = bus.dailyPrice ?? bus.monthlyPrice ?? bus.price
+            const periodSuffix =
+              bus.dailyPrice !== undefined && bus.dailyPrice !== null
+                ? ' / يوم'
+                : bus.monthlyPrice !== undefined && bus.monthlyPrice !== null
+                  ? ' / شهر'
+                  : ''
+            const currencyLabel = normalizeCurrency(bus.currency)
             return (
               <TouchableOpacity
                 key={bus.id}
@@ -426,7 +434,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
                 </Text>
                 <Text style={s.similarCardPrice}>
                   {priceVal !== undefined && priceVal !== null
-                    ? `${formatNumberWestern(parseDecimal(priceVal) ?? priceVal)} ${bus.currency ?? 'ر.ع'}`
+                    ? `${formatNumberWestern(parseDecimal(priceVal) ?? priceVal)} ${currencyLabel}${periodSuffix}`
                     : ''}
                 </Text>
                 <Text style={s.similarCardMeta}>
