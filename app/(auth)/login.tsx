@@ -40,6 +40,13 @@ import {
   isErrorWithCode,
   isGoogleSignInAvailable,
 } from '../../src/services/googleAuth'
+import {
+  isAppleAuthAvailable,
+  signInWithApple,
+  AppleAuthenticationButton,
+  AppleAuthenticationButtonType,
+  AppleAuthenticationButtonStyle,
+} from '../../src/services/appleAuth'
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets()
@@ -50,12 +57,15 @@ export default function LoginScreen() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleLoading, setAppleLoading] = useState(false)
+  const [appleAvailable, setAppleAvailable] = useState(false)
   const [generalError, setGeneralError] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const pwRef = useRef<TextInput>(null)
 
   useEffect(() => {
     configureGoogleSignIn()
+    isAppleAuthAvailable().then(setAppleAvailable)
   }, [])
 
   const clearFieldError = (field: string) => {
@@ -198,6 +208,92 @@ export default function LoginScreen() {
     }
   }
 
+  const handleAppleLogin = async () => {
+    setGeneralError('')
+    setAppleLoading(true)
+    try {
+      const payload = await signInWithApple()
+      if (!payload) {
+        return
+      }
+
+      const res = await authApi.loginApple(payload)
+
+      if (needsVerification(res.data)) {
+        usePendingVerificationStore.getState().setPending({
+          email: res.data.user?.email || '',
+          token: pickVerificationToken(res.data),
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
+          user: res.data.user,
+        })
+        const emailParam = encodeURIComponent(res.data.user?.email || '')
+        const redirParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''
+        router.replace(`/(auth)/verify-email?email=${emailParam}${redirParam}` as any)
+        return
+      }
+
+      await setAuth(res.data.user!, res.data.accessToken!, res.data.refreshToken!)
+
+      setTimeout(() => {
+        router.replace(resolveRedirect(redirect) as any)
+      }, 100)
+    } catch (err: any) {
+      const status = err?.response?.status
+      const data = err?.response?.data
+      const code = data?.code
+
+      if (status === 403 && (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED')) {
+        useBlockedStore.getState().setBlocked({
+          code,
+          suspendedUntil: data?.suspendedUntil,
+        })
+        router.replace('/(auth)/account-blocked')
+        return
+      }
+
+      if (status === 400 && code === 'APPLE_EMAIL_REQUIRED') {
+        dialogService.alert(
+          'مطلوب البريد الإلكتروني',
+          'يلزم مشاركة البريد الإلكتروني لتسجيل الدخول بواسطة Apple. يرجى إزالة التطبيق من إعدادات Apple ID ثم المحاولة مجدداً مع تفعيل مشاركة البريد.'
+        )
+        return
+      }
+
+      if (status === 409 && code === 'ACCOUNT_LINK_REQUIRED') {
+        dialogService.alert(
+          'حساب موجود مسبقاً',
+          'هذا البريد مسجل مسبقاً. يرجى تسجيل الدخول بحسابك أولاً ثم ربط Apple من الملف الشخصي.'
+        )
+        return
+      }
+
+      if (status === 503) {
+        dialogService.alert(
+          'الخدمة غير متوفرة',
+          'خدمة تسجيل الدخول بواسطة Apple غير متوفرة حالياً، يرجى المحاولة لاحقاً.'
+        )
+        return
+      }
+
+      if (status === 401) {
+        dialogService.alert(
+          'خطأ في تسجيل الدخول',
+          'تعذر تسجيل الدخول بواسطة Apple، حاول مرة تانية'
+        )
+        return
+      }
+
+      console.error('[Apple Login Error]', err?.response?.data || err?.message || err)
+      dialogService.alert(
+        'خطأ في تسجيل الدخول',
+        'تعذر تسجيل الدخول بواسطة Apple، حاول مرة تانية'
+      )
+    } finally {
+      setAppleLoading(false)
+    }
+  }
+
   return (
     <View style={s.root}>
       <StatusBar barStyle="dark-content" />
@@ -290,7 +386,7 @@ export default function LoginScreen() {
                   title="تسجيل الدخول"
                   onPress={handleLogin}
                   loading={loading}
-                  disabled={googleLoading}
+                  disabled={googleLoading || appleLoading}
                 />
 
                 <View style={s.divider}>
@@ -299,11 +395,28 @@ export default function LoginScreen() {
                   <View style={s.dividerLine} />
                 </View>
 
+                {/* Apple Sign In Button (iOS Only) */}
+                {Platform.OS === 'ios' && appleAvailable && (
+                  appleLoading ? (
+                    <View style={s.appleLoadingBox}>
+                      <ActivityIndicator size="small" color="#000000" />
+                    </View>
+                  ) : (
+                    <AppleAuthenticationButton
+                      buttonType={AppleAuthenticationButtonType.CONTINUE}
+                      buttonStyle={AppleAuthenticationButtonStyle.BLACK}
+                      cornerRadius={Radius.md}
+                      style={s.appleBtn}
+                      onPress={handleAppleLogin}
+                    />
+                  )
+                )}
+
                 {/* Google Sign In Button */}
                 <TouchableOpacity
                   style={s.googleBtn}
                   onPress={handleGoogleLogin}
-                  disabled={loading || googleLoading}
+                  disabled={loading || googleLoading || appleLoading}
                   activeOpacity={0.8}
                 >
                   {googleLoading ? (
@@ -457,6 +570,19 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     color: Colors.textMuted,
+  },
+
+  appleBtn: {
+    width: '100%',
+    height: 40,
+  },
+  appleLoadingBox: {
+    width: '100%',
+    height: 40,
+    borderRadius: Radius.md,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   googleBtn: {
