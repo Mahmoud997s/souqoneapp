@@ -8,6 +8,14 @@ export interface AppleNoncePair {
   hashedNonce: string
 }
 
+export class AppleAuthError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AppleAuthError'
+    Object.setPrototypeOf(this, AppleAuthError.prototype)
+  }
+}
+
 export interface AppleReauthResult {
   appleIdentityToken: string
   appleNonce: string
@@ -67,7 +75,7 @@ export async function signInWithApple(): Promise<AppleLoginPayload | null> {
     })
 
     if (!credential.identityToken) {
-      throw new Error('لم يتم استلام رمز التحقق من Apple')
+      throw new AppleAuthError('لم يتم استلام رمز التحقق من Apple')
     }
 
     return {
@@ -103,7 +111,7 @@ export async function performAppleReauth(): Promise<AppleReauthResult | null> {
     })
 
     if (!credential.identityToken || !credential.authorizationCode) {
-      throw new Error('لم يتم استلام رمز التفويض من Apple لإلغاء الحساب')
+      throw new AppleAuthError('لم يتم استلام رمز التفويض من Apple لإلغاء الحساب')
     }
 
     return {

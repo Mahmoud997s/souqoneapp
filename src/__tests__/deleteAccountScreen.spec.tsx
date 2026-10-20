@@ -7,6 +7,7 @@ import { usersApi } from '../api/users'
 import { Platform } from 'react-native'
 import { dialogService } from '../store/dialogStore'
 import * as appleAuthService from '../services/appleAuth'
+import { AppleAuthError } from '../services/appleAuth'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -37,19 +38,29 @@ jest.mock('../services/googleAuth', () => ({
   statusCodes: { SIGN_IN_CANCELLED: '1', IN_PROGRESS: '2' },
 }))
 
-jest.mock('../services/appleAuth', () => ({
-  isAppleAuthAvailable: jest.fn().mockResolvedValue(true),
-  performAppleReauth: jest.fn().mockResolvedValue({
-    appleIdentityToken: 'mock-apple-id-token',
-    appleNonce: 'mock-apple-raw-nonce',
-    appleAuthorizationCode: 'mock-apple-auth-code',
-  }),
-}))
+jest.mock('../services/appleAuth', () => {
+  const actual = jest.requireActual('../services/appleAuth')
+  return {
+    ...actual,
+    isAppleAuthAvailable: jest.fn().mockResolvedValue(true),
+    performAppleReauth: jest.fn().mockResolvedValue({
+      appleIdentityToken: 'mock-apple-id-token',
+      appleNonce: 'mock-apple-raw-nonce',
+      appleAuthorizationCode: 'mock-apple-auth-code',
+    }),
+  }
+})
 
 describe('DeleteAccountScreen UI', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     Platform.OS = 'ios'
+    ;(appleAuthService.isAppleAuthAvailable as jest.Mock).mockResolvedValue(true)
+    ;(appleAuthService.performAppleReauth as jest.Mock).mockResolvedValue({
+      appleIdentityToken: 'mock-apple-id-token',
+      appleNonce: 'mock-apple-raw-nonce',
+      appleAuthorizationCode: 'mock-apple-auth-code',
+    })
     useAuthStore.setState({
       user: {
         id: 'u-1',
@@ -389,4 +400,154 @@ describe('DeleteAccountScreen UI', () => {
     const submitBtn = screen.getByTestId('delete-account-submit-btn')
     expect(submitBtn.props.accessibilityState?.disabled).toBe(true)
   })
+
+  it('resets apple credentials, redisplays Apple button, and disables submit when deletion fails with 401 APPLE_REAUTH_REQUIRED', async () => {
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-reauth-fail',
+        email: 'apple-fail@souqone.om',
+        username: 'applefail',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    const alertSpy = jest.spyOn(dialogService, 'alert')
+    jest.spyOn(dialogService, 'confirm').mockImplementation((title, msg, onConfirm) => {
+      onConfirm()
+    })
+
+    const deleteSpy = jest.spyOn(usersApi, 'deleteAccount').mockRejectedValue({
+      response: {
+        status: 401,
+        data: {
+          code: 'APPLE_REAUTH_REQUIRED',
+          message: 'Apple token expired or revoked',
+        },
+      },
+    } as any)
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    // 1. Confirm with Apple
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('delete-account-apple-btn'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('تم التأكيد بحساب Apple')).toBeTruthy()
+    })
+
+    // 2. Type confirmation phrase
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('delete-account-confirm-input'), 'حذف حسابي')
+    })
+
+    const submitBtn = screen.getByTestId('delete-account-submit-btn')
+    expect(submitBtn.props.accessibilityState?.disabled).toBe(false)
+
+    // 3. Press submit -> backend rejects with 401 APPLE_REAUTH_REQUIRED
+    await act(async () => {
+      fireEvent.press(submitBtn)
+    })
+
+    await waitFor(() => {
+      expect(deleteSpy).toHaveBeenCalledTimes(1)
+    })
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'خطأ',
+      'يرجى إعادة المصادقة باستخدام Apple لمتابعة حذف الحساب.'
+    )
+
+    // Verification of Bug Fix 1:
+    // Apple confirm button must reappear so user can re-authenticate
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    // Confirmation badge must be gone
+    expect(screen.queryByText('تم التأكيد بحساب Apple')).toBeNull()
+
+    // Final submit button must be disabled again
+    expect(submitBtn.props.accessibilityState?.disabled).toBe(true)
+  })
+
+  it('displays custom AppleAuthError message when performAppleReauth throws AppleAuthError', async () => {
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-err1',
+        email: 'apple-err1@souqone.om',
+        username: 'appleerr1',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    const alertSpy = jest.spyOn(dialogService, 'alert')
+    jest.spyOn(appleAuthService, 'performAppleReauth').mockRejectedValueOnce(
+      new AppleAuthError('لم يتم استلام رمز التفويض من Apple لإلغاء الحساب')
+    )
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('delete-account-apple-btn'))
+    })
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'خطأ',
+      'لم يتم استلام رمز التفويض من Apple لإلغاء الحساب'
+    )
+  })
+
+  it('displays generic Arabic fallback message when performAppleReauth throws native/unknown error', async () => {
+    jest.spyOn(authApi, 'me').mockResolvedValue({
+      data: {
+        id: 'u-apple-err2',
+        email: 'apple-err2@souqone.om',
+        username: 'appleerr2',
+        role: 'user',
+        isVerified: true,
+        createdAt: '2026-01-01',
+        deletionScheduledAt: null,
+        deletionReauthMethod: 'apple',
+      },
+    } as any)
+
+    const alertSpy = jest.spyOn(dialogService, 'alert')
+    jest.spyOn(appleAuthService, 'performAppleReauth').mockRejectedValueOnce(
+      new Error('Native error: The authorization attempt failed for an unknown reason (code 1000)')
+    )
+
+    await render(<DeleteAccountScreen />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-account-apple-btn')).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('delete-account-apple-btn'))
+    })
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'خطأ',
+      'فشل التحقق عبر حساب Apple. يرجى إعادة المحاولة.'
+    )
+  })
+
 })

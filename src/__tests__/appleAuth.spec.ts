@@ -7,6 +7,7 @@ import {
   isAppleAuthCancelled,
   signInWithApple,
   performAppleReauth,
+  AppleAuthError,
 } from '../services/appleAuth'
 
 describe('Apple Authentication Service', () => {
@@ -121,11 +122,12 @@ describe('Apple Authentication Service', () => {
       expect(result).toBeNull()
     })
 
-    it('throws when identityToken is missing from credentials', async () => {
+    it('throws AppleAuthError when identityToken is missing from credentials', async () => {
       ;(AppleAuthentication.signInAsync as jest.Mock).mockResolvedValue({
         identityToken: null,
       })
 
+      await expect(signInWithApple()).rejects.toThrow(AppleAuthError)
       await expect(signInWithApple()).rejects.toThrow('لم يتم استلام رمز التحقق من Apple')
     })
   })
@@ -158,13 +160,24 @@ describe('Apple Authentication Service', () => {
       expect(result).toBeNull()
     })
 
-    it('throws if authorizationCode is missing (required for server token revocation)', async () => {
+    it('throws AppleAuthError if authorizationCode is missing (required for server token revocation)', async () => {
       ;(AppleAuthentication.signInAsync as jest.Mock).mockResolvedValue({
         identityToken: 'deletion.identity.jwt',
         authorizationCode: null,
       })
 
+      await expect(performAppleReauth()).rejects.toThrow(AppleAuthError)
       await expect(performAppleReauth()).rejects.toThrow('لم يتم استلام رمز التفويض من Apple لإلغاء الحساب')
+    })
+  })
+
+  describe('AppleAuthError', () => {
+    it('correctly sets error name and prototype', () => {
+      const error = new AppleAuthError('رسالة خطأ تجريبية')
+      expect(error).toBeInstanceOf(Error)
+      expect(error).toBeInstanceOf(AppleAuthError)
+      expect(error.name).toBe('AppleAuthError')
+      expect(error.message).toBe('رسالة خطأ تجريبية')
     })
   })
 })

@@ -35,6 +35,7 @@ import {
   isAppleAuthAvailable,
   performAppleReauth,
   AppleReauthResult,
+  AppleAuthError,
 } from '../../src/services/appleAuth'
 
 export default function DeleteAccountScreen() {
@@ -146,7 +147,10 @@ export default function DeleteAccountScreen() {
       setAppleCredentials(creds)
     } catch (err: any) {
       console.error('[Apple Reauth Error]', err)
-      const msg = err?.message || 'فشل التحقق عبر حساب Apple. يرجى إعادة المحاولة.'
+      const msg =
+        err instanceof AppleAuthError
+          ? err.message
+          : 'فشل التحقق عبر حساب Apple. يرجى إعادة المحاولة.'
       dialogService.alert('خطأ', msg)
     } finally {
       setAppleLoading(false)
@@ -212,6 +216,10 @@ export default function DeleteAccountScreen() {
           // 3. Navigate to login screen ONCE
           router.replace('/(auth)/login')
         } catch (err: any) {
+          if (reauthMethod === 'apple') {
+            setAppleCredentials(null)
+          }
+
           const status = err?.response?.status
           const serverMessage = err?.response?.data?.message
           const errorCode = err?.response?.data?.code
