@@ -18,14 +18,18 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
-import { lineHeightFor } from '../../constants/typography'
+import { Typography, lineHeightFor } from '../../constants/typography'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+
+export const TOP_BAR_SAFE_MARGIN = Spacing.space3
+export const BOTTOM_BAR_SAFE_MARGIN = Spacing.space3
 
 export interface ImageViewerModalProps {
   visible: boolean
@@ -47,6 +51,7 @@ export function ImageViewerModal({
   initialIndex,
   onClose,
 }: ImageViewerModalProps) {
+  const insets = useSafeAreaInsets()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
   const count = images.length
 
@@ -133,7 +138,10 @@ export function ImageViewerModal({
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <View style={s.container}>
         {/* Top Bar with Close & Counter */}
-        <View style={s.topBar}>
+        <View
+          style={[s.topBar, { paddingTop: insets.top + TOP_BAR_SAFE_MARGIN }]}
+          testID="viewer-top-bar"
+        >
           <TouchableOpacity
             onPress={onClose}
             style={s.closeButton}
@@ -142,12 +150,14 @@ export function ImageViewerModal({
             testID="btn-close-viewer"
             accessibilityLabel="إغلاق"
           >
-            <Ionicons name="close" size={22} color={Colors.white} />
+            <Ionicons name="close" size={24} color={Colors.text} />
           </TouchableOpacity>
 
-          <Text style={s.counterText}>
-            {activeIndex + 1} / {count}
-          </Text>
+          <View style={s.counterPill} testID="viewer-counter-pill">
+            <Text style={s.counterText}>
+              {activeIndex + 1} / {count}
+            </Text>
+          </View>
 
           <View style={s.placeholderRight} />
         </View>
@@ -167,7 +177,10 @@ export function ImageViewerModal({
         </View>
 
         {/* Bottom Tip */}
-        <View style={s.bottomBar}>
+        <View
+          style={[s.bottomBar, { paddingBottom: insets.bottom + BOTTOM_BAR_SAFE_MARGIN }]}
+          testID="viewer-bottom-bar"
+        >
           <Text style={s.tipText}>اضغط مرتين للتكبير / التصغير</Text>
         </View>
       </View>
@@ -186,26 +199,38 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.space4,
-    paddingTop: Spacing.space6,
     paddingBottom: Spacing.space2,
     zIndex: 10,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: Spacing.touch,
+    height: Spacing.touch,
     borderRadius: Radius.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  counterPill: {
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space1,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(25, 36, 53, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.45)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   counterText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: lineHeightFor(15),
     color: Colors.white,
   },
   placeholderRight: {
-    width: 44,
+    width: Spacing.touch,
   },
   canvas: {
     flex: 1,
@@ -224,13 +249,13 @@ const s = StyleSheet.create({
     height: '100%',
   },
   bottomBar: {
-    paddingVertical: Spacing.space3,
+    paddingTop: Spacing.space3,
     alignItems: 'center',
   },
   tipText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
-    color: 'rgba(255, 255, 255, 0.6)',
+    fontFamily: Typography.caption.fontFamily,
+    fontSize: Typography.caption.fontSize,
+    lineHeight: lineHeightFor(Typography.caption.fontSize),
+    color: 'rgba(255, 255, 255, 0.85)',
   },
 })
