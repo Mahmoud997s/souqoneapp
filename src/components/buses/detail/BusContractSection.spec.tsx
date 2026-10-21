@@ -295,16 +295,65 @@ describe('BusContractSection (Variant C)', () => {
   })
 
   describe('Typography & LineHeight Regression (Almarai + lineHeight >= 1.5x fontSize)', () => {
+    interface TextCheckTarget {
+      node: JsonNode
+      isNestedInText: boolean
+    }
+
+    const collectTextTargets = (
+      node: JsonNode | JsonNode[] | string | null,
+      isNestedInText = false
+    ): TextCheckTarget[] => {
+      if (!node || typeof node === 'string') return []
+      if (Array.isArray(node)) {
+        return node.flatMap((child) => collectTextTargets(child, isNestedInText))
+      }
+      const result: TextCheckTarget[] = []
+      const isText = node.type === 'Text'
+
+      if (isText) {
+        const flat = node.props?.style ? StyleSheet.flatten(node.props.style) : undefined
+        if (flat?.fontFamily !== 'ionicons') {
+          result.push({ node, isNestedInText })
+        }
+      }
+
+      if (Array.isArray(node.children)) {
+        for (const child of node.children) {
+          result.push(...collectTextTargets(child, isNestedInText || isText))
+        }
+      }
+
+      return result
+    }
+
     const assertAllTextsUseAlmaraiAndSafeLineHeight = (tree: JsonNode | JsonNode[] | null) => {
-      const textNodes = collectTextNodes(tree)
-      expect(textNodes.length).toBeGreaterThan(0)
-      for (const node of textNodes) {
-        if (!node.props?.style) continue
-        const flat = StyleSheet.flatten(node.props.style)
-        if (!flat || typeof flat.fontSize !== 'number') continue
-        expect(String(flat.fontFamily ?? '')).toMatch(/^Almarai_/)
-        expect(typeof flat.lineHeight).toBe('number')
-        expect(flat.lineHeight as number).toBeGreaterThanOrEqual(flat.fontSize * 1.5)
+      const targets = collectTextTargets(tree)
+      expect(targets.length).toBeGreaterThan(0)
+
+      for (const { node, isNestedInText } of targets) {
+        const flat = node.props?.style ? StyleSheet.flatten(node.props.style) : undefined
+
+        if (isNestedInText) {
+          // Legitimate exception: a Text nested inside another Text inherits the parent's font.
+          // Skip only if it defines no own fontFamily and no own fontSize.
+          if (flat && (flat.fontFamily !== undefined || flat.fontSize !== undefined)) {
+            expect(flat.fontSize).toBeDefined()
+            expect(typeof flat.fontSize).toBe('number')
+            expect(String(flat.fontFamily ?? '')).toMatch(/^Almarai_/)
+            expect(typeof flat.lineHeight).toBe('number')
+            expect(flat.lineHeight as number).toBeGreaterThanOrEqual((flat.fontSize as number) * 1.5)
+          }
+          continue
+        }
+
+        // Top-level Text: must have style, explicit numeric fontSize, Almarai fontFamily, and lineHeight >= 1.5x fontSize.
+        expect(node.props?.style).toBeDefined()
+        expect(flat).toBeDefined()
+        expect(typeof flat?.fontSize).toBe('number')
+        expect(String(flat?.fontFamily ?? '')).toMatch(/^Almarai_/)
+        expect(typeof flat?.lineHeight).toBe('number')
+        expect(flat!.lineHeight as number).toBeGreaterThanOrEqual(flat!.fontSize! * 1.5)
       }
     }
 
