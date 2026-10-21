@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { RTLText } from '../../constants/rtl'
 import { SkeletonCard } from '../ui/SkeletonCard'
 import { lineHeightFor } from '../../constants/typography'
 
@@ -66,6 +66,7 @@ export function SimilarListingsGrid<TItem>({
             style={s.retryButton}
             onPress={onRetry}
             activeOpacity={0.7}
+            testID="btn-similar-retry"
           >
             <Text style={s.retryText}>إعادة المحاولة</Text>
           </TouchableOpacity>
@@ -100,6 +101,7 @@ export function SimilarListingsGrid<TItem>({
             disabled={page >= pageCount}
             onPress={() => onPageChange(page + 1)}
             activeOpacity={0.7}
+            testID="btn-similar-next"
           >
             <Text style={s.pageButtonText}>التالي</Text>
             <Ionicons name="chevron-back" size={16} color={Colors.text2} />
@@ -114,6 +116,7 @@ export function SimilarListingsGrid<TItem>({
             disabled={page <= 1}
             onPress={() => onPageChange(page - 1)}
             activeOpacity={0.7}
+            testID="btn-similar-prev"
           >
             <Ionicons name="chevron-forward" size={16} color={Colors.text2} />
             <Text style={s.pageButtonText}>السابق</Text>
@@ -131,12 +134,12 @@ const s = StyleSheet.create({
   },
   title: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 16,
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: Spacing.space2,
+    marginBottom: Spacing.space3,
   },
   gridRow: {
     flexDirection: 'row',
@@ -151,7 +154,7 @@ const s = StyleSheet.create({
   },
   errorBox: {
     backgroundColor: Colors.white,
-    padding: Spacing.space3,
+    padding: Spacing.space4,
     borderRadius: Radius.lg,
     alignItems: 'center',
     gap: Spacing.space2,
@@ -159,22 +162,29 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
   },
   errorText: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.error,
   },
   retryButton: {
-    paddingHorizontal: Spacing.space3,
+    paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space2,
-    backgroundColor: Colors.primary + '15',
+    minHeight: Spacing.touch,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.paleMint,
     borderRadius: Radius.md,
     marginTop: Spacing.space1,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
   },
   retryText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
   },
   paginationRow: {
@@ -189,25 +199,31 @@ const s = StyleSheet.create({
   pageButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.space3,
-    paddingVertical: 6,
+    paddingVertical: Spacing.space2,
+    minHeight: Spacing.touch,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.space1,
   },
   disabledPageButton: {
     opacity: 0.4,
   },
   pageButtonText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.text2,
   },
   pageIndicator: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
   },
 })

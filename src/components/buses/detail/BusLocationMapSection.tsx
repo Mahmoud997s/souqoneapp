@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
+import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import MapView, { Marker } from '../../ui/Map'
 
@@ -73,19 +74,19 @@ const s = StyleSheet.create({
     marginVertical: Spacing.space2,
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: Spacing.space3,
+    padding: Spacing.space4,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.card,
   },
   mapSectionTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 16,
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: Spacing.space2,
+    marginBottom: Spacing.space3,
   },
   mapContainer: {
     width: '100%',
@@ -110,14 +111,15 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     backgroundColor: Colors.paleMint,
-    paddingVertical: 12,
+    paddingVertical: Spacing.space3,
     minHeight: Spacing.touch,
     borderRadius: Radius.md,
-    marginTop: 12,
+    marginTop: Spacing.space3,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   directionsTxt: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
     color: Colors.primary,
     fontSize: 14,

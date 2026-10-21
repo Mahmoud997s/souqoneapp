@@ -6,6 +6,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import type { SpecSectionView } from '../../types/carDetailViewModel.types'
+import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 
 export interface SpecsSectionsProps {
@@ -41,8 +42,8 @@ export function SpecsSections({ sections }: SpecsSectionsProps) {
                 <View key={item.key || iIndex} style={s.chip}>
                   <Ionicons
                     name={(item.icon as keyof typeof Ionicons.glyphMap) ?? 'checkmark-circle-outline'}
-                    size={13}
-                    color="#059669"
+                    size={14}
+                    color={Colors.primary}
                   />
                   <Text style={s.chipText}>{item.label}</Text>
                 </View>
@@ -74,24 +75,24 @@ const s = StyleSheet.create({
   container: {
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
-    gap: Spacing.space2,
+    gap: Spacing.space3,
   },
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: Spacing.space3,
+    padding: Spacing.space4,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.card,
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 16,
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: Spacing.space2,
+    marginBottom: Spacing.space3,
   },
   itemsContainer: {
     gap: 0,
@@ -99,45 +100,48 @@ const s = StyleSheet.create({
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: Spacing.space2,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F0FDF4',
+    gap: Spacing.space1,
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.md,
+    borderColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
   },
   chipText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
-    color: '#166534',
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
+    color: Colors.text,
   },
   specRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: Spacing.space2,
   },
   specRowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   specLabel: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.textMuted,
   },
   specValue: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.text,
     textAlign: 'left',
   },

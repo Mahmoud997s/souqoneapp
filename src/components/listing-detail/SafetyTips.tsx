@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 
 export interface SafetyTipsProps {
@@ -48,13 +49,13 @@ export function SafetyTips({ role, title, tips }: SafetyTipsProps) {
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: '#FEFCE8',
+    backgroundColor: Colors.surfaceAlt,
     borderRadius: Radius.lg,
-    padding: Spacing.space3,
+    padding: Spacing.space4,
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
     borderWidth: 1,
-    borderColor: '#FEF08A',
+    borderColor: Colors.border,
   },
   headerRow: {
     flexDirection: 'row',
@@ -64,14 +65,14 @@ const s = StyleSheet.create({
   },
   title: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: lineHeightFor(13),
+    fontSize: 15,
+    lineHeight: lineHeightFor(15),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   tipsList: {
-    gap: 6,
+    gap: Spacing.space2,
   },
   tipRow: {
     flexDirection: 'row',
@@ -79,16 +80,17 @@ const s = StyleSheet.create({
     gap: 6,
   },
   bulletPoint: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
     lineHeight: lineHeightFor(14),
-    color: Colors.textMuted,
+    color: Colors.primary,
   },
   tipText: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',

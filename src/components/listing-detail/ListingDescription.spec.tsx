@@ -1,6 +1,8 @@
 import React from 'react'
+import { StyleSheet } from 'react-native'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import { ListingDescription } from './ListingDescription'
+import { Spacing } from '../../constants/spacing'
 
 jest.mock('@expo/vector-icons', () => {
   const { View } = require('react-native')
@@ -39,5 +41,28 @@ describe('ListingDescription', () => {
 
     await fireEvent.press(toggleBtn)
     expect(screen.getByText('قراءة المزيد')).toBeTruthy()
+  })
+
+  it('enforces >= 44pt touch target on toggle button and distinct heading/body Almarai scale (F-03)', async () => {
+    const longText = 'هذا وصف طويل جداً يتجاوز مائة وعشرين حرفاً لغرض اختبار ظهور زر قراءة المزيد وإمكانية توسيع الوصف وقراءته كاملاً بدون أي مشاكل في العرض أو التنسيق.'
+    await render(<ListingDescription text={longText} />)
+
+    const toggleBtn = screen.getByTestId('btn-toggle-description')
+    const toggleBtnStyle = StyleSheet.flatten(toggleBtn.props.style)
+    expect(toggleBtnStyle?.minHeight).toBeGreaterThanOrEqual(Spacing.touch)
+
+    const heading = screen.getByText('الوصف')
+    const body = screen.getByText(longText)
+    const toggleLabel = screen.getByText('قراءة المزيد')
+
+    const headingStyle = StyleSheet.flatten(heading.props.style)
+    const bodyStyle = StyleSheet.flatten(body.props.style)
+    const toggleLabelStyle = StyleSheet.flatten(toggleLabel.props.style)
+
+    expect(headingStyle?.fontSize).toBe(16)
+    expect(bodyStyle?.fontSize).toBe(14)
+    expect(headingStyle!.fontSize! - bodyStyle!.fontSize!).toBeGreaterThanOrEqual(2)
+    expect(toggleLabelStyle?.fontSize).toBeGreaterThanOrEqual(11)
+    expect(toggleLabelStyle?.writingDirection).toBe('rtl')
   })
 })

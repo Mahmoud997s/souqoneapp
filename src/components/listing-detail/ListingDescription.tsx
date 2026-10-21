@@ -5,6 +5,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { stripMarkdown } from '../../utils/listing-detail/stripMarkdown'
 
@@ -66,7 +67,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: Spacing.space3,
+    padding: Spacing.space4,
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
     borderWidth: 1,
@@ -75,8 +76,8 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 16,
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -84,8 +85,8 @@ const s = StyleSheet.create({
   },
   bodyText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: lineHeightFor(13),
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
     color: Colors.text2,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -94,14 +95,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: 4,
+    gap: Spacing.space1,
     marginTop: Spacing.space2,
-    paddingVertical: 2,
+    minHeight: Spacing.touch,
+    paddingVertical: Spacing.space2,
   },
   toggleText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
   },
 })

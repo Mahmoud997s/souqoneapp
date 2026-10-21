@@ -59,7 +59,7 @@ export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
                 <Ionicons
                   name="checkmark-circle"
                   size={16}
-                  color="#0D9488"
+                  color={Colors.primary}
                   style={s.verifiedIcon}
                 />
               ) : null}
@@ -76,7 +76,7 @@ export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
 
           {/* Chevron */}
           <View style={s.chevronWrapper}>
-            <Ionicons name="chevron-back" size={20} color="#14B8A6" />
+            <Ionicons name="chevron-back" size={20} color={Colors.primary} />
           </View>
         </View>
       </BlurView>
@@ -93,11 +93,11 @@ const s = StyleSheet.create({
     ...Shadows.card,
   },
   card: {
-    backgroundColor: 'rgba(204, 251, 241, 0.55)',
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    borderWidth: 1.2,
-    borderColor: 'rgba(20, 184, 166, 0.30)',
-    padding: Spacing.space3,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.space4,
     overflow: 'hidden',
   },
   row: {
@@ -118,7 +118,7 @@ const s = StyleSheet.create({
   avatarFallback: {
     width: '100%',
     height: '100%',
-    backgroundColor: Colors.inputBg,
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 22,
@@ -131,12 +131,12 @@ const s = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.space1,
   },
   nameText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
+    fontSize: 15,
+    lineHeight: lineHeightFor(15),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -146,27 +146,27 @@ const s = StyleSheet.create({
   },
   membershipText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   accountBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(13, 148, 136, 0.10)',
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: 'rgba(13, 148, 136, 0.25)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    borderColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: 3,
     borderRadius: Radius.pill,
     marginTop: 2,
   },
   accountBadgeText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    lineHeight: lineHeightFor(10),
-    color: '#0D9488',
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
+    color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

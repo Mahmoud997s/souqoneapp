@@ -7,6 +7,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { PriceBadge } from '../ui/PriceBadge'
 import type { PriceView } from '../../types/carDetailViewModel.types'
+import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 
 export interface ListingHeaderBlockProps {
@@ -148,8 +149,10 @@ const s = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.space4,
     paddingTop: Spacing.space4,
-    paddingBottom: Spacing.space3,
+    paddingBottom: Spacing.space4,
     backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
 
   // ── Badges ──────────────────────────────────────────────────────────────────
@@ -161,28 +164,30 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   kindBadge: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
     borderColor: Colors.primary + '30',
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2 + 2,
+    paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
   },
   kindBadgeText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
     color: Colors.primary,
   },
   conditionBadge: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceAlt,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2 + 2,
+    paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
   },
   conditionBadgeText: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
@@ -190,11 +195,12 @@ const s = StyleSheet.create({
   },
   statusBadge: {
     borderWidth: 1,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.space2 + 2,
+    paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
   },
   statusBadgeText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
@@ -203,8 +209,8 @@ const s = StyleSheet.create({
   // ── Title ────────────────────────────────────────────────────────────────────
   title: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 18,
-    lineHeight: lineHeightFor(18),
+    fontSize: 20,
+    lineHeight: lineHeightFor(20),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -213,14 +219,14 @@ const s = StyleSheet.create({
 
   // ── Price ────────────────────────────────────────────────────────────────────
   priceSection: {
-    backgroundColor: Colors.primary + '07',
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '18',
+    borderColor: Colors.primary + '25',
     borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space2 + 2,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space3,
     marginBottom: Spacing.space3,
-    gap: 8,
+    gap: Spacing.space2,
   },
   priceRow: {
     flexDirection: 'row',
@@ -230,19 +236,20 @@ const s = StyleSheet.create({
   negotiableBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.surface,
+    gap: Spacing.space1,
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
+    borderColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.space2 + 2,
+    paddingVertical: Spacing.space1,
+    borderRadius: Radius.pill,
   },
   negotiableText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    lineHeight: lineHeightFor(10),
-    color: Colors.text2,
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
+    color: Colors.primary,
   },
   ratesRow: {
     flexDirection: 'row',
@@ -255,14 +262,15 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: Colors.primary + '08',
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.primary + '22',
+    borderColor: Colors.primary + '25',
     paddingHorizontal: Spacing.space2,
-    paddingVertical: 8,
+    paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
   },
   rateValue: {
+    ...RTLText,
     flexShrink: 1,
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
@@ -274,37 +282,39 @@ const s = StyleSheet.create({
   metadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.space2,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.space1,
   },
   metaIconWrap: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: Colors.primary + '14',
+    width: 22,
+    height: 22,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   metaText: {
+    ...RTLText,
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
     color: Colors.text2,
   },
   metaTextMuted: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
   },
   metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
+    width: 4,
+    height: 4,
+    borderRadius: Radius.pill,
     backgroundColor: Colors.border,
   },
 })
