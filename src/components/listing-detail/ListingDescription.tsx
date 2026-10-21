@@ -6,6 +6,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
+import { stripMarkdown } from '../../utils/listing-detail/stripMarkdown'
 
 export interface ListingDescriptionProps {
   text: string
@@ -15,15 +16,17 @@ export interface ListingDescriptionProps {
 /**
  * ListingDescription
  * Collapsible description text block.
- * Defaults to 5 lines collapsed with an expandable "قراءة المزيد" toggle.
+ * Strips raw markdown formatting and defaults to 5 lines collapsed with
+ * an expandable "قراءة المزيد" toggle.
  */
 export function ListingDescription({
   text,
   collapsedLines = 5,
 }: ListingDescriptionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const plainText = stripMarkdown(text)
 
-  if (!text || !text.trim()) {
+  if (!plainText.trim()) {
     return null
   }
 
@@ -35,10 +38,10 @@ export function ListingDescription({
         style={s.bodyText}
         numberOfLines={isExpanded ? undefined : collapsedLines}
       >
-        {text}
+        {plainText}
       </Text>
 
-      {text.length > 120 ? (
+      {plainText.length > 120 ? (
         <TouchableOpacity
           style={s.toggleButton}
           onPress={() => setIsExpanded((prev) => !prev)}

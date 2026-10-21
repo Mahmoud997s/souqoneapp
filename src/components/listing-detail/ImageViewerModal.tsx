@@ -6,9 +6,10 @@ import {
   StyleSheet,
   Dimensions,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { GestureDetector, Gesture, TouchableOpacity } from 'react-native-gesture-handler'
+import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -57,14 +58,16 @@ export function ImageViewerModal({
 
   const scale = useSharedValue(1)
   const translateX = useSharedValue(0)
+  const translateY = useSharedValue(0)
 
   // Compute once on JS thread — safe to capture in worklet closure
   const gestureDir = getGestureDirectionMultiplier()
 
-  // Reset scale when index changes
+  // Reset scale and translation when index changes
   const changeIndex = (newIdx: number) => {
     setActiveIndex(newIdx)
     scale.value = withTiming(1)
+    translateY.value = withSpring(0)
   }
 
   // Double tap to zoom
@@ -78,24 +81,33 @@ export function ImageViewerModal({
       }
     })
 
-  // Horizontal pan for paging
+  // Pan gesture: horizontal swipe for paging + vertical swipe-down to dismiss
   const panGesture = Gesture.Pan()
     .activeOffsetX([-15, 15])
+    .activeOffsetY([-15, 15])
     .onUpdate((e) => {
       if (scale.value <= 1.05) {
         translateX.value = e.translationX
+        if (e.translationY > 0) {
+          translateY.value = e.translationY
+        }
       }
     })
     .onEnd((e) => {
       if (scale.value <= 1.05) {
-        const dx = e.translationX * gestureDir
-        const THRESHOLD = 50
-        if (dx > THRESHOLD && activeIndex < count - 1) {
-          runOnJS(changeIndex)(activeIndex + 1)
-        } else if (dx < -THRESHOLD && activeIndex > 0) {
-          runOnJS(changeIndex)(activeIndex - 1)
+        if (e.translationY > 80 && e.translationY > Math.abs(e.translationX)) {
+          runOnJS(onClose)()
+        } else {
+          const dx = e.translationX * gestureDir
+          const THRESHOLD = 50
+          if (dx > THRESHOLD && activeIndex < count - 1) {
+            runOnJS(changeIndex)(activeIndex + 1)
+          } else if (dx < -THRESHOLD && activeIndex > 0) {
+            runOnJS(changeIndex)(activeIndex - 1)
+          }
         }
         translateX.value = withSpring(0)
+        translateY.value = withSpring(0)
       }
     })
 
@@ -105,6 +117,7 @@ export function ImageViewerModal({
     transform: [
       { scale: scale.value },
       { translateX: translateX.value },
+      { translateY: translateY.value },
     ],
   }))
 
@@ -127,6 +140,7 @@ export function ImageViewerModal({
             onPress={onClose}
             style={s.closeButton}
             activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             testID="btn-close-viewer"
             accessibilityLabel="إغلاق"
           >
@@ -179,8 +193,8 @@ const s = StyleSheet.create({
     zIndex: 10,
   },
   closeButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: Radius.pill,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
@@ -193,7 +207,7 @@ const s = StyleSheet.create({
     color: Colors.white,
   },
   placeholderRight: {
-    width: 38,
+    width: 44,
   },
   canvas: {
     flex: 1,
