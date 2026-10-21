@@ -20,6 +20,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
+import { lineHeightFor } from '../../../constants/typography'
 
 export interface BusDetailNavBarProps {
   onBack: () => void
@@ -218,7 +219,9 @@ const s = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.text,
     paddingVertical: 0,
   },

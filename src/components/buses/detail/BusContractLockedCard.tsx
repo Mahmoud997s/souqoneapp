@@ -6,6 +6,7 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
+import { lineHeightFor } from '../../../constants/typography'
 import { BusContractView } from '../../../types/busDetailViewModel.types'
 
 export type BusContractLockedView = Extract<BusContractView, { access: 'locked' }>
@@ -89,13 +90,16 @@ const s = StyleSheet.create({
   },
   cardTitle: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
   },
   cardSub: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.textMuted,
     marginTop: 2,
   },
@@ -106,7 +110,9 @@ const s = StyleSheet.create({
   },
   lockedNotice: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
+    lineHeight: lineHeightFor(14),
     color: Colors.textMuted,
     textAlign: 'center',
   },
@@ -123,8 +129,9 @@ const s = StyleSheet.create({
   },
   loginButtonText: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    fontWeight: '600',
+    lineHeight: lineHeightFor(14),
     color: Colors.white,
   },
 })

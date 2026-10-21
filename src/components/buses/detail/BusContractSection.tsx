@@ -11,6 +11,7 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
+import { lineHeightFor } from '../../../constants/typography'
 import { BusContractView } from '../../../types/busDetailViewModel.types'
 import { PriceView } from '../../../types/listingDetail.types'
 import { BusListingType } from '../../../types/bus.types'
@@ -18,6 +19,7 @@ import { formatNumberWestern } from '../../../utils/listing-detail/formatters'
 import { computeBusContractEstimate } from '../../../utils/listing-detail/computeBusContractEstimate'
 import { useAppReducedMotion } from '../../../utils/listing-detail/useAppReducedMotion'
 import { BusContractLockedCard } from './BusContractLockedCard'
+import { ContractPercentRing } from './ContractPercentRing'
 
 export interface BusContractSectionProps {
   contract: BusContractView
@@ -110,6 +112,9 @@ export function BusContractSection({
   const formattedExpiry = formatExpiryDate(contract.expiryIso)
   const hasExtraCalculations =
     estimate.annualYieldPercent !== null || estimate.paybackMonths !== null
+  const isSaleType =
+    busListingType === 'BUS_SALE' || busListingType === 'BUS_SALE_WITH_CONTRACT'
+  const showRecoveryRing = isSaleType && estimate.recoveryPercent !== null
 
   return (
     <View style={s.card}>
@@ -156,7 +161,23 @@ export function BusContractSection({
 
       {/* Highlight Metrics Grid (Visible) */}
       <View style={s.metricsGrid}>
-        <View style={s.metricBox}>
+        <View style={s.metricBox} testID="contract-metric-monthly">
+          <View style={s.metricVisualRow}>
+            <View
+              style={s.metricIconBadge}
+              testID="contract-icon-monthly"
+              accessible={false}
+              importantForAccessibility="no"
+            >
+              <Ionicons
+                name="cash-outline"
+                size={18}
+                color={Colors.primary}
+                accessible={false}
+                importantForAccessibility="no"
+              />
+            </View>
+          </View>
           <Text style={s.metricLabel} maxFontSizeMultiplier={1.3}>الدخل الشهري</Text>
           <Text style={s.metricValue} maxFontSizeMultiplier={1.3}>
             {formatNumberWestern(contract.monthlyIncome)} <Text style={s.metricUnit}>ر.ع</Text>
@@ -164,7 +185,26 @@ export function BusContractSection({
           <Text style={s.metricSub} maxFontSizeMultiplier={1.3}>عقد تشغيلي معتمد</Text>
         </View>
 
-        <View style={s.metricBox}>
+        <View style={s.metricBox} testID="contract-metric-remaining">
+          <View style={s.metricVisualRow}>
+            <View
+              style={s.metricIconBadge}
+              testID="contract-icon-remaining"
+              accessible={false}
+              importantForAccessibility="no"
+            >
+              <Ionicons
+                name="hourglass-outline"
+                size={18}
+                color={Colors.primary}
+                accessible={false}
+                importantForAccessibility="no"
+              />
+            </View>
+            {showRecoveryRing && estimate.recoveryPercent !== null ? (
+              <ContractPercentRing percent={estimate.recoveryPercent} size={32} />
+            ) : null}
+          </View>
           <Text style={s.metricLabel} maxFontSizeMultiplier={1.3}>الدخل المتبقي من العقد</Text>
           <Text style={s.metricValue} maxFontSizeMultiplier={1.3}>
             {estimate.remainingIncome !== null ? (
@@ -186,9 +226,18 @@ export function BusContractSection({
       {formattedExpiry ? (
         <View style={s.progressSection}>
           <View style={s.progressLabelsRow}>
-            <Text style={s.progressDateText} maxFontSizeMultiplier={1.3}>
-              المدة المنقضية من العقد (ينتهي {formattedExpiry})
-            </Text>
+            <View style={s.progressDateRow}>
+              <Ionicons
+                name="calendar-outline"
+                size={14}
+                color={Colors.textMuted}
+                accessible={false}
+                importantForAccessibility="no"
+              />
+              <Text style={s.progressDateText} maxFontSizeMultiplier={1.3}>
+                المدة المنقضية من العقد (ينتهي {formattedExpiry})
+              </Text>
+            </View>
             {estimate.progressPercent !== null ? (
               <Text style={s.progressPercentText} maxFontSizeMultiplier={1.3}>
                 {formatNumberWestern(estimate.progressPercent)}%
@@ -235,6 +284,20 @@ export function BusContractSection({
               <View style={s.extraMetricsGrid}>
                 {estimate.annualYieldPercent !== null ? (
                   <View style={s.extraMetricBox}>
+                    <View
+                      style={s.metricIconBadge}
+                      testID="contract-icon-yield"
+                      accessible={false}
+                      importantForAccessibility="no"
+                    >
+                      <Ionicons
+                        name="trending-up-outline"
+                        size={18}
+                        color={Colors.primary}
+                        accessible={false}
+                        importantForAccessibility="no"
+                      />
+                    </View>
                     <Text style={s.extraMetricLabel} maxFontSizeMultiplier={1.3}>العائد السنوي*</Text>
                     <Text style={s.extraMetricValue} maxFontSizeMultiplier={1.3}>
                       {estimate.annualYieldPercent}%
@@ -249,6 +312,20 @@ export function BusContractSection({
 
                 {estimate.paybackMonths !== null ? (
                   <View style={s.extraMetricBox}>
+                    <View
+                      style={s.metricIconBadge}
+                      testID="contract-icon-payback"
+                      accessible={false}
+                      importantForAccessibility="no"
+                    >
+                      <Ionicons
+                        name="calendar-outline"
+                        size={18}
+                        color={Colors.primary}
+                        accessible={false}
+                        importantForAccessibility="no"
+                      />
+                    </View>
                     <Text style={s.extraMetricLabel} maxFontSizeMultiplier={1.3}>مدة السداد*</Text>
                     <Text style={s.extraMetricValue} maxFontSizeMultiplier={1.3}>
                       {formatNumberWestern(estimate.paybackMonths)} شهر
@@ -304,13 +381,16 @@ const s = StyleSheet.create({
   },
   cardTitle: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(16),
     color: Colors.text,
   },
   cardSub: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.textMuted,
     marginTop: 2,
   },
@@ -328,49 +408,83 @@ const s = StyleSheet.create({
   },
   termLabel: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.textMuted,
   },
   termValue: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    fontWeight: '500',
+    lineHeight: lineHeightFor(13),
     color: Colors.text,
   },
   metricsGrid: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     gap: Spacing.space2,
     marginTop: Spacing.space3,
   },
   metricBox: {
     flex: 1,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.surfaceAlt,
     borderRadius: Radius.md,
     padding: Spacing.space3,
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  metricVisualRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+    marginBottom: Spacing.space1,
+    minHeight: 32,
+  },
+  metricIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.paleMint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   metricLabel: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
+    textAlign: 'center',
     marginBottom: 4,
   },
   metricValue: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(16),
     color: Colors.primary,
+    textAlign: 'center',
   },
   metricUnit: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
+    textAlign: 'center',
   },
   metricSub: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
+    textAlign: 'center',
     marginTop: 4,
   },
   progressSection: {
@@ -383,15 +497,24 @@ const s = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
+  progressDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    flex: 1,
+  },
   progressDateText: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
   progressPercentText: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
   },
   progressTrack: {
@@ -407,11 +530,12 @@ const s = StyleSheet.create({
   },
   disclaimerText: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.space3,
-    lineHeight: 16,
   },
   accordionWrapper: {
     marginTop: Spacing.space3,
@@ -427,8 +551,9 @@ const s = StyleSheet.create({
   },
   accordionHeaderText: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
   },
   accordionBody: {
@@ -437,41 +562,53 @@ const s = StyleSheet.create({
   },
   extraMetricsGrid: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     gap: Spacing.space2,
   },
   extraMetricBox: {
     flex: 1,
+    alignSelf: 'stretch',
     backgroundColor: Colors.surfaceAlt,
     borderRadius: Radius.md,
     padding: Spacing.space2 + 2,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
+    gap: 2,
   },
   extraMetricLabel: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
-    marginBottom: 4,
+    marginTop: 2,
+    marginBottom: 2,
     textAlign: 'center',
   },
   extraMetricValue: {
     ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(15),
     color: Colors.text,
     textAlign: 'center',
   },
   extraMetricCalc: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 10,
+    lineHeight: lineHeightFor(10),
     color: Colors.textMuted,
-    marginTop: 3,
+    marginTop: 2,
     textAlign: 'center',
   },
   footnoteText: {
     ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.space2,
