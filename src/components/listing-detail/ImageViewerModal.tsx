@@ -133,6 +133,8 @@ export function ImageViewerModal({
       visible={visible}
       transparent={false}
       animationType="fade"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
