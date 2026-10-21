@@ -24,6 +24,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
@@ -551,16 +552,16 @@ const s = StyleSheet.create({
   },
   similarCard: {
     backgroundColor: Colors.white,
-    borderRadius: Radius.md,
-    padding: Spacing.space2 + 2,
+    borderRadius: Radius.lg,
+    padding: Spacing.space3,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.card,
   },
   similarCardImagePlaceholder: {
-    height: 75,
+    height: 88,
     backgroundColor: Colors.inputBg,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.space2,
@@ -568,26 +569,28 @@ const s = StyleSheet.create({
   },
   similarCardTitle: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginBottom: 2,
+    marginBottom: Spacing.space1,
   },
   similarCardPrice: {
+    ...RTLText,
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13,
-    lineHeight: lineHeightFor(13),
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
     color: Colors.primary,
     textAlign: 'left',
   },
   similarCardMeta: {
+    ...RTLText,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    lineHeight: lineHeightFor(10),
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
     textAlign: 'left',
-    marginTop: 1,
+    marginTop: 2,
   },
 })

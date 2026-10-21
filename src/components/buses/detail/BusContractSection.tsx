@@ -541,13 +541,14 @@ const s = StyleSheet.create({
     marginTop: Spacing.space3,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    paddingTop: Spacing.space3,
+    paddingTop: Spacing.space2,
   },
   accordionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.space1,
+    minHeight: Spacing.touch,
+    paddingVertical: Spacing.space2,
   },
   accordionHeaderText: {
     ...RTLText,
@@ -557,7 +558,7 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
   accordionBody: {
-    marginTop: Spacing.space2,
+    marginTop: Spacing.space1,
     paddingTop: Spacing.space2,
   },
   extraMetricsGrid: {
@@ -598,8 +599,8 @@ const s = StyleSheet.create({
   extraMetricCalc: {
     ...RTLText,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    lineHeight: lineHeightFor(10),
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
     marginTop: 2,
     textAlign: 'center',

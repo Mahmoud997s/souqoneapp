@@ -1,7 +1,8 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
-import { Text, TouchableOpacity } from 'react-native'
+import { Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { SellerCard } from './SellerCard'
+import { Colors } from '../../constants/colors'
 import type { SellerView } from '../../types/carDetailViewModel.types'
 
 jest.mock('@expo/vector-icons', () => ({
@@ -133,5 +134,31 @@ describe('SellerCard RTL & Rendering', () => {
     })
     const json = JSON.stringify(renderer.toJSON())
     expect(json).not.toMatch(/سرعة الرد|إعلان نشط|تقييم التجار/)
+  })
+
+  test('enforces >= 11pt floor on all Text nodes and token colors with zero raw teal hex (F-02)', () => {
+    let renderer: any
+    act(() => {
+      renderer = TestRenderer.create(
+        <SellerCard seller={mockSeller} onPressProfile={jest.fn()} />
+      )
+    })
+
+    const root = renderer.root
+    const textNodes = root.findAllByType(Text)
+    for (const node of textNodes) {
+      const flat = StyleSheet.flatten(node.props.style)
+      expect(flat?.fontSize).toBeGreaterThanOrEqual(11)
+      expect(flat?.lineHeight).toBeGreaterThanOrEqual(flat!.fontSize! * 1.5)
+    }
+
+    const badgeNode = textNodes.find(
+      (n: any) => n.props.children === 'معرض معتمد'
+    )
+    const badgeStyle = StyleSheet.flatten(badgeNode.props.style)
+    expect(badgeStyle?.color).toBe(Colors.primary)
+
+    const json = JSON.stringify(renderer.toJSON())
+    expect(json).not.toMatch(/#0D9488|#14B8A6/i)
   })
 })

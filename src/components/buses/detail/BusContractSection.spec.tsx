@@ -3,6 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
 import { BusContractSection } from './BusContractSection'
 import { BusLocationMapSection } from './BusLocationMapSection'
+import { ListingHeaderBlock } from '../../listing-detail/ListingHeaderBlock'
+import { SpecsSections } from '../../listing-detail/SpecsSections'
+import { SimilarListingsGrid } from '../../listing-detail/SimilarListingsGrid'
+import { SafetyTips } from '../../listing-detail/SafetyTips'
+import { SupportButton } from '../../listing-detail/SupportButton'
+import { Spacing } from '../../../constants/spacing'
 import { BusContractView } from '../../../types/busDetailViewModel.types'
 import { PriceView } from '../../../types/listingDetail.types'
 
@@ -180,6 +186,8 @@ describe('BusContractSection (Variant C)', () => {
 
       // Toggle accordion open
       const toggleBtn = screen.getByTestId('btn-toggle-contract-accordion')
+      const toggleBtnStyle = StyleSheet.flatten(toggleBtn.props.style)
+      expect(toggleBtnStyle?.minHeight).toBeGreaterThanOrEqual(Spacing.touch)
       await fireEvent.press(toggleBtn)
 
       // Extra metrics visible inside accordion
@@ -294,7 +302,7 @@ describe('BusContractSection (Variant C)', () => {
     })
   })
 
-  describe('Typography & LineHeight Regression (Almarai + lineHeight >= 1.5x fontSize)', () => {
+  describe('Typography & LineHeight Regression (Almarai + >=11pt floor + lineHeight >= 1.5x fontSize)', () => {
     interface TextCheckTarget {
       node: JsonNode
       isNestedInText: boolean
@@ -340,6 +348,7 @@ describe('BusContractSection (Variant C)', () => {
           if (flat && (flat.fontFamily !== undefined || flat.fontSize !== undefined)) {
             expect(flat.fontSize).toBeDefined()
             expect(typeof flat.fontSize).toBe('number')
+            expect(flat.fontSize as number).toBeGreaterThanOrEqual(11)
             expect(String(flat.fontFamily ?? '')).toMatch(/^Almarai_/)
             expect(typeof flat.lineHeight).toBe('number')
             expect(flat.lineHeight as number).toBeGreaterThanOrEqual((flat.fontSize as number) * 1.5)
@@ -347,17 +356,18 @@ describe('BusContractSection (Variant C)', () => {
           continue
         }
 
-        // Top-level Text: must have style, explicit numeric fontSize, Almarai fontFamily, and lineHeight >= 1.5x fontSize.
+        // Top-level Text: must have style, explicit numeric fontSize >= 11, Almarai fontFamily, and lineHeight >= 1.5x fontSize.
         expect(node.props?.style).toBeDefined()
         expect(flat).toBeDefined()
         expect(typeof flat?.fontSize).toBe('number')
+        expect(flat!.fontSize as number).toBeGreaterThanOrEqual(11)
         expect(String(flat?.fontFamily ?? '')).toMatch(/^Almarai_/)
         expect(typeof flat?.lineHeight).toBe('number')
         expect(flat!.lineHeight as number).toBeGreaterThanOrEqual(flat!.fontSize! * 1.5)
       }
     }
 
-    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in visible BusContractSection (including expanded accordion)', async () => {
+    it('enforces Almarai fontFamily, >= 11pt floor, and lineHeight >= 1.5x fontSize on all Texts in visible BusContractSection (including expanded accordion)', async () => {
       const visibleContract: BusContractView = {
         access: 'visible',
         typeLabel: 'نقل مدرسي / جامعي',
@@ -380,7 +390,7 @@ describe('BusContractSection (Variant C)', () => {
       assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
     })
 
-    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in locked BusContractSection', async () => {
+    it('enforces Almarai fontFamily, >= 11pt floor, and lineHeight >= 1.5x fontSize on all Texts in locked BusContractSection', async () => {
       const lockedContract: BusContractView = {
         access: 'locked',
         typeLabel: 'نقل مدرسي / جامعي',
@@ -397,7 +407,7 @@ describe('BusContractSection (Variant C)', () => {
       assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
     })
 
-    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in BusLocationMapSection', async () => {
+    it('enforces Almarai fontFamily, >= 11pt floor, and lineHeight >= 1.5x fontSize on all Texts in BusLocationMapSection', async () => {
       const view = await render(
         <BusLocationMapSection
           latitude={23.588}
@@ -406,6 +416,100 @@ describe('BusContractSection (Variant C)', () => {
         />
       )
       assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
+    })
+
+    it('enforces Almarai, >= 11pt floor, and Impeccable polish rules on ListingHeaderBlock, SpecsSections, SimilarListingsGrid, SafetyTips, and SupportButton', async () => {
+      const headerView = await render(
+        <ListingHeaderBlock
+          title="تويوتا كوستر 2024 للبيع"
+          kindLabel="للإيجار"
+          conditionLabel="مستعمل"
+          price={{
+            amount: 25000,
+            formattedAmount: '25,000',
+            currency: 'ر.ع',
+            fullPriceLabel: '25,000 ر.ع',
+            isNegotiable: true,
+            listingType: 'RENTAL',
+            dailyRate: { amount: 45, formatted: '45', label: '45 ر.ع / يوم' },
+            monthlyRate: { amount: 650, formatted: '650', label: '650 ر.ع / شهر' },
+          }}
+          locationText="مسقط، السيب"
+          postedAtLabel="منذ ساعتين"
+          statusBadge={{ label: 'تم التأجير', tone: 'warning' }}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(headerView.toJSON() as JsonNode | null)
+
+      const saleHeaderView = await render(
+        <ListingHeaderBlock
+          title="تويوتا كوستر 2024 للبيع"
+          kindLabel="للبيع"
+          conditionLabel="مستعمل"
+          price={{
+            amount: 25000,
+            formattedAmount: '25,000',
+            currency: 'ر.ع',
+            fullPriceLabel: '25,000 ر.ع',
+            isNegotiable: true,
+            listingType: 'SALE',
+          }}
+          locationText="مسقط، السيب"
+          postedAtLabel="منذ ساعتين"
+          statusBadge={{ label: 'تم البيع', tone: 'danger' }}
+        />
+      )
+      const negotiableNode = screen.getByText('قابل للتفاوض')
+      const negotiableStyle = StyleSheet.flatten(negotiableNode.props.style)
+      expect(negotiableStyle?.fontSize).toBeGreaterThanOrEqual(11)
+      expect(negotiableStyle?.lineHeight).toBeGreaterThanOrEqual(negotiableStyle!.fontSize! * 1.5)
+      expect(negotiableStyle?.writingDirection).toBe('rtl')
+
+      const specsView = await render(
+        <SpecsSections
+          sections={[
+            {
+              title: 'المواصفات الفنية',
+              items: [{ key: 'capacity', label: 'السعة', value: '30 راكب' }],
+            },
+            {
+              title: 'المميزات',
+              items: [{ key: 'ac', label: 'مكيف هواء', value: '' }],
+            },
+          ]}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(specsView.toJSON() as JsonNode | null)
+      expect(JSON.stringify(specsView.toJSON())).not.toMatch(/#059669|#F0FDF4|#BBF7D0|#166534/i)
+
+      const safetyView = await render(
+        <SafetyTips
+          role="buyer"
+          title="نصائح الأمان للمشتري"
+          tips={['عاين المركبة شخصياً قبل الدفع']}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(safetyView.toJSON() as JsonNode | null)
+      expect(JSON.stringify(safetyView.toJSON())).not.toMatch(/#FEFCE8|#FEF08A/i)
+
+      const similarErrView = await render(
+        <SimilarListingsGrid
+          items={[]}
+          isLoading={false}
+          isError={true}
+          onRetry={jest.fn()}
+          renderItem={() => <></>}
+          page={1}
+          pageCount={2}
+          onPageChange={jest.fn()}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(similarErrView.toJSON() as JsonNode | null)
+      const retryBtn = screen.getByTestId('btn-similar-retry')
+      expect(StyleSheet.flatten(retryBtn.props.style)?.minHeight).toBeGreaterThanOrEqual(Spacing.touch)
+
+      const supportView = await render(<SupportButton onPress={jest.fn()} />)
+      assertAllTextsUseAlmaraiAndSafeLineHeight(supportView.toJSON() as JsonNode | null)
     })
   })
 })
