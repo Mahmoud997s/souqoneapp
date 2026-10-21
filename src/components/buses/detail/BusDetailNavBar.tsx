@@ -40,9 +40,8 @@ export interface BusDetailNavBarProps {
  * BusDetailNavBar
  * Glassmorphic navigation bar specifically for bus detail page.
  * Strictly adheres to design decision:
- * - Back and favorite buttons visible
- * - Section search bar fades in on scroll
- * - NO share button
+ * - Back, share, and favorite buttons visible
+ * - Section search bar fades in on scroll (becomes interactive at 85px scroll)
  * - Zero hex color codes
  */
 export function BusDetailNavBar({
