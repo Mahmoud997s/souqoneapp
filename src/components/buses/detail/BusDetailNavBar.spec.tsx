@@ -14,12 +14,14 @@ jest.mock('@expo/vector-icons', () => {
 
 describe('BusDetailNavBar', () => {
   const mockOnBack = jest.fn()
+  const mockOnShare = jest.fn()
   const mockOnToggleFavorite = jest.fn()
   const mockOnSearchChange = jest.fn()
   const mockOnSearchSubmit = jest.fn()
 
   const defaultProps = {
     onBack: mockOnBack,
+    onShare: mockOnShare,
     isFavorite: false,
     favoriteBusy: false,
     canFavorite: true,
@@ -39,15 +41,20 @@ describe('BusDetailNavBar', () => {
     await render(<BusDetailNavBar {...defaultProps} />)
 
     const backBtn = screen.getByTestId('btn-detail-back')
+    const shareBtn = screen.getByTestId('btn-detail-share')
     const favBtn = screen.getByTestId('btn-detail-favorite')
     const input = screen.getByPlaceholderText('ابحث في تفاصيل الحافلة...')
 
     expect(backBtn).toBeTruthy()
+    expect(shareBtn).toBeTruthy()
     expect(favBtn).toBeTruthy()
     expect(input).toBeTruthy()
 
     fireEvent.press(backBtn)
     expect(mockOnBack).toHaveBeenCalledTimes(1)
+
+    fireEvent.press(shareBtn)
+    expect(mockOnShare).toHaveBeenCalledTimes(1)
 
     fireEvent.press(favBtn)
     expect(mockOnToggleFavorite).toHaveBeenCalledTimes(1)

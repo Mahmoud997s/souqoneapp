@@ -28,6 +28,7 @@ import { dialogService } from '../../store/dialogStore'
 // Hooks & Utilities
 import { useBusDetail } from '../../hooks/listing-detail/useBusDetail'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
+import { useShareListing } from '../../hooks/listing-detail/useShareListing'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { useRequireAuth } from '../../hooks/listing-detail/useRequireAuth'
 import {
@@ -129,6 +130,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   // 3. Foundation Hooks (called unconditionally at top level)
   const currentVm = vm ?? DUMMY_VM
   const favoriteToggle = useFavoriteToggle('BUS_LISTING', id, false, { redirectPath: `/buses/${id}` })
+  const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان حافلة' })
   const contact = useListingContact('BUS_LISTING', id, `/buses/${id}`, vm?.title)
   const ownerActions = useBusOwnerActions(currentVm)
   const similarListings = useBusSimilarListings(id)
@@ -277,9 +279,10 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
     <View style={s.rootContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Glassmorphic Navigation Bar (Without Share Button) */}
+      {/* Glassmorphic Navigation Bar */}
       <BusDetailNavBar
         onBack={goBackSafely}
+        onShare={shareListing.share}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
@@ -334,18 +337,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
           }
         />
 
-        {/* 3. Owner Management Bar (when viewer is owner) */}
-        {isOwner ? (
-          <OwnerManageBar
-            variant="inline"
-            viewCount={ownerActions.viewCount}
-            busy={ownerActions.busy}
-            actions={ownerActions.actions}
-            onAction={handleOwnerAction}
-          />
-        ) : null}
-
-        {/* 4. Inline Contact Actions (when not owner) */}
+        {/* 3. Inline Contact Actions (when not owner) */}
         {!isOwner && contactAvailability.mode !== 'hidden' ? (
           <ContactActions
             variant="inline"

@@ -23,6 +23,7 @@ import { Shadows } from '../../../constants/shadows'
 
 export interface BusDetailNavBarProps {
   onBack: () => void
+  onShare: () => void
   isFavorite: boolean
   favoriteBusy: boolean
   canFavorite: boolean
@@ -46,6 +47,7 @@ export interface BusDetailNavBarProps {
  */
 export function BusDetailNavBar({
   onBack,
+  onShare,
   isFavorite,
   favoriteBusy,
   canFavorite,
@@ -131,8 +133,18 @@ export function BusDetailNavBar({
           ) : null}
         </Animated.View>
 
-        {/* Action Button: Favorite ONLY (No share button) */}
+        {/* Action Buttons: Share & Favorite */}
         <View style={s.actionsRow}>
+          <TouchableOpacity
+            style={s.iconButton}
+            onPress={onShare}
+            activeOpacity={0.7}
+            testID="btn-detail-share"
+            accessibilityLabel="مشاركة"
+          >
+            <Ionicons name="share-social-outline" size={19} color={Colors.text} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[s.iconButton, !canFavorite && s.disabledButton]}
             onPress={onToggleFavorite}

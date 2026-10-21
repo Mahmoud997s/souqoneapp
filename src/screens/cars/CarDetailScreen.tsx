@@ -310,18 +310,8 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           }
         />
 
-        {/* 3. Owner Management Bar (when viewer is owner) */}
-        {isOwner ? (
-          <OwnerManageBar
-            variant="inline"
-            viewCount={ownerActions.viewCount}
-            busy={ownerActions.busy}
-            actions={ownerActions.actions}
-            onAction={handleOwnerAction}
-          />
-        ) : null}
 
-        {/* 4. Inline Contact Actions (when not owner) */}
+        {/* Inline Contact Actions (when not owner) */}
         {!isOwner && contactAvailability.mode !== 'hidden' ? (
           <ContactActions
             variant="inline"
