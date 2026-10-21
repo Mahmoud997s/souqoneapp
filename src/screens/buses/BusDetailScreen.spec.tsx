@@ -88,6 +88,13 @@ jest.mock('../../hooks/listing-detail/useFavoriteToggle', () => ({
   useFavoriteToggle: (...args: any[]) => (mockUseFavoriteToggle as any)(...args),
 }))
 
+const mockShareListing = jest.fn()
+jest.mock('../../hooks/listing-detail/useShareListing', () => ({
+  useShareListing: () => ({
+    share: mockShareListing,
+  }),
+}))
+
 const mockContactCall = jest.fn()
 const mockContactWhatsApp = jest.fn()
 const mockContactChat = jest.fn()
@@ -394,18 +401,26 @@ describe('BusDetailScreen', () => {
     })
   })
 
-  // 9. Guarantee zero occurrences of forbidden words and NO share button
+  // 9. Tone and UI Button Constraints
   describe('9. Tone and UI Button Constraints', () => {
-    it('strictly guarantees no share button and no forbidden promotional words in the tree', async () => {
+    it('strictly guarantees no forbidden promotional words in the tree and verifies share button', async () => {
       const { toJSON } = await render(<BusDetailScreen id="bus-101" />)
       const treeString = JSON.stringify(toJSON())
 
       // Zero forbidden promotional words
       expect(treeString).not.toMatch(/ربح|أرباح|مضمون|فرصة/)
 
-      // Zero share button
-      expect(screen.queryByTestId('btn-detail-share')).toBeNull()
-      expect(screen.queryByText('مشاركة')).toBeNull()
+      // Share button exists and triggers share
+      const shareBtn = screen.getByTestId('btn-detail-share')
+      expect(shareBtn).toBeTruthy()
+      fireEvent.press(shareBtn)
+      expect(mockShareListing).toHaveBeenCalled()
+    })
+
+    it('uses bus-specific wording in safety tips (الحافلة instead of السيارة)', async () => {
+      await render(<BusDetailScreen id="bus-101" />)
+      expect(screen.getByText(/عاين الحافلة شخصيًا قبل أي دفع/)).toBeTruthy()
+      expect(screen.queryByText(/عاين السيارة شخصيًا/)).toBeNull()
     })
   })
 

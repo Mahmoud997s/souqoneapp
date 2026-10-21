@@ -11,6 +11,10 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
+  FadeInDown,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -40,7 +44,9 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import { normalizeCurrency } from '../../utils/listing-detail/mapCarDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
+import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   BUYER_SAFETY_TIPS_TITLE,
   BUYER_SAFETY_TIPS,
@@ -148,6 +154,33 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
       scrollY.value = event.contentOffset.y
     },
   })
+
+  // 6. Reduced Motion & Animations (Phase 10)
+  const shouldReduceMotion = useAppReducedMotion()
+
+  const heroParallaxStyle = useAnimatedStyle(() => {
+    if (shouldReduceMotion) return {}
+    const translateY = interpolate(
+      scrollY.value,
+      [-150, 0, 250],
+      [-40, 0, 60],
+      Extrapolation.CLAMP
+    )
+    const scale = interpolate(
+      scrollY.value,
+      [-150, 0],
+      [1.1, 1],
+      Extrapolation.CLAMP
+    )
+    return {
+      transform: [{ translateY }, { scale }],
+    }
+  })
+
+  const getEnteringAnimation = (index: number) => {
+    if (shouldReduceMotion) return undefined
+    return FadeInDown.delay(index * 60).springify()
+  }
 
   // Handlers
   const goBackSafely = () => {
@@ -275,80 +308,81 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         ]}
       >
         {/* 1. Image Gallery */}
-        <ImageGallery
-          images={vm.images}
-          index={galleryIndex}
-          onIndexChange={setGalleryIndex}
-          onPressImage={(idx) => {
-            setGalleryIndex(idx)
-            setIsViewerOpen(true)
-          }}
-        />
+        <Animated.View style={heroParallaxStyle}>
+          <ImageGallery
+            images={vm.images}
+            index={galleryIndex}
+            onIndexChange={setGalleryIndex}
+            onPressImage={(idx) => {
+              setGalleryIndex(idx)
+              setIsViewerOpen(true)
+            }}
+          />
+        </Animated.View>
 
         {/* 2. Listing Header Block */}
-        <ListingHeaderBlock
-          title={vm.title}
-          kindLabel={
-            vm.listingType === 'SALE'
-              ? 'للبيع'
-              : vm.listingType === 'RENTAL'
-              ? 'للإيجار'
-              : 'مطلوب للشراء'
-          }
-          conditionLabel={vm.conditionLabel}
-          price={vm.price}
-          locationText={vm.location.fullLocationText}
-          postedAtLabel={vm.postedAtLabel}
-          statusBadge={
-            vm.status === 'SOLD'
-              ? { label: 'تم البيع', tone: 'danger' }
-              : vm.status === 'RENTED'
-              ? { label: 'تم التأجير', tone: 'warning' }
-              : vm.status === 'ARCHIVED'
-              ? { label: 'مؤرشف', tone: 'neutral' }
-              : undefined
-          }
-        />
-
-        {/* 3. Owner Management Bar (when viewer is owner) */}
-        {isOwner ? (
-          <OwnerManageBar
-            variant="inline"
-            viewCount={ownerActions.viewCount}
-            busy={ownerActions.busy}
-            actions={ownerActions.actions}
-            onAction={handleOwnerAction}
+        <Animated.View entering={getEnteringAnimation(1)}>
+          <ListingHeaderBlock
+            title={vm.title}
+            kindLabel={
+              vm.listingType === 'SALE'
+                ? 'للبيع'
+                : vm.listingType === 'RENTAL'
+                ? 'للإيجار'
+                : 'مطلوب للشراء'
+            }
+            conditionLabel={vm.conditionLabel}
+            price={vm.price}
+            locationText={vm.location.fullLocationText}
+            postedAtLabel={vm.postedAtLabel}
+            statusBadge={
+              vm.status === 'SOLD'
+                ? { label: 'تم البيع', tone: 'danger' }
+                : vm.status === 'RENTED'
+                ? { label: 'تم التأجير', tone: 'warning' }
+                : vm.status === 'ARCHIVED'
+                ? { label: 'مؤرشف', tone: 'neutral' }
+                : undefined
+            }
           />
-        ) : null}
+        </Animated.View>
 
-        {/* 4. Inline Contact Actions (when not owner) */}
+        {/* Inline Contact Actions (when not owner) */}
         {!isOwner && contactAvailability.mode !== 'hidden' ? (
-          <ContactActions
-            variant="inline"
-            availability={contactAvailability}
-            busy={contact.busy}
-            onCall={contact.call}
-            onWhatsApp={contact.whatsApp}
-            onChat={contact.chat}
-          />
+          <Animated.View entering={getEnteringAnimation(2)}>
+            <ContactActions
+              variant="inline"
+              availability={contactAvailability}
+              busy={contact.busy}
+              onCall={contact.call}
+              onWhatsApp={contact.whatsApp}
+              onChat={contact.chat}
+            />
+          </Animated.View>
         ) : null}
 
         {/* 5. Seller Card (when not owner) */}
         {!isOwner ? (
-          <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
+          <Animated.View entering={getEnteringAnimation(3)}>
+            <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
+          </Animated.View>
         ) : null}
 
         {/* 6. Listing Description */}
-        <ListingDescription text={vm.description} collapsedLines={5} />
+        <Animated.View entering={getEnteringAnimation(4)}>
+          <ListingDescription text={vm.description} collapsedLines={5} />
+        </Animated.View>
 
         {/* 7. Specs Sections */}
-        <SpecsSections sections={vm.specsSections} />
+        <Animated.View entering={getEnteringAnimation(5)}>
+          <SpecsSections sections={vm.specsSections} />
+        </Animated.View>
 
         {/* 7b. Location Map (only when the listing has coordinates, D-29) */}
         {vm.location.hasCoordinates &&
         vm.location.latitude !== undefined &&
         vm.location.longitude !== undefined ? (
-          <View style={s.mapSection}>
+          <Animated.View entering={getEnteringAnimation(6)} style={s.mapSection}>
             <Text style={s.mapSectionTitle}>الموقع والعنوان</Text>
             <View style={s.mapContainer}>
               {isMapMounted ? (
@@ -392,64 +426,70 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
               <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />
               <Text style={s.directionsTxt}>الحصول على الاتجاهات</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         ) : null}
 
         {/* 8. Similar Listings Grid (paginated vertical grid, RTL-safe) */}
-        <SimilarListingsGrid<SimilarCarItem>
-          items={similarListings.items}
-          isLoading={similarListings.isLoading}
-          isError={similarListings.isError}
-          onRetry={similarListings.refetch}
-          page={similarPage}
-          pageCount={1}
-          onPageChange={setSimilarPage}
-          renderItem={(car) => (
-            <TouchableOpacity
-              key={car.id}
-              style={s.similarCard}
-              onPress={() => router.push(`/cars/${car.id}` as any)}
-              activeOpacity={0.8}
-            >
-              <View style={s.similarCardImagePlaceholder}>
-                {car.images?.[0]?.url ? (
-                  <Image
-                    source={{ uri: car.images[0].url }}
-                    style={StyleSheet.absoluteFill}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Ionicons
-                    name="car-sport"
-                    size={28}
-                    color={Colors.primaryLight}
-                  />
-                )}
-              </View>
-              <Text style={s.similarCardTitle} numberOfLines={2}>
-                {car.title}
-              </Text>
-              <Text style={s.similarCardPrice}>
-                {parseDecimal(car.price) !== undefined
-                  ? `${formatNumberWestern(parseDecimal(car.price))} ${car.currency ?? 'ر.ع'}`
-                  : ''}
-              </Text>
-              <Text style={s.similarCardMeta}>
-                {car.governorate ?? car.city ?? ''}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+        <Animated.View entering={getEnteringAnimation(7)}>
+          <SimilarListingsGrid<SimilarCarItem>
+            items={similarListings.items}
+            isLoading={similarListings.isLoading}
+            isError={similarListings.isError}
+            onRetry={similarListings.refetch}
+            page={similarPage}
+            pageCount={1}
+            onPageChange={setSimilarPage}
+            renderItem={(car) => (
+              <TouchableOpacity
+                key={car.id}
+                style={s.similarCard}
+                onPress={() => router.push(`/cars/${car.id}` as any)}
+                activeOpacity={0.8}
+              >
+                <View style={s.similarCardImagePlaceholder}>
+                  {car.images?.[0]?.url ? (
+                    <Image
+                      source={{ uri: car.images[0].url }}
+                      style={StyleSheet.absoluteFill}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Ionicons
+                      name="car-sport"
+                      size={28}
+                      color={Colors.primaryLight}
+                    />
+                  )}
+                </View>
+                <Text style={s.similarCardTitle} numberOfLines={2}>
+                  {car.title}
+                </Text>
+                <Text style={s.similarCardPrice}>
+                  {parseDecimal(car.price) !== undefined
+                    ? `${formatNumberWestern(parseDecimal(car.price))} ${normalizeCurrency(car.currency)}`
+                    : ''}
+                </Text>
+                <Text style={s.similarCardMeta}>
+                  {car.governorate ?? car.city ?? ''}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </Animated.View>
 
         {/* 9. Safety Tips */}
-        <SafetyTips
-          role={isOwner ? 'seller' : 'buyer'}
-          title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
-          tips={isOwner ? SELLER_SAFETY_TIPS : BUYER_SAFETY_TIPS}
-        />
+        <Animated.View entering={getEnteringAnimation(8)}>
+          <SafetyTips
+            role={isOwner ? 'seller' : 'buyer'}
+            title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
+            tips={isOwner ? SELLER_SAFETY_TIPS : BUYER_SAFETY_TIPS}
+          />
+        </Animated.View>
 
         {/* 10. Support Button */}
-        <SupportButton onPress={handleSupportPress} />
+        <Animated.View entering={getEnteringAnimation(9)}>
+          <SupportButton onPress={handleSupportPress} />
+        </Animated.View>
       </Animated.ScrollView>
 
       {/* Sticky Contact Actions Bar (when buyer & contact available, scroll-aware) */}

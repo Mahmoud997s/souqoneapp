@@ -23,6 +23,7 @@ import { Shadows } from '../../../constants/shadows'
 
 export interface BusDetailNavBarProps {
   onBack: () => void
+  onShare: () => void
   isFavorite: boolean
   favoriteBusy: boolean
   canFavorite: boolean
@@ -39,13 +40,13 @@ export interface BusDetailNavBarProps {
  * BusDetailNavBar
  * Glassmorphic navigation bar specifically for bus detail page.
  * Strictly adheres to design decision:
- * - Back and favorite buttons visible
- * - Section search bar fades in on scroll
- * - NO share button
+ * - Back, share, and favorite buttons visible
+ * - Section search bar fades in on scroll (becomes interactive at 85px scroll)
  * - Zero hex color codes
  */
 export function BusDetailNavBar({
   onBack,
+  onShare,
   isFavorite,
   favoriteBusy,
   canFavorite,
@@ -131,8 +132,18 @@ export function BusDetailNavBar({
           ) : null}
         </Animated.View>
 
-        {/* Action Button: Favorite ONLY (No share button) */}
+        {/* Action Buttons: Share & Favorite */}
         <View style={s.actionsRow}>
+          <TouchableOpacity
+            style={s.iconButton}
+            onPress={onShare}
+            activeOpacity={0.7}
+            testID="btn-detail-share"
+            accessibilityLabel="مشاركة"
+          >
+            <Ionicons name="share-social-outline" size={19} color={Colors.text} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[s.iconButton, !canFavorite && s.disabledButton]}
             onPress={onToggleFavorite}

@@ -237,4 +237,45 @@ describe('computeBusContractEstimate', () => {
       expect(res1).toEqual(res2)
     })
   })
+
+  describe('Contract Duration Progress Percent', () => {
+    it('computes elapsed progress percent correctly when durationMonths and remainingMonths exist', () => {
+      // 24 months total duration, 6 months remaining -> elapsed 18 months -> 18/24 = 75%
+      const input: BusContractEstimateInput = {
+        busListingType: 'BUS_SALE_WITH_CONTRACT',
+        price: 18000,
+        monthlyIncome: 450,
+        durationMonths: 24,
+        expiryIso: '2027-04-20T12:00:00.000Z', // ~6 months
+      }
+
+      const res = computeBusContractEstimate(input, refNow)
+      expect(res.progressPercent).toBe(75)
+    })
+
+    it('returns 100% progress when contract is fully expired', () => {
+      const expiry = new Date(refNow.getTime() - 24 * 60 * 60 * 1000).toISOString()
+      const input: BusContractEstimateInput = {
+        busListingType: 'BUS_SALE_WITH_CONTRACT',
+        price: 18000,
+        monthlyIncome: 450,
+        durationMonths: 12,
+        expiryIso: expiry,
+      }
+
+      const res = computeBusContractEstimate(input, refNow)
+      expect(res.progressPercent).toBe(100)
+    })
+
+    it('returns null when durationMonths is missing or non-positive', () => {
+      const input: BusContractEstimateInput = {
+        busListingType: 'BUS_SALE_WITH_CONTRACT',
+        price: 18000,
+        monthlyIncome: 450,
+      }
+
+      const res = computeBusContractEstimate(input, refNow)
+      expect(res.progressPercent).toBeNull()
+    })
+  })
 })

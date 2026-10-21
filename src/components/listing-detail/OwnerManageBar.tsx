@@ -155,7 +155,7 @@ export function OwnerManageBar({
                   onPress={() => onAction(action.id)}
                   disabled={busy}
                   activeOpacity={0.75}
-                  testID={`btn-owner-sticky-${action.id}`}
+                  testID={`btn-owner-${action.id}`}
                 >
                   {busy ? (
                     <ActivityIndicator size="small" color={styles.iconColor} />

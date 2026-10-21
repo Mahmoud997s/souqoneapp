@@ -123,4 +123,15 @@ describe('SellerCard RTL & Rendering', () => {
     expect(onPressMock).toHaveBeenCalledTimes(1)
     expect(onPressMock).toHaveBeenCalledWith('user-123')
   })
+
+  test('strictly omits fake statistics like response speed or listing count (truth in UI)', () => {
+    let renderer: any
+    act(() => {
+      renderer = TestRenderer.create(
+        <SellerCard seller={mockSeller} onPressProfile={jest.fn()} />
+      )
+    })
+    const json = JSON.stringify(renderer.toJSON())
+    expect(json).not.toMatch(/سرعة الرد|إعلان نشط|تقييم التجار/)
+  })
 })

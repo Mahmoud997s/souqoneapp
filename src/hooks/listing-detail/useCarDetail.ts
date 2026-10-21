@@ -70,20 +70,20 @@ export function useCarDetail(id: string | undefined | null): UseCarDetailResult 
 
   if (!id) {
     state = 'error'
-  } else if (query.isLoading) {
-    state = 'loading'
-  } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
-      state = 'notFound'
-    } else if (isNetworkError(query.error)) {
-      state = 'offline'
-    } else {
-      state = 'error'
-    }
+  } else if (isNotFoundError(query.error)) {
+    state = 'notFound'
   } else if (query.data) {
     state = 'ready'
     raw = query.data
     vm = mapCarDetail(query.data)
+  } else if (query.isLoading) {
+    state = 'loading'
+  } else if (query.isError) {
+    if (isNetworkError(query.error)) {
+      state = 'offline'
+    } else {
+      state = 'error'
+    }
   }
 
   return {
