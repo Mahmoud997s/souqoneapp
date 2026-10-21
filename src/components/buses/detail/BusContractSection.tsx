@@ -1,5 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -11,6 +16,7 @@ import { PriceView } from '../../../types/listingDetail.types'
 import { BusListingType } from '../../../types/bus.types'
 import { formatNumberWestern } from '../../../utils/listing-detail/formatters'
 import { computeBusContractEstimate } from '../../../utils/listing-detail/computeBusContractEstimate'
+import { useAppReducedMotion } from '../../../utils/listing-detail/useAppReducedMotion'
 import { BusContractLockedCard } from './BusContractLockedCard'
 
 export interface BusContractSectionProps {
@@ -88,6 +94,22 @@ export function BusContractSection({
   const formattedExpiry = formatExpiryDate(contract.expiryIso)
   const hasExtraCalculations =
     estimate.annualYieldPercent !== null || estimate.paybackMonths !== null
+
+  const shouldReduceMotion = useAppReducedMotion()
+  const animatedProgress = useSharedValue(0)
+
+  useEffect(() => {
+    const target = estimate.progressPercent ?? 0
+    if (shouldReduceMotion) {
+      animatedProgress.value = target
+    } else {
+      animatedProgress.value = withTiming(target, { duration: 750 })
+    }
+  }, [estimate.progressPercent, shouldReduceMotion])
+
+  const progressFillAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${animatedProgress.value}%`,
+  }))
 
   return (
     <View style={s.card}>
@@ -168,10 +190,10 @@ export function BusContractSection({
             ) : null}
           </View>
           <View style={s.progressTrack}>
-            <View
+            <Animated.View
               style={[
                 s.progressFill,
-                { width: `${estimate.progressPercent ?? 0}%` },
+                progressFillAnimatedStyle,
               ]}
             />
           </View>

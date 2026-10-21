@@ -41,17 +41,6 @@ export function useInfiniteBuses(params?: Record<string, unknown>) {
   });
 }
 
-export function useBus(id: string) {
-  return useQuery({
-    queryKey: ['bus', id],
-    queryFn: async () => {
-      const res = await busesApi.getById(id)
-      return res.data
-    },
-    enabled: !!id,
-  })
-}
-
 export function useBusManufacturers() {
   return useQuery<BusManufacturer[]>({
     queryKey: ['bus-manufacturers'],

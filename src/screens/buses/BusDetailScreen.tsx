@@ -11,6 +11,10 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
+  FadeInDown,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -43,6 +47,7 @@ import { busListingToFormData } from '../../utils/listing-detail/busListingToFor
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
 import { normalizeCurrency } from '../../utils/listing-detail/mapBusDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
+import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   BUYER_SAFETY_TIPS_TITLE,
   SELLER_SAFETY_TIPS_TITLE,
@@ -156,6 +161,33 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
       scrollY.value = event.contentOffset.y
     },
   })
+
+  // 6. Reduced Motion & Animations (Phase 10)
+  const shouldReduceMotion = useAppReducedMotion()
+
+  const heroParallaxStyle = useAnimatedStyle(() => {
+    if (shouldReduceMotion) return {}
+    const translateY = interpolate(
+      scrollY.value,
+      [-150, 0, 250],
+      [-40, 0, 60],
+      Extrapolation.CLAMP
+    )
+    const scale = interpolate(
+      scrollY.value,
+      [-150, 0],
+      [1.1, 1],
+      Extrapolation.CLAMP
+    )
+    return {
+      transform: [{ translateY }, { scale }],
+    }
+  })
+
+  const getEnteringAnimation = (index: number) => {
+    if (shouldReduceMotion) return undefined
+    return FadeInDown.delay(index * 60).springify()
+  }
 
   // Handlers
   const goBackSafely = () => {
@@ -308,144 +340,166 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         ]}
       >
         {/* 1. Image Gallery */}
-        <ImageGallery
-          images={vm.images}
-          index={galleryIndex}
-          onIndexChange={setGalleryIndex}
-          onPressImage={(idx) => {
-            setGalleryIndex(idx)
-            setIsViewerOpen(true)
-          }}
-        />
+        <Animated.View style={heroParallaxStyle}>
+          <ImageGallery
+            images={vm.images}
+            index={galleryIndex}
+            onIndexChange={setGalleryIndex}
+            onPressImage={(idx) => {
+              setGalleryIndex(idx)
+              setIsViewerOpen(true)
+            }}
+          />
+        </Animated.View>
 
         {/* 2. Listing Header Block */}
-        <ListingHeaderBlock
-          title={vm.title}
-          kindLabel={kindLabel}
-          conditionLabel={vm.conditionLabel}
-          price={vm.price}
-          locationText={vm.location.fullLocationText}
-          postedAtLabel={vm.postedAtLabel}
-          statusBadge={
-            vm.status === 'SOLD'
-              ? { label: 'تم البيع', tone: 'danger' }
-              : vm.status === 'RENTED'
-              ? { label: 'تم التأجير', tone: 'warning' }
-              : vm.status === 'ARCHIVED'
-              ? { label: 'مؤرشف', tone: 'neutral' }
-              : undefined
-          }
-        />
+        <Animated.View entering={getEnteringAnimation(1)}>
+          <ListingHeaderBlock
+            title={vm.title}
+            kindLabel={kindLabel}
+            conditionLabel={vm.conditionLabel}
+            price={vm.price}
+            locationText={vm.location.fullLocationText}
+            postedAtLabel={vm.postedAtLabel}
+            statusBadge={
+              vm.status === 'SOLD'
+                ? { label: 'تم البيع', tone: 'danger' }
+                : vm.status === 'RENTED'
+                ? { label: 'تم التأجير', tone: 'warning' }
+                : vm.status === 'ARCHIVED'
+                ? { label: 'مؤرشف', tone: 'neutral' }
+                : undefined
+            }
+          />
+        </Animated.View>
 
         {/* 3. Inline Contact Actions (when not owner) */}
         {!isOwner && contactAvailability.mode !== 'hidden' ? (
-          <ContactActions
-            variant="inline"
-            availability={contactAvailability}
-            busy={contact.busy}
-            onCall={contact.call}
-            onWhatsApp={contact.whatsApp}
-            onChat={contact.chat}
-          />
+          <Animated.View entering={getEnteringAnimation(2)}>
+            <ContactActions
+              variant="inline"
+              availability={contactAvailability}
+              busy={contact.busy}
+              onCall={contact.call}
+              onWhatsApp={contact.whatsApp}
+              onChat={contact.chat}
+            />
+          </Animated.View>
         ) : null}
 
         {/* 5. Seller Card (when not owner) */}
         {!isOwner ? (
-          <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
+          <Animated.View entering={getEnteringAnimation(3)}>
+            <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
+          </Animated.View>
         ) : null}
 
         {/* 6. Listing Description */}
-        <ListingDescription text={vm.description} collapsedLines={5} />
+        <Animated.View entering={getEnteringAnimation(4)}>
+          <ListingDescription text={vm.description} collapsedLines={5} />
+        </Animated.View>
 
         {/* 7. Specs Sections (filtered by section search) */}
-        <SpecsSections sections={filteredSpecsSections} />
+        <Animated.View entering={getEnteringAnimation(5)}>
+          <SpecsSections sections={filteredSpecsSections} />
+        </Animated.View>
 
         {/* 8. Bus Commercial Contract Section */}
-        <BusContractSection
-          contract={vm.contract}
-          price={vm.price}
-          busListingType={vm.busListingType}
-          onRequireLogin={handleRequireLogin}
-        />
+        <Animated.View entering={getEnteringAnimation(6)}>
+          <BusContractSection
+            contract={vm.contract}
+            price={vm.price}
+            busListingType={vm.busListingType}
+            onRequireLogin={handleRequireLogin}
+          />
+        </Animated.View>
 
         {/* 9. Location Map (only when the listing has coordinates) */}
         {vm.location.hasCoordinates &&
         vm.location.latitude !== undefined &&
         vm.location.longitude !== undefined ? (
-          <BusLocationMapSection
-            latitude={vm.location.latitude}
-            longitude={vm.location.longitude}
-            isMapMounted={isMapMounted}
-          />
+          <Animated.View entering={getEnteringAnimation(7)}>
+            <BusLocationMapSection
+              latitude={vm.location.latitude}
+              longitude={vm.location.longitude}
+              isMapMounted={isMapMounted}
+            />
+          </Animated.View>
         ) : null}
 
         {/* 10. Similar Listings Grid */}
-        <SimilarListingsGrid<SimilarBusItem>
-          items={similarListings.items}
-          isLoading={similarListings.isLoading}
-          isError={similarListings.isError}
-          onRetry={similarListings.refetch}
-          page={similarPage}
-          pageCount={1}
-          onPageChange={setSimilarPage}
-          renderItem={(bus) => {
-            const rawImg = bus.images?.[0]
-            const imgUri = typeof rawImg === 'string' ? rawImg : rawImg?.url
-            const priceVal = bus.dailyPrice ?? bus.monthlyPrice ?? bus.price
-            const periodSuffix =
-              bus.dailyPrice !== undefined && bus.dailyPrice !== null
-                ? ' / يوم'
-                : bus.monthlyPrice !== undefined && bus.monthlyPrice !== null
-                  ? ' / شهر'
-                  : ''
-            const currencyLabel = normalizeCurrency(bus.currency)
-            return (
-              <TouchableOpacity
-                key={bus.id}
-                style={s.similarCard}
-                onPress={() => router.push(`/buses/${bus.id}` as any)}
-                activeOpacity={0.8}
-              >
-                <View style={s.similarCardImagePlaceholder}>
-                  {imgUri ? (
-                    <Image
-                      source={{ uri: imgUri }}
-                      style={StyleSheet.absoluteFill}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <Ionicons
-                      name="bus-outline"
-                      size={28}
-                      color={Colors.primaryLight}
-                    />
-                  )}
-                </View>
-                <Text style={s.similarCardTitle} numberOfLines={2}>
-                  {bus.title}
-                </Text>
-                <Text style={s.similarCardPrice}>
-                  {priceVal !== undefined && priceVal !== null
-                    ? `${formatNumberWestern(parseDecimal(priceVal) ?? priceVal)} ${currencyLabel}${periodSuffix}`
-                    : ''}
-                </Text>
-                <Text style={s.similarCardMeta}>
-                  {bus.governorateNameAr ?? ''}
-                </Text>
-              </TouchableOpacity>
-            )
-          }}
-        />
+        <Animated.View entering={getEnteringAnimation(8)}>
+          <SimilarListingsGrid<SimilarBusItem>
+            items={similarListings.items}
+            isLoading={similarListings.isLoading}
+            isError={similarListings.isError}
+            onRetry={similarListings.refetch}
+            page={similarPage}
+            pageCount={1}
+            onPageChange={setSimilarPage}
+            renderItem={(bus) => {
+              const rawImg = bus.images?.[0]
+              const imgUri = typeof rawImg === 'string' ? rawImg : rawImg?.url
+              const priceVal = bus.dailyPrice ?? bus.monthlyPrice ?? bus.price
+              const periodSuffix =
+                bus.dailyPrice !== undefined && bus.dailyPrice !== null
+                  ? ' / يوم'
+                  : bus.monthlyPrice !== undefined && bus.monthlyPrice !== null
+                    ? ' / شهر'
+                    : ''
+              const currencyLabel = normalizeCurrency(bus.currency)
+              return (
+                <TouchableOpacity
+                  key={bus.id}
+                  style={s.similarCard}
+                  onPress={() => router.push(`/buses/${bus.id}` as any)}
+                  activeOpacity={0.8}
+                >
+                  <View style={s.similarCardImagePlaceholder}>
+                    {imgUri ? (
+                      <Image
+                        source={{ uri: imgUri }}
+                        style={StyleSheet.absoluteFill}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Ionicons
+                        name="bus-outline"
+                        size={28}
+                        color={Colors.primaryLight}
+                      />
+                    )}
+                  </View>
+                  <Text style={s.similarCardTitle} numberOfLines={2}>
+                    {bus.title}
+                  </Text>
+                  <Text style={s.similarCardPrice}>
+                    {priceVal !== undefined && priceVal !== null
+                      ? `${formatNumberWestern(parseDecimal(priceVal) ?? priceVal)} ${currencyLabel}${periodSuffix}`
+                      : ''}
+                  </Text>
+                  <Text style={s.similarCardMeta}>
+                    {bus.governorateNameAr ?? ''}
+                  </Text>
+                </TouchableOpacity>
+              )
+            }}
+          />
+        </Animated.View>
 
         {/* 11. Safety Tips */}
-        <SafetyTips
-          role={isOwner ? 'seller' : 'buyer'}
-          title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
-          tips={isOwner ? BUS_SELLER_SAFETY_TIPS : BUS_BUYER_SAFETY_TIPS}
-        />
+        <Animated.View entering={getEnteringAnimation(9)}>
+          <SafetyTips
+            role={isOwner ? 'seller' : 'buyer'}
+            title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
+            tips={isOwner ? BUS_SELLER_SAFETY_TIPS : BUS_BUYER_SAFETY_TIPS}
+          />
+        </Animated.View>
 
         {/* 12. Support Button */}
-        <SupportButton onPress={handleSupportPress} />
+        <Animated.View entering={getEnteringAnimation(10)}>
+          <SupportButton onPress={handleSupportPress} />
+        </Animated.View>
       </Animated.ScrollView>
 
       {/* Sticky Contact Actions Bar (when buyer & contact available) */}
