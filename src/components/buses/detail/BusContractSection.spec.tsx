@@ -6,7 +6,7 @@ import { PriceView } from '../../../types/listingDetail.types'
 
 jest.setTimeout(15000)
 
-describe('BusContractSection', () => {
+describe('BusContractSection (Variant C)', () => {
   const refNow = new Date('2026-10-20T12:00:00.000Z')
   const mockLogin = jest.fn()
 
@@ -65,7 +65,7 @@ describe('BusContractSection', () => {
       expect(screen.queryByText(/ر\.ع/)).toBeNull()
       expect(screen.queryByText(/شهر/)).toBeNull()
       expect(screen.queryByText(/الدخل الشهري/)).toBeNull()
-      expect(screen.queryByText(/نسبة الاسترداد/)).toBeNull()
+      expect(screen.queryByText(/نسبة من السعر/)).toBeNull()
     })
 
     it('invokes onRequireLogin when login button is pressed', async () => {
@@ -84,7 +84,7 @@ describe('BusContractSection', () => {
     })
   })
 
-  describe('Visible State (Authenticated User)', () => {
+  describe('Visible State (Authenticated User - Variant C)', () => {
     const visibleContract: BusContractView = {
       access: 'visible',
       typeLabel: 'نقل مدرسي / جامعي',
@@ -95,7 +95,7 @@ describe('BusContractSection', () => {
       expiryIso: '2027-10-20T12:00:00.000Z', // 12 months remaining
     }
 
-    it('renders contract terms, computed financial metrics, and mandatory disclaimer note', async () => {
+    it('renders visible metrics, progress track, disclaimer and toggles accordion', async () => {
       await render(
         <BusContractSection
           contract={visibleContract}
@@ -111,27 +111,47 @@ describe('BusContractSection', () => {
       expect(screen.getAllByText('نقل مدرسي / جامعي').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByText('وزارة التربية والتعليم')).toBeTruthy()
       expect(screen.getByText('مع سائق')).toBeTruthy()
-      expect(screen.getByText('600 ر.ع')).toBeTruthy()
-      expect(screen.getByText('24 شهر')).toBeTruthy()
-      expect(screen.getByText('2027/10/20')).toBeTruthy()
 
-      // Financial Estimates (12 months remaining -> 7,200 OMR -> recovery = 36%)
-      expect(screen.getByText('إجمالي الدخل المتبقي')).toBeTruthy()
-      expect(screen.getByText('7,200 ر.ع')).toBeTruthy()
-      expect(screen.getByText('نسبة الاسترداد: 36%')).toBeTruthy()
-      expect(screen.getByText('العائد السنوي')).toBeTruthy()
-      expect(screen.getByText('36%')).toBeTruthy()
-      expect(screen.getByText('مدة السداد')).toBeTruthy()
-      expect(screen.getByText('34 شهر')).toBeTruthy() // ceil(20000 / 600) = 34
+      // Highlight Metrics (Visible)
+      expect(screen.getByText('الدخل الشهري')).toBeTruthy()
+      expect(screen.getByText(/600/)).toBeTruthy()
+      expect(screen.getByText('الدخل المتبقي من العقد')).toBeTruthy()
+      expect(screen.getByText(/7,200/)).toBeTruthy()
+      expect(screen.getByText(/نسبة من السعر: 36%/)).toBeTruthy()
+
+      // End date and progress bar
+      expect(screen.getByText(/المدة المنقضية من العقد \(ينتهي 2027\/10\/20\)/)).toBeTruthy()
+      expect(screen.getByText('50%')).toBeTruthy()
 
       // Mandatory Disclaimer Note
       expect(
         screen.getByText('تقدير مبني على إجمالي دخل العقد المتبقي، ولا يشمل التكاليف التشغيلية')
       ).toBeTruthy()
+
+      // Accordion is initially collapsed
+      expect(screen.queryByTestId('contract-accordion-body')).toBeNull()
+
+      // Toggle accordion open
+      const toggleBtn = screen.getByTestId('btn-toggle-contract-accordion')
+      await fireEvent.press(toggleBtn)
+
+      // Extra metrics visible inside accordion
+      expect(screen.getByTestId('contract-accordion-body')).toBeTruthy()
+      expect(screen.getByText('العائد السنوي*')).toBeTruthy()
+      expect(screen.getByText('36%')).toBeTruthy()
+      expect(screen.getByText('(600 × 12 ÷ 20,000)')).toBeTruthy()
+      expect(screen.getByText('مدة السداد*')).toBeTruthy()
+      expect(screen.getByText('34 شهر')).toBeTruthy()
+      expect(screen.getByText('(20,000 ÷ 600)')).toBeTruthy()
+      expect(screen.getByText('* بافتراض تجديد العقد بنفس الدخل الشهري.')).toBeTruthy()
+
+      // Toggle closed
+      await fireEvent.press(toggleBtn)
+      expect(screen.queryByTestId('contract-accordion-body')).toBeNull()
     })
 
     it('guarantees zero occurrences of forbidden words (ربح, مضمون, etc.) in the tree', async () => {
-      await render(
+      const { toJSON } = await render(
         <BusContractSection
           contract={visibleContract}
           price={defaultPrice}
@@ -141,7 +161,8 @@ describe('BusContractSection', () => {
         />
       )
 
-      expect(screen.queryByText(/ربح|أرباح|مضمون|ممتاز|فرصة/)).toBeNull()
+      const tree = JSON.stringify(toJSON())
+      expect(tree).not.toMatch(/ربح|أرباح|مضمون|ممتاز|فرصة/)
     })
 
     it('omits recoveryPercent, annualYield, and payback metrics on BUS_RENT listings', async () => {
@@ -155,31 +176,11 @@ describe('BusContractSection', () => {
         />
       )
 
-      // Remaining income tile is still shown because contract has remaining duration
-      expect(screen.getByText('إجمالي الدخل المتبقي')).toBeTruthy()
-      // But purchase price metrics must NOT be present
-      expect(screen.queryByText(/نسبة الاسترداد/)).toBeNull()
-      expect(screen.queryByText('العائد السنوي')).toBeNull()
-      expect(screen.queryByText('مدة السداد')).toBeNull()
-    })
-
-    it('omits expiry row when expiryIso is not provided', async () => {
-      const contractNoExpiry: BusContractView = {
-        ...visibleContract,
-        expiryIso: undefined,
-      }
-
-      await render(
-        <BusContractSection
-          contract={contractNoExpiry}
-          price={defaultPrice}
-          busListingType="BUS_SALE_WITH_CONTRACT"
-          onRequireLogin={mockLogin}
-          now={refNow}
-        />
-      )
-
-      expect(screen.queryByText('تاريخ الانتهاء')).toBeNull()
+      // Remaining income tile is shown
+      expect(screen.getByText('الدخل المتبقي من العقد')).toBeTruthy()
+      // But purchase price metrics and accordion must NOT be present
+      expect(screen.queryByText(/نسبة من السعر/)).toBeNull()
+      expect(screen.queryByTestId('btn-toggle-contract-accordion')).toBeNull()
     })
   })
 })

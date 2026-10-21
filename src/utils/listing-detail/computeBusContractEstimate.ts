@@ -16,6 +16,7 @@ export interface BusContractEstimate {
   recoveryPercent: number | null      // remainingIncome / price * 100، رقم صحيح، بدون سقف 100
   annualYieldPercent: number | null   // annualIncome / price * 100، رقم عشري بخانة واحدة
   paybackMonths: number | null        // ceil(price / monthly)
+  progressPercent: number | null      // نسبة المدة المنقضية من مدة العقد الأصلية (0 - 100)
 }
 
 const AVERAGE_DAYS_PER_MONTH = 30.4375
@@ -52,6 +53,7 @@ export function computeBusContractEstimate(
       recoveryPercent: null,
       annualYieldPercent: null,
       paybackMonths: null,
+      progressPercent: null,
     }
   }
 
@@ -120,6 +122,18 @@ export function computeBusContractEstimate(
     paybackMonths = Math.ceil(price / monthlyIncome)
   }
 
+  // 4. Contract duration progress (0 - 100%)
+  let progressPercent: number | null = null
+  if (
+    typeof input.durationMonths === 'number' &&
+    Number.isFinite(input.durationMonths) &&
+    input.durationMonths > 0 &&
+    remainingMonths !== null
+  ) {
+    const elapsed = Math.max(0, input.durationMonths - remainingMonths)
+    progressPercent = Math.min(100, Math.max(0, Math.round((elapsed / input.durationMonths) * 100)))
+  }
+
   return {
     monthlyIncome,
     annualIncome,
@@ -128,5 +142,6 @@ export function computeBusContractEstimate(
     recoveryPercent,
     annualYieldPercent,
     paybackMonths,
+    progressPercent,
   }
 }

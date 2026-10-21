@@ -416,6 +416,12 @@ describe('BusDetailScreen', () => {
       fireEvent.press(shareBtn)
       expect(mockShareListing).toHaveBeenCalled()
     })
+
+    it('uses bus-specific wording in safety tips (الحافلة instead of السيارة)', async () => {
+      await render(<BusDetailScreen id="bus-101" />)
+      expect(screen.getByText(/عاين الحافلة شخصيًا قبل أي دفع/)).toBeTruthy()
+      expect(screen.queryByText(/عاين السيارة شخصيًا/)).toBeNull()
+    })
   })
 
   // 10. Similar listings: rendered when items present, omitted when empty

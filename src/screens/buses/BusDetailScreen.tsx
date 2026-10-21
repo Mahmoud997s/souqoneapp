@@ -45,9 +45,9 @@ import { normalizeCurrency } from '../../utils/listing-detail/mapBusDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import {
   BUYER_SAFETY_TIPS_TITLE,
-  BUYER_SAFETY_TIPS,
   SELLER_SAFETY_TIPS_TITLE,
-  SELLER_SAFETY_TIPS,
+  BUS_BUYER_SAFETY_TIPS,
+  BUS_SELLER_SAFETY_TIPS,
 } from '../../constants/listing-detail/safetyTips'
 
 // Presentational Components
@@ -441,7 +441,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         <SafetyTips
           role={isOwner ? 'seller' : 'buyer'}
           title={isOwner ? SELLER_SAFETY_TIPS_TITLE : BUYER_SAFETY_TIPS_TITLE}
-          tips={isOwner ? SELLER_SAFETY_TIPS : BUYER_SAFETY_TIPS}
+          tips={isOwner ? BUS_SELLER_SAFETY_TIPS : BUS_BUYER_SAFETY_TIPS}
         />
 
         {/* 12. Support Button */}
