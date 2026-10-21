@@ -70,6 +70,10 @@ export function useCarDetail(id: string | undefined | null): UseCarDetailResult 
 
   if (!id) {
     state = 'error'
+  } else if (query.data) {
+    state = 'ready'
+    raw = query.data
+    vm = mapCarDetail(query.data)
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
@@ -80,10 +84,6 @@ export function useCarDetail(id: string | undefined | null): UseCarDetailResult 
     } else {
       state = 'error'
     }
-  } else if (query.data) {
-    state = 'ready'
-    raw = query.data
-    vm = mapCarDetail(query.data)
   }
 
   return {

@@ -40,6 +40,7 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import { normalizeCurrency } from '../../utils/listing-detail/mapCarDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import {
   BUYER_SAFETY_TIPS_TITLE,
@@ -421,7 +422,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
               </Text>
               <Text style={s.similarCardPrice}>
                 {parseDecimal(car.price) !== undefined
-                  ? `${formatNumberWestern(parseDecimal(car.price))} ${car.currency ?? 'ر.ع'}`
+                  ? `${formatNumberWestern(parseDecimal(car.price))} ${normalizeCurrency(car.currency)}`
                   : ''}
               </Text>
               <Text style={s.similarCardMeta}>

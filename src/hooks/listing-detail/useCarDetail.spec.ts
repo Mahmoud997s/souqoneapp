@@ -210,4 +210,22 @@ describe('useCarDetail', () => {
     })
     expect(listingsApi.getById).toHaveBeenCalledTimes(2)
   })
+
+  it('preserves ready state and mapped vm when cached data exists even if background refetch fails', async () => {
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(['listing', 'car-abc-123'], mockCarData)
+
+    const networkError = { isAxiosError: true, code: 'ERR_NETWORK', message: 'Offline' }
+    ;(listingsApi.getById as jest.Mock).mockRejectedValueOnce(networkError)
+
+    const hook = renderCarDetailHook('car-abc-123', queryClient)
+
+    await waitFor(() => {
+      expect(hook.current.state).toBe('ready')
+    })
+
+    expect(hook.current.vm).toBeDefined()
+    expect(hook.current.vm?.id).toBe('car-abc-123')
+    expect(hook.current.raw?.id).toBe('car-abc-123')
+  })
 })
