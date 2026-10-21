@@ -24,6 +24,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
@@ -551,7 +552,7 @@ const s = StyleSheet.create({
   mapSectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -581,6 +582,7 @@ const s = StyleSheet.create({
     gap: 6,
     backgroundColor: '#EFF6FF',
     paddingVertical: 12,
+    minHeight: Spacing.touch,
     borderRadius: 12,
     marginTop: 12,
     borderWidth: 1,
@@ -590,6 +592,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     color: Colors.primary,
     fontSize: 14,
+    lineHeight: lineHeightFor(14),
   },
   similarCard: {
     backgroundColor: Colors.white,
@@ -611,7 +614,7 @@ const s = StyleSheet.create({
   similarCardTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -620,12 +623,14 @@ const s = StyleSheet.create({
   similarCardPrice: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
     textAlign: 'left',
   },
   similarCardMeta: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10,
+    lineHeight: lineHeightFor(10),
     color: Colors.textMuted,
     textAlign: 'left',
     marginTop: 1,

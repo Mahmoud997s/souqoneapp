@@ -24,6 +24,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { useBusWizardStore } from '../../store/busWizardStore'
@@ -568,7 +569,7 @@ const s = StyleSheet.create({
   similarCardTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: lineHeightFor(12),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -577,12 +578,14 @@ const s = StyleSheet.create({
   similarCardPrice: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
+    lineHeight: lineHeightFor(13),
     color: Colors.primary,
     textAlign: 'left',
   },
   similarCardMeta: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10,
+    lineHeight: lineHeightFor(10),
     color: Colors.textMuted,
     textAlign: 'left',
     marginTop: 1,

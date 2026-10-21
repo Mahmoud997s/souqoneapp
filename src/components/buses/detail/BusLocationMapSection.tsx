@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
+import { lineHeightFor } from '../../../constants/typography'
 import MapView, { Marker } from '../../ui/Map'
 
 export interface BusLocationMapSectionProps {
@@ -80,7 +81,7 @@ const s = StyleSheet.create({
   mapSectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: lineHeightFor(14),
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -110,6 +111,7 @@ const s = StyleSheet.create({
     gap: 6,
     backgroundColor: Colors.paleMint,
     paddingVertical: 12,
+    minHeight: Spacing.touch,
     borderRadius: Radius.md,
     marginTop: 12,
     borderWidth: 1,
@@ -119,5 +121,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     color: Colors.primary,
     fontSize: 14,
+    lineHeight: lineHeightFor(14),
   },
 })

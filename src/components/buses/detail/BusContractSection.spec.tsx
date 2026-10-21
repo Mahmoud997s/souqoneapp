@@ -1,8 +1,55 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 import { BusContractSection } from './BusContractSection'
+import { BusLocationMapSection } from './BusLocationMapSection'
 import { BusContractView } from '../../../types/busDetailViewModel.types'
 import { PriceView } from '../../../types/listingDetail.types'
+
+interface JsonNode {
+  type?: string
+  props?: Record<string, any>
+  children?: (JsonNode | string)[] | null
+}
+
+function collectTextNodes(node: JsonNode | JsonNode[] | string | null): JsonNode[] {
+  if (!node || typeof node === 'string') return []
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => collectTextNodes(child))
+  }
+  const result: JsonNode[] = []
+  if (node.type === 'Text') {
+    const flat = StyleSheet.flatten(node.props?.style)
+    if (flat?.fontFamily !== 'ionicons') {
+      result.push(node)
+    }
+  }
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) {
+      result.push(...collectTextNodes(child))
+    }
+  }
+  return result
+}
+
+function findNodeByTestId(node: JsonNode | JsonNode[] | string | null, testID: string): JsonNode | null {
+  if (!node || typeof node === 'string') return null
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findNodeByTestId(child, testID)
+      if (found) return found
+    }
+    return null
+  }
+  if (node.props?.testID === testID) return node
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) {
+      const found = findNodeByTestId(child, testID)
+      if (found) return found
+    }
+  }
+  return null
+}
 
 jest.setTimeout(15000)
 
@@ -200,6 +247,116 @@ describe('BusContractSection (Variant C)', () => {
       )
 
       expect(screen.getByText('—')).toBeTruthy()
+      expect(screen.queryByTestId('contract-percent-ring')).toBeNull()
+    })
+
+    it('renders metric box icons, centered texts, and ContractPercentRing when recoveryPercent exists', async () => {
+      const { toJSON } = await render(
+        <BusContractSection
+          contract={visibleContract}
+          price={defaultPrice}
+          busListingType="BUS_SALE_WITH_CONTRACT"
+          onRequireLogin={mockLogin}
+          now={refNow}
+        />
+      )
+
+      // Top-level metric box icons
+      expect(screen.getByTestId('contract-icon-monthly')).toBeTruthy()
+      expect(screen.getByTestId('contract-icon-remaining')).toBeTruthy()
+
+      // Percent ring rendered with 36% label for sale contract
+      const ring = screen.getByTestId('contract-percent-ring')
+      expect(ring).toBeTruthy()
+      expect(ring.props.accessibilityLabel).toBe('نسبة من السعر 36%')
+
+      // Verify all Text elements inside both metric boxes have textAlign: 'center'
+      const tree = toJSON() as JsonNode | null
+      const monthlyBox = findNodeByTestId(tree, 'contract-metric-monthly')
+      const remainingBox = findNodeByTestId(tree, 'contract-metric-remaining')
+      expect(monthlyBox).toBeTruthy()
+      expect(remainingBox).toBeTruthy()
+      for (const box of [monthlyBox!, remainingBox!]) {
+        const boxStyle = StyleSheet.flatten(box.props?.style)
+        expect(boxStyle?.alignItems).toBe('center')
+        const texts = collectTextNodes(box)
+        expect(texts.length).toBeGreaterThan(0)
+        for (const t of texts) {
+          const st = StyleSheet.flatten(t.props?.style)
+          expect(st?.textAlign).toBe('center')
+        }
+      }
+
+      // Open accordion and verify extra metric box icons and centered texts
+      await fireEvent.press(screen.getByTestId('btn-toggle-contract-accordion'))
+      expect(screen.getByTestId('contract-icon-yield')).toBeTruthy()
+      expect(screen.getByTestId('contract-icon-payback')).toBeTruthy()
+    })
+  })
+
+  describe('Typography & LineHeight Regression (Almarai + lineHeight >= 1.5x fontSize)', () => {
+    const assertAllTextsUseAlmaraiAndSafeLineHeight = (tree: JsonNode | JsonNode[] | null) => {
+      const textNodes = collectTextNodes(tree)
+      expect(textNodes.length).toBeGreaterThan(0)
+      for (const node of textNodes) {
+        if (!node.props?.style) continue
+        const flat = StyleSheet.flatten(node.props.style)
+        if (!flat || typeof flat.fontSize !== 'number') continue
+        expect(String(flat.fontFamily ?? '')).toMatch(/^Almarai_/)
+        expect(typeof flat.lineHeight).toBe('number')
+        expect(flat.lineHeight as number).toBeGreaterThanOrEqual(flat.fontSize * 1.5)
+      }
+    }
+
+    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in visible BusContractSection (including expanded accordion)', async () => {
+      const visibleContract: BusContractView = {
+        access: 'visible',
+        typeLabel: 'نقل مدرسي / جامعي',
+        clientName: 'وزارة التربية والتعليم',
+        withDriver: true,
+        monthlyIncome: 600,
+        durationMonths: 24,
+        expiryIso: '2027-10-20T12:00:00.000Z',
+      }
+      const view = await render(
+        <BusContractSection
+          contract={visibleContract}
+          price={defaultPrice}
+          busListingType="BUS_SALE_WITH_CONTRACT"
+          onRequireLogin={mockLogin}
+          now={refNow}
+        />
+      )
+      await fireEvent.press(screen.getByTestId('btn-toggle-contract-accordion'))
+      assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
+    })
+
+    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in locked BusContractSection', async () => {
+      const lockedContract: BusContractView = {
+        access: 'locked',
+        typeLabel: 'نقل مدرسي / جامعي',
+      }
+      const view = await render(
+        <BusContractSection
+          contract={lockedContract}
+          price={defaultPrice}
+          busListingType="BUS_SALE_WITH_CONTRACT"
+          onRequireLogin={mockLogin}
+          now={refNow}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
+    })
+
+    it('enforces Almarai fontFamily and lineHeight >= 1.5x fontSize on all Texts in BusLocationMapSection', async () => {
+      const view = await render(
+        <BusLocationMapSection
+          latitude={23.588}
+          longitude={58.3829}
+          isMapMounted={false}
+        />
+      )
+      assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
     })
   })
 })
