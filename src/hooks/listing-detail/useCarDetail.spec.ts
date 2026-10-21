@@ -80,7 +80,7 @@ describe('useCarDetail', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    jest.resetAllMocks()
   })
 
   it('returns loading state initially while fetching', async () => {
@@ -224,8 +224,41 @@ describe('useCarDetail', () => {
       expect(hook.current.state).toBe('ready')
     })
 
+    await act(async () => {
+      await hook.current.refetch().catch(() => {})
+    })
+
+    await waitFor(() => {
+      expect(hook.current.state).toBe('ready')
+    })
+
     expect(hook.current.vm).toBeDefined()
     expect(hook.current.vm?.id).toBe('car-abc-123')
     expect(hook.current.raw?.id).toBe('car-abc-123')
+  })
+
+  it('transitions to notFound state when refetch returns 404 even if cached data exists', async () => {
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(['listing', 'car-abc-123'], mockCarData)
+
+    const notFoundError = {
+      isAxiosError: true,
+      response: { status: 404, data: { message: 'Not found' } },
+    }
+    ;(listingsApi.getById as jest.Mock).mockRejectedValueOnce(notFoundError)
+
+    const hook = renderCarDetailHook('car-abc-123', queryClient)
+
+    await waitFor(() => {
+      expect(hook.current.state).toBe('ready')
+    })
+
+    await act(async () => {
+      await hook.current.refetch().catch(() => {})
+    })
+
+    await waitFor(() => {
+      expect(hook.current.state).toBe('notFound')
+    })
   })
 })

@@ -64,6 +64,34 @@ export function BusContractSection({
   now,
 }: BusContractSectionProps) {
   const [isAccordionOpen, setIsAccordionOpen] = useState(false)
+  const shouldReduceMotion = useAppReducedMotion()
+  const animatedProgress = useSharedValue(0)
+
+  const visibleContract = contract.access === 'visible' ? contract : undefined
+  const referenceNow = now ?? new Date()
+  const estimate = computeBusContractEstimate(
+    {
+      busListingType,
+      price: price?.amount,
+      monthlyIncome: visibleContract?.monthlyIncome ?? 0,
+      durationMonths: visibleContract?.durationMonths,
+      expiryIso: visibleContract?.expiryIso,
+    },
+    referenceNow
+  )
+
+  useEffect(() => {
+    const target = contract.access === 'visible' ? estimate.progressPercent ?? 0 : 0
+    if (shouldReduceMotion) {
+      animatedProgress.value = target
+    } else {
+      animatedProgress.value = withTiming(target, { duration: 750 })
+    }
+  }, [contract.access, estimate.progressPercent, shouldReduceMotion])
+
+  const progressFillAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${animatedProgress.value}%`,
+  }))
 
   if (contract.access === 'hidden') {
     return null
@@ -79,37 +107,9 @@ export function BusContractSection({
   }
 
   // Visible contract state
-  const referenceNow = now ?? new Date()
-  const estimate = computeBusContractEstimate(
-    {
-      busListingType,
-      price: price?.amount,
-      monthlyIncome: contract.monthlyIncome,
-      durationMonths: contract.durationMonths,
-      expiryIso: contract.expiryIso,
-    },
-    referenceNow
-  )
-
   const formattedExpiry = formatExpiryDate(contract.expiryIso)
   const hasExtraCalculations =
     estimate.annualYieldPercent !== null || estimate.paybackMonths !== null
-
-  const shouldReduceMotion = useAppReducedMotion()
-  const animatedProgress = useSharedValue(0)
-
-  useEffect(() => {
-    const target = estimate.progressPercent ?? 0
-    if (shouldReduceMotion) {
-      animatedProgress.value = target
-    } else {
-      animatedProgress.value = withTiming(target, { duration: 750 })
-    }
-  }, [estimate.progressPercent, shouldReduceMotion])
-
-  const progressFillAnimatedStyle = useAnimatedStyle(() => ({
-    width: `${animatedProgress.value}%`,
-  }))
 
   return (
     <View style={s.card}>
@@ -167,7 +167,13 @@ export function BusContractSection({
         <View style={s.metricBox}>
           <Text style={s.metricLabel} maxFontSizeMultiplier={1.3}>الدخل المتبقي من العقد</Text>
           <Text style={s.metricValue} maxFontSizeMultiplier={1.3}>
-            {formatNumberWestern(estimate.remainingIncome ?? 0)} <Text style={s.metricUnit}>ر.ع</Text>
+            {estimate.remainingIncome !== null ? (
+              <>
+                {formatNumberWestern(estimate.remainingIncome)} <Text style={s.metricUnit}>ر.ع</Text>
+              </>
+            ) : (
+              '—'
+            )}
           </Text>
           <Text style={s.metricSub} maxFontSizeMultiplier={1.3}>
             {estimate.recoveryPercent !== null ? `نسبة من السعر: ${formatNumberWestern(estimate.recoveryPercent)}%` : 'دخل متبقي'}

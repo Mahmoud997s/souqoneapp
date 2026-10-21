@@ -182,5 +182,24 @@ describe('BusContractSection (Variant C)', () => {
       expect(screen.queryByText(/نسبة من السعر/)).toBeNull()
       expect(screen.queryByTestId('btn-toggle-contract-accordion')).toBeNull()
     })
+    it('renders em dash when remaining income is null', async () => {
+      const contractWithoutDates: BusContractView = {
+        access: 'visible',
+        typeLabel: 'عقد حكومي',
+        withDriver: true,
+        monthlyIncome: 500,
+      }
+      await render(
+        <BusContractSection
+          contract={contractWithoutDates}
+          price={defaultPrice}
+          busListingType="BUS_SALE_WITH_CONTRACT"
+          onRequireLogin={mockLogin}
+          now={refNow}
+        />
+      )
+
+      expect(screen.getByText('—')).toBeTruthy()
+    })
   })
 })

@@ -88,9 +88,7 @@ export function ImageViewerModal({
     .onUpdate((e) => {
       if (scale.value <= 1.05) {
         translateX.value = e.translationX
-        if (e.translationY > 0) {
-          translateY.value = e.translationY
-        }
+        translateY.value = Math.max(0, e.translationY)
       }
     })
     .onEnd((e) => {

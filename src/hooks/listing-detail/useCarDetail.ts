@@ -70,6 +70,8 @@ export function useCarDetail(id: string | undefined | null): UseCarDetailResult 
 
   if (!id) {
     state = 'error'
+  } else if (isNotFoundError(query.error)) {
+    state = 'notFound'
   } else if (query.data) {
     state = 'ready'
     raw = query.data
@@ -77,9 +79,7 @@ export function useCarDetail(id: string | undefined | null): UseCarDetailResult 
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
-      state = 'notFound'
-    } else if (isNetworkError(query.error)) {
+    if (isNetworkError(query.error)) {
       state = 'offline'
     } else {
       state = 'error'
