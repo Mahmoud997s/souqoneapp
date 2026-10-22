@@ -3,7 +3,7 @@ import { promptProfilePhoneRequired } from './profilePhoneGuard'
 
 /**
  * assertOwnerHasPhoneForEdit
- * Helper to ensure the listing owner has a verified phone number registered
+ * Helper to ensure the listing owner has a registered phone number
  * in their profile before navigating to edit routes.
  * If the user's phone is missing, prompts them to add it and returns false.
  * Returns true if the phone is present.
