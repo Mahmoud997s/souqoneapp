@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
-import { equipmentApi, EquipmentStatusUpdatePayload } from '../../api/equipment'
+import { equipmentApi } from '../../api/equipment'
 import { equipmentQueryKeys, invalidateEquipmentListingQueries } from '../../utils/listing-detail/equipmentQueryKeys'
 import { useAuthStore } from '../../store/authStore'
 import { promptProfilePhoneRequired } from '../../utils/profilePhoneGuard'
@@ -233,10 +233,10 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
       await equipmentApi.update(vm.id, {
         version: vm.version,
         status: nextStatus,
-      } as EquipmentStatusUpdatePayload)
+      })
       await invalidateEquipmentListingQueries(queryClient, vm.id)
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
+    } catch (err: unknown) {
+      if (isOptimisticLockError(err)) {
         await queryClient.refetchQueries({ queryKey: equipmentQueryKeys.detail(vm.id) })
       }
       throw err
