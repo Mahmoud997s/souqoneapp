@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { favoritesApi } from '../../api/favorites'
 import { useRequireAuth } from './useRequireAuth'
@@ -43,12 +43,34 @@ export function useFavoriteToggle(
 
   // Track if user has toggled locally so checkData doesn't override local optimistic state
   const hasUserToggledRef = useRef<boolean>(false)
+  const hasHydratedRef = useRef<boolean>(false)
+
+  const initialIsFavoriteRef = useRef<boolean>(initialIsFavorite)
+  useEffect(() => {
+    initialIsFavoriteRef.current = initialIsFavorite
+  }, [initialIsFavorite])
+
+  // Reset local state & hydration flags when entity identity changes
+  useEffect(() => {
+    hasHydratedRef.current = false
+    hasUserToggledRef.current = false
+    setIsFavorite(initialIsFavoriteRef.current)
+    isFavoriteRef.current = initialIsFavoriteRef.current
+  }, [entityType, id])
 
   const queryClient = useQueryClient()
   const { requireAuth } = useRequireAuth()
+  const requireAuthRef = useRef(requireAuth)
+  useEffect(() => {
+    requireAuthRef.current = requireAuth
+  }, [requireAuth])
+
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn)
 
-  const checkQueryKey = ['favorites', 'check', entityType, id] as const
+  const checkQueryKey = useMemo(
+    () => ['favorites', 'check', entityType, id] as const,
+    [entityType, id]
+  )
 
   const { data: checkData } = useQuery({
     queryKey: checkQueryKey,
@@ -67,7 +89,6 @@ export function useFavoriteToggle(
   })
 
   // Synchronize state when server check query resolves (only if user hasn't toggled yet)
-  const hasHydratedRef = useRef<boolean>(false)
   useEffect(() => {
     if (!hasUserToggledRef.current && !hasHydratedRef.current && checkData && typeof checkData.favorited === 'boolean') {
       hasHydratedRef.current = true
@@ -79,7 +100,7 @@ export function useFavoriteToggle(
   const toggle = useCallback(() => {
     if (isBusy) return
 
-    requireAuth(redirectPath, () => {
+    requireAuthRef.current(redirectPath, () => {
       hasUserToggledRef.current = true
       const prev = isFavoriteRef.current
       const next = !prev
@@ -105,7 +126,7 @@ export function useFavoriteToggle(
           setIsBusy(false)
         })
     })
-  }, [entityType, id, redirectPath, isBusy, queryClient, requireAuth, checkQueryKey])
+  }, [entityType, id, redirectPath, isBusy, queryClient, checkQueryKey])
 
   return {
     isFavorite,
