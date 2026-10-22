@@ -374,42 +374,42 @@ describe('EquipmentDetailScreen', () => {
     describe('Safety Tips resolution for all 6 role combinations', () => {
       it('renders buyer tips for SALE visitor', async () => {
         mockCurrentUser = null
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_SALE', seller: { id: 'seller-1', name: 'Seller', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_SALE', seller: { id: 'seller-1', name: 'Seller', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند شراء معدة')).toBeTruthy()
       })
 
       it('renders seller tips for SALE owner', async () => {
         mockCurrentUser = { id: 'seller-1' }
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_SALE', seller: { id: 'seller-1', name: 'Seller', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_SALE', seller: { id: 'seller-1', name: 'Seller', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند بيع معدة')).toBeTruthy()
       })
 
       it('renders renter tips for RENT visitor', async () => {
         mockCurrentUser = null
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_RENT', seller: { id: 'seller-1', name: 'Seller', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_RENT', seller: { id: 'seller-1', name: 'Seller', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند استئجار معدة')).toBeTruthy()
       })
 
       it('renders seller tips for RENT owner', async () => {
         mockCurrentUser = { id: 'seller-1' }
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_RENT', seller: { id: 'seller-1', name: 'Seller', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_RENT', seller: { id: 'seller-1', name: 'Seller', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند بيع معدة')).toBeTruthy()
       })
 
       it('renders seller/supplier tips for WANTED visitor', async () => {
         mockCurrentUser = null
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_WANTED', seller: { id: 'buyer-1', name: 'Buyer', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_WANTED', seller: { id: 'buyer-1', name: 'Buyer', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند بيع معدة')).toBeTruthy()
       })
 
       it('renders buyer tips for WANTED owner', async () => {
         mockCurrentUser = { id: 'buyer-1' }
-        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_WANTED', seller: { id: 'buyer-1', name: 'Buyer', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ equipmentListingType: 'EQUIPMENT_WANTED', seller: { id: 'buyer-1', name: 'Buyer', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
         await render(<EquipmentDetailScreen id="eq-101" />)
         expect(screen.getByText('نصائح لسلامتك عند شراء معدة')).toBeTruthy()
       })
@@ -421,7 +421,7 @@ describe('EquipmentDetailScreen', () => {
         mockContactCall.mockClear()
         mockContactWhatsApp.mockClear()
         mockContactChat.mockClear()
-        mockEquipmentDetailResult.vm = makeSampleVm({ seller: { id: 'seller-9', name: 'Owner', memberSinceFormatted: '2024', totalListings: 1 } })
+        mockEquipmentDetailResult.vm = makeSampleVm({ seller: { id: 'seller-9', name: 'Owner', username: 'seller', isVerified: true, memberSinceLabel: '??? ??? 2024' } })
       })
 
       it('triggers call when contact call button is pressed', async () => {
@@ -551,5 +551,6 @@ describe('EquipmentDetailScreen', () => {
     })
   })
 })
+
 
 

@@ -40,14 +40,14 @@ export async function invalidateEquipmentListingQueries(
 ): Promise<void> {
   if (id) {
     if (options?.removeDetail) {
-      queryClient.removeQueries({ queryKey: ['equipment-detail', id] })
-      queryClient.removeQueries({ queryKey: ['equipment-item', id] })
-      queryClient.removeQueries({ queryKey: ['equipment', id] })
+      queryClient.removeQueries({ queryKey: equipmentQueryKeys.detailPrefix(id) })
+      queryClient.removeQueries({ queryKey: equipmentQueryKeys.equipmentItem(id) })
+      queryClient.removeQueries({ queryKey: equipmentQueryKeys.legacyEquipment(id) })
     } else {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['equipment-detail', id] }),
-        queryClient.invalidateQueries({ queryKey: ['equipment-item', id] }),
-        queryClient.invalidateQueries({ queryKey: ['equipment', id] }),
+        queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.detailPrefix(id) }),
+        queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.equipmentItem(id) }),
+        queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.legacyEquipment(id) }),
       ])
     }
   }
@@ -55,8 +55,8 @@ export async function invalidateEquipmentListingQueries(
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: ['equipment'] }),
     queryClient.invalidateQueries({ queryKey: ['equipment-infinite'] }),
-    queryClient.invalidateQueries({ queryKey: ['my-equipment'] }),
-    queryClient.invalidateQueries({ queryKey: ['my-listings'] }),
+    queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.myEquipment() }),
+    queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.myListings() }),
     queryClient.invalidateQueries({ queryKey: ['listings'] }),
   ])
 }
