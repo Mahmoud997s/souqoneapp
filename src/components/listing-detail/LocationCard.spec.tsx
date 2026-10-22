@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import { Linking } from 'react-native'
-import { LocationCard, EquipmentLocationCard } from './LocationCard'
+import { LocationCard } from './LocationCard'
 
 jest.spyOn(Linking, 'openURL').mockImplementation(() => Promise.resolve() as any)
 
@@ -40,9 +40,5 @@ describe('LocationCard', () => {
       />
     )
     expect(screen.queryByTestId('equipment-directions-button')).toBeNull()
-  })
-
-  it('exports EquipmentLocationCard as backward-compatible alias', () => {
-    expect(EquipmentLocationCard).toBe(LocationCard)
   })
 })

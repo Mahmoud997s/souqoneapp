@@ -14,10 +14,8 @@ export interface LocationCardProps {
   longitude?: number
 }
 
-export type EquipmentLocationCardProps = LocationCardProps
-
 /**
- * LocationCard (formerly EquipmentLocationCard)
+ * LocationCard
  * Text-based location card with external directions link.
  * Used across detail screens (Equipment, Operators, etc.) where a lightweight text-based
  * location card with external directions link is preferred over an embedded map view.
@@ -70,8 +68,6 @@ export function LocationCard({
     </View>
   )
 }
-
-export const EquipmentLocationCard = LocationCard
 
 const s = StyleSheet.create({
   card: {

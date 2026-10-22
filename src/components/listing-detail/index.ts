@@ -7,8 +7,8 @@ export type { DetailNavBarProps } from './DetailNavBar'
 export { EquipmentDetailNavBar } from './EquipmentDetailNavBar'
 export type { EquipmentDetailNavBarProps } from './EquipmentDetailNavBar'
 
-export { LocationCard, EquipmentLocationCard } from './LocationCard'
-export type { LocationCardProps, EquipmentLocationCardProps } from './LocationCard'
+export { LocationCard } from './LocationCard'
+export type { LocationCardProps } from './LocationCard'
 
 export { DetailStates } from './DetailStates'
 export type { DetailStatesProps } from './DetailStates'

@@ -76,7 +76,7 @@ import { DetailStates } from '../../components/listing-detail/DetailStates'
 
 import {
   EquipmentDetailNavBar,
-  LocationCard as EquipmentLocationCard,
+  LocationCard,
 } from '../../components/listing-detail'
 
 // Equipment-Specific Presentational Components
@@ -400,7 +400,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
         {/* 10. Text Location Card (NO embedded map) */}
         <Animated.View entering={getEnteringAnimation(9)}>
-          <EquipmentLocationCard
+          <LocationCard
             locationText={vm.location.fullLocationText}
             latitude={vm.location.latitude}
             longitude={vm.location.longitude}

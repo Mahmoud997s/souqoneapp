@@ -54,7 +54,7 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 // Shared Listing-Detail Components
 import {
   EquipmentDetailNavBar,
-  LocationCard as EquipmentLocationCard,
+  LocationCard,
 } from '../../components/listing-detail'
 
 // Operator-Specific Presentational Components
@@ -288,7 +288,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         />
 
         {/* Location Card */}
-        <EquipmentLocationCard
+        <LocationCard
           locationText={vm.location.fullLocationText}
           latitude={vm.location.latitude}
           longitude={vm.location.longitude}
