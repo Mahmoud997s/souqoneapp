@@ -22,7 +22,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
 
-interface BaseEquipmentDetailNavBarProps {
+interface BaseGlassDetailNavBarProps {
   onBack: () => void
   isFavorite: boolean
   favoriteBusy: boolean
@@ -32,33 +32,33 @@ interface BaseEquipmentDetailNavBarProps {
   paddingTop: number
 }
 
-interface EquipmentDetailNavBarWithoutSearchProps extends BaseEquipmentDetailNavBarProps {
+interface GlassDetailNavBarWithoutSearchProps extends BaseGlassDetailNavBarProps {
   searchValue?: never
   onSearchChange?: never
   onSearchSubmit?: never
   placeholder?: never
 }
 
-interface EquipmentDetailNavBarWithSearchProps extends BaseEquipmentDetailNavBarProps {
+interface GlassDetailNavBarWithSearchProps extends BaseGlassDetailNavBarProps {
   searchValue: string
   onSearchChange: (v: string) => void
   onSearchSubmit?: (v: string) => void
   placeholder?: string
 }
 
-export type EquipmentDetailNavBarProps =
-  | EquipmentDetailNavBarWithoutSearchProps
-  | EquipmentDetailNavBarWithSearchProps
+export type GlassDetailNavBarProps =
+  | GlassDetailNavBarWithoutSearchProps
+  | GlassDetailNavBarWithSearchProps
 
 /**
- * EquipmentDetailNavBar
- * Glassmorphic navigation bar specifically for equipment and operator detail screens.
+ * GlassDetailNavBar
+ * Glassmorphic navigation bar specifically for detail screens (equipment, operators, buses, etc.).
  * - Back button and favorite button (when eligible) visible
  * - Section search bar fades in on scroll when search props are provided (discriminated union)
  * - Zero share button and zero extra header buttons
  * - Zero hex color codes
  */
-export function EquipmentDetailNavBar(props: EquipmentDetailNavBarProps) {
+export function GlassDetailNavBar(props: GlassDetailNavBarProps) {
   const {
     onBack,
     isFavorite,
@@ -73,7 +73,7 @@ export function EquipmentDetailNavBar(props: EquipmentDetailNavBarProps) {
   const searchValue = hasSearch ? props.searchValue : ''
   const onSearchChange = hasSearch ? props.onSearchChange : undefined
   const onSearchSubmit = hasSearch ? props.onSearchSubmit : undefined
-  const placeholder = hasSearch ? (props.placeholder ?? 'ابحث في تفاصيل المعدة...') : undefined
+  const placeholder = hasSearch ? (props.placeholder ?? 'ابحث في التفاصيل...') : undefined
 
   const [searchInteractive, setSearchInteractive] = useState(false)
 
@@ -106,7 +106,7 @@ export function EquipmentDetailNavBar(props: EquipmentDetailNavBarProps) {
   })
 
   return (
-    <View style={[s.navWrapper, { paddingTop }]} pointerEvents="box-none" testID="equipment-detail-navbar">
+    <View style={[s.navWrapper, { paddingTop }]} pointerEvents="box-none" testID="glass-detail-navbar">
       {/* Dynamic Glassmorphic Background */}
       <Animated.View style={[StyleSheet.absoluteFill, s.blurContainer, bgStyle]} pointerEvents="none">
         <BlurView intensity={35} tint="light" style={StyleSheet.absoluteFill} />

@@ -4,8 +4,8 @@ export type { ContactActionsProps, ContactAvailability } from './ContactActions'
 export { DetailNavBar } from './DetailNavBar'
 export type { DetailNavBarProps } from './DetailNavBar'
 
-export { EquipmentDetailNavBar } from './EquipmentDetailNavBar'
-export type { EquipmentDetailNavBarProps } from './EquipmentDetailNavBar'
+export { GlassDetailNavBar } from './GlassDetailNavBar'
+export type { GlassDetailNavBarProps } from './GlassDetailNavBar'
 
 export { LocationCard } from './LocationCard'
 export type { LocationCardProps } from './LocationCard'

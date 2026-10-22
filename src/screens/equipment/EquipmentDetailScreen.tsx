@@ -75,7 +75,7 @@ import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 
 import {
-  EquipmentDetailNavBar,
+  GlassDetailNavBar,
   LocationCard,
 } from '../../components/listing-detail'
 
@@ -286,7 +286,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Navigation Bar (NO share button) */}
-      <EquipmentDetailNavBar
+      <GlassDetailNavBar
         onBack={goBackSafely}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}

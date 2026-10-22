@@ -53,7 +53,7 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 // Shared Listing-Detail Components
 import {
-  EquipmentDetailNavBar,
+  GlassDetailNavBar,
   LocationCard,
 } from '../../components/listing-detail'
 
@@ -212,7 +212,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.surface} translucent />
 
       {/* Navigation Bar */}
-      <EquipmentDetailNavBar
+      <GlassDetailNavBar
         onBack={() => router.back()}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}
