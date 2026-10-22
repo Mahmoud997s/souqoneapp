@@ -1,7 +1,11 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+} from 'react-native'
 import { Image } from 'expo-image'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
@@ -13,7 +17,6 @@ export interface OperatorCardHeaderProps {
   isVerified: boolean
   locationDisplay: string
   isOwnerMode: boolean
-  isAvailable?: boolean
   displayPrice: string
   actionMenu?: React.ReactNode
 }
@@ -21,7 +24,7 @@ export interface OperatorCardHeaderProps {
 /**
  * OperatorCardHeader
  * Top row of OperatorCard rendering circular avatar with fallback, verified badge,
- * availability indicator, name, location, and owner action menu or rate badge.
+ * name, location, and owner action menu or rate badge.
  */
 export function OperatorCardHeader({
   name,
@@ -29,7 +32,6 @@ export function OperatorCardHeader({
   isVerified,
   locationDisplay,
   isOwnerMode,
-  isAvailable = true,
   displayPrice,
   actionMenu,
 }: OperatorCardHeaderProps) {
@@ -45,7 +47,7 @@ export function OperatorCardHeader({
           />
         ) : (
           <View style={s.avatarFallback} testID="operator-avatar-fallback">
-            <MaterialCommunityIcons name="hard-hat" size={24} color={Colors.primary} />
+            <Ionicons name="person" size={22} color={Colors.textMuted} />
           </View>
         )}
 
@@ -58,10 +60,6 @@ export function OperatorCardHeader({
           >
             <Ionicons name="checkmark-circle" size={14} color={Colors.primary} />
           </View>
-        )}
-
-        {isOwnerMode && (
-          <View style={[s.statusDot, isAvailable ? s.dotAvailable : s.dotBusy]} />
         )}
       </View>
 
@@ -110,7 +108,7 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.paleMint,
+    backgroundColor: Colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -123,22 +121,6 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: Radius.pill,
     padding: 1,
-  },
-  statusDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 10,
-    height: 10,
-    borderRadius: Radius.pill,
-    borderWidth: 2,
-    borderColor: Colors.white,
-  },
-  dotAvailable: {
-    backgroundColor: Colors.primary,
-  },
-  dotBusy: {
-    backgroundColor: Colors.error,
   },
   nameCol: {
     flex: 1,
@@ -166,22 +148,23 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  actionMenuContainer: {
-    alignSelf: 'flex-start',
-  },
   priceBadge: {
     backgroundColor: Colors.paleMint,
-    paddingHorizontal: Spacing.space2,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+    maxWidth: '45%',
   },
   priceText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
-    color: Colors.primaryDeep,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11.5,
+    lineHeight: lineHeightFor(11.5),
+    color: Colors.primaryDark,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  actionMenuContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 })

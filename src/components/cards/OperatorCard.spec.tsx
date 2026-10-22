@@ -172,7 +172,7 @@ describe('OperatorCard', () => {
 
       const { getByTestId, getByText, queryByLabelText } = await render(
         <QueryClientProvider client={queryClient}>
-          <OperatorCard item={baseItem} actionMenu={actionMenuNode} isAvailable={true} />
+          <OperatorCard item={baseItem} actionMenu={actionMenuNode} />
         </QueryClientProvider>
       )
 
@@ -184,22 +184,14 @@ describe('OperatorCard', () => {
       expect(queryByLabelText('تواصل عبر واتساب')).toBeNull()
     })
 
-    it('renders availability dot based on isAvailable prop', async () => {
-      const { getByTestId, rerender } = await render(
+    it('does not render any fake availability status dot in owner mode', async () => {
+      const { queryByTestId } = await render(
         <QueryClientProvider client={queryClient}>
-          <OperatorCard item={baseItem} actionMenu={<View />} isAvailable={true} />
+          <OperatorCard item={baseItem} actionMenu={<View />} />
         </QueryClientProvider>
       )
 
-      expect(getByTestId('operator-card')).toBeTruthy()
-
-      await rerender(
-        <QueryClientProvider client={queryClient}>
-          <OperatorCard item={baseItem} actionMenu={<View />} isAvailable={false} />
-        </QueryClientProvider>
-      )
-
-      expect(getByTestId('operator-card')).toBeTruthy()
+      expect(queryByTestId('operator-status-dot')).toBeNull()
     })
   })
 })

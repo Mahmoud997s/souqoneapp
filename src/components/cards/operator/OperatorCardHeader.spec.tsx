@@ -38,4 +38,18 @@ describe('OperatorCardHeader', () => {
     expect(screen.getByTestId('menu-test')).toBeTruthy()
     expect(screen.queryByText('50 ر.ع.')).toBeNull()
   })
+
+  it('does not render any status dot in owner mode', async () => {
+    await render(
+      <OperatorCardHeader
+        name="سالم الشبيبي"
+        isVerified={false}
+        locationDisplay="صلالة"
+        isOwnerMode={true}
+        displayPrice="50 ر.ع."
+      />
+    )
+
+    expect(screen.queryByTestId('operator-status-dot')).toBeNull()
+  })
 })

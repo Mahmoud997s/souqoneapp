@@ -23,7 +23,6 @@ export interface OperatorCardProps {
   fullWidth?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
-  isAvailable?: boolean
 }
 
 /**
@@ -37,7 +36,6 @@ export function OperatorCard({
   fullWidth = false,
   maxChips = 3,
   actionMenu,
-  isAvailable = true,
 }: OperatorCardProps) {
   if (!item) return null
 
@@ -135,7 +133,6 @@ export function OperatorCard({
         isVerified={isVerified}
         locationDisplay={locationDisplay}
         isOwnerMode={isOwnerMode}
-        isAvailable={isAvailable}
         displayPrice={displayPrice}
         actionMenu={actionMenu}
       />
