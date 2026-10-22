@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   OperatorDetailApi,
   OperatorDetailApiSeller,
   OperatorPendingDeletionApi,
@@ -11,10 +11,13 @@ import type {
   OperatorRatesView,
 } from '../../types/operatorDetailViewModel.types'
 import type { LocationView, SellerView } from '../../types/listingDetail.types'
+import type { EquipmentType } from '../../types/equipment.types'
 import {
   getOperatorTypeLabel,
   getEquipmentTypeLabel,
+  EQUIPMENT_TYPES,
 } from '../equipment-mappers'
+import { normalizeCurrency } from './mapEquipmentDetail'
 import {
   formatDetailPrice,
   formatMemberSince,
@@ -24,13 +27,7 @@ import {
 } from './formatters'
 import { stripMarkdown } from './stripMarkdown'
 
-export function normalizeCurrency(code?: string | null): string {
-  if (!code) return 'ر.ع'
-  const upper = code.trim().toUpperCase()
-  if (upper === 'OMR') return 'ر.ع'
-  if (upper === 'USD') return '$'
-  return code
-}
+export { normalizeCurrency }
 
 /**
  * Maps location details from governorate/wilaya refs or fallback fields.
@@ -162,19 +159,30 @@ function mapCertifications(certs?: string[] | null): OperatorCertificationItem[]
     })
 }
 
+export function isKnownEquipmentType(type: string): type is EquipmentType {
+  return Object.prototype.hasOwnProperty.call(EQUIPMENT_TYPES, type)
+}
+
 /**
  * Maps equipment types into chip items with Arabic labels.
+ * Filters unknown strings so value is guaranteed to be a valid EquipmentType without casting.
  */
 function mapEquipmentTypes(types?: unknown[] | null): OperatorEquipmentTypeChip[] {
   if (!Array.isArray(types) || types.length === 0) return []
 
-  return types
-    .map((t) => (typeof t === 'string' ? t.trim() : ''))
-    .filter((t) => t.length > 0)
-    .map((t) => ({
-      value: t as any,
-      label: getEquipmentTypeLabel(t),
-    }))
+  const result: OperatorEquipmentTypeChip[] = []
+  for (const t of types) {
+    if (typeof t === 'string') {
+      const trimmed = t.trim()
+      if (isKnownEquipmentType(trimmed)) {
+        result.push({
+          value: trimmed,
+          label: getEquipmentTypeLabel(trimmed),
+        })
+      }
+    }
+  }
+  return result
 }
 
 /**

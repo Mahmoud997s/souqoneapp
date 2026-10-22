@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { equipmentApi } from '../../api/equipment'
 import type { OperatorDetailApi } from '../../types/operatorDetailApi.types'
 import type { OperatorDetailViewModel } from '../../types/operatorDetailViewModel.types'

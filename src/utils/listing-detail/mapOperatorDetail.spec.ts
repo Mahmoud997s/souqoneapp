@@ -232,18 +232,19 @@ describe('mapOperatorDetail', () => {
       expect(vm.location.hasCoordinates).toBe(false)
     })
 
-    it('maps unknown operator type and equipment type gracefully to raw strings', () => {
+    it('drops unknown equipment types gracefully while mapping known types', () => {
       const vm = mapOperatorDetail({
         ...baseApiData,
         operatorType: 'UNDERWATER_WELDER' as any,
-        equipmentTypes: ['SUBMARINE' as any],
+        equipmentTypes: ['CRANE', 'SUBMARINE' as any, 'EXCAVATOR'],
       })
 
       expect(vm.operatorTypeLabel).toBe('UNDERWATER_WELDER')
-      expect(vm.equipmentTypes[0]).toEqual({
-        value: 'SUBMARINE',
-        label: 'SUBMARINE',
-      })
+      expect(vm.equipmentTypes).toHaveLength(2)
+      expect(vm.equipmentTypes).toEqual([
+        { value: 'CRANE', label: 'رافعة' },
+        { value: 'EXCAVATOR', label: 'حفار' },
+      ])
     })
 
     it('normalizes currency correctly', () => {
