@@ -11,6 +11,10 @@ import {
   EQUIPMENT_RENTER_SAFETY_TIPS,
   EQUIPMENT_SELLER_SAFETY_TIPS_TITLE,
   EQUIPMENT_SELLER_SAFETY_TIPS,
+  OPERATOR_HIRER_SAFETY_TIPS_TITLE,
+  OPERATOR_HIRER_SAFETY_TIPS,
+  OPERATOR_OWNER_SAFETY_TIPS_TITLE,
+  OPERATOR_OWNER_SAFETY_TIPS,
 } from '../safetyTips'
 
 describe('safetyTips constants', () => {
@@ -70,6 +74,24 @@ describe('safetyTips constants', () => {
       ...EQUIPMENT_BUYER_SAFETY_TIPS,
       ...EQUIPMENT_RENTER_SAFETY_TIPS,
       ...EQUIPMENT_SELLER_SAFETY_TIPS,
+    ]
+    for (const tip of allTips) {
+      expect(emojiRegex.test(tip)).toBe(false)
+      expect(tip.trim().length).toBeGreaterThan(10)
+    }
+  })
+
+  it('provides operator hirer and owner safety tips without emojis', () => {
+    expect(OPERATOR_HIRER_SAFETY_TIPS_TITLE).toBe('نصائح لسلامتك عند التعاقد مع مشغّل')
+    expect(OPERATOR_HIRER_SAFETY_TIPS.length).toBeGreaterThanOrEqual(5)
+
+    expect(OPERATOR_OWNER_SAFETY_TIPS_TITLE).toBe('نصائح لسلامتك كمشغّل معدات')
+    expect(OPERATOR_OWNER_SAFETY_TIPS.length).toBeGreaterThanOrEqual(4)
+
+    const emojiRegex = /[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/u
+    const allTips = [
+      ...OPERATOR_HIRER_SAFETY_TIPS,
+      ...OPERATOR_OWNER_SAFETY_TIPS,
     ]
     for (const tip of allTips) {
       expect(emojiRegex.test(tip)).toBe(false)
