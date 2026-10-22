@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { EquipmentDetailScreen } from './EquipmentDetailScreen'
 import { dialogService } from '../../store/dialogStore'
+import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 
 jest.setTimeout(25000)
 
@@ -45,10 +46,17 @@ jest.mock('../../store/dialogStore', () => ({
 let mockCurrentUser: { id: string; username?: string } | null = null
 
 jest.mock('../../store/authStore', () => ({
-  useAuthStore: () => ({
-    user: mockCurrentUser,
-    isLoggedIn: Boolean(mockCurrentUser),
-  }),
+  useAuthStore: (selector?: (s: any) => any) => {
+    const state = {
+      user: mockCurrentUser,
+      isLoggedIn: Boolean(mockCurrentUser),
+    }
+    return selector ? selector(state) : state
+  },
+}))
+
+jest.mock('../../utils/assertOwnerHasPhoneForEdit', () => ({
+  assertOwnerHasPhoneForEdit: jest.fn().mockReturnValue(true),
 }))
 
 let mockEquipmentDetailResult: {
@@ -191,6 +199,10 @@ describe('EquipmentDetailScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = null
+    ;(assertOwnerHasPhoneForEdit as jest.Mock).mockClear()
+    ;(assertOwnerHasPhoneForEdit as jest.Mock).mockReturnValue(true)
+    mockRouterPush.mockClear()
+    mockRouterBack.mockClear()
     mockSimilarItems = []
     mockEquipmentDetailResult = {
       state: 'ready',
@@ -541,6 +553,33 @@ describe('EquipmentDetailScreen', () => {
       expect(retryBtn).toBeTruthy()
       fireEvent.press(retryBtn)
       expect(mockSimilarRefetch).toHaveBeenCalled()
+    })
+
+
+    it('stops navigation and prompts for phone when phone is missing on edit click', async () => {
+      mockCurrentUser = { id: 'seller-999' }
+      ;(assertOwnerHasPhoneForEdit as jest.Mock).mockReturnValue(false)
+
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      const editBtn = screen.getByTestId('btn-owner-edit')
+      fireEvent.press(editBtn)
+
+      expect(assertOwnerHasPhoneForEdit).toHaveBeenCalled()
+      expect(mockRouterPush).not.toHaveBeenCalledWith('/equipment/edit/eq-101')
+    })
+
+    it('navigates to edit route when owner has a valid phone number', async () => {
+      mockCurrentUser = { id: 'seller-999' }
+      ;(assertOwnerHasPhoneForEdit as jest.Mock).mockReturnValue(true)
+
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      const editBtn = screen.getByTestId('btn-owner-edit')
+      fireEvent.press(editBtn)
+
+      expect(assertOwnerHasPhoneForEdit).toHaveBeenCalled()
+      expect(mockRouterPush).toHaveBeenCalledWith('/equipment/edit/eq-101')
     })
 
     it('strictly NEVER renders a share button in navbar or screen', async () => {

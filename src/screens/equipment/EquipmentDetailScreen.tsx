@@ -42,6 +42,7 @@ import {
   type SimilarEquipmentItem,
 } from '../../hooks/listing-detail/useEquipmentSimilarListings'
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
+import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { normalizeCurrency } from '../../utils/listing-detail/mapEquipmentDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -73,13 +74,16 @@ import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 
-// Equipment-Specific Presentational Components
 import {
   EquipmentDetailNavBar,
+  LocationCard as EquipmentLocationCard,
+} from '../../components/listing-detail'
+
+// Equipment-Specific Presentational Components
+import {
   EquipmentHeaderBlock,
   EquipmentRentalCard,
   EquipmentWantedCard,
-  EquipmentLocationCard,
 } from '../../components/equipment/detail'
 
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
@@ -157,6 +161,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
+      if (!assertOwnerHasPhoneForEdit()) return
       router.push(`/equipment/edit/${id}`)
       return
     }

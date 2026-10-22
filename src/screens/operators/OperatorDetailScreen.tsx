@@ -25,6 +25,7 @@ import { useOperatorOwnerActions } from '../../hooks/listing-detail/useOperatorO
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { translateOperatorOwnerError } from '../../utils/listing-detail/operatorOwnerErrors'
+import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   OPERATOR_HIRER_SAFETY_TIPS_TITLE,
@@ -50,11 +51,11 @@ import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
-// Reused Cross-Vertical Components
+// Shared Listing-Detail Components
 import {
   EquipmentDetailNavBar,
-  EquipmentLocationCard,
-} from '../../components/equipment/detail'
+  LocationCard as EquipmentLocationCard,
+} from '../../components/listing-detail'
 
 // Operator-Specific Presentational Components
 import {
@@ -112,6 +113,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
+      if (!assertOwnerHasPhoneForEdit()) return
       router.push(`/equipment/operators/edit/${id}`)
       return
     }

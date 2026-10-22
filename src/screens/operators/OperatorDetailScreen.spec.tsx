@@ -7,6 +7,8 @@ import { useOperatorOwnerActions } from '../../hooks/listing-detail/useOperatorO
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { useAuthStore } from '../../store/authStore'
+import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
+import * as profilePhoneGuard from '../../utils/profilePhoneGuard'
 import { useRouter } from 'expo-router'
 import type { OperatorDetailViewModel } from '../../types/operatorDetailViewModel.types'
 
@@ -39,6 +41,12 @@ jest.mock('../../hooks/listing-detail/useOperatorOwnerActions')
 jest.mock('../../hooks/listing-detail/useFavoriteToggle')
 jest.mock('../../hooks/listing-detail/useListingContact')
 jest.mock('../../store/authStore')
+jest.mock('../../utils/assertOwnerHasPhoneForEdit', () => ({
+  assertOwnerHasPhoneForEdit: jest.fn().mockReturnValue(true),
+}))
+jest.mock('../../utils/profilePhoneGuard', () => ({
+  promptProfilePhoneRequired: jest.fn(),
+}))
 jest.mock('../../utils/listing-detail/useAppReducedMotion', () => ({
   useAppReducedMotion: () => false,
 }))
@@ -134,6 +142,7 @@ describe('OperatorDetailScreen', () => {
     ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector: any) =>
       selector({ user: null })
     )
+    useAuthStore.getState = jest.fn().mockReturnValue({ user: { id: 'user-seller-9', phone: '+96891234567' } })
   })
 
   it('renders loading state when hook reports loading', async () => {
@@ -279,6 +288,49 @@ describe('OperatorDetailScreen', () => {
     const editBtn = screen.getByTestId('btn-owner-edit')
     fireEvent.press(editBtn)
 
+    expect(mockRouter.push).toHaveBeenCalledWith('/equipment/operators/edit/op-100')
+  })
+
+
+  it('stops navigation and prompts for phone when phone is missing on edit click', async () => {
+    ;(assertOwnerHasPhoneForEdit as jest.Mock).mockReturnValue(false)
+    ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector: any) =>
+      selector({ user: { id: 'user-seller-9', phone: '' } })
+    )
+
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    const editBtn = screen.getByTestId('btn-owner-edit')
+    fireEvent.press(editBtn)
+
+    expect(assertOwnerHasPhoneForEdit).toHaveBeenCalled()
+    expect(mockRouter.push).not.toHaveBeenCalledWith('/equipment/operators/edit/op-100')
+  })
+
+  it('navigates to edit route when owner has a valid phone number', async () => {
+    ;(assertOwnerHasPhoneForEdit as jest.Mock).mockReturnValue(true)
+    ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector: any) =>
+      selector({ user: { id: 'user-seller-9', phone: '+96891234567' } })
+    )
+
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    const editBtn = screen.getByTestId('btn-owner-edit')
+    fireEvent.press(editBtn)
+
+    expect(assertOwnerHasPhoneForEdit).toHaveBeenCalled()
     expect(mockRouter.push).toHaveBeenCalledWith('/equipment/operators/edit/op-100')
   })
 
