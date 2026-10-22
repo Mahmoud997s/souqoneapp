@@ -1,16 +1,30 @@
 import { apiClient } from './client'
 import { EquipmentListing, OperatorListing, EquipmentBid } from '../types/equipment.types'
 import { PaginatedResponse } from '../types/api.types'
+import { EquipmentDetailApi, EquipmentSimilarItemApi } from '../types/equipmentDetailApi.types'
+
+export interface EquipmentStatusUpdatePayload {
+  version: number
+  status: string
+}
+
+export type EquipmentUpdatePayload = Partial<EquipmentListing> & {
+  version?: number
+}
 
 export const equipmentApi = {
   // Equipment Listings
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<EquipmentListing>>('/equipment', { params }),
-  getById: (id: string) => apiClient.get<EquipmentListing>(`/equipment/${id}`),
+  getById: (id: string) => apiClient.get<EquipmentDetailApi>(`/equipment/${id}`),
+  getSimilar: (id: string, limit = 8) =>
+    apiClient.get<EquipmentSimilarItemApi[]>(`/equipment/${id}/similar`, { params: { limit } }),
   getMy: () => apiClient.get<EquipmentListing[]>('/equipment/my'),
   create: (data: Partial<EquipmentListing>) => apiClient.post<EquipmentListing>('/equipment', data),
-  update: (id: string, data: Partial<EquipmentListing>) => apiClient.patch<EquipmentListing>(`/equipment/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/equipment/${id}`),
+  update: (id: string, data: EquipmentUpdatePayload | EquipmentStatusUpdatePayload) =>
+    apiClient.patch<EquipmentListing>(`/equipment/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ deleted: boolean }>(`/equipment/${id}`),
+  remove: (id: string) => apiClient.delete<{ deleted: boolean }>(`/equipment/${id}`),
   addImages: (id: string, urls: string[]) => apiClient.post(`/equipment/${id}/images`, { urls }),
   removeImage: (imageId: string) => apiClient.delete(`/equipment/images/${imageId}`),
 
@@ -30,4 +44,3 @@ export const equipmentApi = {
   createBid: (equipmentId: string, data: Partial<EquipmentBid>) =>
     apiClient.post<EquipmentBid>(`/equipment/${equipmentId}/bids`, data),
 }
-
