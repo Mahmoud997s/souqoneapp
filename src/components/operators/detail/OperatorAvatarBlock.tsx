@@ -39,6 +39,7 @@ export function OperatorAvatarBlock({
         <View
           style={s.verifiedBadge}
           testID="operator-verified-badge"
+          accessible
           accessibilityLabel="حساب موثق"
         >
           <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
@@ -58,24 +59,24 @@ const s = StyleSheet.create({
     height: 96,
     borderRadius: Radius.pill,
     borderWidth: 3,
-    borderColor: Colors.surface,
-    backgroundColor: Colors.surfaceAlt,
+    borderColor: Colors.border,
   },
   avatarFallback: {
     width: 96,
     height: 96,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.surfaceAlt,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    justifyContent: 'center',
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: Colors.border,
   },
   verifiedBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    backgroundColor: Colors.surface,
+    bottom: 0,
+    right: 0,
+    backgroundColor: Colors.white,
     borderRadius: Radius.pill,
+    padding: 2,
   },
 })
