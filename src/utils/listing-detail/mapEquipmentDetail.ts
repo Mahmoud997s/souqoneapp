@@ -414,18 +414,6 @@ export function mapEquipmentDetail(
   if (api.weight?.trim()) {
     techItems.push({ key: 'weight', label: 'الوزن', value: api.weight.trim() })
   }
-  if (api.listingType === 'EQUIPMENT_RENT') {
-    techItems.push({
-      key: 'withOperator',
-      label: 'المشغّل',
-      value: api.withOperator ? 'مع مشغّل' : 'بدون مشغّل',
-    })
-    techItems.push({
-      key: 'deliveryAvailable',
-      label: 'التوصيل',
-      value: api.deliveryAvailable ? 'متوفر' : 'غير متوفر',
-    })
-  }
   if (techItems.length > 0) {
     specsSections.push({ title: 'المواصفات الفنية', items: techItems })
   }

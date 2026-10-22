@@ -139,11 +139,11 @@ describe('mapEquipmentDetail', () => {
       deliveryAvailable: true,
     })
 
-    // Specs section contains operator & delivery
+    // Specs section contains pure technical specs without duplicating rental card facts
     const techSection = result.specsSections.find((s) => s.title === 'المواصفات الفنية')
     expect(techSection).toBeDefined()
-    expect(techSection?.items.find((i) => i.key === 'withOperator')?.value).toBe('مع مشغّل')
-    expect(techSection?.items.find((i) => i.key === 'deliveryAvailable')?.value).toBe('متوفر')
+    expect(techSection?.items.find((i) => i.key === 'withOperator')).toBeUndefined()
+    expect(techSection?.items.find((i) => i.key === 'deliveryAvailable')).toBeUndefined()
   })
 
   it('maps EQUIPMENT_RENT without operator and fallback to monthly price when daily missing', () => {
