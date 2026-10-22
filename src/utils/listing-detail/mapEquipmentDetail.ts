@@ -201,10 +201,11 @@ function mapPrice(raw: EquipmentDetailApi): PriceView {
     // EQUIPMENT_SALE or default
     caption = 'للبيع'
     const parsedPrice = parseDecimal(raw.price)
-    if (parsedPrice !== undefined) {
+    if (parsedPrice !== undefined && parsedPrice > 0) {
       amount = parsedPrice
       fullPriceLabel = formatDetailPrice(amount, currency)
     } else {
+      amount = 0
       fullPriceLabel = 'السعر عند التواصل'
     }
   }

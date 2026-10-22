@@ -99,4 +99,60 @@ describe('EquipmentHeaderBlock', () => {
     expect(screen.queryByText('0')).toBeNull()
     expect(screen.queryByText(/0 ر\.ع/)).toBeNull()
   })
+
+  it('renders "السعر عند التواصل" and never "0 ر.ع" when SALE listing has price 0 or null price', async () => {
+    const noPriceSale: PriceView = {
+      amount: 0,
+      formattedAmount: '0',
+      currency: 'ر.ع',
+      fullPriceLabel: 'السعر عند التواصل',
+      isNegotiable: false,
+      listingType: 'SALE',
+    }
+
+    await render(
+      <EquipmentHeaderBlock
+        title="حفار كوماتسو بدون سعر"
+        kindLabel="للبيع"
+        price={noPriceSale}
+        isWanted={false}
+        isRental={false}
+        operatorBadge={null}
+        locationText="مسقط"
+        postedAtLabel="الآن"
+      />
+    )
+
+    expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
+    expect(screen.queryByText('0')).toBeNull()
+    expect(screen.queryByText(/0 ر\.ع/)).toBeNull()
+  })
+
+  it('renders "السعر عند التواصل" when RENT listing has no daily or monthly rates', async () => {
+    const noRateRent: PriceView = {
+      amount: 0,
+      formattedAmount: '0',
+      currency: 'ر.ع',
+      fullPriceLabel: 'السعر عند التواصل',
+      isNegotiable: false,
+      listingType: 'RENTAL',
+    }
+
+    await render(
+      <EquipmentHeaderBlock
+        title="بوبكات للإيجار بدون تسعيرة"
+        kindLabel="للإيجار"
+        price={noRateRent}
+        isWanted={false}
+        isRental={true}
+        operatorBadge={null}
+        locationText="صلالة"
+        postedAtLabel="الآن"
+      />
+    )
+
+    expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
+    expect(screen.queryByText('0')).toBeNull()
+    expect(screen.queryByText(/0 ر\.ع/)).toBeNull()
+  })
 })

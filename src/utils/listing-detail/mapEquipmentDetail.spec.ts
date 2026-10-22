@@ -166,6 +166,16 @@ describe('mapEquipmentDetail', () => {
     expect(result.rental?.deliveryAvailable).toBe(false)
   })
 
+  it('maps SALE listing with price 0 or null to "السعر عند التواصل"', () => {
+    const saleZero = mapEquipmentDetail({ ...baseListing, price: 0 }, { now: fixedNow })
+    expect(saleZero.price.amount).toBe(0)
+    expect(saleZero.price.fullPriceLabel).toBe('السعر عند التواصل')
+
+    const saleNull = mapEquipmentDetail({ ...baseListing, price: null }, { now: fixedNow })
+    expect(saleNull.price.amount).toBe(0)
+    expect(saleNull.price.fullPriceLabel).toBe('السعر عند التواصل')
+  })
+
   it('maps EQUIPMENT_WANTED with budget range, duration, quantity and site details', () => {
     const wantedListing: EquipmentDetailApi = {
       ...baseListing,

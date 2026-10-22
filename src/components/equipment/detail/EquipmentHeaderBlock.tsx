@@ -105,14 +105,20 @@ export function EquipmentHeaderBlock({
         <View style={s.priceSection} testID="equipment-price-section">
           {!hasRates ? (
             <View style={s.priceRow}>
-              {price.isNegotiable ? (
+              {price.isNegotiable && price.amount > 0 ? (
                 <View style={s.negotiableBadge}>
                   <Text style={s.negotiableText} maxFontSizeMultiplier={1.3}>
                     قابل للتفاوض
                   </Text>
                 </View>
               ) : null}
-              <PriceBadge price={price.formattedAmount} currency={price.currency} size="lg" />
+              {price.amount > 0 ? (
+                <PriceBadge price={price.formattedAmount} currency={price.currency} size="lg" />
+              ) : (
+                <Text style={s.contactPriceText} maxFontSizeMultiplier={1.3}>
+                  {price.fullPriceLabel || 'السعر عند التواصل'}
+                </Text>
+              )}
             </View>
           ) : (
             <View style={s.ratesRow}>
@@ -276,6 +282,13 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: lineHeightFor(11),
     color: Colors.primaryDeep,
+  },
+  contactPriceText: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 18,
+    lineHeight: lineHeightFor(18),
+    color: Colors.primary,
   },
   ratesRow: {
     flexDirection: 'row',
