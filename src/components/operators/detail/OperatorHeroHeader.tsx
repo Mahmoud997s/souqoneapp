@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, Image } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -8,6 +8,7 @@ import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import type { OperatorDetailViewModel } from '../../../types/operatorDetailViewModel.types'
+import { OperatorAvatarBlock } from './OperatorAvatarBlock'
 
 export interface OperatorHeroHeaderProps {
   vm: OperatorDetailViewModel
@@ -32,32 +33,10 @@ export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
   return (
     <View style={s.container} testID="operator-hero-header">
       {/* Avatar Block */}
-      <View style={s.avatarContainer}>
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={s.avatarImage}
-            resizeMode="cover"
-            testID="operator-avatar-image"
-            accessibilityRole="image"
-            accessibilityLabel="صورة المشغل"
-          />
-        ) : (
-          <View style={s.avatarFallback} testID="operator-avatar-fallback">
-            <Ionicons name="person" size={44} color={Colors.primary} />
-          </View>
-        )}
-
-        {vm.seller.isVerified && (
-          <View
-            style={s.verifiedBadge}
-            testID="operator-verified-badge"
-            accessibilityLabel="حساب موثق"
-          >
-            <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
-          </View>
-        )}
-      </View>
+      <OperatorAvatarBlock
+        avatarUrl={avatarUrl}
+        isVerified={vm.seller.isVerified}
+      />
 
       {/* Title & Pill Row */}
       <Text style={s.title} maxFontSizeMultiplier={1.3} testID="operator-title">
@@ -126,78 +105,56 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
     ...Shadows.sm,
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: Spacing.space3,
-  },
-  avatarImage: {
-    width: 96,
-    height: 96,
-    borderRadius: Radius.pill,
-    borderWidth: 3,
-    borderColor: Colors.surface,
-    backgroundColor: Colors.surfaceAlt,
-  },
-  avatarFallback: {
-    width: 96,
-    height: 96,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surfaceAlt,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.pill,
-  },
   title: {
     fontSize: 20,
     fontWeight: '700',
+    lineHeight: lineHeightFor(20),
+    fontFamily: 'Cairo-Bold',
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.space2,
-    lineHeight: lineHeightFor(20),
   },
   pillsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
     gap: Spacing.space2,
     marginBottom: Spacing.space3,
   },
   typePill: {
     backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space1,
+    paddingVertical: 4,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   typePillText: {
-    fontSize: 13,
-    fontWeight: '600',
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primary,
-    lineHeight: lineHeightFor(13),
+    textAlign: 'center',
   },
   expPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space1,
+    gap: 4,
     backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space1,
+    paddingVertical: 4,
     borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   expPillText: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: Colors.textMuted,
     lineHeight: lineHeightFor(12),
+    color: Colors.textMuted,
+    textAlign: 'center',
   },
   metaRow: {
     flexDirection: 'row',
@@ -209,38 +166,41 @@ const s = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space1,
+    gap: 4,
   },
   metaText: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: Colors.textMuted,
-    writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(12),
+    color: Colors.textMuted,
+    textAlign: 'center',
   },
   metaDot: {
-    fontSize: 12,
     color: Colors.textMuted,
+    fontSize: 12,
   },
   rateBlock: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: Spacing.space2,
-    marginTop: Spacing.space1,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space2,
     backgroundColor: Colors.surfaceAlt,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   rateSummary: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 18,
-    fontWeight: '700',
+    lineHeight: lineHeightFor(18),
     color: Colors.primary,
     textAlign: 'center',
-    lineHeight: lineHeightFor(18),
   },
   negotiableBadge: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.paleMint,
     paddingHorizontal: Spacing.space2,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -248,9 +208,11 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
   },
   negotiableText: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textMuted,
     lineHeight: lineHeightFor(11),
+    color: Colors.primary,
+    textAlign: 'center',
   },
 })
