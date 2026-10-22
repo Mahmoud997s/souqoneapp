@@ -423,6 +423,28 @@ describe('EquipmentDetailScreen', () => {
       expect(screen.getByText('شيول كتربلر 966')).toBeTruthy()
     })
 
+    it('shows similar listings section during loading even when items are empty', async () => {
+      mockSimilarItems = []
+      mockSimilarLoading = true
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      expect(screen.getByTestId('equipment-similar-section')).toBeTruthy()
+      expect(screen.getByText('إعلانات مشابهة')).toBeTruthy()
+    })
+
+    it('shows similar listings section on error and exposes retry trigger', async () => {
+      mockSimilarItems = []
+      mockSimilarLoading = false
+      mockSimilarError = true
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      expect(screen.getByTestId('equipment-similar-section')).toBeTruthy()
+      const retryBtn = screen.getByText('إعادة المحاولة')
+      expect(retryBtn).toBeTruthy()
+      fireEvent.press(retryBtn)
+      expect(mockSimilarRefetch).toHaveBeenCalled()
+    })
+
     it('strictly NEVER renders a share button in navbar or screen', async () => {
       await render(<EquipmentDetailScreen id="eq-101" />)
 

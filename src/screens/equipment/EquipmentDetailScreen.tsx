@@ -413,8 +413,8 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 12. Similar Listings Grid (hides when empty) */}
-        {similarListings.items.length > 0 ? (
+        {/* 12. Similar Listings Grid (shows loading, error, items; hides when empty) */}
+        {similarListings.items.length > 0 || similarListings.isLoading || similarListings.isError ? (
           <Animated.View entering={getEnteringAnimation(11)} testID="equipment-similar-section">
             <SimilarListingsGrid<SimilarEquipmentItem>
               items={similarListings.items}
