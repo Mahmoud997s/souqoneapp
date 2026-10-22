@@ -118,6 +118,7 @@ export interface EquipmentSimilarItemApi {
 
 export interface EquipmentStatusLogApi {
   id: string
+  equipmentListingId: string
   fromStatus: BaseDetailViewModel['status']
   toStatus: BaseDetailViewModel['status']
   changedBy: string
@@ -128,5 +129,7 @@ export interface EquipmentStatsApi {
   viewCount: number
   favoritesCount: number
   conversationsCount: number
+  status: BaseDetailViewModel['status']
+  createdAt: string
   statusHistory: EquipmentStatusLogApi[]
 }
