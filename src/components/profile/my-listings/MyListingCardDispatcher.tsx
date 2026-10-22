@@ -5,7 +5,7 @@ import { MyListingActionButtons } from './MyListingActionButtons'
 import { CarCard } from '../../cars/CarCard'
 import { BusCard } from '../../buses/BusCard'
 import { EquipCard } from '../../cards/EquipCard'
-import { ModernOperatorCard } from '../../cards/ModernOperatorCard'
+import { OperatorCard } from '../../cards/OperatorCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
 import { JobCard } from '../../cards/JobCard'
@@ -116,7 +116,7 @@ export function MyListingCardDispatcher({
     case 'operator':
       return (
         <View style={[s.overlayContainer, !fullWidth && { width: CARD_SCALE_WIDTH, alignSelf: 'flex-start' }]}>
-          <ModernOperatorCard
+          <OperatorCard
             item={item.mapped as any}
             onPress={() => onView(item)}
             fullWidth={true}
