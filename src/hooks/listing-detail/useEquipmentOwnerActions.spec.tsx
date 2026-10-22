@@ -63,7 +63,7 @@ describe('useEquipmentOwnerActions', () => {
       },
     })
     useAuthStore.setState({
-      user: { id: 'user-1', phone: '+96891234567' } as any,
+      user: { id: 'user-1', email: 'owner@example.com', username: 'owner' } as unknown as import('../../types/auth.types').User,
       isLoggedIn: true,
     })
   })
