@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
@@ -7,6 +7,8 @@ import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
+import { OperatorStarsRow } from './OperatorStarsRow'
+import { OperatorReviewsStates } from './OperatorReviewsStates'
 
 export interface OperatorReviewsCardProps {
   averageRating?: number | null
@@ -24,8 +26,7 @@ export interface OperatorReviewsCardProps {
  * Displays rating summary and action buttons:
  * - Average with 1 decimal + 5 star icons (zero fake numbers)
  * - If count 0 shows 'لا توجد تقييمات بعد'
- * - Loading indicator state
- * - Error state with retry button
+ * - Loading and error states delegated to OperatorReviewsStates
  * - 'عرض جميع التقييمات' when count > 0
  * - 'أضف تقييمك' button (hidden when canWrite is false)
  */
@@ -39,39 +40,13 @@ export function OperatorReviewsCard({
   onPressWrite,
   onRetry,
 }: OperatorReviewsCardProps) {
-  if (isLoading) {
+  if (isLoading || isError) {
     return (
-      <View style={s.card} testID="operator-reviews-loading">
-        <ActivityIndicator size="small" color={Colors.primary} />
-        <Text style={s.loadingText} maxFontSizeMultiplier={1.3}>
-          جاري تحميل التقييمات...
-        </Text>
-      </View>
-    )
-  }
-
-  if (isError) {
-    return (
-      <View style={s.card} testID="operator-reviews-error">
-        <Ionicons name="alert-circle-outline" size={24} color={Colors.error} />
-        <Text style={s.errorText} maxFontSizeMultiplier={1.3}>
-          تعذر تحميل التقييمات حالياً
-        </Text>
-        {onRetry && (
-          <TouchableOpacity
-            style={s.retryButton}
-            onPress={onRetry}
-            activeOpacity={0.8}
-            testID="operator-reviews-retry"
-            accessibilityRole="button"
-            accessibilityLabel="إعادة المحاولة"
-          >
-            <Text style={s.retryText} maxFontSizeMultiplier={1.3}>
-              إعادة المحاولة
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <OperatorReviewsStates
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={onRetry}
+      />
     )
   }
 
@@ -104,20 +79,7 @@ export function OperatorReviewsCard({
           <Text style={s.ratingNumber} maxFontSizeMultiplier={1.3} testID="operator-rating-number">
             {formattedRating}
           </Text>
-          <View style={s.starsContainer}>
-            {[1, 2, 3, 4, 5].map((star) => {
-              const isFilled = ratingValue >= star
-              const isHalf = !isFilled && ratingValue >= star - 0.5
-              return (
-                <Ionicons
-                  key={star}
-                  name={isFilled ? 'star' : isHalf ? 'star-half' : 'star-outline'}
-                  size={18}
-                  color={Colors.warning}
-                />
-              )
-            })}
-          </View>
+          <OperatorStarsRow rating={ratingValue} size={18} />
         </View>
       )}
 
@@ -166,7 +128,9 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: Spacing.space4,
-    ...Shadows.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.card,
   },
   headerRow: {
     flexDirection: 'row',
@@ -175,48 +139,20 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,
   },
   cardTitle: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    fontWeight: '700',
-    color: Colors.text,
-    writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(16),
+    color: Colors.text,
+    textAlign: 'left',
   },
   countBadge: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: Colors.textMuted,
     lineHeight: lineHeightFor(14),
-  },
-  loadingText: {
-    fontSize: 13,
     color: Colors.textMuted,
-    marginTop: Spacing.space2,
-    textAlign: 'center',
-    writingDirection: RTLText.writingDirection,
-    lineHeight: lineHeightFor(13),
-  },
-  errorText: {
-    fontSize: 13,
-    color: Colors.error,
-    marginTop: Spacing.space2,
-    textAlign: 'center',
-    writingDirection: RTLText.writingDirection,
-    lineHeight: lineHeightFor(13),
-  },
-  retryButton: {
-    marginTop: Spacing.space2,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space1,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  retryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-    lineHeight: lineHeightFor(12),
+    textAlign: 'left',
   },
   emptyRow: {
     flexDirection: 'row',
@@ -225,10 +161,12 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2,
   },
   emptyText: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
-    color: Colors.textMuted,
-    writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    textAlign: 'left',
   },
   ratingRow: {
     flexDirection: 'row',
@@ -237,47 +175,47 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2,
   },
   ratingNumber: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 24,
+    lineHeight: lineHeightFor(24),
     color: Colors.text,
-    lineHeight: lineHeightFor(28),
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    gap: 2,
+    textAlign: 'left',
   },
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.space3,
-    paddingTop: Spacing.space2,
+    gap: Spacing.space3,
+    marginTop: Spacing.space4,
+    paddingTop: Spacing.space3,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    minHeight: 44,
   },
   viewAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    minHeight: 44,
+    gap: Spacing.space1,
   },
   viewAllText: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
     lineHeight: lineHeightFor(13),
+    color: Colors.primary,
+    textAlign: 'left',
   },
   writeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.space1,
-    minHeight: 44,
+    marginRight: 'auto',
   },
   writeText: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
     lineHeight: lineHeightFor(13),
+    color: Colors.primary,
+    textAlign: 'left',
   },
 })

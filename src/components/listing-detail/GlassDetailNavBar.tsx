@@ -16,48 +16,65 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../../constants/colors'
-import { Spacing } from '../../../constants/spacing'
-import { Radius } from '../../../constants/radius'
-import { Shadows } from '../../../constants/shadows'
-import { lineHeightFor } from '../../../constants/typography'
+import { Colors } from '../../constants/colors'
+import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 
-export interface EquipmentDetailNavBarProps {
+interface BaseGlassDetailNavBarProps {
   onBack: () => void
   isFavorite: boolean
   favoriteBusy: boolean
   canFavorite: boolean
   onToggleFavorite: () => void
-  searchValue?: string
-  onSearchChange?: (v: string) => void
-  onSearchSubmit?: (v: string) => void
   scrollY: SharedValue<number>
-  placeholder?: string
   paddingTop: number
 }
 
+interface GlassDetailNavBarWithoutSearchProps extends BaseGlassDetailNavBarProps {
+  searchValue?: never
+  onSearchChange?: never
+  onSearchSubmit?: never
+  placeholder?: never
+}
+
+interface GlassDetailNavBarWithSearchProps extends BaseGlassDetailNavBarProps {
+  searchValue: string
+  onSearchChange: (v: string) => void
+  onSearchSubmit?: (v: string) => void
+  placeholder?: string
+}
+
+export type GlassDetailNavBarProps =
+  | GlassDetailNavBarWithoutSearchProps
+  | GlassDetailNavBarWithSearchProps
+
 /**
- * EquipmentDetailNavBar
- * Glassmorphic navigation bar specifically for equipment detail page.
- * Strictly adheres to equipment design decision:
+ * GlassDetailNavBar
+ * Glassmorphic navigation bar specifically for detail screens (equipment, operators, buses, etc.).
  * - Back button and favorite button (when eligible) visible
- * - Section search bar fades in on scroll (becomes interactive at 85px scroll)
+ * - Section search bar fades in on scroll when search props are provided (discriminated union)
  * - Zero share button and zero extra header buttons
  * - Zero hex color codes
  */
-export function EquipmentDetailNavBar({
-  onBack,
-  isFavorite,
-  favoriteBusy,
-  canFavorite,
-  onToggleFavorite,
-  searchValue,
-  onSearchChange,
-  onSearchSubmit,
-  scrollY,
-  placeholder = 'ابحث في تفاصيل المعدة...',
-  paddingTop,
-}: EquipmentDetailNavBarProps) {
+export function GlassDetailNavBar(props: GlassDetailNavBarProps) {
+  const {
+    onBack,
+    isFavorite,
+    favoriteBusy,
+    canFavorite,
+    onToggleFavorite,
+    scrollY,
+    paddingTop,
+  } = props
+
+  const hasSearch = typeof props.onSearchChange === 'function' && typeof props.searchValue === 'string'
+  const searchValue = hasSearch ? props.searchValue : ''
+  const onSearchChange = hasSearch ? props.onSearchChange : undefined
+  const onSearchSubmit = hasSearch ? props.onSearchSubmit : undefined
+  const placeholder = hasSearch ? (props.placeholder ?? 'ابحث في التفاصيل...') : undefined
+
   const [searchInteractive, setSearchInteractive] = useState(false)
 
   useAnimatedReaction(
@@ -89,7 +106,7 @@ export function EquipmentDetailNavBar({
   })
 
   return (
-    <View style={[s.navWrapper, { paddingTop }]} pointerEvents="box-none" testID="equipment-detail-navbar">
+    <View style={[s.navWrapper, { paddingTop }]} pointerEvents="box-none" testID="glass-detail-navbar">
       {/* Dynamic Glassmorphic Background */}
       <Animated.View style={[StyleSheet.absoluteFill, s.blurContainer, bgStyle]} pointerEvents="none">
         <BlurView intensity={35} tint="light" style={StyleSheet.absoluteFill} />
@@ -109,7 +126,7 @@ export function EquipmentDetailNavBar({
         </TouchableOpacity>
 
         {/* Search Bar (Fades in when scrolled) or flexible spacer if search is disabled */}
-        {onSearchChange ? (
+        {hasSearch ? (
           <Animated.View
             style={[s.searchContainer, searchStyle]}
             pointerEvents={searchInteractive ? 'auto' : 'none'}
@@ -117,9 +134,9 @@ export function EquipmentDetailNavBar({
           >
             <Ionicons name="search" size={16} color={Colors.textMuted} style={s.searchIcon} />
             <TextInput
-              value={searchValue ?? ''}
+              value={searchValue}
               onChangeText={onSearchChange}
-              onSubmitEditing={() => onSearchSubmit?.(searchValue ?? '')}
+              onSubmitEditing={() => onSearchSubmit?.(searchValue)}
               placeholder={placeholder}
               placeholderTextColor={Colors.placeholder}
               style={s.searchInput}
