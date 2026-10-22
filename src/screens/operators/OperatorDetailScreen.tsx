@@ -113,7 +113,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
-      router.push(`/equipment/operators/edit/${id}` as any)
+      router.push(`/equipment/operators/edit/${id}`)
       return
     }
 
@@ -150,19 +150,19 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   const handleOpenReviewsList = () => {
     if (!vm) return
-    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}` as any)
+    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}`)
   }
 
   const handleOpenWriteReview = () => {
     if (!vm) return
     if (!user) {
       router.push({
-        pathname: '/login' as any,
+        pathname: '/login',
         params: { redirect: `/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}&write=true` },
       })
       return
     }
-    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}&write=true` as any)
+    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}&write=true`)
   }
 
   const handleOpenSupport = () => {
@@ -170,7 +170,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   }
 
   const handlePressSellerProfile = (sellerId: string) => {
-    router.push(`/user/${sellerId}` as any)
+    router.push(`/user/${sellerId}`)
   }
 
   // Loading, Not Found, Offline, Error states
