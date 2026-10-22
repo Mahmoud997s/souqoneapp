@@ -79,7 +79,7 @@ export function OperatorReviewsCard({
           <Text style={s.ratingNumber} maxFontSizeMultiplier={1.3} testID="operator-rating-number">
             {formattedRating}
           </Text>
-          <OperatorStarsRow rating={ratingValue} size={18} />
+          <OperatorStarsRow rating={ratingValue} size={18} accessibilityLabel={`??????? ${formattedRating} ?? 5 ?? ?????? ${totalReviews} ?????`} />
         </View>
       )}
 
