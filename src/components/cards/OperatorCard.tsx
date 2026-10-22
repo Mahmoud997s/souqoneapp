@@ -1,52 +1,112 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform } from 'react-native'
-import { Image } from 'expo-image'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+} from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
 import { CardSystem } from '../../constants/cardSystem'
-import { UnifiedCardItem } from './UnifiedCard'
-import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
-import { dialogService } from '../../store/dialogStore'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
+import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
+import { formatLocation } from '../../utils/mappers'
+import { OperatorCardHeader } from './operator/OperatorCardHeader'
+import { OperatorCardChips } from './operator/OperatorCardChips'
+import { OperatorCardActions } from './operator/OperatorCardActions'
 
-interface Props {
-  item: UnifiedCardItem
-  onPress: () => void
+const CARD_FIXED_WIDTH = Dimensions.get('window').width * 0.65
+
+export interface OperatorCardProps {
+  item: any
+  onPress?: () => void
+  fullWidth?: boolean
+  maxChips?: number
+  actionMenu?: React.ReactNode
 }
 
-export function OperatorCard({ item, onPress }: Props) {
-  const { title, price, priceText, priceLabel, currency, governorate, raw } = item
-  const contact = useListingContact('OPERATOR_LISTING', item.id, `/equipment/operators/${item.id}`, title)
-  const isVerified = (item as any).isVerified ?? raw?.user?.isVerified ?? false
-  const userAvatar = (item as any).avatar || raw?.user?.avatarUrl || raw?.user?.avatar
+/**
+ * OperatorCard
+ * Unified operator card component serving all contexts (browse, landing, search, my-listings).
+ * Designed following the Impeccable method with strict token-only styling (zero raw hex).
+ */
+export function OperatorCard({
+  item,
+  onPress,
+  fullWidth = false,
+  maxChips = 3,
+  actionMenu,
+}: OperatorCardProps) {
+  if (!item) return null
 
-  // Extract data from raw
-  const operatorType = getOperatorTypeLabel(raw?.operatorType)
-  const experienceYears = raw?.experienceYears
-  const experienceText = experienceYears ? `${experienceYears} سنوات خبرة` : null
+  const raw = item.raw || item
+  const user = item.user || raw.user
 
-  // Equipment & Certification tags
-  const equipmentTags = (raw?.equipmentTypes && raw.equipmentTypes.length > 0)
-    ? raw.equipmentTypes.map((t: string) => getEquipmentTypeLabel(t))
-    : ['معدات ثقيلة']
+  const name =
+    user?.displayName ||
+    user?.username ||
+    item.title ||
+    raw.title ||
+    'مشغل في سوق ون'
+
+  const userAvatar = item.avatar || user?.avatarUrl || raw?.user?.avatarUrl || item.avatarUrl
+  const isVerified = Boolean(item.isVerified ?? raw?.isVerified ?? user?.isVerified ?? false)
+
+  const locationDisplay = item.governorate || formatLocation(raw) || 'سلطنة عمان'
+
+  const operatorType = raw?.operatorType || item.operatorType
+  const operatorTypeLabel = operatorType ? getOperatorTypeLabel(operatorType) : null
+
+  const experienceYears = raw?.experienceYears ?? item.experienceYears
+  const experienceText =
+    experienceYears != null && Number(experienceYears) > 0
+      ? `${experienceYears} سنوات خبرة`
+      : null
+
+  const rawEquip: string[] = raw?.equipmentTypes || item.equipmentTypes || []
+  const equipmentTags = rawEquip.length > 0
+    ? rawEquip.map((t) => getEquipmentTypeLabel(t))
+    : []
 
   const hasCertifications = Boolean(raw?.certifications && raw.certifications.length > 0)
 
-  const displayTags = equipmentTags.slice(0, 3)
-  const extraCount = equipmentTags.length - 3
-
-  const description = item.description || raw?.description
-
-  // Format price
-  let displayPrice = ''
-  const displayCurrency = currency === 'USD' ? '$' : 'ر.ع.'
-  if (price && price > 0) {
-    displayPrice = `${price} ${displayCurrency}` + (priceLabel ? ` / ${priceLabel}` : '')
-  } else if (priceText) {
-    displayPrice = priceText
+  // Assemble chip badges
+  const allChips: Array<{ key: string; label: string; icon: any; isMci?: boolean }> = []
+  if (operatorTypeLabel) {
+    allChips.push({ key: 'type', label: operatorTypeLabel, icon: 'account-hard-hat', isMci: true })
   }
+  if (experienceText) {
+    allChips.push({ key: 'exp', label: experienceText, icon: 'shield-checkmark-outline' })
+  }
+  equipmentTags.forEach((tag, idx) => {
+    allChips.push({ key: `eq-${idx}`, label: tag, icon: 'construct-outline' })
+  })
+
+  const visibleChips = allChips.slice(0, maxChips)
+  const extraCount = allChips.length - maxChips
+
+  // Price formatting: daily rate as primary, hourly rate as secondary, fallback to "السعر عند التواصل"
+  const dailyRate = Number(raw?.dailyRate ?? item.dailyRate ?? item.price ?? 0)
+  const hourlyRate = Number(raw?.hourlyRate ?? item.hourlyRate ?? 0)
+  const currencySymbol = (item.currency || raw?.currency) === 'USD' ? '$' : 'ر.ع.'
+
+  let displayPrice = 'السعر عند التواصل'
+  if (dailyRate > 0) {
+    displayPrice = `${dailyRate} ${currencySymbol} / يوم`
+  } else if (hourlyRate > 0) {
+    displayPrice = `${hourlyRate} ${currencySymbol} / ساعة`
+  } else if (item.priceText || raw?.priceText) {
+    displayPrice = item.priceText || raw.priceText
+  }
+
+  // Contact actions (public mode only)
+  const isOwnerMode = Boolean(actionMenu)
+  const contact = useListingContact(
+    'OPERATOR_LISTING',
+    item.id || raw?.id || '',
+    `/equipment/operators/${item.id || raw?.id || ''}`,
+    name
+  )
 
   const handleCall = (e: any) => {
     e.stopPropagation?.()
@@ -58,129 +118,38 @@ export function OperatorCard({ item, onPress }: Props) {
     contact.whatsApp()
   }
 
+  const isWhatsappEnabled = Boolean(item.whatsappEnabled || raw?.whatsappEnabled)
+
   return (
-    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
-      {/* ── Top Row: Scaled Avatar (+2px) + Title & Badges ── */}
-      <View style={s.topRow}>
-        <View style={s.avatarContainer}>
-          {userAvatar ? (
-            <Image source={{ uri: userAvatar }} style={s.avatar} contentFit="cover" />
-          ) : (
-            <View style={s.avatarPlaceholder}>
-              <MaterialCommunityIcons name="hard-hat" size={24} color={Colors.primary} />
-            </View>
-          )}
-          {isVerified && (
-            <View style={s.verifiedIconBadge}>
-              <Ionicons name="checkmark-circle" size={13} color={Colors.primary} />
-            </View>
-          )}
-        </View>
+    <TouchableOpacity
+      style={[s.card, fullWidth ? s.cardFull : s.cardFixed]}
+      onPress={onPress}
+      activeOpacity={0.88}
+      testID="operator-card"
+    >
+      <OperatorCardHeader
+        name={name}
+        avatarUrl={userAvatar}
+        isVerified={isVerified}
+        locationDisplay={locationDisplay}
+        isOwnerMode={isOwnerMode}
+        displayPrice={displayPrice}
+        actionMenu={actionMenu}
+      />
 
-        <View style={s.textContainer}>
-          <View style={s.titleRow}>
-            <Text style={s.title} numberOfLines={1}>{title}</Text>
-          </View>
+      <OperatorCardChips
+        chips={visibleChips}
+        hasCertifications={hasCertifications}
+        extraCount={extraCount}
+      />
 
-          {/* Role & Experience Pills (Soft & Balanced) */}
-          <View style={s.badgesRow}>
-            {operatorType ? (
-              <View style={[s.detailPill, s.pillBlue]}>
-                <Ionicons name="person-outline" size={10.5} color="#3B82F6" />
-                <Text style={[s.detailText, { color: '#2563EB' }]} numberOfLines={1}>
-                  {operatorType}
-                </Text>
-              </View>
-            ) : null}
-
-            {experienceText ? (
-              <View style={[s.detailPill, s.pillGreen]}>
-                <Ionicons name="shield-checkmark-outline" size={10.5} color="#10B981" />
-                <Text style={[s.detailText, { color: '#059669' }]} numberOfLines={1}>
-                  {experienceText}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-        </View>
-      </View>
-
-      {/* ── Description Container: Balanced Full Width under Avatar & Title ── */}
-      {description ? (
-        <View style={s.descContainer}>
-          <Text style={s.descText} numberOfLines={2}>
-            {description}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* ── Details List: Equipment & Certification Badge ── */}
-      {((displayTags && displayTags.length > 0) || hasCertifications) && (
-        <View style={s.detailsList}>
-          {displayTags.map((tag: string, i: number) => (
-            <View key={`eq-${i}`} style={[s.detailPill, s.pillNeutral]}>
-              <Ionicons name="construct-outline" size={10.5} color="#64748B" />
-              <Text style={s.detailText} numberOfLines={1}>{tag}</Text>
-            </View>
-          ))}
-          {hasCertifications && (
-            <View style={[s.detailPill, s.pillAmber]}>
-              <Ionicons name="ribbon-outline" size={10.5} color="#D97706" />
-              <Text style={[s.detailText, { color: '#B45309', fontFamily: 'Almarai_700Bold' }]} numberOfLines={1}>
-                شهادة معتمدة
-              </Text>
-            </View>
-          )}
-          {extraCount > 0 && (
-            <View style={[s.detailPill, s.pillNeutral, { paddingHorizontal: 4.5, flexShrink: 0 }]}>
-              <Text style={[s.detailText, { fontFamily: 'Almarai_700Bold', color: '#64748B', fontSize: 9.5 }]}>
-                +{extraCount}
-              </Text>
-            </View>
-          )}
-        </View>
+      {!isOwnerMode && (
+        <OperatorCardActions
+          onCall={handleCall}
+          onWhatsApp={handleWhatsApp}
+          isWhatsappEnabled={isWhatsappEnabled}
+        />
       )}
-
-      {/* ── Footer: Location & Price ── */}
-      <View style={s.footer}>
-        <View style={s.locationRow}>
-          <Ionicons name="location-outline" size={12} color="#94A3B8" />
-          <Text style={s.locationTxt} numberOfLines={1}>
-            {governorate || 'سلطنة عمان'}
-          </Text>
-        </View>
-
-        {displayPrice ? (
-          <View style={[s.detailPill, s.pillOrange]}>
-            <Ionicons name="wallet-outline" size={11} color="#EA580C" />
-            <Text style={[s.detailText, { color: '#C2410C', fontFamily: 'Almarai_800ExtraBold' }]}>
-              {displayPrice}
-            </Text>
-          </View>
-        ) : (
-          <View style={[s.detailPill, s.pillNeutral]}>
-            <Text style={[s.detailText, { color: '#64748B', fontFamily: 'Almarai_700Bold' }]}>
-              قابل للتفاوض
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* ── Quick Actions Row ── */}
-      <View style={s.actionRow}>
-        <TouchableOpacity style={s.callBtn} onPress={handleCall} activeOpacity={0.8}>
-          <Ionicons name="call" size={12} color={Colors.primary} />
-          <Text style={s.callBtnTxt}>اتصال</Text>
-        </TouchableOpacity>
-
-        {(item.whatsappEnabled === true || raw?.whatsappEnabled === true) && (
-          <TouchableOpacity style={s.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.8}>
-            <Ionicons name="logo-whatsapp" size={13} color="#16A34A" />
-            <Text style={s.whatsappBtnTxt}>واتساب</Text>
-          </TouchableOpacity>
-        )}
-      </View>
     </TouchableOpacity>
   )
 }
@@ -191,203 +160,24 @@ const s = StyleSheet.create({
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
-    width: '100%',
+    borderColor: Colors.border,
     marginBottom: Spacing.space3,
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 1.5,
+        elevation: 2,
       },
     }),
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: Spacing.space2,
+  cardFull: {
+    width: '100%',
   },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#EEF2F6',
-  },
-  avatarPlaceholder: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#F0F7FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E0EDFD',
-  },
-  verifiedIconBadge: {
-    position: 'absolute',
-    bottom: -1,
-    end: -1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
-  },
-  title: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13.5,
-    lineHeight: 18.5,
-    color: '#0F172A',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 4,
-  },
-  descContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 7,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    paddingHorizontal: 9,
-    paddingVertical: 5.5,
-    marginBottom: Spacing.space2,
-  },
-  descText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: 16.5,
-    color: '#475569',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  detailsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: Spacing.space2,
-  },
-  detailPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2.5,
-    borderRadius: CardSystem.radius.inner,
-    flexShrink: 1,
-  },
-  pillNeutral: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  pillBlue: {
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  pillGreen: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-  },
-  pillOrange: {
-    backgroundColor: '#FFF7ED',
-    borderWidth: 1,
-    borderColor: '#FFEDD5',
-  },
-  pillAmber: {
-    backgroundColor: '#FEF3C7',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  detailText: {
-    ...CardSystem.typography.pillText,
-    color: '#475569',
-    writingDirection: 'rtl',
-    flexShrink: 1,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Spacing.space2,
-    borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
-    marginBottom: Spacing.space2,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    flex: 1,
-  },
-  locationTxt: {
-    ...CardSystem.typography.subtitle,
-    color: '#94A3B8',
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: Spacing.space2,
-    paddingTop: 2,
-  },
-  callBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingVertical: 6,
-    borderRadius: Radius.md,
-  },
-  callBtnTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.primary,
-  },
-  whatsappBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-    paddingVertical: 6,
-    borderRadius: Radius.md,
-  },
-  whatsappBtnTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: '#16A34A',
+  cardFixed: {
+    width: CARD_FIXED_WIDTH,
   },
 })
