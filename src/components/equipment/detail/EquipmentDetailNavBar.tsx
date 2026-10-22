@@ -28,9 +28,9 @@ export interface EquipmentDetailNavBarProps {
   favoriteBusy: boolean
   canFavorite: boolean
   onToggleFavorite: () => void
-  searchValue: string
-  onSearchChange: (v: string) => void
-  onSearchSubmit: (v: string) => void
+  searchValue?: string
+  onSearchChange?: (v: string) => void
+  onSearchSubmit?: (v: string) => void
   scrollY: SharedValue<number>
   placeholder?: string
   paddingTop: number
@@ -108,27 +108,31 @@ export function EquipmentDetailNavBar({
           <Ionicons name="arrow-forward" size={20} color={Colors.text} />
         </TouchableOpacity>
 
-        {/* Search Bar (Fades in when scrolled) */}
-        <Animated.View
-          style={[s.searchContainer, searchStyle]}
-          pointerEvents={searchInteractive ? 'auto' : 'none'}
-          testID="nav-search-container"
-        >
-          <Ionicons name="search" size={16} color={Colors.textMuted} style={s.searchIcon} />
-          <TextInput
-            value={searchValue}
-            onChangeText={onSearchChange}
-            onSubmitEditing={() => onSearchSubmit(searchValue)}
-            placeholder={placeholder}
-            placeholderTextColor={Colors.placeholder}
-            style={s.searchInput}
-            returnKeyType="search"
-            clearButtonMode="while-editing"
-            autoCorrect={false}
-            autoCapitalize="none"
-            testID="nav-search-input"
-          />
-        </Animated.View>
+        {/* Search Bar (Fades in when scrolled) or flexible spacer if search is disabled */}
+        {onSearchChange ? (
+          <Animated.View
+            style={[s.searchContainer, searchStyle]}
+            pointerEvents={searchInteractive ? 'auto' : 'none'}
+            testID="nav-search-container"
+          >
+            <Ionicons name="search" size={16} color={Colors.textMuted} style={s.searchIcon} />
+            <TextInput
+              value={searchValue ?? ''}
+              onChangeText={onSearchChange}
+              onSubmitEditing={() => onSearchSubmit?.(searchValue ?? '')}
+              placeholder={placeholder}
+              placeholderTextColor={Colors.placeholder}
+              style={s.searchInput}
+              returnKeyType="search"
+              clearButtonMode="while-editing"
+              autoCorrect={false}
+              autoCapitalize="none"
+              testID="nav-search-input"
+            />
+          </Animated.View>
+        ) : (
+          <View style={s.flexibleSpacer} />
+        )}
 
         {/* Favorite Button (or spacer) */}
         {canFavorite ? (
@@ -194,6 +198,9 @@ const s = StyleSheet.create({
   buttonSpacer: {
     width: 40,
     height: 40,
+  },
+  flexibleSpacer: {
+    flex: 1,
   },
   searchContainer: {
     flex: 1,

@@ -102,7 +102,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   })
 
   // State
-  const [searchValue, setSearchValue] = useState('')
   const [activeCertificateImage, setActiveCertificateImage] = useState<string | null>(null)
 
   const availability: ContactAvailability = useMemo(() => {
@@ -217,11 +216,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
         onToggleFavorite={favoriteToggle.toggle}
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        onSearchSubmit={() => {}}
         scrollY={scrollY}
-        placeholder="ابحث في تفاصيل المشغل..."
         paddingTop={insets.top}
       />
 

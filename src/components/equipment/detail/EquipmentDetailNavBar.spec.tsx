@@ -89,4 +89,52 @@ describe('EquipmentDetailNavBar', () => {
     expect(screen.queryByTestId('nav-share-button')).toBeNull()
     expect(screen.queryByLabelText(/مشاركة|share/i)).toBeNull()
   })
+
+  it('renders search input when onSearchChange is passed', async () => {
+    await render(
+      <EquipmentDetailNavBar
+        onBack={jest.fn()}
+        isFavorite={false}
+        favoriteBusy={false}
+        canFavorite={true}
+        onToggleFavorite={jest.fn()}
+        searchValue="test"
+        onSearchChange={jest.fn()}
+        onSearchSubmit={jest.fn()}
+        scrollY={dummyScrollY}
+        paddingTop={40}
+      />
+    )
+
+    expect(screen.getByTestId('nav-search-input')).toBeTruthy()
+    expect(screen.getByTestId('nav-search-container')).toBeTruthy()
+  })
+
+  it('does NOT render search input when search props are omitted, but back and favorite still work', async () => {
+    const onBackMock = jest.fn()
+    const onToggleMock = jest.fn()
+    await render(
+      <EquipmentDetailNavBar
+        onBack={onBackMock}
+        isFavorite={false}
+        favoriteBusy={false}
+        canFavorite={true}
+        onToggleFavorite={onToggleMock}
+        scrollY={dummyScrollY}
+        paddingTop={40}
+      />
+    )
+
+    expect(screen.queryByTestId('nav-search-input')).toBeNull()
+    expect(screen.queryByTestId('nav-search-container')).toBeNull()
+
+    // Back button and favorite still fully operational
+    const backBtn = screen.getByTestId('nav-back-button')
+    fireEvent.press(backBtn)
+    expect(onBackMock).toHaveBeenCalledTimes(1)
+
+    const favBtn = screen.getByTestId('nav-favorite-button')
+    fireEvent.press(favBtn)
+    expect(onToggleMock).toHaveBeenCalledTimes(1)
+  })
 })

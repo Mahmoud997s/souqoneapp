@@ -281,4 +281,17 @@ describe('OperatorDetailScreen', () => {
 
     expect(mockRouter.push).toHaveBeenCalledWith('/equipment/operators/edit/op-100')
   })
+
+  it('does NOT render a search bar in the navbar (dead control removed)', async () => {
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    expect(screen.queryByTestId('nav-search-input')).toBeNull()
+    expect(screen.queryByTestId('nav-search-container')).toBeNull()
+  })
 })
