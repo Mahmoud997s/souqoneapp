@@ -1,29 +1,32 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../../constants/colors'
-import { Spacing } from '../../../constants/spacing'
-import { Radius } from '../../../constants/radius'
-import { Shadows } from '../../../constants/shadows'
-import { RTLText } from '../../../constants/rtl'
-import { lineHeightFor } from '../../../constants/typography'
+import { Colors } from '../../constants/colors'
+import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
+import { RTLText } from '../../constants/rtl'
+import { lineHeightFor } from '../../constants/typography'
 
-export interface EquipmentLocationCardProps {
+export interface LocationCardProps {
   locationText: string
   latitude?: number
   longitude?: number
 }
 
+export type EquipmentLocationCardProps = LocationCardProps
+
 /**
- * EquipmentLocationCard
+ * LocationCard (formerly EquipmentLocationCard)
  * Text-based location card with external directions link.
- * Strictly adheres to equipment decision: text location card instead of embedded map.
+ * Used across detail screens (Equipment, Operators, etc.) where a lightweight text-based
+ * location card with external directions link is preferred over an embedded map view.
  */
-export function EquipmentLocationCard({
+export function LocationCard({
   locationText,
   latitude,
   longitude,
-}: EquipmentLocationCardProps) {
+}: LocationCardProps) {
   const hasCoordinates =
     typeof latitude === 'number' &&
     typeof longitude === 'number' &&
@@ -67,6 +70,8 @@ export function EquipmentLocationCard({
     </View>
   )
 }
+
+export const EquipmentLocationCard = LocationCard
 
 const s = StyleSheet.create({
   card: {

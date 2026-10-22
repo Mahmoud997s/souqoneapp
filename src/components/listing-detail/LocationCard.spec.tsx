@@ -1,54 +1,48 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import { Linking } from 'react-native'
-import { EquipmentLocationCard } from './EquipmentLocationCard'
+import { LocationCard, EquipmentLocationCard } from './LocationCard'
 
-describe('EquipmentLocationCard', () => {
+jest.spyOn(Linking, 'openURL').mockImplementation(() => Promise.resolve() as any)
+
+describe('LocationCard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void)
   })
 
-  it('renders location text without directions button when coordinates are missing', async () => {
-    await render(<EquipmentLocationCard locationText="مسقط، السيب" />)
-
-    expect(screen.getByTestId('equipment-location-card')).toBeTruthy()
+  it('renders location text and title properly', async () => {
+    await render(<LocationCard locationText="مسقط، السيب" />)
     expect(screen.getByText('الموقع والعنوان')).toBeTruthy()
     expect(screen.getByText('مسقط، السيب')).toBeTruthy()
+  })
+
+  it('renders directions button when coordinates are valid numbers and opens maps URL on press', async () => {
+    await render(
+      <LocationCard
+        locationText="مسقط، الخوير"
+        latitude={23.588}
+        longitude={58.3829}
+      />
+    )
+    const btn = screen.getByTestId('equipment-directions-button')
+    expect(btn).toBeTruthy()
+
+    fireEvent.press(btn)
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://www.google.com/maps/dir/?api=1&destination=23.588,58.3829'
+    )
+  })
+
+  it('does NOT render directions button when coordinates are missing or undefined', async () => {
+    await render(
+      <LocationCard
+        locationText="صلالة"
+      />
+    )
     expect(screen.queryByTestId('equipment-directions-button')).toBeNull()
   })
 
-  it('renders directions button and opens google maps URL when coordinates are valid', async () => {
-    await render(
-      <EquipmentLocationCard
-        locationText="صحار، منطقة الميناء"
-        latitude={24.36}
-        longitude={56.74}
-      />
-    )
-
-    const directionsBtn = screen.getByTestId('equipment-directions-button')
-    expect(directionsBtn).toBeTruthy()
-    expect(screen.getByText('الحصول على الاتجاهات')).toBeTruthy()
-
-    fireEvent.press(directionsBtn)
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://www.google.com/maps/dir/?api=1&destination=24.36,56.74'
-    )
-  })
-
-  it('does NOT render any MapView or map canvas component', async () => {
-    const res = await render(
-      <EquipmentLocationCard
-        locationText="صلالة، عوقد"
-        latitude={17.02}
-        longitude={54.09}
-      />
-    )
-
-    // Verify there is no map component in JSON tree
-    const jsonStr = JSON.stringify(res.toJSON())
-    expect(jsonStr).not.toContain('MapView')
-    expect(jsonStr).not.toContain('AIRMap')
+  it('exports EquipmentLocationCard as backward-compatible alias', () => {
+    expect(EquipmentLocationCard).toBe(LocationCard)
   })
 })

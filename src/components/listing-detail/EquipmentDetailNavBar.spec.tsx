@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
-import { EquipmentDetailNavBar } from './EquipmentDetailNavBar'
+import { EquipmentDetailNavBar, type EquipmentDetailNavBarProps } from './EquipmentDetailNavBar'
 
 describe('EquipmentDetailNavBar', () => {
   const dummyScrollY = { value: 0 } as unknown as import('react-native-reanimated').SharedValue<number>
@@ -136,5 +136,63 @@ describe('EquipmentDetailNavBar', () => {
     const favBtn = screen.getByTestId('nav-favorite-button')
     fireEvent.press(favBtn)
     expect(onToggleMock).toHaveBeenCalledTimes(1)
+  })
+
+  describe('Discriminated Union Typing Tests', () => {
+    it('validates compilation behavior of valid and invalid prop combinations', () => {
+      // Valid without search
+      const validWithoutSearch: EquipmentDetailNavBarProps = {
+        onBack: () => {},
+        isFavorite: false,
+        favoriteBusy: false,
+        canFavorite: true,
+        onToggleFavorite: () => {},
+        scrollY: dummyScrollY,
+        paddingTop: 40,
+      }
+      expect(validWithoutSearch).toBeDefined()
+
+      // Valid with search
+      const validWithSearch: EquipmentDetailNavBarProps = {
+        onBack: () => {},
+        isFavorite: false,
+        favoriteBusy: false,
+        canFavorite: true,
+        onToggleFavorite: () => {},
+        scrollY: dummyScrollY,
+        paddingTop: 40,
+        searchValue: 'test',
+        onSearchChange: () => {},
+      }
+      expect(validWithSearch).toBeDefined()
+
+      // Invalid: onSearchChange without searchValue
+      // @ts-expect-error Types of property 'searchValue' are incompatible - string is required when onSearchChange is present
+      const invalidMissingSearchValue: EquipmentDetailNavBarProps = {
+        onBack: () => {},
+        isFavorite: false,
+        favoriteBusy: false,
+        canFavorite: true,
+        onToggleFavorite: () => {},
+        scrollY: dummyScrollY,
+        paddingTop: 40,
+        onSearchChange: () => {},
+      }
+      expect(invalidMissingSearchValue).toBeDefined()
+
+      // Invalid: searchValue without onSearchChange
+      // @ts-expect-error Types of property 'onSearchChange' are incompatible - callback is required when searchValue is present
+      const invalidMissingOnSearchChange: EquipmentDetailNavBarProps = {
+        onBack: () => {},
+        isFavorite: false,
+        favoriteBusy: false,
+        canFavorite: true,
+        onToggleFavorite: () => {},
+        scrollY: dummyScrollY,
+        paddingTop: 40,
+        searchValue: 'test',
+      }
+      expect(invalidMissingOnSearchChange).toBeDefined()
+    })
   })
 })
