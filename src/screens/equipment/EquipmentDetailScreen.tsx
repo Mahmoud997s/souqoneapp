@@ -246,14 +246,22 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
     ? 'للإيجار'
     : 'للبيع'
 
-  // Safety tips resolution
-  const tipsTitle = isOwner
+  // Safety tips resolution (WANTED visitor is supplier/seller; owner is requester/buyer)
+  const tipsTitle = isWanted
+    ? isOwner
+      ? EQUIPMENT_BUYER_SAFETY_TIPS_TITLE
+      : EQUIPMENT_SELLER_SAFETY_TIPS_TITLE
+    : isOwner
     ? EQUIPMENT_SELLER_SAFETY_TIPS_TITLE
     : isRental
     ? EQUIPMENT_RENTER_SAFETY_TIPS_TITLE
     : EQUIPMENT_BUYER_SAFETY_TIPS_TITLE
 
-  const tipsList = isOwner
+  const tipsList = isWanted
+    ? isOwner
+      ? EQUIPMENT_BUYER_SAFETY_TIPS
+      : EQUIPMENT_SELLER_SAFETY_TIPS
+    : isOwner
     ? EQUIPMENT_SELLER_SAFETY_TIPS
     : isRental
     ? EQUIPMENT_RENTER_SAFETY_TIPS
@@ -378,34 +386,15 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           </Animated.View>
         ) : null}
 
-        {/* 9. Structured Specifications Sections */}
+        {/* 9. Structured Specifications Sections (includes features section) */}
         {filteredSpecsSections.length > 0 ? (
           <Animated.View entering={getEnteringAnimation(8)}>
             <SpecsSections sections={filteredSpecsSections} />
           </Animated.View>
         ) : null}
 
-        {/* 10. Additional Features Chips */}
-        {vm.features.length > 0 ? (
-          <Animated.View entering={getEnteringAnimation(9)}>
-            <SpecsSections
-              sections={[
-                {
-                  title: 'المميزات الإضافية',
-                  items: vm.features.map((f) => ({
-                    key: f,
-                    label: f,
-                    value: '',
-                    icon: 'checkmark-circle-outline',
-                  })),
-                },
-              ]}
-            />
-          </Animated.View>
-        ) : null}
-
-        {/* 11. Text Location Card (NO embedded map) */}
-        <Animated.View entering={getEnteringAnimation(10)}>
+        {/* 10. Text Location Card (NO embedded map) */}
+        <Animated.View entering={getEnteringAnimation(9)}>
           <EquipmentLocationCard
             locationText={vm.location.fullLocationText}
             latitude={vm.location.latitude}
@@ -413,9 +402,9 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 12. Similar Listings Grid (shows loading, error, items; hides when empty) */}
+        {/* 11. Similar Listings Grid (shows loading, error, items; hides when empty) */}
         {similarListings.items.length > 0 || similarListings.isLoading || similarListings.isError ? (
-          <Animated.View entering={getEnteringAnimation(11)} testID="equipment-similar-section">
+          <Animated.View entering={getEnteringAnimation(10)} testID="equipment-similar-section">
             <SimilarListingsGrid<SimilarEquipmentItem>
               items={similarListings.items}
               isLoading={similarListings.isLoading}
@@ -483,17 +472,25 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           </Animated.View>
         ) : null}
 
-        {/* 13. Safety Tips */}
-        <Animated.View entering={getEnteringAnimation(12)}>
+        {/* 12. Safety Tips */}
+        <Animated.View entering={getEnteringAnimation(11)}>
           <SafetyTips
-            role={isOwner ? 'seller' : 'buyer'}
+            role={
+              isWanted
+                ? isOwner
+                  ? 'buyer'
+                  : 'seller'
+                : isOwner
+                ? 'seller'
+                : 'buyer'
+            }
             title={tipsTitle}
             tips={tipsList}
           />
         </Animated.View>
 
-        {/* 14. Support Button */}
-        <Animated.View entering={getEnteringAnimation(13)}>
+        {/* 13. Support Button */}
+        <Animated.View entering={getEnteringAnimation(12)}>
           <SupportButton onPress={handleSupportPress} />
         </Animated.View>
       </Animated.ScrollView>
