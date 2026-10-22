@@ -458,4 +458,64 @@ describe('useFavoriteToggle', () => {
     await waitFor(() => expect(screen.getByText('IDLE')).toBeTruthy())
     expect(screen.getByText('FAVORITED')).toBeTruthy()
   })
+
+  it('teeth test 4: ignores in-flight toggle completion if entity id changes before resolution', async () => {
+    let resolveAddA: (value: any) => void = () => {}
+    const addPromiseA = new Promise((resolve) => {
+      resolveAddA = resolve
+    })
+    ;(favoritesApi.add as jest.Mock).mockReturnValue(addPromiseA)
+
+    // Check query for item-B remains pending so it does not auto-hydrate over our state
+    ;(favoritesApi.check as jest.Mock).mockReturnValue(new Promise(() => {}))
+
+    const { rerender } = await render(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(TestFavoriteHarness, {
+          entityType: 'EQUIPMENT',
+          id: 'item-A',
+          initialIsFavorite: false,
+        })
+      )
+    )
+
+    expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+
+    // Start toggle on item-A (flips to FAVORITED and BUSY)
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('fav-btn'))
+    })
+    expect(screen.getByText('FAVORITED')).toBeTruthy()
+    expect(screen.getByText('BUSY')).toBeTruthy()
+
+    // Rerender with item-B (initialIsFavorite: false) BEFORE item-A resolves
+    await act(async () => {
+      rerender(
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          React.createElement(TestFavoriteHarness, {
+            entityType: 'EQUIPMENT',
+            id: 'item-B',
+            initialIsFavorite: false,
+          })
+        )
+      )
+    })
+
+    // item-B shows UNFAVORITED and IDLE (busy cleared on id change)
+    expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+    expect(screen.getByText('IDLE')).toBeTruthy()
+
+    // Now item-A's add resolves with { favorited: true }
+    await act(async () => {
+      resolveAddA({ data: { favorited: true } })
+    })
+
+    // item-B state MUST REMAIN UNFAVORITED and IDLE — not corrupted by item-A's late response
+    expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+    expect(screen.getByText('IDLE')).toBeTruthy()
+  })
 })
