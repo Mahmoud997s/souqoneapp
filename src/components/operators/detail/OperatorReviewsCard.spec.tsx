@@ -22,7 +22,7 @@ describe('OperatorReviewsCard', () => {
     expect(screen.getByTestId('operator-reviews-write')).toBeTruthy()
     const starsRow = screen.getByTestId('operator-stars-row')
     expect(starsRow.props.accessible).toBe(true)
-    expect(starsRow.props.accessibilityLabel).toBe('??????? 4.8 ?? 5 ?? ?????? 12 ?????')
+    expect(starsRow.props.accessibilityLabel).toBe('التقييم 4.8 من 5 بناءً على 12 تقييم')
   })
 
   it('renders empty state when totalReviews is 0 without fake rating', async () => {

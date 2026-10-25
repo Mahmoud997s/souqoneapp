@@ -447,7 +447,7 @@ describe('useFavoriteToggle', () => {
       resolveCheck({ data: { favorited: false } })
     })
 
-    // User's optimistic tap MUST STILL WIN — not overwritten to UNFAVORITED
+    // User's optimistic tap MUST STILL WIN - not overwritten to UNFAVORITED
     expect(screen.getByText('FAVORITED')).toBeTruthy()
 
     // Now complete the add/toggle API call
@@ -514,7 +514,7 @@ describe('useFavoriteToggle', () => {
       resolveAddA({ data: { favorited: true } })
     })
 
-    // item-B state MUST REMAIN UNFAVORITED and IDLE — not corrupted by item-A's late response
+    // item-B state MUST REMAIN UNFAVORITED and IDLE - not corrupted by item-A's late response
     expect(screen.getByText('UNFAVORITED')).toBeTruthy()
     expect(screen.getByText('IDLE')).toBeTruthy()
   })
