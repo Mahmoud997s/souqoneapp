@@ -1,8 +1,12 @@
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react-native'
-import { StyleSheet, Text, View } from 'react-native'
+import * as fs from 'fs'
+import * as path from 'path'
+import { render, fireEvent, act } from '@testing-library/react-native'
+import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { OperatorCard } from './OperatorCard'
+import { OperatorHorizontalList } from '../equipment/landing/OperatorHorizontalList'
+import { SearchCardDispatcher } from '../../screens/search/components/SearchCardDispatcher'
 import { useAuthStore } from '../../store/authStore'
 
 jest.mock('../../api/contact', () => ({
@@ -234,6 +238,96 @@ describe('OperatorCard', () => {
       )
 
       expect(queryByTestId('operator-status-dot')).toBeNull()
+    })
+  })
+
+  describe('Width Truth Table (Part B)', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('teeth check Part B1: landing swiper item wrapper width is 65% of mocked window width', async () => {
+      jest.spyOn(Dimensions, 'get').mockReturnValue({
+        width: 400,
+        height: 800,
+        scale: 2,
+        fontScale: 1,
+      })
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorHorizontalList
+            title="مشغلو المعدات"
+            data={[baseItem]}
+            isLoading={false}
+            emptyText="لا يوجد مشغلون"
+            onSeeAll={jest.fn()}
+            onPressItem={jest.fn()}
+          />
+        </QueryClientProvider>
+      )
+
+      const itemWrapper = getByTestId('operator-swiper-item-wrapper')
+      const flatWrapper = StyleSheet.flatten(itemWrapper.props.style)
+      expect(flatWrapper.width).toBe(Math.round(400 * 0.65))
+    })
+
+    it('teeth check Part B2: search operator card wrapper width is 65% and follows a changed mocked window width', async () => {
+      let changeListener: ((dims: any) => void) | null = null
+      const dimsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({
+        width: 400,
+        height: 800,
+        scale: 2,
+        fontScale: 1,
+      })
+      jest.spyOn(Dimensions, 'addEventListener').mockImplementation(((type: string, handler: any) => {
+        if (type === 'change') changeListener = handler
+        return { remove: jest.fn() }
+      }) as any)
+
+      const searchItem = {
+        ...baseItem,
+        _entityType: 'operator',
+      }
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <SearchCardDispatcher item={searchItem} />
+        </QueryClientProvider>
+      )
+
+      const wrapper1 = getByTestId('search-operator-card-wrapper')
+      expect(StyleSheet.flatten(wrapper1.props.style).width).toBe(Math.round(400 * 0.65))
+
+      const nextWindow = {
+        width: 600,
+        height: 400,
+        scale: 2,
+        fontScale: 1,
+      }
+      dimsSpy.mockReturnValue(nextWindow)
+      await act(async () => {
+        changeListener?.({ window: nextWindow, screen: nextWindow })
+      })
+
+      const wrapper2 = getByTestId('search-operator-card-wrapper')
+      expect(StyleSheet.flatten(wrapper2.props.style).width).toBe(Math.round(600 * 0.65))
+    })
+
+    it('browse page renders OperatorCard directly in renderItem with no width wrapper so the card fills 100% of the list row', async () => {
+      const browsePath = path.resolve(__dirname, '../../../app/equipment/operators/browse.tsx')
+      const browseSource = fs.readFileSync(browsePath, 'utf8')
+      expect(browseSource).toMatch(
+        /renderItem=\{\(\{\s*item\s*\}\)\s*=>\s*\(\s*<OperatorCard[\s\S]*?\/>\s*\)\}/
+      )
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+      const card = getByTestId('operator-card')
+      expect(StyleSheet.flatten(card.props.style).width).toBe('100%')
     })
   })
 })
