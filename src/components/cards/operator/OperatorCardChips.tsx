@@ -14,6 +14,8 @@ export interface OperatorCardChipsProps {
 }
 
 const CHIP_HEIGHT = 26
+type IoniconName = React.ComponentProps<typeof Ionicons>['name']
+type MciIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name']
 
 /**
  * OperatorCardChips
@@ -51,14 +53,14 @@ export function OperatorCardChips({
               />
             ) : chip.isMci ? (
               <MaterialCommunityIcons
-                name={chip.icon as any}
+                name={chip.icon as MciIconName}
                 size={11}
                 color={Colors.primary}
                 style={s.chipIcon}
               />
             ) : (
               <Ionicons
-                name={chip.icon as any}
+                name={chip.icon as IoniconName}
                 size={11}
                 color={Colors.primary}
                 style={s.chipIcon}
@@ -94,7 +96,12 @@ export function OperatorCardChips({
       )}
 
       {extraCount > 0 && (
-        <View style={[s.chip, s.extraChip]} testID="operator-chip-extra">
+        <View
+          style={[s.chip, s.extraChip]}
+          testID="operator-chip-extra"
+          accessible
+          accessibilityLabel={`${extraCount} مهارات إضافية`}
+        >
           <Text style={s.extraChipText} numberOfLines={1}>
             +{extraCount}
           </Text>

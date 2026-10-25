@@ -114,6 +114,8 @@ export function OperatorCard({
       style={[s.card]}
       onPress={onPress}
       activeOpacity={0.88}
+      accessibilityRole="button"
+      accessibilityLabel={`${name}، ${locationDisplay}، ${displayPrice}`}
       testID="operator-card"
     >
       <OperatorCardHeader

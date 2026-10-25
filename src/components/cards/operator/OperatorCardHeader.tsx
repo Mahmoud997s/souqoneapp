@@ -76,9 +76,19 @@ export function OperatorCardHeader({
       </View>
 
       {isOwnerMode ? (
-        <View style={s.actionMenuContainer}>{actionMenu}</View>
+        <View
+          style={s.actionMenuContainer}
+          testID="operator-action-menu-container"
+        >
+          {actionMenu}
+        </View>
       ) : (
-        <View style={s.priceBadge}>
+        <View
+          style={s.priceBadge}
+          testID="operator-price-badge"
+          accessible
+          accessibilityLabel={`الأجر: ${displayPrice}`}
+        >
           <Text style={s.priceText} numberOfLines={1} ellipsizeMode="tail">
             {displayPrice}
           </Text>
@@ -168,6 +178,8 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   actionMenuContainer: {
+    minWidth: Spacing.touch,
+    minHeight: Spacing.touch,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
