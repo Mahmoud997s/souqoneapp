@@ -1,22 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
+import type {
+  OwnerAction,
+  OwnerActionId,
+} from '../../components/listing-detail/OwnerManageBar'
 import type { OperatorDetailViewModel } from '../../types/operatorDetailViewModel.types'
 import { equipmentApi } from '../../api/equipment'
 import { invalidateOperatorListingQueries } from '../../utils/listing-detail/operatorQueryKeys'
 import { useAuthStore } from '../../store/authStore'
 import { promptProfilePhoneRequired } from '../../utils/profilePhoneGuard'
 
-export interface OwnerAction {
-  id: OwnerActionId
-  label: string
-  tone: 'primary' | 'danger' | 'neutral'
-  icon: string
-  requiresConfirm: boolean
-  confirmTitle?: string
-  confirmMessage?: string
-  confirmLabel?: string
-}
+export type { OwnerAction }
 
 export interface UseOperatorOwnerActionsResult {
   actions: OwnerAction[]

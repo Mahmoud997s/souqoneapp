@@ -117,6 +117,7 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
       updatedAt: bus.updatedAt || bus.createdAt || '',
       raw: bus,
       mapped: mapBusToCard(bus),
+      version: bus.version || 1,
     })
   }
 
@@ -171,6 +172,7 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
       updatedAt: eq.updatedAt || eq.createdAt || '',
       raw: eq,
       mapped: mapEquipmentToCard(eq),
+      version: eq.version || 1,
     })
   }
 

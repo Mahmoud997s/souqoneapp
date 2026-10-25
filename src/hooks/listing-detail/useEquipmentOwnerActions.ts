@@ -1,22 +1,20 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
+import type {
+  OwnerAction,
+  OwnerActionId,
+} from '../../components/listing-detail/OwnerManageBar'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { equipmentApi } from '../../api/equipment'
 import { equipmentQueryKeys, invalidateEquipmentListingQueries } from '../../utils/listing-detail/equipmentQueryKeys'
 import { useAuthStore } from '../../store/authStore'
 import { promptProfilePhoneRequired } from '../../utils/profilePhoneGuard'
+import {
+  buildEquipmentOwnerActions,
+  OWNER_STATUS_TARGET,
+} from '../../utils/listing-detail/ownerActionMatrix'
 
-export interface OwnerAction {
-  id: OwnerActionId
-  label: string
-  tone: 'primary' | 'danger' | 'neutral'
-  icon: string
-  requiresConfirm: boolean
-  confirmTitle?: string
-  confirmMessage?: string
-  confirmLabel?: string
-}
+export type { OwnerAction }
 
 export interface UseEquipmentOwnerActionsResult {
   actions: OwnerAction[]
@@ -31,177 +29,19 @@ export function isOptimisticLockError(error: unknown): boolean {
   return err.response?.status === 409
 }
 
-const GENERIC_STATUS_CONFIRM = 'هل أنت متأكد من تغيير حالة الإعلان؟'
-const GENERIC_CONFIRM_TITLE = 'تأكيد الإجراء'
-const GENERIC_CONFIRM_LABEL = 'تأكيد'
-
-const STATUS_TRANSITION_MAP: Partial<Record<OwnerActionId, 'ACTIVE' | 'ARCHIVED' | 'SOLD' | 'RENTED'>> = {
-  markSold: 'SOLD',
-  markRented: 'RENTED',
-  archive: 'ARCHIVED',
-  pause: 'ARCHIVED',
-  restore: 'ACTIVE',
-  submit: 'ACTIVE',
-}
-
 /**
  * useEquipmentOwnerActions
  *
- * Implements the status-action matrix for equipment listings strictly matching backend ALLOWED_TRANSITIONS:
- *
- * Backend ALLOWED_TRANSITIONS:
- * - DRAFT:     ['ACTIVE']
- * - ACTIVE:    ['SOLD', 'RENTED', 'ARCHIVED', 'SUSPENDED']
- * - ARCHIVED:  ['ACTIVE']
- * - RENTED:    ['ACTIVE']
- * - SOLD:      []
- * - SUSPENDED: []
- *
- * Sub-type restrictions:
- * - EQUIPMENT_WANTED may only transition between ACTIVE and ARCHIVED (no SOLD, no RENTED).
- * - SOLD is only allowed for EQUIPMENT_SALE.
- * - RENTED is only allowed for EQUIPMENT_RENT.
- *
- * Matrix:
- * | Status    | equipmentListingType | Available actions                         |
- * |-----------|----------------------|-------------------------------------------|
- * | ACTIVE    | EQUIPMENT_SALE       | edit · markSold · archive · delete        |
- * | ACTIVE    | EQUIPMENT_RENT       | edit · markRented · pause · delete        |
- * | ACTIVE    | EQUIPMENT_WANTED     | edit · archive · delete                   |
- * | ARCHIVED  | any                  | edit · restore · delete                   |
- * | DRAFT     | any                  | edit · submit · delete                    |
- * | RENTED    | any (EQUIPMENT_RENT) | edit · restore · delete                   |
- * | SOLD      | any                  | delete only                               |
- * | SUSPENDED | any                  | delete only                               |
+ * Implements the status-action matrix for equipment listings via buildEquipmentOwnerActions.
  */
 export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquipmentOwnerActionsResult {
   const queryClient = useQueryClient()
   const [busy, setBusy] = useState(false)
 
-  const actions = useMemo<OwnerAction[]>(() => {
-    const result: OwnerAction[] = []
-    const { status, equipmentListingType } = vm
-
-    // Edit — allowed for all statuses EXCEPT SOLD and SUSPENDED
-    if (status !== 'SOLD' && status !== 'SUSPENDED') {
-      result.push({
-        id: 'edit',
-        label: 'تعديل',
-        tone: 'neutral',
-        icon: 'create-outline',
-        requiresConfirm: false,
-      })
-    }
-
-    // Status-specific actions
-    if (status === 'ACTIVE') {
-      if (equipmentListingType === 'EQUIPMENT_RENT') {
-        result.push({
-          id: 'markRented',
-          label: 'تعليم كمؤجر',
-          tone: 'primary',
-          icon: 'checkmark-circle-outline',
-          requiresConfirm: true,
-          confirmTitle: 'تأكيد الإيجار',
-          confirmMessage:
-            'هل أنت متأكد من تعليم هذه المعدة كمؤجرة؟ يمكنك إعادة تفعيلها لاحقاً.',
-          confirmLabel: GENERIC_CONFIRM_LABEL,
-        })
-        result.push({
-          id: 'pause',
-          label: 'إيقاف مؤقت',
-          tone: 'neutral',
-          icon: 'pause-circle-outline',
-          requiresConfirm: true,
-          confirmTitle: GENERIC_CONFIRM_TITLE,
-          confirmMessage: GENERIC_STATUS_CONFIRM,
-          confirmLabel: GENERIC_CONFIRM_LABEL,
-        })
-      } else if (equipmentListingType === 'EQUIPMENT_SALE') {
-        result.push({
-          id: 'markSold',
-          label: 'تعليم كمباع',
-          tone: 'primary',
-          icon: 'checkmark-circle-outline',
-          requiresConfirm: true,
-          confirmTitle: 'تأكيد البيع',
-          confirmMessage:
-            'هل أنت متأكد من تعليم هذا الإعلان كمباع؟ لا يمكن التراجع عن هذا الإجراء لاحقاً.',
-          confirmLabel: GENERIC_CONFIRM_LABEL,
-        })
-        result.push({
-          id: 'archive',
-          label: 'أرشفة',
-          tone: 'neutral',
-          icon: 'archive-outline',
-          requiresConfirm: true,
-          confirmTitle: GENERIC_CONFIRM_TITLE,
-          confirmMessage: GENERIC_STATUS_CONFIRM,
-          confirmLabel: GENERIC_CONFIRM_LABEL,
-        })
-      } else {
-        // EQUIPMENT_WANTED
-        result.push({
-          id: 'archive',
-          label: 'أرشفة',
-          tone: 'neutral',
-          icon: 'archive-outline',
-          requiresConfirm: true,
-          confirmTitle: GENERIC_CONFIRM_TITLE,
-          confirmMessage: GENERIC_STATUS_CONFIRM,
-          confirmLabel: GENERIC_CONFIRM_LABEL,
-        })
-      }
-    } else if (status === 'ARCHIVED') {
-      result.push({
-        id: 'restore',
-        label: 'استعادة',
-        tone: 'primary',
-        icon: 'refresh-outline',
-        requiresConfirm: true,
-        confirmTitle: GENERIC_CONFIRM_TITLE,
-        confirmMessage: GENERIC_STATUS_CONFIRM,
-        confirmLabel: GENERIC_CONFIRM_LABEL,
-      })
-    } else if (status === 'RENTED') {
-      // Backend ALLOWED_TRANSITIONS allows RENTED -> ACTIVE
-      result.push({
-        id: 'restore',
-        label: 'إعادة إتاحة للإيجار',
-        tone: 'primary',
-        icon: 'refresh-outline',
-        requiresConfirm: true,
-        confirmTitle: GENERIC_CONFIRM_TITLE,
-        confirmMessage: 'هل أنت متأكد من إعادة إتاحة هذه المعدة للإيجار؟',
-        confirmLabel: GENERIC_CONFIRM_LABEL,
-      })
-    } else if (status === 'DRAFT') {
-      result.push({
-        id: 'submit',
-        label: 'نشر',
-        tone: 'primary',
-        icon: 'send-outline',
-        requiresConfirm: true,
-        confirmTitle: GENERIC_CONFIRM_TITLE,
-        confirmMessage: 'هل أنت متأكد من نشر هذا الإعلان؟',
-        confirmLabel: 'نشر',
-      })
-    }
-
-    // Delete — always present regardless of status
-    result.push({
-      id: 'delete',
-      label: 'حذف',
-      tone: 'danger',
-      icon: 'trash-outline',
-      requiresConfirm: true,
-      confirmTitle: 'حذف الإعلان',
-      confirmMessage: 'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-      confirmLabel: 'حذف',
-    })
-
-    return result
-  }, [vm.status, vm.equipmentListingType])
+  const actions = useMemo<OwnerAction[]>(
+    () => buildEquipmentOwnerActions(vm.status, vm.equipmentListingType),
+    [vm.status, vm.equipmentListingType]
+  )
 
   const run = async (id: OwnerActionId): Promise<void> => {
     if (id === 'edit') return
@@ -225,7 +65,7 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
       return
     }
 
-    const nextStatus = STATUS_TRANSITION_MAP[id]
+    const nextStatus = OWNER_STATUS_TARGET[id]
     if (!nextStatus) return
 
     setBusy(true)
