@@ -2,7 +2,6 @@ import React from 'react'
 import {
   StyleSheet,
   TouchableOpacity,
-  Platform,
 } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -149,19 +148,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...CardSystem.styles.border,
     marginBottom: Spacing.space3,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
 })

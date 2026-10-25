@@ -117,7 +117,7 @@ const s = StyleSheet.create({
     height: CHIP_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: Spacing.space1,
     backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: Spacing.space2,
     borderRadius: Radius.pill,
@@ -151,7 +151,7 @@ const s = StyleSheet.create({
   extraChip: {
     height: CHIP_HEIGHT,
     flexShrink: 0,
-    paddingHorizontal: 5,
+    paddingHorizontal: Spacing.space2,
     alignItems: 'center',
     justifyContent: 'center',
   },

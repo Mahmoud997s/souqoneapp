@@ -64,12 +64,12 @@ export function OperatorCardHeader({
       </View>
 
       <View style={s.nameCol}>
-        <Text style={s.nameText} numberOfLines={1}>
+        <Text style={s.nameText} numberOfLines={1} ellipsizeMode="tail">
           {name}
         </Text>
         <View style={s.locationRow}>
           <Ionicons name="location-outline" size={12} color={Colors.textMuted} />
-          <Text style={s.locationText} numberOfLines={1}>
+          <Text style={s.locationText} numberOfLines={1} ellipsizeMode="tail">
             {locationDisplay}
           </Text>
         </View>
@@ -79,7 +79,7 @@ export function OperatorCardHeader({
         <View style={s.actionMenuContainer}>{actionMenu}</View>
       ) : (
         <View style={s.priceBadge}>
-          <Text style={s.priceText} numberOfLines={1}>
+          <Text style={s.priceText} numberOfLines={1} ellipsizeMode="tail">
             {displayPrice}
           </Text>
         </View>
@@ -150,10 +150,13 @@ const s = StyleSheet.create({
   },
   priceBadge: {
     backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: Spacing.space2,
     paddingVertical: Spacing.space1,
     borderRadius: Radius.sm,
     maxWidth: '45%',
+    flexShrink: 0,
     alignSelf: 'center',
   },
   priceText: {
