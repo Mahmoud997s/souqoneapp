@@ -71,13 +71,13 @@ const s = StyleSheet.create({
     backgroundColor: Colors.paleMint,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderStrong,
   },
   callBtnTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
-    color: Colors.primary,
+    color: Colors.primaryDark,
   },
   whatsappBtn: {
     flex: 1,
@@ -95,6 +95,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
-    color: Colors.primary,
+    color: Colors.primaryDark,
   },
 })

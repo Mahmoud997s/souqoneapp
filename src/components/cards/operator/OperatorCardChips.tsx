@@ -46,7 +46,7 @@ export function OperatorCardChips({
               <Ionicons
                 name="ribbon-outline"
                 size={11}
-                color={Colors.warning}
+                color={Colors.primary}
                 style={s.chipIcon}
               />
             ) : chip.isMci ? (
@@ -80,7 +80,7 @@ export function OperatorCardChips({
           <Ionicons
             name="ribbon-outline"
             size={11}
-            color={Colors.warning}
+            color={Colors.primary}
             style={s.chipIcon}
           />
           <Text
@@ -141,12 +141,12 @@ const s = StyleSheet.create({
     color: Colors.primaryDark,
   },
   certChip: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.paleMint,
     borderColor: Colors.border,
   },
   certChipText: {
     fontFamily: 'Almarai_700Bold',
-    color: Colors.warning,
+    color: Colors.primaryDark,
   },
   extraChip: {
     height: CHIP_HEIGHT,
