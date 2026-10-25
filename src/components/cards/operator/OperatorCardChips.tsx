@@ -35,6 +35,7 @@ export function OperatorCardChips({
     <View style={s.chipsRow} testID="operator-chips-row">
       {chips.map((chip) => {
         const isCert = Boolean(chip.isCertification || chip.key === 'cert')
+        const isType = chip.key === 'type'
         return (
           <View
             key={chip.key}
@@ -64,7 +65,7 @@ export function OperatorCardChips({
               />
             )}
             <Text
-              style={[s.chipText, isCert && s.certChipText]}
+              style={[s.chipText, isType && s.typeChipText, isCert && s.certChipText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -134,6 +135,10 @@ const s = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: lineHeightFor(10.5),
     color: Colors.text,
+  },
+  typeChipText: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primaryDark,
   },
   certChip: {
     backgroundColor: Colors.surface,
