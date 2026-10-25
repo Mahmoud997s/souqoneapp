@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -20,20 +20,32 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
+import { dialogService } from '../../store/dialogStore'
 
+const STATUS_OPTION_CONFIRM_DELAY_MS = 400
+
+// Canonical owner action IDs across Cars, Buses, and Equipment (ownerActionMatrix.ts)
 export type OwnerActionId =
-  // Hook-produced (useOwnerActions — D-19 matrix)
   | 'edit'
   | 'delete'
   | 'markSold'
+  | 'markRented'
   | 'archive'
   | 'pause'       // RENTAL "إيقاف مؤقت"
   | 'stopSearch'  // WANTED "إيقاف البحث"
   | 'restore'
   | 'submit'
-  // UI-only (OwnerManageBar display — no backend support yet, TD-44)
-  | 'markRented'
-  | 'activate'
+
+export interface OwnerAction {
+  id: OwnerActionId
+  label: string
+  tone: 'primary' | 'danger' | 'neutral'
+  icon: string
+  requiresConfirm: boolean
+  confirmTitle?: string
+  confirmMessage?: string
+  confirmLabel?: string
+}
 
 export interface OwnerManageBarProps {
   variant?: 'inline' | 'sticky'
@@ -67,6 +79,16 @@ export function OwnerManageBar({
   threshold = 300,
 }: OwnerManageBarProps) {
   const insets = useSafeAreaInsets()
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current)
+        statusTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const getButtonStyles = (tone: 'primary' | 'danger' | 'neutral') => {
     switch (tone) {
@@ -116,13 +138,72 @@ export function OwnerManageBar({
     }
   })
 
-  // For sticky variant: show only the primary/most essential actions (max 3)
-  const stickyActions = actions.filter((a) =>
-    ['edit', 'markSold', 'markRented', 'activate', 'delete'].includes(a.id)
+  const editAction = actions.find((a) => a.id === 'edit')
+  const deleteAction = actions.find((a) => a.id === 'delete')
+  const statusActions = actions.filter(
+    (a) => a.id !== 'edit' && a.id !== 'delete'
   )
+
+  const handleManageStatusPress = () => {
+    if (busy || statusActions.length === 0) return
+    dialogService.showOptions(
+      'إدارة حالة الإعلان',
+      statusActions.map((a) => ({
+        text: a.label,
+        icon: a.icon,
+        onPress: () => {
+          // 400 ms delay so the options Modal finishes closing before the screen's
+          // handleOwnerAction opens dialogService.confirm (same iOS Modal collision
+          // pattern used in useMyListingsScreen.ts).
+          if (statusTimeoutRef.current) {
+            clearTimeout(statusTimeoutRef.current)
+          }
+          statusTimeoutRef.current = setTimeout(() => {
+            statusTimeoutRef.current = null
+            onAction(a.id)
+          }, STATUS_OPTION_CONFIRM_DELAY_MS)
+        },
+      }))
+    )
+  }
+
+  const renderStickyActionButton = (action: {
+    id: OwnerActionId
+    label: string
+    tone: 'primary' | 'danger' | 'neutral'
+    icon: string
+  }) => {
+    const styles = getButtonStyles(action.tone)
+    return (
+      <TouchableOpacity
+        key={action.id}
+        style={[s.button, styles.btn, busy && s.disabledButton]}
+        onPress={() => onAction(action.id)}
+        disabled={busy}
+        activeOpacity={0.75}
+        testID={`btn-owner-${action.id}`}
+      >
+        {busy ? (
+          <ActivityIndicator size="small" color={styles.iconColor} />
+        ) : (
+          <>
+            <Ionicons
+              name={action.icon as keyof typeof Ionicons.glyphMap}
+              size={15}
+              color={styles.iconColor}
+            />
+            <Text style={[s.buttonText, styles.text]} numberOfLines={1}>
+              {action.label}
+            </Text>
+          </>
+        )}
+      </TouchableOpacity>
+    )
+  }
 
   // ── STICKY VARIANT ──────────────────────────────────────────────────────────
   if (variant === 'sticky') {
+    const neutralStyles = getButtonStyles('neutral')
     return (
       <Animated.View
         style={[
@@ -144,34 +225,37 @@ export function OwnerManageBar({
             <Text style={s.stickyOwnerText}>إعلانك</Text>
           </View>
 
-          {/* Quick action buttons */}
+          {/* Quick action buttons: edit · manage-status · delete */}
           <View style={s.stickyActionsRow}>
-            {stickyActions.map((action) => {
-              const styles = getButtonStyles(action.tone)
-              return (
-                <TouchableOpacity
-                  key={action.id}
-                  style={[s.button, styles.btn, busy && s.disabledButton]}
-                  onPress={() => onAction(action.id)}
-                  disabled={busy}
-                  activeOpacity={0.75}
-                  testID={`btn-owner-${action.id}`}
-                >
-                  {busy ? (
-                    <ActivityIndicator size="small" color={styles.iconColor} />
-                  ) : (
-                    <>
-                      <Ionicons
-                        name={action.icon as any}
-                        size={15}
-                        color={styles.iconColor}
-                      />
-                      <Text style={[s.buttonText, styles.text]}>{action.label}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
+            {editAction ? renderStickyActionButton(editAction) : null}
+            {statusActions.length > 0 ? (
+              <TouchableOpacity
+                style={[s.button, neutralStyles.btn, busy && s.disabledButton]}
+                onPress={handleManageStatusPress}
+                disabled={busy}
+                activeOpacity={0.75}
+                testID="btn-owner-manage-status"
+              >
+                {busy ? (
+                  <ActivityIndicator size="small" color={neutralStyles.iconColor} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="options-outline"
+                      size={15}
+                      color={neutralStyles.iconColor}
+                    />
+                    <Text
+                      style={[s.buttonText, neutralStyles.text]}
+                      numberOfLines={1}
+                    >
+                      إدارة الحالة
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : null}
+            {deleteAction ? renderStickyActionButton(deleteAction) : null}
           </View>
         </BlurView>
       </Animated.View>
