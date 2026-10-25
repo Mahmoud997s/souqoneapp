@@ -32,6 +32,21 @@ function createQueryClient() {
   })
 }
 
+function collectTextNodes(node: any, out: any[] = []): any[] {
+  if (!node || typeof node !== 'object') return out
+  if (Array.isArray(node)) {
+    for (const child of node) collectTextNodes(child, out)
+    return out
+  }
+  if (node.type === 'Text') {
+    out.push(node)
+  }
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) collectTextNodes(child, out)
+  }
+  return out
+}
+
 describe('OperatorCard', () => {
   let queryClient: QueryClient
 
@@ -71,6 +86,21 @@ describe('OperatorCard', () => {
       const card = getByTestId('operator-card')
       const flatStyle = StyleSheet.flatten(card.props.style)
       expect(flatStyle.width).toBe('100%')
+    })
+
+    it('teeth check Part A: no Text inside the rendered OperatorCard has textAlign === "right"', async () => {
+      const { toJSON } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const textNodes = collectTextNodes(toJSON())
+      expect(textNodes.length).toBeGreaterThan(0)
+      for (const node of textNodes) {
+        const flatStyle = StyleSheet.flatten(node.props?.style) || {}
+        expect(flatStyle.textAlign).not.toBe('right')
+      }
     })
 
     it('teeth check 1: triggers onPress callback when the card is pressed', async () => {

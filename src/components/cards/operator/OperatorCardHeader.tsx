@@ -131,7 +131,7 @@ const s = StyleSheet.create({
     fontSize: 14,
     lineHeight: lineHeightFor(14),
     color: Colors.text,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   locationRow: {
@@ -145,7 +145,7 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   priceBadge: {
@@ -161,7 +161,7 @@ const s = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: lineHeightFor(11.5),
     color: Colors.primaryDark,
-    textAlign: 'right',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   actionMenuContainer: {
