@@ -422,5 +422,67 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       )
       expect(mockRefetch).toHaveBeenCalled()
     })
+
+    it('clears pending confirm timer on unmount and ignores option selection after unmount', async () => {
+      const rendered = await renderHook(() => useMyListingsScreen(), {
+        wrapper,
+      })
+
+      const item = makeItem({
+        id: 'bus-unmount',
+        entityType: 'bus',
+        rawStatus: 'ACTIVE',
+        version: 1,
+        raw: { busListingType: 'BUS_SALE' },
+      })
+
+      rendered.result.current.handleStatusChange(item)
+      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+
+      jest.useFakeTimers()
+      options[0].onPress()
+
+      const unmountPromise = rendered.unmount()
+      jest.advanceTimersByTime(0)
+      await unmountPromise
+
+      jest.advanceTimersByTime(400)
+      expect(dialogService.confirm).not.toHaveBeenCalled()
+
+      // Also verify pressing an option AFTER unmount is ignored
+      options[1].onPress()
+      jest.advanceTimersByTime(400)
+      expect(dialogService.confirm).not.toHaveBeenCalled()
+      jest.useRealTimers()
+    })
+
+    it('cancels earlier pending timer when a newer status option is pressed within 400 ms', async () => {
+      const { result } = await renderHook(() => useMyListingsScreen(), {
+        wrapper,
+      })
+
+      const item = makeItem({
+        id: 'bus-double',
+        entityType: 'bus',
+        rawStatus: 'ACTIVE',
+        version: 1,
+        raw: { busListingType: 'BUS_SALE' },
+      })
+
+      result.current.handleStatusChange(item)
+      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+
+      jest.useFakeTimers()
+      options[0].onPress() // markSold ("تأكيد البيع")
+      jest.advanceTimersByTime(200)
+      options[1].onPress() // archive ("تأكيد الإجراء")
+      jest.advanceTimersByTime(400)
+      jest.useRealTimers()
+
+      expect(dialogService.confirm).toHaveBeenCalledTimes(1)
+      expect((dialogService.confirm as jest.Mock).mock.calls[0][0]).toBe(
+        'تأكيد الإجراء'
+      )
+    })
   })
 })

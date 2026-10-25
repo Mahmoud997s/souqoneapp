@@ -1,5 +1,8 @@
 import { useMemo } from 'react'
-import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
+import type {
+  OwnerAction,
+  OwnerActionId,
+} from '../../components/listing-detail/OwnerManageBar'
 import { useDeleteCarListing } from './useDeleteCarListing'
 import { useChangeCarListingStatus } from './useChangeCarListingStatus'
 import { isOptimisticLockError } from './useUpdateCarListing'
@@ -11,19 +14,7 @@ import {
   CAR_STATUS_ACTION,
 } from '../../utils/listing-detail/ownerActionMatrix'
 
-export interface OwnerAction {
-  id: OwnerActionId
-  label: string
-  tone: 'primary' | 'danger' | 'neutral'
-  icon: string
-  requiresConfirm: boolean
-  /** Dialog title shown to the user before executing the action */
-  confirmTitle?: string
-  /** Dialog body text shown to the user before executing the action */
-  confirmMessage?: string
-  /** Text of the confirm button in the dialog */
-  confirmLabel?: string
-}
+export type { OwnerAction }
 
 export interface UseOwnerActionsResult {
   /** Ordered list of available actions for the current vm state */

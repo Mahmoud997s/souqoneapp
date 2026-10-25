@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { router } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAllMyListings } from './useAllMyListings'
@@ -28,6 +28,8 @@ import {
 } from '../utils/listing-detail/ownerActionMatrix'
 import { invalidateBusListingQueries } from '../utils/listing-detail/busQueryKeys'
 import { invalidateEquipmentListingQueries } from '../utils/listing-detail/equipmentQueryKeys'
+
+const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
 const ENTITY_QUERY_KEYS: Record<MyListingEntityType, string[]> = {
   car: ['my-cars'],
@@ -72,6 +74,19 @@ export function useMyListingsScreen() {
   const [activeSubFilter, setActiveSubFilter] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const isChangingStatus = useRef(false)
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(false)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current)
+        statusTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const {
     items,
@@ -364,7 +379,7 @@ export function useMyListingsScreen() {
   }
 
   const confirmStatusChange = (item: MyListingItem, action: OwnerAction) => {
-    if (isChangingStatus.current) return
+    if (!isMountedRef.current || isChangingStatus.current) return
 
     if (action.id === 'restore' || action.id === 'submit') {
       const user = useAuthStore.getState().user
@@ -379,9 +394,15 @@ export function useMyListingsScreen() {
       action.confirmMessage || 'هل أنت متأكد من تغيير حالة الإعلان؟'
     const confirmLabel = action.confirmLabel || 'تأكيد'
 
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current)
+    }
+
     // Add a slight delay to allow the bottom sheet Modal to unmount
     // before the confirm Modal attempts to mount (fixes iOS Modal collision)
-    setTimeout(() => {
+    statusTimeoutRef.current = setTimeout(() => {
+      statusTimeoutRef.current = null
+      if (!isMountedRef.current) return
       dialogService.confirm(
         confirmTitle,
         confirmMessage,
@@ -442,7 +463,7 @@ export function useMyListingsScreen() {
         confirmLabel,
         'إلغاء'
       )
-    }, 400)
+    }, STATUS_OPTION_CONFIRM_DELAY_MS)
   }
 
   return {

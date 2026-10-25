@@ -24,7 +24,7 @@ import { dialogService } from '../../store/dialogStore'
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
-// Canonical owner action IDs across Cars, Buses, and Equipment (ownerActionMatrix.ts)
+// Canonical owner action IDs across Cars, Buses, Equipment, and Operators
 export type OwnerActionId =
   | 'edit'
   | 'delete'
@@ -80,9 +80,12 @@ export function OwnerManageBar({
 }: OwnerManageBarProps) {
   const insets = useSafeAreaInsets()
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(false)
 
   useEffect(() => {
+    isMountedRef.current = true
     return () => {
+      isMountedRef.current = false
       if (statusTimeoutRef.current) {
         clearTimeout(statusTimeoutRef.current)
         statusTimeoutRef.current = null
@@ -152,6 +155,7 @@ export function OwnerManageBar({
         text: a.label,
         icon: a.icon,
         onPress: () => {
+          if (!isMountedRef.current) return
           // 400 ms delay so the options Modal finishes closing before the screen's
           // handleOwnerAction opens dialogService.confirm (same iOS Modal collision
           // pattern used in useMyListingsScreen.ts).
@@ -160,6 +164,7 @@ export function OwnerManageBar({
           }
           statusTimeoutRef.current = setTimeout(() => {
             statusTimeoutRef.current = null
+            if (!isMountedRef.current) return
             onAction(a.id)
           }, STATUS_OPTION_CONFIRM_DELAY_MS)
         },

@@ -7,6 +7,7 @@ import type { BusListingType } from '../../types/bus.types'
 import type { EquipmentListingType } from '../../types/equipment.types'
 import type { CarListingStatusAction } from '../../hooks/listing-detail/useChangeCarListingStatus'
 
+export type { OwnerAction, OwnerActionId }
 export type ListingStatus = BaseDetailViewModel['status']
 export type CarListingType = BaseDetailViewModel['listingType']
 
@@ -205,7 +206,7 @@ export function buildBusOwnerActions(
 
 export function buildEquipmentOwnerActions(
   status: ListingStatus,
-  equipmentListingType: EquipmentListingType
+  equipmentListingType?: EquipmentListingType
 ): OwnerAction[] {
   const actions: OwnerAction[] = []
 
@@ -229,8 +230,13 @@ export function buildEquipmentOwnerActions(
       actions.push({ ...PAUSE_ACTION })
     } else if (equipmentListingType === 'EQUIPMENT_WANTED') {
       actions.push({ ...ARCHIVE_ACTION })
-    } else {
+    } else if (equipmentListingType === 'EQUIPMENT_SALE') {
       actions.push({ ...MARK_SOLD_ACTION })
+      actions.push({ ...ARCHIVE_ACTION })
+    } else {
+      // Safe fallback for undefined / unrecognized equipment listing types:
+      // backend only allows SOLD for EQUIPMENT_SALE and RENTED for EQUIPMENT_RENT,
+      // while ARCHIVED is valid for all ACTIVE equipment listings.
       actions.push({ ...ARCHIVE_ACTION })
     }
   } else if (status === 'ARCHIVED') {

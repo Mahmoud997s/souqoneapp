@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
+import type {
+  OwnerAction,
+  OwnerActionId,
+} from '../../components/listing-detail/OwnerManageBar'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { equipmentApi } from '../../api/equipment'
 import { equipmentQueryKeys, invalidateEquipmentListingQueries } from '../../utils/listing-detail/equipmentQueryKeys'
@@ -11,16 +14,7 @@ import {
   OWNER_STATUS_TARGET,
 } from '../../utils/listing-detail/ownerActionMatrix'
 
-export interface OwnerAction {
-  id: OwnerActionId
-  label: string
-  tone: 'primary' | 'danger' | 'neutral'
-  icon: string
-  requiresConfirm: boolean
-  confirmTitle?: string
-  confirmMessage?: string
-  confirmLabel?: string
-}
+export type { OwnerAction }
 
 export interface UseEquipmentOwnerActionsResult {
   actions: OwnerAction[]

@@ -253,4 +253,30 @@ describe('OwnerManageBar', () => {
     expect(screen.getByText('تعديل')).toBeTruthy()
     expect(screen.getByText('إلغاء طلب الحذف')).toBeTruthy()
   })
+
+  it('(h) ignores status option selection invoked after OwnerManageBar has already unmounted', async () => {
+    const onAction = jest.fn()
+    const actions = buildCarOwnerActions('ACTIVE', 'SALE')
+
+    const rendered = await render(
+      <OwnerManageBar
+        variant="sticky"
+        viewCount={12}
+        busy={false}
+        actions={actions}
+        onAction={onAction}
+      />
+    )
+
+    await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
+    const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+
+    await rendered.unmount()
+
+    jest.useFakeTimers()
+    options[0].onPress()
+    jest.advanceTimersByTime(400)
+    expect(onAction).not.toHaveBeenCalled()
+    jest.useRealTimers()
+  })
 })

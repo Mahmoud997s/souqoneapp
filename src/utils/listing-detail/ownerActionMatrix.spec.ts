@@ -1,3 +1,4 @@
+import type { EquipmentListingType } from '../../types/equipment.types'
 import {
   buildCarOwnerActions,
   buildBusOwnerActions,
@@ -141,6 +142,22 @@ describe('ownerActionMatrix', () => {
     it('ACTIVE + EQUIPMENT_WANTED -> edit, archive, delete', () => {
       const actions = buildEquipmentOwnerActions('ACTIVE', 'EQUIPMENT_WANTED')
       expect(ids(actions)).toEqual(['edit', 'archive', 'delete'])
+    })
+
+    it('ACTIVE + undefined or unknown equipmentListingType -> safe fallback edit, archive, delete (no markSold)', () => {
+      expect(ids(buildEquipmentOwnerActions('ACTIVE', undefined))).toEqual([
+        'edit',
+        'archive',
+        'delete',
+      ])
+      expect(
+        ids(
+          buildEquipmentOwnerActions(
+            'ACTIVE',
+            'SOMETHING_ELSE' as unknown as EquipmentListingType
+          )
+        )
+      ).toEqual(['edit', 'archive', 'delete'])
     })
 
     it('ARCHIVED -> edit, restore (استعادة), delete', () => {
