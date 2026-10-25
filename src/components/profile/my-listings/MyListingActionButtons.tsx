@@ -2,7 +2,13 @@ import React from 'react'
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
-import { MyListingItem } from '../../../types/my-listings.types'
+import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
+
+const STATUS_CHANGE_ENTITIES: readonly MyListingEntityType[] = [
+  'car',
+  'bus',
+  'equipment',
+]
 
 export interface MyListingActionButtonsProps {
   item: MyListingItem
@@ -75,7 +81,7 @@ export function MyListingActionButtons({
       )}
 
       {/* Overflow Menu / Status Change */}
-      {onStatusChange && item.entityType === 'car' && (
+      {onStatusChange && STATUS_CHANGE_ENTITIES.includes(item.entityType) && (
         <TouchableOpacity
           style={s.actionBtn}
           activeOpacity={0.8}

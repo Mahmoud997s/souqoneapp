@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { router } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAllMyListings } from './useAllMyListings'
@@ -14,6 +14,22 @@ import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { MyListingItem, MyListingEntityType } from '../types/my-listings.types'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { GroupedSectionData } from '../components/profile/my-listings/MyListingsAllView'
+import type { OwnerAction } from '../components/listing-detail/OwnerManageBar'
+import type { DialogOption } from '../components/ui/AppDialog'
+import type { BusListingType } from '../types/bus.types'
+import type { EquipmentListingType } from '../types/equipment.types'
+import {
+  buildCarOwnerActions,
+  buildBusOwnerActions,
+  buildEquipmentOwnerActions,
+  CAR_STATUS_ACTION,
+  OWNER_STATUS_TARGET,
+  type ListingStatus,
+} from '../utils/listing-detail/ownerActionMatrix'
+import { invalidateBusListingQueries } from '../utils/listing-detail/busQueryKeys'
+import { invalidateEquipmentListingQueries } from '../utils/listing-detail/equipmentQueryKeys'
+
+const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
 const ENTITY_QUERY_KEYS: Record<MyListingEntityType, string[]> = {
   car: ['my-cars'],
@@ -25,12 +41,52 @@ const ENTITY_QUERY_KEYS: Record<MyListingEntityType, string[]> = {
   job: ['my-jobs'],
 }
 
+interface RawListingTypeHolder {
+  listingType?: string
+  type?: string
+  busListingType?: string
+  equipmentListingType?: string
+}
+
+function asRawListingTypeHolder(raw: unknown): RawListingTypeHolder {
+  if (raw && typeof raw === 'object') {
+    return raw as RawListingTypeHolder
+  }
+  return {}
+}
+
+function getErrorStatus(err: unknown): {
+  hasResponse: boolean
+  status?: number
+} {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const resp = (err as { response?: { status?: number } }).response
+    if (resp && typeof resp === 'object') {
+      return { hasResponse: true, status: resp.status }
+    }
+  }
+  return { hasResponse: false }
+}
+
 export function useMyListingsScreen() {
   const queryClient = useQueryClient()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [activeSubFilter, setActiveSubFilter] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const isChangingStatus = useRef(false)
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(false)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current)
+        statusTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const {
     items,
@@ -285,63 +341,47 @@ export function useMyListingsScreen() {
   }, [activeCategory, filteredData])
 
   const handleStatusChange = (item: MyListingItem) => {
-    if (item.entityType !== 'car') {
-      dialogService.alert('تنبيه', 'تغيير الحالة متاح للسيارات فقط حالياً.', 'warning')
-      return
+    const raw = asRawListingTypeHolder(item.raw)
+    const status = (item.rawStatus || 'ACTIVE') as ListingStatus
+    let allActions: OwnerAction[] = []
+
+    if (item.entityType === 'car') {
+      const carType = String(raw.listingType || raw.type || 'SALE')
+      allActions = buildCarOwnerActions(status, carType)
+    } else if (item.entityType === 'bus') {
+      const busType = String(
+        raw.busListingType || raw.listingType || 'BUS_SALE'
+      ) as BusListingType
+      allActions = buildBusOwnerActions(status, busType)
+    } else if (item.entityType === 'equipment') {
+      const eqType = String(
+        raw.equipmentListingType || raw.listingType || 'EQUIPMENT_SALE'
+      ) as EquipmentListingType
+      allActions = buildEquipmentOwnerActions(status, eqType)
     }
 
-    const options: any[] = []
+    const statusActions = allActions.filter(
+      (action) => action.id !== 'edit' && action.id !== 'delete'
+    )
 
-    const rawData = (item as any).raw || item
-    const listingTypeStr = String(rawData.listingType || rawData.type || '')
-    const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
-    const isWanted = listingTypeStr === 'WANTED'
-
-    if (item.rawStatus === 'ACTIVE') {
-      if (isRental) {
-        options.push({
-          text: 'إيقاف مؤقت',
-          icon: 'pause-circle-outline',
-          onPress: () => confirmStatusChange(item, 'archive'),
-        })
-      } else if (isWanted) {
-        options.push({
-          text: 'إيقاف البحث',
-          icon: 'stop-circle-outline',
-          onPress: () => confirmStatusChange(item, 'archive'),
-        })
-      } else {
-        options.push({
-          text: 'تعليم كمباع',
-          icon: 'checkmark-circle-outline',
-          onPress: () => confirmStatusChange(item, 'mark-sold'),
-        })
-        options.push({
-          text: 'أرشفة',
-          icon: 'archive-outline',
-          onPress: () => confirmStatusChange(item, 'archive'),
-        })
-      }
-    } else if (item.rawStatus === 'ARCHIVED') {
-      options.push({
-        text: 'استعادة',
-        icon: 'refresh-outline',
-        onPress: () => confirmStatusChange(item, 'restore'),
-      })
-    }
-
-    if (options.length === 0) {
+    if (statusActions.length === 0) {
       dialogService.alert('تنبيه', 'لا يوجد إجراءات متاحة لهذه الحالة', 'warning')
       return
     }
 
+    const options: DialogOption[] = statusActions.map((action) => ({
+      text: action.label,
+      icon: action.icon,
+      onPress: () => confirmStatusChange(item, action),
+    }))
+
     dialogService.showOptions('تغيير الحالة', options)
   }
 
-  const confirmStatusChange = (item: MyListingItem, action: 'mark-sold' | 'archive' | 'restore') => {
-    if (isChangingStatus.current) return
+  const confirmStatusChange = (item: MyListingItem, action: OwnerAction) => {
+    if (!isMountedRef.current || isChangingStatus.current) return
 
-    if (action === 'restore') {
+    if (action.id === 'restore' || action.id === 'submit') {
       const user = useAuthStore.getState().user
       if (!user?.phone) {
         promptProfilePhoneRequired()
@@ -349,40 +389,70 @@ export function useMyListingsScreen() {
       }
     }
 
-    console.log('[DIAG] confirmStatusChange called with action:', action)
-    
-    // Add a slight delay to allow the bottom sheet Modal to unmount 
+    const confirmTitle = action.confirmTitle || 'تأكيد الإجراء'
+    const confirmMessage =
+      action.confirmMessage || 'هل أنت متأكد من تغيير حالة الإعلان؟'
+    const confirmLabel = action.confirmLabel || 'تأكيد'
+
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current)
+    }
+
+    // Add a slight delay to allow the bottom sheet Modal to unmount
     // before the confirm Modal attempts to mount (fixes iOS Modal collision)
-    setTimeout(() => {
+    statusTimeoutRef.current = setTimeout(() => {
+      statusTimeoutRef.current = null
+      if (!isMountedRef.current) return
       dialogService.confirm(
-        'تأكيد الإجراء',
-        'هل أنت متأكد من تغيير حالة الإعلان؟',
+        confirmTitle,
+        confirmMessage,
         async () => {
           if (isChangingStatus.current) return
           isChangingStatus.current = true
-            try {
-              await listingsApi.updateStatus(item.id, action, item.version || 1)
-              
-              // Immediately refetch all queries to update the UI
-              await refetch()
-              
-              dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
-          } catch (err: any) {
-            console.log('[DIAG] Status change error:', JSON.stringify({
-              status: err?.response?.status,
-              data: err?.response?.data,
-              message: err?.message,
-            }, null, 2))
-            
-            if (!err?.response) {
-              dialogService.alert('خطأ في الاتصال', 'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.')
-            } else if (err?.response?.status === 403) {
+          try {
+            const version = item.version || 1
+            if (item.entityType === 'car') {
+              const carAction = CAR_STATUS_ACTION[action.id]
+              if (!carAction) return
+              await listingsApi.updateStatus(item.id, carAction, version)
+            } else if (item.entityType === 'bus') {
+              const targetStatus = OWNER_STATUS_TARGET[action.id]
+              if (!targetStatus) return
+              await busesApi.update(item.id, { version, status: targetStatus })
+              await invalidateBusListingQueries(queryClient, item.id)
+            } else if (item.entityType === 'equipment') {
+              const targetStatus = OWNER_STATUS_TARGET[action.id]
+              if (!targetStatus) return
+              await equipmentApi.update(item.id, { version, status: targetStatus })
+              await invalidateEquipmentListingQueries(queryClient, item.id)
+            } else {
+              return
+            }
+
+            // Immediately refetch all queries to update the UI
+            await refetch()
+
+            dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
+          } catch (err: unknown) {
+            const { hasResponse, status } = getErrorStatus(err)
+            if (!hasResponse) {
+              dialogService.alert(
+                'خطأ في الاتصال',
+                'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.'
+              )
+            } else if (status === 403) {
               dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
-            } else if (err?.response?.status === 409) {
-              dialogService.alert('تحديث مطلوب', 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.')
+            } else if (status === 409) {
+              dialogService.alert(
+                'تحديث مطلوب',
+                'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
+              )
               handleRefresh()
-            } else if (err?.response?.status === 429) {
-              dialogService.alert('محاولات كثيرة', 'لقد قمت بعدة محاولات متتالية، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+            } else if (status === 429) {
+              dialogService.alert(
+                'محاولات كثيرة',
+                'لقد قمت بعدة محاولات متتالية، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
+              )
             } else {
               dialogService.alert('خطأ', 'حدث خطأ أثناء تغيير الحالة')
             }
@@ -390,10 +460,10 @@ export function useMyListingsScreen() {
             isChangingStatus.current = false
           }
         },
-        'تأكيد',
+        confirmLabel,
         'إلغاء'
       )
-    }, 400)
+    }, STATUS_OPTION_CONFIRM_DELAY_MS)
   }
 
   return {
