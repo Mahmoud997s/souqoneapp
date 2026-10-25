@@ -87,7 +87,7 @@ describe('OperatorCard', () => {
     })
 
     it('limits chips to maxChips and displays extra count badge', async () => {
-      const { getByText } = await render(
+      const { getByText, queryByText } = await render(
         <QueryClientProvider client={queryClient}>
           <OperatorCard item={baseItem} maxChips={3} />
         </QueryClientProvider>
@@ -95,9 +95,9 @@ describe('OperatorCard', () => {
 
       expect(getByText('مشغل معدات')).toBeTruthy()
       expect(getByText('6 سنوات خبرة')).toBeTruthy()
-      expect(getByText('حفار')).toBeTruthy()
       expect(getByText('شهادة معتمدة')).toBeTruthy()
-      expect(getByText('+3')).toBeTruthy()
+      expect(getByText('+4')).toBeTruthy()
+      expect(queryByText('حفار')).toBeNull()
     })
 
     it('teeth check 2: falls back to "السعر عند التواصل" when price is 0 or missing, and never shows "0 ر.ع."', async () => {
