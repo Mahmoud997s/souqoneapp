@@ -1,7 +1,7 @@
 import React from 'react';
-import TestRenderer, { act } from 'react-test-renderer';
+import TestRenderer, { act, ReactTestRenderer } from 'react-test-renderer';
 import { MyListingActionButtons } from '../components/profile/my-listings/MyListingActionButtons';
-import { MyListingItem } from '../types/my-listings.types';
+import { MyListingItem, MyListingEntityType } from '../types/my-listings.types';
 
 const extractText = (node: any): string => {
   if (typeof node === 'string') return node;
@@ -109,4 +109,57 @@ describe('MyListingActionButtons', () => {
     expect(textOutput).toContain('قيد مراجعة الإدارة');
     jest.restoreAllMocks();
   });
+
+  it.each(['car', 'bus', 'equipment'] as MyListingEntityType[])(
+    'renders three-dots status button for %s when onStatusChange is provided',
+    (entityType) => {
+      let root!: ReactTestRenderer;
+      const onStatusChange = jest.fn();
+      const item: MyListingItem = {
+        ...baseItem,
+        entityType,
+      };
+
+      act(() => {
+        root = TestRenderer.create(
+          <MyListingActionButtons
+            item={item}
+            onDelete={jest.fn()}
+            onEdit={jest.fn()}
+            onStatusChange={onStatusChange}
+            isEditSupported={true}
+          />
+        );
+      });
+
+      const icons = root.root.findAllByProps({ name: 'ellipsis-vertical' });
+      expect(icons.length).toBeGreaterThan(0);
+    }
+  );
+
+  it.each(['operator', 'part', 'service', 'job'] as MyListingEntityType[])(
+    'does not render three-dots status button for %s',
+    (entityType) => {
+      let root!: ReactTestRenderer;
+      const item: MyListingItem = {
+        ...baseItem,
+        entityType,
+      };
+
+      act(() => {
+        root = TestRenderer.create(
+          <MyListingActionButtons
+            item={item}
+            onDelete={jest.fn()}
+            onEdit={jest.fn()}
+            onStatusChange={jest.fn()}
+            isEditSupported={true}
+          />
+        );
+      });
+
+      const icons = root.root.findAllByProps({ name: 'ellipsis-vertical' });
+      expect(icons).toHaveLength(0);
+    }
+  );
 });
