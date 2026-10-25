@@ -125,12 +125,15 @@ describe('useBusOwnerActions', () => {
       expect(ids(hook.current)).toEqual(['edit', 'markSold', 'archive', 'delete'])
     })
 
-    it('ACTIVE + BUS_RENT: returns edit, pause, delete', async () => {
+    it('ACTIVE + BUS_RENT: returns edit, markRented, pause, delete', async () => {
       const hook = renderOwnerActions(
         makeBusVm({ status: 'ACTIVE', busListingType: 'BUS_RENT' })
       )
       await waitFor(() => expect(hook.current).toBeDefined())
-      expect(ids(hook.current)).toEqual(['edit', 'pause', 'delete'])
+      expect(ids(hook.current)).toEqual(['edit', 'markRented', 'pause', 'delete'])
+      const markRented = hook.current.actions.find((a) => a.id === 'markRented')!
+      expect(markRented.label).toBe('تعليم كمؤجر')
+      expect(markRented.confirmTitle).toBe('تأكيد الإيجار')
     })
 
     it('ARCHIVED: returns edit, restore, delete', async () => {
@@ -149,12 +152,14 @@ describe('useBusOwnerActions', () => {
       expect(ids(hook.current)).toEqual(['edit', 'submit', 'delete'])
     })
 
-    it('RENTED: returns edit, delete only (no status buttons in v1)', async () => {
+    it('RENTED: returns edit, restore (إعادة إتاحة للإيجار), delete', async () => {
       const hook = renderOwnerActions(
-        makeBusVm({ status: 'RENTED' })
+        makeBusVm({ status: 'RENTED', busListingType: 'BUS_RENT' })
       )
       await waitFor(() => expect(hook.current).toBeDefined())
-      expect(ids(hook.current)).toEqual(['edit', 'delete'])
+      expect(ids(hook.current)).toEqual(['edit', 'restore', 'delete'])
+      const restore = hook.current.actions.find((a) => a.id === 'restore')!
+      expect(restore.label).toBe('إعادة إتاحة للإيجار')
     })
 
     it('SOLD: returns delete only (no edit, no status buttons)', async () => {
@@ -205,6 +210,23 @@ describe('useBusOwnerActions', () => {
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bus-detail', 'bus-1'] })
     })
 
+    it('run("markRented") calls busesApi.update with status RENTED and current version', async () => {
+      ;(busesApi.update as jest.Mock).mockResolvedValueOnce({ data: {} })
+      const hook = renderOwnerActions(
+        makeBusVm({ id: 'bus-rent-1', version: 2, status: 'ACTIVE', busListingType: 'BUS_RENT' })
+      )
+      await waitFor(() => expect(hook.current).toBeDefined())
+
+      await act(async () => {
+        await hook.current.run('markRented')
+      })
+
+      expect(busesApi.update).toHaveBeenCalledWith('bus-rent-1', {
+        version: 2,
+        status: 'RENTED',
+      })
+    })
+
     it('run("archive") calls busesApi.update with status ARCHIVED and current version', async () => {
       ;(busesApi.update as jest.Mock).mockResolvedValueOnce({ data: {} })
       const hook = renderOwnerActions(
@@ -239,10 +261,10 @@ describe('useBusOwnerActions', () => {
       })
     })
 
-    it('run("restore") calls busesApi.update with status ACTIVE when user has phone', async () => {
-      ;(busesApi.update as jest.Mock).mockResolvedValueOnce({ data: {} })
+    it('run("restore") calls busesApi.update with status ACTIVE when user has phone (ARCHIVED and RENTED)', async () => {
+      ;(busesApi.update as jest.Mock).mockResolvedValue({ data: {} })
       const hook = renderOwnerActions(
-        makeBusVm({ id: 'bus-1', version: 4, status: 'ARCHIVED' })
+        makeBusVm({ id: 'bus-1', version: 4, status: 'RENTED', busListingType: 'BUS_RENT' })
       )
       await waitFor(() => expect(hook.current).toBeDefined())
 
