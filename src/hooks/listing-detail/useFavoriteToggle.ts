@@ -24,6 +24,7 @@ export interface UseFavoriteToggleReturn {
  * - Calls favoritesApi.add (toggle endpoint) and updates query cache on success.
  * - Reverts back to original state on network / server failure.
  * - Treats failed check queries safely as false/unfavorited without crashing.
+ * - Ignores stale pending results when entityType or id changes during a request.
  */
 export function useFavoriteToggle(
   entityType: string,
@@ -45,6 +46,12 @@ export function useFavoriteToggle(
   const hasUserToggledRef = useRef<boolean>(false)
   const hasHydratedRef = useRef<boolean>(false)
 
+  const currentEntityKey = `${entityType}:${id}`
+  const requestKeyRef = useRef<string>(currentEntityKey)
+  useEffect(() => {
+    requestKeyRef.current = currentEntityKey
+  }, [currentEntityKey])
+
   const initialIsFavoriteRef = useRef<boolean>(initialIsFavorite)
   useEffect(() => {
     initialIsFavoriteRef.current = initialIsFavorite
@@ -54,6 +61,7 @@ export function useFavoriteToggle(
   useEffect(() => {
     hasHydratedRef.current = false
     hasUserToggledRef.current = false
+    setIsBusy(false)
     setIsFavorite(initialIsFavoriteRef.current)
     isFavoriteRef.current = initialIsFavoriteRef.current
   }, [entityType, id])
@@ -102,6 +110,7 @@ export function useFavoriteToggle(
 
     requireAuthRef.current(redirectPath, () => {
       hasUserToggledRef.current = true
+      const activeKey = currentEntityKey
       const prev = isFavoriteRef.current
       const next = !prev
 
@@ -112,6 +121,7 @@ export function useFavoriteToggle(
       favoritesApi
         .add(entityType, id)
         .then((res) => {
+          if (requestKeyRef.current !== activeKey) return
           const serverFavorited = typeof res?.data?.favorited === 'boolean' ? res.data.favorited : next
           queryClient.setQueryData(checkQueryKey, { favorited: serverFavorited })
           isFavoriteRef.current = serverFavorited
@@ -119,14 +129,17 @@ export function useFavoriteToggle(
           queryClient.invalidateQueries({ queryKey: ['favorites'] })
         })
         .catch(() => {
+          if (requestKeyRef.current !== activeKey) return
           isFavoriteRef.current = prev
           setIsFavorite(prev)
         })
         .finally(() => {
-          setIsBusy(false)
+          if (requestKeyRef.current === activeKey) {
+            setIsBusy(false)
+          }
         })
     })
-  }, [entityType, id, redirectPath, isBusy, queryClient, checkQueryKey])
+  }, [entityType, id, redirectPath, isBusy, queryClient, checkQueryKey, currentEntityKey])
 
   return {
     isFavorite,
@@ -134,3 +147,4 @@ export function useFavoriteToggle(
     toggle,
   }
 }
+
