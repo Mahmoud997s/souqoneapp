@@ -119,7 +119,6 @@ export function MyListingCardDispatcher({
           <OperatorCard
             item={item.mapped as any}
             onPress={() => onView(item)}
-            fullWidth={true}
             maxChips={3}
             actionMenu={menu}
           />

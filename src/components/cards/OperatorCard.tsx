@@ -2,7 +2,6 @@ import React from 'react'
 import {
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Platform,
 } from 'react-native'
 import { Colors } from '../../constants/colors'
@@ -15,12 +14,9 @@ import { OperatorCardHeader } from './operator/OperatorCardHeader'
 import { OperatorCardChips } from './operator/OperatorCardChips'
 import { OperatorCardActions } from './operator/OperatorCardActions'
 
-const CARD_FIXED_WIDTH = Dimensions.get('window').width * 0.65
-
 export interface OperatorCardProps {
   item: any
   onPress?: () => void
-  fullWidth?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
 }
@@ -33,7 +29,6 @@ export interface OperatorCardProps {
 export function OperatorCard({
   item,
   onPress,
-  fullWidth = false,
   maxChips = 3,
   actionMenu,
 }: OperatorCardProps) {
@@ -122,7 +117,7 @@ export function OperatorCard({
 
   return (
     <TouchableOpacity
-      style={[s.card, fullWidth ? s.cardFull : s.cardFixed]}
+      style={[s.card]}
       onPress={onPress}
       activeOpacity={0.88}
       testID="operator-card"
@@ -156,6 +151,7 @@ export function OperatorCard({
 
 const s = StyleSheet.create({
   card: {
+    width: '100%',
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
@@ -173,11 +169,5 @@ const s = StyleSheet.create({
         elevation: 2,
       },
     }),
-  },
-  cardFull: {
-    width: '100%',
-  },
-  cardFixed: {
-    width: CARD_FIXED_WIDTH,
   },
 })

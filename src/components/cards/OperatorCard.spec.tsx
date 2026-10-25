@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react-native'
-import { Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { OperatorCard } from './OperatorCard'
 import { useAuthStore } from '../../store/authStore'
@@ -61,6 +61,18 @@ describe('OperatorCard', () => {
   }
 
   describe('Public Mode', () => {
+    it('always fills container width with width: 100% on the card root', async () => {
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const card = getByTestId('operator-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.width).toBe('100%')
+    })
+
     it('teeth check 1: triggers onPress callback when the card is pressed', async () => {
       const onPressMock = jest.fn()
       const { getByTestId } = await render(
