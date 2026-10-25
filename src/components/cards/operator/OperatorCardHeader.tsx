@@ -158,8 +158,8 @@ const s = StyleSheet.create({
   },
   priceText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: lineHeightFor(11.5),
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primaryDark,
     textAlign: 'left',
     writingDirection: 'rtl',

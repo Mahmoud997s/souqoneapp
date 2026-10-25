@@ -132,8 +132,8 @@ const s = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: lineHeightFor(10.5),
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.text,
   },
   typeChipText: {
@@ -158,7 +158,8 @@ const s = StyleSheet.create({
   extraChipText: {
     flexShrink: 0,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 9.5,
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
 })
