@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
@@ -16,8 +16,6 @@ import { physicalRightStyle, physicalRowDirection } from '../../utils/physicalDi
 import { useGestureSwiper } from '../../hooks/useGestureSwiper'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import { lineHeightFor } from '../../constants/typography'
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 export interface ImageGalleryProps {
   images: GalleryImage[]
@@ -42,8 +40,9 @@ export function ImageGallery({
   onPressImage,
   aspectRatio = 16 / 11,
 }: ImageGalleryProps) {
+  const { width: windowWidth } = useWindowDimensions()
   const count = images.length
-  const galleryWidth = SCREEN_WIDTH
+  const galleryWidth = windowWidth
 
   const { panGesture, animatedTrackStyle, activeIndex } = useGestureSwiper({
     count,
