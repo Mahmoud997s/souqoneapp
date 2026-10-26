@@ -179,7 +179,7 @@ export default function ChatRoomScreen() {
         onBackPress={() => router.back()}
         onProfilePress={() => {
           if (otherUser?.id) {
-            router.push(`/user/${otherUser.id}` as any)
+            router.push(`/profile/${otherUser.id}` as any)
           }
         }}
         onOptionsPress={handleRoomOptions}

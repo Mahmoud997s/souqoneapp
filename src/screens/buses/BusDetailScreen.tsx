@@ -47,6 +47,7 @@ import {
 } from '../../hooks/listing-detail/useBusSimilarListings'
 import { busListingToFormData } from '../../utils/listing-detail/busListingToFormData'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
+import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { normalizeCurrency } from '../../utils/listing-detail/mapBusDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -234,7 +235,11 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
           goBackSafely()
+          return
         }
+        await refetch()
+        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
+        dialogService.alert('تم بنجاح', msg, 'success')
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert('تعارض في البيانات', translateBusOwnerError(err))

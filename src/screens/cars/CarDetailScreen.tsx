@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -46,6 +46,7 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { normalizeCurrency } from '../../utils/listing-detail/mapCarDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -76,6 +77,7 @@ import { SimilarListingsGrid } from '../../components/listing-detail/SimilarList
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
 
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
 
@@ -223,7 +225,11 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
           goBackSafely()
+          return
         }
+        await refetch()
+        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
+        dialogService.alert('تم بنجاح', msg, 'success')
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert(
@@ -231,7 +237,15 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
           )
         } else {
-          dialogService.alert('خطأ', 'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.')
+          const responseMsg =
+            typeof err === 'object' && err !== null && 'response' in err
+              ? (err as { response?: { data?: { message?: unknown } } }).response?.data?.message
+              : undefined
+          const errorMsg =
+            typeof responseMsg === 'string' && responseMsg.trim().length > 0
+              ? responseMsg
+              : 'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
+          dialogService.alert('خطأ', errorMsg)
         }
       }
     }
@@ -262,6 +276,12 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   }
 
   const contactAvailability = getContactAvailability()
+
+  // Filter specs sections by in-page search query (D-093 Item 3)
+  const filteredSpecsSections = useMemo(() => {
+    if (!vm) return []
+    return filterSpecsSections(vm.specsSections, searchQuery)
+  }, [vm, searchQuery])
 
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
@@ -375,9 +395,15 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           <ListingDescription text={vm.description} collapsedLines={5} />
         </Animated.View>
 
-        {/* 7. Specs Sections */}
+        {/* 7. Specs Sections (filtered by section search, D-093 Item 3) */}
         <Animated.View entering={getEnteringAnimation(5)}>
-          <SpecsSections sections={vm.specsSections} />
+          {searchQuery.trim() && filteredSpecsSections.length === 0 ? (
+            <View style={s.noMatchContainer} testID="specs-no-match">
+              <Text style={s.noMatchText}>لا توجد نتائج مطابقة</Text>
+            </View>
+          ) : (
+            <SpecsSections sections={filteredSpecsSections} />
+          )}
         </Animated.View>
 
         {/* 7b. Location Map (only when the listing has coordinates, D-29) */}
@@ -638,5 +664,25 @@ const s = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'left',
     marginTop: 2,
+  },
+  noMatchContainer: {
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space3,
+    padding: Spacing.space4,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.card,
+  },
+  noMatchText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 })

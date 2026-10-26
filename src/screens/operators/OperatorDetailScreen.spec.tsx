@@ -167,6 +167,19 @@ describe('OperatorDetailScreen', () => {
     expect(screen.getByTestId('detail-state-not-found')).toBeTruthy()
   })
 
+  it('navigates to /profile/${sellerId} when pressing seller card profile', async () => {
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+    const sellerCard = screen.getByTestId('seller-card-touchable')
+    fireEvent.press(sellerCard)
+    expect(mockRouter.push).toHaveBeenCalledWith('/profile/user-seller-9')
+  })
+
   it('renders visitor view with contact actions and NO navbar favorite, without owner bar', async () => {
     ;(useOperatorDetail as jest.Mock).mockReturnValue({
       state: 'ready',

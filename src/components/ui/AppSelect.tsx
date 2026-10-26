@@ -28,7 +28,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
   const [modalVisible, setModalVisible] = useState(false)
 
   const selectedItem = items.find(i => i.value === value)
-  const displayLabel = selectedItem ? selectedItem.label : (placeholder || '????...')
+  const displayLabel = selectedItem ? selectedItem.label : (placeholder || 'اختر...')
 
   return (
     <View style={s.container}>
@@ -38,7 +38,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
         activeOpacity={0.7}
         onPress={() => {
           if (disabled) {
-            dialogService.alert('?????', '?????? ????? ?????? ?????? ?????')
+            dialogService.alert('تنبيه', 'الرجاء تحديد الخيار السابق أولاً')
             return
           }
           setModalVisible(true)
@@ -69,7 +69,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
         <View style={s.modalOverlay}>
           <SafeAreaView style={s.modalSheet}>
             <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>{label || '????'}</Text>
+              <Text style={s.modalTitle}>{label || 'اختر'}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color={Colors.text} />
               </TouchableOpacity>

@@ -27,6 +27,16 @@ export const OWNER_STATUS_TARGET: Partial<
   submit: 'ACTIVE',
 }
 
+export const OWNER_ACTION_SUCCESS_MESSAGE: Partial<Record<OwnerActionId, string>> = {
+  restore: 'تمت استعادة الإعلان بنجاح',
+  archive: 'تمت أرشفة الإعلان بنجاح',
+  pause: 'تم إيقاف الإعلان مؤقتاً بنجاح',
+  stopSearch: 'تم إيقاف البحث بنجاح',
+  markSold: 'تم تحديد الإعلان كمباع بنجاح',
+  markRented: 'تم تحديد الإعلان كمؤجر بنجاح',
+  submit: 'تم إرسال الإعلان بنجاح',
+}
+
 export const CAR_STATUS_ACTION: Partial<
   Record<OwnerActionId, CarListingStatusAction>
 > = {

@@ -167,7 +167,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   }
 
   const handlePressSellerProfile = (sellerId: string) => {
-    router.push(`/user/${sellerId}`)
+    router.push(`/profile/${sellerId}`)
   }
 
   // Loading, Not Found, Offline, Error states
