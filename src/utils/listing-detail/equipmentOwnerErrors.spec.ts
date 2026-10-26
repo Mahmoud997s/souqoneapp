@@ -63,6 +63,18 @@ describe('equipmentOwnerErrors', () => {
       )
     })
 
+    it('handles ACTIVE_LISTINGS_LIMIT_REACHED error', () => {
+      const err = { response: { data: { code: 'ACTIVE_LISTINGS_LIMIT_REACHED' } } }
+      expect(translateEquipmentOwnerError(err)).toBe(
+        'لقد بلغت الحد الأقصى للإعلانات النشطة. يرجى حذف أحد إعلاناتك أو إيقافه ثم المحاولة مرة أخرى.'
+      )
+    })
+
+    it('surfaces backend string message if provided on response data', () => {
+      const err = { response: { data: { message: 'رسالة خطأ مخصصة من السيرفر' } } }
+      expect(translateEquipmentOwnerError(err)).toBe('رسالة خطأ مخصصة من السيرفر')
+    })
+
     it('falls back to default message on unknown errors', () => {
       const err = new Error('Unknown server failure')
       expect(translateEquipmentOwnerError(err)).toBe(

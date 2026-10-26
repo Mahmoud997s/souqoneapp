@@ -29,10 +29,12 @@ describe('equipmentQueryKeys & invalidateEquipmentListingQueries', () => {
   describe('invalidateEquipmentListingQueries', () => {
     it('invalidates all equipment list, infinite, my-equipment, and detail keys', async () => {
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries').mockResolvedValue()
+      const refetchSpy = jest.spyOn(queryClient, 'refetchQueries').mockResolvedValue()
 
       await invalidateEquipmentListingQueries(queryClient, 'eq-123')
 
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['equipment-detail', 'eq-123'] })
+      expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ['equipment-detail', 'eq-123'] })
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['equipment-item', 'eq-123'] })
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['equipment', 'eq-123'] })
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['equipment'] })

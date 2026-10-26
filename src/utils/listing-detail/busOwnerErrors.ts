@@ -41,6 +41,14 @@ export function translateBusOwnerError(err: any): string {
     if (code === 'ACCOUNT_SUSPENDED') {
       return 'حسابك موقوف مؤقتاً ولا يمكنك تنفيذ هذا الإجراء.'
     }
+    if (code === 'ACTIVE_LISTINGS_LIMIT_REACHED') {
+      return 'لقد بلغت الحد الأقصى للإعلانات النشطة. يرجى حذف أحد إعلاناتك أو إيقافه ثم المحاولة مرة أخرى.'
+    }
+  }
+
+  const responseMessage = err?.response?.data?.message
+  if (typeof responseMessage === 'string' && responseMessage.trim().length > 0) {
+    return responseMessage
   }
 
   return 'تعذّر تنفيذ الإجراء. حاول مرة أخرى.'

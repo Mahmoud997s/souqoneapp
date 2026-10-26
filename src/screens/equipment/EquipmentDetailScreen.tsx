@@ -42,6 +42,7 @@ import {
   type SimilarEquipmentItem,
 } from '../../hooks/listing-detail/useEquipmentSimilarListings'
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
+import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { normalizeCurrency } from '../../utils/listing-detail/mapEquipmentDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
@@ -174,7 +175,11 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
           goBackSafely()
+          return
         }
+        await refetch()
+        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
+        dialogService.alert('تم بنجاح', msg, 'success')
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert('تعارض في البيانات', translateEquipmentOwnerError(err))
