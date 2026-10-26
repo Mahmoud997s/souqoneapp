@@ -46,6 +46,7 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
+import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { normalizeCurrency } from '../../utils/listing-detail/mapCarDetail'
 import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -223,7 +224,11 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
           goBackSafely()
+          return
         }
+        await refetch()
+        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
+        dialogService.alert('تم بنجاح', msg, 'success')
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert(
@@ -231,7 +236,15 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
           )
         } else {
-          dialogService.alert('خطأ', 'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.')
+          const responseMsg =
+            typeof err === 'object' && err !== null && 'response' in err
+              ? (err as { response?: { data?: { message?: unknown } } }).response?.data?.message
+              : undefined
+          const errorMsg =
+            typeof responseMsg === 'string' && responseMsg.trim().length > 0
+              ? responseMsg
+              : 'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
+          dialogService.alert('خطأ', errorMsg)
         }
       }
     }

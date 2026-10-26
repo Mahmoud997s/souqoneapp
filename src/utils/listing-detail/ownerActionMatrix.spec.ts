@@ -5,6 +5,7 @@ import {
   buildEquipmentOwnerActions,
   OWNER_STATUS_TARGET,
   CAR_STATUS_ACTION,
+  OWNER_ACTION_SUCCESS_MESSAGE,
 } from './ownerActionMatrix'
 
 const ids = (actions: { id: string }[]) => actions.map((a) => a.id)
@@ -31,6 +32,18 @@ describe('ownerActionMatrix', () => {
         stopSearch: 'archive',
         restore: 'restore',
         submit: 'submit',
+      })
+    })
+
+    it('exports exact OWNER_ACTION_SUCCESS_MESSAGE mappings', () => {
+      expect(OWNER_ACTION_SUCCESS_MESSAGE).toEqual({
+        restore: 'تمت استعادة الإعلان بنجاح',
+        archive: 'تمت أرشفة الإعلان بنجاح',
+        pause: 'تم إيقاف الإعلان مؤقتاً بنجاح',
+        stopSearch: 'تم إيقاف البحث بنجاح',
+        markSold: 'تم تحديد الإعلان كمباع بنجاح',
+        markRented: 'تم تحديد الإعلان كمؤجر بنجاح',
+        submit: 'تم إرسال الإعلان بنجاح',
       })
     })
   })
