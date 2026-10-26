@@ -1,6 +1,14 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  InteractionManager,
+} from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import MapView, { Marker } from '../ui/Map'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
@@ -16,20 +24,29 @@ export interface LocationCardProps {
 
 /**
  * LocationCard
- * Text-based location card with external directions link.
- * Used across detail screens (Equipment, Operators, etc.) where a lightweight text-based
- * location card with external directions link is preferred over an embedded map view.
+ * Location card with address text and embedded map (when coordinates are present) matching cars reference.
+ * Used across detail screens (Equipment, Operators, etc.).
  */
 export function LocationCard({
   locationText,
   latitude,
   longitude,
 }: LocationCardProps) {
+  const [isMapMounted, setIsMapMounted] = useState<boolean>(false)
+
   const hasCoordinates =
     typeof latitude === 'number' &&
     typeof longitude === 'number' &&
     !isNaN(latitude) &&
     !isNaN(longitude)
+
+  useEffect(() => {
+    if (!hasCoordinates) return
+    const task = InteractionManager.runAfterInteractions(() => {
+      setIsMapMounted(true)
+    })
+    return () => task.cancel()
+  }, [hasCoordinates])
 
   const handleOpenDirections = () => {
     if (!hasCoordinates) return
@@ -42,6 +59,39 @@ export function LocationCard({
       <Text style={s.cardTitle} maxFontSizeMultiplier={1.3}>
         الموقع والعنوان
       </Text>
+
+      {hasCoordinates && (
+        <View style={s.mapContainer} testID="location-map-container">
+          {isMapMounted ? (
+            <>
+              <MapView
+                style={{ width: '100%', height: '100%' }}
+                initialRegion={{
+                  latitude,
+                  longitude,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+              >
+                <Marker
+                  coordinate={{
+                    latitude,
+                    longitude,
+                  }}
+                />
+              </MapView>
+              {/* Overlay to prevent accidental touches capturing scroll */}
+              <View style={StyleSheet.absoluteFill} />
+            </>
+          ) : (
+            <View style={s.mapPlaceholder}>
+              <Ionicons name="location-outline" size={32} color={Colors.primary} />
+            </View>
+          )}
+        </View>
+      )}
 
       <View style={s.locationRow}>
         <Ionicons name="location-outline" size={20} color={Colors.primary} />
@@ -88,6 +138,24 @@ const s = StyleSheet.create({
     color: Colors.text,
     textAlign: 'left',
     marginBottom: Spacing.space3,
+  },
+  mapContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceAlt,
+    position: 'relative',
+    marginBottom: Spacing.space3,
+  },
+  mapPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surfaceAlt,
   },
   locationRow: {
     flexDirection: 'row',
