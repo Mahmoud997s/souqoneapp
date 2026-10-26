@@ -22,13 +22,9 @@ export function useFavoriteIds() {
       if (typeof favoritesApi?.ids !== 'function') {
         return new Set<string>()
       }
-      try {
-        const res = await favoritesApi.ids()
-        const raw = Array.isArray(res?.data) ? res.data : []
-        return new Set<string>(raw)
-      } catch {
-        return new Set<string>()
-      }
+      const res = await favoritesApi.ids()
+      const raw = Array.isArray(res?.data) ? res.data : []
+      return new Set<string>(raw)
     },
     enabled: Boolean(isLoggedIn),
     staleTime: 1000 * 60 * 5,
