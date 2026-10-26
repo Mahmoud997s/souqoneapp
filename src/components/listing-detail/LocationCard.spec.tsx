@@ -41,4 +41,24 @@ describe('LocationCard', () => {
     )
     expect(screen.queryByTestId('equipment-directions-button')).toBeNull()
   })
+
+  it('renders embedded map when coordinates are present, alongside address and directions', async () => {
+    await render(
+      <LocationCard
+        locationText="مسقط، بوشر"
+        latitude={23.58}
+        longitude={58.4}
+      />
+    )
+    expect(screen.getByTestId('location-map-container')).toBeTruthy()
+    expect(screen.getByText('مسقط، بوشر')).toBeTruthy()
+    expect(screen.getByTestId('equipment-directions-button')).toBeTruthy()
+  })
+
+  it('does NOT render map container when coordinates are missing and keeps text-only card', async () => {
+    await render(<LocationCard locationText="نزوى" />)
+    expect(screen.queryByTestId('location-map-container')).toBeNull()
+    expect(screen.getByText('نزوى')).toBeTruthy()
+    expect(screen.queryByTestId('equipment-directions-button')).toBeNull()
+  })
 })

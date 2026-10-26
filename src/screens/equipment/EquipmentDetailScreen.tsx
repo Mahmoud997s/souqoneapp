@@ -405,7 +405,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           </Animated.View>
         ) : null}
 
-        {/* 10. Text Location Card (NO embedded map) */}
+        {/* 10. Location Card with embedded map */}
         <Animated.View entering={getEnteringAnimation(9)}>
           <LocationCard
             locationText={vm.location.fullLocationText}
@@ -578,7 +578,7 @@ const s = StyleSheet.create({
   },
   similarCardPrice: {
     ...RTLText,
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: lineHeightFor(14),
     color: Colors.primary,

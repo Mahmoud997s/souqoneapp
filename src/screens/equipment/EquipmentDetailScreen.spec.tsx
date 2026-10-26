@@ -493,17 +493,13 @@ describe('EquipmentDetailScreen', () => {
   })
 
   describe('Location & Map compliance', () => {
-    it('renders text location card with directions link and strictly no MapView canvas', async () => {
-      const res = await render(<EquipmentDetailScreen id="eq-101" />)
+    it('renders location card with directions link and embedded MapView canvas when coordinates exist', async () => {
+      await render(<EquipmentDetailScreen id="eq-101" />)
 
       expect(screen.getByTestId('equipment-location-card')).toBeTruthy()
       expect(screen.getAllByText('مسقط، السيب').length).toBeGreaterThan(0)
       expect(screen.getByTestId('equipment-directions-button')).toBeTruthy()
-
-      // Verify no MapView canvas exists
-      const jsonStr = JSON.stringify(res.toJSON())
-      expect(jsonStr).not.toContain('AIRMap')
-      expect(jsonStr).not.toContain('MapView')
+      expect(screen.getByTestId('location-map-container')).toBeTruthy()
     })
   })
 
@@ -524,7 +520,7 @@ describe('EquipmentDetailScreen', () => {
           equipmentType: 'LOADER',
           listingType: 'EQUIPMENT_SALE',
           price: 25000,
-          currency: 'OMR',
+          currency: 'ر.ع',
           city: 'صحار',
           images: [{ url: 'https://example.com/wheel-loader.jpg' }],
         },
