@@ -74,6 +74,7 @@ describe('DetailTopBar', () => {
     const searchInput = screen.getByTestId('nav-search-input')
     expect(searchInput).toBeTruthy()
     expect(searchInput.props.textAlign).toBe('right')
+    expect(searchInput.props.clearButtonMode).toBeUndefined()
 
     const flatInputStyle = StyleSheet.flatten(searchInput.props.style)
     expect(flatInputStyle.textAlign).toBe('right')

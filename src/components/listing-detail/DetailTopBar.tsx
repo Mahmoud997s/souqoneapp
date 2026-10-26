@@ -111,7 +111,6 @@ export function DetailTopBar(props: DetailTopBarProps) {
               style={s.searchInput}
               returnKeyType="search"
               textAlign="right"
-              clearButtonMode="while-editing"
               autoCorrect={false}
               autoCapitalize="none"
               testID="nav-search-input"
