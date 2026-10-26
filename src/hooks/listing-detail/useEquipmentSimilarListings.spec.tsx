@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
+import { renderHook, waitFor, act } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import { useEquipmentSimilarListings } from './useEquipmentSimilarListings'
@@ -30,9 +30,13 @@ describe('useEquipmentSimilarListings', () => {
     jest.clearAllMocks()
     queryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
+        queries: { retry: false, gcTime: 0 },
       },
     })
+  })
+
+  afterEach(() => {
+    queryClient.clear()
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -40,13 +44,22 @@ describe('useEquipmentSimilarListings', () => {
   )
 
   it('fetches and returns similar equipment items successfully', async () => {
-    ;(equipmentApi.getSimilar as jest.Mock).mockResolvedValueOnce({
-      data: mockSimilarItems,
+    let resolvePromise!: (value: any) => void
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve
     })
+    ;(equipmentApi.getSimilar as jest.Mock).mockReturnValueOnce(pendingPromise)
 
     const { result } = await renderHook(() => useEquipmentSimilarListings('eq-1', 4), { wrapper })
 
+    // Controlled promise guarantees deterministic loading state without race condition
     expect(result.current.isLoading).toBe(true)
+
+    await act(async () => {
+      resolvePromise({
+        data: mockSimilarItems,
+      })
+    })
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
