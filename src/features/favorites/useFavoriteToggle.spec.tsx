@@ -60,19 +60,23 @@ function TestToggleHarness({
 
 describe('useFavoriteToggle (Feature Module)', () => {
   let queryClient: QueryClient
+  let serverSet: Set<string>
 
   beforeEach(() => {
     jest.clearAllMocks()
     mockPush.mockClear()
     useToastStore.setState({ current: null })
     useAuthStore.setState({ isLoggedIn: true })
+    serverSet = new Set<string>()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false, gcTime: 0 },
         mutations: { retry: false },
       },
     })
-    ;(favoritesApi.ids as jest.Mock).mockResolvedValue({ data: [] })
+    ;(favoritesApi.ids as jest.Mock).mockImplementation(async () => ({
+      data: Array.from(serverSet),
+    }))
     ;(favoritesApi.check as jest.Mock).mockResolvedValue({ data: { favorited: false } })
   })
 
@@ -114,6 +118,7 @@ describe('useFavoriteToggle (Feature Module)', () => {
     expect(useToastStore.getState().current).toBeNull()
 
     // Server confirms addition
+    serverSet.add('BUS_LISTING:bus-777')
     await act(async () => {
       resolveAdd({ data: { favorited: true } })
     })
@@ -134,6 +139,7 @@ describe('useFavoriteToggle (Feature Module)', () => {
 
   it('optimistically removes key from cache and shows removal toast after server confirmation', async () => {
     // Seed ids cache with bus-777
+    serverSet.add('BUS_LISTING:bus-777')
     queryClient.setQueryData<Set<string>>(
       FAVORITE_IDS_QUERY_KEY,
       new Set(['BUS_LISTING:bus-777'])
@@ -165,6 +171,7 @@ describe('useFavoriteToggle (Feature Module)', () => {
     expect(cachedIds?.has('BUS_LISTING:bus-777')).toBe(false)
 
     // Server confirms removal
+    serverSet.delete('BUS_LISTING:bus-777')
     await act(async () => {
       resolveAdd({ data: { favorited: false } })
     })

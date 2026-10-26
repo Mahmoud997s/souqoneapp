@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { favoritesApi } from '../../api/favorites'
 import { useRequireAuth } from '../../hooks/listing-detail/useRequireAuth'
 import { useAuthStore } from '../../store/authStore'
@@ -41,10 +41,9 @@ export function useFavoriteToggle(
   const [optimisticFav, setOptimisticFav] = useState<boolean | null>(null)
   const [isBusy, setIsBusy] = useState<boolean>(false)
 
-  const { ids } = useFavoriteIds()
+  const { ids, data: idsData } = useFavoriteIds()
 
   const hasUserToggledRef = useRef<boolean>(false)
-  const hasHydratedRef = useRef<boolean>(false)
   const requestKeyRef = useRef<string>(currentEntityKey)
   const initialIsFavoriteRef = useRef<boolean>(initialIsFavorite)
 
@@ -58,7 +57,6 @@ export function useFavoriteToggle(
 
   // Reset local state when entity identity changes
   useEffect(() => {
-    hasHydratedRef.current = false
     hasUserToggledRef.current = false
     setIsBusy(false)
     setOptimisticFav(null)
@@ -79,55 +77,17 @@ export function useFavoriteToggle(
     isLoggedIn = false
   }
 
-  const checkQueryKey = useMemo(
-    () => ['favorites', 'check', resolvedType, resolvedId] as const,
-    [resolvedType, resolvedId]
-  )
-
-  const { data: checkData } = useQuery({
-    queryKey: checkQueryKey,
-    queryFn: async () => {
-      if (typeof favoritesApi?.check !== 'function') {
-        return { favorited: false }
-      }
-      try {
-        const res = await favoritesApi.check(resolvedType, resolvedId)
-        return res?.data ?? { favorited: false }
-      } catch {
-        return { favorited: false }
-      }
-    },
-    enabled: Boolean(isLoggedIn && resolvedType && resolvedId),
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-    retry: false,
-  })
-
-  // Synchronize state when server check query resolves (only if user hasn't toggled yet)
-  useEffect(() => {
-    if (
-      !hasUserToggledRef.current &&
-      !hasHydratedRef.current &&
-      checkData &&
-      typeof checkData.favorited === 'boolean'
-    ) {
-      hasHydratedRef.current = true
-    }
-  }, [checkData])
-
-  // Compute single source of truth favorite state
+  // Compute single source of truth favorite state (D-092e)
+  // State = optimistic (in-flight) ?? shared ids store when loaded ?? initialIsFavorite
   const isFavorite = useMemo(() => {
     if (optimisticFav !== null) {
       return optimisticFav
     }
-    if (currentEntityKey && ids.has(currentEntityKey)) {
-      return true
-    }
-    if (checkData && typeof checkData.favorited === 'boolean') {
-      return checkData.favorited
+    if (isLoggedIn && idsData !== undefined && currentEntityKey) {
+      return ids.has(currentEntityKey)
     }
     return initialIsFavoriteRef.current
-  }, [optimisticFav, currentEntityKey, ids, checkData])
+  }, [optimisticFav, isLoggedIn, idsData, currentEntityKey, ids])
 
   const isFavoriteRef = useRef<boolean>(isFavorite)
   useEffect(() => {
@@ -172,7 +132,6 @@ export function useFavoriteToggle(
         nextIds.delete(activeKey)
       }
       queryClient.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, nextIds)
-      queryClient.setQueryData(checkQueryKey, { favorited: nextFav })
 
       favoritesApi
         .add(resolvedType, resolvedId)
@@ -181,9 +140,16 @@ export function useFavoriteToggle(
           const serverFavorited =
             typeof res?.data?.favorited === 'boolean' ? res.data.favorited : nextFav
 
-          setOptimisticFav(serverFav => (requestKeyRef.current === activeKey ? serverFavorited : serverFav))
+          // Write confirmed value into ['favorite-ids'] cache Set by serverFavorited
+          const currentCache = queryClient.getQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY)
+          const updatedCache = new Set<string>(currentCache ?? [])
+          if (serverFavorited) {
+            updatedCache.add(activeKey)
+          } else {
+            updatedCache.delete(activeKey)
+          }
+          queryClient.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, updatedCache)
           isFavoriteRef.current = serverFavorited
-          queryClient.setQueryData(checkQueryKey, { favorited: serverFavorited })
 
           if (serverFavorited) {
             toastService.show({
@@ -201,23 +167,23 @@ export function useFavoriteToggle(
         })
         .catch(() => {
           if (requestKeyRef.current !== activeKey) return
-          setOptimisticFav(prevFav)
+          // Restore prevIds on failure
           isFavoriteRef.current = prevFav
           queryClient.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, prevIds)
-          queryClient.setQueryData(checkQueryKey, { favorited: prevFav })
           dialogService.alert('خطأ', 'تعذّر تحديث المفضلة، حاول مرة أخرى')
         })
         .finally(() => {
           inFlightKeys.delete(activeKey)
           if (requestKeyRef.current === activeKey) {
             setIsBusy(false)
+            // Clear local override so isFavorite derives strictly from shared ids store
+            setOptimisticFav(null)
           }
           queryClient.invalidateQueries({ queryKey: FAVORITE_IDS_QUERY_KEY })
           queryClient.invalidateQueries({ queryKey: ['favorites'] })
-          queryClient.invalidateQueries({ queryKey: checkQueryKey })
         })
     })
-  }, [resolvedType, resolvedId, currentEntityKey, isBusy, redirectPath, queryClient, checkQueryKey])
+  }, [resolvedType, resolvedId, currentEntityKey, isBusy, redirectPath, queryClient])
 
   return {
     isFavorite,
