@@ -55,6 +55,8 @@ export function BusLocationMapSection({
       <TouchableOpacity
         style={s.directionsBtn}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="الحصول على الاتجاهات"
         onPress={() => {
           Linking.openURL(
             `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`

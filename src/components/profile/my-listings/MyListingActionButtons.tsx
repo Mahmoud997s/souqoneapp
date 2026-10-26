@@ -49,6 +49,8 @@ export function MyListingActionButtons({
           style={s.cancelRequestBtn}
           activeOpacity={0.8}
           onPress={() => onCancelDeletionRequest && onCancelDeletionRequest(item)}
+          accessibilityRole="button"
+          accessibilityLabel="إلغاء طلب الحذف"
         >
           <Text style={s.cancelRequestTxt}>إلغاء طلب الحذف</Text>
         </TouchableOpacity>
@@ -64,6 +66,8 @@ export function MyListingActionButtons({
         activeOpacity={0.8}
         onPress={() => onDelete(item)}
         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityRole="button"
+        accessibilityLabel="حذف الإعلان"
       >
         <Ionicons name="trash" size={16} color={Colors.error} />
       </TouchableOpacity>
@@ -75,6 +79,8 @@ export function MyListingActionButtons({
           activeOpacity={0.8}
           onPress={() => onEdit(item)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel="تعديل الإعلان"
         >
           <Ionicons name="pencil" size={16} color={Colors.primary} />
         </TouchableOpacity>
@@ -87,6 +93,8 @@ export function MyListingActionButtons({
           activeOpacity={0.8}
           onPress={() => onStatusChange(item)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel="خيارات الإعلان"
         >
           <Ionicons name="ellipsis-vertical" size={16} color={Colors.primary} />
         </TouchableOpacity>

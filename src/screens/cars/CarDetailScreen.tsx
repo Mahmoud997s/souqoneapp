@@ -442,6 +442,8 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             <TouchableOpacity
               style={s.directionsBtn}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="الحصول على الاتجاهات"
               onPress={() => {
                 Linking.openURL(
                   `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
