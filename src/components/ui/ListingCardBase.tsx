@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { Radius } from '../../constants/radius'
 import { CardSystem } from '../../constants/cardSystem'
 import { useAuthStore } from '../../store/authStore'
 import { favoritesApi } from '../../api/favorites'
+import { dialogService } from '../../store/dialogStore'
 import { formatDate } from '../../utils/format'
 import { resolveListingLocation } from '../../utils/listingLocation'
 import { CardImageSwiper } from './CardImageSwiper'
@@ -119,7 +120,11 @@ export const ListingCardBase = ({
     item?.raw?._count?.images ??
     (displayImages.length > 0 ? displayImages.length : undefined)
 
+  const isTogglingFavRef = useRef(false)
+
   const handleFavorite = async () => {
+    if (isTogglingFavRef.current) return
+    isTogglingFavRef.current = true
     if (!isLoggedIn) {
       router.push('/(auth)/login' as any)
       return
@@ -133,9 +138,11 @@ export const ListingCardBase = ({
       const targetId = item.id || item.raw?.id
       await favoritesApi.add((favoriteType || 'LISTING') as any, targetId)
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    } catch (err: any) {
-      console.log('Error toggling favorite:', err?.response?.data || err.message || err)
+    } catch {
+      dialogService.alert('خطأ', 'تعذّر تحديث المفضلة، حاول مرة أخرى')
       setIsFav((prev) => !prev)
+    } finally {
+      isTogglingFavRef.current = false
     }
   }
 
@@ -216,13 +223,14 @@ export const ListingCardBase = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={s.actionBtn}
+            testID="listing-card-favorite"
             onPress={handleFavorite}
             activeOpacity={0.8}
           >
             <Ionicons
               name={isFav ? 'heart' : 'heart-outline'}
               size={16}
-              color={isFav ? '#ef4444' : Colors.white}
+              color={isFav ? Colors.error : Colors.white}
             />
           </TouchableOpacity>
         </View>

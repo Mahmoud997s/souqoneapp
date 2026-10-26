@@ -360,6 +360,7 @@ export function UnifiedCard({
       cardActions={renderCardActions()}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={1}
+      favoriteType={entityType}
     />
   )
 }

@@ -245,6 +245,7 @@ export const BusCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      favoriteType="BUS_LISTING"
       shareMessage={`شاهد هذه الحافلة المعروضة على سوق ون: ${busName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

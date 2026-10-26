@@ -230,7 +230,7 @@ export const EquipCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
-      favoriteType="EQUIPMENT"
+      favoriteType="EQUIPMENT_LISTING"
       shareMessage={`شاهد هذه المعدة المعروضة على سوق ون: ${equipName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )
