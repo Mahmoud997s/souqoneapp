@@ -250,6 +250,7 @@ describe('EquipmentDetailScreen', () => {
       expect(screen.queryByTestId('owner-manage-bar')).toBeNull()
       // Contact actions should be visible
       expect(screen.getAllByTestId('btn-contact-chat').length).toBeGreaterThan(0)
+      expect(screen.getByTestId('seller-card-touchable')).toBeTruthy()
     })
 
     it('invokes useListingContact with EQUIPMENT_LISTING entity type', async () => {
@@ -285,6 +286,7 @@ describe('EquipmentDetailScreen', () => {
       expect(screen.getByTestId('btn-owner-edit')).toBeTruthy()
       expect(screen.getByTestId('btn-owner-delete')).toBeTruthy()
       expect(screen.queryByTestId('btn-contact-chat')).toBeNull()
+      expect(screen.queryByTestId('seller-card-touchable')).toBeNull()
     })
 
     it('navigates to equipment edit route when edit action is triggered', async () => {
