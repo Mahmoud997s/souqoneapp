@@ -167,7 +167,7 @@ describe('OperatorDetailScreen', () => {
     expect(screen.getByTestId('detail-state-not-found')).toBeTruthy()
   })
 
-  it('renders visitor view with contact actions and navbar favorite, without owner bar', async () => {
+  it('renders visitor view with contact actions and NO navbar favorite, without owner bar', async () => {
     ;(useOperatorDetail as jest.Mock).mockReturnValue({
       state: 'ready',
       vm: sampleOperatorVm,
@@ -188,13 +188,9 @@ describe('OperatorDetailScreen', () => {
     // Owner bar is absent
     expect(screen.queryByTestId('btn-owner-edit')).toBeNull()
 
-    // Verifies useFavoriteToggle and useListingContact were called with 'OPERATOR_LISTING'
-    expect(useFavoriteToggle).toHaveBeenCalledWith(
-      'OPERATOR_LISTING',
-      'op-100',
-      false,
-      expect.objectContaining({ redirectPath: '/equipment/operators/op-100' })
-    )
+    // Operators have NO favorites (Part O decision)
+    expect(screen.queryByTestId('nav-favorite-button')).toBeNull()
+    expect(useFavoriteToggle).not.toHaveBeenCalled()
     expect(useListingContact).toHaveBeenCalledWith(
       'OPERATOR_LISTING',
       'op-100',

@@ -22,7 +22,6 @@ import { dialogService } from '../../store/dialogStore'
 import { useOperatorDetail } from '../../hooks/listing-detail/useOperatorDetail'
 import { useOperatorReviews } from '../../hooks/listing-detail/useOperatorReviews'
 import { useOperatorOwnerActions } from '../../hooks/listing-detail/useOperatorOwnerActions'
-import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { translateOperatorOwnerError } from '../../utils/listing-detail/operatorOwnerErrors'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
@@ -81,9 +80,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   const ownerActions = useOperatorOwnerActions(isOwner ? vm : undefined)
 
-  const favoriteToggle = useFavoriteToggle('OPERATOR_LISTING', id, false, {
-    redirectPath: `/equipment/operators/${id}`,
-  })
 
   const contact = useListingContact(
     'OPERATOR_LISTING',
@@ -214,10 +210,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
       {/* Navigation Bar */}
       <GlassDetailNavBar
         onBack={() => router.back()}
-        isFavorite={favoriteToggle.isFavorite}
-        favoriteBusy={favoriteToggle.isBusy}
-        canFavorite={!isOwner}
-        onToggleFavorite={favoriteToggle.toggle}
+        canFavorite={false}
         scrollY={scrollY}
         paddingTop={insets.top}
       />
