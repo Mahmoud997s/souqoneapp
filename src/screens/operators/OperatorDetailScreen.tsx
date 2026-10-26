@@ -263,7 +263,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
         {/* Profile Bio / Description */}
         {Boolean(vm.description) && (
-          <ListingDescription text={vm.description} />
+          <ListingDescription text={vm.description} collapsedLines={5} />
         )}
 
         {/* ONE Merged Block: Specializations, Equipment & Certifications */}

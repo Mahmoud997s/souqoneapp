@@ -31,6 +31,9 @@ export function ListingDescription({
     return null
   }
 
+  const lineCount = plainText.split('\n').filter((line) => line.trim().length > 0).length
+  const shouldShowToggle = plainText.length > 120 || lineCount > collapsedLines
+
   return (
     <View style={s.card}>
       <Text style={s.sectionTitle}>الوصف</Text>
@@ -42,12 +45,14 @@ export function ListingDescription({
         {plainText}
       </Text>
 
-      {plainText.length > 120 ? (
+      {shouldShowToggle ? (
         <TouchableOpacity
           style={s.toggleButton}
           onPress={() => setIsExpanded((prev) => !prev)}
           activeOpacity={0.7}
           testID="btn-toggle-description"
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? 'عرض أقل' : 'قراءة المزيد'}
         >
           <Text style={s.toggleText}>
             {isExpanded ? 'عرض أقل' : 'قراءة المزيد'}

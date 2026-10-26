@@ -372,7 +372,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         {/* 5. Description */}
         {vm.description ? (
           <Animated.View entering={getEnteringAnimation(4)}>
-            <ListingDescription text={vm.description} />
+            <ListingDescription text={vm.description} collapsedLines={5} />
           </Animated.View>
         ) : null}
 
