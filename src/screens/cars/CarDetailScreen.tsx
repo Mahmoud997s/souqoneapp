@@ -58,7 +58,7 @@ import {
 } from '../../constants/listing-detail/safetyTips'
 
 // Presentational Components
-import { DetailNavBar } from '../../components/listing-detail/DetailNavBar'
+import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
@@ -287,7 +287,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   if (state !== 'ready' || !vm) {
     return (
       <View style={s.rootContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
         <DetailStates
           kind={state === 'ready' ? 'loading' : state}
           onRetry={refetch}
@@ -299,10 +299,10 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   return (
     <View style={s.rootContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
 
-      {/* Glassmorphic Navigation Bar */}
-      <DetailNavBar
+      {/* Fixed Top Bar in normal layout flow */}
+      <DetailTopBar
         onBack={goBackSafely}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}
@@ -312,9 +312,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={handleSearchSubmit}
-        scrollY={scrollY}
         placeholder="ابحث في تفاصيل السيارة..."
-        paddingTop={insets.top + 4}
       />
 
       {/* Main Content ScrollView */}

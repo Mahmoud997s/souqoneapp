@@ -43,6 +43,13 @@ jest.mock('../../store/dialogStore', () => ({
   },
 }))
 
+const mockShareListing = jest.fn()
+jest.mock('../../hooks/listing-detail/useShareListing', () => ({
+  useShareListing: () => ({
+    share: mockShareListing,
+  }),
+}))
+
 let mockCurrentUser: { id: string; username?: string } | null = null
 
 jest.mock('../../store/authStore', () => ({
@@ -580,11 +587,26 @@ describe('EquipmentDetailScreen', () => {
       expect(mockRouterPush).toHaveBeenCalledWith('/equipment/edit/eq-101')
     })
 
-    it('strictly NEVER renders a share button in navbar or screen', async () => {
+    it('renders share button in top bar and triggers share on press (D-095 Item 30)', async () => {
       await render(<EquipmentDetailScreen id="eq-101" />)
 
-      expect(screen.queryByTestId('nav-share-button')).toBeNull()
-      expect(screen.queryByLabelText(/مشاركة|share/i)).toBeNull()
+      const shareBtn = screen.getByTestId('btn-detail-share')
+      expect(shareBtn).toBeTruthy()
+      fireEvent.press(shareBtn)
+      expect(mockShareListing).toHaveBeenCalled()
+    })
+
+    it('renders fixed top bar before scroll view and search input is reachable without scrolling', async () => {
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      const topBar = screen.getByTestId('detail-top-bar')
+      const scrollView = screen.getByTestId('equipment-detail-scroll-view')
+      const searchInput = screen.getByTestId('nav-search-input')
+
+      expect(topBar).toBeTruthy()
+      expect(scrollView).toBeTruthy()
+      expect(searchInput).toBeTruthy()
+      expect(searchInput.props.textAlign).toBe('right')
     })
   })
 })

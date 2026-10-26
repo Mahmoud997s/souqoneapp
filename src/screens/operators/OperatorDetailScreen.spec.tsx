@@ -1,4 +1,5 @@
 import React from 'react'
+import { Share } from 'react-native'
 import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { OperatorDetailScreen } from './OperatorDetailScreen'
 import { useOperatorDetail } from '../../hooks/listing-detail/useOperatorDetail'
@@ -354,5 +355,47 @@ describe('OperatorDetailScreen', () => {
 
     expect(screen.queryByTestId('nav-search-input')).toBeNull()
     expect(screen.queryByTestId('nav-search-container')).toBeNull()
+  })
+
+  it('renders share button in top bar and triggers share on press (D-095 Item 30)', async () => {
+    const shareSpy = jest.spyOn(Share, 'share').mockImplementation(async () => ({ action: 'sharedAction' as const }))
+
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    const shareBtn = screen.getByTestId('btn-detail-share')
+    expect(shareBtn).toBeTruthy()
+    await act(async () => {
+      fireEvent.press(shareBtn)
+    })
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      message: 'مشغل رافعة معتمد - سوق ون',
+    })
+    shareSpy.mockRestore()
+  })
+
+  it('renders fixed top bar before scroll view and strictly omits favorite heart (D-095)', async () => {
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    const topBar = screen.getByTestId('detail-top-bar')
+    const backBtn = screen.getByTestId('nav-back-button')
+    const shareBtn = screen.getByTestId('btn-detail-share')
+
+    expect(topBar).toBeTruthy()
+    expect(backBtn).toBeTruthy()
+    expect(shareBtn).toBeTruthy()
+    expect(screen.queryByTestId('nav-favorite-button')).toBeNull()
   })
 })
