@@ -44,6 +44,7 @@ export async function invalidateBusListingQueries(
     } else {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['bus-detail', id] }),
+        queryClient.refetchQueries({ queryKey: ['bus-detail', id] }),
         queryClient.invalidateQueries({ queryKey: ['bus', id] }),
       ])
     }

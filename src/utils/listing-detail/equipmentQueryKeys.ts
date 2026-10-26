@@ -46,6 +46,7 @@ export async function invalidateEquipmentListingQueries(
     } else {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.detailPrefix(id) }),
+        queryClient.refetchQueries({ queryKey: equipmentQueryKeys.detailPrefix(id) }),
         queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.equipmentItem(id) }),
         queryClient.invalidateQueries({ queryKey: equipmentQueryKeys.legacyEquipment(id) }),
       ])
