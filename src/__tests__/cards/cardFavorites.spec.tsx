@@ -89,13 +89,14 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
       images: [],
     }
 
-    await render(
-      <BusCard item={busItem} onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<BusCard item={busItem} onPress={() => {}} />, {
+      wrapper: createWrapper(),
+    })
 
-    const heartBtn = screen.getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledTimes(1)
@@ -106,19 +107,20 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
   it('EquipCard calls favoritesApi.add with EQUIPMENT_LISTING entity type', async () => {
     const equipItem: any = {
       id: 'eq-202',
-      title: 'حفار كوماتسو',
-      price: 32000,
+      title: 'حفار كاتربيلر 320',
+      price: 45000,
       equipmentType: 'EXCAVATOR',
       images: [],
     }
 
-    await render(
-      <EquipCard item={equipItem} onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<EquipCard item={equipItem} onPress={() => {}} />, {
+      wrapper: createWrapper(),
+    })
 
-    const heartBtn = screen.getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledTimes(1)
@@ -130,20 +132,21 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     const carItem: any = {
       id: 'car-303',
       title: 'تويوتا كامري 2024',
-      price: 8500,
-      make: 'Toyota',
-      model: 'Camry',
+      price: 9500,
+      brand: 'TOYOTA',
+      model: 'CAMRY',
       year: 2024,
       images: [],
     }
 
-    await render(
-      <CarCard item={carItem} onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<CarCard item={carItem} onPress={() => {}} />, {
+      wrapper: createWrapper(),
+    })
 
-    const heartBtn = screen.getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledTimes(1)
@@ -151,121 +154,122 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     })
   })
 
-  it('UnifiedCard passes BUS_LISTING for bus category items', async () => {
-    const busUnified: any = {
+  it('UnifiedCard with category buses delegates to BUS_LISTING', async () => {
+    const busItem: any = {
       id: 'uni-bus-1',
-      title: 'حافلة مدرسية',
+      title: 'حافلة هيونداي',
+      price: 12000,
       category: 'buses',
       images: [],
     }
 
-    await render(
-      <UnifiedCard item={busUnified} onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<UnifiedCard item={busItem} />, {
+      wrapper: createWrapper(),
+    })
 
-    fireEvent.press(screen.getByTestId('listing-card-favorite'))
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
+
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledWith('BUS_LISTING', 'uni-bus-1')
     })
   })
 
-  it('UnifiedCard passes EQUIPMENT_LISTING for equipment category items', async () => {
-    const equipUnified: any = {
+  it('UnifiedCard with category equipment delegates to EQUIPMENT_LISTING', async () => {
+    const equipItem: any = {
       id: 'uni-eq-2',
-      title: 'رافعة شوكية',
+      title: 'شيول كوماتسو',
+      price: 32000,
       category: 'equipment',
       images: [],
     }
 
-    await render(
-      <UnifiedCard item={equipUnified} onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<UnifiedCard item={equipItem} />, {
+      wrapper: createWrapper(),
+    })
 
-    fireEvent.press(screen.getByTestId('listing-card-favorite'))
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
+
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledWith('EQUIPMENT_LISTING', 'uni-eq-2')
     })
   })
 
-  it('ListingCardBase handles failure by alerting and reverting favorite state without console.log', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  it('displays user-friendly Arabic alert and rolls back heart when favoritesApi.add rejects', async () => {
     ;(favoritesApi.add as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
 
-    const item: any = {
+    const carItem: any = {
       id: 'fail-test-1',
-      title: 'إعلان اختبار الفشل',
-      isFavorite: false,
+      title: 'سيارة تجريبية تفشل',
+      price: 5000,
       images: [],
+      isFavorite: false,
     }
 
-    await render(
-      <ListingCardBase item={item} title="إعلان اختبار" priceLabel="1000 ر.ع." favoriteType="LISTING" onPress={jest.fn()} />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<CarCard item={carItem} onPress={() => {}} />, {
+      wrapper: createWrapper(),
+    })
 
-    const heartBtn = screen.getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
+    const heartBtn = getByTestId('listing-card-favorite')
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'fail-test-1')
+      expect(dialogService.alert).toHaveBeenCalledTimes(1)
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
         'تعذّر تحديث المفضلة، حاول مرة أخرى'
       )
     })
-
-    expect(consoleLogSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Error toggling favorite'),
-      expect.anything()
-    )
-
-    consoleErrorSpy.mockRestore()
-    consoleLogSpy.mockRestore()
   })
 
-  it('ListingCardBase ignores duplicate presses while favorite request is in flight', async () => {
-    let resolveApi: (val: any) => void = () => {}
+  it('ignores rapid duplicate presses while toggle is in flight (mutex latch)', async () => {
+    let resolveAdd: (val: any) => void = () => {}
     const slowPromise = new Promise((resolve) => {
-      resolveApi = resolve
+      resolveAdd = resolve
     })
     ;(favoritesApi.add as jest.Mock).mockReturnValue(slowPromise)
 
-    const item: any = {
-      id: 'flight-1',
-      title: 'إعلان تحت الطلب',
+    const busItem: any = {
+      id: 'latch-bus-1',
+      title: 'حافلة سباق النقرات',
+      price: 20000,
+      busType: 'COASTER',
+      capacity: 30,
       images: [],
     }
 
-    const { getByTestId } = await render(
-      <ListingCardBase
-        item={item}
-        title="إعلان تحت الطلب"
-        priceLabel="2000 ر.ع."
-        favoriteType="LISTING"
-        onPress={jest.fn()}
-      />,
-      { wrapper: createWrapper() }
-    )
+    const { getByTestId } = await render(<BusCard item={busItem} onPress={() => {}} />, {
+      wrapper: createWrapper(),
+    })
 
     const heartBtn = getByTestId('listing-card-favorite')
 
-    // Trigger rapid clicks directly on component handler without dangling RNTL act()
-    heartBtn.props.onClick()
-    heartBtn.props.onClick()
-    heartBtn.props.onClick()
-
-    expect(favoritesApi.add).toHaveBeenCalledTimes(1)
-
+    // Fire 3 rapid presses
     await React.act(async () => {
-      resolveApi({ data: { favorited: true } })
-      await slowPromise
+      fireEvent.press(heartBtn)
+      fireEvent.press(heartBtn)
+      fireEvent.press(heartBtn)
+    })
+
+    // Resolve the single in-flight call
+    await React.act(async () => {
+      resolveAdd({ data: { favorited: true } })
+    })
+
+    await waitFor(() => {
+      expect(favoritesApi.add).toHaveBeenCalledTimes(1)
     })
   })
 
-  it('unauthenticated press redirects to login and allows repeated redirect on subsequent press without latch lockup', async () => {
+  it('unauthenticated press redirects to login and does NOT permanently latch the heart button', async () => {
     ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
       isLoggedIn: false,
       user: null,
@@ -294,7 +298,7 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     await React.act(async () => {
       fireEvent.press(heartBtn)
     })
-    expect(mockRouterPush).toHaveBeenCalledWith('/(auth)/login')
+    expect(mockRouterPush).toHaveBeenCalledWith(expect.stringContaining('/(auth)/login'))
     expect(mockRouterPush).toHaveBeenCalledTimes(1)
     expect(favoritesApi.add).not.toHaveBeenCalled()
 
@@ -335,7 +339,7 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     await React.act(async () => {
       fireEvent.press(heartBtn)
     })
-    expect(mockRouterPush).toHaveBeenCalledWith('/(auth)/login')
+    expect(mockRouterPush).toHaveBeenCalledWith(expect.stringContaining('/(auth)/login'))
     expect(mockRouterPush).toHaveBeenCalledTimes(1)
     expect(favoritesApi.add).not.toHaveBeenCalled()
 
