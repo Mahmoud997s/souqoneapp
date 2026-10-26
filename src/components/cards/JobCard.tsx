@@ -102,9 +102,9 @@ const s = StyleSheet.create({
   },
   timeText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#94a3b8',
-    lineHeight: 14,
+    lineHeight: 16,
     writingDirection: 'rtl',
   },
   descBox: {

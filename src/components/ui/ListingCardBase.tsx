@@ -480,9 +480,9 @@ const s = StyleSheet.create({
   },
   imageCountText: {
     color: Colors.white,
-    fontSize: 10.5,
+    fontSize: 11,
     fontFamily: 'Almarai_700Bold',
-    lineHeight: 14,
+    lineHeight: 16,
   },
   actionsContainer: {
     position: 'absolute',
@@ -595,7 +595,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   dotSeparator: {
-    fontSize: 10,
+    fontSize: 11,
     color: Colors.border,
   },
   timeInner: {
@@ -656,7 +656,8 @@ const s = StyleSheet.create({
   remainingText: {
     fontFamily: 'Almarai_700Bold',
     color: Colors.text2,
-    fontSize: 9.5,
+    fontSize: 11,
+    lineHeight: 16,
   },
   footerRow: {
     flexDirection: 'row',

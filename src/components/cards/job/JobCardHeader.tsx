@@ -129,10 +129,10 @@ const s = StyleSheet.create({
   },
   locationText: {
     ...CardSystem.typography.subtitle,
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#64748b',
     textAlign: 'left',
-    lineHeight: 15,
+    lineHeight: 16,
     writingDirection: 'rtl',
   },
 
@@ -157,9 +157,9 @@ const s = StyleSheet.create({
   },
   ratingText: {
     ...CardSystem.typography.badgeText,
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#d97706',
-    lineHeight: 14,
+    lineHeight: 16,
   },
   typeTag: {
     backgroundColor: '#eff6ff',
@@ -171,8 +171,8 @@ const s = StyleSheet.create({
   },
   typeTagText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#2563eb',
-    lineHeight: 14,
+    lineHeight: 16,
   },
 })
