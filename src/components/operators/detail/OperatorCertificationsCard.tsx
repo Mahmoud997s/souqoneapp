@@ -22,10 +22,10 @@ export interface OperatorCertificationsCardProps {
 
 /**
  * OperatorCertificationsCard
- * Displays certified equipment and professional credentials:
+ * ONE merged block for operator specializations and professional credentials:
  * - Section 1: 'المعدات المعتمد عليها' (equipment chips, non-interactive)
- * - Section 2: 'الشهادات والمستندات' (delegated to OperatorCertificationsList)
- * - Section 3: 'التخصصات' (chips when present)
+ * - Section 2: 'التخصصات' (specializations chips)
+ * - Section 3: 'الشهادات والمستندات' (delegated to OperatorCertificationsList)
  * - Renders null if all sections are empty
  */
 export function OperatorCertificationsCard({
@@ -45,7 +45,7 @@ export function OperatorCertificationsCard({
   return (
     <View style={s.card} testID="operator-certifications-card">
       <Text style={s.cardTitle} maxFontSizeMultiplier={1.3}>
-        الاعتمادات والمؤهلات
+        التخصصات والشهادات
       </Text>
 
       {/* Equipment Types Section */}
