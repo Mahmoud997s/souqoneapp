@@ -18,13 +18,15 @@ jest.mock('expo-blur', () => ({
   BlurView: ({ children }: any) => <>{children}</>,
 }))
 
+const mockRouterPush = jest.fn()
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockRouterPush,
     back: jest.fn(),
   }),
   router: {
-    push: jest.fn(),
+    push: mockRouterPush,
     back: jest.fn(),
   },
 }))
@@ -65,6 +67,7 @@ const createWrapper = () => {
 describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockRouterPush.mockClear()
     ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
       isLoggedIn: true,
       user: { id: 'u1', name: 'Test User' },
@@ -262,22 +265,22 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     })
   })
 
-  it('unauthenticated press redirects to login and does not lock favorite toggle guard', async () => {
+  it('unauthenticated press redirects to login and allows repeated redirect on subsequent press without latch lockup', async () => {
     ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
       isLoggedIn: false,
       user: null,
     })
 
     const item: any = {
-      id: 'unauth-1',
-      title: 'إعلان بدون تسجيل',
+      id: 'unauth-latch-1',
+      title: 'إعلان بدون تسجيل 1',
       images: [],
     }
 
-    const { getByTestId, rerender } = await render(
+    const { getByTestId } = await render(
       <ListingCardBase
         item={item}
-        title="إعلان بدون تسجيل"
+        title="إعلان بدون تسجيل 1"
         priceLabel="5000 ر.ع."
         favoriteType="LISTING"
         onPress={jest.fn()}
@@ -286,31 +289,80 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     )
 
     const heartBtn = getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
 
+    // First press while logged out
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
+    expect(mockRouterPush).toHaveBeenCalledWith('/(auth)/login')
+    expect(mockRouterPush).toHaveBeenCalledTimes(1)
     expect(favoritesApi.add).not.toHaveBeenCalled()
 
-    // Now user logs in
+    // Second press while still logged out — must trigger router.push again if latch was not held
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
+    expect(mockRouterPush).toHaveBeenCalledTimes(2)
+    expect(favoritesApi.add).not.toHaveBeenCalled()
+  })
+
+  it('unauthenticated press redirects to login, then switches to logged-in and allows favorite toggle on same card', async () => {
+    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
+      isLoggedIn: false,
+      user: null,
+    })
+
+    const item: any = {
+      id: 'unauth-latch-2',
+      title: 'إعلان بدون تسجيل 2',
+      images: [],
+    }
+
+    const { getByTestId, rerender } = await render(
+      <ListingCardBase
+        item={item}
+        title="إعلان بدون تسجيل 2"
+        priceLabel="5000 ر.ع."
+        favoriteType="LISTING"
+        onPress={jest.fn()}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    const heartBtn = getByTestId('listing-card-favorite')
+
+    // First press while logged out
+    await React.act(async () => {
+      fireEvent.press(heartBtn)
+    })
+    expect(mockRouterPush).toHaveBeenCalledWith('/(auth)/login')
+    expect(mockRouterPush).toHaveBeenCalledTimes(1)
+    expect(favoritesApi.add).not.toHaveBeenCalled()
+
+    // Switch store to logged-in on the same mounted card
     ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
       isLoggedIn: true,
-      user: { id: 'u1', name: 'Logged In' },
+      user: { id: 'u1', name: 'Logged In User' },
     })
 
     await rerender(
       <ListingCardBase
         item={item}
-        title="إعلان بدون تسجيل"
+        title="إعلان بدون تسجيل 2"
         priceLabel="5000 ر.ع."
         favoriteType="LISTING"
         onPress={jest.fn()}
       />
     )
 
-    fireEvent.press(getByTestId('listing-card-favorite'))
+    // Press heart button now that user is logged in
+    await React.act(async () => {
+      fireEvent.press(getByTestId('listing-card-favorite'))
+    })
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledTimes(1)
-      expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'unauth-1')
+      expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'unauth-latch-2')
     })
   })
 })

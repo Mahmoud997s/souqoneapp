@@ -123,8 +123,6 @@ export const ListingCardBase = ({
   const isTogglingFavRef = useRef(false)
 
   const handleFavorite = async () => {
-
-
     if (!isLoggedIn) {
       router.push('/(auth)/login' as any)
       return
