@@ -37,11 +37,11 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
         if (supported) {
           await Linking.openURL(url)
         } else {
-          dialogService.alert('???', '?? ???? ??? ??? ?????.')
+          dialogService.alert('خطأ', 'لا يمكن فتح هذا الملف.')
         }
       }
     } catch (e) {
-      dialogService.alert('???', '??? ??? ????? ??? ?????.')
+      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الملف.')
     }
   }
 
@@ -56,7 +56,7 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
       </View>
       <View style={s.info}>
         <Text style={[s.name, isOwn ? s.txtWhite : s.txtDark]} numberOfLines={1}>
-          {fileName || '??? ????'}
+          {fileName || 'ملف مرفق'}
         </Text>
         {fileSize ? (
           <Text style={[s.size, isOwn ? s.txtWhiteMuted : s.txtMuted]}>{fileSize}</Text>

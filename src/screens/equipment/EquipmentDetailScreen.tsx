@@ -358,13 +358,15 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           </Animated.View>
         ) : null}
 
-        {/* 4. Seller Card */}
-        <Animated.View entering={getEnteringAnimation(3)}>
-          <SellerCard
-            seller={vm.seller}
-            onPressProfile={() => handleProfilePress(vm.seller.id)}
-          />
-        </Animated.View>
+        {/* 4. Seller Card (when not owner) */}
+        {!isOwner ? (
+          <Animated.View entering={getEnteringAnimation(3)}>
+            <SellerCard
+              seller={vm.seller}
+              onPressProfile={() => handleProfilePress(vm.seller.id)}
+            />
+          </Animated.View>
+        ) : null}
 
         {/* 5. Description */}
         {vm.description ? (

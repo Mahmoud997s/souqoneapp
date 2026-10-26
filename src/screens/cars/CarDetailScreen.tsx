@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -77,6 +77,7 @@ import { SimilarListingsGrid } from '../../components/listing-detail/SimilarList
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
 
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
 
@@ -276,6 +277,12 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   const contactAvailability = getContactAvailability()
 
+  // Filter specs sections by in-page search query (D-093 Item 3)
+  const filteredSpecsSections = useMemo(() => {
+    if (!vm) return []
+    return filterSpecsSections(vm.specsSections, searchQuery)
+  }, [vm, searchQuery])
+
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
     return (
@@ -388,9 +395,15 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           <ListingDescription text={vm.description} collapsedLines={5} />
         </Animated.View>
 
-        {/* 7. Specs Sections */}
+        {/* 7. Specs Sections (filtered by section search, D-093 Item 3) */}
         <Animated.View entering={getEnteringAnimation(5)}>
-          <SpecsSections sections={vm.specsSections} />
+          {searchQuery.trim() && filteredSpecsSections.length === 0 ? (
+            <View style={s.noMatchContainer} testID="specs-no-match">
+              <Text style={s.noMatchText}>لا توجد نتائج مطابقة</Text>
+            </View>
+          ) : (
+            <SpecsSections sections={filteredSpecsSections} />
+          )}
         </Animated.View>
 
         {/* 7b. Location Map (only when the listing has coordinates, D-29) */}
@@ -651,5 +664,25 @@ const s = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'left',
     marginTop: 2,
+  },
+  noMatchContainer: {
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space3,
+    padding: Spacing.space4,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.card,
+  },
+  noMatchText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 })
