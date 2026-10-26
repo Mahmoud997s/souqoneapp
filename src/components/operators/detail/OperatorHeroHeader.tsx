@@ -4,8 +4,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
-import { Shadows } from '../../../constants/shadows'
-import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import type { OperatorDetailViewModel } from '../../../types/operatorDetailViewModel.types'
 import { OperatorAvatarBlock } from './OperatorAvatarBlock'
@@ -16,80 +14,101 @@ export interface OperatorHeroHeaderProps {
 
 /**
  * OperatorHeroHeader
- * Profile-header model for operator detail page (NO gallery).
- * Features:
- * - Large circular avatar with fallback to initials/icon
- * - Verified badge
- * - Operator title & operator type pill
- * - Experience pill (when experienceYearsLabel is present)
- * - Location line & posted date
- * - Rate summary under title (never "0 ر.ع", negotiable badge when flagged)
+ * Profile-style hero header for operator detail page.
+ * - Circular avatar with verified badge
+ * - Strong operator name (Almarai)
+ * - Role / specialty line
+ * - Location (city/region)
+ * - 2-3 real stat chips in ONE row (experience, rate, equipment)
+ * - Strict absence of listing-style price box and ad badges
  */
 export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
   const avatarUrl = vm.profileImageUrl || vm.seller.avatarUrl
-  const rateSummary = vm.rates.primaryLabel
-  const isNegotiable = vm.rates.isNegotiable
+  const hasExperience = Boolean(vm.experienceYearsLabel)
+  const hasRate = Boolean(vm.rates?.hasAnyRate)
+  const hasEquipment = Boolean(vm.equipmentTypes && vm.equipmentTypes.length > 0)
+  const isNegotiable = Boolean(vm.rates?.isNegotiable)
 
   return (
     <View style={s.container} testID="operator-hero-header">
-      {/* Avatar Block */}
+      {/* Avatar with Verified Badge */}
       <OperatorAvatarBlock
         avatarUrl={avatarUrl}
         isVerified={vm.seller.isVerified}
       />
 
-      {/* Title & Pill Row */}
-      <Text style={s.title} maxFontSizeMultiplier={1.3} testID="operator-title">
+      {/* Operator Name */}
+      <Text style={s.name} maxFontSizeMultiplier={1.3} testID="operator-title">
         {vm.title}
       </Text>
 
-      <View style={s.pillsRow}>
-        <View style={s.typePill} testID="operator-type-pill">
-          <Text style={s.typePillText} maxFontSizeMultiplier={1.3}>
-            {vm.operatorTypeLabel}
-          </Text>
-        </View>
-
-        {Boolean(vm.experienceYearsLabel) && (
-          <View style={s.expPill} testID="operator-experience-pill">
-            <Ionicons name="briefcase-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.expPillText} maxFontSizeMultiplier={1.3}>
-              {vm.experienceYearsLabel}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Location & Time Subtitle */}
-      <View style={s.metaRow}>
-        <View style={s.metaItem}>
-          <Ionicons name="location-outline" size={15} color={Colors.textMuted} />
-          <Text style={s.metaText} maxFontSizeMultiplier={1.3}>
-            {vm.location.fullLocationText}
-          </Text>
-        </View>
-        <Text style={s.metaDot}>•</Text>
-        <View style={s.metaItem}>
-          <Ionicons name="time-outline" size={15} color={Colors.textMuted} />
-          <Text style={s.metaText} maxFontSizeMultiplier={1.3}>
-            {vm.postedAtLabel}
-          </Text>
-        </View>
-      </View>
-
-      {/* Rates Summary Hero Block */}
-      <View style={s.rateBlock} testID="operator-rate-hero-block">
-        <Text style={s.rateSummary} maxFontSizeMultiplier={1.3} testID="operator-rate-summary">
-          {rateSummary}
+      {/* Role / Specialty Subtitle */}
+      <View style={s.roleContainer} testID="operator-type-pill">
+        <Text style={s.roleText} maxFontSizeMultiplier={1.3}>
+          {vm.operatorTypeLabel}
         </Text>
-        {isNegotiable && (
-          <View style={s.negotiableBadge} testID="operator-negotiable-badge">
-            <Text style={s.negotiableText} maxFontSizeMultiplier={1.3}>
-              قابل للتفاوض
+      </View>
+
+      {/* Location & Time Row */}
+      <View style={s.metaRow} testID="operator-location">
+        <Ionicons name="location-outline" size={15} color={Colors.textMuted} />
+        <Text style={s.metaText} maxFontSizeMultiplier={1.3}>
+          {vm.location.fullLocationText}
+        </Text>
+        {Boolean(vm.postedAtLabel) && (
+          <>
+            <Text style={s.metaDot}>•</Text>
+            <Ionicons name="time-outline" size={14} color={Colors.textMuted} />
+            <Text style={s.metaText} maxFontSizeMultiplier={1.3}>
+              {vm.postedAtLabel}
             </Text>
-          </View>
+          </>
         )}
       </View>
+
+      {/* Real Stat Chips in ONE row */}
+      {(hasExperience || hasRate || hasEquipment) && (
+        <View style={s.statChipsRow} testID="operator-stat-chips-row">
+          {/* Experience Stat Chip */}
+          {hasExperience && (
+            <View style={s.statChip} testID="operator-experience-pill">
+              <Ionicons name="briefcase-outline" size={14} color={Colors.primary} />
+              <Text style={s.statChipText} maxFontSizeMultiplier={1.3}>
+                {vm.experienceYearsLabel}
+              </Text>
+            </View>
+          )}
+
+          {/* Rate Stat Chip */}
+          {hasRate && (
+            <View style={s.statChip} testID="operator-stat-rate">
+              <Ionicons name="cash-outline" size={14} color={Colors.primary} />
+              <Text style={s.statChipText} maxFontSizeMultiplier={1.3}>
+                {vm.rates.primaryLabel}
+              </Text>
+            </View>
+          )}
+
+          {/* Negotiable Indicator Badge if flagged */}
+          {isNegotiable && (
+            <View style={s.negotiableBadge} testID="operator-negotiable-badge">
+              <Text style={s.negotiableText} maxFontSizeMultiplier={1.3}>
+                قابل للتفاوض
+              </Text>
+            </View>
+          )}
+
+          {/* Primary Equipment Stat Chip */}
+          {hasEquipment && (
+            <View style={s.statChip} testID="operator-stat-equipment">
+              <Ionicons name="construct-outline" size={14} color={Colors.primary} />
+              <Text style={s.statChipText} maxFontSizeMultiplier={1.3}>
+                {vm.equipmentTypes[0].label}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   )
 }
@@ -97,62 +116,29 @@ export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
 const s = StyleSheet.create({
   container: {
     backgroundColor: Colors.surface,
-    paddingTop: Spacing.space4,
-    paddingBottom: Spacing.space5,
+    paddingTop: Spacing.space5,
+    paddingBottom: Spacing.space4,
     paddingHorizontal: Spacing.space4,
     alignItems: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
-    ...Shadows.sm,
   },
-  title: {
-    fontSize: 20,
+  name: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 22,
+    lineHeight: lineHeightFor(22),
     fontWeight: '700',
-    lineHeight: lineHeightFor(20),
-    fontFamily: 'Cairo-Bold',
     color: Colors.text,
     textAlign: 'center',
+    marginBottom: Spacing.space1,
+  },
+  roleContainer: {
     marginBottom: Spacing.space2,
   },
-  pillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: Spacing.space2,
-    marginBottom: Spacing.space3,
-  },
-  typePill: {
-    backgroundColor: Colors.surfaceAlt,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  typePillText: {
-    ...RTLText,
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
-    color: Colors.primary,
-    textAlign: 'center',
-  },
-  expPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.surfaceAlt,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  expPillText: {
-    ...RTLText,
+  roleText: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    fontSize: 15,
+    lineHeight: lineHeightFor(15),
     color: Colors.textMuted,
     textAlign: 'center',
   },
@@ -160,59 +146,56 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.space2,
-    marginBottom: Spacing.space3,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    ...RTLText,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: lineHeightFor(12),
-    color: Colors.textMuted,
-    textAlign: 'center',
+    gap: Spacing.space1,
+    marginBottom: Spacing.space4,
   },
   metaDot: {
     color: Colors.textMuted,
+    marginHorizontal: Spacing.space1,
     fontSize: 12,
   },
-  rateBlock: {
+  metaText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.textMuted,
+  },
+  statChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+  },
+  statChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
+    gap: Spacing.space1,
     backgroundColor: Colors.surfaceAlt,
-    paddingHorizontal: Spacing.space4,
+    paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2,
-    borderRadius: Radius.md,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  rateSummary: {
-    ...RTLText,
+  statChipText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 18,
-    lineHeight: lineHeightFor(18),
-    color: Colors.primary,
-    textAlign: 'center',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.text,
   },
   negotiableBadge: {
     backgroundColor: Colors.paleMint,
     paddingHorizontal: Spacing.space2,
-    paddingVertical: 2,
-    borderRadius: Radius.sm,
+    paddingVertical: Spacing.space1,
+    borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.primaryLight,
   },
   negotiableText: {
-    ...RTLText,
-    fontFamily: 'Almarai_400Regular',
+    fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
     color: Colors.primary,
-    textAlign: 'center',
   },
 })

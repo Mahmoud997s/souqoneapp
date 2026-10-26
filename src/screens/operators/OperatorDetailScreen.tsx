@@ -37,7 +37,6 @@ import { buildShareMessage } from '../../hooks/listing-detail/useShareListing'
 
 // Shared Presentational Components
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
-import { SellerCard } from '../../components/listing-detail/SellerCard'
 import {
   ContactActions,
   type ContactAvailability,
@@ -81,7 +80,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
 
   const ownerActions = useOperatorOwnerActions(isOwner ? vm : undefined)
-
 
   const contact = useListingContact(
     'OPERATOR_LISTING',
@@ -168,10 +166,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
     Linking.openURL(SUPPORT_MAILTO).catch(() => {})
   }
 
-  const handlePressSellerProfile = (sellerId: string) => {
-    router.push(`/profile/${sellerId}`)
-  }
-
   const handleShare = async () => {
     try {
       const message = buildShareMessage(vm?.title ?? 'مشغل معدات', id)
@@ -245,10 +239,10 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           />
         )}
 
-        {/* Hero Header */}
+        {/* Profile Hero Header */}
         <OperatorHeroHeader vm={vm} />
 
-        {/* Owner Management Bar OR Contact Actions */}
+        {/* Primary Action Row: Owner Management Bar OR Contact Actions */}
         {isOwner ? (
           <OwnerManageBar
             actions={ownerActions.actions}
@@ -267,21 +261,12 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           />
         )}
 
-        {/* Seller Card */}
-        <SellerCard
-          seller={vm.seller}
-          onPressProfile={handlePressSellerProfile}
-        />
-
-        {/* Listing Description / Bio */}
+        {/* Profile Bio / Description */}
         {Boolean(vm.description) && (
           <ListingDescription text={vm.description} />
         )}
 
-        {/* Rates Breakdown */}
-        <OperatorRatesCard rates={vm.rates} />
-
-        {/* Certifications and Equipment Types */}
+        {/* ONE Merged Block: Specializations, Equipment & Certifications */}
         <OperatorCertificationsCard
           equipmentTypes={vm.equipmentTypes}
           certifications={vm.certifications}
@@ -289,7 +274,10 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           onPressCertificate={(img) => setActiveCertificateImage(img)}
         />
 
-        {/* Location Card */}
+        {/* Rates Breakdown */}
+        <OperatorRatesCard rates={vm.rates} />
+
+        {/* Location / Service Area Card */}
         <LocationCard
           locationText={vm.location.fullLocationText}
           latitude={vm.location.latitude}
