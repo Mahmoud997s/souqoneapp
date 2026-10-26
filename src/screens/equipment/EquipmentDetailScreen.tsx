@@ -45,8 +45,7 @@ import {
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
 import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
-import { normalizeCurrency } from '../../utils/listing-detail/mapEquipmentDetail'
-import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
+import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   EQUIPMENT_BUYER_SAFETY_TIPS_TITLE,
@@ -429,18 +428,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
               renderItem={(eq) => {
                 const rawImg = eq.images?.[0]
                 const imgUri = typeof rawImg === 'string' ? rawImg : rawImg?.url
-                const priceVal = eq.dailyPrice ?? eq.monthlyPrice ?? eq.price
-                const periodSuffix =
-                  eq.dailyPrice !== undefined && eq.dailyPrice !== null
-                    ? ' / يوم'
-                    : eq.monthlyPrice !== undefined && eq.monthlyPrice !== null
-                    ? ' / شهر'
-                    : ''
-                const currencyLabel = normalizeCurrency(eq.currency)
-                const priceDisplay =
-                  priceVal !== undefined && priceVal !== null
-                    ? `${formatNumberWestern(parseDecimal(priceVal) ?? Number(priceVal))} ${currencyLabel}${periodSuffix}`
-                    : ''
+                const priceDisplay = formatSimilarListingPrice(eq)
 
                 return (
                   <TouchableOpacity

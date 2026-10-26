@@ -143,7 +143,7 @@ export function ImageGallery({
 
 const s = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH,
+    width: '100%',
     backgroundColor: Colors.inputBg,
     position: 'relative',
     overflow: 'hidden',
