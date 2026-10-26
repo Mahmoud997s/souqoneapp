@@ -40,8 +40,8 @@ export function useShareListing(
     try {
       const message = buildShareMessage(cfg.shareTitle, vm.id, SHARE_LINK_ENABLED)
       await Share.share({ message })
-    } catch (error) {
-      console.log('Error sharing listing:', error)
+    } catch {
+      // User dismissed share sheet or platform error
     }
   }, [vm.id, cfg.shareTitle])
 

@@ -47,8 +47,7 @@ import {
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
 import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
-import { normalizeCurrency } from '../../utils/listing-detail/mapCarDetail'
-import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
+import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   BUYER_SAFETY_TIPS_TITLE,
@@ -443,6 +442,8 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             <TouchableOpacity
               style={s.directionsBtn}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="الحصول على الاتجاهات"
               onPress={() => {
                 Linking.openURL(
                   `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
@@ -491,9 +492,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
                   {car.title}
                 </Text>
                 <Text style={s.similarCardPrice}>
-                  {parseDecimal(car.price) !== undefined
-                    ? `${formatNumberWestern(parseDecimal(car.price))} ${normalizeCurrency(car.currency)}`
-                    : ''}
+                  {formatSimilarListingPrice(car)}
                 </Text>
                 <Text style={s.similarCardMeta}>
                   {car.governorate ?? car.city ?? ''}

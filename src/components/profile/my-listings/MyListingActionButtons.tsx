@@ -36,8 +36,8 @@ export function MyListingActionButtons({
       // Locked for admin review, show disabled label
       return (
         <View style={s.actionRow}>
-          <View style={[s.cancelRequestBtn, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}>
-            <Text style={[s.cancelRequestTxt, { color: '#6B7280' }]}>قيد مراجعة الإدارة</Text>
+          <View style={[s.cancelRequestBtn, { backgroundColor: Colors.surfaceAlt, borderColor: Colors.border }]}>
+            <Text style={[s.cancelRequestTxt, { color: Colors.textMuted }]}>قيد مراجعة الإدارة</Text>
           </View>
         </View>
       )
@@ -49,6 +49,8 @@ export function MyListingActionButtons({
           style={s.cancelRequestBtn}
           activeOpacity={0.8}
           onPress={() => onCancelDeletionRequest && onCancelDeletionRequest(item)}
+          accessibilityRole="button"
+          accessibilityLabel="إلغاء طلب الحذف"
         >
           <Text style={s.cancelRequestTxt}>إلغاء طلب الحذف</Text>
         </TouchableOpacity>
@@ -64,8 +66,10 @@ export function MyListingActionButtons({
         activeOpacity={0.8}
         onPress={() => onDelete(item)}
         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityRole="button"
+        accessibilityLabel="حذف الإعلان"
       >
-        <Ionicons name="trash" size={16} color="#ef4444" />
+        <Ionicons name="trash" size={16} color={Colors.error} />
       </TouchableOpacity>
 
       {/* Edit Action Button (shown only when entity supports editing) */}
@@ -75,6 +79,8 @@ export function MyListingActionButtons({
           activeOpacity={0.8}
           onPress={() => onEdit(item)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel="تعديل الإعلان"
         >
           <Ionicons name="pencil" size={16} color={Colors.primary} />
         </TouchableOpacity>
@@ -87,6 +93,8 @@ export function MyListingActionButtons({
           activeOpacity={0.8}
           onPress={() => onStatusChange(item)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel="خيارات الإعلان"
         >
           <Ionicons name="ellipsis-vertical" size={16} color={Colors.primary} />
         </TouchableOpacity>
@@ -109,7 +117,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.18,
     shadowRadius: 4,
@@ -122,7 +130,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FCA5A5',
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -130,6 +138,6 @@ const s = StyleSheet.create({
   cancelRequestTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#DC2626',
+    color: Colors.error,
   },
 })

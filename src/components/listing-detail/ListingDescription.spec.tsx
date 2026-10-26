@@ -65,4 +65,24 @@ describe('ListingDescription', () => {
     expect(toggleLabelStyle?.fontSize).toBeGreaterThanOrEqual(11)
     expect(toggleLabelStyle?.writingDirection).toBe('rtl')
   })
+
+  it('exposes accessibilityRole button and dynamic accessibilityLabel on toggle', async () => {
+    const longText = 'هذا وصف طويل جداً يتجاوز مائة وعشرين حرفاً لغرض اختبار ظهور زر قراءة المزيد وإمكانية توسيع الوصف وقراءته كاملاً بدون أي مشاكل في العرض أو التنسيق.'
+    await render(<ListingDescription text={longText} />)
+
+    const toggleBtn = screen.getByTestId('btn-toggle-description')
+    expect(toggleBtn.props.accessibilityRole).toBe('button')
+    expect(toggleBtn.props.accessibilityLabel).toBe('قراءة المزيد')
+
+    await fireEvent.press(toggleBtn)
+    expect(toggleBtn.props.accessibilityLabel).toBe('عرض أقل')
+  })
+
+  it('shows toggle when text has more linebreaks than collapsedLines even if length <= 120 chars', async () => {
+    const shortMultiLine = 'سطر أول\nسطر ثانٍ\nسطر ثالث\nسطر رابع'
+    await render(<ListingDescription text={shortMultiLine} collapsedLines={2} />)
+
+    const toggleBtn = screen.getByTestId('btn-toggle-description')
+    expect(toggleBtn).toBeTruthy()
+  })
 })

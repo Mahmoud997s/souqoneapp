@@ -79,10 +79,10 @@ const s = StyleSheet.create({
     backgroundColor: '#ecfdf5',
   },
   pillText: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Almarai_700Bold',
     color: '#475569',
-    lineHeight: 14,
+    lineHeight: 16,
     writingDirection: 'rtl',
     flexShrink: 1,
   },
@@ -92,9 +92,9 @@ const s = StyleSheet.create({
     backgroundColor: '#f1f5f9',
   },
   extraPillText: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontFamily: 'Almarai_700Bold',
     color: '#64748b',
-    lineHeight: 13,
+    lineHeight: 16,
   },
 })

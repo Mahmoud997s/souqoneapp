@@ -48,8 +48,7 @@ import {
 import { busListingToFormData } from '../../utils/listing-detail/busListingToFormData'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
 import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
-import { normalizeCurrency } from '../../utils/listing-detail/mapBusDetail'
-import { formatNumberWestern, parseDecimal } from '../../utils/listing-detail/formatters'
+import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
   BUYER_SAFETY_TIPS_TITLE,
@@ -445,14 +444,6 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
             renderItem={(bus) => {
               const rawImg = bus.images?.[0]
               const imgUri = typeof rawImg === 'string' ? rawImg : rawImg?.url
-              const priceVal = bus.dailyPrice ?? bus.monthlyPrice ?? bus.price
-              const periodSuffix =
-                bus.dailyPrice !== undefined && bus.dailyPrice !== null
-                  ? ' / يوم'
-                  : bus.monthlyPrice !== undefined && bus.monthlyPrice !== null
-                    ? ' / شهر'
-                    : ''
-              const currencyLabel = normalizeCurrency(bus.currency)
               return (
                 <TouchableOpacity
                   key={bus.id}
@@ -479,9 +470,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
                     {bus.title}
                   </Text>
                   <Text style={s.similarCardPrice}>
-                    {priceVal !== undefined && priceVal !== null
-                      ? `${formatNumberWestern(parseDecimal(priceVal) ?? priceVal)} ${currencyLabel}${periodSuffix}`
-                      : ''}
+                    {formatSimilarListingPrice(bus)}
                   </Text>
                   <Text style={s.similarCardMeta}>
                     {bus.governorateNameAr ?? ''}

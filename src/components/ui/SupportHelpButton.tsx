@@ -58,6 +58,8 @@ export function SupportHelpButton({
       ]}
       activeOpacity={0.85}
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
     >
       <Ionicons name={iconName} size={18} color={iconColor} />
       <Text

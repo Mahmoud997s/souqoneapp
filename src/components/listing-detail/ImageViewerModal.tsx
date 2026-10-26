@@ -4,7 +4,7 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   StatusBar,
   TouchableOpacity,
 } from 'react-native'
@@ -25,8 +25,6 @@ import { Radius } from '../../constants/radius'
 import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import { Typography, lineHeightFor } from '../../constants/typography'
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export const TOP_BAR_SAFE_MARGIN = Spacing.space3
 export const BOTTOM_BAR_SAFE_MARGIN = Spacing.space3
@@ -52,6 +50,7 @@ export function ImageViewerModal({
   onClose,
 }: ImageViewerModalProps) {
   const insets = useSafeAreaInsets()
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
   const count = images.length
 
@@ -167,7 +166,13 @@ export function ImageViewerModal({
         {/* Image Canvas with Double-Tap Zoom & Pan */}
         <View style={s.canvas}>
           <GestureDetector gesture={composedGestures}>
-            <Animated.View style={[s.imageContainer, animatedStyle]}>
+            <Animated.View
+              style={[
+                s.imageContainer,
+                { width: windowWidth, height: windowHeight * 0.68 },
+                animatedStyle,
+              ]}
+            >
               <Image
                 source={{ uri: currentImage.url }}
                 style={s.image}
@@ -241,8 +246,6 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   imageContainer: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.68,
     alignItems: 'center',
     justifyContent: 'center',
   },

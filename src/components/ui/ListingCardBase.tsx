@@ -8,6 +8,8 @@ import {
   Pressable,
   Platform,
   Share,
+  StyleProp,
+  ViewStyle,
 } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
@@ -50,7 +52,7 @@ export interface ListingCardBaseProps {
   onPress: () => void
   displayImages?: string[]
   imageCount?: number
-  placeholderIcon?: string
+  placeholderIcon?: keyof typeof Ionicons.glyphMap
   pills?: ListingCardPill[]
   badges?: ListingCardBadge[]
   customBadges?: React.ReactNode
@@ -69,7 +71,7 @@ export interface ListingCardBaseProps {
   favoriteType?: string
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
-  style?: any
+  style?: StyleProp<ViewStyle>
 }
 
 export const ListingCardBase = ({
@@ -137,8 +139,8 @@ export const ListingCardBase = ({
           shareMessage ||
           `شاهد هذا الإعلان على سوق ون: ${title}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`,
       })
-    } catch (error) {
-      console.log('Error sharing listing:', error)
+    } catch {
+      // User dismissed share sheet or platform error
     }
   }
 
@@ -189,7 +191,7 @@ export const ListingCardBase = ({
             ]}
           >
             <Ionicons
-              name={placeholderIcon as any}
+              name={placeholderIcon}
               size={40}
               color={Colors.borderStrong}
             />
@@ -234,17 +236,17 @@ export const ListingCardBase = ({
         {/* Badges Overlay */}
         <View style={s.badgesContainer}>
           {rawStatus === 'SOLD' && (
-            <View style={[s.badge, { backgroundColor: '#FF3B30' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.error }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>مباع</Text>
             </View>
           )}
           {rawStatus === 'ARCHIVED' && (
-            <View style={[s.badge, { backgroundColor: '#8E8E93' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.textMuted }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>مؤرشف</Text>
             </View>
           )}
           {rawStatus === 'SUSPENDED' && (
-            <View style={[s.badge, { backgroundColor: '#FF9500' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.warning }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>معلق</Text>
             </View>
           )}
@@ -260,7 +262,7 @@ export const ListingCardBase = ({
             >
               {b.iconName && (
                 <Ionicons
-                  name={b.iconName as any}
+                  name={b.iconName as keyof typeof Ionicons.glyphMap}
                   size={10}
                   color={b.textColor || Colors.white}
                   style={s.badgeIcon}
@@ -305,7 +307,7 @@ export const ListingCardBase = ({
             <>
               <Text style={s.dotSeparator}>•</Text>
               <View style={s.timeInner}>
-                <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
                 <Text style={s.timeTxt}>{formatDate(item.createdAt)}</Text>
               </View>
             </>
@@ -332,13 +334,13 @@ export const ListingCardBase = ({
                     <View key={pill.key} style={[s.detailPill, pillBgStyle]}>
                       {pill.iconFamily === 'MaterialCommunityIcons' ? (
                         <MaterialCommunityIcons
-                          name={pill.iconName as any}
+                          name={pill.iconName as keyof typeof MaterialCommunityIcons.glyphMap}
                           size={12}
                           color={textColor}
                         />
                       ) : pill.iconName ? (
                         <Ionicons
-                          name={pill.iconName as any}
+                          name={pill.iconName as keyof typeof Ionicons.glyphMap}
                           size={13}
                           color={textColor}
                         />
@@ -428,7 +430,7 @@ const s = StyleSheet.create({
   imageContainer: {
     width: '100%',
     position: 'relative',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surfaceAlt,
     overflow: 'hidden',
   },
   imageFill: {
@@ -462,7 +464,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.5)',
   },
   activeDot: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     width: 14,
   },
   imageCountBadge: {
@@ -480,9 +482,9 @@ const s = StyleSheet.create({
   },
   imageCountText: {
     color: Colors.white,
-    fontSize: 10.5,
+    fontSize: 11,
     fontFamily: 'Almarai_700Bold',
-    lineHeight: 14,
+    lineHeight: 16,
   },
   actionsContainer: {
     position: 'absolute',
@@ -514,13 +516,13 @@ const s = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
   soldRibbonText: {
-    color: 'white',
+    color: Colors.white,
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
     letterSpacing: 1,
@@ -595,8 +597,8 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   dotSeparator: {
-    fontSize: 10,
-    color: '#cbd5e1',
+    fontSize: 11,
+    color: Colors.border,
   },
   timeInner: {
     flexDirection: 'row',
@@ -605,18 +607,18 @@ const s = StyleSheet.create({
   },
   timeTxt: {
     ...CardSystem.typography.subtitle,
-    color: '#94a3b8',
+    color: Colors.textMuted,
     marginStart: 3,
     writingDirection: 'rtl',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     marginBottom: 6,
   },
   footerDivider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     marginTop: 2,
     marginBottom: 6,
   },
@@ -656,7 +658,8 @@ const s = StyleSheet.create({
   remainingText: {
     fontFamily: 'Almarai_700Bold',
     color: Colors.text2,
-    fontSize: 9.5,
+    fontSize: 11,
+    lineHeight: 16,
   },
   footerRow: {
     flexDirection: 'row',

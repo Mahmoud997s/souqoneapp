@@ -69,13 +69,13 @@ export const CardSystem = {
     },
     pillText: {
       fontFamily: 'Almarai_700Bold',
-      fontSize: 10,
-      lineHeight: 14,
+      fontSize: 11,
+      lineHeight: 16,
     },
     badgeText: {
       fontFamily: 'Almarai_800ExtraBold',
-      fontSize: 9.5,
-      lineHeight: 13.5,
+      fontSize: 11,
+      lineHeight: 16,
       letterSpacing: 0.2,
     }
   }

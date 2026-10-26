@@ -214,8 +214,8 @@ const styles = StyleSheet.create({
   },
   imageCountText: {
     color: Colors.white,
-    fontSize: 10.5,
+    fontSize: 11,
     fontFamily: 'Almarai_700Bold',
-    lineHeight: 14,
+    lineHeight: 16,
   },
 })

@@ -51,8 +51,8 @@ export function ChatInput({ msgText, onChangeText, onSend, insetsBottom }: Props
         setMediaType('FILE')
         setFileInfo({ name: res.assets[0].name, size: res.assets[0].size })
       }
-    } catch (err) {
-      console.log('Doc picker err', err)
+    } catch {
+      // Document picker cancelled or failed
     }
   }
 

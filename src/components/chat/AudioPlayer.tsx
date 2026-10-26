@@ -27,8 +27,8 @@ export function AudioPlayer({ uri, isOwn }: Props) {
         }
         player.play()
       }
-    } catch (e) {
-      console.log('Error playing audio', e)
+    } catch {
+      // Audio playback interrupted or error
     }
   }
 
