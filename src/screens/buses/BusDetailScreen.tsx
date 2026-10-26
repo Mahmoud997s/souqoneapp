@@ -59,7 +59,7 @@ import {
 } from '../../constants/listing-detail/safetyTips'
 
 // Presentational Components
-import { BusDetailNavBar } from '../../components/buses/detail/BusDetailNavBar'
+import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
@@ -297,7 +297,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   if (state !== 'ready' || !vm) {
     return (
       <View style={s.rootContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
         <DetailStates
           kind={state === 'ready' ? 'loading' : state}
           onRetry={refetch}
@@ -316,10 +316,10 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
 
   return (
     <View style={s.rootContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
 
-      {/* Glassmorphic Navigation Bar */}
-      <BusDetailNavBar
+      {/* Fixed Top Bar in normal layout flow */}
+      <DetailTopBar
         onBack={goBackSafely}
         onShare={shareListing.share}
         isFavorite={favoriteToggle.isFavorite}
@@ -329,9 +329,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={handleSearchSubmit}
-        scrollY={scrollY}
         placeholder="ابحث في تفاصيل الحافلة..."
-        paddingTop={insets.top + 4}
       />
 
       {/* Main Content ScrollView */}

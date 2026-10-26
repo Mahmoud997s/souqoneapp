@@ -21,7 +21,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 
 // Presentational Components
-import { DetailNavBar } from '../../components/listing-detail/DetailNavBar'
+import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
@@ -204,7 +204,7 @@ export function CarDetailSandboxScreen() {
       ) : (
         <View style={s.mainWrapper}>
           {/* Top Fixed Detail Navigation Bar */}
-          <DetailNavBar
+          <DetailTopBar
             onBack={() => Alert.alert('رجوع', 'تم الضغط على زر الرجوع')}
             isFavorite={isFavorite}
             favoriteBusy={favoriteBusy}
@@ -214,9 +214,7 @@ export function CarDetailSandboxScreen() {
             searchValue={searchValue}
             onSearchChange={setSearchValue}
             onSearchSubmit={handleSearchSubmit}
-            scrollY={scrollY}
             placeholder="ابحث في تفاصيل السيارة..."
-            paddingTop={insets.top + 4}
           />
 
           <Animated.ScrollView

@@ -218,4 +218,17 @@ describe('CarDetailScreen in-page search filtering (D-093 Item 3)', () => {
     expect(screen.getByText('نوع الوقود')).toBeTruthy()
     expect(screen.queryByTestId('specs-no-match')).toBeNull()
   })
+
+  it('renders fixed top bar before scroll content and search input is reachable without scrolling (D-095)', async () => {
+    await render(<CarDetailScreen id="car-search-101" />)
+
+    const topBar = screen.getByTestId('detail-top-bar')
+    const backBtn = screen.getByTestId('nav-back-button')
+    const searchInput = screen.getByTestId('nav-search-input')
+
+    expect(topBar).toBeTruthy()
+    expect(backBtn).toBeTruthy()
+    expect(searchInput).toBeTruthy()
+    expect(searchInput.props.textAlign).toBe('right')
+  })
 })

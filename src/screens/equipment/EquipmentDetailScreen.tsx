@@ -33,6 +33,7 @@ import { dialogService } from '../../store/dialogStore'
 import { useEquipmentDetail } from '../../hooks/listing-detail/useEquipmentDetail'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
+import { useShareListing } from '../../hooks/listing-detail/useShareListing'
 import {
   useEquipmentOwnerActions,
   isOptimisticLockError,
@@ -76,7 +77,7 @@ import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 
 import {
-  GlassDetailNavBar,
+  DetailTopBar,
   LocationCard,
 } from '../../components/listing-detail'
 
@@ -124,6 +125,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const favoriteToggle = useFavoriteToggle('EQUIPMENT_LISTING', id, false, {
     redirectPath: `/equipment/${id}`,
   })
+  const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان معدة' })
   const contact = useListingContact('EQUIPMENT_LISTING', id, `/equipment/${id}`, vm?.title)
   const ownerActions = useEquipmentOwnerActions(currentVm)
   const similarListings = useEquipmentSimilarListings(id)
@@ -237,7 +239,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   if (state !== 'ready' || !vm) {
     return (
       <View style={s.rootContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
         <DetailStates
           kind={state === 'ready' ? 'loading' : state}
           onRetry={refetch}
@@ -288,11 +290,12 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
   return (
     <View style={s.rootContainer} testID="equipment-detail-screen">
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
 
-      {/* Navigation Bar (NO share button) */}
-      <GlassDetailNavBar
+      {/* Fixed Top Bar in normal layout flow */}
+      <DetailTopBar
         onBack={goBackSafely}
+        onShare={shareListing.share}
         isFavorite={favoriteToggle.isFavorite}
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
@@ -300,9 +303,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={handleSearchSubmit}
-        scrollY={scrollY}
         placeholder="ابحث في تفاصيل المعدة..."
-        paddingTop={insets.top + 4}
       />
 
       {/* Main Content ScrollView */}

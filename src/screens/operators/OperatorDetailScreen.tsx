@@ -5,6 +5,7 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
+  Share,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -32,6 +33,7 @@ import {
   OPERATOR_OWNER_SAFETY_TIPS_TITLE,
   OPERATOR_OWNER_SAFETY_TIPS,
 } from '../../constants/listing-detail/safetyTips'
+import { buildShareMessage } from '../../hooks/listing-detail/useShareListing'
 
 // Shared Presentational Components
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
@@ -52,7 +54,7 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 // Shared Listing-Detail Components
 import {
-  GlassDetailNavBar,
+  DetailTopBar,
   LocationCard,
 } from '../../components/listing-detail'
 
@@ -170,6 +172,15 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
     router.push(`/profile/${sellerId}`)
   }
 
+  const handleShare = async () => {
+    try {
+      const message = buildShareMessage(vm?.title ?? 'مشغل معدات', id)
+      await Share.share({ message })
+    } catch {
+      // non-fatal
+    }
+  }
+
   // Loading, Not Found, Offline, Error states
   if (state === 'loading') {
     return <DetailStates kind="loading" onBack={() => router.back()} onRetry={() => refetch()} />
@@ -205,14 +216,13 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   return (
     <View style={s.container} testID="operator-detail-screen">
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.surface} translucent />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
 
-      {/* Navigation Bar */}
-      <GlassDetailNavBar
+      {/* Fixed Top Bar in normal layout flow */}
+      <DetailTopBar
         onBack={() => router.back()}
+        onShare={handleShare}
         canFavorite={false}
-        scrollY={scrollY}
-        paddingTop={insets.top}
       />
 
       <Animated.ScrollView
@@ -221,7 +231,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         contentContainerStyle={[
           s.scrollContent,
           {
-            paddingTop: insets.top + Spacing.space6,
             paddingBottom: insets.bottom + 90,
           },
         ]}

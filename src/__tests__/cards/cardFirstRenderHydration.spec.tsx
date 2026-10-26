@@ -5,7 +5,7 @@ import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
 import { CarCard } from '../../components/cars/CarCard'
 import { UnifiedCard } from '../../components/cards/UnifiedCard'
-import { GlassDetailNavBar } from '../../components/listing-detail/GlassDetailNavBar'
+import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
 import { FAVORITE_IDS_QUERY_KEY } from '../../features/favorites/useFavoriteIds'
 import { favoritesApi } from '../../api/favorites'
@@ -182,14 +182,12 @@ describe('First-Render Store Hydration & Cross-Screen Consistency (D-092d)', () 
               images: [],
             } as any}
           />
-          <GlassDetailNavBar
+          <DetailTopBar
             onBack={jest.fn()}
             canFavorite={true}
             isFavorite={detailToggle.isFavorite}
             favoriteBusy={detailToggle.isBusy}
             onToggleFavorite={detailToggle.toggle}
-            scrollY={mockScrollY}
-            paddingTop={0}
           />
         </>
       )

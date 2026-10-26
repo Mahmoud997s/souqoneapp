@@ -422,6 +422,19 @@ describe('BusDetailScreen', () => {
       expect(screen.getByText(/عاين الحافلة شخصيًا قبل أي دفع/)).toBeTruthy()
       expect(screen.queryByText(/عاين السيارة شخصيًا/)).toBeNull()
     })
+
+    it('renders fixed top bar before scroll content and search input is reachable without scrolling (D-095)', async () => {
+      await render(<BusDetailScreen id="bus-101" />)
+
+      const topBar = screen.getByTestId('detail-top-bar')
+      const backBtn = screen.getByTestId('nav-back-button')
+      const searchInput = screen.getByTestId('nav-search-input')
+
+      expect(topBar).toBeTruthy()
+      expect(backBtn).toBeTruthy()
+      expect(searchInput).toBeTruthy()
+      expect(searchInput.props.textAlign).toBe('right')
+    })
   })
 
   // 10. Similar listings: rendered when items present, omitted when empty
