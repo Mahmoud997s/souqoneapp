@@ -578,7 +578,7 @@ const s = StyleSheet.create({
   },
   similarCardPrice: {
     ...RTLText,
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: lineHeightFor(14),
     color: Colors.primary,
