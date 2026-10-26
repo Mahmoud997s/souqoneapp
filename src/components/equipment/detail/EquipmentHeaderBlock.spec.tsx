@@ -1,5 +1,8 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
+import { Colors } from '../../../constants/colors'
+import { Radius } from '../../../constants/radius'
 import { EquipmentHeaderBlock } from './EquipmentHeaderBlock'
 import type { PriceView } from '../../../types/listingDetail.types'
 
@@ -154,5 +157,44 @@ describe('EquipmentHeaderBlock', () => {
     expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
     expect(screen.queryByText('0')).toBeNull()
     expect(screen.queryByText(/0 ر\.ع/)).toBeNull()
+  })
+
+  it('matches cars price block style parity (rate chip one line, card background, font family)', async () => {
+    const rentPrice: PriceView = {
+      amount: 100,
+      formattedAmount: '100',
+      currency: 'ر.ع',
+      fullPriceLabel: '100 ر.ع / يوم',
+      dailyRate: { amount: 100, formatted: '100', label: '100 ر.ع / يوم' },
+      monthlyRate: { amount: 2000, formatted: '2,000', label: '2,000 ر.ع / شهر' },
+      isNegotiable: true,
+      listingType: 'RENTAL',
+    }
+
+    await render(
+      <EquipmentHeaderBlock
+        title="بوبكات للإيجار"
+        kindLabel="للإيجار"
+        price={rentPrice}
+        isWanted={false}
+        isRental={true}
+        operatorBadge={null}
+        locationText="صحار"
+        postedAtLabel="منذ ساعة"
+      />
+    )
+
+    const dailyText = screen.getByText('100 ر.ع / يوم')
+    expect(dailyText.props.numberOfLines).toBe(1)
+    expect(dailyText.props.adjustsFontSizeToFit).toBe(true)
+
+    const priceSection = screen.getByTestId('equipment-price-section')
+    const flatPriceSectionStyle = StyleSheet.flatten(priceSection.props.style)
+    expect(flatPriceSectionStyle.backgroundColor).toBe(Colors.paleMint)
+    expect(flatPriceSectionStyle.borderRadius).toBe(Radius.lg)
+
+    const flatDailyStyle = StyleSheet.flatten(dailyText.props.style)
+    expect(flatDailyStyle.fontSize).toBe(15)
+    expect(flatDailyStyle.fontFamily).toBe('Almarai_800ExtraBold')
   })
 })

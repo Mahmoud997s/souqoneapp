@@ -520,7 +520,7 @@ describe('EquipmentDetailScreen', () => {
           equipmentType: 'LOADER',
           listingType: 'EQUIPMENT_SALE',
           price: 25000,
-          currency: 'OMR',
+          currency: 'ر.ع',
           city: 'صحار',
           images: [{ url: 'https://example.com/wheel-loader.jpg' }],
         },

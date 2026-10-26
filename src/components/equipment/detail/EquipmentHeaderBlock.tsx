@@ -31,7 +31,7 @@ export interface EquipmentHeaderBlockProps {
  * EquipmentHeaderBlock
  * Main presentation header for equipment detail page.
  * - Displays title, badges, price, and location/timestamp metadata.
- * - WANTED: strictly omits price block (never shows 0 OMR).
+ * - WANTED: strictly omits price block (never shows 0 ر.ع).
  * - RENT: displays rates and renders EquipmentOperatorBadge directly under the price.
  * - SALE: displays primary price badge.
  * - Zero hex codes (uses Colors tokens only).
@@ -125,7 +125,7 @@ export function EquipmentHeaderBlock({
               {price.dailyRate ? (
                 <View style={s.rateChip}>
                   <Ionicons name="sunny-outline" size={14} color={Colors.primary} />
-                  <Text style={s.rateValue} maxFontSizeMultiplier={1.3}>
+                  <Text style={s.rateValue} numberOfLines={1} adjustsFontSizeToFit>
                     {price.dailyRate.label}
                   </Text>
                 </View>
@@ -133,7 +133,7 @@ export function EquipmentHeaderBlock({
               {price.monthlyRate ? (
                 <View style={s.rateChip}>
                   <Ionicons name="calendar-outline" size={14} color={Colors.primary} />
-                  <Text style={s.rateValue} maxFontSizeMultiplier={1.3}>
+                  <Text style={s.rateValue} numberOfLines={1} adjustsFontSizeToFit>
                     {price.monthlyRate.label}
                   </Text>
                 </View>
@@ -261,27 +261,37 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space3,
   },
   priceSection: {
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.primary + '25',
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space3,
     marginBottom: Spacing.space3,
+    gap: Spacing.space2,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
+    justifyContent: 'space-between',
   },
   negotiableBadge: {
-    backgroundColor: Colors.paleMint,
-    paddingHorizontal: Spacing.space2,
-    paddingVertical: Spacing.space1,
-    borderRadius: Radius.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.borderStrong,
+    borderColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.space2 + 2,
+    paddingVertical: Spacing.space1,
+    borderRadius: Radius.pill,
   },
   negotiableText: {
     ...RTLText,
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
-    color: Colors.primaryDeep,
+    color: Colors.primary,
   },
   contactPriceText: {
     ...RTLText,
@@ -292,27 +302,29 @@ const s = StyleSheet.create({
   },
   ratesRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
     gap: Spacing.space2,
+    alignItems: 'stretch',
   },
   rateChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.paleMint,
-    paddingHorizontal: Spacing.space3,
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.primary + '25',
+    paddingHorizontal: Spacing.space2,
     paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
   },
   rateValue: {
     ...RTLText,
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: lineHeightFor(13),
-    color: Colors.primaryDeep,
+    flexShrink: 1,
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 15,
+    lineHeight: lineHeightFor(15),
+    color: Colors.primary,
   },
   operatorBadgeWrap: {
     marginTop: Spacing.space2,
