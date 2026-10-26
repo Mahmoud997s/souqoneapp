@@ -234,17 +234,17 @@ export const ListingCardBase = ({
         {/* Badges Overlay */}
         <View style={s.badgesContainer}>
           {rawStatus === 'SOLD' && (
-            <View style={[s.badge, { backgroundColor: '#FF3B30' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.error }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>مباع</Text>
             </View>
           )}
           {rawStatus === 'ARCHIVED' && (
-            <View style={[s.badge, { backgroundColor: '#8E8E93' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.textMuted }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>مؤرشف</Text>
             </View>
           )}
           {rawStatus === 'SUSPENDED' && (
-            <View style={[s.badge, { backgroundColor: '#FF9500' }]}>
+            <View style={[s.badge, { backgroundColor: Colors.warning }]}>
               <Text style={[s.badgeTxt, { color: Colors.white }]}>معلق</Text>
             </View>
           )}
@@ -305,7 +305,7 @@ export const ListingCardBase = ({
             <>
               <Text style={s.dotSeparator}>•</Text>
               <View style={s.timeInner}>
-                <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
                 <Text style={s.timeTxt}>{formatDate(item.createdAt)}</Text>
               </View>
             </>
@@ -428,7 +428,7 @@ const s = StyleSheet.create({
   imageContainer: {
     width: '100%',
     position: 'relative',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surfaceAlt,
     overflow: 'hidden',
   },
   imageFill: {
@@ -462,7 +462,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.5)',
   },
   activeDot: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     width: 14,
   },
   imageCountBadge: {
@@ -514,13 +514,13 @@ const s = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
   soldRibbonText: {
-    color: 'white',
+    color: Colors.white,
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
     letterSpacing: 1,
@@ -596,7 +596,7 @@ const s = StyleSheet.create({
   },
   dotSeparator: {
     fontSize: 10,
-    color: '#cbd5e1',
+    color: Colors.border,
   },
   timeInner: {
     flexDirection: 'row',
@@ -605,18 +605,18 @@ const s = StyleSheet.create({
   },
   timeTxt: {
     ...CardSystem.typography.subtitle,
-    color: '#94a3b8',
+    color: Colors.textMuted,
     marginStart: 3,
     writingDirection: 'rtl',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     marginBottom: 6,
   },
   footerDivider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.inputBg,
     marginTop: 2,
     marginBottom: 6,
   },
