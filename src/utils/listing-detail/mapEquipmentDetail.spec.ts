@@ -139,11 +139,40 @@ describe('mapEquipmentDetail', () => {
       deliveryAvailable: true,
     })
 
-    // Specs section contains pure technical specs without duplicating rental card facts
+    // Specs section contains technical specs with buyer-relevant flags (D-097)
     const techSection = result.specsSections.find((s) => s.title === 'المواصفات الفنية')
     expect(techSection).toBeDefined()
+    expect(techSection?.items.find((i) => i.key === 'withOperator')?.value).toBe('مع مشغّل')
+    expect(techSection?.items.find((i) => i.key === 'deliveryAvailable')?.value).toBe('متوفر')
+  })
+
+  it('omits withOperator and deliveryAvailable from specsSections when null or undefined', () => {
+    const listingWithoutFlags: EquipmentDetailApi = {
+      ...baseListing,
+      listingType: 'EQUIPMENT_RENT',
+      withOperator: undefined,
+      deliveryAvailable: undefined,
+    }
+    const result = mapEquipmentDetail(listingWithoutFlags, { now: fixedNow })
+    const techSection = result.specsSections.find((s) => s.title === 'المواصفات الفنية')
     expect(techSection?.items.find((i) => i.key === 'withOperator')).toBeUndefined()
     expect(techSection?.items.find((i) => i.key === 'deliveryAvailable')).toBeUndefined()
+  })
+
+  it('includes deliveryAvailable in technical specs for EQUIPMENT_SALE when present', () => {
+    const saleListing: EquipmentDetailApi = {
+      ...baseListing,
+      listingType: 'EQUIPMENT_SALE',
+      deliveryAvailable: true,
+    }
+    const result = mapEquipmentDetail(saleListing, { now: fixedNow })
+    const techSection = result.specsSections.find((s) => s.title === 'المواصفات الفنية')
+    const item = techSection?.items.find((i) => i.key === 'deliveryAvailable')
+    expect(item).toEqual({
+      key: 'deliveryAvailable',
+      label: 'خدمة التوصيل',
+      value: 'متوفر',
+    })
   })
 
   it('maps EQUIPMENT_RENT without operator and fallback to monthly price when daily missing', () => {

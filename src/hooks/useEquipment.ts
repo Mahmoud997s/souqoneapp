@@ -1,7 +1,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { equipmentApi } from '../api/equipment'
 import { mapEquipmentToCard, mapOperatorToCard } from '../utils/mappers'
-import { EquipmentListing, OperatorListing, EquipmentBid } from '../types/equipment.types'
+import { EquipmentListing, OperatorListing } from '../types/equipment.types'
 
 // Equipment Queries
 export function useEquipmentInfinite(params?: Record<string, unknown>) {
@@ -164,13 +164,5 @@ export function useCancelOperatorDeletionRequest() {
       queryClient.invalidateQueries({ queryKey: ['my-operators'] })
       queryClient.invalidateQueries({ queryKey: ['operator-item'] })
     },
-  })
-}
-
-// Bid Mutations
-export function useCreateEquipmentBid() {
-  return useMutation({
-    mutationFn: ({ equipmentId, data }: { equipmentId: string; data: Partial<EquipmentBid> }) =>
-      equipmentApi.createBid(equipmentId, data),
   })
 }

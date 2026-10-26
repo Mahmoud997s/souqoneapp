@@ -4,6 +4,7 @@ import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewMo
 import { EquipmentDetailScreen } from './EquipmentDetailScreen'
 import { dialogService } from '../../store/dialogStore'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
+import { apiClient } from '../../api/client'
 
 jest.setTimeout(25000)
 
@@ -607,6 +608,21 @@ describe('EquipmentDetailScreen', () => {
       expect(scrollView).toBeTruthy()
       expect(searchInput).toBeTruthy()
       expect(searchInput.props.textAlign).toBe('right')
+    })
+
+    it('strictly never calls /equipment/:id/bids endpoint when rendering (Decision #31)', async () => {
+      const getSpy = jest.spyOn(apiClient, 'get')
+      const postSpy = jest.spyOn(apiClient, 'post')
+
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      const bidsCalls = [...getSpy.mock.calls, ...postSpy.mock.calls].filter(
+        (callArgs) => typeof callArgs[0] === 'string' && callArgs[0].includes('/bids')
+      )
+      expect(bidsCalls).toHaveLength(0)
+
+      getSpy.mockRestore()
+      postSpy.mockRestore()
     })
   })
 })

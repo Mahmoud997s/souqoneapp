@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import { EquipmentListing, OperatorListing, EquipmentBid } from '../types/equipment.types'
+import { EquipmentListing, OperatorListing } from '../types/equipment.types'
 import { PaginatedResponse } from '../types/api.types'
 import { EquipmentDetailApi, EquipmentSimilarItemApi } from '../types/equipmentDetailApi.types'
 
@@ -38,9 +38,4 @@ export const equipmentApi = {
     apiClient.patch<OperatorListing>(`/operators/${id}`, data),
   deleteOperator: (id: string, reason?: string) => apiClient.delete(`/operators/${id}`, { data: { reason } }),
   cancelOperatorDeletionRequest: (requestId: string) => apiClient.delete(`/operators/deletion-requests/${requestId}`),
-
-  // Bids (for EQUIPMENT_WANTED)
-  getBids: (equipmentId: string) => apiClient.get<PaginatedResponse<EquipmentBid>>(`/equipment/${equipmentId}/bids`),
-  createBid: (equipmentId: string, data: Partial<EquipmentBid>) =>
-    apiClient.post<EquipmentBid>(`/equipment/${equipmentId}/bids`, data),
 }

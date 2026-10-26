@@ -415,6 +415,24 @@ export function mapEquipmentDetail(
   if (api.weight?.trim()) {
     techItems.push({ key: 'weight', label: 'الوزن', value: api.weight.trim() })
   }
+  if (
+    api.listingType === 'EQUIPMENT_RENT' &&
+    api.withOperator !== undefined &&
+    api.withOperator !== null
+  ) {
+    techItems.push({
+      key: 'withOperator',
+      label: 'مشغّل المعدة',
+      value: api.withOperator ? 'مع مشغّل' : 'بدون مشغّل',
+    })
+  }
+  if (api.deliveryAvailable !== undefined && api.deliveryAvailable !== null) {
+    techItems.push({
+      key: 'deliveryAvailable',
+      label: 'خدمة التوصيل',
+      value: api.deliveryAvailable ? 'متوفر' : 'غير متوفر',
+    })
+  }
   if (techItems.length > 0) {
     specsSections.push({ title: 'المواصفات الفنية', items: techItems })
   }
