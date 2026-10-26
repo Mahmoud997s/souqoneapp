@@ -14,9 +14,6 @@ import { CarCard } from '../../src/components/cars/CarCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useFavorites } from '../../src/hooks/useListings'
 import { useLocalSearchParams, router } from 'expo-router'
-import { useAuthStore } from '../../src/store/authStore'
-import { useQueryClient } from '@tanstack/react-query'
-import { favoritesApi } from '../../src/api/favorites'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { BlurView } from 'expo-blur'
 import { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated'
@@ -39,33 +36,10 @@ export default function FavoritesScreen() {
   const params = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
   const { data, isLoading } = useFavorites()
-  const { user } = useAuthStore()
-  const queryClient = useQueryClient()
   const navBarHeight = insets.top + 52
   // We no longer need contentTopOffset to push content down for fixed headers,
   // since the filter is now IN the list. So contentTopOffset is just navBarHeight.
   const contentTopOffset = navBarHeight + 10
-  const handleFavorite = async (item: any) => {
-    if (!user) {
-      router.push('/(auth)/login' as any)
-      return
-    }
-    try {
-      const entityMap: Record<string, string> = {
-        'cars': 'LISTING',
-        'jobs': 'JOB',
-        'services': 'CAR_SERVICE',
-        'parts': 'SPARE_PART',
-        'buses': 'BUS_LISTING',
-        'equipment': 'EQUIPMENT_LISTING',
-      }
-      const eType = entityMap[item.category || 'cars'] || 'LISTING'
-      await favoritesApi.add(eType, item.id) // acts as toggle
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    } catch (e) {
-      console.log('Error toggling favorite', e)
-    }
-  }
 
   const filteredData = data?.filter(item => {
     if (activeTab === 'all') return true
@@ -140,7 +114,6 @@ export default function FavoritesScreen() {
               <UnifiedCard
                 item={item}
                 onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-                onFavorite={() => handleFavorite(item)}
               />
             )
           }}

@@ -37,15 +37,11 @@ import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown } fr
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
-import { useQueryClient } from '@tanstack/react-query'
-
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
 const CARD_WIDTH = Math.round(SW * 0.6)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
-
-import { favoritesApi } from '../../src/api/favorites'
 
 interface SectionProps {
   title: string
@@ -68,35 +64,7 @@ interface SectionProps {
 }
 
 function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
-  const { user } = useAuthStore()
-  const queryClient = useQueryClient()
-
   if (!isLoading && (!data || data.length === 0)) return null
-
-  const handleFavorite = async (item: UnifiedCardItem) => {
-    if (!user) {
-      router.push('/(auth)/login' as any)
-      return
-    }
-    try {
-      // Maps routeBase to backend entityType
-      const entityMap: Record<string, string> = {
-        'listings': 'LISTING',
-        'cars': 'LISTING',
-        'jobs': 'JOB',
-        'services': 'CAR_SERVICE',
-        'parts': 'SPARE_PART',
-        'buses': 'BUS_LISTING',
-        'equipment': 'EQUIPMENT_LISTING',
-        'transport': 'OPERATOR_LISTING',
-      }
-      const eType = entityMap[routeBase] || 'LISTING'
-      await favoritesApi.add(eType, item.id)
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    } catch (e) {
-      console.log('Error toggling fav from home', e)
-    }
-  }
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
@@ -152,7 +120,6 @@ function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, 
                   imageHeight={IMG_H}
                   disableImageSwipe={true}
                   onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                  onFavorite={() => handleFavorite(item)}
                 />
               )}
             </View>
