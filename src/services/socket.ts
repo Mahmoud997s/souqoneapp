@@ -35,7 +35,6 @@ class SocketService {
 
     this.socket.on('connect', () => {
       this.hasLoggedConnectionError = false
-      console.log('[Socket] Connected:', this.socket?.id)
       useSocketStore.setState({ 
         isConnected: true, 
         lastError: null,
@@ -58,8 +57,7 @@ class SocketService {
       }
     })
 
-    this.socket.on('disconnect', (reason) => {
-      console.log('[Socket] Disconnected:', reason)
+    this.socket.on('disconnect', () => {
       useSocketStore.setState({ isConnected: false })
     })
 
@@ -87,7 +85,6 @@ class SocketService {
       } catch {}
       this.socket.disconnect()
       this.socket = null
-      console.log('[Socket] Manual disconnect triggered')
     }
   }
 
@@ -132,7 +129,6 @@ class SocketService {
       this.socket.auth = { token: newToken }
       this.socket.disconnect() // Force disconnect to reconnect with new auth
       this.socket.connect()
-      console.log('[Socket] Reconnected with new token')
     } else {
       await this.connect()
     }

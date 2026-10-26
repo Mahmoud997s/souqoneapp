@@ -8,6 +8,8 @@ import {
   Pressable,
   Platform,
   Share,
+  StyleProp,
+  ViewStyle,
 } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
@@ -50,7 +52,7 @@ export interface ListingCardBaseProps {
   onPress: () => void
   displayImages?: string[]
   imageCount?: number
-  placeholderIcon?: string
+  placeholderIcon?: keyof typeof Ionicons.glyphMap
   pills?: ListingCardPill[]
   badges?: ListingCardBadge[]
   customBadges?: React.ReactNode
@@ -69,7 +71,7 @@ export interface ListingCardBaseProps {
   favoriteType?: string
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
-  style?: any
+  style?: StyleProp<ViewStyle>
 }
 
 export const ListingCardBase = ({
@@ -137,8 +139,8 @@ export const ListingCardBase = ({
           shareMessage ||
           `شاهد هذا الإعلان على سوق ون: ${title}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`,
       })
-    } catch (error) {
-      console.log('Error sharing listing:', error)
+    } catch {
+      // User dismissed share sheet or platform error
     }
   }
 
@@ -189,7 +191,7 @@ export const ListingCardBase = ({
             ]}
           >
             <Ionicons
-              name={placeholderIcon as any}
+              name={placeholderIcon}
               size={40}
               color={Colors.borderStrong}
             />
@@ -260,7 +262,7 @@ export const ListingCardBase = ({
             >
               {b.iconName && (
                 <Ionicons
-                  name={b.iconName as any}
+                  name={b.iconName as keyof typeof Ionicons.glyphMap}
                   size={10}
                   color={b.textColor || Colors.white}
                   style={s.badgeIcon}
@@ -332,13 +334,13 @@ export const ListingCardBase = ({
                     <View key={pill.key} style={[s.detailPill, pillBgStyle]}>
                       {pill.iconFamily === 'MaterialCommunityIcons' ? (
                         <MaterialCommunityIcons
-                          name={pill.iconName as any}
+                          name={pill.iconName as keyof typeof MaterialCommunityIcons.glyphMap}
                           size={12}
                           color={textColor}
                         />
                       ) : pill.iconName ? (
                         <Ionicons
-                          name={pill.iconName as any}
+                          name={pill.iconName as keyof typeof Ionicons.glyphMap}
                           size={13}
                           color={textColor}
                         />
