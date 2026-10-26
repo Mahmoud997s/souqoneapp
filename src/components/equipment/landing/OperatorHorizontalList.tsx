@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
@@ -17,7 +17,7 @@ import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
 
-const CARD_WIDTH = Math.round(Dimensions.get('window').width * 0.68)
+export const OPERATOR_SWIPER_WIDTH_RATIO = 0.65
 
 interface Props {
   title: string
@@ -38,6 +38,9 @@ export function OperatorHorizontalList({
   onSeeAll,
   onPressItem,
 }: Props) {
+  const { width: windowWidth } = useWindowDimensions()
+  const cardWidth = Math.round(windowWidth * OPERATOR_SWIPER_WIDTH_RATIO)
+
   return (
     <View style={s.container}>
       <View style={s.sectionHeader}>
@@ -56,12 +59,12 @@ export function OperatorHorizontalList({
           <HorizontalScrollCard
             key="loading-skeleton"
             data={[1, 2, 3]}
-            cardWidth={CARD_WIDTH}
+            cardWidth={cardWidth}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
             keyExtractor={(item) => String(item)}
             renderItem={() => (
-              <SkeletonCard style={{ width: CARD_WIDTH }} />
+              <SkeletonCard style={{ width: cardWidth }} />
             )}
           />
         </View>
@@ -70,7 +73,7 @@ export function OperatorHorizontalList({
           <HorizontalScrollCard
             key="loaded-operators"
             data={data}
-            cardWidth={CARD_WIDTH}
+            cardWidth={cardWidth}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
             keyExtractor={(item) => item.id}
@@ -78,7 +81,7 @@ export function OperatorHorizontalList({
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
             renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH }}>
+              <View style={{ width: cardWidth }} testID="operator-swiper-item-wrapper">
                 <OperatorCard
                   item={item}
                   onPress={() => onPressItem(item)}
@@ -94,7 +97,7 @@ export function OperatorHorizontalList({
           style={{ marginHorizontal: -Spacing.space5 }}
           contentContainerStyle={s.scrollContent}
         >
-          <View style={s.emptyCard}>
+          <View style={[s.emptyCard, { width: cardWidth }]}>
             <EmptyState
               title={emptyText}
               icon="people-outline"
@@ -157,7 +160,6 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   emptyCard: {
-    width: CARD_WIDTH,
     height: 250,
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,

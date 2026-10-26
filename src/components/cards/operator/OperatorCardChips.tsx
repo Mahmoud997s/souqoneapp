@@ -5,52 +5,106 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { lineHeightFor } from '../../../constants/typography'
+import type { OperatorChip } from './buildOperatorChips'
 
 export interface OperatorCardChipsProps {
-  chips: Array<{ key: string; label: string; icon: any; isMci?: boolean }>
-  hasCertifications: boolean
-  extraCount: number
+  chips: OperatorChip[]
+  hasCertifications?: boolean
+  extraCount?: number
 }
+
+const CHIP_HEIGHT = 26
+type IoniconName = React.ComponentProps<typeof Ionicons>['name']
+type MciIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name']
 
 /**
  * OperatorCardChips
- * Renders chips for operator type, experience, equipment specializations,
- * verified certification badge, and extra count (+N).
+ * Renders chips on ONE line with a strict budget and no wrapping.
+ * Height is fixed to 26pt across all chips. Text truncates gracefully
+ * with flexShrink while the +N badge and icons never shrink.
  */
 export function OperatorCardChips({
   chips,
-  hasCertifications,
-  extraCount,
+  hasCertifications = false,
+  extraCount = 0,
 }: OperatorCardChipsProps) {
-  if (chips.length === 0 && !hasCertifications) return null
+  const certAlreadyInChips = chips.some((c) => c.isCertification || c.key === 'cert')
+  const showLegacyCert = Boolean(hasCertifications && !certAlreadyInChips)
+
+  if (chips.length === 0 && !showLegacyCert) return null
 
   return (
-    <View style={s.chipsRow}>
-      {chips.map((chip) => (
-        <View key={chip.key} style={s.chip}>
-          {chip.isMci ? (
-            <MaterialCommunityIcons name={chip.icon} size={11} color={Colors.primary} />
-          ) : (
-            <Ionicons name={chip.icon} size={11} color={Colors.primary} />
-          )}
-          <Text style={s.chipText} numberOfLines={1}>
-            {chip.label}
-          </Text>
-        </View>
-      ))}
+    <View style={s.chipsRow} testID="operator-chips-row">
+      {chips.map((chip) => {
+        const isCert = Boolean(chip.isCertification || chip.key === 'cert')
+        const isType = chip.key === 'type'
+        return (
+          <View
+            key={chip.key}
+            style={[s.chip, isCert && s.certChip]}
+            testID={`operator-chip-${chip.key}`}
+          >
+            {isCert ? (
+              <Ionicons
+                name="ribbon-outline"
+                size={11}
+                color={Colors.primary}
+                style={s.chipIcon}
+              />
+            ) : chip.isMci ? (
+              <MaterialCommunityIcons
+                name={chip.icon as MciIconName}
+                size={11}
+                color={Colors.primary}
+                style={s.chipIcon}
+              />
+            ) : (
+              <Ionicons
+                name={chip.icon as IoniconName}
+                size={11}
+                color={Colors.primary}
+                style={s.chipIcon}
+              />
+            )}
+            <Text
+              style={[s.chipText, isType && s.typeChipText, isCert && s.certChipText]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {chip.label}
+            </Text>
+          </View>
+        )
+      })}
 
-      {hasCertifications && (
-        <View style={[s.chip, s.certChip]}>
-          <Ionicons name="ribbon-outline" size={11} color={Colors.warning} />
-          <Text style={[s.chipText, s.certChipText]} numberOfLines={1}>
+      {showLegacyCert && (
+        <View style={[s.chip, s.certChip]} testID="operator-chip-legacy-cert">
+          <Ionicons
+            name="ribbon-outline"
+            size={11}
+            color={Colors.primary}
+            style={s.chipIcon}
+          />
+          <Text
+            style={[s.chipText, s.certChipText]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             شهادة معتمدة
           </Text>
         </View>
       )}
 
       {extraCount > 0 && (
-        <View style={[s.chip, s.extraChip]}>
-          <Text style={s.extraChipText}>+{extraCount}</Text>
+        <View
+          style={[s.chip, s.extraChip]}
+          testID="operator-chip-extra"
+          accessible
+          accessibilityLabel={`${extraCount} مهارات إضافية`}
+        >
+          <Text style={s.extraChipText} numberOfLines={1}>
+            +{extraCount}
+          </Text>
         </View>
       )}
     </View>
@@ -60,41 +114,59 @@ export function OperatorCardChips({
 const s = StyleSheet.create({
   chipsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    overflow: 'hidden',
+    alignItems: 'center',
     gap: Spacing.space1,
     marginTop: Spacing.space2,
   },
   chip: {
+    height: CHIP_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: Spacing.space1,
     backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: Spacing.space2,
-    paddingVertical: 3,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.border,
+    flexShrink: 1,
+  },
+  chipIcon: {
+    flexShrink: 0,
   },
   chipText: {
+    flexShrink: 1,
+    minWidth: 0,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 10.5,
-    lineHeight: lineHeightFor(10.5),
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.text,
   },
+  typeChipText: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primaryDark,
+  },
   certChip: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.paleMint,
     borderColor: Colors.border,
   },
   certChipText: {
     fontFamily: 'Almarai_700Bold',
-    color: Colors.warning,
+    color: Colors.primaryDark,
   },
   extraChip: {
-    paddingHorizontal: 5,
+    height: CHIP_HEIGHT,
+    flexShrink: 0,
+    paddingHorizontal: Spacing.space2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   extraChipText: {
+    flexShrink: 0,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 9.5,
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
     color: Colors.textMuted,
   },
 })

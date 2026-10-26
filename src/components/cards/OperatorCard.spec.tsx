@@ -1,8 +1,23 @@
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react-native'
-import { Text, View } from 'react-native'
+import * as fs from 'fs'
+import * as path from 'path'
+import { render, fireEvent, act } from '@testing-library/react-native'
+import {
+  Dimensions,
+  EmitterSubscription,
+  ScaledSize,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+} from 'react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { OperatorCard } from './OperatorCard'
+import { OperatorHorizontalList } from '../equipment/landing/OperatorHorizontalList'
+import { SearchCardDispatcher } from '../../screens/search/components/SearchCardDispatcher'
+import { Colors } from '../../constants/colors'
+import { lineHeightFor } from '../../constants/typography'
 import { useAuthStore } from '../../store/authStore'
 
 jest.mock('../../api/contact', () => ({
@@ -32,6 +47,31 @@ function createQueryClient() {
   })
 }
 
+interface RenderedJsonNode {
+  type?: string
+  props?: {
+    style?: StyleProp<TextStyle>
+    [key: string]: unknown
+  }
+  children?: unknown[]
+}
+
+function collectTextNodes(node: unknown, out: RenderedJsonNode[] = []): RenderedJsonNode[] {
+  if (!node || typeof node !== 'object') return out
+  if (Array.isArray(node)) {
+    for (const child of node) collectTextNodes(child, out)
+    return out
+  }
+  const typedNode = node as RenderedJsonNode
+  if (typedNode.type === 'Text') {
+    out.push(typedNode)
+  }
+  if (Array.isArray(typedNode.children)) {
+    for (const child of typedNode.children) collectTextNodes(child, out)
+  }
+  return out
+}
+
 describe('OperatorCard', () => {
   let queryClient: QueryClient
 
@@ -40,7 +80,7 @@ describe('OperatorCard', () => {
     queryClient = createQueryClient()
     useAuthStore.setState({
       isLoggedIn: true,
-      user: { id: 'usr-1', phone: '+96891234567' } as any,
+      user: { id: 'usr-1', phone: '+96891234567' } as never,
     })
   })
 
@@ -61,6 +101,33 @@ describe('OperatorCard', () => {
   }
 
   describe('Public Mode', () => {
+    it('always fills container width with width: 100% on the card root', async () => {
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const card = getByTestId('operator-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.width).toBe('100%')
+    })
+
+    it('teeth check Part A: no Text inside the rendered OperatorCard has textAlign === "right"', async () => {
+      const { toJSON } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const textNodes = collectTextNodes(toJSON())
+      expect(textNodes.length).toBeGreaterThan(0)
+      for (const node of textNodes) {
+        const flatStyle = StyleSheet.flatten(node.props?.style) || {}
+        expect(flatStyle.textAlign).not.toBe('right')
+      }
+    })
+
     it('teeth check 1: triggers onPress callback when the card is pressed', async () => {
       const onPressMock = jest.fn()
       const { getByTestId } = await render(
@@ -75,7 +142,7 @@ describe('OperatorCard', () => {
     })
 
     it('limits chips to maxChips and displays extra count badge', async () => {
-      const { getByText } = await render(
+      const { getByText, queryByText } = await render(
         <QueryClientProvider client={queryClient}>
           <OperatorCard item={baseItem} maxChips={3} />
         </QueryClientProvider>
@@ -83,9 +150,9 @@ describe('OperatorCard', () => {
 
       expect(getByText('مشغل معدات')).toBeTruthy()
       expect(getByText('6 سنوات خبرة')).toBeTruthy()
-      expect(getByText('حفار')).toBeTruthy()
       expect(getByText('شهادة معتمدة')).toBeTruthy()
-      expect(getByText('+3')).toBeTruthy()
+      expect(getByText('+4')).toBeTruthy()
+      expect(queryByText('حفار')).toBeNull()
     })
 
     it('teeth check 2: falls back to "السعر عند التواصل" when price is 0 or missing, and never shows "0 ر.ع."', async () => {
@@ -192,6 +259,198 @@ describe('OperatorCard', () => {
       )
 
       expect(queryByTestId('operator-status-dot')).toBeNull()
+    })
+  })
+
+  describe('Width Truth Table (Part B)', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('teeth check Part B1: landing swiper item wrapper width is 65% of mocked window width', async () => {
+      jest.spyOn(Dimensions, 'get').mockReturnValue({
+        width: 400,
+        height: 800,
+        scale: 2,
+        fontScale: 1,
+      })
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorHorizontalList
+            title="مشغلو المعدات"
+            data={[baseItem]}
+            isLoading={false}
+            emptyText="لا يوجد مشغلون"
+            onSeeAll={jest.fn()}
+            onPressItem={jest.fn()}
+          />
+        </QueryClientProvider>
+      )
+
+      const itemWrapper = getByTestId('operator-swiper-item-wrapper')
+      const flatWrapper = StyleSheet.flatten(itemWrapper.props.style)
+      expect(flatWrapper.width).toBe(Math.round(400 * 0.65))
+    })
+
+    it('teeth check Part B2: search operator card wrapper width is 65% and follows a changed mocked window width', async () => {
+      type ChangeHandler = (dims: { window: ScaledSize; screen: ScaledSize }) => void
+      let changeListener: ChangeHandler | null = null
+      const dimsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({
+        width: 400,
+        height: 800,
+        scale: 2,
+        fontScale: 1,
+      })
+      jest.spyOn(Dimensions, 'addEventListener').mockImplementation((type: string, handler: ChangeHandler) => {
+        if (type === 'change') changeListener = handler
+        return { remove: jest.fn() } as unknown as EmitterSubscription
+      })
+
+      const searchItem = {
+        ...baseItem,
+        _entityType: 'operator',
+      }
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <SearchCardDispatcher item={searchItem} />
+        </QueryClientProvider>
+      )
+
+      const wrapper1 = getByTestId('search-operator-card-wrapper')
+      expect(StyleSheet.flatten(wrapper1.props.style).width).toBe(Math.round(400 * 0.65))
+
+      const nextWindow: ScaledSize = {
+        width: 600,
+        height: 400,
+        scale: 2,
+        fontScale: 1,
+      }
+      dimsSpy.mockReturnValue(nextWindow)
+      await act(async () => {
+        changeListener?.({ window: nextWindow, screen: nextWindow })
+      })
+
+      const wrapper2 = getByTestId('search-operator-card-wrapper')
+      expect(StyleSheet.flatten(wrapper2.props.style).width).toBe(Math.round(600 * 0.65))
+    })
+
+    it('browse page renders OperatorCard directly in renderItem with no width wrapper so the card fills 100% of the list row', async () => {
+      const browsePath = path.resolve(__dirname, '../../../app/equipment/operators/browse.tsx')
+      const browseSource = fs.readFileSync(browsePath, 'utf8')
+      expect(browseSource).toMatch(
+        /renderItem=\{\(\{\s*item\s*\}\)\s*=>\s*\(\s*<OperatorCard[\s\S]*?\/>\s*\)\}/
+      )
+
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+      const card = getByTestId('operator-card')
+      expect(StyleSheet.flatten(card.props.style).width).toBe('100%')
+    })
+  })
+
+  describe('Impeccable Polish (Part C)', () => {
+    it('enforces 11pt minimum font size floor and Arabic line heights on all styled Text nodes', async () => {
+      const { toJSON } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const textNodes = collectTextNodes(toJSON())
+      expect(textNodes.length).toBeGreaterThan(0)
+      let almaraiNodesCount = 0
+      for (const node of textNodes) {
+        const flatStyle = StyleSheet.flatten(node.props?.style) || {}
+        if (typeof flatStyle.fontSize === 'number') {
+          expect(flatStyle.fontSize).toBeGreaterThanOrEqual(11)
+        }
+        if (
+          typeof flatStyle.fontFamily === 'string' &&
+          flatStyle.fontFamily.startsWith('Almarai') &&
+          typeof flatStyle.fontSize === 'number'
+        ) {
+          almaraiNodesCount += 1
+          expect(flatStyle.lineHeight).toBeGreaterThanOrEqual(lineHeightFor(flatStyle.fontSize))
+        }
+      }
+      expect(almaraiNodesCount).toBeGreaterThan(0)
+    })
+
+    it('applies clear visual hierarchy (ExtraBold name > Bold type & price > Regular secondary chips) and high-contrast tokens', async () => {
+      const { getByText } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const nameNode = getByText('أحمد الحارثي')
+      const typeNode = getByText('مشغل معدات')
+      const expNode = getByText('6 سنوات خبرة')
+      const certNode = getByText('شهادة معتمدة')
+      const priceNode = getByText('40 ر.ع. / يوم')
+      const callTextNode = getByText('اتصال')
+
+      expect(StyleSheet.flatten(nameNode.props.style).fontFamily).toBe('Almarai_800ExtraBold')
+      expect(StyleSheet.flatten(typeNode.props.style).fontFamily).toBe('Almarai_700Bold')
+      expect(StyleSheet.flatten(typeNode.props.style).color).toBe(Colors.primaryDark)
+      expect(StyleSheet.flatten(expNode.props.style).fontFamily).toBe('Almarai_400Regular')
+      expect(StyleSheet.flatten(certNode.props.style).color).toBe(Colors.primaryDark)
+      expect(StyleSheet.flatten(priceNode.props.style).fontFamily).toBe('Almarai_700Bold')
+      expect(StyleSheet.flatten(callTextNode.props.style).color).toBe(Colors.primaryDark)
+    })
+
+    it('enforces single-line tail truncation on header texts, >= 44pt touch targets, and Arabic accessibility labels', async () => {
+      const { getByTestId, getByLabelText, getByText } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+
+      const card = getByTestId('operator-card')
+      expect(card.props.accessibilityRole).toBe('button')
+      expect(card.props.accessibilityLabel).toBe('أحمد الحارثي، مسقط، 40 ر.ع. / يوم')
+
+      const priceBadge = getByTestId('operator-price-badge')
+      expect(priceBadge.props.accessible).toBe(true)
+      expect(priceBadge.props.accessibilityLabel).toBe('الأجر: 40 ر.ع. / يوم')
+      expect(StyleSheet.flatten(priceBadge.props.style).maxWidth).toBe('45%')
+
+      const extraChip = getByTestId('operator-chip-extra')
+      expect(extraChip.props.accessible).toBe(true)
+      expect(extraChip.props.accessibilityLabel).toBe('4 مهارات إضافية')
+
+      const nameNode = getByText('أحمد الحارثي')
+      const locNode = getByText('مسقط')
+      const priceNode = getByText('40 ر.ع. / يوم')
+      expect(nameNode.props.numberOfLines).toBe(1)
+      expect(nameNode.props.ellipsizeMode).toBe('tail')
+      expect(locNode.props.numberOfLines).toBe(1)
+      expect(locNode.props.ellipsizeMode).toBe('tail')
+      expect(priceNode.props.numberOfLines).toBe(1)
+      expect(priceNode.props.ellipsizeMode).toBe('tail')
+
+      const callBtn = getByLabelText('اتصال بالمشغل')
+      const waBtn = getByLabelText('تواصل عبر واتساب')
+      expect(StyleSheet.flatten(callBtn.props.style).minHeight).toBeGreaterThanOrEqual(44)
+      expect(StyleSheet.flatten(waBtn.props.style).minHeight).toBeGreaterThanOrEqual(44)
+    })
+
+    it('enforces >= 44pt touch target container for owner actionMenu in owner mode', async () => {
+      const { getByTestId } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} actionMenu={<View />} />
+        </QueryClientProvider>
+      )
+
+      const menuContainer = getByTestId('operator-action-menu-container')
+      const flat = StyleSheet.flatten(menuContainer.props.style)
+      expect(flat.minWidth).toBeGreaterThanOrEqual(44)
+      expect(flat.minHeight).toBeGreaterThanOrEqual(44)
     })
   })
 })

@@ -64,22 +64,32 @@ export function OperatorCardHeader({
       </View>
 
       <View style={s.nameCol}>
-        <Text style={s.nameText} numberOfLines={1}>
+        <Text style={s.nameText} numberOfLines={1} ellipsizeMode="tail">
           {name}
         </Text>
         <View style={s.locationRow}>
           <Ionicons name="location-outline" size={12} color={Colors.textMuted} />
-          <Text style={s.locationText} numberOfLines={1}>
+          <Text style={s.locationText} numberOfLines={1} ellipsizeMode="tail">
             {locationDisplay}
           </Text>
         </View>
       </View>
 
       {isOwnerMode ? (
-        <View style={s.actionMenuContainer}>{actionMenu}</View>
+        <View
+          style={s.actionMenuContainer}
+          testID="operator-action-menu-container"
+        >
+          {actionMenu}
+        </View>
       ) : (
-        <View style={s.priceBadge}>
-          <Text style={s.priceText} numberOfLines={1}>
+        <View
+          style={s.priceBadge}
+          testID="operator-price-badge"
+          accessible
+          accessibilityLabel={`الأجر: ${displayPrice}`}
+        >
+          <Text style={s.priceText} numberOfLines={1} ellipsizeMode="tail">
             {displayPrice}
           </Text>
         </View>
@@ -127,7 +137,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   nameText: {
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: lineHeightFor(14),
     color: Colors.text,
@@ -137,7 +147,7 @@ const s = StyleSheet.create({
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: Spacing.space1,
     marginTop: 2,
   },
   locationText: {
@@ -150,20 +160,26 @@ const s = StyleSheet.create({
   },
   priceBadge: {
     backgroundColor: Colors.paleMint,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: Spacing.space1,
     borderRadius: Radius.sm,
     maxWidth: '45%',
+    flexShrink: 0,
+    alignSelf: 'center',
   },
   priceText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: lineHeightFor(11.5),
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.primaryDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   actionMenuContainer: {
+    minWidth: Spacing.touch,
+    minHeight: Spacing.touch,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },

@@ -1,4 +1,5 @@
 import React from 'react'
+import { View, useWindowDimensions } from 'react-native'
 import { router } from 'expo-router'
 import { CarCard } from '../../../components/cars/CarCard'
 import { BusCard } from '../../../components/buses/BusCard'
@@ -9,6 +10,8 @@ import { JobCard } from '../../../components/cards/JobCard'
 import { OperatorCard } from '../../../components/cards/OperatorCard'
 import { getListingDetailRoute } from '../../../utils/navigationHelper'
 
+export const SEARCH_OPERATOR_WIDTH_RATIO = 0.65
+
 interface SearchCardDispatcherProps {
   item: any
 }
@@ -16,6 +19,8 @@ interface SearchCardDispatcherProps {
 export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
   item,
 }: SearchCardDispatcherProps) {
+  const { width: windowWidth } = useWindowDimensions()
+
   if (!item) return null
 
   // Normalize item images and properties from Meilisearch flat document
@@ -107,13 +112,20 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
       )
 
     case 'operator':
-    case 'operators':
+    case 'operators': {
+      const operatorCardWidth = Math.round(windowWidth * SEARCH_OPERATOR_WIDTH_RATIO)
       return (
-        <OperatorCard
-          item={normalizedItem}
-          onPress={handlePress}
-        />
+        <View
+          style={{ width: operatorCardWidth }}
+          testID="search-operator-card-wrapper"
+        >
+          <OperatorCard
+            item={normalizedItem}
+            onPress={handlePress}
+          />
+        </View>
       )
+    }
 
     case 'car':
     case 'cars':

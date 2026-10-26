@@ -2,8 +2,6 @@ import React from 'react'
 import {
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
-  Platform,
 } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -14,13 +12,11 @@ import { formatLocation } from '../../utils/mappers'
 import { OperatorCardHeader } from './operator/OperatorCardHeader'
 import { OperatorCardChips } from './operator/OperatorCardChips'
 import { OperatorCardActions } from './operator/OperatorCardActions'
-
-const CARD_FIXED_WIDTH = Dimensions.get('window').width * 0.65
+import { buildOperatorChips } from './operator/buildOperatorChips'
 
 export interface OperatorCardProps {
   item: any
   onPress?: () => void
-  fullWidth?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
 }
@@ -33,7 +29,6 @@ export interface OperatorCardProps {
 export function OperatorCard({
   item,
   onPress,
-  fullWidth = false,
   maxChips = 3,
   actionMenu,
 }: OperatorCardProps) {
@@ -70,20 +65,14 @@ export function OperatorCard({
 
   const hasCertifications = Boolean(raw?.certifications && raw.certifications.length > 0)
 
-  // Assemble chip badges
-  const allChips: Array<{ key: string; label: string; icon: any; isMci?: boolean }> = []
-  if (operatorTypeLabel) {
-    allChips.push({ key: 'type', label: operatorTypeLabel, icon: 'account-hard-hat', isMci: true })
-  }
-  if (experienceText) {
-    allChips.push({ key: 'exp', label: experienceText, icon: 'shield-checkmark-outline' })
-  }
-  equipmentTags.forEach((tag, idx) => {
-    allChips.push({ key: `eq-${idx}`, label: tag, icon: 'construct-outline' })
+  // Assemble chip badges using strict total budget
+  const { chips: visibleChips, extraCount } = buildOperatorChips({
+    operatorTypeLabel,
+    experienceText,
+    hasCertifications,
+    equipmentTags,
+    maxChips,
   })
-
-  const visibleChips = allChips.slice(0, maxChips)
-  const extraCount = allChips.length - maxChips
 
   // Price formatting: daily rate as primary, hourly rate as secondary, fallback to "السعر عند التواصل"
   const dailyRate = Number(raw?.dailyRate ?? item.dailyRate ?? item.price ?? 0)
@@ -122,9 +111,11 @@ export function OperatorCard({
 
   return (
     <TouchableOpacity
-      style={[s.card, fullWidth ? s.cardFull : s.cardFixed]}
+      style={[s.card]}
       onPress={onPress}
       activeOpacity={0.88}
+      accessibilityRole="button"
+      accessibilityLabel={`${name}، ${locationDisplay}، ${displayPrice}`}
       testID="operator-card"
     >
       <OperatorCardHeader
@@ -139,7 +130,6 @@ export function OperatorCard({
 
       <OperatorCardChips
         chips={visibleChips}
-        hasCertifications={hasCertifications}
         extraCount={extraCount}
       />
 
@@ -156,28 +146,11 @@ export function OperatorCard({
 
 const s = StyleSheet.create({
   card: {
+    width: '100%',
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...CardSystem.styles.border,
     marginBottom: Spacing.space3,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  cardFull: {
-    width: '100%',
-  },
-  cardFixed: {
-    width: CARD_FIXED_WIDTH,
   },
 })
