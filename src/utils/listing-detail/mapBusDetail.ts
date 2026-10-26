@@ -270,6 +270,7 @@ export function mapBusDetail(
   const fuelTypeLabel = translateFromConstants(BUS_FUEL_TYPES, api.fuelType)
   const busTypeLabel = translateFromConstants(BUS_TYPES, api.busType) ?? api.busType
   const busListingTypeLabel = translateFromConstants(BUS_LISTING_TYPES, api.busListingType)
+  const contractTypeLabel = translateFromConstants(BUS_CONTRACT_TYPES, api.contractType)
 
   const mileageLabel = formatMileage(api.mileage) || undefined
 
@@ -331,6 +332,9 @@ export function mapBusDetail(
   if (conditionLabel) {
     basicItems.push({ key: 'condition', label: 'الحالة', value: conditionLabel })
   }
+  if (contractTypeLabel) {
+    basicItems.push({ key: 'contractType', label: 'نوع العقد', value: contractTypeLabel })
+  }
   if (basicItems.length > 0) {
     specsSections.push({ title: 'المواصفات الأساسية', items: basicItems })
   }
@@ -349,7 +353,11 @@ export function mapBusDetail(
   if (api.plateNumber?.trim()) {
     techItems.push({ key: 'plateNumber', label: 'رقم اللوحة', value: api.plateNumber.trim() })
   }
-  if (api.busListingType === 'BUS_RENT') {
+  if (
+    (api.busListingType === 'BUS_RENT' || api.busListingType === 'BUS_SALE_WITH_CONTRACT') &&
+    api.withDriver !== undefined &&
+    api.withDriver !== null
+  ) {
     techItems.push({
       key: 'withDriver',
       label: 'سائق',

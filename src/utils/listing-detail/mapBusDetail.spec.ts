@@ -252,6 +252,28 @@ describe('mapBusDetail', () => {
         expiryIso: '2027-06-30T00:00:00.000Z',
       })
     })
+
+    it('maps contractType to basicItems in specsSections so it is visible and searchable', () => {
+      const vm = mapBusDetail(contractBusBase, { isAuthenticated: true, now: mockNow })
+      const basicSection = vm.specsSections.find((s) => s.title === 'المواصفات الأساسية')
+      const contractItem = basicSection?.items.find((i) => i.key === 'contractType')
+      expect(contractItem).toEqual({
+        key: 'contractType',
+        label: 'نوع العقد',
+        value: 'نقل مدرسي / جامعي',
+      })
+    })
+
+    it('maps withDriver to technical specs when busListingType is BUS_SALE_WITH_CONTRACT', () => {
+      const vm = mapBusDetail(contractBusBase, { isAuthenticated: true, now: mockNow })
+      const techSection = vm.specsSections.find((s) => s.title === 'المواصفات الفنية')
+      const driverItem = techSection?.items.find((i) => i.key === 'withDriver')
+      expect(driverItem).toEqual({
+        key: 'withDriver',
+        label: 'سائق',
+        value: 'مع سائق',
+      })
+    })
   })
 
   describe('Zero Pollution & Empty Fields Filtering', () => {

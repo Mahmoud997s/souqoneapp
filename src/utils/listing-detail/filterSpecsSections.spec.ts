@@ -58,6 +58,43 @@ describe('filterSpecsSections', () => {
     expect(result).toEqual([])
   })
 
+  it('filters buyer-valuable fields such as delivery, operator, and contract type (D-097)', () => {
+    const mixedBuyerSections: SpecSectionView[] = [
+      {
+        title: 'المواصفات الفنية',
+        items: [
+          { key: 'hoursUsed', label: 'ساعات العمل', value: '3,500 ساعة' },
+          { key: 'withOperator', label: 'مشغّل المعدة', value: 'مع مشغّل' },
+          { key: 'deliveryAvailable', label: 'خدمة التوصيل', value: 'متوفر' },
+        ],
+      },
+      {
+        title: 'المواصفات الأساسية',
+        items: [
+          { key: 'contractType', label: 'نوع العقد', value: 'نقل مدرسي / جامعي' },
+        ],
+      },
+    ]
+
+    const filterDelivery = filterSpecsSections(mixedBuyerSections, 'التوصيل')
+    expect(filterDelivery).toHaveLength(1)
+    expect(filterDelivery[0].items).toEqual([
+      { key: 'deliveryAvailable', label: 'خدمة التوصيل', value: 'متوفر' },
+    ])
+
+    const filterOperator = filterSpecsSections(mixedBuyerSections, 'مشغّل')
+    expect(filterOperator).toHaveLength(1)
+    expect(filterOperator[0].items).toEqual([
+      { key: 'withOperator', label: 'مشغّل المعدة', value: 'مع مشغّل' },
+    ])
+
+    const filterContract = filterSpecsSections(mixedBuyerSections, 'مدرسي')
+    expect(filterContract).toHaveLength(1)
+    expect(filterContract[0].items).toEqual([
+      { key: 'contractType', label: 'نوع العقد', value: 'نقل مدرسي / جامعي' },
+    ])
+  })
+
   it('safely handles null and undefined inputs', () => {
     expect(filterSpecsSections(null, 'test')).toEqual([])
     expect(filterSpecsSections(undefined, 'test')).toEqual([])
