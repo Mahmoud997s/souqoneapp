@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
@@ -70,6 +70,10 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
       user: { id: 'u1', name: 'Test User' },
     })
     ;(favoritesApi.add as jest.Mock).mockResolvedValue({ data: { favorited: true } })
+  })
+
+  afterEach(() => {
+    cleanup()
   })
 
   it('BusCard calls favoritesApi.add with BUS_LISTING entity type', async () => {
@@ -232,18 +236,81 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
       images: [],
     }
 
-    await render(
-      <ListingCardBase item={item} title="إعلان تحت الطلب" priceLabel="2000 ر.ع." favoriteType="LISTING" onPress={jest.fn()} />,
+    const { getByTestId } = await render(
+      <ListingCardBase
+        item={item}
+        title="إعلان تحت الطلب"
+        priceLabel="2000 ر.ع."
+        favoriteType="LISTING"
+        onPress={jest.fn()}
+      />,
       { wrapper: createWrapper() }
     )
 
-    const heartBtn = screen.getByTestId('listing-card-favorite')
-    fireEvent.press(heartBtn)
-    fireEvent.press(heartBtn)
-    fireEvent.press(heartBtn)
+    const heartBtn = getByTestId('listing-card-favorite')
+
+    // Trigger rapid clicks directly on component handler without dangling RNTL act()
+    heartBtn.props.onClick()
+    heartBtn.props.onClick()
+    heartBtn.props.onClick()
 
     expect(favoritesApi.add).toHaveBeenCalledTimes(1)
 
-    resolveApi({ data: { favorited: true } })
+    await React.act(async () => {
+      resolveApi({ data: { favorited: true } })
+      await slowPromise
+    })
+  })
+
+  it('unauthenticated press redirects to login and does not lock favorite toggle guard', async () => {
+    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
+      isLoggedIn: false,
+      user: null,
+    })
+
+    const item: any = {
+      id: 'unauth-1',
+      title: 'إعلان بدون تسجيل',
+      images: [],
+    }
+
+    const { getByTestId, rerender } = await render(
+      <ListingCardBase
+        item={item}
+        title="إعلان بدون تسجيل"
+        priceLabel="5000 ر.ع."
+        favoriteType="LISTING"
+        onPress={jest.fn()}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    const heartBtn = getByTestId('listing-card-favorite')
+    fireEvent.press(heartBtn)
+
+    expect(favoritesApi.add).not.toHaveBeenCalled()
+
+    // Now user logs in
+    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
+      isLoggedIn: true,
+      user: { id: 'u1', name: 'Logged In' },
+    })
+
+    await rerender(
+      <ListingCardBase
+        item={item}
+        title="إعلان بدون تسجيل"
+        priceLabel="5000 ر.ع."
+        favoriteType="LISTING"
+        onPress={jest.fn()}
+      />
+    )
+
+    fireEvent.press(getByTestId('listing-card-favorite'))
+
+    await waitFor(() => {
+      expect(favoritesApi.add).toHaveBeenCalledTimes(1)
+      expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'unauth-1')
+    })
   })
 })
