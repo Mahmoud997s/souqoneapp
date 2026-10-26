@@ -141,6 +141,7 @@ export function GlassDetailNavBar(props: GlassDetailNavBarProps) {
               placeholderTextColor={Colors.placeholder}
               style={s.searchInput}
               returnKeyType="search"
+              textAlign="right"
               clearButtonMode="while-editing"
               autoCorrect={false}
               autoCapitalize="none"
@@ -239,7 +240,7 @@ const s = StyleSheet.create({
     fontSize: 13,
     lineHeight: lineHeightFor(13),
     color: Colors.text,
-    textAlign: 'left',
+    textAlign: 'right',
     writingDirection: 'rtl',
     paddingVertical: 0,
   },

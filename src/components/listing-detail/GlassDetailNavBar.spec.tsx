@@ -112,6 +112,27 @@ describe('GlassDetailNavBar', () => {
     expect(screen.getByTestId('nav-search-container')).toBeTruthy()
   })
 
+  it('renders search input with RTL right text alignment in both prop and flattened style', async () => {
+    await render(
+      <GlassDetailNavBar
+        onBack={jest.fn()}
+        isFavorite={false}
+        favoriteBusy={false}
+        canFavorite={true}
+        onToggleFavorite={jest.fn()}
+        searchValue="بحث"
+        onSearchChange={jest.fn()}
+        scrollY={dummyScrollY}
+        paddingTop={40}
+      />
+    )
+
+    const input = screen.getByTestId('nav-search-input')
+    expect(input.props.textAlign).toBe('right')
+    const flatStyle = (require('react-native').StyleSheet.flatten)(input.props.style)
+    expect(flatStyle.textAlign).toBe('right')
+  })
+
   it('renders search input with custom placeholder when provided', async () => {
     await render(
       <GlassDetailNavBar
