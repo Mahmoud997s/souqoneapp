@@ -24,10 +24,10 @@ import { lineHeightFor } from '../../constants/typography'
 
 interface BaseGlassDetailNavBarProps {
   onBack: () => void
-  isFavorite: boolean
-  favoriteBusy: boolean
-  canFavorite: boolean
-  onToggleFavorite: () => void
+  isFavorite?: boolean
+  favoriteBusy?: boolean
+  canFavorite?: boolean
+  onToggleFavorite?: () => void
   scrollY: SharedValue<number>
   paddingTop: number
 }
@@ -61,9 +61,9 @@ export type GlassDetailNavBarProps =
 export function GlassDetailNavBar(props: GlassDetailNavBarProps) {
   const {
     onBack,
-    isFavorite,
-    favoriteBusy,
-    canFavorite,
+    isFavorite = false,
+    favoriteBusy = false,
+    canFavorite = false,
     onToggleFavorite,
     scrollY,
     paddingTop,
@@ -152,7 +152,7 @@ export function GlassDetailNavBar(props: GlassDetailNavBarProps) {
         )}
 
         {/* Favorite Button (or spacer) */}
-        {canFavorite ? (
+        {canFavorite && onToggleFavorite ? (
           <TouchableOpacity
             onPress={onToggleFavorite}
             style={s.actionButton}

@@ -21,6 +21,7 @@ import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
 import { GlobalSocketHandler } from '../src/components/GlobalSocketHandler'
 import { GlobalDialog } from '../src/components/ui/GlobalDialog'
+import { GlobalToast } from '../src/components/ui/GlobalToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ChatSyncService } from '../src/services/ChatSyncService'
@@ -125,6 +126,7 @@ export default function RootLayout() {
             <GlobalSocketHandler />
             <Stack screenOptions={{ headerShown: false }} />
             <GlobalDialog />
+            <GlobalToast />
           </BottomSheetModalProvider>
         </NavVisibilityProvider>
       </QueryClientProvider>

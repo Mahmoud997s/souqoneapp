@@ -60,6 +60,11 @@ export function useFavorites() {
         let rawItem;
         let cat;
         
+        // Operators have NO favorites in the app (Part O decision). Skip any legacy OPERATOR_LISTING rows.
+        if (item.entityType === 'OPERATOR_LISTING') {
+          return null;
+        }
+
         // If the underlying entity was deleted but the favorite record remains, skip it
         if (!item.listing && !item.job && !item.carService && !item.sparePart && !item.busListing && !item.equipmentListing && !item.entity) {
           return null;

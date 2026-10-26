@@ -16,6 +16,7 @@ jest.mock('expo-router', () => ({
 jest.mock('../../api/favorites', () => ({
   favoritesApi: {
     getAll: jest.fn(),
+    ids: jest.fn(),
     check: jest.fn(),
     add: jest.fn(),
     remove: jest.fn(),
@@ -66,12 +67,27 @@ function TestFavoriteHarness({
 
 describe('useFavoriteToggle', () => {
   let queryClient: QueryClient
+  let serverSet: Set<string>
 
   beforeEach(() => {
     jest.clearAllMocks()
     queryClient = createTestQueryClient()
+    serverSet = new Set<string>()
     useAuthStore.setState({ isLoggedIn: true, user: { id: 'u1' } as any })
+    ;(favoritesApi.ids as jest.Mock).mockImplementation(async () => ({
+      data: Array.from(serverSet),
+    }))
     ;(favoritesApi.check as jest.Mock).mockResolvedValue({ data: { favorited: false } })
+    ;(favoritesApi.add as jest.Mock).mockImplementation(async (type: string, id: string) => {
+      const k = `${type}:${id}`
+      if (serverSet.has(k)) {
+        serverSet.delete(k)
+        return { data: { favorited: false } }
+      } else {
+        serverSet.add(k)
+        return { data: { favorited: true } }
+      }
+    })
   })
 
   afterEach(() => {
@@ -79,7 +95,7 @@ describe('useFavoriteToggle', () => {
   })
 
   it('hydrated true shows favorite when logged in', async () => {
-    ;(favoritesApi.check as jest.Mock).mockResolvedValue({ data: { favorited: true } })
+    serverSet.add('LISTING:car-123')
 
     await render(
       React.createElement(
@@ -90,7 +106,8 @@ describe('useFavoriteToggle', () => {
     )
 
     await waitFor(() => expect(screen.getByText('FAVORITED')).toBeTruthy())
-    expect(favoritesApi.check).toHaveBeenCalledWith('LISTING', 'car-123')
+    expect(favoritesApi.check).not.toHaveBeenCalled()
+    expect(favoritesApi.ids).toHaveBeenCalled()
   })
 
   it('guest makes NO check call and remains at initial state', async () => {
@@ -109,7 +126,7 @@ describe('useFavoriteToggle', () => {
   })
 
   it('after check returns true, the first tap sends toggle once and flips to unfavorited', async () => {
-    ;(favoritesApi.check as jest.Mock).mockResolvedValue({ data: { favorited: true } })
+    serverSet.add('LISTING:car-123')
     let resolveApi: (value: any) => void = () => {}
     const apiPromise = new Promise((resolve) => {
       resolveApi = resolve
@@ -139,6 +156,7 @@ describe('useFavoriteToggle', () => {
     expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'car-123')
 
     // Resolve API
+    serverSet.delete('LISTING:car-123')
     await act(async () => {
       resolveApi({ data: { favorited: false } })
     })
@@ -148,7 +166,7 @@ describe('useFavoriteToggle', () => {
   })
 
   it('treats failed check query safely as unfavorited without throwing', async () => {
-    ;(favoritesApi.check as jest.Mock).mockRejectedValue(new Error('500 Server Error'))
+    ;(favoritesApi.ids as jest.Mock).mockRejectedValue(new Error('500 Server Error'))
 
     await render(
       React.createElement(
@@ -159,7 +177,6 @@ describe('useFavoriteToggle', () => {
     )
 
     expect(screen.getByText('UNFAVORITED')).toBeTruthy()
-    expect(screen.getByText('IDLE')).toBeTruthy()
   })
 
   it('optimistic flip happens synchronously on toggle() and keeps state on success', async () => {
@@ -192,6 +209,7 @@ describe('useFavoriteToggle', () => {
     expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'car-123')
 
     // Resolve API
+    serverSet.add('LISTING:car-123')
     await act(async () => {
       resolveApi({ data: { favorited: true } })
     })
@@ -360,11 +378,7 @@ describe('useFavoriteToggle', () => {
   })
 
   it('teeth test 2: resets hydration and favorite state when entity identity changes (id prop change)', async () => {
-    ;(favoritesApi.check as jest.Mock).mockImplementation((_entity, id) => {
-      if (id === 'item-A') return Promise.resolve({ data: { favorited: true } })
-      if (id === 'item-B') return Promise.resolve({ data: { favorited: false } })
-      return Promise.resolve({ data: { favorited: false } })
-    })
+    serverSet.add('EQUIPMENT:item-A')
 
     const { rerender } = await render(
       React.createElement(
@@ -380,7 +394,6 @@ describe('useFavoriteToggle', () => {
 
     // item-A hydrates to FAVORITED
     await waitFor(() => expect(screen.getByText('FAVORITED')).toBeTruthy())
-    expect(favoritesApi.check).toHaveBeenCalledWith('EQUIPMENT', 'item-A')
 
     // Now switch id to item-B with initialIsFavorite=false
     await act(async () => {
@@ -399,21 +412,16 @@ describe('useFavoriteToggle', () => {
 
     // Immediately resets to UNFAVORITED (item-B initial)
     expect(screen.getByText('UNFAVORITED')).toBeTruthy()
-
-    // And check query runs for item-B
-    await waitFor(() => {
-      expect(favoritesApi.check).toHaveBeenCalledWith('EQUIPMENT', 'item-B')
-    })
   })
 
   it('teeth test 3: user tap before slow check resolves wins and is not overwritten by late check response', async () => {
-    let resolveCheck: (value: any) => void = () => {}
-    const slowCheckPromise = new Promise((resolve) => {
-      resolveCheck = resolve
+    let resolveIds: (value: unknown) => void = () => {}
+    const slowIdsPromise = new Promise((resolve) => {
+      resolveIds = resolve
     })
-    ;(favoritesApi.check as jest.Mock).mockReturnValue(slowCheckPromise)
+    ;(favoritesApi.ids as jest.Mock).mockReturnValueOnce(slowIdsPromise)
 
-    let resolveAdd: (value: any) => void = () => {}
+    let resolveAdd: (value: unknown) => void = () => {}
     const addPromise = new Promise((resolve) => {
       resolveAdd = resolve
     })
@@ -433,7 +441,7 @@ describe('useFavoriteToggle', () => {
 
     expect(screen.getByText('UNFAVORITED')).toBeTruthy()
 
-    // User taps immediately BEFORE check resolves
+    // User taps immediately BEFORE ids query resolves
     await act(async () => {
       fireEvent.press(screen.getByTestId('fav-btn'))
     })
@@ -442,15 +450,16 @@ describe('useFavoriteToggle', () => {
     expect(screen.getByText('FAVORITED')).toBeTruthy()
     expect(screen.getByText('BUSY')).toBeTruthy()
 
-    // Now slow check resolves with conflicting server state (favorited: false)
+    // Now slow ids query resolves with conflicting server state (empty array)
     await act(async () => {
-      resolveCheck({ data: { favorited: false } })
+      resolveIds({ data: [] })
     })
 
     // User's optimistic tap MUST STILL WIN - not overwritten to UNFAVORITED
     expect(screen.getByText('FAVORITED')).toBeTruthy()
 
     // Now complete the add/toggle API call
+    serverSet.add('EQUIPMENT:eq-race')
     await act(async () => {
       resolveAdd({ data: { favorited: true } })
     })

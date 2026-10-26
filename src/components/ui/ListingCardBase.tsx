@@ -13,13 +13,11 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { BlurView } from 'expo-blur'
 import { useRouter } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { CardSystem } from '../../constants/cardSystem'
-import { useAuthStore } from '../../store/authStore'
-import { favoritesApi } from '../../api/favorites'
-import { dialogService } from '../../store/dialogStore'
+import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
+import { favoriteTypeForCard } from '../../features/favorites/favoriteEntityTypes'
 import { formatDate } from '../../utils/format'
 import { resolveListingLocation } from '../../utils/listingLocation'
 import { CardImageSwiper } from './CardImageSwiper'
@@ -69,6 +67,7 @@ export interface ListingCardBaseProps {
   titleNumberOfLines?: number
   imageHeight?: number
   favoriteType?: string
+  /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
   style?: any
 }
@@ -98,15 +97,24 @@ export const ListingCardBase = ({
   shareMessage,
   titleNumberOfLines = 1,
   imageHeight,
-  favoriteType = 'LISTING',
+  favoriteType,
   onFavorite,
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
-  const queryClient = useQueryClient()
-  const { isLoggedIn } = useAuthStore()
+  const resolvedType = favoriteTypeForCard(item, favoriteType)
+  const targetId = item?.id || item?.raw?.id
+  const { isFavorite: isFav, toggle: toggleFavorite } = useFavoriteToggle(
+    resolvedType,
+    targetId,
+    Boolean(item?.isFavorite),
+    { title }
+  )
 
-  const [isFav, setIsFav] = useState(Boolean(item?.isFavorite))
+  const handleFavorite = () => {
+    toggleFavorite()
+    onFavorite?.(!isFav)
+  }
   const [cardWidth, setCardWidth] = useState(0)
 
   const resolvedLocation = location !== undefined ? location : resolveListingLocation(item)
@@ -120,32 +128,7 @@ export const ListingCardBase = ({
     item?.raw?._count?.images ??
     (displayImages.length > 0 ? displayImages.length : undefined)
 
-  const isTogglingFavRef = useRef(false)
 
-  const handleFavorite = async () => {
-    if (!isLoggedIn) {
-      router.push('/(auth)/login' as any)
-      return
-    }
-
-    if (isTogglingFavRef.current) return
-    isTogglingFavRef.current = true
-
-    const nextFav = !isFav
-    setIsFav(nextFav)
-    onFavorite?.(nextFav)
-
-    try {
-      const targetId = item.id || item.raw?.id
-      await favoritesApi.add((favoriteType || 'LISTING') as any, targetId)
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    } catch {
-      dialogService.alert('خطأ', 'تعذّر تحديث المفضلة، حاول مرة أخرى')
-      setIsFav((prev) => !prev)
-    } finally {
-      isTogglingFavRef.current = false
-    }
-  }
 
   const handleShare = async () => {
     try {
@@ -222,18 +205,20 @@ export const ListingCardBase = ({
           >
             <Ionicons name="share-social" size={16} color={Colors.white} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={s.actionBtn}
-            testID="listing-card-favorite"
-            onPress={handleFavorite}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={isFav ? 'heart' : 'heart-outline'}
-              size={16}
-              color={isFav ? Colors.error : Colors.white}
-            />
-          </TouchableOpacity>
+          {resolvedType !== null && (
+            <TouchableOpacity
+              style={s.actionBtn}
+              testID="listing-card-favorite"
+              onPress={handleFavorite}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isFav ? 'heart' : 'heart-outline'}
+                size={16}
+                color={isFav ? Colors.error : Colors.white}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Sold Visual Overlay */}

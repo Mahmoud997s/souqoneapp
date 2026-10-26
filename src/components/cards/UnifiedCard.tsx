@@ -20,6 +20,8 @@ import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { resolveContactEntityType } from '../../utils/contactEntityType'
+import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
+import { favoriteTypeForCard } from '../../features/favorites/favoriteEntityTypes'
 import {
   ListingCardBase,
   ListingCardPill,
@@ -54,6 +56,7 @@ export interface UnifiedCardItem {
 export interface UnifiedCardProps {
   item: UnifiedCardItem
   onPress?: () => void
+  /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: () => void
   /** Horizontal compact layout — 100×100 thumbnail, content beside it */
   compact?: boolean
@@ -128,7 +131,14 @@ export function UnifiedCard({
   disableImageSwipe = false,
 }: UnifiedCardProps) {
   const { user } = useAuthStore()
-  const [isFav, setIsFav] = useState(item.isFavorite ?? false)
+  const resolvedType = favoriteTypeForCard(item)
+  const targetId = item?.id || item?.raw?.id
+  const { isFavorite: isFav, toggle: toggleCompactFavorite } = useFavoriteToggle(
+    resolvedType,
+    targetId,
+    Boolean(item?.isFavorite),
+    { title: item?.title }
+  )
 
   const rawImages = (item.images && item.images.length > 0)
     ? item.images
@@ -168,7 +178,7 @@ export function UnifiedCard({
   }
 
   const heartToggle = () => {
-    setIsFav(!isFav)
+    toggleCompactFavorite()
     onFavorite?.()
   }
 
@@ -192,13 +202,15 @@ export function UnifiedCard({
               />
             </View>
           )}
-          <TouchableOpacity style={styles.compactHeart} onPress={heartToggle} hitSlop={8}>
-            <Ionicons
-              name={isFav ? 'heart' : 'heart-outline'}
-              size={14}
-              color={isFav ? Colors.error : Colors.white}
-            />
-          </TouchableOpacity>
+          {resolvedType !== null && (
+            <TouchableOpacity style={styles.compactHeart} onPress={heartToggle} hitSlop={8}>
+              <Ionicons
+                name={isFav ? 'heart' : 'heart-outline'}
+                size={14}
+                color={isFav ? Colors.error : Colors.white}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Content — second child = LEFT side in RTL */}
