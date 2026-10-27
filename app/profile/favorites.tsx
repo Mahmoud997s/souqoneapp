@@ -35,10 +35,7 @@ export default function FavoritesScreen() {
   const { scrollHandler } = useScrollAwareNav()
   const params = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
-  const { data, isLoading, refetch } = useFavorites()
-  const handleFavorite = (_item?: unknown) => {
-    refetch()
-  }
+  const { data, isLoading } = useFavorites()
   const navBarHeight = insets.top + 52
   // We no longer need contentTopOffset to push content down for fixed headers,
   // since the filter is now IN the list. So contentTopOffset is just navBarHeight.
@@ -119,7 +116,6 @@ export default function FavoritesScreen() {
                   item={item}
                   fullWidth
                   onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-                  onFavorite={() => handleFavorite(item)}
                 />
               )
             }
@@ -127,7 +123,6 @@ export default function FavoritesScreen() {
               <UnifiedCard
                 item={item}
                 onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-                onFavorite={() => handleFavorite(item)}
               />
             )
           }}

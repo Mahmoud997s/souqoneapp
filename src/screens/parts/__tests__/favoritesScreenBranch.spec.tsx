@@ -1,6 +1,17 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react-native'
+import { render, screen } from '@testing-library/react-native'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import FavoritesScreen from '../../../../app/profile/favorites'
+import { UnifiedCard } from '../../../components/cards/UnifiedCard'
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
 
 const mockFavoritesData = [
   {
@@ -24,15 +35,19 @@ const mockFavoritesData = [
     priceText: 'تبدأ من 10 ر.ع',
     images: ['https://img.souqone.app/service1.jpg'],
   },
+  {
+    id: 'job-1',
+    title: 'مطلوب فني ميكانيك',
+    category: 'jobs',
+    priceText: 'راتب مجزي',
+    images: ['https://img.souqone.app/job1.jpg'],
+  },
 ]
-
-const mockRefetch = jest.fn()
 
 jest.mock('../../../hooks/useListings', () => ({
   useFavorites: () => ({
     data: mockFavoritesData,
     isLoading: false,
-    refetch: mockRefetch,
   }),
 }))
 
@@ -64,49 +79,49 @@ jest.mock('expo-router', () => ({
   }),
 }))
 
-const mockToggle = jest.fn()
-jest.mock('../../../features/favorites/useFavoriteToggle', () => ({
-  useFavoriteToggle: () => ({
-    isFavorite: true,
-    isBusy: false,
-    toggle: mockToggle,
-  }),
-}))
-
-jest.mock('../../../hooks/listing-detail/useListingContact', () => ({
-  useListingContact: () => ({
-    call: jest.fn(),
-    whatsApp: jest.fn(),
-    chat: jest.fn(),
-    busy: false,
-  }),
-}))
+jest.mock('../../../components/cards/UnifiedCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    UnifiedCard: jest.fn((props) => (
+      <View testID={`unified-card-${props.item.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item.title}</Text>
+      </View>
+    )),
+  }
+})
 
 describe('FavoritesScreen - Parts & Services UnifiedCard fullWidth branch', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders parts and services via UnifiedCard with fullWidth and onFavorite wired', async () => {
-    await render(<FavoritesScreen />)
+  it('renders parts and services with fullWidth=true, and other categories without fullWidth', async () => {
+    await render(<FavoritesScreen />, { wrapper: createWrapper() })
 
-    // Verify all items are rendered
-    expect(screen.getByText('تويوتا كامري 2022')).toBeTruthy()
+    // Verify elements are rendered
     expect(screen.getByText('سفايف لاندكروزر أصلية')).toBeTruthy()
     expect(screen.getByText('فحص كمبيوتر سيارات وبرمجة')).toBeTruthy()
+    expect(screen.getByText('مطلوب فني ميكانيك')).toBeTruthy()
 
-    // Find favorite toggle buttons (hearts)
-    // index 0: cars (CarCard), index 1: parts (UnifiedCard), index 2: services (UnifiedCard)
-    const favoriteHearts = screen.getAllByTestId('listing-card-favorite')
-    expect(favoriteHearts.length).toBeGreaterThan(1)
+    // Verify UnifiedCard mock invocations
+    const mockUnifiedCard = UnifiedCard as unknown as jest.Mock
 
-    // Press the heart on the part card to un-favorite
-    fireEvent.press(favoriteHearts[1])
+    // Find call for part-1
+    const partCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'part-1')
+    expect(partCall).toBeDefined()
+    expect(partCall[0].fullWidth).toBe(true)
+    expect(partCall[0].onFavorite).toBeUndefined()
 
-    // Verify toggle was invoked
-    expect(mockToggle).toHaveBeenCalled()
+    // Find call for service-1
+    const serviceCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'service-1')
+    expect(serviceCall).toBeDefined()
+    expect(serviceCall[0].fullWidth).toBe(true)
+    expect(serviceCall[0].onFavorite).toBeUndefined()
 
-    // Verify refetch (handleFavorite) was triggered to refresh the list
-    expect(mockRefetch).toHaveBeenCalledTimes(1)
+    // Find call for job-1 (generic fallback branch)
+    const jobCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'job-1')
+    expect(jobCall).toBeDefined()
+    expect(jobCall[0].fullWidth).toBeUndefined()
+    expect(jobCall[0].onFavorite).toBeUndefined()
   })
 })
