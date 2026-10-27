@@ -238,7 +238,7 @@ export function PartFavoriteCardAdapter({
       isSellerVerified={item.isVerified}
       cardActions={renderCardActions()}
       fullWidth={true}
-      titleNumberOfLines={1}
+      titleNumberOfLines={2}
       favoriteType={entityType}
     />
   )
