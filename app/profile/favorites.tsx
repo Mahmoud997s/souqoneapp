@@ -110,18 +110,10 @@ export default function FavoritesScreen() {
                 />
               )
             }
-            if (item.category === 'parts' || item.category === 'services') {
-              return (
-                <UnifiedCard
-                  item={item}
-                  fullWidth
-                  onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-                />
-              )
-            }
             return (
               <UnifiedCard
                 item={item}
+                fullWidth
                 onPress={() => router.push(`/${item.category}/${item.id}` as any)}
               />
             )

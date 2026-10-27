@@ -22,6 +22,20 @@ const mockFavoritesData = [
     images: ['https://img.souqone.app/car1.jpg'],
   },
   {
+    id: 'bus-1',
+    title: 'حافلة تويوتا كوستر 30 راكب',
+    category: 'buses',
+    price: 18500,
+    images: ['https://img.souqone.app/bus1.jpg'],
+  },
+  {
+    id: 'equip-1',
+    title: 'رافعة شوكية كاتربيلر 3 طن',
+    category: 'equipment',
+    price: 8000,
+    images: ['https://img.souqone.app/equip1.jpg'],
+  },
+  {
     id: 'part-1',
     title: 'سفايف لاندكروزر أصلية',
     category: 'parts',
@@ -90,21 +104,35 @@ jest.mock('../../../components/cards/UnifiedCard', () => {
   }
 })
 
-describe('FavoritesScreen - Parts & Services UnifiedCard fullWidth branch', () => {
+describe('FavoritesScreen - UnifiedCard fullWidth branch', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders parts and services with fullWidth=true, and other categories without fullWidth', async () => {
+  it('renders all non-car categories with fullWidth=true on UnifiedCard', async () => {
     await render(<FavoritesScreen />, { wrapper: createWrapper() })
 
     // Verify elements are rendered
+    expect(screen.getByText('حافلة تويوتا كوستر 30 راكب')).toBeTruthy()
+    expect(screen.getByText('رافعة شوكية كاتربيلر 3 طن')).toBeTruthy()
     expect(screen.getByText('سفايف لاندكروزر أصلية')).toBeTruthy()
     expect(screen.getByText('فحص كمبيوتر سيارات وبرمجة')).toBeTruthy()
     expect(screen.getByText('مطلوب فني ميكانيك')).toBeTruthy()
 
     // Verify UnifiedCard mock invocations
     const mockUnifiedCard = UnifiedCard as unknown as jest.Mock
+
+    // Find call for bus-1
+    const busCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'bus-1')
+    expect(busCall).toBeDefined()
+    expect(busCall[0].fullWidth).toBe(true)
+    expect(busCall[0].onFavorite).toBeUndefined()
+
+    // Find call for equip-1
+    const equipCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'equip-1')
+    expect(equipCall).toBeDefined()
+    expect(equipCall[0].fullWidth).toBe(true)
+    expect(equipCall[0].onFavorite).toBeUndefined()
 
     // Find call for part-1
     const partCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'part-1')
@@ -118,10 +146,10 @@ describe('FavoritesScreen - Parts & Services UnifiedCard fullWidth branch', () =
     expect(serviceCall[0].fullWidth).toBe(true)
     expect(serviceCall[0].onFavorite).toBeUndefined()
 
-    // Find call for job-1 (generic fallback branch)
+    // Find call for job-1
     const jobCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'job-1')
     expect(jobCall).toBeDefined()
-    expect(jobCall[0].fullWidth).toBeUndefined()
+    expect(jobCall[0].fullWidth).toBe(true)
     expect(jobCall[0].onFavorite).toBeUndefined()
   })
 })
