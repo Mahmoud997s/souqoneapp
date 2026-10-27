@@ -64,6 +64,7 @@ export interface UnifiedCardProps {
   /** Override image height for vertical cards (default: aspectRatio 4/3) */
   imageHeight?: number
   disableImageSwipe?: boolean
+  fullWidth?: boolean
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
@@ -130,6 +131,7 @@ export function UnifiedCard({
   compact = false,
   imageHeight,
   disableImageSwipe = false,
+  fullWidth = false,
 }: UnifiedCardProps) {
   const { user } = useAuthStore()
   const isOwner = isOwnListing(item, user?.id)
@@ -379,6 +381,7 @@ export function UnifiedCard({
       imageHeight={imageHeight}
       cardActions={renderCardActions()}
       disableImageSwipe={disableImageSwipe}
+      fullWidth={fullWidth}
       titleNumberOfLines={1}
       favoriteType={entityType}
     />
