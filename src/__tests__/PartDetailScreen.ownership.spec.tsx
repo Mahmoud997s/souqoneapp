@@ -13,6 +13,22 @@ import { router } from 'expo-router'
 jest.mock('../../src/hooks/useParts')
 jest.mock('../../src/screens/parts/hooks/usePartDetail')
 jest.mock('../../src/hooks/listing-detail/usePartDetail')
+jest.mock('../../src/screens/parts/hooks/partQueryKeys', () => ({
+  partQueryKeys: {
+    detail: jest.fn((id: string, auth: boolean) => ['parts-detail', id, auth ? 'auth' : 'guest']),
+  },
+  invalidatePartListingQueries: jest.fn(),
+}))
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query')
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      invalidateQueries: jest.fn(),
+      removeQueries: jest.fn(),
+    }),
+  }
+})
 jest.mock('../../src/features/favorites/useFavoriteToggle', () => ({
   useFavoriteToggle: () => ({
     isFavorite: false,

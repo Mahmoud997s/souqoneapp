@@ -81,7 +81,8 @@ export function PartFavoriteCardAdapter({
     .slice(0, 5)
 
   const isPremium = Boolean(item.isPremium || item.isElite)
-  const condLabel = CONDITION_LABELS[item.condition?.toUpperCase() ?? '']
+  const condLabel =
+    CONDITION_LABELS[item.condition?.toUpperCase() ?? ''] || item.condition
   const typeLabel = item.listingType
     ? TYPE_LABELS[item.listingType.toUpperCase()]
     : undefined

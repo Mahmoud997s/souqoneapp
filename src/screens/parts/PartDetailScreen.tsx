@@ -17,6 +17,7 @@ import { useRouter, router as expoRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { SUPPORT_MAILTO } from '../../constants/support'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
 import { usePartWizardStore } from '../../store/partWizardStore'
@@ -25,6 +26,7 @@ import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEd
 
 // Hooks
 import { usePartDetail } from './hooks/usePartDetail'
+import { invalidatePartListingQueries } from './hooks/partQueryKeys'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { useShareListing } from '../../hooks/listing-detail/useShareListing'
@@ -115,6 +117,7 @@ export interface PartDetailScreenProps {
  */
 export function PartDetailScreen({ id }: PartDetailScreenProps) {
   const router = typeof useRouter === 'function' ? useRouter() : expoRouter
+  const queryClient = useQueryClient()
   const { user } = useAuthStore()
 
   // 1. Data Query
@@ -215,10 +218,12 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           try {
             setOwnerBusy(true)
             await partsApi.remove(id)
+            await invalidatePartListingQueries(queryClient, id, { removeDetail: true })
             dialogService.alert('تم', 'تم حذف إعلان القطعة بنجاح', 'success')
             goBackSafely()
-          } catch (e: any) {
-            dialogService.alert('خطأ', e?.message || 'فشل حذف الإعلان', 'error')
+          } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : 'فشل حذف الإعلان'
+            dialogService.alert('خطأ', msg, 'error')
           } finally {
             setOwnerBusy(false)
           }

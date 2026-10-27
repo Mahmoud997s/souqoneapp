@@ -11,6 +11,25 @@ import type { UsePartDetailResult } from '../hooks/usePartDetail'
 
 // ── MOCKS ───────────────────────────────────────────────────────────────────
 
+const mockQueryClient = {
+  invalidateQueries: jest.fn(),
+  removeQueries: jest.fn(),
+}
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query')
+  return {
+    ...actual,
+    useQueryClient: () => mockQueryClient,
+  }
+})
+
+jest.mock('../hooks/partQueryKeys', () => ({
+  partQueryKeys: {
+    detail: jest.fn((id: string, auth: boolean) => ['parts-detail', id, auth ? 'auth' : 'guest']),
+  },
+  invalidatePartListingQueries: jest.fn(),
+}))
+
 const mockRouterPush = jest.fn()
 const mockRouterBack = jest.fn()
 const mockCanGoBack = jest.fn(() => true)
@@ -262,7 +281,8 @@ describe('PartDetailScreen', () => {
       expect(screen.queryByTestId('nav-favorite-button')).toBeNull()
 
       // Contact actions hidden for owner
-      expect(screen.queryByTestId('contact-action-call-inline')).toBeNull()
+      expect(screen.queryByTestId('btn-contact-call')).toBeNull()
+      expect(screen.queryByTestId('btn-contact-chat')).toBeNull()
 
       // Owner manage bar visible
       expect(screen.getByTestId('btn-owner-edit')).toBeTruthy()
