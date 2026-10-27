@@ -20,6 +20,7 @@ import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { resolveContactEntityType } from '../../utils/contactEntityType'
+import { isOwnListing } from '../../utils/isOwnListing'
 import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
 import { favoriteTypeForCard } from '../../features/favorites/favoriteEntityTypes'
 import {
@@ -131,6 +132,7 @@ export function UnifiedCard({
   disableImageSwipe = false,
 }: UnifiedCardProps) {
   const { user } = useAuthStore()
+  const isOwner = isOwnListing(item, user?.id)
   const resolvedType = favoriteTypeForCard(item)
   const targetId = item?.id || item?.raw?.id
   const { isFavorite: isFav, toggle: toggleCompactFavorite } = useFavoriteToggle(
@@ -178,6 +180,7 @@ export function UnifiedCard({
   }
 
   const heartToggle = () => {
+    if (isOwner) return
     toggleCompactFavorite()
     onFavorite?.()
   }
@@ -202,8 +205,13 @@ export function UnifiedCard({
               />
             </View>
           )}
-          {resolvedType !== null && (
-            <TouchableOpacity style={styles.compactHeart} onPress={heartToggle} hitSlop={8}>
+          {resolvedType !== null && !isOwner && (
+            <TouchableOpacity
+              style={styles.compactHeart}
+              testID="unified-compact-heart"
+              onPress={heartToggle}
+              hitSlop={8}
+            >
               <Ionicons
                 name={isFav ? 'heart' : 'heart-outline'}
                 size={14}
