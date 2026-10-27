@@ -29,6 +29,7 @@ jest.mock('@tanstack/react-query', () => {
     ...actual,
     useQueryClient: () => ({
       invalidateQueries: jest.fn(),
+      removeQueries: jest.fn(),
     }),
   }
 })
@@ -382,7 +383,9 @@ describe('ServiceDetailScreen', () => {
         true,
       )
       expect(servicesApi.remove).toHaveBeenCalledWith('srv-101')
-      expect(invalidateSpy).toHaveBeenCalled()
+      expect(invalidateSpy).toHaveBeenCalledWith(expect.anything(), 'srv-101', {
+        removeDetail: true,
+      })
       expect(dialogService.alert).toHaveBeenCalledWith(
         'تم',
         'تم حذف إعلان الخدمة بنجاح',

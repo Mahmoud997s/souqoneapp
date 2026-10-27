@@ -261,7 +261,9 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             setIsOwnerBusy(true)
             await servicesApi.remove(id)
             if (queryClient) {
-              await invalidateServiceListingQueries(queryClient, id)
+              await invalidateServiceListingQueries(queryClient, id, {
+                removeDetail: true,
+              })
             }
             dialogService.alert('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
             goBackSafely()
