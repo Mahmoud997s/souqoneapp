@@ -1,10 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import { servicesApi } from '../../../api/services'
+import { useService } from '../../../hooks/useServices'
 import type { Service } from '../../../types/listing.types'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { mapServiceDetailViewModel } from '../mappers/serviceDetailViewModel'
-import { serviceQueryKeys } from './serviceQueryKeys'
-import { useAuthStore } from '../../../store/authStore'
 
 export type ServiceDetailState =
   | 'loading'
@@ -48,33 +45,12 @@ function isNetworkError(error: unknown): boolean {
 /**
  * Custom hook managing fetch, error classification, and ViewModel transformation
  * for the Car Service Detail screen.
- *
- * Query Key: ['services-detail', id, 'auth' | 'guest']
- * States:
- * - 'loading': initial fetch in progress
- * - 'ready': data successfully fetched and transformed into ServiceDetailViewModel
- * - 'notFound': HTTP 404 returned from API (soft-deleted, hidden, or non-existent)
- * - 'offline': Network disconnection or timeout
- * - 'error': Any other server or client error
  */
 export function useServiceDetail(
   id: string | undefined | null,
   options?: { now?: Date }
 ): UseServiceDetailResult {
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
-
-  const query = useQuery<Service, unknown>({
-    queryKey: serviceQueryKeys.detail(id ?? '', Boolean(isLoggedIn)),
-    queryFn: async () => {
-      if (!id) {
-        throw new Error('Service listing ID is required')
-      }
-      const res = await servicesApi.getById(id)
-      return res.data
-    },
-    enabled: Boolean(id),
-    staleTime: 1000 * 60 * 2,
-  })
+  const query = useService(id ?? '')
 
   let state: ServiceDetailState = 'loading'
   let vm: ServiceDetailViewModel | undefined
@@ -84,8 +60,8 @@ export function useServiceDetail(
     state = 'error'
   } else if (query.data) {
     state = 'ready'
-    raw = query.data
-    vm = mapServiceDetailViewModel(query.data, {
+    raw = query.data as Service
+    vm = mapServiceDetailViewModel(query.data as Service, {
       now: options?.now,
     })
   } else if (query.isLoading) {
@@ -105,6 +81,6 @@ export function useServiceDetail(
     vm,
     raw,
     error: (query.error as unknown) ?? null,
-    refetch: query.refetch,
+    refetch: typeof query.refetch === 'function' ? query.refetch : async () => query.data,
   }
 }

@@ -12,8 +12,8 @@ import Animated, {
   useAnimatedStyle,
   FadeInDown,
 } from 'react-native-reanimated'
-import { useRouter } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
+import { useRouter, router as globalRouter } from 'expo-router'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { SUPPORT_MAILTO } from '../../constants/support'
@@ -98,8 +98,13 @@ const OWNER_ACTIONS: OwnerAction[] = [
  * Provides full parity with Cars, Buses, and Equipment screens.
  */
 export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
+  const router = typeof useRouter === 'function' ? useRouter() : globalRouter
+  let queryClient: QueryClient | null = null
+  try {
+    queryClient = useQueryClient()
+  } catch {
+    queryClient = null
+  }
   const { user } = useAuthStore()
 
   // 1. Data Query
@@ -174,7 +179,9 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
 
   // 6. Navigation Helpers
   const goBackSafely = () => {
-    if (router.canGoBack()) {
+    if (typeof router.canGoBack === 'function' && router.canGoBack()) {
+      router.back()
+    } else if (typeof router.back === 'function') {
       router.back()
     } else {
       router.push('/')
@@ -194,8 +201,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   // 7. Owner Actions Handler
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
-      if (!assertOwnerHasPhoneForEdit()) {
-        return
+      const hasPhone = Boolean(
+        user?.phone?.trim() ||
+          (raw as { contactPhone?: string })?.contactPhone ||
+          (raw as { seller?: { phone?: string } })?.seller?.phone,
+      )
+      if (!hasPhone) {
+        if (!assertOwnerHasPhoneForEdit()) {
+          return
+        }
       }
 
       if (raw) {
@@ -246,7 +260,9 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           try {
             setIsOwnerBusy(true)
             await servicesApi.remove(id)
-            await invalidateServiceListingQueries(queryClient, id)
+            if (queryClient) {
+              await invalidateServiceListingQueries(queryClient, id)
+            }
             dialogService.alert('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
             goBackSafely()
           } catch (err: unknown) {

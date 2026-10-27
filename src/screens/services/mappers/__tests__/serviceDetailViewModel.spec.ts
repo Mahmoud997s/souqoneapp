@@ -1,5 +1,21 @@
 import { mapServiceDetailViewModel } from '../serviceDetailViewModel'
 import type { Service } from '../../../../types/listing.types'
+import type { UserSummary } from '../../../../types/auth.types'
+
+interface MockSellerSummary extends UserSummary {
+  createdAt?: string
+  governorate?: string
+}
+
+const sampleSellerUser: MockSellerSummary = {
+  id: 'seller-500',
+  username: 'alofuq_om',
+  displayName: 'كراج الأفق',
+  avatarUrl: 'https://img.souqone.app/avatar.jpg',
+  isVerified: true,
+  governorate: 'مسقط',
+  createdAt: '2024-03-01T00:00:00.000Z',
+}
 
 describe('mapServiceDetailViewModel', () => {
   const sampleService: Service = {
@@ -40,13 +56,7 @@ describe('mapServiceDetailViewModel', () => {
     ],
     createdAt: '2026-10-15T10:00:00.000Z',
     isPremium: true,
-    user: {
-      id: 'seller-500',
-      username: 'alofuq_om',
-      displayName: 'كراج الأفق',
-      avatarUrl: 'https://img.souqone.app/avatar.jpg',
-      isVerified: true,
-    },
+    user: sampleSellerUser,
   }
 
   it('correctly maps a full Service object with all fields', () => {
