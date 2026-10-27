@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react-native'
+import { render, screen, fireEvent } from '@testing-library/react-native'
 import FavoritesScreen from '../../../../app/profile/favorites'
 
 const mockFavoritesData = [
@@ -26,10 +26,13 @@ const mockFavoritesData = [
   },
 ]
 
+const mockRefetch = jest.fn()
+
 jest.mock('../../../hooks/useListings', () => ({
   useFavorites: () => ({
     data: mockFavoritesData,
     isLoading: false,
+    refetch: mockRefetch,
   }),
 }))
 
@@ -61,10 +64,12 @@ jest.mock('expo-router', () => ({
   }),
 }))
 
+const mockToggle = jest.fn()
 jest.mock('../../../features/favorites/useFavoriteToggle', () => ({
   useFavoriteToggle: () => ({
     isFavorite: true,
-    toggle: jest.fn(),
+    isBusy: false,
+    toggle: mockToggle,
   }),
 }))
 
@@ -77,8 +82,12 @@ jest.mock('../../../hooks/listing-detail/useListingContact', () => ({
   }),
 }))
 
-describe('FavoritesScreen - Parts & Services fullWidth branch', () => {
-  it('renders parts and services via PartFavoriteCardAdapter alongside cars', async () => {
+describe('FavoritesScreen - Parts & Services UnifiedCard fullWidth branch', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('renders parts and services via UnifiedCard with fullWidth and onFavorite wired', async () => {
     await render(<FavoritesScreen />)
 
     // Verify all items are rendered
@@ -86,8 +95,18 @@ describe('FavoritesScreen - Parts & Services fullWidth branch', () => {
     expect(screen.getByText('سفايف لاندكروزر أصلية')).toBeTruthy()
     expect(screen.getByText('فحص كمبيوتر سيارات وبرمجة')).toBeTruthy()
 
-    // Verify contact buttons from PartFavoriteCardAdapter are rendered for parts and services
-    const callButtons = screen.getAllByTestId('part-favorite-call-btn')
-    expect(callButtons.length).toBe(2) // 1 for part-1, 1 for service-1
+    // Find favorite toggle buttons (hearts)
+    // index 0: cars (CarCard), index 1: parts (UnifiedCard), index 2: services (UnifiedCard)
+    const favoriteHearts = screen.getAllByTestId('listing-card-favorite')
+    expect(favoriteHearts.length).toBeGreaterThan(1)
+
+    // Press the heart on the part card to un-favorite
+    fireEvent.press(favoriteHearts[1])
+
+    // Verify toggle was invoked
+    expect(mockToggle).toHaveBeenCalled()
+
+    // Verify refetch (handleFavorite) was triggered to refresh the list
+    expect(mockRefetch).toHaveBeenCalledTimes(1)
   })
 })
