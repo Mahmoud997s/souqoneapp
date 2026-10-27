@@ -38,12 +38,15 @@ export async function invalidateServiceListingQueries(
   ]
 
   if (id) {
+    const detailKeys = [['service', id], ['services-detail', id]] as const
     if (options?.removeDetail) {
-      queryClient.removeQueries({ queryKey: ['services-detail', id] })
+      for (const queryKey of detailKeys) {
+        queryClient.removeQueries({ queryKey })
+      }
     } else {
-      promises.push(
-        queryClient.invalidateQueries({ queryKey: ['services-detail', id] })
-      )
+      for (const queryKey of detailKeys) {
+        promises.push(queryClient.invalidateQueries({ queryKey }))
+      }
     }
   }
 

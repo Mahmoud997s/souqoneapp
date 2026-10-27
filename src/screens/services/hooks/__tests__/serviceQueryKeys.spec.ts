@@ -59,25 +59,31 @@ describe('serviceQueryKeys', () => {
       expect(mockQueryClient.removeQueries).not.toHaveBeenCalled()
     })
 
-    it('invalidates detail query when called with id and removeDetail is false', async () => {
+    it('invalidates detail queries when called with id and removeDetail is false', async () => {
       await invalidateServiceListingQueries(
         mockQueryClient as unknown as QueryClient,
         'srv-99'
       )
 
       expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['service', 'srv-99'],
+      })
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
         queryKey: ['services-detail', 'srv-99'],
       })
       expect(mockQueryClient.removeQueries).not.toHaveBeenCalled()
     })
 
-    it('removes detail query when called with id and removeDetail is true', async () => {
+    it('removes detail queries when called with id and removeDetail is true', async () => {
       await invalidateServiceListingQueries(
         mockQueryClient as unknown as QueryClient,
         'srv-99',
         { removeDetail: true }
       )
 
+      expect(mockQueryClient.removeQueries).toHaveBeenCalledWith({
+        queryKey: ['service', 'srv-99'],
+      })
       expect(mockQueryClient.removeQueries).toHaveBeenCalledWith({
         queryKey: ['services-detail', 'srv-99'],
       })
