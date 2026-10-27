@@ -167,6 +167,11 @@ describe('serviceFormatters', () => {
       expect(sanitizeWebsiteUrl('file:///etc/passwd')).toBeUndefined()
     })
 
+    it('rejects URLs with embedded user credentials (spoofing protection)', () => {
+      expect(sanitizeWebsiteUrl('https://trusted.com@evil.com')).toBeUndefined()
+      expect(sanitizeWebsiteUrl('https://user:pass@evil.com/path')).toBeUndefined()
+    })
+
     it('handles invalid or empty inputs gracefully', () => {
       expect(sanitizeWebsiteUrl('')).toBeUndefined()
       expect(sanitizeWebsiteUrl(null)).toBeUndefined()

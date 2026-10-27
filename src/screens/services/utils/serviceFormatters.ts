@@ -267,8 +267,14 @@ export function sanitizeWebsiteUrl(rawUrl?: unknown): ServiceWebsiteViewModel | 
       return undefined
     }
 
-    // Display URL without protocol and trailing slash
-    const displayUrl = finalUrl.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+    // Reject URLs with embedded credentials (user/password) to prevent phishing/spoofing
+    if (parsed.username || parsed.password) {
+      return undefined
+    }
+
+    // Display URL derived from parsed host + pathname + search (without trailing slash)
+    const pathAndQuery = `${parsed.pathname === '/' ? '' : parsed.pathname}${parsed.search}`
+    const displayUrl = `${parsed.host}${pathAndQuery}`.replace(/\/+$/, '')
     return {
       url: finalUrl,
       displayUrl,
