@@ -25,8 +25,18 @@ describe('mapServiceDetailViewModel', () => {
     latitude: 23.6143,
     longitude: 58.5453,
     images: [
-      { id: 'img-1', url: 'https://img.souqone.app/s1.jpg' } as any,
-      { id: 'img-2', url: 'https://img.souqone.app/s2.jpg' } as any,
+      {
+        id: 'img-1',
+        url: 'https://img.souqone.app/s1.jpg',
+        isPrimary: true,
+        order: 0,
+      },
+      {
+        id: 'img-2',
+        url: 'https://img.souqone.app/s2.jpg',
+        isPrimary: false,
+        order: 1,
+      },
     ],
     createdAt: '2026-10-15T10:00:00.000Z',
     isPremium: true,
@@ -36,9 +46,7 @@ describe('mapServiceDetailViewModel', () => {
       displayName: 'كراج الأفق',
       avatarUrl: 'https://img.souqone.app/avatar.jpg',
       isVerified: true,
-      governorate: 'مسقط',
-      createdAt: '2024-03-01T00:00:00.000Z',
-    } as any,
+    },
   }
 
   it('correctly maps a full Service object with all fields', () => {
