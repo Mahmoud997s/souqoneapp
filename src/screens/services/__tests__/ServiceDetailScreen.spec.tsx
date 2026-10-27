@@ -307,6 +307,22 @@ describe('ServiceDetailScreen', () => {
       expect(mockContactCall).toHaveBeenCalledTimes(1)
       expect(mockContactWhatsApp).toHaveBeenCalledTimes(1)
     })
+
+    it('triggers refetch when pull-to-refresh is executed on ready scroll view', async () => {
+      mockCurrentUser = null
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const scrollView = screen.getByTestId('service-detail-scroll-view')
+      const refreshControl = scrollView.props.refreshControl
+      expect(refreshControl).toBeDefined()
+      expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+      await act(async () => {
+        refreshControl.props.onRefresh()
+      })
+
+      expect(mockServiceDetailResult.refetch).toHaveBeenCalled()
+    })
   })
 
   describe('Owner View', () => {

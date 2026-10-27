@@ -16,6 +16,7 @@ export interface UseServiceDetailResult {
   raw?: Service
   error: unknown | null
   refetch: () => Promise<unknown>
+  isRefetching?: boolean
 }
 
 interface AxiosLikeError {
@@ -82,5 +83,6 @@ export function useServiceDetail(
     raw,
     error: (query.error as unknown) ?? null,
     refetch: typeof query.refetch === 'function' ? query.refetch : async () => query.data,
+    isRefetching: Boolean(query.isRefetching),
   }
 }

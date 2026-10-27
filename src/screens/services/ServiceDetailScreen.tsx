@@ -5,6 +5,7 @@ import {
   StatusBar,
   Linking,
   Share,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -108,7 +109,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   const { user } = useAuthStore()
 
   // 1. Data Query
-  const { state, vm, raw, refetch } = useServiceDetail(id)
+  const { state, vm, raw, refetch, isRefetching } = useServiceDetail(id)
 
   // 2. Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -354,6 +355,14 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={Boolean(isRefetching)}
+            onRefresh={refetch}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           { paddingBottom: hasBottomBar ? 90 : 40 },
