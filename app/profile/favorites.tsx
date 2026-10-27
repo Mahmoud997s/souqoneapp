@@ -11,6 +11,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
 import { CarCard } from '../../src/components/cars/CarCard'
+import { PartFavoriteCardAdapter } from '../../src/screens/parts'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useFavorites } from '../../src/hooks/useListings'
 import { useLocalSearchParams, router } from 'expo-router'
@@ -107,6 +108,14 @@ export default function FavoritesScreen() {
                   fullWidth
                   showChips
                   onPress={() => router.push(`/cars/${item.id}` as any)}
+                />
+              )
+            }
+            if (item.category === 'parts' || item.category === 'services') {
+              return (
+                <PartFavoriteCardAdapter
+                  item={item}
+                  onPress={() => router.push(`/${item.category}/${item.id}` as any)}
                 />
               )
             }
