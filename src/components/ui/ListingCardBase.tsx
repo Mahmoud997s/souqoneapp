@@ -18,10 +18,12 @@ import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { CardSystem } from '../../constants/cardSystem'
+import { useAuthStore } from '../../store/authStore'
 import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
 import { favoriteTypeForCard } from '../../features/favorites/favoriteEntityTypes'
 import { formatDate } from '../../utils/format'
 import { resolveListingLocation } from '../../utils/listingLocation'
+import { isOwnListing } from '../../utils/isOwnListing'
 import { CardImageSwiper } from './CardImageSwiper'
 import { VerifiedBadge } from './VerifiedBadge'
 
@@ -104,6 +106,8 @@ export const ListingCardBase = ({
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
+  const { user } = useAuthStore()
+  const isOwner = isOwnListing(item, user?.id)
   const resolvedType = favoriteTypeForCard(item, favoriteType)
   const targetId = item?.id || item?.raw?.id
   const { isFavorite: isFav, toggle: toggleFavorite } = useFavoriteToggle(
@@ -114,6 +118,7 @@ export const ListingCardBase = ({
   )
 
   const handleFavorite = () => {
+    if (isOwner) return
     toggleFavorite()
     onFavorite?.(!isFav)
   }
@@ -207,7 +212,7 @@ export const ListingCardBase = ({
           >
             <Ionicons name="share-social" size={16} color={Colors.white} />
           </TouchableOpacity>
-          {resolvedType !== null && (
+          {resolvedType !== null && !isOwner && (
             <TouchableOpacity
               style={s.actionBtn}
               testID="listing-card-favorite"
