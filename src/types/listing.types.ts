@@ -82,6 +82,7 @@ export interface Service {
   priceFrom?: number
   priceTo?: number
   pricePerHour?: number
+  currency?: 'OMR' | 'USD'
   workingHoursOpen?: string
   workingHoursClose?: string
   workingDays?: string[]

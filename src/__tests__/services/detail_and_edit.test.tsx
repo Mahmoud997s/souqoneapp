@@ -78,6 +78,23 @@ jest.mock('../../api/services', () => ({
   },
 }))
 
+jest.mock('../../hooks/listing-detail/useFavoriteToggle', () => ({
+  useFavoriteToggle: () => ({
+    isFavorite: false,
+    isBusy: false,
+    toggle: jest.fn(),
+  }),
+}))
+
+jest.mock('../../hooks/listing-detail/useListingContact', () => ({
+  useListingContact: () => ({
+    busy: false,
+    call: jest.fn(),
+    whatsApp: jest.fn(),
+    chat: jest.fn(),
+  }),
+}))
+
 jest.mock('../../store/dialogStore', () => ({
   dialogService: {
     confirm: jest.fn((title, msg, onConfirm) => {
