@@ -4,11 +4,32 @@ import PartDetailScreen from '../../app/parts/[id]'
 import { useAuthStore } from '../store/authStore'
 import { usePartWizardStore } from '../store/partWizardStore'
 import { usePart } from '../hooks/useParts'
+import { usePartDetail } from '../screens/parts/hooks/usePartDetail'
+import { mapPartDetailViewModel } from '../screens/parts/mappers/partDetailViewModel'
 import { partsApi } from '../api/parts'
 import { dialogService } from '../store/dialogStore'
 import { router } from 'expo-router'
 
 jest.mock('../../src/hooks/useParts')
+jest.mock('../../src/screens/parts/hooks/usePartDetail')
+jest.mock('../../src/hooks/listing-detail/usePartDetail')
+jest.mock('../../src/features/favorites/useFavoriteToggle', () => ({
+  useFavoriteToggle: () => ({
+    isFavorite: false,
+    toggle: jest.fn(),
+  }),
+}))
+jest.mock('../../src/hooks/listing-detail/useListingContact', () => ({
+  useListingContact: () => ({
+    call: jest.fn(),
+    whatsApp: jest.fn(),
+    chat: jest.fn(),
+    busy: false,
+  }),
+}))
+jest.mock('../../src/utils/assertOwnerHasPhoneForEdit', () => ({
+  assertOwnerHasPhoneForEdit: jest.fn().mockResolvedValue(true),
+}))
 jest.mock('../../src/hooks/useCars', () => ({
   useBrands: () => ({ data: [] }),
 }))
@@ -25,13 +46,16 @@ jest.mock('../../src/api/chat', () => ({
 jest.mock('expo-image', () => ({
   Image: ({ source, style }: any) => <></>,
 }))
+const mockRouter = {
+  push: jest.fn(),
+  back: jest.fn(),
+  replace: jest.fn(),
+  canGoBack: jest.fn(() => true),
+}
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'part-123' }),
-  router: {
-    push: jest.fn(),
-    back: jest.fn(),
-    replace: jest.fn(),
-  },
+  router: mockRouter,
+  useRouter: () => mockRouter,
 }))
 jest.mock('../../src/store/dialogStore', () => ({
   dialogService: {
@@ -87,11 +111,18 @@ describe('PartDetailScreen Ownership & Actions', () => {
       isLoading: false,
       isError: false,
     })
+    ;(usePartDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: mapPartDetailViewModel(mockPartData),
+      raw: mockPartData,
+      refetch: jest.fn(),
+      error: null,
+    })
   })
 
   it('renders owner actions (Delete / Edit) when current user is the seller', async () => {
     useAuthStore.setState({
-      user: { id: 'user-seller-99', email: 'ahmed@example.com' } as any,
+      user: { id: 'user-seller-99', email: 'ahmed@example.com', phone: '91234567' } as any,
     })
 
     await render(<PartDetailScreen />)
@@ -110,9 +141,9 @@ describe('PartDetailScreen Ownership & Actions', () => {
 
     expect(screen.queryByText('حذف')).toBeNull()
     expect(screen.queryByText('تعديل')).toBeNull()
-    expect(screen.getByText('محادثة')).toBeTruthy()
-    expect(screen.getByText('اتصال')).toBeTruthy()
-    expect(screen.getByText('واتساب')).toBeTruthy()
+    expect(screen.getAllByText('محادثة').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('اتصال').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('واتساب').length).toBeGreaterThan(0)
   })
 
   it('renders buyer actions when user is logged out (null)', async () => {
@@ -122,18 +153,18 @@ describe('PartDetailScreen Ownership & Actions', () => {
 
     expect(screen.queryByText('حذف')).toBeNull()
     expect(screen.queryByText('تعديل')).toBeNull()
-    expect(screen.getByText('محادثة')).toBeTruthy()
+    expect(screen.getAllByText('محادثة').length).toBeGreaterThan(0)
   })
 
   it('handleEditPart populates partWizardStore with editMode and navigates to /parts/new', async () => {
     useAuthStore.setState({
-      user: { id: 'user-seller-99', email: 'ahmed@example.com' } as any,
+      user: { id: 'user-seller-99', email: 'ahmed@example.com', phone: '91234567' } as any,
     })
 
     await render(<PartDetailScreen />)
 
     const editBtn = screen.getByText('تعديل')
-    fireEvent.press(editBtn)
+    await fireEvent.press(editBtn)
 
     const storeState = usePartWizardStore.getState()
     expect(storeState.formData.editMode).toBe(true)
@@ -149,12 +180,12 @@ describe('PartDetailScreen Ownership & Actions', () => {
     expect(storeState.formData.existingImages).toEqual([
       { id: 'img-1', url: 'https://cdn.example.com/p1.jpg' },
     ])
-    expect(router.push).toHaveBeenCalledWith('/parts/new')
+    expect(mockRouter.push).toHaveBeenCalledWith('/parts/new')
   })
 
   it('handleDeletePart prompts confirmation dialog, calls partsApi.remove, and navigates back', async () => {
     useAuthStore.setState({
-      user: { id: 'user-seller-99', email: 'ahmed@example.com' } as any,
+      user: { id: 'user-seller-99', email: 'ahmed@example.com', phone: '91234567' } as any,
     })
 
     ;(partsApi.remove as jest.Mock).mockResolvedValue({})
@@ -162,7 +193,7 @@ describe('PartDetailScreen Ownership & Actions', () => {
     await render(<PartDetailScreen />)
 
     const deleteBtn = screen.getByText('حذف')
-    fireEvent.press(deleteBtn)
+    await fireEvent.press(deleteBtn)
 
     expect(dialogService.confirm).toHaveBeenCalledWith(
       'حذف الإعلان',
@@ -185,6 +216,6 @@ describe('PartDetailScreen Ownership & Actions', () => {
       'تم حذف إعلان القطعة بنجاح',
       'success'
     )
-    expect(router.back).toHaveBeenCalled()
+    expect(mockRouter.back).toHaveBeenCalled()
   })
 })
