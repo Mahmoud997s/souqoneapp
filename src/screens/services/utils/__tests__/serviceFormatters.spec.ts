@@ -50,6 +50,13 @@ describe('serviceFormatters', () => {
       expect(normalizeArabicDayName(-1)).toBeNull()
       expect(normalizeArabicDayName({})).toBeNull()
     })
+
+    it('guards against prototype pollution keys and returns null', () => {
+      expect(normalizeArabicDayName('constructor')).toBeNull()
+      expect(normalizeArabicDayName('__proto__')).toBeNull()
+      expect(normalizeArabicDayName('toString')).toBeNull()
+      expect(normalizeArabicDayName('valueOf')).toBeNull()
+    })
   })
 
   describe('formatWorkingDays', () => {

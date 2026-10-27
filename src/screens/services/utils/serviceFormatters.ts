@@ -86,7 +86,7 @@ export function normalizeArabicDayName(day: unknown): string | null {
       return NUM_DAY_MAP_JS[n] ?? null
     }
 
-    if (DAY_CANONICAL_MAP[trimmed]) {
+    if (Object.prototype.hasOwnProperty.call(DAY_CANONICAL_MAP, trimmed)) {
       return DAY_CANONICAL_MAP[trimmed]
     }
   }
