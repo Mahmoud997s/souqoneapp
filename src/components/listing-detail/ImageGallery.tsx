@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -17,17 +17,37 @@ import { useGestureSwiper } from '../../hooks/useGestureSwiper'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import { lineHeightFor } from '../../constants/typography'
 
+export type GalleryCategory =
+  | 'cars'
+  | 'buses'
+  | 'equipment'
+  | 'operators'
+  | 'parts'
+  | 'services'
+
+export const GALLERY_CATEGORY_ICONS: Record<GalleryCategory, keyof typeof Ionicons.glyphMap> = {
+  cars: 'car-sport-outline',
+  buses: 'bus-outline',
+  equipment: 'construct-outline',
+  operators: 'person-circle-outline',
+  parts: 'hardware-chip-outline',
+  services: 'build-outline',
+}
+
 export interface ImageGalleryProps {
   images: GalleryImage[]
   index: number
   onIndexChange: (i: number) => void
   onPressImage: (i: number) => void
   aspectRatio?: number
+  category?: GalleryCategory
+  fallbackIcon?: keyof typeof Ionicons.glyphMap
 }
 
 /**
  * ImageGallery
- * High-performance image swiper for car detail image showcase.
+ * High-performance image swiper for listing detail image showcase.
+ * - Supports category-aware empty state and graceful image error fallback.
  * - Uses the repository's standard useGestureSwiper and physicalRightStyle.
  * - Provides real physical touch tracking with continuous multi-image sliding track.
  * - Displays active dot indicators and current image counter.
@@ -39,10 +59,23 @@ export function ImageGallery({
   onIndexChange,
   onPressImage,
   aspectRatio = 16 / 11,
+  category,
+  fallbackIcon,
 }: ImageGalleryProps) {
   const { width: windowWidth } = useWindowDimensions()
   const count = images.length
   const galleryWidth = windowWidth
+
+  const [failedIndices, setFailedIndices] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    setFailedIndices({})
+  }, [images])
+
+  const resolvedFallbackIcon =
+    fallbackIcon ||
+    (category && GALLERY_CATEGORY_ICONS[category]) ||
+    'car-sport-outline'
 
   const { panGesture, animatedTrackStyle, activeIndex } = useGestureSwiper({
     count,
@@ -68,20 +101,34 @@ export function ImageGallery({
 
   if (count === 0) {
     return (
-      <View style={[s.container, { aspectRatio }, s.placeholderContainer]}>
-        <Ionicons name="car-sport-outline" size={64} color={Colors.borderStrong} />
+      <View
+        style={[s.container, { aspectRatio }, s.placeholderContainer]}
+        testID="gallery-empty-placeholder"
+      >
+        <Ionicons
+          name={resolvedFallbackIcon}
+          size={64}
+          color={Colors.borderStrong}
+          testID="gallery-empty-icon"
+        />
         <Text style={s.placeholderText}>لا توجد صور متاحة لهذا الإعلان</Text>
       </View>
     )
   }
 
+  const handleImageError = (i: number) => {
+    setFailedIndices((prev) => (prev[i] ? prev : { ...prev, [i]: true }))
+  }
+
   return (
-    <View style={[s.container, { aspectRatio }]}>
+    <View style={[s.container, { aspectRatio }]} testID="image-gallery">
       <GestureDetector gesture={composedGesture}>
         <View style={s.trackContainer}>
           <Animated.View style={[s.track, animatedTrackStyle]}>
             {images.map((img, i) => {
               const isNearby = Math.abs(i - activeIndex) <= 1
+              const hasError = Boolean(failedIndices[i])
+
               return (
                 <View
                   key={img.id || i}
@@ -93,7 +140,20 @@ export function ImageGallery({
                     },
                   ]}
                 >
-                  {isNearby ? (
+                  {hasError ? (
+                    <View
+                      style={[s.image, s.placeholderContainer]}
+                      testID={`gallery-image-fallback-${i}`}
+                    >
+                      <Ionicons
+                        name={resolvedFallbackIcon}
+                        size={56}
+                        color={Colors.borderStrong}
+                        testID={`gallery-image-fallback-icon-${i}`}
+                      />
+                      <Text style={s.placeholderSubtext}>تعذر تحميل الصورة</Text>
+                    </View>
+                  ) : isNearby ? (
                     <Image
                       source={{ uri: img.url }}
                       style={s.image}
@@ -101,6 +161,8 @@ export function ImageGallery({
                       transition={150}
                       cachePolicy="memory-disk"
                       accessibilityLabel={`صورة ${i + 1} من ${count}`}
+                      onError={() => handleImageError(i)}
+                      testID={`gallery-image-${i}`}
                     />
                   ) : (
                     <View style={[s.image, s.imagePlaceholder]} />
@@ -179,6 +241,13 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
     lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    marginTop: Spacing.space2,
+  },
+  placeholderSubtext: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
     color: Colors.textMuted,
     marginTop: Spacing.space2,
   },

@@ -356,6 +356,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
               setGalleryIndex(idx)
               setIsViewerOpen(true)
             }}
+            category="equipment"
           />
         </Animated.View>
 
@@ -557,6 +558,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         images={vm.images}
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
+        category="equipment"
       />
     </View>
   )

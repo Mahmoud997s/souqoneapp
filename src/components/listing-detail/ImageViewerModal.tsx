@@ -25,6 +25,7 @@ import { Radius } from '../../constants/radius'
 import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import { Typography, lineHeightFor } from '../../constants/typography'
+import { GALLERY_CATEGORY_ICONS, type GalleryCategory } from './ImageGallery'
 
 export const TOP_BAR_SAFE_MARGIN = Spacing.space3
 export const BOTTOM_BAR_SAFE_MARGIN = Spacing.space3
@@ -34,6 +35,8 @@ export interface ImageViewerModalProps {
   images: GalleryImage[]
   initialIndex: number
   onClose: () => void
+  category?: GalleryCategory
+  fallbackIcon?: keyof typeof Ionicons.glyphMap
 }
 
 /**
@@ -42,21 +45,31 @@ export interface ImageViewerModalProps {
  * - Double-tap to zoom (1x <-> 2x).
  * - Horizontal swipe gesture between photos when not zoomed.
  * - Clean close button and image index counter.
+ * - Category-aware fallback when image fails to load.
  */
 export function ImageViewerModal({
   visible,
   images,
   initialIndex,
   onClose,
+  category,
+  fallbackIcon,
 }: ImageViewerModalProps) {
   const insets = useSafeAreaInsets()
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
+  const [modalFailedIndices, setModalFailedIndices] = useState<Record<number, boolean>>({})
   const count = images.length
+
+  const resolvedFallbackIcon =
+    fallbackIcon ||
+    (category && GALLERY_CATEGORY_ICONS[category]) ||
+    'car-sport-outline'
 
   useEffect(() => {
     if (visible) {
       setActiveIndex(initialIndex)
+      setModalFailedIndices({})
     }
   }, [visible, initialIndex])
 
@@ -173,12 +186,33 @@ export function ImageViewerModal({
                 animatedStyle,
               ]}
             >
-              <Image
-                source={{ uri: currentImage.url }}
-                style={s.image}
-                contentFit="contain"
-                transition={150}
-              />
+              {modalFailedIndices[activeIndex] ? (
+                <View
+                  style={[s.image, s.fallbackContainer]}
+                  testID={`viewer-image-fallback-${activeIndex}`}
+                >
+                  <Ionicons
+                    name={resolvedFallbackIcon}
+                    size={64}
+                    color={Colors.borderStrong}
+                    testID="viewer-image-fallback-icon"
+                  />
+                  <Text style={s.modalFallbackText}>تعذر تحميل الصورة</Text>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: currentImage.url }}
+                  style={s.image}
+                  contentFit="contain"
+                  transition={150}
+                  onError={() => {
+                    setModalFailedIndices((prev) =>
+                      prev[activeIndex] ? prev : { ...prev, [activeIndex]: true }
+                    )
+                  }}
+                  testID="viewer-active-image"
+                />
+              )}
             </Animated.View>
           </GestureDetector>
         </View>
@@ -252,6 +286,17 @@ const s = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  fallbackContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalFallbackText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    marginTop: Spacing.space3,
   },
   bottomBar: {
     paddingTop: Spacing.space3,

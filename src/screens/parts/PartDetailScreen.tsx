@@ -346,6 +346,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
               setGalleryIndex(idx)
               setIsViewerOpen(true)
             }}
+            category="parts"
           />
         </Animated.View>
 
@@ -452,6 +453,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
         images={vm.images}
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
+        category="parts"
       />
     </View>
   )

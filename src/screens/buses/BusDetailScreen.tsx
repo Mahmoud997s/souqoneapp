@@ -385,6 +385,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
               setGalleryIndex(idx)
               setIsViewerOpen(true)
             }}
+            category="buses"
           />
         </Animated.View>
 
@@ -561,6 +562,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         images={vm.images}
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
+        category="buses"
       />
     </View>
   )
