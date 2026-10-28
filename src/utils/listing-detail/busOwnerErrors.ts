@@ -1,4 +1,5 @@
 import { isProfilePhoneRequiredError } from '../profilePhoneGuard'
+import { getDetailErrorKind } from './getDetailErrorKind'
 
 /**
  * Extracts error code or error message from Axios-like response errors.
@@ -28,6 +29,14 @@ export function translateBusOwnerError(err: any): string {
 
   if (isProfilePhoneRequiredError(err)) {
     return 'يجب إضافة رقم هاتفك في الملف الشخصي قبل تفعيل الإعلان.'
+  }
+
+  const kind = getDetailErrorKind(err)
+  if (kind === 'offline') {
+    return 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+  }
+  if (kind === 'timeout') {
+    return 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
   }
 
   const code = extractBusOwnerErrorCode(err)

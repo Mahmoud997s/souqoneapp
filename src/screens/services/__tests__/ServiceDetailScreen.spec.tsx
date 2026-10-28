@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, act } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import { ServiceDetailScreen } from '../ServiceDetailScreen'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { dialogService } from '../../../store/dialogStore'
@@ -110,12 +110,15 @@ let mockServiceDetailResult: {
   raw: Service | null
   refetch: jest.Mock
   error: unknown
+  errorKind?: any
+  isRefetchError?: boolean
 } = {
   state: 'ready',
   vm: null,
   raw: null,
   refetch: jest.fn(),
   error: null,
+  isRefetchError: false,
 }
 
 jest.mock('../hooks/useServiceDetail', () => ({
@@ -234,6 +237,10 @@ function makeSampleRaw(overrides?: Partial<Service>): Service {
 // ── TESTS ───────────────────────────────────────────────────────────────────
 
 describe('ServiceDetailScreen', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = null
@@ -243,6 +250,7 @@ describe('ServiceDetailScreen', () => {
       raw: makeSampleRaw(),
       refetch: jest.fn(),
       error: null,
+      isRefetchError: false,
     }
   })
 
@@ -464,6 +472,39 @@ describe('ServiceDetailScreen', () => {
       })
 
       expect(mockRefetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('renders offline state when network error occurs', async () => {
+      mockServiceDetailResult = {
+        state: 'error',
+        vm: null,
+        raw: null,
+        refetch: jest.fn(),
+        error: { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' },
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+    })
+
+    it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: true,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+      expect(
+        screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة'),
+      ).toBeTruthy()
     })
   })
 })

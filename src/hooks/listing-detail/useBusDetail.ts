@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { busesApi } from '../../api/buses'
 import { BusDetailApi } from '../../types/busDetailApi.types'
 import { BusDetailViewModel } from '../../types/busDetailViewModel.types'
 import { mapBusDetail } from '../../utils/listing-detail/mapBusDetail'
 import { busQueryKeys } from '../../utils/listing-detail/busQueryKeys'
 import { useAuthStore } from '../../store/authStore'
+import { getDetailErrorKind, DetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 export type BusDetailState = 'loading' | 'ready' | 'notFound' | 'offline' | 'error'
 
@@ -13,31 +14,9 @@ export interface UseBusDetailResult {
   vm?: BusDetailViewModel
   raw?: BusDetailApi
   error: unknown | null
+  errorKind: DetailErrorKind
+  isRefetchError: boolean
   refetch: () => Promise<unknown>
-}
-
-interface AxiosLikeError {
-  response?: {
-    status?: number
-  }
-  code?: string
-  message?: string
-  isAxiosError?: boolean
-}
-
-function isNotFoundError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  return err.response?.status === 404
-}
-
-function isNetworkError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') return true
-  if (err.message && /network\s*error/i.test(err.message)) return true
-  if (err.isAxiosError && !err.response) return true
-  return false
 }
 
 /**
@@ -57,19 +36,25 @@ export function useBusDetail(
   options?: { now?: Date }
 ): UseBusDetailResult {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
+  const queryClient = useQueryClient()
+  const disableRetry = queryClient.getDefaultOptions().queries?.retry === false
 
   const query = useQuery<BusDetailApi, unknown>({
     queryKey: busQueryKeys.detail(id ?? '', Boolean(isLoggedIn)),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!id) {
         throw new Error('Bus listing ID is required')
       }
-      const res = await busesApi.getById(id)
+      const res = await busesApi.getById(id, { timeout: 15_000, signal })
       return res.data as unknown as BusDetailApi
     },
     enabled: Boolean(id),
     staleTime: 1000 * 60 * 2,
+    retry: disableRetry ? false : 1,
   })
+
+  const errorKind = getDetailErrorKind(query.error)
+  const isRefetchError = Boolean(query.data) && Boolean(query.isRefetchError)
 
   let state: BusDetailState = 'loading'
   let vm: BusDetailViewModel | undefined
@@ -87,9 +72,9 @@ export function useBusDetail(
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
+    if (errorKind === 'notFound') {
       state = 'notFound'
-    } else if (isNetworkError(query.error)) {
+    } else if (errorKind === 'offline') {
       state = 'offline'
     } else {
       state = 'error'
@@ -101,6 +86,8 @@ export function useBusDetail(
     vm,
     raw,
     error: query.error ?? null,
+    errorKind,
+    isRefetchError,
     refetch: query.refetch,
   }
 }

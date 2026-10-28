@@ -57,7 +57,9 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import {
   DetailTopBar,
   LocationCard,
+  StaleDataBanner,
 } from '../../components/listing-detail'
+import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 // Operator-Specific Presentational Components
 import {
@@ -78,7 +80,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   const user = useAuthStore((s) => s.user)
   const reducedMotion = useAppReducedMotion()
 
-  const { state, vm, raw, error, refetch } = useOperatorDetail(id)
+  const { state, vm, raw, error, isRefetchError, refetch } = useOperatorDetail(id)
   const { refreshing, onRefresh } = useDetailRefresh(refetch)
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
 
@@ -178,26 +180,19 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
     }
   }
 
-  // Loading, Not Found, Offline, Error states
-  if (state === 'loading') {
-    return <DetailStates kind="loading" onBack={() => router.back()} onRetry={() => refetch()} />
-  }
+  // Loading, Not Found, Offline, Timeout, ServerError, Error states
+  if (state !== 'ready' || !vm) {
+    const errorKind = getDetailErrorKind(error)
+    const kind =
+      state === 'loading'
+        ? 'loading'
+        : state === 'notFound' || errorKind === 'notFound'
+        ? 'notFound'
+        : errorKind === 'unknown'
+        ? 'error'
+        : errorKind
 
-  if (state === 'notFound') {
-    return (
-      <DetailStates
-        kind="notFound"
-        onBack={() => router.back()}
-      />
-    )
-  }
-
-  if (state === 'offline') {
-    return <DetailStates kind="offline" onBack={() => router.back()} onRetry={() => refetch()} />
-  }
-
-  if (state === 'error' || !vm) {
-    return <DetailStates kind="error" onBack={() => router.back()} onRetry={() => refetch()} />
+    return <DetailStates kind={kind} onBack={() => router.back()} onRetry={() => refetch()} />
   }
 
   const certificateImagesList: GalleryImage[] = activeCertificateImage
@@ -221,6 +216,14 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         onShare={handleShare}
         canFavorite={false}
       />
+
+      {/* Pinned Stale Data Banner directly below top bar */}
+      {isRefetchError && (
+        <StaleDataBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      )}
 
       <Animated.ScrollView
         testID="operator-detail-scroll-view"

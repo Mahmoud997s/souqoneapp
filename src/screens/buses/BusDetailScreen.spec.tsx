@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, act } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import type { BusDetailViewModel } from '../../types/busDetailViewModel.types'
 import type { BusDetailApi } from '../../types/busDetailApi.types'
 import { BusDetailScreen } from './BusDetailScreen'
@@ -66,12 +66,15 @@ let mockBusDetailResult: {
   raw: BusDetailApi | null
   refetch: jest.Mock
   error: Error | null
+  errorKind?: any
+  isRefetchError?: boolean
 } = {
   state: 'ready',
   vm: null,
   raw: null,
   refetch: jest.fn(),
   error: null,
+  isRefetchError: false,
 }
 
 jest.mock('../../hooks/listing-detail/useBusDetail', () => ({
@@ -209,6 +212,10 @@ function makeSampleVm(overrides?: Partial<BusDetailViewModel>): BusDetailViewMod
 }
 
 describe('BusDetailScreen', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = null
@@ -225,6 +232,7 @@ describe('BusDetailScreen', () => {
       raw: { id: 'bus-101', title: 'تويوتا كوستر 2022 للبيع' } as any,
       refetch: jest.fn(),
       error: null,
+      isRefetchError: false,
     }
   })
 
@@ -252,6 +260,24 @@ describe('BusDetailScreen', () => {
       await render(<BusDetailScreen id="bus-101" />)
       expect(screen.getByTestId('detail-state-error')).toBeTruthy()
       expect(screen.getByText('تعذر تحميل الإعلان')).toBeTruthy()
+    })
+
+    it('renders offline state when network error occurs', async () => {
+      mockBusDetailResult.state = 'error'
+      mockBusDetailResult.vm = null
+      mockBusDetailResult.error = { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' } as any
+      await render(<BusDetailScreen id="bus-101" />)
+      expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+    })
+
+    it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+      mockBusDetailResult.state = 'ready'
+      mockBusDetailResult.vm = makeSampleVm()
+      mockBusDetailResult.isRefetchError = true
+      await render(<BusDetailScreen id="bus-101" />)
+      expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+      expect(screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة')).toBeTruthy()
     })
   })
 

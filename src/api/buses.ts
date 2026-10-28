@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
 import { PaginatedResponse } from '../types/api.types'
 import { BusListing, BusManufacturer, BusModel } from '../types/bus.types'
@@ -17,7 +18,8 @@ export type BusUpdatePayload = Partial<BusListing> & {
 export const busesApi = {
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<BusListing>>('/buses', { params }),
-  getById: (id: string) => apiClient.get<BusListing>(`/buses/${id}`),
+  getById: (id: string, config?: AxiosRequestConfig) =>
+    apiClient.get<BusListing>(`/buses/${id}`, config),
   getSimilar: (id: string, limit = 8) =>
     apiClient.get<BusListing[]>(`/buses/${id}/similar`, { params: { limit } }),
   getMy: (params?: { page?: number; limit?: number }) =>

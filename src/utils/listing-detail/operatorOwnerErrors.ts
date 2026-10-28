@@ -1,3 +1,5 @@
+import { getDetailErrorKind } from './getDetailErrorKind'
+
 /**
  * Operator owner action error translations.
  * Translates backend HTTP error responses into user-friendly Arabic text.
@@ -5,6 +7,14 @@
 export function translateOperatorOwnerError(error: unknown): string {
   if (!error || typeof error !== 'object') {
     return 'تعذّر تنفيذ الإجراء. حاول مرة أخرى.'
+  }
+
+  const kind = getDetailErrorKind(error)
+  if (kind === 'offline') {
+    return 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+  }
+  if (kind === 'timeout') {
+    return 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
   }
 
   const err = error as {

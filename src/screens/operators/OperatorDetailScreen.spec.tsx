@@ -179,6 +179,32 @@ describe('OperatorDetailScreen', () => {
     expect(screen.getByTestId('detail-state-not-found')).toBeTruthy()
   })
 
+  it('renders offline state when hook reports offline error', async () => {
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'error',
+      vm: null,
+      refetch: jest.fn(),
+      error: { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' },
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+    expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+    expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+  })
+
+  it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: jest.fn(),
+      isRefetchError: true,
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+    expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+    expect(screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة')).toBeTruthy()
+  })
+
   it('strictly does NOT render seller card for visitor (operator IS the profile - teeth verified)', async () => {
     await render(<OperatorDetailScreen id="op-100" />)
     expect(screen.queryByTestId('seller-card')).toBeNull()

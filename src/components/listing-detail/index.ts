@@ -8,7 +8,10 @@ export { LocationCard } from './LocationCard'
 export type { LocationCardProps } from './LocationCard'
 
 export { DetailStates } from './DetailStates'
-export type { DetailStatesProps } from './DetailStates'
+export type { DetailStatesProps, DetailStateKind } from './DetailStates'
+
+export { StaleDataBanner } from './StaleDataBanner'
+export type { StaleDataBannerProps } from './StaleDataBanner'
 
 export { ImageGallery } from './ImageGallery'
 export type { ImageGalleryProps } from './ImageGallery'

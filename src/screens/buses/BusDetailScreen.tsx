@@ -81,6 +81,8 @@ import { SimilarListingsGrid } from '../../components/listing-detail/SimilarList
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
+import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 import type { BusDetailViewModel } from '../../types/busDetailViewModel.types'
 
@@ -131,7 +133,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   const { requireAuth } = useRequireAuth()
 
   // 1. Data Query
-  const { state, vm, raw, refetch } = useBusDetail(id)
+  const { state, vm, raw, refetch, isRefetchError, error } = useBusDetail(id)
   const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Viewer & Ownership
@@ -297,11 +299,21 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
 
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
+    const errorKind = getDetailErrorKind(error)
+    const kind =
+      state === 'loading'
+        ? 'loading'
+        : state === 'notFound' || errorKind === 'notFound'
+        ? 'notFound'
+        : errorKind === 'unknown'
+        ? 'error'
+        : errorKind
+
     return (
       <View style={s.rootContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
         <DetailStates
-          kind={state === 'ready' ? 'loading' : state}
+          kind={kind}
           onRetry={refetch}
           onBack={goBackSafely}
         />
@@ -333,6 +345,14 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         onSearchSubmit={handleSearchSubmit}
         placeholder="ابحث في تفاصيل الحافلة..."
       />
+
+      {/* Pinned Stale Data Banner directly below top bar */}
+      {isRefetchError && (
+        <StaleDataBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      )}
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
