@@ -1,9 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { EmptyState } from '../ui/EmptyState'
-import { lineHeightFor } from '../../constants/typography'
+import { DetailSkeleton } from './DetailSkeleton'
 
 export type DetailStateKind =
   | 'loading'
@@ -17,19 +17,25 @@ export interface DetailStatesProps {
   kind: DetailStateKind
   onRetry?: () => void
   onBack: () => void
+  fallbackReducedMotion?: boolean
 }
 
 /**
  * DetailStates
  * Full-page presentational states for loading, error, notFound, offline, timeout, and serverError scenarios.
- * Reuses existing EmptyState design primitive with accessible min 44x44 retry controls.
+ * Loading renders DetailSkeleton with accessible label and busy state.
+ * Error scenarios reuse EmptyState design primitive with accessible min 44x44 retry controls.
  */
-export function DetailStates({ kind, onRetry, onBack }: DetailStatesProps) {
+export function DetailStates({ kind, onRetry, onBack, fallbackReducedMotion }: DetailStatesProps) {
   if (kind === 'loading') {
     return (
-      <View style={s.centerContainer} testID="detail-state-loading">
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={s.loadingText}>جارٍ تحميل تفاصيل الإعلان...</Text>
+      <View
+        style={s.loadingRoot}
+        testID="detail-state-loading"
+        accessibilityLabel="جاري التحميل"
+        accessibilityState={{ busy: true }}
+      >
+        <DetailSkeleton onBack={onBack} fallbackReducedMotion={fallbackReducedMotion} />
       </View>
     )
   }
@@ -122,6 +128,10 @@ export function DetailStates({ kind, onRetry, onBack }: DetailStatesProps) {
 }
 
 const s = StyleSheet.create({
+  loadingRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+  },
   centerContainer: {
     flex: 1,
     minHeight: 400,
@@ -129,12 +139,5 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     padding: Spacing.space6,
     backgroundColor: Colors.surface,
-  },
-  loadingText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
-    color: Colors.text2,
-    marginTop: Spacing.space3,
   },
 })

@@ -10,6 +10,9 @@ export type { LocationCardProps } from './LocationCard'
 export { DetailStates } from './DetailStates'
 export type { DetailStatesProps, DetailStateKind } from './DetailStates'
 
+export { DetailSkeleton } from './DetailSkeleton'
+export type { DetailSkeletonProps } from './DetailSkeleton'
+
 export { StaleDataBanner } from './StaleDataBanner'
 export type { StaleDataBannerProps } from './StaleDataBanner'
 
