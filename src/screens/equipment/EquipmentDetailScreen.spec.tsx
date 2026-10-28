@@ -284,6 +284,22 @@ describe('EquipmentDetailScreen', () => {
         { redirectPath: '/equipment/eq-101' }
       )
     })
+
+    it('triggers refetch when pull-to-refresh is executed on scroll view', async () => {
+      mockCurrentUser = { id: 'visitor-123' }
+      await render(<EquipmentDetailScreen id="eq-101" />)
+
+      const scrollView = screen.getByTestId('equipment-detail-scroll-view')
+      const refreshControl = scrollView.props.refreshControl
+      expect(refreshControl).toBeDefined()
+      expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+      await act(async () => {
+        refreshControl.props.onRefresh()
+      })
+
+      expect(mockEquipmentDetailResult.refetch).toHaveBeenCalled()
+    })
   })
 
   describe('Owner mode', () => {

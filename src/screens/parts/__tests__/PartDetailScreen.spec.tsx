@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react-native'
+import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { PartDetailScreen } from '../PartDetailScreen'
 import { dialogService } from '../../../store/dialogStore'
 import { assertOwnerHasPhoneForEdit } from '../../../utils/assertOwnerHasPhoneForEdit'
@@ -268,6 +268,23 @@ describe('PartDetailScreen', () => {
       // Owner manage bar not rendered
       expect(screen.queryByTestId('btn-owner-edit')).toBeNull()
       expect(screen.queryByTestId('btn-owner-delete')).toBeNull()
+    })
+
+    it('triggers refetch when pull-to-refresh is executed on scroll view', async () => {
+      mockCurrentUser = { id: 'other-user' }
+
+      await render(<PartDetailScreen id="part-101" />)
+
+      const scrollView = screen.getByTestId('part-detail-scroll-view')
+      const refreshControl = scrollView.props.refreshControl
+      expect(refreshControl).toBeDefined()
+      expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+      await act(async () => {
+        refreshControl.props.onRefresh()
+      })
+
+      expect(mockPartDetailResult.refetch).toHaveBeenCalled()
     })
   })
 

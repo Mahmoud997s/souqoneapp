@@ -4,6 +4,7 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -26,6 +27,7 @@ import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEd
 
 // Hooks
 import { usePartDetail } from './hooks/usePartDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { invalidatePartListingQueries } from './hooks/partQueryKeys'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
@@ -122,6 +124,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
 
   // 1. Data Query
   const { state, vm, raw, refetch } = usePartDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -291,6 +294,14 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           { paddingBottom: hasBottomBar ? 90 : 40 },

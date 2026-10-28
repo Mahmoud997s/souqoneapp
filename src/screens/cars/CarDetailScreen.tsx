@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Linking,
   InteractionManager,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -34,6 +35,7 @@ import { dialogService } from '../../store/dialogStore'
 
 // Hooks & Utilities
 import { useCarDetail } from '../../hooks/listing-detail/useCarDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useShareListing } from '../../hooks/listing-detail/useShareListing'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
@@ -124,6 +126,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   // 1. Data Query
   const { state, vm, raw, refetch } = useCarDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Viewer & Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -316,8 +319,17 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
+        testID="car-detail-scroll-view"
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           {

@@ -27,6 +27,7 @@ import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMot
 
 // Hooks
 import { useServiceDetail } from './hooks/useServiceDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { invalidateServiceListingQueries } from './hooks/serviceQueryKeys'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
@@ -109,7 +110,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   const { user } = useAuthStore()
 
   // 1. Data Query
-  const { state, vm, raw, refetch, isRefetching } = useServiceDetail(id)
+  const { state, vm, raw, refetch } = useServiceDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -357,8 +359,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
-            refreshing={Boolean(isRefetching)}
-            onRefresh={refetch}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
           />

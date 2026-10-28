@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react-native'
+import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import type { BusDetailViewModel } from '../../types/busDetailViewModel.types'
 import type { BusDetailApi } from '../../types/busDetailApi.types'
 import { BusDetailScreen } from './BusDetailScreen'
@@ -269,6 +269,22 @@ describe('BusDetailScreen', () => {
       expect(screen.queryByText('تعديل الإعلان')).toBeNull()
       expect(screen.queryByText('إحصائيات الإعلان')).toBeNull()
     })
+
+    it('triggers refetch when pull-to-refresh is executed on scroll view', async () => {
+      mockCurrentUser = { id: 'visitor-123', username: 'guest' }
+      await render(<BusDetailScreen id="bus-101" />)
+
+      const scrollView = screen.getByTestId('bus-detail-scroll-view')
+      const refreshControl = scrollView.props.refreshControl
+      expect(refreshControl).toBeDefined()
+      expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+      await act(async () => {
+        refreshControl.props.onRefresh()
+      })
+
+      expect(mockBusDetailResult.refetch).toHaveBeenCalled()
+    })
   })
 
   // 3. Owner: OwnerManageBar visible, ContactActions hidden, no contact endpoint call
@@ -405,7 +421,10 @@ describe('BusDetailScreen', () => {
   describe('9. Tone and UI Button Constraints', () => {
     it('strictly guarantees no forbidden promotional words in the tree and verifies share button', async () => {
       const { toJSON } = await render(<BusDetailScreen id="bus-101" />)
-      const treeString = JSON.stringify(toJSON())
+      const treeString = JSON.stringify(toJSON(), (key, value) => {
+        if (key === '_owner' || key === 'return' || key === '_source') return undefined
+        return value
+      })
 
       // Zero forbidden promotional words
       expect(treeString).not.toMatch(/ربح|أرباح|مضمون|فرصة/)

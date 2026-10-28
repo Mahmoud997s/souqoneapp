@@ -298,6 +298,28 @@ describe('OperatorDetailScreen', () => {
     )
   })
 
+  it('triggers refetch when pull-to-refresh is executed on scroll view', async () => {
+    const mockRefetch = jest.fn()
+    ;(useOperatorDetail as jest.Mock).mockReturnValue({
+      state: 'ready',
+      vm: sampleOperatorVm,
+      refetch: mockRefetch,
+    })
+
+    await render(<OperatorDetailScreen id="op-100" />)
+
+    const scrollView = screen.getByTestId('operator-detail-scroll-view')
+    const refreshControl = scrollView.props.refreshControl
+    expect(refreshControl).toBeDefined()
+    expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+    await act(async () => {
+      refreshControl.props.onRefresh()
+    })
+
+    expect(mockRefetch).toHaveBeenCalled()
+  })
+
   it('triggers contact actions when visitor presses inline action buttons', async () => {
     await render(<OperatorDetailScreen id="op-100" />)
 

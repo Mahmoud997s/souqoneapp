@@ -6,6 +6,7 @@ import {
   StatusBar,
   Linking,
   Share,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -21,6 +22,7 @@ import { dialogService } from '../../store/dialogStore'
 
 // Hooks & Utilities
 import { useOperatorDetail } from '../../hooks/listing-detail/useOperatorDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { useOperatorReviews } from '../../hooks/listing-detail/useOperatorReviews'
 import { useOperatorOwnerActions } from '../../hooks/listing-detail/useOperatorOwnerActions'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
@@ -77,6 +79,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   const reducedMotion = useAppReducedMotion()
 
   const { state, vm, raw, error, refetch } = useOperatorDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
 
   const ownerActions = useOperatorOwnerActions(isOwner ? vm : undefined)
@@ -220,8 +223,17 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
       />
 
       <Animated.ScrollView
+        testID="operator-detail-scroll-view"
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           {
