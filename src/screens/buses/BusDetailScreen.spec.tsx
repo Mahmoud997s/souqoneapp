@@ -243,7 +243,7 @@ describe('BusDetailScreen', () => {
       mockBusDetailResult.vm = null
       await render(<BusDetailScreen id="bus-101" />)
       expect(screen.getByTestId('detail-state-loading')).toBeTruthy()
-      expect(screen.getByText('جارٍ تحميل تفاصيل الإعلان...')).toBeTruthy()
+      expect(screen.getByTestId('detail-skeleton')).toBeTruthy()
     })
 
     it('renders notFound state when listing does not exist', async () => {

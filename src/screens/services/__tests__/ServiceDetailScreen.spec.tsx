@@ -431,9 +431,7 @@ describe('ServiceDetailScreen', () => {
       await render(<ServiceDetailScreen id="srv-101" />)
 
       expect(screen.getByTestId('detail-state-loading')).toBeTruthy()
-      expect(
-        screen.getByText('جارٍ تحميل تفاصيل الإعلان...'),
-      ).toBeTruthy()
+      expect(screen.getByTestId('detail-skeleton')).toBeTruthy()
     })
 
     it('renders notFound state when state is notFound', async () => {

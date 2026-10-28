@@ -11,10 +11,14 @@ describe('DetailStates', () => {
     jest.clearAllMocks()
   })
 
-  it('renders loading state with activity indicator and loading text', async () => {
+  it('renders loading state with detail skeleton and busy accessibility state', async () => {
     await render(<DetailStates kind="loading" onRetry={onRetry} onBack={onBack} />)
-    expect(screen.getByTestId('detail-state-loading')).toBeTruthy()
-    expect(screen.getByText('جارٍ تحميل تفاصيل الإعلان...')).toBeTruthy()
+    const loadingState = screen.getByTestId('detail-state-loading')
+    expect(loadingState).toBeTruthy()
+    expect(loadingState.props.accessibilityLabel).toBe('جاري التحميل')
+    expect(loadingState.props.accessibilityState).toEqual({ busy: true })
+    expect(screen.getByTestId('detail-skeleton')).toBeTruthy()
+    expect(screen.getByTestId('detail-skeleton-top-bar')).toBeTruthy()
   })
 
   it('renders notFound state with back action', async () => {
