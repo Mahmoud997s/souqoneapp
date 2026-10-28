@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react-native'
+import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
 import { Gesture } from 'react-native-gesture-handler'
 import {
@@ -138,5 +138,30 @@ describe('ImageViewerModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1)
 
     panSpy.mockRestore()
+  })
+
+  it('handles image error with category fallback placeholder in viewer', async () => {
+    await render(
+      <ImageViewerModal
+        visible={true}
+        images={sampleImages}
+        initialIndex={0}
+        onClose={mockOnClose}
+        category="parts"
+      />
+    )
+
+    const activeImage = screen.getByTestId('viewer-active-image')
+    expect(activeImage).toBeTruthy()
+
+    // Trigger onError
+    await act(async () => {
+      activeImage.props.onError({ error: 'Failed to load' })
+    })
+
+    expect(screen.getByTestId('viewer-image-fallback-0')).toBeTruthy()
+    const icon = screen.getByTestId('viewer-image-fallback-icon')
+    expect(icon.props.name).toBe('hardware-chip-outline')
+    expect(screen.getByText('تعذر تحميل الصورة')).toBeTruthy()
   })
 })

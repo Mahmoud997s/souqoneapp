@@ -342,6 +342,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         images={certificateImagesList}
         initialIndex={0}
         onClose={() => setActiveCertificateImage(null)}
+        category="operators"
       />
     </View>
   )

@@ -408,6 +408,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
               setGalleryIndex(idx)
               setIsViewerOpen(true)
             }}
+            category="services"
           />
         </Animated.View>
 
@@ -526,6 +527,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         images={galleryImages}
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
+        category="services"
       />
     </View>
   )

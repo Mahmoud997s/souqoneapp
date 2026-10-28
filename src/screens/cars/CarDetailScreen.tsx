@@ -375,6 +375,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
               setGalleryIndex(idx)
               setIsViewerOpen(true)
             }}
+            category="cars"
           />
         </Animated.View>
 
@@ -589,6 +590,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         images={vm.images}
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
+        category="cars"
       />
     </View>
   )
