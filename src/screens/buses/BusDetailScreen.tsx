@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Linking,
   InteractionManager,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -33,6 +34,7 @@ import { dialogService } from '../../store/dialogStore'
 
 // Hooks & Utilities
 import { useBusDetail } from '../../hooks/listing-detail/useBusDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useShareListing } from '../../hooks/listing-detail/useShareListing'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
@@ -130,6 +132,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
 
   // 1. Data Query
   const { state, vm, raw, refetch } = useBusDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Viewer & Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -333,8 +336,17 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
+        testID="bus-detail-scroll-view"
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           {

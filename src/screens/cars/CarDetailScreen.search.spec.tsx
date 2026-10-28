@@ -131,12 +131,13 @@ const sampleCarVm: CarDetailViewModel = {
   features: ['فتحة سقف بانوراما', 'نظام صوتي فاخر'],
 }
 
+const mockCarRefetch = jest.fn()
 jest.mock('../../hooks/listing-detail/useCarDetail', () => ({
   useCarDetail: () => ({
     state: 'ready',
     vm: sampleCarVm,
     raw: null,
-    refetch: jest.fn(),
+    refetch: mockCarRefetch,
     error: null,
   }),
 }))
@@ -230,5 +231,20 @@ describe('CarDetailScreen in-page search filtering (D-093 Item 3)', () => {
     expect(backBtn).toBeTruthy()
     expect(searchInput).toBeTruthy()
     expect(searchInput.props.textAlign).toBe('right')
+  })
+
+  it('triggers refetch when pull-to-refresh is executed on scroll view', async () => {
+    await render(<CarDetailScreen id="car-search-101" />)
+
+    const scrollView = screen.getByTestId('car-detail-scroll-view')
+    const refreshControl = scrollView.props.refreshControl
+    expect(refreshControl).toBeDefined()
+    expect(refreshControl?.props?.onRefresh).toBeDefined()
+
+    await act(async () => {
+      refreshControl.props.onRefresh()
+    })
+
+    expect(mockCarRefetch).toHaveBeenCalled()
   })
 })

@@ -6,6 +6,7 @@ import {
   StatusBar,
   Linking,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -31,6 +32,7 @@ import { dialogService } from '../../store/dialogStore'
 
 // Hooks & Utilities
 import { useEquipmentDetail } from '../../hooks/listing-detail/useEquipmentDetail'
+import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { useShareListing } from '../../hooks/listing-detail/useShareListing'
@@ -115,6 +117,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
   // 1. Data Query
   const { state, vm, refetch } = useEquipmentDetail(id)
+  const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Ownership
   const isOwner = Boolean(user && vm && user.id === vm.seller.id)
@@ -309,6 +312,14 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         contentContainerStyle={[
           s.scrollContent,
           { paddingBottom: hasBottomBar ? 90 : 40 },
