@@ -452,5 +452,36 @@ describe('OperatorCard', () => {
       expect(flat.minWidth).toBeGreaterThanOrEqual(44)
       expect(flat.minHeight).toBeGreaterThanOrEqual(44)
     })
+
+    it('supports fullWidth prop (defaults to true with 100% width, false gives 60% fixed width)', async () => {
+      // 1. Default (omitted) -> 100%
+      const { getByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+      const cardDefault = getByTestId('operator-card')
+      expect(StyleSheet.flatten(cardDefault.props.style).width).toBe('100%')
+
+      // 2. Explicit fullWidth={true} -> 100%
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} fullWidth={true} />
+        </QueryClientProvider>
+      )
+      const cardFull = getByTestId('operator-card')
+      expect(StyleSheet.flatten(cardFull.props.style).width).toBe('100%')
+
+      // 3. Explicit fullWidth={false} -> 60% window width
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} fullWidth={false} />
+        </QueryClientProvider>
+      )
+      const cardFixed = getByTestId('operator-card')
+      const flatFixed = StyleSheet.flatten(cardFixed.props.style)
+      expect(flatFixed.width).toBe(Dimensions.get('window').width * 0.6)
+      expect(flatFixed.alignSelf).toBe('flex-start')
+    })
   })
 })

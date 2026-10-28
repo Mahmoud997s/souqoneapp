@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, StyleSheet, Dimensions, Text } from 'react-native'
+import { View, StyleSheet, Text } from 'react-native'
+import { Colors } from '../../../constants/colors'
 import { MyListingItem } from '../../../types/my-listings.types'
 import { MyListingActionButtons } from './MyListingActionButtons'
 import { CarCard } from '../../cars/CarCard'
@@ -9,8 +10,6 @@ import { OperatorCard } from '../../cards/OperatorCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
 import { JobCard } from '../../cards/JobCard'
-
-const CARD_SCALE_WIDTH = Dimensions.get('window').width * 0.6
 
 export interface MyListingCardDispatcherProps {
   item: MyListingItem
@@ -102,29 +101,39 @@ export function MyListingCardDispatcher({
       )
     case 'service':
       return (
-        <View style={[s.overlayContainer, !fullWidth && { width: CARD_SCALE_WIDTH, alignSelf: 'flex-start' }]}>
-          <ServiceCard
-            item={item.mapped as any}
-            onPress={() => onView(item)}
-            fullWidth={true}
-          />
-          <View style={s.cardTopActionOverlay}>
-            {menu}
+        <ServiceCard
+          item={item.mapped as any}
+          onPress={() => onView(item)}
+          fullWidth={fullWidth}
+          actionMenu={menu}
+        />
+      )
+    case 'operator': {
+      const banner = renderPendingBanner()
+      if (banner) {
+        return (
+          <View style={[s.pendingBannerWrap, !fullWidth && s.operatorFixed]}>
+            <OperatorCard
+              item={item.mapped as any}
+              onPress={() => onView(item)}
+              maxChips={3}
+              actionMenu={menu}
+              fullWidth={fullWidth}
+            />
+            {banner}
           </View>
-        </View>
-      )
-    case 'operator':
+        )
+      }
       return (
-        <View style={[s.overlayContainer, !fullWidth && { width: CARD_SCALE_WIDTH, alignSelf: 'flex-start' }]}>
-          <OperatorCard
-            item={item.mapped as any}
-            onPress={() => onView(item)}
-            maxChips={3}
-            actionMenu={menu}
-          />
-          {renderPendingBanner()}
-        </View>
+        <OperatorCard
+          item={item.mapped as any}
+          onPress={() => onView(item)}
+          maxChips={3}
+          actionMenu={menu}
+          fullWidth={fullWidth}
+        />
       )
+    }
     case 'job':
       return (
         <JobCard
@@ -141,22 +150,19 @@ export function MyListingCardDispatcher({
 }
 
 const s = StyleSheet.create({
-  overlayContainer: {
+  pendingBannerWrap: {
     position: 'relative',
     width: '100%',
   },
-  cardTopActionOverlay: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    zIndex: 10,
+  operatorFixed: {
+    alignSelf: 'flex-start',
   },
   pendingBanner: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(239, 68, 68, 0.9)', // Red-500 with opacity
+    backgroundColor: Colors.error,
     paddingVertical: 6,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
@@ -167,6 +173,6 @@ const s = StyleSheet.create({
   pendingBannerText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
 })
