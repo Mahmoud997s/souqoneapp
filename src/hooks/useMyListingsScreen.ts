@@ -91,6 +91,8 @@ export function useMyListingsScreen() {
   const {
     items,
     isLoading,
+    isError,
+    error,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -474,6 +476,8 @@ export function useMyListingsScreen() {
     filteredData,
     groupedSections,
     isLoading,
+    isError,
+    error,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,

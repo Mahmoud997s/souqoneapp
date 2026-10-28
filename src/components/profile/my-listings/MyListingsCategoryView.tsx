@@ -10,12 +10,15 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
+import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { MyListingCardDispatcher } from './MyListingCardDispatcher'
 
 export interface MyListingsCategoryViewProps {
   data: MyListingItem[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
   isRefreshing: boolean
   isFetchingNextPage: boolean
   hasNextPage: boolean
@@ -36,6 +39,8 @@ export interface MyListingsCategoryViewProps {
 export function MyListingsCategoryView({
   data,
   isLoading,
+  isError,
+  error,
   isRefreshing,
   isFetchingNextPage,
   hasNextPage,
@@ -54,13 +59,15 @@ export function MyListingsCategoryView({
 }: MyListingsCategoryViewProps) {
   if (isLoading) {
     return (
-      <View style={[s.list, { paddingTop: topInset + Spacing.space4 }]}>
+      <View style={[s.list, { paddingTop: topInset + Spacing.space4 }]} testID="my-listings-category-loading">
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} />
         ))}
       </View>
     )
   }
+
+  const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل الإعلانات') : null
 
   return (
     <Animated.FlatList
@@ -86,14 +93,28 @@ export function MyListingsCategoryView({
         ) : null
       }
       ListEmptyComponent={
-        <EmptyState
-          icon="document-text-outline"
-          title="لا توجد إعلانات"
-          subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
-          actionLabel="أضف إعلانك الأول"
-          actionIcon="add"
-          onAction={() => router.push('/post' as any)}
-        />
+        isError && errorProps ? (
+          <EmptyState
+            testID="my-listings-category-error-state"
+            icon={errorProps.icon}
+            iconType="ionicons"
+            iconColor={errorProps.iconColor}
+            title={errorProps.title}
+            subtitle={errorProps.subtitle}
+            actionLabel={errorProps.actionLabel}
+            onAction={onRefresh}
+          />
+        ) : (
+          <EmptyState
+            testID="my-listings-category-empty-state"
+            icon="document-text-outline"
+            title="لا توجد إعلانات"
+            subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
+            actionLabel="أضف إعلانك الأول"
+            actionIcon="add"
+            onAction={() => router.push('/post' as any)}
+          />
+        )
       }
       renderItem={({ item }) => (
         <View style={s.cardWrapper}>
