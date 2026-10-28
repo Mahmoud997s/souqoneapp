@@ -5,16 +5,24 @@ import { Spacing } from '../../constants/spacing'
 import { EmptyState } from '../ui/EmptyState'
 import { lineHeightFor } from '../../constants/typography'
 
+export type DetailStateKind =
+  | 'loading'
+  | 'error'
+  | 'notFound'
+  | 'offline'
+  | 'timeout'
+  | 'serverError'
+
 export interface DetailStatesProps {
-  kind: 'loading' | 'error' | 'notFound' | 'offline'
+  kind: DetailStateKind
   onRetry?: () => void
   onBack: () => void
 }
 
 /**
  * DetailStates
- * Full-page presentational states for loading, error, notFound, and offline scenarios.
- * Reuses existing EmptyState design primitive.
+ * Full-page presentational states for loading, error, notFound, offline, timeout, and serverError scenarios.
+ * Reuses existing EmptyState design primitive with accessible min 44x44 retry controls.
  */
 export function DetailStates({ kind, onRetry, onBack }: DetailStatesProps) {
   if (kind === 'loading') {
@@ -22,24 +30,6 @@ export function DetailStates({ kind, onRetry, onBack }: DetailStatesProps) {
       <View style={s.centerContainer} testID="detail-state-loading">
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={s.loadingText}>جارٍ تحميل تفاصيل الإعلان...</Text>
-      </View>
-    )
-  }
-
-  if (kind === 'error') {
-    return (
-      <View style={s.centerContainer} testID="detail-state-error">
-        <EmptyState
-          icon="alert-circle-outline"
-          iconType="ionicons"
-          iconColor={Colors.error}
-          title="تعذر تحميل الإعلان"
-          subtitle="حدث خطأ غير متوقع أثناء جلب بيانات الإعلان. يرجى المحاولة مرة أخرى."
-          actionLabel="إعادة المحاولة"
-          onAction={onRetry}
-          secondaryActionLabel="الرجوع"
-          onSecondaryAction={onBack}
-        />
       </View>
     )
   }
@@ -78,7 +68,57 @@ export function DetailStates({ kind, onRetry, onBack }: DetailStatesProps) {
     )
   }
 
-  return null
+  if (kind === 'timeout') {
+    return (
+      <View style={s.centerContainer} testID="detail-state-timeout">
+        <EmptyState
+          icon="time-outline"
+          iconType="ionicons"
+          iconColor={Colors.warning}
+          title="انتهت مهلة الاتصال"
+          subtitle="استغرق الخادم وقتاً أطول من المعتاد للاستجابة. يرجى إعادة المحاولة."
+          actionLabel="إعادة المحاولة"
+          onAction={onRetry}
+          secondaryActionLabel="الرجوع"
+          onSecondaryAction={onBack}
+        />
+      </View>
+    )
+  }
+
+  if (kind === 'serverError') {
+    return (
+      <View style={s.centerContainer} testID="detail-state-server-error">
+        <EmptyState
+          icon="server-outline"
+          iconType="ionicons"
+          iconColor={Colors.error}
+          title="خطأ في الخادم"
+          subtitle="حدث خطأ غير متوقع في استجابة الخادم. نعمل على حل المشكلة، يرجى المحاولة مرة أخرى."
+          actionLabel="إعادة المحاولة"
+          onAction={onRetry}
+          secondaryActionLabel="الرجوع"
+          onSecondaryAction={onBack}
+        />
+      </View>
+    )
+  }
+
+  return (
+    <View style={s.centerContainer} testID="detail-state-error">
+      <EmptyState
+        icon="alert-circle-outline"
+        iconType="ionicons"
+        iconColor={Colors.error}
+        title="تعذر تحميل الإعلان"
+        subtitle="حدث خطأ غير متوقع أثناء جلب بيانات الإعلان. يرجى المحاولة مرة أخرى."
+        actionLabel="إعادة المحاولة"
+        onAction={onRetry}
+        secondaryActionLabel="الرجوع"
+        onSecondaryAction={onBack}
+      />
+    </View>
+  )
 }
 
 const s = StyleSheet.create({

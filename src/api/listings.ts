@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
 import { Listing } from '../types/listing.types'
 import { PaginatedResponse } from '../types/api.types'
@@ -6,7 +7,8 @@ import { PaginationMeta } from '../types/my-listings.types'
 export const listingsApi = {
   getAll:    (params?: Record<string, unknown>) =>
                apiClient.get<PaginatedResponse<Listing>>('/listings', { params }),
-  getById:   (id: string)                      => apiClient.get<Listing>(`/listings/${id}`),
+  getById:   (id: string, config?: AxiosRequestConfig) =>
+               apiClient.get<Listing>(`/listings/${id}`, config),
   getSimilar: (id: string, limit = 8)          => apiClient.get<Listing[]>(`/listings/${id}/similar`, { params: { limit } }),
   getMy:     (params?: { page?: number; limit?: number; status?: string }) =>
                apiClient.get<{ items: Listing[]; meta: PaginationMeta }>('/listings/my', { params }),

@@ -37,7 +37,9 @@ import { buildShareMessage } from '../../hooks/listing-detail/useShareListing'
 import {
   DetailTopBar,
   LocationCard,
+  StaleDataBanner,
 } from '../../components/listing-detail'
+import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
@@ -110,7 +112,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   const { user } = useAuthStore()
 
   // 1. Data Query
-  const { state, vm, raw, refetch } = useServiceDetail(id)
+  const { state, vm, raw, refetch, isRefetchError, error } = useServiceDetail(id)
   const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Ownership
@@ -271,8 +273,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             dialogService.alert('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
             goBackSafely()
           } catch (err: unknown) {
-            const errorMsg =
-              err instanceof Error ? err.message : 'فشل حذف الإعلان'
+            const kind = getDetailErrorKind(err)
+            let errorMsg = 'فشل حذف الإعلان'
+            if (kind === 'offline') {
+              errorMsg = 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+            } else if (kind === 'timeout') {
+              errorMsg = 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
+            } else if (err instanceof Error && err.message) {
+              errorMsg = err.message
+            }
             dialogService.alert('خطأ', errorMsg, 'error')
           } finally {
             setIsOwnerBusy(false)
@@ -305,6 +314,16 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
 
   // 9. Non-Ready States
   if (state !== 'ready' || !vm) {
+    const errorKind = getDetailErrorKind(error)
+    const kind =
+      state === 'loading'
+        ? 'loading'
+        : state === 'notFound' || errorKind === 'notFound'
+        ? 'notFound'
+        : errorKind === 'unknown'
+        ? 'error'
+        : errorKind
+
     return (
       <View style={s.rootContainer}>
         <StatusBar
@@ -313,7 +332,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           translucent
         />
         <DetailStates
-          kind={state === 'ready' ? 'loading' : state}
+          kind={kind}
           onRetry={refetch}
           onBack={goBackSafely}
         />
@@ -352,6 +371,14 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         canFavorite={!isOwner}
         onToggleFavorite={favoriteToggle.toggle}
       />
+
+      {/* Pinned Stale Data Banner directly below top bar */}
+      {isRefetchError && (
+        <StaleDataBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      )}
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView

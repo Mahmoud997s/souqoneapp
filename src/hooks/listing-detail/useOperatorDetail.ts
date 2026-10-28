@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { equipmentApi } from '../../api/equipment'
 import type { OperatorDetailApi } from '../../types/operatorDetailApi.types'
 import type { OperatorDetailViewModel } from '../../types/operatorDetailViewModel.types'
 import { mapOperatorDetail } from '../../utils/listing-detail/mapOperatorDetail'
 import { operatorQueryKeys } from '../../utils/listing-detail/operatorQueryKeys'
 import { useAuthStore } from '../../store/authStore'
+import { getDetailErrorKind, DetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 export type OperatorDetailState = 'loading' | 'ready' | 'notFound' | 'offline' | 'error'
 
@@ -13,31 +14,9 @@ export interface UseOperatorDetailResult {
   vm?: OperatorDetailViewModel
   raw?: OperatorDetailApi
   error: unknown | null
+  errorKind: DetailErrorKind
+  isRefetchError: boolean
   refetch: () => Promise<unknown>
-}
-
-interface AxiosLikeError {
-  response?: {
-    status?: number
-  }
-  code?: string
-  message?: string
-  isAxiosError?: boolean
-}
-
-function isNotFoundError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  return err.response?.status === 404
-}
-
-function isNetworkError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') return true
-  if (err.message && /network\s*error/i.test(err.message)) return true
-  if (err.isAxiosError && !err.response) return true
-  return false
 }
 
 /**
@@ -56,17 +35,23 @@ export function useOperatorDetail(
   id: string | undefined | null
 ): UseOperatorDetailResult {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
+  const queryClient = useQueryClient()
+  const disableRetry = queryClient.getDefaultOptions().queries?.retry === false
 
   const query = useQuery({
     queryKey: operatorQueryKeys.detail(id ?? '', isLoggedIn),
-    queryFn: async (): Promise<OperatorDetailApi> => {
+    queryFn: async ({ signal }): Promise<OperatorDetailApi> => {
       if (!id) throw new Error('Missing operator ID')
-      const res = await equipmentApi.getOperatorById(id)
+      const res = await equipmentApi.getOperatorById(id, { timeout: 15_000, signal })
       return res.data as unknown as OperatorDetailApi
     },
     enabled: Boolean(id),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: disableRetry ? false : 1,
   })
+
+  const errorKind = getDetailErrorKind(query.error)
+  const isRefetchError = Boolean(query.data) && Boolean(query.isRefetchError)
 
   let state: OperatorDetailState = 'loading'
   let vm: OperatorDetailViewModel | undefined
@@ -81,9 +66,9 @@ export function useOperatorDetail(
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
+    if (errorKind === 'notFound') {
       state = 'notFound'
-    } else if (isNetworkError(query.error)) {
+    } else if (errorKind === 'offline') {
       state = 'offline'
     } else {
       state = 'error'
@@ -95,6 +80,8 @@ export function useOperatorDetail(
     vm,
     raw,
     error: query.error ?? null,
+    errorKind,
+    isRefetchError,
     refetch: query.refetch,
   }
 }

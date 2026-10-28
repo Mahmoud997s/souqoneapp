@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { servicesApi } from '../api/services'
 import { mapServiceToCard } from '../utils/mappers'
 import { UnifiedCardItem } from '../types/unified-card.types'
@@ -20,12 +20,16 @@ export function useServices(params?: Record<string, unknown>, options?: any) {
 }
 
 export function useService(id: string) {
+  const queryClient = useQueryClient()
+  const disableRetry = queryClient.getDefaultOptions().queries?.retry === false
+
   return useQuery({
     queryKey: ['service', id],
-    queryFn: async () => {
-      const res = await servicesApi.getById(id)
+    queryFn: async ({ signal }) => {
+      const res = await servicesApi.getById(id, { timeout: 15_000, signal })
       return res.data
     },
     enabled: !!id,
+    retry: disableRetry ? false : 1,
   })
 }

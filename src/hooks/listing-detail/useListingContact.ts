@@ -4,6 +4,7 @@ import { router, useRouter } from 'expo-router'
 import { contactApi, ContactInfo } from '../../api/contact'
 import { chatApi } from '../../api/chat'
 import { useRequireAuth } from './useRequireAuth'
+import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 export type ContactEntityType =
   | 'LISTING'
@@ -33,6 +34,13 @@ export interface UseListingContactReturn {
 }
 
 function extractErrorMessage(err: any, fallback: string): string {
+  const kind = getDetailErrorKind(err)
+  if (kind === 'offline') {
+    return 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً'
+  }
+  if (kind === 'timeout') {
+    return 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة'
+  }
   const msg = err?.response?.data?.message ?? err?.message ?? fallback
   if (Array.isArray(msg)) {
     return msg.join('\n')

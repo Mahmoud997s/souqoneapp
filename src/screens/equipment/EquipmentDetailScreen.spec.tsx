@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, act } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { EquipmentDetailScreen } from './EquipmentDetailScreen'
 import { dialogService } from '../../store/dialogStore'
@@ -72,11 +72,14 @@ let mockEquipmentDetailResult: {
   vm: EquipmentDetailViewModel | null
   refetch: jest.Mock
   error: Error | null
+  errorKind?: any
+  isRefetchError?: boolean
 } = {
   state: 'ready',
   vm: null,
   refetch: jest.fn(),
   error: null,
+  isRefetchError: false,
 }
 
 jest.mock('../../hooks/listing-detail/useEquipmentDetail', () => ({
@@ -204,6 +207,10 @@ function makeSampleVm(overrides?: Partial<EquipmentDetailViewModel>): EquipmentD
 }
 
 describe('EquipmentDetailScreen', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = null
@@ -217,6 +224,7 @@ describe('EquipmentDetailScreen', () => {
       vm: makeSampleVm(),
       refetch: jest.fn(),
       error: null,
+      isRefetchError: false,
     }
   })
 
@@ -247,6 +255,26 @@ describe('EquipmentDetailScreen', () => {
       const retryBtn = screen.getByText('إعادة المحاولة')
       fireEvent.press(retryBtn)
       expect(mockEquipmentDetailResult.refetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('renders offline state when network error occurs', async () => {
+      mockEquipmentDetailResult.state = 'error'
+      mockEquipmentDetailResult.vm = null
+      mockEquipmentDetailResult.error = { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' } as any
+
+      await render(<EquipmentDetailScreen id="eq-101" />)
+      expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+    })
+
+    it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+      mockEquipmentDetailResult.state = 'ready'
+      mockEquipmentDetailResult.vm = makeSampleVm()
+      mockEquipmentDetailResult.isRefetchError = true
+
+      await render(<EquipmentDetailScreen id="eq-101" />)
+      expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+      expect(screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة')).toBeTruthy()
     })
   })
 

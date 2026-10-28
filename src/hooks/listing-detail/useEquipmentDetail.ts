@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { equipmentApi } from '../../api/equipment'
 import { EquipmentDetailApi } from '../../types/equipmentDetailApi.types'
 import { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { mapEquipmentDetail } from '../../utils/listing-detail/mapEquipmentDetail'
 import { equipmentQueryKeys } from '../../utils/listing-detail/equipmentQueryKeys'
 import { useAuthStore } from '../../store/authStore'
+import { getDetailErrorKind, DetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 export type EquipmentDetailState = 'loading' | 'ready' | 'notFound' | 'offline' | 'error'
 
@@ -13,31 +14,9 @@ export interface UseEquipmentDetailResult {
   vm?: EquipmentDetailViewModel
   raw?: EquipmentDetailApi
   error: unknown | null
+  errorKind: DetailErrorKind
+  isRefetchError: boolean
   refetch: () => Promise<unknown>
-}
-
-interface AxiosLikeError {
-  response?: {
-    status?: number
-  }
-  code?: string
-  message?: string
-  isAxiosError?: boolean
-}
-
-function isNotFoundError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  return err.response?.status === 404
-}
-
-function isNetworkError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') return true
-  if (err.message && /network\s*error/i.test(err.message)) return true
-  if (err.isAxiosError && !err.response) return true
-  return false
 }
 
 /**
@@ -57,19 +36,25 @@ export function useEquipmentDetail(
   options?: { now?: Date }
 ): UseEquipmentDetailResult {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
+  const queryClient = useQueryClient()
+  const disableRetry = queryClient.getDefaultOptions().queries?.retry === false
 
   const query = useQuery<EquipmentDetailApi, unknown>({
     queryKey: equipmentQueryKeys.detail(id ?? '', Boolean(isLoggedIn)),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!id) {
         throw new Error('Equipment listing ID is required')
       }
-      const res = await equipmentApi.getById(id)
+      const res = await equipmentApi.getById(id, { timeout: 15_000, signal })
       return res.data as unknown as EquipmentDetailApi
     },
     enabled: Boolean(id),
     staleTime: 1000 * 60 * 2,
+    retry: disableRetry ? false : 1,
   })
+
+  const errorKind = getDetailErrorKind(query.error)
+  const isRefetchError = Boolean(query.data) && Boolean(query.isRefetchError)
 
   let state: EquipmentDetailState = 'loading'
   let vm: EquipmentDetailViewModel | undefined
@@ -86,9 +71,9 @@ export function useEquipmentDetail(
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
+    if (errorKind === 'notFound') {
       state = 'notFound'
-    } else if (isNetworkError(query.error)) {
+    } else if (errorKind === 'offline') {
       state = 'offline'
     } else {
       state = 'error'
@@ -100,6 +85,8 @@ export function useEquipmentDetail(
     vm,
     raw,
     error: query.error ?? null,
+    errorKind,
+    isRefetchError,
     refetch: query.refetch,
   }
 }

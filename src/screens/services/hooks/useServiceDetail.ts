@@ -2,6 +2,7 @@ import { useService } from '../../../hooks/useServices'
 import type { Service } from '../../../types/listing.types'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { mapServiceDetailViewModel } from '../mappers/serviceDetailViewModel'
+import { getDetailErrorKind, DetailErrorKind } from '../../../utils/listing-detail/getDetailErrorKind'
 
 export type ServiceDetailState =
   | 'loading'
@@ -15,32 +16,10 @@ export interface UseServiceDetailResult {
   vm?: ServiceDetailViewModel
   raw?: Service
   error: unknown | null
+  errorKind: DetailErrorKind
+  isRefetchError: boolean
   refetch: () => Promise<unknown>
   isRefetching?: boolean
-}
-
-interface AxiosLikeError {
-  response?: {
-    status?: number
-  }
-  code?: string
-  message?: string
-  isAxiosError?: boolean
-}
-
-function isNotFoundError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  return err.response?.status === 404
-}
-
-function isNetworkError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false
-  const err = error as AxiosLikeError
-  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') return true
-  if (err.message && /network\s*error/i.test(err.message)) return true
-  if (err.isAxiosError && !err.response) return true
-  return false
 }
 
 /**
@@ -52,6 +31,8 @@ export function useServiceDetail(
   options?: { now?: Date }
 ): UseServiceDetailResult {
   const query = useService(id ?? '')
+  const errorKind = getDetailErrorKind(query.error)
+  const isRefetchError = Boolean(query.data) && Boolean(query.isRefetchError)
 
   let state: ServiceDetailState = 'loading'
   let vm: ServiceDetailViewModel | undefined
@@ -68,9 +49,9 @@ export function useServiceDetail(
   } else if (query.isLoading) {
     state = 'loading'
   } else if (query.isError) {
-    if (isNotFoundError(query.error)) {
+    if (errorKind === 'notFound') {
       state = 'notFound'
-    } else if (isNetworkError(query.error)) {
+    } else if (errorKind === 'offline') {
       state = 'offline'
     } else {
       state = 'error'
@@ -82,6 +63,8 @@ export function useServiceDetail(
     vm,
     raw,
     error: (query.error as unknown) ?? null,
+    errorKind,
+    isRefetchError,
     refetch: typeof query.refetch === 'function' ? query.refetch : async () => query.data,
     isRefetching: Boolean(query.isRefetching),
   }

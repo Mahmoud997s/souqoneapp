@@ -104,6 +104,8 @@ export function EmptyState({
               style={styles.primaryBtn}
               onPress={onAction}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={actionLabel}
             >
               {actionIcon && (
                 <Ionicons
@@ -122,6 +124,8 @@ export function EmptyState({
               style={styles.secondaryBtn}
               onPress={onSecondaryAction}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={secondaryActionLabel}
             >
               <Text style={styles.secondaryBtnText}>{secondaryActionLabel}</Text>
             </TouchableOpacity>
@@ -193,6 +197,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.space4,
   },
   primaryBtn: {
+    minHeight: 44,
+    minWidth: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -217,6 +223,10 @@ const styles = StyleSheet.create({
     marginEnd: 2,
   },
   secondaryBtn: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.space3,
     paddingVertical: 10,
     borderRadius: Radius.pill,

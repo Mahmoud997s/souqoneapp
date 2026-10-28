@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, act } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import { PartDetailScreen } from '../PartDetailScreen'
 import { dialogService } from '../../../store/dialogStore'
 import { assertOwnerHasPhoneForEdit } from '../../../utils/assertOwnerHasPhoneForEdit'
@@ -195,6 +195,10 @@ function makeSamplePartVm(overrides?: Partial<PartDetailViewModel>): PartDetailV
 }
 
 describe('PartDetailScreen', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockCurrentUser = null
@@ -213,6 +217,8 @@ describe('PartDetailScreen', () => {
       } as unknown as Part,
       refetch: jest.fn(),
       error: null,
+      errorKind: 'unknown',
+      isRefetchError: false,
     }
   })
 
@@ -243,6 +249,27 @@ describe('PartDetailScreen', () => {
       const retryBtn = screen.getByText('إعادة المحاولة')
       await fireEvent.press(retryBtn)
       expect(mockPartDetailResult.refetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('renders offline state when network error occurs', async () => {
+      mockPartDetailResult.state = 'error'
+      mockPartDetailResult.vm = undefined
+      mockPartDetailResult.errorKind = 'offline'
+      mockPartDetailResult.error = { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' } as any
+
+      await render(<PartDetailScreen id="part-101" />)
+      expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+    })
+
+    it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+      mockPartDetailResult.state = 'ready'
+      mockPartDetailResult.vm = makeSamplePartVm()
+      mockPartDetailResult.isRefetchError = true
+
+      await render(<PartDetailScreen id="part-101" />)
+      expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+      expect(screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة')).toBeTruthy()
     })
   })
 

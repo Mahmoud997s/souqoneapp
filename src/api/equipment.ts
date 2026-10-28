@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
 import { EquipmentListing, OperatorListing } from '../types/equipment.types'
 import { PaginatedResponse } from '../types/api.types'
@@ -16,7 +17,8 @@ export const equipmentApi = {
   // Equipment Listings
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<EquipmentListing>>('/equipment', { params }),
-  getById: (id: string) => apiClient.get<EquipmentDetailApi>(`/equipment/${id}`),
+  getById: (id: string, config?: AxiosRequestConfig) =>
+    apiClient.get<EquipmentDetailApi>(`/equipment/${id}`, config),
   getSimilar: (id: string, limit = 8) =>
     apiClient.get<EquipmentSimilarItemApi[]>(`/equipment/${id}/similar`, { params: { limit } }),
   getMy: () => apiClient.get<EquipmentListing[]>('/equipment/my'),
@@ -31,7 +33,8 @@ export const equipmentApi = {
   // Operators
   getOperators: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<OperatorListing>>('/operators', { params }),
-  getOperatorById: (id: string) => apiClient.get<OperatorListing>(`/operators/${id}`),
+  getOperatorById: (id: string, config?: AxiosRequestConfig) =>
+    apiClient.get<OperatorListing>(`/operators/${id}`, config),
   getMyOperators: () => apiClient.get<OperatorListing[]>('/operators/my'),
   createOperator: (data: Partial<OperatorListing>) => apiClient.post<OperatorListing>('/operators', data),
   updateOperator: (id: string, data: Partial<OperatorListing>) =>

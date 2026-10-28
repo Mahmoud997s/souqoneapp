@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, act } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
 import { CarDetailScreen } from './CarDetailScreen'
 
@@ -132,17 +132,34 @@ const sampleCarVm: CarDetailViewModel = {
 }
 
 const mockCarRefetch = jest.fn()
+let mockCarDetailResult: any = {
+  state: 'ready',
+  vm: sampleCarVm,
+  raw: null,
+  refetch: mockCarRefetch,
+  error: null,
+  isRefetchError: false,
+}
 jest.mock('../../hooks/listing-detail/useCarDetail', () => ({
-  useCarDetail: () => ({
-    state: 'ready',
-    vm: sampleCarVm,
-    raw: null,
-    refetch: mockCarRefetch,
-    error: null,
-  }),
+  useCarDetail: () => mockCarDetailResult,
 }))
 
 describe('CarDetailScreen in-page search filtering (D-093 Item 3)', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockCarDetailResult = {
+      state: 'ready',
+      vm: sampleCarVm,
+      raw: null,
+      refetch: mockCarRefetch,
+      error: null,
+      isRefetchError: false,
+    }
+  })
   it('renders all specification and feature items when search query is empty', async () => {
     await render(<CarDetailScreen id="car-search-101" />)
 
@@ -246,5 +263,37 @@ describe('CarDetailScreen in-page search filtering (D-093 Item 3)', () => {
     })
 
     expect(mockCarRefetch).toHaveBeenCalled()
+  })
+
+  describe('States Foundation (D-117)', () => {
+    it('renders offline state when network error occurs', async () => {
+      mockCarDetailResult = {
+        state: 'error',
+        vm: null,
+        raw: null,
+        refetch: mockCarRefetch,
+        error: { isAxiosError: true, code: 'ERR_NETWORK', message: 'Network Error' },
+        isRefetchError: false,
+      }
+
+      await render(<CarDetailScreen id="car-search-101" />)
+      expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      expect(screen.getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+    })
+
+    it('renders StaleDataBanner when data is present and isRefetchError is true', async () => {
+      mockCarDetailResult = {
+        state: 'ready',
+        vm: sampleCarVm,
+        raw: null,
+        refetch: mockCarRefetch,
+        error: null,
+        isRefetchError: true,
+      }
+
+      await render(<CarDetailScreen id="car-search-101" />)
+      expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+      expect(screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة')).toBeTruthy()
+    })
   })
 })

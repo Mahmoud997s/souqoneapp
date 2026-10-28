@@ -80,7 +80,9 @@ import { DetailStates } from '../../components/listing-detail/DetailStates'
 import {
   DetailTopBar,
   LocationCard,
+  StaleDataBanner,
 } from '../../components/listing-detail'
+import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
 // Equipment-Specific Presentational Components
 import {
@@ -116,7 +118,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const { user } = useAuthStore()
 
   // 1. Data Query
-  const { state, vm, refetch } = useEquipmentDetail(id)
+  const { state, vm, refetch, isRefetchError, error } = useEquipmentDetail(id)
   const { refreshing, onRefresh } = useDetailRefresh(refetch)
 
   // 2. Ownership
@@ -239,11 +241,21 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
+    const errorKind = getDetailErrorKind(error)
+    const kind =
+      state === 'loading'
+        ? 'loading'
+        : state === 'notFound' || errorKind === 'notFound'
+        ? 'notFound'
+        : errorKind === 'unknown'
+        ? 'error'
+        : errorKind
+
     return (
       <View style={s.rootContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
         <DetailStates
-          kind={state === 'ready' ? 'loading' : state}
+          kind={kind}
           onRetry={refetch}
           onBack={goBackSafely}
         />
@@ -307,6 +319,14 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         onSearchSubmit={handleSearchSubmit}
         placeholder="ابحث في تفاصيل المعدة..."
       />
+
+      {/* Pinned Stale Data Banner directly below top bar */}
+      {isRefetchError && (
+        <StaleDataBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      )}
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
