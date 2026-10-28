@@ -1,4 +1,4 @@
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from './unified-card.types'
 
 export type MyListingEntityType =
   | 'car'

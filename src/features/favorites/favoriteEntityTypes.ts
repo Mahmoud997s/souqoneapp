@@ -1,5 +1,5 @@
 import { resolveContactEntityType } from '../../utils/contactEntityType'
-import type { UnifiedCardItem } from '../../components/cards/UnifiedCard'
+import type { UnifiedCardItem } from '../../types/unified-card.types'
 
 export const SUPPORTED_FAVORITE_ENTITY_TYPES = [
   'LISTING',

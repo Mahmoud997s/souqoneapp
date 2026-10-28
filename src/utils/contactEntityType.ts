@@ -1,5 +1,5 @@
 import { ContactEntityType } from '../hooks/listing-detail/useListingContact'
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../types/unified-card.types'
 
 const VALID_EXACT_ENTITY_TYPES: Set<string> = new Set([
   'LISTING',

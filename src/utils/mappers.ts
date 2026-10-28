@@ -1,4 +1,4 @@
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../types/unified-card.types'
 import { GOVERNORATE_OPTIONS, FilterOption } from '../constants/filters'
 import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '../constants/locations'
 

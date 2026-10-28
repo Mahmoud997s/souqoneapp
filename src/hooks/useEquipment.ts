@@ -21,7 +21,7 @@ export function useEquipmentInfinite(params?: Record<string, unknown>) {
   })
 }
 
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../types/unified-card.types'
 
 // Simple query for homepage cards
 export function useEquipment(params?: Record<string, unknown>, options?: any) {

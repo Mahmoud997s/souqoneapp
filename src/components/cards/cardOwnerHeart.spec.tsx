@@ -1,7 +1,6 @@
 import React from 'react'
 import { render } from '@testing-library/react-native'
 import { ListingCardBase } from '../ui/ListingCardBase'
-import { UnifiedCard } from './UnifiedCard'
 import { CarCard } from '../cars/CarCard'
 import { BusCard } from '../buses/BusCard'
 import { EquipCard } from './EquipCard'
@@ -303,39 +302,4 @@ describe('Card favorite heart - hide for owner', () => {
     })
   })
 
-  describe('UnifiedCard (compact mode)', () => {
-    it('hides compact heart when current user owns the item', async () => {
-      const item = {
-        id: 'comp-1',
-        title: 'Compact Owned Item',
-        images: ['https://example.com/img.jpg'],
-        category: 'cars',
-        raw: { sellerId: CURRENT_USER.id },
-      }
-
-      const { queryByTestId } = await render(
-        <UnifiedCard item={item as any} compact={true} onPress={jest.fn()} />,
-        { wrapper: createWrapper() }
-      )
-
-      expect(queryByTestId('unified-compact-heart')).toBeNull()
-    })
-
-    it('shows compact heart when item belongs to another user', async () => {
-      const item = {
-        id: 'comp-2',
-        title: 'Compact Visitor Item',
-        images: ['https://example.com/img.jpg'],
-        category: 'cars',
-        raw: { sellerId: 'other-user-888' },
-      }
-
-      const { getByTestId } = await render(
-        <UnifiedCard item={item as any} compact={true} onPress={jest.fn()} />,
-        { wrapper: createWrapper() }
-      )
-
-      expect(getByTestId('unified-compact-heart')).toBeTruthy()
-    })
-  })
 })

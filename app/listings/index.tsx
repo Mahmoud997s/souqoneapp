@@ -5,7 +5,7 @@ import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
-import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
+import { CarCard } from '../../src/components/cars/CarCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useListings } from '../../src/hooks/useListings'
 import { router } from 'expo-router'
@@ -50,7 +50,7 @@ export default function ListingsScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} colors={[Colors.primary]} />}
         renderItem={({item}) => (
           <View style={s.fullCard}>
-            <UnifiedCard item={item} onPress={() => router.push(`/cars/${item.id}`)} />
+            <CarCard item={item as any} fullWidth showChips onPress={() => router.push(`/cars/${item.id}`)} />
           </View>
         )}
       />

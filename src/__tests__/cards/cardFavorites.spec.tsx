@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
 import { CarCard } from '../../components/cars/CarCard'
-import { UnifiedCard } from '../../components/cards/UnifiedCard'
+import { PartCard } from '../../components/parts/PartCard'
+import { ServiceCard } from '../../components/services/ServiceCard'
 import { ListingCardBase } from '../../components/ui/ListingCardBase'
 import { favoritesApi } from '../../api/favorites'
 import { dialogService } from '../../store/dialogStore'
@@ -154,16 +155,15 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     })
   })
 
-  it('UnifiedCard with category buses delegates to BUS_LISTING', async () => {
-    const busItem: any = {
-      id: 'uni-bus-1',
-      title: 'حافلة هيونداي',
-      price: 12000,
-      category: 'buses',
+  it('PartCard calls favoritesApi.add with SPARE_PART entity type', async () => {
+    const partItem: any = {
+      id: 'part-101',
+      title: 'سفايف لاندكروزر أصلية',
+      price: 45,
       images: [],
     }
 
-    const { getByTestId } = await render(<UnifiedCard item={busItem} />, {
+    const { getByTestId } = await render(<PartCard item={partItem} onPress={() => {}} />, {
       wrapper: createWrapper(),
     })
 
@@ -173,20 +173,19 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     })
 
     await waitFor(() => {
-      expect(favoritesApi.add).toHaveBeenCalledWith('BUS_LISTING', 'uni-bus-1')
+      expect(favoritesApi.add).toHaveBeenCalledWith('SPARE_PART', 'part-101')
     })
   })
 
-  it('UnifiedCard with category equipment delegates to EQUIPMENT_LISTING', async () => {
-    const equipItem: any = {
-      id: 'uni-eq-2',
-      title: 'شيول كوماتسو',
-      price: 32000,
-      category: 'equipment',
+  it('ServiceCard calls favoritesApi.add with CAR_SERVICE entity type', async () => {
+    const serviceItem: any = {
+      id: 'service-202',
+      title: 'فحص كمبيوتر سيارات وبرمجة',
+      priceText: 'تبدأ من 10 ر.ع',
       images: [],
     }
 
-    const { getByTestId } = await render(<UnifiedCard item={equipItem} />, {
+    const { getByTestId } = await render(<ServiceCard item={serviceItem} onPress={() => {}} />, {
       wrapper: createWrapper(),
     })
 
@@ -196,7 +195,7 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
     })
 
     await waitFor(() => {
-      expect(favoritesApi.add).toHaveBeenCalledWith('EQUIPMENT_LISTING', 'uni-eq-2')
+      expect(favoritesApi.add).toHaveBeenCalledWith('CAR_SERVICE', 'service-202')
     })
   })
 

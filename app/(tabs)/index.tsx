@@ -12,7 +12,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Gradients } from '../../src/constants/gradients'
 import { CardSystem } from '../../src/constants/cardSystem'
-import { UnifiedCard, UnifiedCardItem } from '../../src/components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../../src/types/unified-card.types'
 import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
 import { CarCard } from '../../src/components/cars/CarCard'
@@ -52,7 +52,7 @@ interface SectionProps {
   data: UnifiedCardItem[] | undefined
   isLoading: boolean
   routeBase: string
-  CustomCard?: React.FC<{
+  CustomCard: React.FC<{
     item: any
     onPress: () => void
     imageHeight?: number
@@ -107,21 +107,12 @@ function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, 
           seeAllSubtitle={`تصفح جميع ${title}`}
           renderItem={({ item }) => (
             <View style={{ width: CARD_WIDTH }}>
-              {CustomCard ? (
-                <CustomCard
-                  item={item}
-                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              ) : (
-                <UnifiedCard
-                  item={item}
-                  imageHeight={IMG_H}
-                  disableImageSwipe={true}
-                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                />
-              )}
+              <CustomCard
+                item={item}
+                onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
+                disableImageSwipe={true}
+                titleNumberOfLines={1}
+              />
             </View>
           )}
         />

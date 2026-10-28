@@ -29,7 +29,7 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
   return (
     <View style={[s.card, fullWidth && { width: '100%' }, style]}>
       <Animated.View style={{ opacity }}>
-        {/* Image — matches UnifiedCard aspectRatio 4/3 */}
+        {/* Image — aspectRatio 4/3 */}
         <View style={[s.image, { height: imageHeight }, s.placeholder]} />
 
         <View style={s.body}>
