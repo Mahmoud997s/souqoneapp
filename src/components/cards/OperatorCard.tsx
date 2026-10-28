@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Dimensions,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
@@ -19,6 +20,7 @@ export interface OperatorCardProps {
   onPress?: () => void
   maxChips?: number
   actionMenu?: React.ReactNode
+  fullWidth?: boolean
 }
 
 /**
@@ -31,6 +33,7 @@ export function OperatorCard({
   onPress,
   maxChips = 3,
   actionMenu,
+  fullWidth = true,
 }: OperatorCardProps) {
   if (!item) return null
 
@@ -111,7 +114,10 @@ export function OperatorCard({
 
   return (
     <TouchableOpacity
-      style={[s.card]}
+      style={[
+        s.card,
+        fullWidth ? s.cardFull : s.cardFixed,
+      ]}
       onPress={onPress}
       activeOpacity={0.88}
       accessibilityRole="button"
@@ -146,11 +152,17 @@ export function OperatorCard({
 
 const s = StyleSheet.create({
   card: {
-    width: '100%',
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
     ...CardSystem.styles.border,
     marginBottom: Spacing.space3,
+  },
+  cardFull: {
+    width: '100%',
+  },
+  cardFixed: {
+    width: Dimensions.get('window').width * 0.6,
+    alignSelf: 'flex-start',
   },
 })

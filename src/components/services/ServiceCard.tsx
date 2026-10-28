@@ -33,6 +33,7 @@ export interface ServiceCardProps {
   gridMode?: boolean
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  actionMenu?: React.ReactNode
 }
 
 export const ServiceCard = ({
@@ -42,6 +43,7 @@ export const ServiceCard = ({
   gridMode = false,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  actionMenu,
 }: ServiceCardProps) => {
   const rawData = item.raw || {}
   const rawImages = (item.images && item.images.length > 0)
@@ -140,6 +142,7 @@ export const ServiceCard = ({
       titleNumberOfLines={titleNumberOfLines}
       favoriteType="CAR_SERVICE"
       shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\nhttps://souqone.app/services/${item.id}`}
+      actionMenu={actionMenu}
     />
   )
 }
