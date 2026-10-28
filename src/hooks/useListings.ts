@@ -111,7 +111,7 @@ export function useFavorites() {
           case 'equipment': return mapEquipmentToCard(rawItem);
           default: return mapListingToCard(rawItem);
         }
-      }).filter((item: any) => item !== null) as import('../components/cards/UnifiedCard').UnifiedCardItem[]
+      }).filter((item: any) => item !== null) as import('../types/unified-card.types').UnifiedCardItem[]
     },
   })
 }

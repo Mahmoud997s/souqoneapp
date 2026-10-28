@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
 import { CarCard } from '../../components/cars/CarCard'
-import { UnifiedCard } from '../../components/cards/UnifiedCard'
+import { PartCard } from '../../components/parts/PartCard'
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
 import { FAVORITE_IDS_QUERY_KEY } from '../../features/favorites/useFavoriteIds'
@@ -118,18 +118,17 @@ describe('First-Render Store Hydration & Cross-Screen Consistency (D-092d)', () 
     expect(icon.props.color).toBe(Colors.error)
   })
 
-  it('UnifiedCard (compact) shows filled heart (Colors.error) on first render when in ids store', async () => {
-    const queryClient = createHarnessQueryClient(['BUS_LISTING:uni-seeded-4'])
+  it('PartCard shows filled heart (Colors.error) on first render when in ids store', async () => {
+    const queryClient = createHarnessQueryClient(['SPARE_PART:part-seeded-4'])
     await render(
       <QueryClientProvider client={queryClient}>
-        <UnifiedCard
-          compact
+        <PartCard
           item={{
-            id: 'uni-seeded-4',
-            category: 'buses',
-            title: 'حافلة سياحية',
+            id: 'part-seeded-4',
+            title: 'قطعة غيار تجريبية',
             images: [],
           } as any}
+          onPress={() => {}}
         />
       </QueryClientProvider>
     )

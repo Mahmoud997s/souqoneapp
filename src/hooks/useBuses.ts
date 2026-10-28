@@ -2,7 +2,7 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { busesApi } from '../api/buses'
 import { mapBusToCard } from '../utils/mappers'
 import { BusManufacturer, BusModel } from '../types/bus.types'
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../types/unified-card.types'
 
 export function useBuses(params?: Record<string, unknown>, options?: any) {
   return useQuery<UnifiedCardItem[], Error>({

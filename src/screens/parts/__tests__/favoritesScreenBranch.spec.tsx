@@ -2,7 +2,12 @@ import React from 'react'
 import { render, screen } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import FavoritesScreen from '../../../../app/profile/favorites'
-import { UnifiedCard } from '../../../components/cards/UnifiedCard'
+import { CarCard } from '../../../components/cars/CarCard'
+import { BusCard } from '../../../components/buses/BusCard'
+import { EquipCard } from '../../../components/cards/EquipCard'
+import { PartCard } from '../../../components/parts/PartCard'
+import { ServiceCard } from '../../../components/services/ServiceCard'
+import { JobCard } from '../../../components/cards/JobCard'
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -20,6 +25,20 @@ const mockFavoritesData = [
     category: 'cars',
     price: 6500,
     images: ['https://img.souqone.app/car1.jpg'],
+  },
+  {
+    id: 'bus-1',
+    title: 'حافلة تويوتا كوستر 30 راكب',
+    category: 'buses',
+    price: 18500,
+    images: ['https://img.souqone.app/bus1.jpg'],
+  },
+  {
+    id: 'equip-1',
+    title: 'رافعة شوكية كاتربيلر 3 طن',
+    category: 'equipment',
+    price: 8000,
+    images: ['https://img.souqone.app/equip1.jpg'],
   },
   {
     id: 'part-1',
@@ -79,49 +98,122 @@ jest.mock('expo-router', () => ({
   }),
 }))
 
-jest.mock('../../../components/cards/UnifiedCard', () => {
+jest.mock('../../../components/cars/CarCard', () => {
   const { Text, View } = require('react-native')
   return {
-    UnifiedCard: jest.fn((props) => (
-      <View testID={`unified-card-${props.item.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
-        <Text>{props.item.title}</Text>
+    CarCard: jest.fn((props) => (
+      <View testID={`car-card-${props.item?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item?.title}</Text>
       </View>
     )),
   }
 })
 
-describe('FavoritesScreen - Parts & Services UnifiedCard fullWidth branch', () => {
+jest.mock('../../../components/buses/BusCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    BusCard: jest.fn((props) => (
+      <View testID={`bus-card-${props.item?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item?.title}</Text>
+      </View>
+    )),
+  }
+})
+
+jest.mock('../../../components/cards/EquipCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    EquipCard: jest.fn((props) => (
+      <View testID={`equip-card-${props.item?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item?.title}</Text>
+      </View>
+    )),
+  }
+})
+
+jest.mock('../../../components/parts/PartCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    PartCard: jest.fn((props) => (
+      <View testID={`part-card-${props.item?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item?.title}</Text>
+      </View>
+    )),
+  }
+})
+
+jest.mock('../../../components/services/ServiceCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    ServiceCard: jest.fn((props) => (
+      <View testID={`service-card-${props.item?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.item?.title}</Text>
+      </View>
+    )),
+  }
+})
+
+jest.mock('../../../components/cards/JobCard', () => {
+  const { Text, View } = require('react-native')
+  return {
+    JobCard: jest.fn((props) => (
+      <View testID={`job-card-${props.job?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
+        <Text>{props.job?.title}</Text>
+      </View>
+    )),
+  }
+})
+
+describe('FavoritesScreen - Original per-vertical cards render with fullWidth', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders parts and services with fullWidth=true, and other categories without fullWidth', async () => {
+  it('renders every category with its original card component and fullWidth=true', async () => {
     await render(<FavoritesScreen />, { wrapper: createWrapper() })
 
-    // Verify elements are rendered
+    // Verify all titles are rendered
+    expect(screen.getByText('تويوتا كامري 2022')).toBeTruthy()
+    expect(screen.getByText('حافلة تويوتا كوستر 30 راكب')).toBeTruthy()
+    expect(screen.getByText('رافعة شوكية كاتربيلر 3 طن')).toBeTruthy()
     expect(screen.getByText('سفايف لاندكروزر أصلية')).toBeTruthy()
     expect(screen.getByText('فحص كمبيوتر سيارات وبرمجة')).toBeTruthy()
     expect(screen.getByText('مطلوب فني ميكانيك')).toBeTruthy()
 
-    // Verify UnifiedCard mock invocations
-    const mockUnifiedCard = UnifiedCard as unknown as jest.Mock
+    // 1. Cars -> CarCard (fullWidth: true)
+    const mockCarCard = CarCard as unknown as jest.Mock
+    const carCall = mockCarCard.mock.calls.find(call => call[0]?.item?.id === 'car-1')
+    expect(carCall).toBeDefined()
+    expect(carCall[0].fullWidth).toBe(true)
 
-    // Find call for part-1
-    const partCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'part-1')
+    // 2. Buses -> BusCard (fullWidth: true)
+    const mockBusCard = BusCard as unknown as jest.Mock
+    const busCall = mockBusCard.mock.calls.find(call => call[0]?.item?.id === 'bus-1')
+    expect(busCall).toBeDefined()
+    expect(busCall[0].fullWidth).toBe(true)
+
+    // 3. Equipment -> EquipCard (fullWidth: true)
+    const mockEquipCard = EquipCard as unknown as jest.Mock
+    const equipCall = mockEquipCard.mock.calls.find(call => call[0]?.item?.id === 'equip-1')
+    expect(equipCall).toBeDefined()
+    expect(equipCall[0].fullWidth).toBe(true)
+
+    // 4. Parts -> PartCard (fullWidth: true)
+    const mockPartCard = PartCard as unknown as jest.Mock
+    const partCall = mockPartCard.mock.calls.find(call => call[0]?.item?.id === 'part-1')
     expect(partCall).toBeDefined()
     expect(partCall[0].fullWidth).toBe(true)
-    expect(partCall[0].onFavorite).toBeUndefined()
 
-    // Find call for service-1
-    const serviceCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'service-1')
+    // 5. Services -> ServiceCard (fullWidth: true)
+    const mockServiceCard = ServiceCard as unknown as jest.Mock
+    const serviceCall = mockServiceCard.mock.calls.find(call => call[0]?.item?.id === 'service-1')
     expect(serviceCall).toBeDefined()
     expect(serviceCall[0].fullWidth).toBe(true)
-    expect(serviceCall[0].onFavorite).toBeUndefined()
 
-    // Find call for job-1 (generic fallback branch)
-    const jobCall = mockUnifiedCard.mock.calls.find(call => call[0]?.item?.id === 'job-1')
+    // 6. Jobs -> JobCard (fullWidth: true)
+    const mockJobCard = JobCard as unknown as jest.Mock
+    const jobCall = mockJobCard.mock.calls.find(call => call[0]?.job?.id === 'job-1')
     expect(jobCall).toBeDefined()
-    expect(jobCall[0].fullWidth).toBeUndefined()
-    expect(jobCall[0].onFavorite).toBeUndefined()
+    expect(jobCall[0].fullWidth).toBe(true)
   })
 })

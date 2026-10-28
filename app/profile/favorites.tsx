@@ -9,8 +9,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
-import { UnifiedCard } from '../../src/components/cards/UnifiedCard'
-import { CarCard } from '../../src/components/cars/CarCard'
+import { SearchCardDispatcher } from '../../src/screens/search/components/SearchCardDispatcher'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { useFavorites } from '../../src/hooks/useListings'
 import { useLocalSearchParams, router } from 'expo-router'
@@ -99,33 +98,9 @@ export default function FavoritesScreen() {
               </TouchableOpacity>
             </View>
           }
-          renderItem={({ item }) => {
-            if (item.category === 'cars') {
-              return (
-                <CarCard
-                  item={item as any}
-                  fullWidth
-                  showChips
-                  onPress={() => router.push(`/cars/${item.id}` as any)}
-                />
-              )
-            }
-            if (item.category === 'parts' || item.category === 'services') {
-              return (
-                <UnifiedCard
-                  item={item}
-                  fullWidth
-                  onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-                />
-              )
-            }
-            return (
-              <UnifiedCard
-                item={item}
-                onPress={() => router.push(`/${item.category}/${item.id}` as any)}
-              />
-            )
-          }}
+          renderItem={({ item }) => (
+            <SearchCardDispatcher item={item} />
+          )}
         />
       )}
       <GlassNavBar

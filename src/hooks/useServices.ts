@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { servicesApi } from '../api/services'
 import { mapServiceToCard } from '../utils/mappers'
-import { UnifiedCardItem } from '../components/cards/UnifiedCard'
+import { UnifiedCardItem } from '../types/unified-card.types'
 
 export function useServices(params?: Record<string, unknown>, options?: any) {
   return useQuery<UnifiedCardItem[]>({

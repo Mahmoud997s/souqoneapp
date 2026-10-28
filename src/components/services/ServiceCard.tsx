@@ -5,7 +5,7 @@ import {
   ListingCardBadge,
 } from '../ui/ListingCardBase'
 import { Colors } from '../../constants/colors'
-import { UnifiedCardItem } from '../cards/UnifiedCard'
+import { UnifiedCardItem } from '../../types/unified-card.types'
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {
   MAINTENANCE: 'صيانة',

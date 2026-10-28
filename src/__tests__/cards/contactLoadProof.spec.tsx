@@ -3,7 +3,6 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { View, ScrollView } from 'react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { OperatorCard } from '../../components/cards/OperatorCard'
-import { UnifiedCard, UnifiedCardItem } from '../../components/cards/UnifiedCard'
 import { contactApi } from '../../api/contact'
 import { OperatorListing } from '../../types/equipment.types'
 import { mapOperatorToCard } from '../../utils/mappers'
@@ -14,9 +13,10 @@ jest.mock('../../api/contact', () => ({
   },
 }))
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn() }),
-  router: { push: jest.fn() },
+jest.mock('../../store/dialogStore', () => ({
+  dialogService: {
+    alert: jest.fn(),
+  },
 }))
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -24,32 +24,41 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn().mockResolvedValue(true),
 }))
 
+jest.mock('../../store/authStore', () => ({
+  useAuthStore: jest.fn(() => ({
+    isLoggedIn: true,
+    user: { id: 'u1' },
+  })),
+}))
+
 import { useAuthStore } from '../../store/authStore'
 
-describe('Load Proof (Spec 5): 20 OperatorCards + 20 UnifiedCards', () => {
+describe('Load Proof (Spec 5): 40 OperatorCards (On-Demand Contact)', () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
     jest.clearAllMocks()
-    useAuthStore.setState({
-      isLoggedIn: true,
-      user: { id: 'usr-1', phone: '+96891234567' } as any,
-    })
     queryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
+        queries: { retry: false, gcTime: 0 },
       },
     })
+    ;(useAuthStore as unknown as jest.Mock).mockReturnValue({
+      isLoggedIn: true,
+      user: { id: 'u1' },
+    })
     ;(contactApi.getContact as jest.Mock).mockResolvedValue({
-      phone: '+96891234567',
-      whatsapp: '+96891234567',
+      data: {
+        phone: '+96891234567',
+        whatsapp: '+96891234567',
+        whatsappEnabled: true,
+      },
     })
   })
 
   it('mounts 40 cards with 0 calls to contactApi.getContact, and calls contactApi.getContact exactly once upon pressing Call on 1 card', async () => {
-    // Generate 20 OperatorCard items
-    const operators: any[] = Array.from({ length: 20 }, (_, i) => ({
+    // Generate 40 OperatorCard items
+    const operators: any[] = Array.from({ length: 40 }, (_, i) => ({
       id: `op-${i + 1}`,
       title: `مشغل معدات ${i + 1}`,
       operatorType: 'OPERATOR',
@@ -65,34 +74,10 @@ describe('Load Proof (Spec 5): 20 OperatorCards + 20 UnifiedCards', () => {
       wilayaId: 1,
       governorateName: 'مسقط',
       wilayaName: 'السيب',
-      whatsappEnabled: i % 2 === 0, // 10 enabled, 10 disabled
+      whatsappEnabled: i % 2 === 0, // 20 enabled, 20 disabled
       rating: 4.8,
       reviewsCount: 12,
       createdAt: new Date().toISOString(),
-    }))
-
-    // Generate 20 UnifiedCard items across different categories
-    const categories: Array<UnifiedCardItem['category']> = [
-      'cars',
-      'buses',
-      'equipment',
-      'operators',
-      'parts',
-      'services',
-      'jobs',
-      'transport',
-    ]
-
-    const unifiedItems: UnifiedCardItem[] = Array.from({ length: 20 }, (_, i) => ({
-      id: `unified-${i + 1}`,
-      title: `إعلان موحد ${i + 1}`,
-      category: categories[i % categories.length],
-      images: [],
-      price: (i + 1) * 100,
-      currency: 'OMR',
-      whatsappEnabled: i % 2 === 0,
-      location: 'مسقط، السيب',
-      timeAgo: 'منذ ساعتين',
     }))
 
     const operatorCardItems = operators.map(op => mapOperatorToCard(op))
@@ -104,11 +89,6 @@ describe('Load Proof (Spec 5): 20 OperatorCards + 20 UnifiedCards', () => {
           <View testID="operators-container">
             {operatorCardItems.map((opItem) => (
               <OperatorCard key={opItem.id} item={opItem} onPress={jest.fn()} />
-            ))}
-          </View>
-          <View testID="unified-container">
-            {unifiedItems.map((item) => (
-              <UnifiedCard key={item.id} item={item} />
             ))}
           </View>
         </ScrollView>
@@ -132,12 +112,13 @@ describe('Load Proof (Spec 5): 20 OperatorCards + 20 UnifiedCards', () => {
     expect(contactApi.getContact).toHaveBeenCalledTimes(1)
     expect(contactApi.getContact).toHaveBeenCalledWith('OPERATOR_LISTING', 'op-1')
 
-    // 4. Press call button on a UnifiedCard (index 20)
+    // 4. Press call button on another card (index 20)
     await act(async () => {
       fireEvent.press(allCallButtons[20])
     })
 
     // 5. VERIFY: contactApi.getContact was called second time (total 2)
     expect(contactApi.getContact).toHaveBeenCalledTimes(2)
+    expect(contactApi.getContact).toHaveBeenLastCalledWith('OPERATOR_LISTING', 'op-21')
   })
 })
