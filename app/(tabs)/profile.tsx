@@ -25,7 +25,6 @@ export default function ProfileScreen() {
     handleBack,
     handleLogout,
     activitiesItems,
-    transportItems,
     accountItems,
   } = useProfileOverview()
 
@@ -75,9 +74,6 @@ export default function ProfileScreen() {
 
         {/* ── Section 1: النشاط والإعلانات ── */}
         <ProfileSectionCard title="نشاطي وإعلاناتي" items={activitiesItems} />
-
-        {/* ── Section 2: خدمات النقل ── */}
-        <ProfileSectionCard title="خدمات النقل واللوجستيات" items={transportItems} />
 
         {/* ── Section 3: الحساب والأمان ── */}
         <ProfileSectionCard title="الحساب والإعدادات" items={accountItems} />

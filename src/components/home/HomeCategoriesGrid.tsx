@@ -16,12 +16,10 @@ export interface HomeCategoryItem {
 
 export const HOME_CATEGORIES: HomeCategoryItem[] = [
   { id: 'cars',      label: 'سيارات',    icon: 'car-sports',           route: '/cars' },
-  { id: 'jobs',      label: 'وظائف',     icon: 'account-tie',          route: '/jobs' },
   { id: 'services',  label: 'خدمات',     icon: 'car-wrench',           route: '/services' },
   { id: 'parts',     label: 'قطع غيار',  icon: 'car-cog',              route: '/parts' },
   { id: 'equipment', label: 'معدات',     icon: 'excavator',            route: '/equipment' },
   { id: 'buses',     label: 'حافلات',    icon: 'bus-side',             route: '/buses' },
-  { id: 'transport', label: 'نقل وشحن',  icon: 'truck-fast',           route: '/transport' },
   { id: 'browse',    label: 'تصفح الكل', icon: 'grid-large',           route: '/(tabs)/browse', isAction: true },
 ]
 

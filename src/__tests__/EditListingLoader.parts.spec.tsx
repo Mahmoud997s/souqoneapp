@@ -142,7 +142,7 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
     })
   })
 
-  it('falls through to legacy postStore for generic categories like jobs', async () => {
+  it('redirects to home if attempting to edit parked categories like jobs', async () => {
     ;(useLocalSearchParams as jest.Mock).mockReturnValue({
       id: 'job-505',
       type: 'jobs',
@@ -162,11 +162,7 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
 
     await waitFor(() => {
       expect(listingsApi.getById).toHaveBeenCalledWith('job-505')
-      const store = usePostStore.getState()
-      expect(store.editMode).toBe(true)
-      expect(store.editListingId).toBe('job-505')
-      expect(store.category).toBe('jobs')
-      expect(router.replace).toHaveBeenCalledWith('/post/step2')
+      expect(router.replace).toHaveBeenCalledWith('/(tabs)')
     })
   })
 })

@@ -26,10 +26,10 @@ export function routeForNotification(data: NotificationData | undefined): string
   // still sent by some notification types alongside entityType
   if (data.roomId) return `/chat/${data.roomId}`
   if (data.conversationId) return `/chat/${data.conversationId}`
-  if (data.jobId && !data.applicationId) return `/jobs/${data.jobId}`
-  if (data.applicationId) return `/jobs/apply/${data.applicationId}`
-  if (data.requestId) return `/transport/${data.requestId}`
-  if (data.bookingId) return `/transport/bookings/${data.bookingId}`
+  if (data.jobId) return null
+  if (data.applicationId) return null
+  if (data.requestId) return null
+  if (data.bookingId) return null
   if (data.listingId) return routeForListingEntity(data.entityType, data.listingId)
 
   // Fall back to the normalized entityType/entityId pair
@@ -38,13 +38,10 @@ export function routeForNotification(data: NotificationData | undefined): string
       case 'ROOM':
         return `/chat/${data.entityId}`
       case 'JOB':
-        return `/jobs/${data.entityId}`
       case 'JOB_APPLICATION':
-        return `/jobs/apply/${data.entityId}`
       case 'TRANSPORT_REQUEST':
-        return `/transport/${data.entityId}`
       case 'TRANSPORT_BOOKING':
-        return `/transport/bookings/${data.entityId}`
+        return null
       default:
         return routeForListingEntity(data.entityType, data.entityId)
     }

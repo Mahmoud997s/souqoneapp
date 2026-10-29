@@ -13,13 +13,11 @@ import { Radius } from '../../src/constants/radius'
 import { Gradients } from '../../src/constants/gradients'
 import { CardSystem } from '../../src/constants/cardSystem'
 import { UnifiedCardItem } from '../../src/types/unified-card.types'
-import { JobCard } from '../../src/components/cards/JobCard'
 import { EquipCard } from '../../src/components/cards/EquipCard'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
 import { ServiceCard } from '../../src/components/services/ServiceCard'
-import { TransportRequestCard } from '../../src/components/transport/TransportRequestCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
@@ -27,12 +25,10 @@ import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
-import { useJobsRaw } from '../../src/hooks/useJobs'
 import { useServices } from '../../src/hooks/useServices'
 import { useParts } from '../../src/hooks/useParts'
 import { useBuses } from '../../src/hooks/useBuses'
 import { useEquipment } from '../../src/hooks/useEquipment'
-import { useTransport } from '../../src/hooks/useTransport'
 import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown } from 'react-native-reanimated'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
@@ -126,12 +122,10 @@ export default function HomeScreen() {
   const { user } = useAuthStore()
 
   const { data: listings, isLoading: loadingListings } = useListings({ limit: 8 })
-  const { data: jobs,      isLoading: loadingJobs      } = useJobsRaw({ limit: 8 })
   const { data: services,  isLoading: loadingServices  } = useServices({ limit: 8 })
   const { data: parts,     isLoading: loadingParts     } = useParts({ limit: 8 })
   const { data: buses,     isLoading: loadingBuses     } = useBuses({ limit: 8 })
   const { data: equipment, isLoading: loadingEquipment } = useEquipment({ limit: 8 })
-  const { data: transport, isLoading: loadingTransport } = useTransport({ limit: 8 })
 
   const { scrollHandler, scrollY } = useScrollAwareNav()
   const { navHidden } = useNavVisibility()
@@ -160,7 +154,7 @@ export default function HomeScreen() {
         }
         title="ســوق ون"
         titleAccent={`أهلاً بك، ${userName} 👋`}
-        heroSearchPlaceholder="عن ماذا تبحث اليوم؟ (سيارات، وظائف...)"
+        heroSearchPlaceholder="عن ماذا تبحث اليوم؟ (سيارات، معدات، قطع غيار...)"
         onHeroSearchPress={() => router.push('/(tabs)/search')}
         navSearchPlaceholder="عن ماذا تبحث اليوم؟"
         onNavSearchPress={() => router.push('/(tabs)/search')}
@@ -244,24 +238,6 @@ export default function HomeScreen() {
         />
 
         <CategorySection
-          title="وظائف وشواغر"
-          subTitle="فرص عمل وكفاءات مهنية جديدة"
-          icon="account-tie"
-          iconColor={Colors.forestGreen}
-          seeAllRoute="/jobs"
-          data={jobs as any}
-          isLoading={loadingJobs}
-          routeBase="jobs"
-          CustomCard={({ item, onPress }) => (
-            <JobCard
-              job={item as any}
-              onPress={onPress}
-              maxChips={3}
-            />
-          )}
-        />
-
-        <CategorySection
           title="خدمات السيارات"
           subTitle="صيانة وفحص وورش متخصصة"
           icon="car-wrench"
@@ -336,23 +312,6 @@ export default function HomeScreen() {
               maxChips={3}
               disableImageSwipe={true}
               titleNumberOfLines={1}
-            />
-          )}
-        />
-
-        <CategorySection
-          title="طلبات الشحن والنقل"
-          subTitle="شحنات بضائع وطلبات نقل نشطة"
-          icon="truck-fast"
-          iconColor={Colors.accent}
-          seeAllRoute="/transport"
-          data={transport?.items as any}
-          isLoading={loadingTransport}
-          routeBase="transport"
-          CustomCard={({ item, onPress }) => (
-            <TransportRequestCard
-              request={item as any}
-              onPress={onPress}
             />
           )}
         />

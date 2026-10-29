@@ -6,7 +6,6 @@ import { BusCard } from '../../../components/buses/BusCard'
 import { EquipCard } from '../../../components/cards/EquipCard'
 import { PartCard } from '../../../components/parts/PartCard'
 import { ServiceCard } from '../../../components/services/ServiceCard'
-import { JobCard } from '../../../components/cards/JobCard'
 import { OperatorCard } from '../../../components/cards/OperatorCard'
 import { getListingDetailRoute } from '../../../utils/navigationHelper'
 
@@ -103,13 +102,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
 
     case 'job':
     case 'jobs':
-      return (
-        <JobCard
-          job={normalizedItem}
-          onPress={handlePress}
-          fullWidth
-        />
-      )
+      return null
 
     case 'operator':
     case 'operators': {

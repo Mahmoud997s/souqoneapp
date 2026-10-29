@@ -22,8 +22,6 @@ const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-outline' },
   { id: 'buses', title: 'حافلات', icon: 'bus-outline' },
   { id: 'equipment', title: 'معدات', icon: 'build-outline' },
-  { id: 'transport', title: 'نقل', icon: 'cube-outline' },
-  { id: 'jobs', title: 'وظائف', icon: 'briefcase-outline' },
   { id: 'services', title: 'خدمات', icon: 'build-outline' },
   { id: 'parts', title: 'قطع غيار', icon: 'settings-outline' },
 ]
@@ -44,8 +42,7 @@ export default function PostScreen() {
       router.push('/parts/new')
     } else if (id === 'services') {
       router.push('/services/new')
-    } else if (id === 'transport') {
-      router.push('/transport/new')
+
     } else {
       router.push('/post/step2')
     }

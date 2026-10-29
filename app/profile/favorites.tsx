@@ -25,7 +25,6 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 const CATEGORY_FILTERS = [
   { id: 'all', label: 'الكل' },
   { id: 'cars', label: 'سيارات' },
-  { id: 'jobs', label: 'وظائف' },
   { id: 'services', label: 'خدمات' },
   { id: 'parts', label: 'قطع غيار' },
   { id: 'buses', label: 'حافلات' },
@@ -45,6 +44,7 @@ export default function FavoritesScreen() {
   const contentTopOffset = navBarHeight + 10
 
   const filteredData = data?.filter(item => {
+    if (item.category === 'jobs' || item.category === 'transport') return false
     if (activeTab === 'all') return true
     return item.category === activeTab
   }) ?? []

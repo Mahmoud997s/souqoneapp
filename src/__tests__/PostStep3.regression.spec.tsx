@@ -50,11 +50,11 @@ describe('PostStep3Screen Multi-Vertical Forms Regression Check', () => {
     expect(router.replace).toHaveBeenCalledWith('/services/new')
   })
 
-  it('renders fallback development message for remaining categories like jobs', async () => {
+  it('does not render fallback development message when category is jobs', async () => {
     usePostStore.getState().set({ category: 'jobs' })
 
-    await render(<PostStep3Screen />)
+    const { queryByText } = await render(<PostStep3Screen />)
 
-    expect(screen.getByText('نموذج jobs قيد التطوير')).toBeTruthy()
+    expect(queryByText('نموذج jobs قيد التطوير')).toBeNull()
   })
 })
