@@ -205,21 +205,6 @@ export function useCarsBottomBar() {
   });
 }
 
-export function useTransportBottomBar() {
-  return useDepartmentBottomBar({
-    category: 'transport',
-    postRoute: '/transport/new',
-    activeColor: Colors.primary,
-    activeBgColor: Colors.paleMint,
-    customTabs: [
-      { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/transport' },
-      { id: 'browse', label: 'الطلبات', icon: 'package-variant', iconOutline: 'package-variant-closed', family: 'MaterialCommunityIcons', route: '/transport/browse' },
-      { id: 'post', isPost: true },
-      { id: 'carriers', label: 'الناقلين', icon: 'truck-fast', iconOutline: 'truck-fast-outline', family: 'MaterialCommunityIcons', route: '/transport/carriers' },
-      { id: 'dashboard', label: 'لوحتي', icon: 'view-dashboard', iconOutline: 'view-dashboard-outline', family: 'MaterialCommunityIcons', route: '/transport/carrier-dashboard', requireAuth: true },
-    ],
-  });
-}
 
 export function useServicesBottomBar() {
   return useDepartmentBottomBar({
@@ -285,21 +270,6 @@ export function useBusesBottomBar() {
   });
 }
 
-export function useJobsBottomBar() {
-  return useDepartmentBottomBar({
-    category: 'jobs',
-    postRoute: '/jobs/create',
-    activeColor: Colors.primary,
-    activeBgColor: Colors.paleMint,
-    customTabs: [
-      { id: 'home', label: 'الرئيسية', icon: 'briefcase', iconOutline: 'briefcase-outline', family: 'MaterialCommunityIcons', route: '/jobs' },
-      { id: 'browse', label: 'الوظائف', icon: 'briefcase-search', iconOutline: 'briefcase-search-outline', family: 'MaterialCommunityIcons', route: '/jobs/browse' },
-      { id: 'post', isPost: true },
-      { id: 'drivers', label: 'السائقين', icon: 'card-account-details', iconOutline: 'card-account-details-outline', family: 'MaterialCommunityIcons', route: '/jobs/drivers' },
-      { id: 'dashboard', label: 'لوحتي', icon: 'view-dashboard', iconOutline: 'view-dashboard-outline', family: 'MaterialCommunityIcons', route: '/jobs/dashboard', requireAuth: true },
-    ],
-  });
-}
 
 
 

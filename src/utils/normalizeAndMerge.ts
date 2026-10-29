@@ -10,7 +10,6 @@ import {
   mapOperatorToCard,
   mapPartToCard,
   mapServiceToCard,
-  mapJobToCard,
 } from './mappers'
 
 export interface RawEntitiesBundle {
@@ -136,24 +135,6 @@ export function normalizeAndMerge(bundle: RawEntitiesBundle): MyListingItem[] {
       updatedAt: s.updatedAt || s.createdAt || '',
       raw: s,
       mapped: mapServiceToCard(s),
-    })
-  }
-
-  // 4. Jobs
-  const jobs = extractArray(bundle.jobs)
-  for (const j of jobs) {
-    if (!j || !j.id) continue
-    const rawStatus = j.status || 'ACTIVE'
-    results.push({
-      id: j.id,
-      entityType: 'job',
-      normalizedStatus: normalizeEntityStatus('job', rawStatus),
-      rawStatus,
-      title: j.title || 'وظيفة سائق',
-      thumbnail: undefined,
-      updatedAt: j.updatedAt || j.createdAt || '',
-      raw: j,
-      mapped: mapJobToCard(j),
     })
   }
 

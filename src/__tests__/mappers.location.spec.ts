@@ -1,51 +1,35 @@
-import { mapJobToCard, mapTransportToCard } from '../utils/mappers';
+import { formatLocation, mapListingToCard } from '../utils/mappers';
 
 describe('mappers.location', () => {
-  describe('mapJobToCard', () => {
+  describe('formatLocation via mapListingToCard', () => {
     it('uses governorateRef.nameAr when available', () => {
-      const job = {
+      const item = {
         id: 1,
-        salary: 100,
-        salaryPeriod: 'MONTHLY',
+        price: 100,
         governorateRef: { nameAr: 'مسقط' },
-        wilayaRef: { nameAr: 'السيب' }
+        wilayaRef: { nameAr: 'السيب' },
       };
-      const card = mapJobToCard(job);
+      const card = mapListingToCard(item);
       expect(card.governorate).toBe('مسقط، السيب');
     });
 
-    it('falls back to "موقع غير محدد" when no ref', () => {
-      const job = {
+    it('falls back to legacy governorate string when no ref', () => {
+      const item = {
         id: 1,
-        salary: 100,
-        salaryPeriod: 'MONTHLY',
-        // Deliberately missing governorateRef and legacy governorate
+        price: 100,
+        governorate: 'ظفار',
       };
-      const card = mapJobToCard(job);
-      expect(card.governorate).toBe('موقع غير محدد');
-    });
-  });
-
-  describe('mapTransportToCard', () => {
-    it('uses fromGovernorateRef.nameAr when available', () => {
-      const transport = {
-        id: 1,
-        serviceType: 'MOVING',
-        fromGovernorateRef: { nameAr: 'الداخلية' },
-        toGovernorateRef: { nameAr: 'ظفار' }
-      };
-      const card = mapTransportToCard(transport);
-      expect(card.governorate).toBe('الداخلية');
+      const card = mapListingToCard(item);
+      expect(card.governorate).toBe('ظفار');
     });
 
-    it('falls back to fromGovernorate string when no ref', () => {
-      const transport = {
+    it('returns empty string when no location provided', () => {
+      const item = {
         id: 1,
-        serviceType: 'MOVING',
-        fromGovernorate: 'مسقط'
+        price: 100,
       };
-      const card = mapTransportToCard(transport);
-      expect(card.governorate).toBe('مسقط');
+      const card = mapListingToCard(item);
+      expect(card.governorate).toBe('');
     });
   });
 });

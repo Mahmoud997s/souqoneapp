@@ -7,7 +7,6 @@ import { BusCard } from '../../../components/buses/BusCard'
 import { EquipCard } from '../../../components/cards/EquipCard'
 import { PartCard } from '../../../components/parts/PartCard'
 import { ServiceCard } from '../../../components/services/ServiceCard'
-import { JobCard } from '../../../components/cards/JobCard'
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -153,16 +152,7 @@ jest.mock('../../../components/services/ServiceCard', () => {
   }
 })
 
-jest.mock('../../../components/cards/JobCard', () => {
-  const { Text, View } = require('react-native')
-  return {
-    JobCard: jest.fn((props) => (
-      <View testID={`job-card-${props.job?.id}`} accessibilityLabel={props.fullWidth ? 'full-width-card' : 'standard-card'}>
-        <Text>{props.job?.title}</Text>
-      </View>
-    )),
-  }
-})
+
 
 describe('FavoritesScreen - Original per-vertical cards render with fullWidth', () => {
   beforeEach(() => {
@@ -209,9 +199,5 @@ describe('FavoritesScreen - Original per-vertical cards render with fullWidth', 
     const serviceCall = mockServiceCard.mock.calls.find(call => call[0]?.item?.id === 'service-1')
     expect(serviceCall).toBeDefined()
     expect(serviceCall[0].fullWidth).toBe(true)
-
-    // 6. Jobs filtered out
-    const mockJobCard = JobCard as unknown as jest.Mock
-    expect(mockJobCard).not.toHaveBeenCalled()
   })
 })

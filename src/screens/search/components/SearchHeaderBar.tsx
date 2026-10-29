@@ -39,7 +39,7 @@ export const SearchHeaderBar = React.memo(function SearchHeaderBar({
           <Ionicons name="search" size={18} color="rgba(255, 255, 255, 0.75)" style={s.searchIcon} />
           <TextInput
             style={s.searchInput}
-            placeholder="ابحث عن سيارات، قطع، وظائف..."
+            placeholder="ابحث عن سيارات، معدات، قطع غيار..."
             placeholderTextColor="rgba(255, 255, 255, 0.65)"
             value={query}
             onChangeText={onChangeText}

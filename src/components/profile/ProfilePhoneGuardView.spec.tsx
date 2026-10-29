@@ -19,7 +19,6 @@ describe('ProfilePhoneGuardView', () => {
   describe.each([
     ['glass', 'إضافة إعلان سيارة'],
     ['app', 'إضافة إعلان'],
-    ['jobs', 'نشر إعلان'],
   ] as const)('headerVariant=%s', (variant, title) => {
     it('renders the three testIDs, the copy, and exactly one header title', async () => {
       await render(<ProfilePhoneGuardView title={title} headerVariant={variant} />);
@@ -51,14 +50,14 @@ describe('ProfilePhoneGuardView', () => {
     });
   });
 
-  it.each(['app', 'jobs'] as const)('%s: uses AppHeader (no glass actions)', async (variant) => {
+  it('app: uses AppHeader (no glass actions)', async () => {
     const onBack = jest.fn();
-    await render(<ProfilePhoneGuardView title="نشر إعلان" headerVariant={variant} onBack={onBack} />);
+    await render(<ProfilePhoneGuardView title="إضافة إعلان" headerVariant="app" onBack={onBack} />);
 
     expect(screen.queryByLabelText('الرسائل')).toBeNull();
     expect(screen.queryByLabelText('الإشعارات')).toBeNull();
     expect(screen.queryByLabelText('رجوع')).toBeNull();
-    expect(screen.getAllByText('نشر إعلان')).toHaveLength(1);
+    expect(screen.getAllByText('إضافة إعلان')).toHaveLength(1);
   });
 
   it('defaults to the app header variant when headerVariant is omitted', async () => {

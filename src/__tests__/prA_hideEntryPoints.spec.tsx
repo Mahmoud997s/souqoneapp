@@ -1,3 +1,5 @@
+import React from 'react'
+import { render, screen } from '@testing-library/react-native'
 import { FEATURES } from '../constants/features'
 import { HOME_CATEGORIES } from '../components/home/HomeCategoriesGrid'
 import { routeForNotification } from '../utils/notificationRouter'
@@ -6,6 +8,7 @@ import { QUICK_CATEGORIES, TRENDING_KEYWORDS } from '../screens/search/component
 import { SEARCH_CATEGORY_TABS } from '../screens/search/components/SearchCategoryTabs'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { FAVORITES_CATEGORY_FILTERS } from '../../app/profile/favorites'
+import { SearchHeaderBar } from '../screens/search/components/SearchHeaderBar'
 
 describe('PR-A: Hide Jobs & Transport Entry Points', () => {
   it('features constants disable jobs and transport', () => {
@@ -69,5 +72,21 @@ describe('PR-A: Hide Jobs & Transport Entry Points', () => {
     expect(filterIds).not.toContain('jobs')
     expect(filterIds).not.toContain('transport')
     expect(filterIds).toEqual(['all', 'cars', 'services', 'parts', 'buses', 'equipment'])
+  })
+
+  it('SearchHeaderBar placeholder does not contain وظائف', async () => {
+    await render(
+      <SearchHeaderBar
+        query=""
+        onChangeText={jest.fn()}
+        onSubmit={jest.fn()}
+        onClear={jest.fn()}
+        activeFiltersCount={0}
+        onOpenFilters={jest.fn()}
+      />
+    )
+    const input = screen.getByPlaceholderText('ابحث عن سيارات، معدات، قطع غيار...')
+    expect(input).toBeTruthy()
+    expect(input.props.placeholder).not.toContain('وظائف')
   })
 })

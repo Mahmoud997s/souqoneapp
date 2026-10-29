@@ -15,6 +15,7 @@
     "expo-env.d.ts"
   ],
   "exclude": [
-    "e2e"
+    "e2e",
+    "src/_parked/**"
   ]
 }
