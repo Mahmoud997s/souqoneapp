@@ -2,7 +2,6 @@ import { useMemo, useCallback } from 'react'
 import { useMyCarsInfinite } from './queries/useMyCarsInfinite'
 import { useMyBusesInfinite } from './queries/useMyBusesInfinite'
 import { useMyServicesInfinite } from './queries/useMyServicesInfinite'
-import { useMyJobsInfinite } from './queries/useMyJobsInfinite'
 import { useMyEquipment } from './queries/useMyEquipment'
 import { useMyOperators } from './useEquipment'
 import { useMyParts } from './queries/useMyParts'
@@ -29,7 +28,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
   const cars = useMyCarsInfinite()
   const buses = useMyBusesInfinite()
   const services = useMyServicesInfinite()
-  const jobs = useMyJobsInfinite()
   const equipment = useMyEquipment()
   const operators = useMyOperators()
   const parts = useMyParts()
@@ -39,7 +37,7 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
       cars: extractPagesItems(cars.data?.pages),
       buses: extractPagesItems(buses.data?.pages),
       services: extractPagesItems(services.data?.pages),
-      jobs: extractPagesItems(jobs.data?.pages),
+      jobs: [],
       equipment: equipment.data,
       operators: operators.data,
       parts: parts.data,
@@ -48,7 +46,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     cars.data,
     buses.data,
     services.data,
-    jobs.data,
     equipment.data,
     operators.data,
     parts.data,
@@ -63,8 +60,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
         return [buses]
       case 'services':
         return [services]
-      case 'jobs':
-        return [jobs]
       case 'equipment':
         return [equipment]
       case 'operators':
@@ -72,9 +67,9 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
       case 'parts':
         return [parts]
       default:
-        return [cars, buses, services, jobs, equipment, operators, parts]
+        return [cars, buses, services, equipment, operators, parts]
     }
-  }, [activeCategory, cars, buses, services, jobs, equipment, operators, parts])
+  }, [activeCategory, cars, buses, services, equipment, operators, parts])
 
   const isError = useMemo(() => {
     return activeQueries.some((q) => q.isError)
@@ -90,7 +85,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     cars.status,
     buses.status,
     services.status,
-    jobs.status,
     equipment.status,
     operators.status,
     parts.status,
@@ -101,24 +95,22 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     if (activeCategory === 'cars') return cars.isFetchingNextPage
     if (activeCategory === 'buses') return buses.isFetchingNextPage
     if (activeCategory === 'services') return services.isFetchingNextPage
-    if (activeCategory === 'jobs') return jobs.isFetchingNextPage
     if (activeCategory === 'all') {
-      return cars.isFetchingNextPage || buses.isFetchingNextPage || services.isFetchingNextPage || jobs.isFetchingNextPage
+      return cars.isFetchingNextPage || buses.isFetchingNextPage || services.isFetchingNextPage
     }
     return false
-  }, [activeCategory, cars.isFetchingNextPage, buses.isFetchingNextPage, services.isFetchingNextPage, jobs.isFetchingNextPage])
+  }, [activeCategory, cars.isFetchingNextPage, buses.isFetchingNextPage, services.isFetchingNextPage])
 
   // Isolate has next page to only the active category tab
   const hasNextPage = useMemo(() => {
     if (activeCategory === 'cars') return Boolean(cars.hasNextPage)
     if (activeCategory === 'buses') return Boolean(buses.hasNextPage)
     if (activeCategory === 'services') return Boolean(services.hasNextPage)
-    if (activeCategory === 'jobs') return Boolean(jobs.hasNextPage)
     if (activeCategory === 'all') {
-      return Boolean(cars.hasNextPage || buses.hasNextPage || services.hasNextPage || jobs.hasNextPage)
+      return Boolean(cars.hasNextPage || buses.hasNextPage || services.hasNextPage)
     }
     return false
-  }, [activeCategory, cars.hasNextPage, buses.hasNextPage, services.hasNextPage, jobs.hasNextPage])
+  }, [activeCategory, cars.hasNextPage, buses.hasNextPage, services.hasNextPage])
 
   const fetchNextPage = useCallback(() => {
     if ((activeCategory === 'cars' || activeCategory === 'all') && cars.hasNextPage && !cars.isFetchingNextPage) {
@@ -130,15 +122,11 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     if ((activeCategory === 'services' || activeCategory === 'all') && services.hasNextPage && !services.isFetchingNextPage) {
       services.fetchNextPage()
     }
-    if ((activeCategory === 'jobs' || activeCategory === 'all') && jobs.hasNextPage && !jobs.isFetchingNextPage) {
-      jobs.fetchNextPage()
-    }
   }, [
     activeCategory,
     cars.hasNextPage, cars.isFetchingNextPage, cars.fetchNextPage,
     buses.hasNextPage, buses.isFetchingNextPage, buses.fetchNextPage,
     services.hasNextPage, services.isFetchingNextPage, services.fetchNextPage,
-    jobs.hasNextPage, jobs.isFetchingNextPage, jobs.fetchNextPage,
   ])
 
   const refetch = useCallback(async () => {
@@ -146,7 +134,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
       cars.refetch(),
       buses.refetch(),
       services.refetch(),
-      jobs.refetch(),
       equipment.refetch(),
       operators.refetch(),
       parts.refetch(),
@@ -155,7 +142,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     cars.refetch,
     buses.refetch,
     services.refetch,
-    jobs.refetch,
     equipment.refetch,
     operators.refetch,
     parts.refetch,

@@ -12,23 +12,20 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { CategoryFilterType } from '../../../hooks/useSearchLogic'
 
-const TRENDING_KEYWORDS = [
+export const TRENDING_KEYWORDS = [
   'تويوتا لاندكروزر',
   'لكزس LX',
   'قطع غيار أصلية',
   'باص نيسان سيفيليان',
-  'وظائف سائقين',
-  'خدمات نقل بضائع',
   'معدات حفر وبناء',
   'عقود إيجار سنوية',
 ]
 
-const QUICK_CATEGORIES: { id: CategoryFilterType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+export const QUICK_CATEGORIES: { id: CategoryFilterType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'cars', label: 'سيارات', icon: 'car-sport' },
   { id: 'parts', label: 'قطع غيار', icon: 'construct' },
-  { id: 'buses', label: 'باصات ونقل', icon: 'bus' },
+  { id: 'buses', label: 'باصات', icon: 'bus' },
   { id: 'equipment', label: 'معدات ثقيلة', icon: 'hardware-chip' },
-  { id: 'jobs', label: 'وظائف', icon: 'briefcase' },
   { id: 'services', label: 'خدمات', icon: 'hammer' },
 ]
 

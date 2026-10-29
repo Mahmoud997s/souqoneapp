@@ -7,7 +7,6 @@ import { busesApi } from '../api/buses'
 import { equipmentApi } from '../api/equipment'
 import { partsApi } from '../api/parts'
 import { servicesApi } from '../api/services'
-import { jobsApi } from '../api/jobs'
 import { dialogService } from '../store/dialogStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
@@ -109,7 +108,6 @@ export function useMyListingsScreen() {
         if (activeCategory === 'operators' && item.entityType !== 'operator') return false
         if (activeCategory === 'parts' && item.entityType !== 'part') return false
         if (activeCategory === 'services' && item.entityType !== 'service') return false
-        if (activeCategory === 'jobs' && item.entityType !== 'job') return false
       }
 
       // 2. Check SubFilter Match
@@ -220,9 +218,6 @@ export function useMyListingsScreen() {
             case 'service':
               await servicesApi.remove(item.id)
               break
-            case 'job':
-              await jobsApi.deleteJob(item.id)
-              break
           }
 
           await queryClient.invalidateQueries({
@@ -327,9 +322,6 @@ export function useMyListingsScreen() {
         break
       case 'service':
         router.push(`/services/${item.id}` as any)
-        break
-      case 'job':
-        router.push(`/jobs/${item.id}` as any)
         break
     }
   }

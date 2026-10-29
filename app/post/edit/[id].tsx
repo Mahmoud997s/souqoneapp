@@ -124,6 +124,11 @@ export default function EditListingLoader() {
         else if (type === 'service' || type === 'services' || listing.type === 'service' || listing.listingType === 'CAR_SERVICE' || !!listing.serviceType) category = 'services'
         else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
 
+        if (category === 'jobs' || category === 'transport') {
+          router.replace('/(tabs)')
+          return
+        }
+
         if (category === 'cars') {
           const brandId = listing.brandId || ''
           const carModelId = listing.carModelId || listing.modelId || ''

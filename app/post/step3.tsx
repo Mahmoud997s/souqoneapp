@@ -38,8 +38,8 @@ export default function PostStep3Screen() {
       router.replace('/parts/new')
     } else if (category === 'services') {
       router.replace('/services/new')
-    } else if (category === 'transport') {
-      router.replace('/transport/new')
+    } else if (category === 'jobs' || category === 'transport') {
+      router.replace('/(tabs)')
     }
   }, [category])
 
@@ -90,19 +90,7 @@ export default function PostStep3Screen() {
     router.push('/post/step4')
   }
 
-  const renderForm = () => {
-    switch (category) {
-      case 'jobs':
-      default:
-        return (
-          <View style={{ padding: Spacing.space4, alignItems: 'center' }}>
-            <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>
-              نموذج {category} قيد التطوير
-            </Text>
-          </View>
-        )
-    }
-  }
+  const renderForm = () => null
 
   return (
     <View style={s.root}>

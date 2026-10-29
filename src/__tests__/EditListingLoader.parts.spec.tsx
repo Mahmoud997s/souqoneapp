@@ -142,7 +142,7 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
     })
   })
 
-  it('falls through to legacy postStore for generic categories like jobs', async () => {
+  it('redirects to home if attempting to edit parked categories like jobs', async () => {
     ;(useLocalSearchParams as jest.Mock).mockReturnValue({
       id: 'job-505',
       type: 'jobs',
@@ -162,11 +162,31 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
 
     await waitFor(() => {
       expect(listingsApi.getById).toHaveBeenCalledWith('job-505')
-      const store = usePostStore.getState()
-      expect(store.editMode).toBe(true)
-      expect(store.editListingId).toBe('job-505')
-      expect(store.category).toBe('jobs')
-      expect(router.replace).toHaveBeenCalledWith('/post/step2')
+      expect(router.replace).toHaveBeenCalledWith('/(tabs)')
+    })
+  })
+
+  it('redirects to home if attempting to edit parked categories like transport', async () => {
+    ;(useLocalSearchParams as jest.Mock).mockReturnValue({
+      id: 'tr-606',
+      type: 'transport',
+    })
+
+    const transportPayload = {
+      id: 'tr-606',
+      listingType: 'TRANSPORT_REQUEST',
+      title: 'طلب نقل بضائع',
+      price: 150,
+      images: [],
+    }
+
+    ;(listingsApi.getById as jest.Mock).mockResolvedValue({ data: transportPayload })
+
+    render(<EditListingLoader />)
+
+    await waitFor(() => {
+      expect(listingsApi.getById).toHaveBeenCalledWith('tr-606')
+      expect(router.replace).toHaveBeenCalledWith('/(tabs)')
     })
   })
 })

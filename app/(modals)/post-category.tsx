@@ -13,8 +13,6 @@ const CATEGORIES = [
   { id: 'cars', title: 'سيارات ومركبات', icon: 'car-sport', color: Colors.primary, bg: '#F0F4FC' },
   { id: 'buses', title: 'حافلات', icon: 'bus', color: '#059669', bg: '#ECFDF5' },
   { id: 'equipment', title: 'معدات', icon: 'construct', color: '#D97706', bg: '#FFFBEB' },
-  { id: 'transport', title: 'نقل', icon: 'cube', color: '#7C3AED', bg: '#F5F3FF' },
-  { id: 'jobs', title: 'وظائف', icon: 'briefcase', color: '#DB2777', bg: '#FDF2F8' },
   { id: 'services', title: 'خدمات', icon: 'color-wand', color: '#2563EB', bg: '#EFF6FF' },
   { id: 'parts', title: 'قطع غيار', icon: 'settings', color: '#475569', bg: '#F1F5F9' },
 ]
@@ -34,8 +32,7 @@ export default function PostCategoryModal() {
       router.replace('/parts/new')
     } else if (categoryId === 'services') {
       router.replace('/services/new')
-    } else if (categoryId === 'transport') {
-      router.replace('/transport/new')
+
     } else {
       router.replace('/post/step2')
     }
