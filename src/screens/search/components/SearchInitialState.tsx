@@ -12,7 +12,7 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { CategoryFilterType } from '../../../hooks/useSearchLogic'
 
-const TRENDING_KEYWORDS = [
+export const TRENDING_KEYWORDS = [
   'تويوتا لاندكروزر',
   'لكزس LX',
   'قطع غيار أصلية',
@@ -21,7 +21,7 @@ const TRENDING_KEYWORDS = [
   'عقود إيجار سنوية',
 ]
 
-const QUICK_CATEGORIES: { id: CategoryFilterType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+export const QUICK_CATEGORIES: { id: CategoryFilterType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'cars', label: 'سيارات', icon: 'car-sport' },
   { id: 'parts', label: 'قطع غيار', icon: 'construct' },
   { id: 'buses', label: 'باصات', icon: 'bus' },

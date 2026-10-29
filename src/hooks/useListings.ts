@@ -3,7 +3,6 @@ import { listingsApi } from '../api/listings'
 import { favoritesApi } from '../api/favorites'
 import { 
   mapListingToCard, 
-  mapJobToCard,
   mapServiceToCard,
   mapPartToCard,
   mapBusToCard,

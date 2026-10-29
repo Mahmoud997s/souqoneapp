@@ -165,4 +165,28 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
       expect(router.replace).toHaveBeenCalledWith('/(tabs)')
     })
   })
+
+  it('redirects to home if attempting to edit parked categories like transport', async () => {
+    ;(useLocalSearchParams as jest.Mock).mockReturnValue({
+      id: 'tr-606',
+      type: 'transport',
+    })
+
+    const transportPayload = {
+      id: 'tr-606',
+      listingType: 'TRANSPORT_REQUEST',
+      title: 'طلب نقل بضائع',
+      price: 150,
+      images: [],
+    }
+
+    ;(listingsApi.getById as jest.Mock).mockResolvedValue({ data: transportPayload })
+
+    render(<EditListingLoader />)
+
+    await waitFor(() => {
+      expect(listingsApi.getById).toHaveBeenCalledWith('tr-606')
+      expect(router.replace).toHaveBeenCalledWith('/(tabs)')
+    })
+  })
 })

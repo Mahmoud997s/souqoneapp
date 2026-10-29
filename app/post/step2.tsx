@@ -40,7 +40,8 @@ export default function PostStep2Screen() {
       router.replace('/parts/new')
     } else if (category === 'services') {
       router.replace('/services/new')
-
+    } else if (category === 'jobs' || category === 'transport') {
+      router.replace('/(tabs)')
     }
   }, [category])
 

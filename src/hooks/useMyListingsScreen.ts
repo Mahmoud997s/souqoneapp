@@ -37,7 +37,7 @@ const ENTITY_QUERY_KEYS: Record<MyListingEntityType, string[]> = {
   operator: ['my-operators'],
   part: ['my-parts'],
   service: ['my-services'],
-  job: [],
+  job: ['my-jobs'],
 }
 
 interface RawListingTypeHolder {
