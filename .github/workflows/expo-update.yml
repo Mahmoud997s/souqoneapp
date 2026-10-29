@@ -48,7 +48,7 @@ jobs:
           if [ -n "$MSG" ]; then
             CLEAN_MSG=$(printf '%s\n' "$MSG" | head -n 1)
           fi
-          if [ -z "${CLEAN_MSG// /}" ]; then
+          if [ -z "${CLEAN_MSG//[[:space:]]/}" ]; then
             SHORT_SHA="${COMMIT_SHA:0:7}"
             CLEAN_MSG="manual OTA update ${SHORT_SHA:-update}"
           fi
