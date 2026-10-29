@@ -120,36 +120,7 @@ export function useProfileOverview() {
   ]
 
   // Group 2: خدمات النقل واللوجستيات
-  const transportItems: MenuItem[] = [
-    {
-      icon: 'cube-outline',
-      title: 'طلبات النقل',
-      subTitle: 'متابعة شحناتك والطلبات الجارية',
-      route: '/transport/my-requests',
-      iconColor: '#059669',
-    },
-    {
-      icon: 'pricetags-outline',
-      title: 'عروضي المقدمة',
-      subTitle: 'عروض الأسعار المرسلة للعملاء',
-      route: '/transport/my-quotes',
-      iconColor: '#2563EB',
-    },
-    {
-      icon: 'calendar-outline',
-      title: 'حجوزاتي',
-      subTitle: 'تأكيدات الحجز والمواعيد',
-      route: '/transport/bookings',
-      iconColor: '#7C3AED',
-    },
-    {
-      icon: 'shield-checkmark-outline',
-      title: 'سجّل كناقل معتمد',
-      subTitle: 'انضم لشبكة الناقلين وابدأ العمل',
-      route: '/transport/carrier-register',
-      iconColor: '#D97706',
-    },
-  ]
+  const transportItems: MenuItem[] = []
 
   // Group 3: إعدادات الحساب والأمان
   const accountItems: MenuItem[] = [

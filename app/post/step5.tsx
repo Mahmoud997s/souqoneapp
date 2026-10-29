@@ -20,11 +20,9 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { CardImageSwiper } from '../../src/components/ui/CardImageSwiper'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { listingsApi } from '../../src/api/listings'
-import { jobsApi } from '../../src/api/jobs'
 import { servicesApi } from '../../src/api/services'
 import { partsApi } from '../../src/api/parts'
 import { equipmentApi } from '../../src/api/equipment'
-import { transportApi } from '../../src/api/transport'
 import { busesApi } from '../../src/api/buses'
 import { uploadsApi } from '../../src/api/uploads'
 import { getPostGovLabel, getPostCityLabel } from '../../src/constants/locations'
@@ -197,9 +195,6 @@ export default function PostStep5Screen() {
         payload.version = store.details?.version;
         
         switch (store.category) {
-          case 'jobs':
-            await jobsApi.update(store.editListingId, payload as any)
-            break
           case 'services':
             await servicesApi.update(store.editListingId, payload as any)
             break
@@ -208,9 +203,6 @@ export default function PostStep5Screen() {
             break
           case 'equipment':
             await equipmentApi.update(store.editListingId, payload as any)
-            break
-          case 'transport':
-            await transportApi.update(store.editListingId, payload as any)
             break
           case 'buses':
             await busesApi.update(store.editListingId, payload as any)
@@ -238,9 +230,6 @@ export default function PostStep5Screen() {
         }
       } else {
         switch (store.category) {
-          case 'jobs':
-            await jobsApi.create(payload as any)
-            break
           case 'services':
             await servicesApi.create(payload as any)
             break
@@ -249,9 +238,6 @@ export default function PostStep5Screen() {
             break
           case 'equipment':
             await equipmentApi.create(payload as any)
-            break
-          case 'transport':
-            await transportApi.create(payload as any)
             break
           case 'buses':
             await busesApi.create(payload as any)
@@ -305,8 +291,6 @@ export default function PostStep5Screen() {
     buses: 'حافلات وباصات',
     services: 'خدمات وورش',
     equipment: 'معدات ثقيلة',
-    transport: 'نقل وشحن',
-    jobs: 'وظائف',
   }
   const categoryLabel = categoryLabelMap[store.category] || store.category
 

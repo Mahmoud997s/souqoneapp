@@ -134,22 +134,6 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
       { id: 'MODIFICATION', label: 'تعديل وتزويد', icon: 'speedometer-outline' },
     ],
   },
-  {
-    id: 'jobs',
-    label: 'وظائف وسائقين',
-    icon: 'briefcase-outline',
-    items: [
-      { id: 'all_jobs', label: 'كل الوظائف', icon: 'briefcase-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
-      { id: 'HIRING', label: 'طلب سائق', icon: 'briefcase-outline' },
-      { id: 'OFFERING', label: 'سائق يبحث عن عمل', icon: 'person-outline' },
-      { id: 'FULL_TIME', label: 'دوام كامل', icon: 'time-outline' },
-      { id: 'PART_TIME', label: 'دوام جزئي', icon: 'hourglass-outline' },
-      { id: 'CONTRACT', label: 'عقد تشغيل', icon: 'document-text-outline' },
-    ],
-  },
 ]
 
 export interface MyListingsVisualFiltersProps {

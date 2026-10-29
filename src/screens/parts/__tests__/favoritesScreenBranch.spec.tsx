@@ -178,7 +178,7 @@ describe('FavoritesScreen - Original per-vertical cards render with fullWidth', 
     expect(screen.getByText('رافعة شوكية كاتربيلر 3 طن')).toBeTruthy()
     expect(screen.getByText('سفايف لاندكروزر أصلية')).toBeTruthy()
     expect(screen.getByText('فحص كمبيوتر سيارات وبرمجة')).toBeTruthy()
-    expect(screen.getByText('مطلوب فني ميكانيك')).toBeTruthy()
+    expect(screen.queryByText('مطلوب فني ميكانيك')).toBeNull()
 
     // 1. Cars -> CarCard (fullWidth: true)
     const mockCarCard = CarCard as unknown as jest.Mock
@@ -210,10 +210,8 @@ describe('FavoritesScreen - Original per-vertical cards render with fullWidth', 
     expect(serviceCall).toBeDefined()
     expect(serviceCall[0].fullWidth).toBe(true)
 
-    // 6. Jobs -> JobCard (fullWidth: true)
+    // 6. Jobs filtered out
     const mockJobCard = JobCard as unknown as jest.Mock
-    const jobCall = mockJobCard.mock.calls.find(call => call[0]?.job?.id === 'job-1')
-    expect(jobCall).toBeDefined()
-    expect(jobCall[0].fullWidth).toBe(true)
+    expect(mockJobCard).not.toHaveBeenCalled()
   })
 })

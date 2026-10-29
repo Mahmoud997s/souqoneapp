@@ -36,7 +36,7 @@ export function getListingDetailRoute(item: any): string {
     return `/services/${id}`
   }
   if (entityType === 'jobs' || entityType === 'job') {
-    return `/jobs/${id}`
+    return '/(tabs)'
   }
 
   // Fallback to listings

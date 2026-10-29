@@ -18,15 +18,16 @@ interface CategoryTabItem {
   icon: keyof typeof Ionicons.glyphMap
 }
 
-const CATEGORIES: CategoryTabItem[] = [
+export const SEARCH_CATEGORY_TABS: CategoryTabItem[] = [
   { id: 'all', label: 'الكل', icon: 'grid-outline' },
   { id: 'cars', label: 'سيارات', icon: 'car-sport-outline' },
   { id: 'parts', label: 'قطع غيار', icon: 'construct-outline' },
   { id: 'buses', label: 'باصات', icon: 'bus-outline' },
   { id: 'equipment', label: 'معدات', icon: 'hardware-chip-outline' },
-  { id: 'jobs', label: 'وظائف', icon: 'briefcase-outline' },
   { id: 'services', label: 'خدمات', icon: 'hammer-outline' },
 ]
+
+export const CATEGORIES = SEARCH_CATEGORY_TABS
 
 interface SearchCategoryTabsProps {
   selectedCategory: CategoryFilterType

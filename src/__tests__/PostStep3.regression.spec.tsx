@@ -50,11 +50,20 @@ describe('PostStep3Screen Multi-Vertical Forms Regression Check', () => {
     expect(router.replace).toHaveBeenCalledWith('/services/new')
   })
 
-  it('renders fallback development message for remaining categories like jobs', async () => {
+  it('redirects stale draft with category jobs to /(tabs)', async () => {
     usePostStore.getState().set({ category: 'jobs' })
+
+    const { queryByText } = await render(<PostStep3Screen />)
+
+    expect(queryByText('نموذج jobs قيد التطوير')).toBeNull()
+    expect(router.replace).toHaveBeenCalledWith('/(tabs)')
+  })
+
+  it('redirects stale draft with category transport to /(tabs)', async () => {
+    usePostStore.getState().set({ category: 'transport' })
 
     await render(<PostStep3Screen />)
 
-    expect(screen.getByText('نموذج jobs قيد التطوير')).toBeTruthy()
+    expect(router.replace).toHaveBeenCalledWith('/(tabs)')
   })
 })

@@ -52,11 +52,4 @@ export const MY_LISTINGS_SECTIONS_CONFIG: readonly ListingSectionConfig[] = [
     gradient: ['#3B82F6', '#60A5FA'],
     categoryId: 'services',
   },
-  {
-    entityType: 'job',
-    title: 'وظائف وسائقين',
-    icon: 'briefcase',
-    gradient: ['#EC4899', '#F472B6'],
-    categoryId: 'jobs',
-  },
 ] as const

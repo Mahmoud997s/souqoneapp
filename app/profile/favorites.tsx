@@ -22,15 +22,16 @@ import { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reani
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
-const CATEGORY_FILTERS = [
+export const FAVORITES_CATEGORY_FILTERS = [
   { id: 'all', label: 'الكل' },
   { id: 'cars', label: 'سيارات' },
-  { id: 'jobs', label: 'وظائف' },
   { id: 'services', label: 'خدمات' },
   { id: 'parts', label: 'قطع غيار' },
   { id: 'buses', label: 'حافلات' },
   { id: 'equipment', label: 'معدات' },
 ]
+
+export const CATEGORY_FILTERS = FAVORITES_CATEGORY_FILTERS
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets()
@@ -45,6 +46,7 @@ export default function FavoritesScreen() {
   const contentTopOffset = navBarHeight + 10
 
   const filteredData = data?.filter(item => {
+    if (item.category === 'jobs' || item.category === 'transport') return false
     if (activeTab === 'all') return true
     return item.category === activeTab
   }) ?? []

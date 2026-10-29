@@ -20,7 +20,7 @@ import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhone
 
 const MAX_IMAGES = 10
 
-const SKIP_IMAGES_CATEGORIES = ['transport']
+const SKIP_IMAGES_CATEGORIES: string[] = []
 
 export default function PostStep2Screen() {
   const insets = useSafeAreaInsets()
@@ -40,8 +40,8 @@ export default function PostStep2Screen() {
       router.replace('/parts/new')
     } else if (category === 'services') {
       router.replace('/services/new')
-    } else if (category === 'transport') {
-      router.replace('/transport/new')
+    } else if (category === 'jobs' || category === 'transport') {
+      router.replace('/(tabs)')
     }
   }, [category])
 

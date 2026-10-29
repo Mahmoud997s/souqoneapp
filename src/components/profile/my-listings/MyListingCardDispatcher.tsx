@@ -9,7 +9,6 @@ import { EquipCard } from '../../cards/EquipCard'
 import { OperatorCard } from '../../cards/OperatorCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
-import { JobCard } from '../../cards/JobCard'
 
 export interface MyListingCardDispatcherProps {
   item: MyListingItem
@@ -135,15 +134,7 @@ export function MyListingCardDispatcher({
       )
     }
     case 'job':
-      return (
-        <JobCard
-          job={item.raw as any}
-          onPress={() => onView(item)}
-          fullWidth={fullWidth}
-          maxChips={3}
-          actionMenu={menu}
-        />
-      )
+      return null
     default:
       return null
   }

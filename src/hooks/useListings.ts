@@ -3,7 +3,6 @@ import { listingsApi } from '../api/listings'
 import { favoritesApi } from '../api/favorites'
 import { 
   mapListingToCard, 
-  mapJobToCard,
   mapServiceToCard,
   mapPartToCard,
   mapBusToCard,
@@ -72,9 +71,7 @@ export function useFavorites() {
         
         switch (item.entityType) {
           case 'JOB':
-            rawItem = item.job ?? item.entity ?? item;
-            cat = 'jobs';
-            break;
+            return null;
           case 'CAR_SERVICE':
             rawItem = item.carService ?? item.entity ?? item;
             cat = 'services';
@@ -104,7 +101,7 @@ export function useFavorites() {
         rawItem = { ...rawItem, category: cat };
         
         switch (cat) {
-          case 'jobs': return mapJobToCard(rawItem);
+          case 'jobs': return null;
           case 'services': return mapServiceToCard(rawItem);
           case 'parts': return mapPartToCard(rawItem);
           case 'buses': return mapBusToCard(rawItem);
