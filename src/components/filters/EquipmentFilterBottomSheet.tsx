@@ -7,7 +7,7 @@ import { FilterChip } from '../ui/FilterChip'
 import { DropdownSelector } from '../ui/DropdownSelector'
 import { RangeSlider } from '../ui/RangeSlider'
 import { NestedSearchableList } from '../ui/NestedSearchableList'
-import { EQUIPMENT_CATEGORIES } from '../../constants/equipment'
+import { EQUIPMENT_CATEGORIES, EQUIPMENT_CONDITIONS } from '../../constants/equipment'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 
@@ -50,11 +50,15 @@ const LISTING_TYPE_OPTIONS = [
   { id: 'EQUIPMENT_WANTED', label: 'مطلوب', value: 'EQUIPMENT_WANTED' },
 ]
 
+// Uses exact values accepted by backend Prisma ItemCondition enum:
+// NEW | LIKE_NEW | USED | GOOD | FAIR | POOR
 const CONDITION_OPTIONS = [
-  { id: 'NEW', label: 'جديدة', value: 'NEW' },
-  { id: 'LIKE_NEW', label: 'شبه جديدة', value: 'LIKE_NEW' },
-  { id: 'USED', label: 'مستعملة', value: 'USED' },
-  { id: 'REFURBISHED', label: 'مجددة', value: 'REFURBISHED' },
+  { id: 'all', label: 'الكل', value: undefined },
+  ...EQUIPMENT_CONDITIONS.map((c) => ({
+    id: c.id,
+    label: c.label,
+    value: c.id,
+  })),
 ]
 
 const YEAR_OPTIONS = [
@@ -65,12 +69,13 @@ const YEAR_OPTIONS = [
   { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
 ]
 
+// Backend supports hoursUsedMax (<= max); options provide upper-bound presets
 const HOURS_OPTIONS = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'h1', label: 'أقل من 1,000 ساعة', min: '0', max: '1000' },
-  { id: 'h2', label: '1,000 - 3,000 ساعة', min: '1000', max: '3000' },
-  { id: 'h3', label: '3,000 - 5,000 ساعة', min: '3000', max: '5000' },
-  { id: 'h4', label: 'أكثر من 5,000 ساعة', min: '5000', max: '999999' },
+  { id: 'all', label: 'الكل', max: '' },
+  { id: 'h1', label: 'أقل من 1,000 ساعة', max: '1000' },
+  { id: 'h2', label: 'أقل من 3,000 ساعة', max: '3000' },
+  { id: 'h3', label: 'أقل من 5,000 ساعة', max: '5000' },
+  { id: 'h4', label: 'أقل من 10,000 ساعة', max: '10000' },
 ]
 
 export function EquipmentFilterBottomSheet({
@@ -82,6 +87,7 @@ export function EquipmentFilterBottomSheet({
 }: EquipmentFilterBottomSheetProps) {
   const [filters, setFilters] = useState<EquipmentFilterState>({ ...initialFilters })
   const [activeSelector, setActiveSelector] = useState<'gov' | 'city' | null>(null)
+  const [sliderResetKey, setSliderResetKey] = useState(0)
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([])
   const [wilayas, setWilayas] = useState<WilayaRef[]>([])
 
@@ -94,6 +100,7 @@ export function EquipmentFilterBottomSheet({
     if (visible) {
       setFilters({ ...initialFilters })
       setActiveSelector(null)
+      setSliderResetKey((k) => k + 1)
       locationsApi.getGovernorates()
         .then((res) => {
           if (Array.isArray(res)) setGovernorates(res)
@@ -103,14 +110,20 @@ export function EquipmentFilterBottomSheet({
   }, [visible, initialFilters])
 
   useEffect(() => {
-    if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId)
+    let cancelled = false
+    const govId = filters.governorateId
+
+    setWilayas([])
+    if (govId) {
+      locationsApi.getWilayas(govId)
         .then((res) => {
-          if (Array.isArray(res)) setWilayas(res)
+          if (!cancelled && Array.isArray(res)) setWilayas(res)
         })
         .catch(console.warn)
-    } else {
-      setWilayas([])
+    }
+
+    return () => {
+      cancelled = true
     }
   }, [filters.governorateId])
 
@@ -141,6 +154,7 @@ export function EquipmentFilterBottomSheet({
   const onClearFilters = () => {
     setFilters({})
     setActiveSelector(null)
+    setSliderResetKey((k) => k + 1)
   }
 
   const selectedGov = governorates.find((g) => g.id === filters.governorateId)
@@ -274,6 +288,7 @@ export function EquipmentFilterBottomSheet({
       {/* 4. نطاق السعر (ر.ع) */}
       <FilterSection title="نطاق السعر (ر.ع)">
         <RangeSlider
+          key={sliderResetKey}
           min={0}
           max={100000}
           step={500}
@@ -283,6 +298,7 @@ export function EquipmentFilterBottomSheet({
             updateFilters({
               priceMin: vals[0] > 0 ? vals[0].toString() : undefined,
               priceMax: vals[1] < 100000 ? vals[1].toString() : undefined,
+              priceId: undefined,
             })
           }}
           suffix="ر.ع"
@@ -297,7 +313,7 @@ export function EquipmentFilterBottomSheet({
             isActive={!filters.condition}
             onPress={() => updateFilters({ condition: undefined, conditionId: undefined })}
           />
-          {CONDITION_OPTIONS.map((c) => {
+          {CONDITION_OPTIONS.filter((c) => c.value !== undefined).map((c) => {
             const isSelected = filters.condition === c.value
             return (
               <FilterChip
@@ -353,9 +369,8 @@ export function EquipmentFilterBottomSheet({
           {HOURS_OPTIONS.map((hr) => {
             const isSelected =
               hr.id === 'all'
-                ? !filters.hoursMin && !filters.hoursMax
-                : filters.hoursId === hr.id ||
-                  (filters.hoursMin === hr.min && filters.hoursMax === hr.max)
+                ? !filters.hoursMax
+                : filters.hoursId === hr.id || filters.hoursMax === hr.max
             return (
               <FilterChip
                 key={hr.id}
@@ -363,10 +378,9 @@ export function EquipmentFilterBottomSheet({
                 isActive={isSelected}
                 onPress={() => {
                   if (hr.id === 'all') {
-                    updateFilters({ hoursMin: undefined, hoursMax: undefined, hoursId: undefined })
+                    updateFilters({ hoursMax: undefined, hoursId: undefined })
                   } else {
                     updateFilters({
-                      hoursMin: isSelected ? undefined : hr.min,
                       hoursMax: isSelected ? undefined : hr.max,
                       hoursId: isSelected ? undefined : hr.id,
                     })

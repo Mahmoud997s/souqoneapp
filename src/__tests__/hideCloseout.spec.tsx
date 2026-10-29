@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, act } from '@testing-library/react-native'
+import { render, screen } from '@testing-library/react-native'
 import {
   HOME_CATEGORIES,
   calculateCategoryItemWidth,
@@ -8,19 +8,25 @@ import {
   CATEGORY_GRID_PADDING_H,
 } from '../components/home/HomeCategoriesGrid'
 import DevCarDetailSandboxRoute from '../../app/dev/car-detail-sandbox'
-import { router } from 'expo-router'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
   MaterialCommunityIcons: 'MaterialCommunityIcons',
 }))
 
-jest.mock('expo-router', () => ({
-  router: {
-    push: jest.fn(),
-    replace: jest.fn(),
-  },
-}))
+jest.mock('expo-router', () => {
+  const React = require('react')
+  const { Text } = require('react-native')
+  return {
+    router: {
+      push: jest.fn(),
+      replace: jest.fn(),
+    },
+    Redirect: ({ href }: { href: string }) => (
+      React.createElement(Text, { testID: 'redirect-component' }, href)
+    ),
+  }
+})
 
 jest.mock('../../src/dev/car-detail-sandbox/CarDetailSandboxScreen', () => ({
   CarDetailSandboxScreen: () => {
@@ -67,15 +73,15 @@ describe('D-134 Hide Closeout Tests', () => {
       ;(global as any).__DEV__ = true
       await render(<DevCarDetailSandboxRoute />)
       expect(screen.getByTestId('sandbox-screen')).toBeTruthy()
-      expect(router.replace).not.toHaveBeenCalled()
+      expect(screen.queryByTestId('redirect-component')).toBeNull()
     })
 
-    it('DevCarDetailSandboxRoute redirects to /(tabs) and renders null when __DEV__ is false', async () => {
+    it('DevCarDetailSandboxRoute renders <Redirect href="/(tabs)" /> when __DEV__ is false', async () => {
       ;(global as any).__DEV__ = false
-      const { toJSON } = await render(<DevCarDetailSandboxRoute />)
-      expect(router.replace).toHaveBeenCalledWith('/(tabs)')
+      await render(<DevCarDetailSandboxRoute />)
       expect(screen.queryByTestId('sandbox-screen')).toBeNull()
-      expect(toJSON()).toBeNull()
+      expect(screen.getByTestId('redirect-component')).toBeTruthy()
+      expect(screen.getByText('/(tabs)')).toBeTruthy()
     })
   })
 })

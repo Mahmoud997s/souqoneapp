@@ -25,6 +25,7 @@ import { OMAN_LOCATIONS } from '../../src/constants/locations';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
+import { EQUIPMENT_CONDITIONS } from '../../src/constants/equipment';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -33,7 +34,7 @@ import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHead
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { EquipmentVisualFilters } from '../../src/components/equipment/EquipmentVisualFilters';
 import { EquipCard } from '../../src/components/cards/EquipCard';
-import { EquipmentFilterBottomSheet } from '../../src/components/filters/EquipmentFilterBottomSheet';
+import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
@@ -43,21 +44,7 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
 
-interface FilterState {
-  listingType?: string;
-  governorateId?: number;
-  city?: string;
-  priceMin?: string;
-  priceMax?: string;
-  priceId?: string;
-  condition?: string;
-  conditionId?: string;
-  equipmentType?: string;
-  categoryId?: string;
-  make?: string;
-  sortBy?: string;
-  sortOrder?: string;
-}
+type FilterState = EquipmentFilterState;
 
 const LISTING_TYPES = [
   { id: 'EQUIPMENT_SALE', label: 'للبيع' },
@@ -81,12 +68,10 @@ const CATEGORIES_ARRAY = Object.entries(EQUIPMENT_TYPES).map(([key, value]) => (
   name: value.label,
 }));
 
-const CONDITIONS = [
-  { id: 'NEW', name: 'جديدة' },
-  { id: 'USED', name: 'مستعملة' },
-  { id: 'LIKE_NEW', name: 'شبه جديدة' },
-  { id: 'REFURBISHED', name: 'مجددة' },
-];
+const CONDITIONS = EQUIPMENT_CONDITIONS.map((c) => ({
+  id: c.id,
+  name: c.label,
+}));
 
 const PRICE_RANGES = [
   { id: 'all', label: 'الكل', min: '', max: '' },
@@ -163,7 +148,7 @@ export default function EquipmentBrowseScreen() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Combine query parameters
+  // Combine query parameters - maps ONLY backend QueryEquipmentListingsDto fields
   const queryParams = useMemo(() => {
     const params: Record<string, any> = {
       limit: 30,
@@ -173,25 +158,37 @@ export default function EquipmentBrowseScreen() {
       params.search = debouncedSearch;
     }
 
-    const skipKeys = new Set(['priceId', 'categoryId', 'conditionId', 'yearId', 'hoursId']);
+    if (filters.equipmentType) params.equipmentType = filters.equipmentType;
+    if (filters.listingType) params.listingType = filters.listingType;
+    if (filters.governorateId) params.governorateId = filters.governorateId;
+    if (filters.wilayaId) params.wilayaId = filters.wilayaId;
+    if (filters.condition) params.condition = filters.condition;
+    if (filters.make) params.make = filters.make;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
 
-    // Apply all custom filters
-    Object.entries(filters).forEach(([key, val]) => {
-      if (skipKeys.has(key)) return;
-      if (val !== undefined && val !== '') {
-        if (key === 'priceMin' || key === 'priceMax' || key === 'yearMin' || key === 'yearMax' || key === 'hoursMin' || key === 'hoursMax') {
-          const parsed = parseFloat(val as string);
-          if (!isNaN(parsed)) {
-            params[key] = parsed;
-            if (key === 'priceMin') params.minPrice = parsed;
-            if (key === 'priceMax') params.maxPrice = parsed;
-            if (key === 'hoursMax') params.hoursUsedMax = parsed;
-          }
-        } else {
-          params[key] = val;
-        }
-      }
-    });
+    if (filters.priceMin) {
+      const p = parseFloat(filters.priceMin);
+      if (!isNaN(p)) params.minPrice = p;
+    }
+    if (filters.priceMax) {
+      const p = parseFloat(filters.priceMax);
+      if (!isNaN(p)) params.maxPrice = p;
+    }
+
+    if (filters.yearMin) {
+      const y = parseInt(filters.yearMin, 10);
+      if (!isNaN(y)) params.yearMin = y;
+    }
+    if (filters.yearMax) {
+      const y = parseInt(filters.yearMax, 10);
+      if (!isNaN(y)) params.yearMax = y;
+    }
+
+    // Backend accepts hoursUsedMax (no hoursMin in QueryEquipmentListingsDto)
+    if (filters.hoursMax) {
+      const h = parseInt(filters.hoursMax, 10);
+      if (!isNaN(h)) params.hoursUsedMax = h;
+    }
 
     return params;
   }, [debouncedSearch, filters]);
@@ -263,7 +260,12 @@ export default function EquipmentBrowseScreen() {
 
   const handleClearQuickFilter = (id: string) => {
     const newFilters = { ...filters };
-    if (id === 'governorate') delete newFilters.governorateId;
+    if (id === 'governorate') {
+      delete newFilters.governorateId;
+      delete (newFilters as any).governorate;
+      delete (newFilters as any).wilayaId;
+      delete newFilters.city;
+    }
     if (id === 'category') { delete newFilters.equipmentType; delete newFilters.categoryId; }
     if (id === 'condition') { delete newFilters.condition; delete newFilters.conditionId; }
     if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; delete newFilters.priceId; }
@@ -490,7 +492,12 @@ export default function EquipmentBrowseScreen() {
                   <TouchableOpacity
                     style={s.modalOptionRow}
                     onPress={() => {
-                      setFilters({ ...filters, governorateId: item.id });
+                      setFilters({
+                        ...filters,
+                        governorateId: item.id,
+                        wilayaId: undefined,
+                        city: undefined,
+                      });
                       setActiveDropdown(null);
                     }}
                   >

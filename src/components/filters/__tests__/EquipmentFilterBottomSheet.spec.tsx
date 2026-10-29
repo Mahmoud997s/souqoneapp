@@ -40,13 +40,14 @@ describe('EquipmentFilterBottomSheet Component', () => {
     expect(fileContent).toContain('FilterSection')
     // Must use FilterChip
     expect(fileContent).toContain('FilterChip')
-    // Must use RangeSlider
+    // Must use RangeSlider with reset key
     expect(fileContent).toContain('RangeSlider')
+    expect(fileContent).toContain('sliderResetKey')
     // Must NOT import Modal directly from react-native
     expect(fileContent).not.toMatch(/import\s*\{[^}]*\bModal\b[^}]*\}\s*from\s*['"]react-native['"]/)
   })
 
-  it('renders without "قريباً" text and displays all primary filter sections', async () => {
+  it('renders without "قريباً" text and displays all primary filter sections matching backend schema', async () => {
     await render(
       <EquipmentFilterBottomSheet
         visible={true}
@@ -66,6 +67,13 @@ describe('EquipmentFilterBottomSheet Component', () => {
       expect(screen.getByText('حالة المعدة')).toBeTruthy()
       expect(screen.getByText('سنة الصنع')).toBeTruthy()
       expect(screen.getByText('ساعات العمل')).toBeTruthy()
+
+      // Backend conditions are present; non-existent REFURBISHED is strictly excluded
+      expect(screen.getByText('جديدة تماماً (أصفار)')).toBeTruthy()
+      expect(screen.getByText('بحالة ممتازة (شبه جديدة)')).toBeTruthy()
+      expect(screen.getByText('مستعملة بحالة جيدة')).toBeTruthy()
+      expect(screen.queryByText('مجددة')).toBeNull()
+      expect(screen.queryByText('REFURBISHED')).toBeNull()
     })
   })
 
@@ -91,9 +99,9 @@ describe('EquipmentFilterBottomSheet Component', () => {
       fireEvent.press(screen.getByText('حفار'))
     })
 
-    // Select condition 'جديدة' (NEW)
+    // Select condition 'جديدة تماماً (أصفار)' (NEW)
     await act(async () => {
-      fireEvent.press(screen.getByText('جديدة'))
+      fireEvent.press(screen.getByText('جديدة تماماً (أصفار)'))
     })
 
     // Select year '2022 - 2024'
@@ -120,7 +128,7 @@ describe('EquipmentFilterBottomSheet Component', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('clears filters when "مسح الفلاتر" is pressed', async () => {
+  it('clears filters and resets slider state when "مسح الفلاتر" is pressed', async () => {
     const onApplyFilters = jest.fn()
     const onClose = jest.fn()
 
@@ -129,6 +137,7 @@ describe('EquipmentFilterBottomSheet Component', () => {
       condition: 'USED',
       priceMin: '500',
       priceMax: '2000',
+      priceId: 'p4',
     }
 
     await render(

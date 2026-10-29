@@ -1,11 +1,11 @@
 import React from 'react'
-import { router } from 'expo-router'
+import { Redirect } from 'expo-router'
 import { CarDetailSandboxScreen } from '../../src/dev/car-detail-sandbox/CarDetailSandboxScreen'
 
 /**
  * Dev-only route for Car Detail visual sandbox.
  * Accessible directly at /dev/car-detail-sandbox.
- * If not in __DEV__, immediately redirects to /(tabs) and returns null (before any render).
+ * In production/release builds (!__DEV__), immediately redirects to /(tabs) via declarative <Redirect />.
  */
 export default function DevCarDetailSandboxRoute() {
   const isDev = typeof (global as any).__DEV__ !== 'undefined'
@@ -13,8 +13,7 @@ export default function DevCarDetailSandboxRoute() {
     : (typeof __DEV__ !== 'undefined' ? __DEV__ : false)
 
   if (!isDev) {
-    router.replace('/(tabs)')
-    return null
+    return <Redirect href="/(tabs)" />
   }
 
   return <CarDetailSandboxScreen />
