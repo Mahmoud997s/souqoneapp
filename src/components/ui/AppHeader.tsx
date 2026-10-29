@@ -56,7 +56,7 @@ export function AppHeader({
       ]}
     >
       <StatusBar
-        barStyle={isLight ? 'dark-content' : 'light-content'}
+        barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />

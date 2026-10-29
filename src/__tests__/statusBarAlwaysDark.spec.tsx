@@ -2,6 +2,7 @@ import React from 'react'
 import ReactTestRenderer from 'react-test-renderer'
 import { StatusBar, I18nManager } from 'react-native'
 import RootLayout from '../../app/_layout'
+import { AppHeader } from '../../src/components/ui/AppHeader'
 import { useAuthStore } from '../../src/store/authStore'
 
 jest.mock('@expo-google-fonts/almarai', () => ({
@@ -62,11 +63,30 @@ jest.mock('react-native-gesture-handler', () => {
   }
 })
 
-describe('Status Bar Always Dark Policy (D-132)', () => {
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: any) => <>{children}</>,
+}))
+
+jest.mock('react-native-svg', () => {
+  const SvgMock = ({ children }: any) => <>{children}</>
+  return {
+    __esModule: true,
+    default: SvgMock,
+    Svg: SvgMock,
+    Defs: ({ children }: any) => <>{children}</>,
+    Pattern: ({ children }: any) => <>{children}</>,
+    Path: () => null,
+    Rect: () => null,
+  }
+})
+
+describe('Status Bar Always Dark Policy (D-132 / D-132b)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     I18nManager.isRTL = true
-    useAuthStore.setState({ isLoading: false, isLoggedIn: false, isGuest: true })
+    ReactTestRenderer.act(() => {
+      useAuthStore.setState({ isLoading: false, isLoggedIn: false, isGuest: true })
+    })
     useAuthStore.getState().initialize = jest.fn()
   })
 
@@ -74,6 +94,26 @@ describe('Status Bar Always Dark Policy (D-132)', () => {
     let testRenderer: any
     ReactTestRenderer.act(() => {
       testRenderer = ReactTestRenderer.create(<RootLayout />)
+    })
+    const statusBar = testRenderer.root.findByType(StatusBar)
+    expect(statusBar).toBeTruthy()
+    expect(statusBar.props.barStyle).toBe('dark-content')
+  })
+
+  it('renders AppHeader with default theme and enforces barStyle="dark-content"', () => {
+    let testRenderer: any
+    ReactTestRenderer.act(() => {
+      testRenderer = ReactTestRenderer.create(<AppHeader title="Test Title" />)
+    })
+    const statusBar = testRenderer.root.findByType(StatusBar)
+    expect(statusBar).toBeTruthy()
+    expect(statusBar.props.barStyle).toBe('dark-content')
+  })
+
+  it('renders AppHeader with theme="light" and enforces barStyle="dark-content"', () => {
+    let testRenderer: any
+    ReactTestRenderer.act(() => {
+      testRenderer = ReactTestRenderer.create(<AppHeader title="Test Title" theme="light" />)
     })
     const statusBar = testRenderer.root.findByType(StatusBar)
     expect(statusBar).toBeTruthy()
