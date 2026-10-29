@@ -5,6 +5,11 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      message:
+        description: 'Update message'
+        required: false
+        type: string
 
 jobs:
   update:
@@ -32,6 +37,19 @@ jobs:
           echo "EXPO_PUBLIC_CLOUDINARY_CLOUD=dityoyp85" >> .env
 
       - name: Publish Update
-        run: eas update --branch preview --message "${{ github.event.head_commit.message }}" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          INPUT_MSG: ${{ inputs.message }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          MSG="${INPUT_MSG:-$COMMIT_MSG}"
+          CLEAN_MSG=""
+          if [ -n "$MSG" ]; then
+            CLEAN_MSG=$(printf '%s\n' "$MSG" | head -n 1)
+          fi
+          if [ -z "${CLEAN_MSG// /}" ]; then
+            SHORT_SHA="${COMMIT_SHA:0:7}"
+            CLEAN_MSG="manual OTA update ${SHORT_SHA:-update}"
+          fi
+          eas update --branch preview --message "$CLEAN_MSG" --non-interactive
