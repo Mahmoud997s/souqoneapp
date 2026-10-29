@@ -23,6 +23,8 @@ The Jobs and Transport modules are temporarily parked to streamline the primary 
 5. **API & Hooks**:
    - `src/_parked/api/`: `jobs.ts`, `transport.ts`
    - `src/_parked/hooks/`: `useJobs.ts`, `useTransport.ts`, `useDriverProfile.ts`, `useEmployerProfile.ts`, `useJobActions.ts`, `useVerification.ts`, `useDrivers.ts`, `useJobsDashboard.ts`, `queries/useMyJobsInfinite.ts`
+6. **Utilities**:
+   - `src/_parked/utils/normalizeJobType.ts`: `normalizeJobType` helper function
 
 ## Configuration Exclusions
 - `jest.config.js`: Added `'<rootDir>/src/_parked/'` to `testPathIgnorePatterns`.
@@ -33,6 +35,7 @@ When re-activating the Jobs and/or Transport modules:
 1. **Restore Files with Git History**:
    - Move route files back from `src/_parked/jobs/` to `app/jobs/` and `src/_parked/transport/` to `app/transport/`.
    - Move `src/_parked/job-filters.tsx` to `app/(modals)/job-filters.tsx`.
+   - Move `src/_parked/utils/normalizeJobType.ts` back to `src/utils/normalizeJobType.ts`.
    - Move all components, stores, constants, types, hooks, and APIs back to their original locations in `src/`.
 2. **Revert Configuration Exclusions**:
    - In `jest.config.js`: remove `'<rootDir>/src/_parked/'` from `testPathIgnorePatterns`.
