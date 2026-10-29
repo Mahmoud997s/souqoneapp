@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { I18nManager, Platform, Text, TextInput } from 'react-native'
+import { I18nManager, Platform, StatusBar, Text, TextInput } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import {
   useFonts,
@@ -120,6 +120,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" />
       <QueryClientProvider client={queryClient}>
         <NavVisibilityProvider>
           <BottomSheetModalProvider>
