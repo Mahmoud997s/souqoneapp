@@ -24,9 +24,15 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const GAP = 8
-const PADDING_H = Spacing.space4 * 2 // 16 * 2 = 32
-const ITEM_WIDTH = Math.floor((SCREEN_WIDTH - PADDING_H - (GAP * 3)) / 4)
+export const CATEGORY_GRID_COLUMNS = 3
+export const CATEGORY_GRID_GAP = 8
+export const CATEGORY_GRID_PADDING_H = Spacing.space4 * 2 // 16 * 2 = 32
+
+export function calculateCategoryItemWidth(screenWidth: number = SCREEN_WIDTH): number {
+  return Math.floor((screenWidth - CATEGORY_GRID_PADDING_H - (CATEGORY_GRID_GAP * (CATEGORY_GRID_COLUMNS - 1))) / CATEGORY_GRID_COLUMNS)
+}
+
+const ITEM_WIDTH = calculateCategoryItemWidth(SCREEN_WIDTH)
 
 export function HomeCategoriesGrid() {
   return (
@@ -78,7 +84,7 @@ const s = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: GAP,
+    gap: CATEGORY_GRID_GAP,
     justifyContent: 'space-between',
   },
   itemWrap: {
@@ -89,6 +95,7 @@ const s = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 4,
+    minHeight: 88,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

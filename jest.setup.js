@@ -76,6 +76,14 @@ jest.mock('expo-crypto', () => {
   };
 });
 
+jest.mock('@ptomasroos/react-native-multi-slider', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockMultiSlider(props) {
+    return React.createElement(View, { testID: 'mock-multi-slider', ...props });
+  };
+});
+
 
 
 
