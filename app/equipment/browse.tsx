@@ -25,7 +25,6 @@ import { OMAN_LOCATIONS } from '../../src/constants/locations';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
-import { formatLocation } from '../../src/utils/mappers';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -33,7 +32,7 @@ import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { EquipmentVisualFilters } from '../../src/components/equipment/EquipmentVisualFilters';
-import { CarCard } from '../../src/components/cars/CarCard';
+import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
@@ -442,30 +441,17 @@ export default function EquipmentBrowseScreen() {
               <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
             </View>
           }
-          renderItem={({ item }) => {
-            const raw = (item as any).raw || {};
-            return (
+          renderItem={({ item }) => (
             <View style={s.cardWrapper}>
-              <CarCard 
-                item={{
-                  ...(item as any),
-                  make: raw.equipmentType || raw.make,
-                  model: raw.model || '',
-                  price: (item as any).price || raw.dailyPrice || raw.monthlyPrice || 0,
-                  images: (item as any).images,
-                  currency: 'OMR',
-                  listingType: (item as any).listingType?.includes('RENT') ? 'RENTAL' : 'SALE',
-                  condition: (item as any).condition,
-                  year: raw.year,
-                  mileage: raw.hoursUsed,
-                  governorate: formatLocation(raw),
-                } as any} 
-                onPress={() => router.push(`/equipment/${(item as any).id}` as any)} 
+              <EquipCard
+                item={item as any}
+                onPress={() => router.push(`/equipment/${item.id}` as any)}
                 fullWidth
                 showChips
+                maxChips={3}
               />
             </View>
-          )}}
+          )}
         />
       )}
 
