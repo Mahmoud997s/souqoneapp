@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, TextInput } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { Colors } from '../../constants/colors';
@@ -32,6 +32,33 @@ export function RangeSlider({
   ]);
   const [minText, setMinText] = useState((initialLow ?? min).toString());
   const [maxText, setMaxText] = useState((initialHigh ?? max).toString());
+  const isDraggingRef = useRef(false);
+
+  useEffect(() => {
+    if (isDraggingRef.current) return;
+    const targetLow = initialLow ?? min;
+    const targetHigh = initialHigh ?? max;
+
+    setMultiSliderValue((current) => {
+      if (current[0] === targetLow && current[1] === targetHigh) {
+        return current;
+      }
+      return [targetLow, targetHigh];
+    });
+
+    setMinText((currentText) => {
+      const currentNum = parseInt(currentText, 10);
+      if (currentNum === targetLow) return currentText;
+      return targetLow.toString();
+    });
+
+    setMaxText((currentText) => {
+      const currentNum = parseInt(currentText, 10);
+      if (currentNum === targetHigh) return currentText;
+      return targetHigh.toString();
+    });
+  }, [initialLow, initialHigh, min, max]);
+
   // Subtracting extra 8px (4px from each side) to keep the markers away from the edges
   const width = Dimensions.get('window').width - (Spacing.space4 * 2) - 8;
 
@@ -59,6 +86,15 @@ export function RangeSlider({
     onValuesChangeFinish?.([newMin, newMax]);
   };
 
+  const handleValuesChangeStart = () => {
+    isDraggingRef.current = true;
+  };
+
+  const handleValuesChangeFinish = (values: number[]) => {
+    isDraggingRef.current = false;
+    onValuesChangeFinish?.(values);
+  };
+
   const multiSliderValuesChange = (values: number[]) => {
     setMultiSliderValue(values);
     setMinText(values[0].toString());
@@ -78,6 +114,7 @@ export function RangeSlider({
             onBlur={applyTextValues}
             returnKeyType="done"
             textAlign="right"
+            accessibilityLabel="الحد الأدنى"
           />
           {suffix && <Text style={s.suffixText}>{suffix}</Text>}
         </View>
@@ -92,6 +129,7 @@ export function RangeSlider({
             onBlur={applyTextValues}
             returnKeyType="done"
             textAlign="right"
+            accessibilityLabel="الحد الأقصى"
           />
           {suffix && <Text style={s.suffixText}>{suffix}</Text>}
         </View>
@@ -99,8 +137,9 @@ export function RangeSlider({
       <MultiSlider
         values={[multiSliderValue[0], multiSliderValue[1]]}
         sliderLength={width}
+        onValuesChangeStart={handleValuesChangeStart}
         onValuesChange={multiSliderValuesChange}
-        onValuesChangeFinish={onValuesChangeFinish}
+        onValuesChangeFinish={handleValuesChangeFinish}
         min={min}
         max={max}
         step={step}
