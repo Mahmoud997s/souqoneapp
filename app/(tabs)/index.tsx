@@ -143,6 +143,7 @@ export default function HomeScreen() {
 
   return (
     <View style={s.root}>
+      <StatusBar barStyle="dark-content" />
       {/* ── ANIMATED STICKY HEADER (Unified Glassmorphism matching all landing pages) ── */}
       <AnimatedHeroHeader
         scrollY={scrollY}

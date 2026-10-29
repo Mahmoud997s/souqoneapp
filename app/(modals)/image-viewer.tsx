@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native'
+import { View, TouchableOpacity, StyleSheet, useWindowDimensions, StatusBar } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
@@ -15,6 +15,7 @@ export default function ImageViewerModal() {
   if (!images.length) {
     return (
       <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
         <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="إغلاق">
           <Ionicons name="close" size={32} color={Colors.white} />
         </TouchableOpacity>
@@ -24,6 +25,7 @@ export default function ImageViewerModal() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="إغلاق">
         <Ionicons name="close" size={32} color={Colors.white} />
       </TouchableOpacity>
