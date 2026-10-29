@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout'
 import { FilterSection } from '../ui/FilterSection'
-import { FilterChip } from '../ui/FilterChip'
 import { DropdownSelector } from '../ui/DropdownSelector'
 import { RangeSlider } from '../ui/RangeSlider'
-import { NestedSearchableList } from '../ui/NestedSearchableList'
+import { NestedSearchableList, SelectOption } from '../ui/NestedSearchableList'
 import { EQUIPMENT_CATEGORIES, EQUIPMENT_CONDITIONS } from '../../constants/equipment'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
@@ -43,7 +43,15 @@ interface EquipmentFilterBottomSheetProps {
   resultsCount?: number
 }
 
-const LISTING_TYPE_OPTIONS = [
+export const EQUIPMENT_SORT_OPTIONS = [
+  { id: 'default', label: 'الترتيب الافتراضي', value: undefined },
+  { id: 'price_asc', label: 'السعر: الأقل أولاً', value: 'price_asc' },
+  { id: 'price_desc', label: 'السعر: الأعلى أولاً', value: 'price_desc' },
+  { id: 'year_desc', label: 'سنة الصنع: الأحدث', value: 'year_desc' },
+  { id: 'views_desc', label: 'الأكثر مشاهدة', value: 'views_desc' },
+]
+
+export const LISTING_TYPE_OPTIONS = [
   { id: 'all', label: 'الكل', value: undefined },
   { id: 'EQUIPMENT_SALE', label: 'للبيع', value: 'EQUIPMENT_SALE' },
   { id: 'EQUIPMENT_RENT', label: 'للإيجار', value: 'EQUIPMENT_RENT' },
@@ -52,7 +60,7 @@ const LISTING_TYPE_OPTIONS = [
 
 // Uses exact values accepted by backend Prisma ItemCondition enum:
 // NEW | LIKE_NEW | USED | GOOD | FAIR | POOR
-const CONDITION_OPTIONS = [
+export const CONDITION_OPTIONS = [
   { id: 'all', label: 'الكل', value: undefined },
   ...EQUIPMENT_CONDITIONS.map((c) => ({
     id: c.id,
@@ -61,16 +69,8 @@ const CONDITION_OPTIONS = [
   })),
 ]
 
-const YEAR_OPTIONS = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'y1', label: '2022 - 2024', min: '2022', max: '2024' },
-  { id: 'y2', label: '2019 - 2021', min: '2019', max: '2021' },
-  { id: 'y3', label: '2015 - 2018', min: '2015', max: '2018' },
-  { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
-]
-
 // Backend supports hoursUsedMax (<= max); options provide upper-bound presets
-const HOURS_OPTIONS = [
+export const HOURS_OPTIONS = [
   { id: 'all', label: 'الكل', max: '' },
   { id: 'h1', label: 'أقل من 1,000 ساعة', max: '1000' },
   { id: 'h2', label: 'أقل من 3,000 ساعة', max: '3000' },
@@ -86,7 +86,10 @@ export function EquipmentFilterBottomSheet({
   resultsCount,
 }: EquipmentFilterBottomSheetProps) {
   const [filters, setFilters] = useState<EquipmentFilterState>({ ...initialFilters })
-  const [activeSelector, setActiveSelector] = useState<'gov' | 'city' | null>(null)
+  const [activeSelector, setActiveSelector] = useState<
+    'sort' | 'listingType' | 'category' | 'gov' | 'city' | 'condition' | 'hours' | null
+  >(null)
+  const [showMore, setShowMore] = useState(false)
   const [sliderResetKey, setSliderResetKey] = useState(0)
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([])
   const [wilayas, setWilayas] = useState<WilayaRef[]>([])
@@ -100,8 +103,10 @@ export function EquipmentFilterBottomSheet({
     if (visible) {
       setFilters({ ...initialFilters })
       setActiveSelector(null)
+      setShowMore(false)
       setSliderResetKey((k) => k + 1)
-      locationsApi.getGovernorates()
+      locationsApi
+        .getGovernorates()
         .then((res) => {
           if (Array.isArray(res)) setGovernorates(res)
         })
@@ -115,7 +120,8 @@ export function EquipmentFilterBottomSheet({
 
     setWilayas([])
     if (govId) {
-      locationsApi.getWilayas(govId)
+      locationsApi
+        .getWilayas(govId)
         .then((res) => {
           if (!cancelled && Array.isArray(res)) setWilayas(res)
         })
@@ -139,6 +145,8 @@ export function EquipmentFilterBottomSheet({
 
     if (cleaned.priceMin === '0') delete cleaned.priceMin
     if (cleaned.priceMax === '100000') delete cleaned.priceMax
+    if (cleaned.yearMin === '1990') delete cleaned.yearMin
+    if (cleaned.yearMax === String(new Date().getFullYear())) delete cleaned.yearMax
 
     // Remove any undefined or empty string values
     ;(Object.keys(cleaned) as (keyof EquipmentFilterState)[]).forEach((k) => {
@@ -158,32 +166,108 @@ export function EquipmentFilterBottomSheet({
   }
 
   const selectedGov = governorates.find((g) => g.id === filters.governorateId)
-  const selectedWilaya = wilayas.find((w) => w.id === filters.wilayaId)
+  const selectedCity = wilayas.find((w) => w.id === filters.wilayaId)
+  const currentCategory = (filters.equipmentType || filters.categoryId)
+    ? EQUIPMENT_CATEGORIES.find(
+        (c) => c.key === filters.equipmentType || c.key === filters.categoryId
+      )
+    : undefined
+  const currentListingType = filters.listingType
+    ? LISTING_TYPE_OPTIONS.find((t) => t.value === filters.listingType)
+    : undefined
+  const currentSort = filters.sortBy
+    ? EQUIPMENT_SORT_OPTIONS.find((s) => s.value === filters.sortBy)
+    : undefined
+  const currentCondition = filters.condition
+    ? CONDITION_OPTIONS.find((c) => c.value === filters.condition)
+    : undefined
+  const currentHours = filters.hoursMax
+    ? HOURS_OPTIONS.find((h) => h.max === filters.hoursMax)
+    : undefined
 
-  const govData = governorates.map((g) => ({ id: String(g.id), label: g.nameAr }))
-  const cityData = wilayas.map((w) => ({ id: String(w.id), label: w.nameAr }))
+  let nestedContent: React.ReactNode = null
+  let title = 'تصفية النتائج'
 
-  let nestedContent = null
-  let title = 'تصفية المعدات'
-
-  if (activeSelector === 'gov') {
-    title = 'اختر المحافظة'
+  if (activeSelector === 'sort') {
+    title = 'ترتيب النتائج'
+    const sortData: SelectOption[] = EQUIPMENT_SORT_OPTIONS.map((o) => ({
+      id: o.id,
+      label: o.label,
+    }))
+    nestedContent = (
+      <NestedSearchableList
+        data={sortData}
+        selectedValue={currentSort?.id || 'default'}
+        onSelect={(opt) => {
+          const matched = EQUIPMENT_SORT_OPTIONS.find((o) => o.id === opt?.id)
+          updateFilters({ sortBy: matched?.value })
+          setActiveSelector(null)
+        }}
+        hideSearch
+      />
+    )
+  } else if (activeSelector === 'listingType') {
+    title = 'نوع الإعلان'
+    const listingTypeData: SelectOption[] = LISTING_TYPE_OPTIONS.map((t) => ({
+      id: t.id,
+      label: t.label,
+    }))
+    nestedContent = (
+      <NestedSearchableList
+        data={listingTypeData}
+        selectedValue={currentListingType?.id || 'all'}
+        onSelect={(opt) => {
+          const matched = LISTING_TYPE_OPTIONS.find((t) => t.id === opt?.id)
+          updateFilters({ listingType: matched?.value })
+          setActiveSelector(null)
+        }}
+        hideSearch
+      />
+    )
+  } else if (activeSelector === 'category') {
+    title = 'فئة المعدة'
+    const categoryData: SelectOption[] = [
+      { id: 'all', label: 'الكل' },
+      ...EQUIPMENT_CATEGORIES.map((c) => ({ id: c.key, label: c.label })),
+    ]
+    nestedContent = (
+      <NestedSearchableList
+        data={categoryData}
+        selectedValue={filters.equipmentType || filters.categoryId || 'all'}
+        onSelect={(opt) => {
+          if (!opt || opt.id === 'all') {
+            updateFilters({ equipmentType: undefined, categoryId: undefined })
+          } else {
+            updateFilters({ equipmentType: opt.id, categoryId: opt.id })
+          }
+          setActiveSelector(null)
+        }}
+        placeholder="ابحث عن فئة..."
+      />
+    )
+  } else if (activeSelector === 'gov') {
+    title = 'المحافظة'
+    const govData: SelectOption[] = [
+      { id: 'all', label: 'كل المحافظات' },
+      ...governorates.map((g) => ({ id: String(g.id), label: g.nameAr })),
+    ]
     nestedContent = (
       <NestedSearchableList
         data={govData}
-        selectedValue={filters.governorateId ? String(filters.governorateId) : undefined}
-        onSelect={(option) => {
-          if (option) {
+        selectedValue={filters.governorateId ? String(filters.governorateId) : 'all'}
+        onSelect={(opt) => {
+          if (!opt || opt.id === 'all') {
             updateFilters({
-              governorateId: parseInt(option.id, 10),
-              governorate: option.label,
+              governorateId: undefined,
+              governorate: undefined,
               wilayaId: undefined,
               city: undefined,
             })
           } else {
+            const g = governorates.find((x) => String(x.id) === opt.id)
             updateFilters({
-              governorateId: undefined,
-              governorate: undefined,
+              governorateId: Number(opt.id),
+              governorate: g?.nameAr,
               wilayaId: undefined,
               city: undefined,
             })
@@ -194,89 +278,112 @@ export function EquipmentFilterBottomSheet({
       />
     )
   } else if (activeSelector === 'city') {
-    title = 'اختر الولاية'
+    title = 'الولاية'
+    const cityData: SelectOption[] = [
+      { id: 'all', label: 'كل الولايات' },
+      ...wilayas.map((w) => ({ id: String(w.id), label: w.nameAr })),
+    ]
     nestedContent = (
       <NestedSearchableList
         data={cityData}
-        selectedValue={filters.wilayaId ? String(filters.wilayaId) : undefined}
-        onSelect={(option) => {
-          if (option) {
-            updateFilters({
-              wilayaId: parseInt(option.id, 10),
-              city: option.label,
-            })
+        selectedValue={filters.wilayaId ? String(filters.wilayaId) : 'all'}
+        onSelect={(opt) => {
+          if (!opt || opt.id === 'all') {
+            updateFilters({ wilayaId: undefined, city: undefined })
           } else {
-            updateFilters({
-              wilayaId: undefined,
-              city: undefined,
-            })
+            const w = wilayas.find((x) => String(x.id) === opt.id)
+            updateFilters({ wilayaId: Number(opt.id), city: w?.nameAr })
           }
           setActiveSelector(null)
         }}
         placeholder="ابحث عن ولاية..."
       />
     )
+  } else if (activeSelector === 'condition') {
+    title = 'حالة المعدة'
+    const conditionData: SelectOption[] = CONDITION_OPTIONS.map((c) => ({
+      id: c.id,
+      label: c.label,
+    }))
+    nestedContent = (
+      <NestedSearchableList
+        data={conditionData}
+        selectedValue={currentCondition?.id || 'all'}
+        onSelect={(opt) => {
+          const matched = CONDITION_OPTIONS.find((c) => c.id === opt?.id)
+          updateFilters({ condition: matched?.value, conditionId: matched?.value })
+          setActiveSelector(null)
+        }}
+        hideSearch
+      />
+    )
+  } else if (activeSelector === 'hours') {
+    title = 'ساعات العمل'
+    const hoursData: SelectOption[] = HOURS_OPTIONS.map((h) => ({
+      id: h.id,
+      label: h.label,
+    }))
+    nestedContent = (
+      <NestedSearchableList
+        data={hoursData}
+        selectedValue={currentHours?.id || 'all'}
+        onSelect={(opt) => {
+          const matched = HOURS_OPTIONS.find((h) => h.id === opt?.id)
+          updateFilters({
+            hoursMax: matched?.max || undefined,
+            hoursId: matched && matched.id !== 'all' ? matched.id : undefined,
+          })
+          setActiveSelector(null)
+        }}
+        hideSearch
+      />
+    )
   }
 
   const mainContent = (
     <>
-      {/* 1. نوع الإعلان */}
-      <FilterSection title="نوع الإعلان">
-        <View style={s.wrapRow}>
-          {LISTING_TYPE_OPTIONS.map((opt) => {
-            const isSelected = opt.value ? filters.listingType === opt.value : !filters.listingType
-            return (
-              <FilterChip
-                key={opt.id}
-                label={opt.label}
-                isActive={isSelected}
-                onPress={() => updateFilters({ listingType: opt.value })}
-              />
-            )
-          })}
-        </View>
+      {/* 1. ترتيب النتائج */}
+      <FilterSection title="ترتيب النتائج">
+        <DropdownSelector
+          value={currentSort?.label}
+          placeholder="الترتيب الافتراضي"
+          onPress={() => setActiveSelector('sort')}
+        />
       </FilterSection>
 
-      {/* 2. فئة المعدة */}
-      <FilterSection title="فئة المعدة">
-        <View style={s.wrapRow}>
-          <FilterChip
-            label="الكل"
-            isActive={!filters.equipmentType}
-            onPress={() => updateFilters({ equipmentType: undefined, categoryId: undefined })}
-          />
-          {EQUIPMENT_CATEGORIES.map((cat) => {
-            const isSelected = filters.equipmentType === cat.key
-            return (
-              <FilterChip
-                key={cat.key}
-                label={cat.label}
-                isActive={isSelected}
-                onPress={() =>
-                  updateFilters({
-                    equipmentType: isSelected ? undefined : cat.key,
-                    categoryId: isSelected ? undefined : cat.key,
-                  })
-                }
-              />
-            )
-          })}
-        </View>
-      </FilterSection>
-
-      {/* 3. الموقع */}
-      <FilterSection title="الموقع">
-        <View style={s.locationRow}>
-          <View style={s.locationCol}>
+      {/* 2. المعدة (نوع الإعلان | فئة المعدة) */}
+      <FilterSection title="المعدة">
+        <View style={s.row}>
+          <View style={s.col}>
             <DropdownSelector
-              value={selectedGov ? selectedGov.nameAr : undefined}
+              value={currentListingType?.label}
+              placeholder="نوع الإعلان"
+              onPress={() => setActiveSelector('listingType')}
+            />
+          </View>
+          <View style={s.col}>
+            <DropdownSelector
+              value={currentCategory?.label}
+              placeholder="فئة المعدة"
+              onPress={() => setActiveSelector('category')}
+            />
+          </View>
+        </View>
+      </FilterSection>
+
+      {/* 3. الموقع (المحافظة | الولاية) */}
+      <FilterSection title="الموقع">
+        <View style={s.row}>
+          <View style={s.col}>
+            <DropdownSelector
+              value={selectedGov?.nameAr || filters.governorate}
               placeholder="المحافظة"
               onPress={() => setActiveSelector('gov')}
             />
           </View>
-          <View style={s.locationCol}>
+          <View style={s.col}>
             <DropdownSelector
-              value={selectedWilaya ? selectedWilaya.nameAr : undefined}
+              value={selectedCity?.nameAr || filters.city}
               placeholder="الولاية"
               onPress={() => setActiveSelector('city')}
               disabled={!filters.governorateId}
@@ -288,7 +395,7 @@ export function EquipmentFilterBottomSheet({
       {/* 4. نطاق السعر (ر.ع) */}
       <FilterSection title="نطاق السعر (ر.ع)">
         <RangeSlider
-          key={sliderResetKey}
+          key={`price-${sliderResetKey}`}
           min={0}
           max={100000}
           step={500}
@@ -305,92 +412,55 @@ export function EquipmentFilterBottomSheet({
         />
       </FilterSection>
 
-      {/* 5. حالة المعدة */}
-      <FilterSection title="حالة المعدة">
-        <View style={s.wrapRow}>
-          <FilterChip
-            label="الكل"
-            isActive={!filters.condition}
-            onPress={() => updateFilters({ condition: undefined, conditionId: undefined })}
-          />
-          {CONDITION_OPTIONS.filter((c) => c.value !== undefined).map((c) => {
-            const isSelected = filters.condition === c.value
-            return (
-              <FilterChip
-                key={c.id}
-                label={c.label}
-                isActive={isSelected}
-                onPress={() =>
-                  updateFilters({
-                    condition: isSelected ? undefined : c.value,
-                    conditionId: isSelected ? undefined : c.value,
-                  })
-                }
-              />
-            )
-          })}
-        </View>
-      </FilterSection>
-
-      {/* 6. سنة الصنع */}
+      {/* 5. سنة الصنع */}
       <FilterSection title="سنة الصنع">
-        <View style={s.wrapRow}>
-          {YEAR_OPTIONS.map((yr) => {
-            const isSelected =
-              yr.id === 'all'
-                ? !filters.yearMin && !filters.yearMax
-                : filters.yearId === yr.id ||
-                  (filters.yearMin === yr.min && filters.yearMax === yr.max)
-            return (
-              <FilterChip
-                key={yr.id}
-                label={yr.label}
-                isActive={isSelected}
-                onPress={() => {
-                  if (yr.id === 'all') {
-                    updateFilters({ yearMin: undefined, yearMax: undefined, yearId: undefined })
-                  } else {
-                    updateFilters({
-                      yearMin: isSelected ? undefined : yr.min,
-                      yearMax: isSelected ? undefined : yr.max,
-                      yearId: isSelected ? undefined : yr.id,
-                    })
-                  }
-                }}
-              />
-            )
-          })}
-        </View>
+        <RangeSlider
+          key={`year-${sliderResetKey}`}
+          min={1990}
+          max={new Date().getFullYear()}
+          step={1}
+          initialLow={filters.yearMin ? parseInt(filters.yearMin, 10) : 1990}
+          initialHigh={filters.yearMax ? parseInt(filters.yearMax, 10) : new Date().getFullYear()}
+          onValuesChangeFinish={(vals) => {
+            const currentYear = new Date().getFullYear()
+            updateFilters({
+              yearMin: vals[0] > 1990 ? vals[0].toString() : undefined,
+              yearMax: vals[1] < currentYear ? vals[1].toString() : undefined,
+              yearId: undefined,
+            })
+          }}
+        />
       </FilterSection>
 
-      {/* 7. ساعات العمل */}
-      <FilterSection title="ساعات العمل">
-        <View style={s.wrapRow}>
-          {HOURS_OPTIONS.map((hr) => {
-            const isSelected =
-              hr.id === 'all'
-                ? !filters.hoursMax
-                : filters.hoursId === hr.id || filters.hoursMax === hr.max
-            return (
-              <FilterChip
-                key={hr.id}
-                label={hr.label}
-                isActive={isSelected}
-                onPress={() => {
-                  if (hr.id === 'all') {
-                    updateFilters({ hoursMax: undefined, hoursId: undefined })
-                  } else {
-                    updateFilters({
-                      hoursMax: isSelected ? undefined : hr.max,
-                      hoursId: isSelected ? undefined : hr.id,
-                    })
-                  }
-                }}
-              />
-            )
-          })}
-        </View>
-      </FilterSection>
+      {/* 6. المزيد من الفلاتر */}
+      {!showMore ? (
+        <TouchableOpacity
+          style={s.moreBtn}
+          onPress={() => setShowMore(true)}
+          activeOpacity={0.7}
+        >
+          <Text style={s.moreBtnText}>المزيد من الفلاتر</Text>
+          <Ionicons name="chevron-down-outline" size={20} color={Colors.primary} />
+        </TouchableOpacity>
+      ) : (
+        <>
+          <FilterSection title="حالة المعدة">
+            <DropdownSelector
+              value={currentCondition?.label}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('condition')}
+            />
+          </FilterSection>
+
+          <FilterSection title="ساعات العمل">
+            <DropdownSelector
+              value={currentHours?.label}
+              placeholder="الكل"
+              onPress={() => setActiveSelector('hours')}
+            />
+          </FilterSection>
+        </>
+      )}
     </>
   )
 
@@ -418,16 +488,27 @@ export function EquipmentFilterBottomSheet({
 }
 
 const s = StyleSheet.create({
-  wrapRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  locationRow: {
+  row: {
     flexDirection: 'row',
     gap: 8,
   },
-  locationCol: {
+  col: {
     flex: 1,
+  },
+  moreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  moreBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    color: Colors.primary,
   },
 })
