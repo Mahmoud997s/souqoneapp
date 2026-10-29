@@ -17,9 +17,8 @@ import { PROFILE_PHONE_REQUIRED_MESSAGE } from '../../utils/profilePhoneGuard';
  * Header style of the form that renders the guard:
  * - glass: GlassNavBar + ambient gradient (cars / buses / parts / services / equipment ...)
  * - app:   AppHeader showBack (post/step2, carrier-onboarding)
- * - jobs:  AppHeader variant="jobs" (jobs/create, jobs/onboarding)
  */
-export type ProfilePhoneGuardHeaderVariant = 'glass' | 'app' | 'jobs';
+export type ProfilePhoneGuardHeaderVariant = 'glass' | 'app';
 
 interface Props {
   title?: string;
@@ -127,7 +126,7 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
       <AppHeader
         title={title}
         showBack
-        variant={headerVariant === 'jobs' ? 'jobs' : 'default'}
+        variant="default"
         onLeftPress={handleBack}
       />
 

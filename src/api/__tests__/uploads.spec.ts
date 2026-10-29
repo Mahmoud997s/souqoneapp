@@ -1,5 +1,4 @@
 import { uploadsApi } from '../uploads'
-import { transportApi } from '../transport'
 import { apiClient } from '../client'
 
 jest.mock('../client', () => ({
@@ -8,7 +7,7 @@ jest.mock('../client', () => ({
   },
 }))
 
-describe('uploadsApi and transportApi configurations', () => {
+describe('uploadsApi configurations', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -42,25 +41,6 @@ describe('uploadsApi and transportApi configurations', () => {
 
     expect(apiClient.post).toHaveBeenCalledWith(
       '/uploads/multiple',
-      mockFormData,
-      expect.objectContaining({
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-    )
-
-    const callConfig = (apiClient.post as jest.Mock).mock.calls[0][2]
-    expect(typeof callConfig.transformRequest).toBe('function')
-    expect(callConfig.transformRequest(mockFormData)).toBe(mockFormData)
-  })
-
-  it('transportApi.uploadImages configures multipart/form-data and preserves data in transformRequest', async () => {
-    const mockFormData = new FormData()
-    ;(apiClient.post as jest.Mock).mockResolvedValueOnce({ data: { success: true } })
-
-    await transportApi.uploadImages('req-123', mockFormData)
-
-    expect(apiClient.post).toHaveBeenCalledWith(
-      '/transport/requests/req-123/images',
       mockFormData,
       expect.objectContaining({
         headers: { 'Content-Type': 'multipart/form-data' },

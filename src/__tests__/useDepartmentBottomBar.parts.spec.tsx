@@ -5,10 +5,8 @@ import {
   usePartsBottomBar,
   useCarsBottomBar,
   useServicesBottomBar,
-  useTransportBottomBar,
   useEquipmentBottomBar,
   useBusesBottomBar,
-  useJobsBottomBar,
 } from '../hooks/useDepartmentBottomBar'
 import { navigateToPartForm, navigateToCarForm, navigateToServiceForm, navigateToBusForm } from '../components/ui/DraftResumePrompt'
 import { useAuthStore } from '../store/authStore'
@@ -41,10 +39,8 @@ function TestBottomBarHarness({ hookType }: { hookType: string }) {
   if (hookType === 'parts') bar = usePartsBottomBar()
   else if (hookType === 'cars') bar = useCarsBottomBar()
   else if (hookType === 'services') bar = useServicesBottomBar()
-  else if (hookType === 'transport') bar = useTransportBottomBar()
   else if (hookType === 'equipment') bar = useEquipmentBottomBar()
-  else if (hookType === 'buses') bar = useBusesBottomBar()
-  else bar = useJobsBottomBar()
+  else bar = useBusesBottomBar()
 
   return (
     <View>
@@ -86,11 +82,6 @@ describe('useDepartmentBottomBar Specialized Hooks', () => {
     expect(navigateToServiceForm).toHaveBeenCalledTimes(1)
   })
 
-  it('useTransportBottomBar configures 5 tabs', async () => {
-    await render(<TestBottomBarHarness hookType="transport" />)
-    expect(screen.getByTestId('tab-count').props.children).toBe('5')
-  })
-
   it('useEquipmentBottomBar configures 5 tabs', async () => {
     await render(<TestBottomBarHarness hookType="equipment" />)
     expect(screen.getByTestId('tab-count').props.children).toBe('5')
@@ -107,10 +98,5 @@ describe('useDepartmentBottomBar Specialized Hooks', () => {
     fireEvent.press(screen.getByTestId('btn-post'))
 
     expect(navigateToBusForm).toHaveBeenCalledTimes(1)
-  })
-
-  it('useJobsBottomBar configures 5 tabs', async () => {
-    await render(<TestBottomBarHarness hookType="jobs" />)
-    expect(screen.getByTestId('tab-count').props.children).toBe('5')
   })
 })

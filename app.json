@@ -76,7 +76,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "السماح لـ SouqOne بالوصول إلى موقعك لتحديد عناوين الاستلام والتسليم بدقة."
+          "locationAlwaysAndWhenInUsePermission": "السماح لـ SouqOne بالوصول إلى موقعك لتحديد موقع إعلانك والخدمات القريبة منك بدقة."
         }
       ],
       "@react-native-community/datetimepicker",

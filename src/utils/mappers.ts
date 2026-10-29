@@ -12,46 +12,6 @@ const TRANS_LABELS: Record<string, string> = {
   AUTOMATIC: 'أوتوماتيك', MANUAL: 'عادي',
 }
 
-const JOB_TYPE_LABELS: Record<string, string> = {
-  'full-time': 'دوام كامل', 'part-time': 'دوام جزئي', contract: 'عقد',
-  FULL_TIME: 'دوام كامل', PART_TIME: 'دوام جزئي', CONTRACT: 'عقد',
-  TEMPORARY: 'مؤقت',
-  HIRING: 'طلب سائق', OFFERING: 'عرض خدمة',
-}
-
-const SERVICE_TYPE_LABELS: Record<string, string> = {
-  GOODS: 'بضائع عامة',
-  FURNITURE: 'أثاث ومنزليات',
-  CONSTRUCTION: 'مواد البناء',
-  HEAVY: 'شحن ثقيل',
-  BACKLOAD: 'عودة فارغة',
-  EQUIPMENT: 'معدات وآليات',
-}
-
-const REQUEST_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'مفتوح',
-  QUOTED: 'وصلت عروض',
-  ACCEPTED: 'مقبول',
-  IN_PROGRESS: 'جارٍ التنفيذ',
-  COMPLETED: 'مكتمل',
-  CANCELLED: 'ملغى',
-  EXPIRED: 'منتهي الصلاحية',
-}
-
-const SALARY_PERIOD_LABELS: Record<string, string> = {
-  DAILY: 'يوم',
-  MONTHLY: 'شهر',
-  YEARLY: 'سنة',
-  NEGOTIABLE: 'قابل للتفاوض',
-}
-
-const LICENSE_TYPE_LABELS: Record<string, string> = {
-  LIGHT: 'رخصة خفيفة',
-  HEAVY: 'رخصة ثقيلة',
-  TRANSPORT: 'رخصة نقل',
-  BUS: 'رخصة حافلات',
-  MOTORCYCLE: 'رخصة دراجة',
-}
 
 function formatBudget(min: any, max: any): string {
   const minN = parseFloat(String(min ?? '0'))
@@ -155,46 +115,6 @@ export function mapListingToCard(item: any): UnifiedCardItem {
     category: item.category ?? 'cars',
     details: details.length > 0 ? details : undefined,
     whatsappEnabled: item.whatsappEnabled === true,
-    raw: item,
-  }
-}
-
-// ── Jobs ─────────────────────────────────────────────────────────────────────
-export function mapJobToCard(item: any): UnifiedCardItem {
-  const salary = safePrice(item.salary)
-  const period = SALARY_PERIOD_LABELS[item.salaryPeriod] ?? ''
-  const location = formatLocation(item) || 'موقع غير محدد'
-
-  const details: { icon: string; value: string }[] = []
-  details.push({
-    icon: 'briefcase-outline',
-    value: JOB_TYPE_LABELS[item.jobType] ?? item.jobType ?? '',
-  })
-  if (item.employmentType)
-    details.push({ icon: 'time-outline', value: JOB_TYPE_LABELS[item.employmentType] ?? item.employmentType })
-  if (item.experienceYears != null && item.experienceYears > 0)
-    details.push({ icon: 'star-outline', value: `${item.experienceYears} سنة خبرة` })
-  if (item.licenseTypes?.length > 0)
-    details.push({ icon: 'card-outline', value: item.licenseTypes.map((lt: string) => LICENSE_TYPE_LABELS[lt] ?? lt).join('، ') })
-
-  let priceLabel: string | undefined
-  if (salary > 0 && period) priceLabel = period
-  else if (salary > 0) priceLabel = 'شهر'
-
-  return {
-    id: item.id,
-    title: item.title ?? '',
-    price: salary > 0 ? salary : undefined,
-    priceLabel,
-    priceText: salary <= 0 ? 'قابل للتفاوض' : undefined,
-    currency: item.currency ?? 'ر.ع.',
-    governorate: location,
-    images: extractImages(item.images),
-    category: 'jobs',
-    listingType: item.jobType === 'HIRING' ? 'HIRING' : 'OFFERING',
-    details: details.length > 0 ? details : undefined,
-    whatsappEnabled: item.whatsappEnabled === true,
-    description: item.description,
     raw: item,
   }
 }
@@ -512,40 +432,3 @@ export function mapOperatorToCard(item: any): UnifiedCardItem {
   }
 }
 
-// ── Transport requests ───────────────────────────────────────────────────────
-export function mapTransportToCard(item: any): UnifiedCardItem {
-  const fromLocation = item.fromGovernorateRef
-    ? (item.fromGovernorateRef.nameAr || item.fromGovernorateRef.nameEn || '')
-    : (item.fromGovernorate || '')
-  const toLocation = item.toGovernorateRef
-    ? (item.toGovernorateRef.nameAr || item.toGovernorateRef.nameEn || '')
-    : (item.toGovernorate || '')
-  const title = SERVICE_TYPE_LABELS[item.serviceType] ?? item.serviceType ?? 'طلب نقل'
-  const quotesCount = item._count?.quotes ?? item.quotesCount ?? 0
-
-  const details: { icon: string; value: string }[] = []
-  details.push({ icon: 'navigate-outline', value: `${fromLocation} → ${toLocation}` })
-  if (item.weightTons)
-    details.push({ icon: 'barbell-outline', value: `${item.weightTons} طن` })
-  if (quotesCount > 0)
-    details.push({ icon: 'chatbubbles-outline', value: `${quotesCount} عرض` })
-
-  const budgetText = formatBudget(item.budgetMin, item.budgetMax)
-  const hasBudget = budgetText !== 'تواصل للسعر'
-
-  return {
-    id: item.id,
-    title,
-    priceText: budgetText,
-    price: hasBudget ? safePrice(item.budgetMax ?? item.budgetMin) : undefined,
-    currency: item.currency ?? 'ر.ع.',
-    governorate: fromLocation,
-    images: [],
-    category: 'transport',
-    listingType: REQUEST_STATUS_LABELS[item.status] ?? item.status,
-    details: details.length > 0 ? details : undefined,
-    whatsappEnabled: item.whatsappEnabled === true,
-    description: item.cargoDescription,
-    raw: item,
-  }
-}

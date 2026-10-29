@@ -1,14 +1,11 @@
 import React from 'react'
 import { render, screen, fireEvent, act } from '@testing-library/react-native'
-import { EditCarrierProfileModal } from '../../components/transport/EditCarrierProfileModal'
-import { transportApi } from '../../api/transport'
 import { buildOperatorPayload } from '../../utils/operator-payload'
 import { useEquipmentWizardStore } from '../../store/equipmentWizardStore'
 import { usePartWizardStore } from '../../store/partWizardStore'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-jest.mock('../../api/transport')
 jest.mock('../../store/dialogStore', () => ({
   dialogService: {
     alert: jest.fn(),
@@ -30,47 +27,6 @@ describe('Edit Forms WhatsApp Preservation (Spec 4)', () => {
         mutations: { retry: false },
       },
     })
-  })
-
-  it('Carrier Edit: preserves whatsappEnabled=true in update payload without touching toggle', async () => {
-    ;(transportApi.updateCarrierProfile as jest.Mock).mockResolvedValueOnce({
-      data: { success: true },
-    })
-
-    const initialProfile: any = {
-      id: 'carrier-101',
-      companyName: 'النقل الذهبي',
-      bio: 'خدمات النقل البري في مسقط',
-      governorateId: 1,
-      wilayaId: 10,
-      whatsappEnabled: true,
-    }
-
-    const onClose = jest.fn()
-
-    await render(
-      <QueryClientProvider client={queryClient}>
-        <EditCarrierProfileModal
-          visible={true}
-          onClose={onClose}
-          profile={initialProfile}
-        />
-      </QueryClientProvider>
-    )
-
-    // Press save directly without touching WhatsappToggle
-    const saveBtn = screen.getByText('حفظ التعديلات')
-    await act(async () => {
-      fireEvent.press(saveBtn)
-    })
-
-    expect(transportApi.updateCarrierProfile).toHaveBeenCalledTimes(1)
-    expect(transportApi.updateCarrierProfile).toHaveBeenCalledWith(
-      expect.objectContaining({
-        companyName: 'النقل الذهبي',
-        whatsappEnabled: true,
-      })
-    )
   })
 
   it('Operator Edit: preserves whatsappEnabled=true in buildOperatorPayload', () => {
