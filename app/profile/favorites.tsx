@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -11,7 +11,10 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { SearchCardDispatcher } from '../../src/screens/search/components/SearchCardDispatcher'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { EmptyState } from '../../src/components/ui/EmptyState'
 import { useFavorites } from '../../src/hooks/useListings'
+import { usePullToRefresh } from '../../src/hooks/usePullToRefresh'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { BlurView } from 'expo-blur'
@@ -34,7 +37,8 @@ export default function FavoritesScreen() {
   const { scrollHandler } = useScrollAwareNav()
   const params = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
-  const { data, isLoading } = useFavorites()
+  const { data, isLoading, isError, error, refetch } = useFavorites()
+  const { refreshing, onRefresh } = usePullToRefresh(refetch)
   const navBarHeight = insets.top + 52
   // We no longer need contentTopOffset to push content down for fixed headers,
   // since the filter is now IN the list. So contentTopOffset is just navBarHeight.
@@ -45,22 +49,67 @@ export default function FavoritesScreen() {
     return item.category === activeTab
   }) ?? []
 
+  const hasData = Boolean(data && data.length > 0)
+  const isInitialLoading = isLoading && !data
+  const isInitialError = isError && !hasData
+  const errorProps = isInitialError ? getListErrorProps(error, 'تعذر تحميل المفضلة') : null
+
   return (
     <View style={s.root}>
       {/* FlatList spans the full screen height (like Profile's ScrollView) so its scrolled
           content actually passes behind the fixed GlassNavBar — that's what lets the blur
           reflect real card colors instead of just showing the flat page background. */}
-      {isLoading ? (
-        <View style={[s.list, { paddingTop: contentTopOffset }]}>
+      {isInitialLoading ? (
+        <View style={[s.list, { paddingTop: contentTopOffset }]} testID="favorites-skeleton">
           {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
         </View>
+      ) : isInitialError && errorProps ? (
+        <ScrollView
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          contentContainerStyle={[
+            s.list,
+            s.centerScroll,
+            { paddingTop: contentTopOffset, paddingBottom: insets.bottom || 20 },
+          ]}
+          refreshControl={
+            <RefreshControl
+              testID="favorites-error-refresh-control"
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
+        >
+          <EmptyState
+            testID="favorites-error-state"
+            icon={errorProps.icon}
+            iconType="ionicons"
+            iconColor={errorProps.iconColor}
+            title={errorProps.title}
+            subtitle={errorProps.subtitle}
+            actionLabel={errorProps.actionLabel}
+            onAction={onRefresh}
+          />
+        </ScrollView>
       ) : (
         <Animated.FlatList
+          testID="favorites-flat-list"
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           data={filteredData}
           keyExtractor={i => i.id}
           contentContainerStyle={[s.list, { paddingTop: contentTopOffset, paddingBottom: insets.bottom || 20 }]}
+          refreshControl={
+            <RefreshControl
+              testID="favorites-refresh-control"
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
           ListHeaderComponent={
             <View style={s.segmentedWrapper}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.segmentedContainer}>
@@ -81,7 +130,7 @@ export default function FavoritesScreen() {
             </View>
           }
           ListEmptyComponent={
-            <View style={s.emptyState}>
+            <View style={s.emptyState} testID="favorites-empty-state">
               <View style={s.emptyIconCircle}>
                 <Ionicons name="heart-outline" size={40} color={Colors.primary} />
               </View>
@@ -117,6 +166,11 @@ export default function FavoritesScreen() {
 }
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
+  centerScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   segmentedWrapper: {
     marginHorizontal: Spacing.space5,
     marginBottom: 6,

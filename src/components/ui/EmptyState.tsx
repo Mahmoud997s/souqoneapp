@@ -27,6 +27,7 @@ export interface EmptyStateProps {
   onSecondaryAction?: () => void;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  testID?: string;
 }
 
 export function EmptyState({
@@ -44,6 +45,7 @@ export function EmptyState({
   onSecondaryAction,
   style,
   compact = false,
+  testID,
 }: EmptyStateProps) {
   const renderIcon = () => {
     if (customIcon) return customIcon;
@@ -78,7 +80,7 @@ export function EmptyState({
   };
 
   return (
-    <View style={[styles.container, compact && styles.compactContainer, style]}>
+    <View style={[styles.container, compact && styles.compactContainer, style]} testID={testID}>
       {/* Icon Bubble */}
       <View style={[styles.iconCircle, compact && styles.compactIconCircle]}>
         {renderIcon()}

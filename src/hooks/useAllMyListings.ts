@@ -12,6 +12,8 @@ import { MyListingItem } from '../types/my-listings.types'
 export interface UseAllMyListingsResult {
   items: MyListingItem[]
   isLoading: boolean
+  isError: boolean
+  error: unknown
   isFetchingNextPage: boolean
   hasNextPage: boolean
   fetchNextPage: () => void
@@ -51,6 +53,36 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     operators.data,
     parts.data,
   ])
+
+  // Active category queries used for error and status discrimination
+  const activeQueries = useMemo(() => {
+    switch (activeCategory) {
+      case 'cars':
+        return [cars]
+      case 'buses':
+        return [buses]
+      case 'services':
+        return [services]
+      case 'jobs':
+        return [jobs]
+      case 'equipment':
+        return [equipment]
+      case 'operators':
+        return [operators]
+      case 'parts':
+        return [parts]
+      default:
+        return [cars, buses, services, jobs, equipment, operators, parts]
+    }
+  }, [activeCategory, cars, buses, services, jobs, equipment, operators, parts])
+
+  const isError = useMemo(() => {
+    return activeQueries.some((q) => q.isError)
+  }, [activeQueries])
+
+  const error = useMemo(() => {
+    return activeQueries.find((q) => q.isError)?.error ?? null
+  }, [activeQueries])
 
   // Initial loading: wait for ALL queries to settle before showing items
   // This prevents the screen from showing only cars if cars finishes first.
@@ -132,6 +164,8 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
   return {
     items,
     isLoading,
+    isError,
+    error,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,

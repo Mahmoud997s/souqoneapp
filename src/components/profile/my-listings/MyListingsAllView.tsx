@@ -10,6 +10,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
+import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
 import { MyListingSectionSlider } from './MyListingSectionSlider'
@@ -22,6 +23,8 @@ export interface GroupedSectionData {
 export interface MyListingsAllViewProps {
   groupedSections: GroupedSectionData[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
   isRefreshing: boolean
   onRefresh: () => void
   onSelectCategory: (categoryId: string) => void
@@ -40,6 +43,8 @@ export interface MyListingsAllViewProps {
 export function MyListingsAllView({
   groupedSections,
   isLoading,
+  isError,
+  error,
   isRefreshing,
   onRefresh,
   onSelectCategory,
@@ -56,7 +61,7 @@ export function MyListingsAllView({
 }: MyListingsAllViewProps) {
   if (isLoading) {
     return (
-      <View style={[s.loaderContainer, { paddingTop: topInset + Spacing.space4 }]}>
+      <View style={[s.loaderContainer, { paddingTop: topInset + Spacing.space4 }]} testID="my-listings-loading">
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} />
         ))}
@@ -67,6 +72,8 @@ export function MyListingsAllView({
   const hasAnyItems = groupedSections.some((sec) => sec.items.length > 0)
 
   if (!hasAnyItems) {
+    const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل الإعلانات') : null
+
     return (
       <Animated.ScrollView
         onScroll={onScroll}
@@ -82,14 +89,28 @@ export function MyListingsAllView({
         }
       >
         {header}
-        <EmptyState
-          icon="document-text-outline"
-          title="لا توجد إعلانات"
-          subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
-          actionLabel="أضف إعلانك الأول"
-          actionIcon="add"
-          onAction={() => router.push('/post' as any)}
-        />
+        {isError && errorProps ? (
+          <EmptyState
+            testID="my-listings-error-state"
+            icon={errorProps.icon}
+            iconType="ionicons"
+            iconColor={errorProps.iconColor}
+            title={errorProps.title}
+            subtitle={errorProps.subtitle}
+            actionLabel={errorProps.actionLabel}
+            onAction={onRefresh}
+          />
+        ) : (
+          <EmptyState
+            testID="my-listings-empty-state"
+            icon="document-text-outline"
+            title="لا توجد إعلانات"
+            subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
+            actionLabel="أضف إعلانك الأول"
+            actionIcon="add"
+            onAction={() => router.push('/post' as any)}
+          />
+        )}
       </Animated.ScrollView>
     )
   }

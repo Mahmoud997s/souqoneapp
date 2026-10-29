@@ -64,6 +64,8 @@ export default function MyListingsScreen() {
         <MyListingsAllView
           groupedSections={screen.groupedSections}
           isLoading={screen.isLoading}
+          isError={screen.isError}
+          error={screen.error}
           isRefreshing={screen.isRefreshing}
           onRefresh={screen.handleRefresh}
           onSelectCategory={screen.handleSelectCategory}
@@ -89,6 +91,8 @@ export default function MyListingsScreen() {
         <MyListingsCategoryView
           data={screen.filteredData}
           isLoading={screen.isLoading}
+          isError={screen.isError}
+          error={screen.error}
           isRefreshing={screen.isRefreshing}
           isFetchingNextPage={screen.isFetchingNextPage}
           hasNextPage={screen.hasNextPage}
