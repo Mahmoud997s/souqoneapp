@@ -181,37 +181,39 @@ export default function HomeScreen() {
           <DeletionScheduledBanner />
         </View>
 
-        {/* ── CAR DETAIL SANDBOX QUICK ACCESS ── */}
-        <Animated.View entering={FadeInDown.duration(300)} style={s.sandboxBannerWrap}>
-          <TouchableOpacity
-            style={s.sandboxBanner}
-            onPress={() => router.push('/dev/car-detail-sandbox' as any)}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={['#0F172A', '#1E293B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.sandboxGradient}
+        {/* ── CAR DETAIL SANDBOX QUICK ACCESS (DEV ONLY) ── */}
+        {__DEV__ && (
+          <Animated.View entering={FadeInDown.duration(300)} style={s.sandboxBannerWrap}>
+            <TouchableOpacity
+              style={s.sandboxBanner}
+              onPress={() => router.push('/dev/car-detail-sandbox' as any)}
+              activeOpacity={0.85}
             >
-              <View style={s.sandboxContent}>
-                <View style={s.sandboxIconCircle}>
-                  <Ionicons name="car-sport" size={22} color={Colors.white} />
-                </View>
-                <View style={s.sandboxTextCol}>
-                  <View style={s.sandboxBadgeRow}>
-                    <Text style={s.sandboxTitle}>معمل تجارب تفاصيل السيارة</Text>
-                    <View style={s.devBadge}>
-                      <Text style={s.devBadgeText}>DEV</Text>
-                    </View>
+              <LinearGradient
+                colors={['#0F172A', '#1E293B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={s.sandboxGradient}
+              >
+                <View style={s.sandboxContent}>
+                  <View style={s.sandboxIconCircle}>
+                    <Ionicons name="car-sport" size={22} color={Colors.white} />
                   </View>
-                  <Text style={s.sandboxSubtitle}>معاينة كافة مكونات الصفحة والسيناريوهات</Text>
+                  <View style={s.sandboxTextCol}>
+                    <View style={s.sandboxBadgeRow}>
+                      <Text style={s.sandboxTitle}>معمل تجارب تفاصيل السيارة</Text>
+                      <View style={s.devBadge}>
+                        <Text style={s.devBadgeText}>DEV</Text>
+                      </View>
+                    </View>
+                    <Text style={s.sandboxSubtitle}>معاينة كافة مكونات الصفحة والسيناريوهات</Text>
+                  </View>
+                  <Ionicons name="chevron-back" size={20} color={Colors.white} />
                 </View>
-                <Ionicons name="chevron-back" size={20} color={Colors.white} />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
 
         {/* ── OFFICIAL CATEGORIES GRID (Balanced 4x2) ── */}
         <HomeCategoriesGrid />

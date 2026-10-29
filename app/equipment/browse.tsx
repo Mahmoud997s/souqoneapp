@@ -183,6 +183,9 @@ export default function EquipmentBrowseScreen() {
           const parsed = parseFloat(val as string);
           if (!isNaN(parsed)) {
             params[key] = parsed;
+            if (key === 'priceMin') params.minPrice = parsed;
+            if (key === 'priceMax') params.maxPrice = parsed;
+            if (key === 'hoursMax') params.hoursUsedMax = parsed;
           }
         } else {
           params[key] = val;
