@@ -101,6 +101,7 @@ export function CardImageSwiper({
       <Pressable
         onPress={onPress}
         style={[styles.container, containerHeightStyle, style]}
+        testID={disableImageSwipe ? 'card-image-static' : 'card-image-single'}
       >
         <Image
           source={{ uri: images[0] }}
@@ -120,7 +121,7 @@ export function CardImageSwiper({
   // Case 2: Multi-image swipeable with Gesture.Pan() and Reanimated
   return (
     <GestureDetector gesture={composedGesture}>
-      <View style={[styles.container, containerHeightStyle, style]}>
+      <View style={[styles.container, containerHeightStyle, style]} testID="card-image-swipeable">
         <Animated.View style={[styles.track, animatedTrackStyle]}>
           {images.map((img, i) => (
             <View
@@ -145,6 +146,7 @@ export function CardImageSwiper({
         {/* Pagination Dots */}
         <View
           pointerEvents="none"
+          testID="card-image-swiper-dots"
           style={[styles.dotsWrapper, { flexDirection: physicalRowDirection() }]}
         >
           {images.map((_, i) => (

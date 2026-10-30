@@ -57,6 +57,8 @@ export interface HorizontalScrollCardProps<T> {
   velocityThreshold?: number
   /** Intent threshold ratio (0-1) for gentle drags without flick (default: 0.20) */
   dragThresholdRatio?: number
+  /** Optional testID for testing */
+  testID?: string
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -94,6 +96,7 @@ export function HorizontalScrollCard<T>({
   momentumFactor = 0.22,
   velocityThreshold,
   dragThresholdRatio,
+  testID,
 }: HorizontalScrollCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH)
   const [measuredHeight, setMeasuredHeight] = useState<number | undefined>(cardHeight)
@@ -137,6 +140,7 @@ export function HorizontalScrollCard<T>({
 
   return (
     <View
+      testID={testID || 'horizontal-scroll-card'}
       style={[styles.container, containerStyle]}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width

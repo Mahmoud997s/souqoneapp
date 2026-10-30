@@ -62,6 +62,7 @@ export function MyListingCardDispatcher({
           showChips
           maxChips={3}
           actionMenu={menu}
+          disableImageSwipe
         />
       )
     case 'bus':
