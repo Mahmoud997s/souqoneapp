@@ -16,6 +16,7 @@ import { useBuses } from '../../src/hooks/useBuses';
 import { BusesHowItWorks } from '../../src/components/buses/landing/BusesHowItWorks';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -168,6 +169,7 @@ export default function BusesLandingScreen() {
             subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
             buttonText="أضف إعلانك"
             iconName="bus-outline"
+            iconImage={CATEGORY_ICONS.buses}
             onPress={() => navigateToBusForm()}
           />
         </View>

@@ -26,6 +26,7 @@ import { useInfiniteCarListings } from '../../src/hooks/useCarListings';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import {
   DROPDOWN_FILTERS,
   SORT_OPTIONS,
@@ -473,6 +474,7 @@ export default function CarsBrowseScreen() {
                 subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
                 buttonText="أضف إعلانك"
                 iconName="car-sport-outline"
+                iconImage={CATEGORY_ICONS.cars}
                 onPress={handleAddCar}
               />
             )}

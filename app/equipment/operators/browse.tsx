@@ -23,6 +23,7 @@ import { useScrollAwareNav } from '../../../src/hooks/useScrollAwareNav'
 import { useOperatorNavigation } from '../../../src/hooks/useOperatorNavigation'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
 import { SectionFooterAction } from '../../../src/components/ui/SectionFooterAction'
+import { CATEGORY_ICONS } from '../../../src/constants/categoryIcons'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
 import { ListingTabs } from '../../../src/components/ui/ListingTabs'
 import { QuickFilters, QuickFilterItem } from '../../../src/components/ui/QuickFilters'
@@ -421,6 +422,7 @@ export default function BrowseOperatorsScreen() {
                   subtitle="سجل بروفايلك المهني الآن وتلق عروض عمل ومشاريع مجزية"
                   buttonText="سجل كمشغل"
                   iconName="construct-outline"
+                  iconImage={CATEGORY_ICONS.equipment}
                   onPress={navigateToAddOperator}
                 />
               </>

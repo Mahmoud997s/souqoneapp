@@ -31,6 +31,7 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
@@ -497,7 +498,8 @@ export default function PartsBrowseScreen() {
                 title="لديك قطعة للبيع؟"
                 subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
                 buttonText="انشر إعلانك"
-                iconName="camera-outline"
+                iconName="construct-outline"
+                iconImage={CATEGORY_ICONS.parts}
                 onPress={handleAddPart}
               />
             )}

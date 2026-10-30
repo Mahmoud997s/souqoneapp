@@ -27,6 +27,7 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 
 // Services Components
 import { ServiceCard } from '../../src/components/services/ServiceCard';
@@ -498,6 +499,7 @@ export default function ServicesBrowseScreen() {
                 subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
                 buttonText="أضف خدمتك"
                 iconName="construct-outline"
+                iconImage={CATEGORY_ICONS.services}
                 onPress={handleAddService}
               />
             )}

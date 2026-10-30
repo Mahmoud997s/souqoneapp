@@ -37,6 +37,7 @@ import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
 
 // Constants
@@ -433,6 +434,7 @@ export default function EquipmentBrowseScreen() {
                 subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات"
                 buttonText="أضف معدتك"
                 iconName="construct-outline"
+                iconImage={CATEGORY_ICONS.equipment}
                 onPress={() => navigateToEquipmentForm('push')}
               />
             ) : null

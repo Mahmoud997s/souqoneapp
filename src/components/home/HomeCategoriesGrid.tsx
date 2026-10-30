@@ -21,14 +21,8 @@ import { Spacing } from '../../constants/spacing'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import type { MaterialCommunityIcons } from '@expo/vector-icons'
 
-export const CATEGORY_ICONS = {
-  cars: require('../../../assets/images/categories/cat-cars.png'),
-  services: require('../../../assets/images/categories/cat-services.png'),
-  parts: require('../../../assets/images/categories/cat-parts.png'),
-  equipment: require('../../../assets/images/categories/cat-equipment.png'),
-  buses: require('../../../assets/images/categories/cat-buses.png'),
-  browse: require('../../../assets/images/categories/cat-browse.png'),
-} as const
+import { CATEGORY_ICONS } from '../../constants/categoryIcons'
+export { CATEGORY_ICONS } from '../../constants/categoryIcons'
 
 /**
  * Optical size balance config:
