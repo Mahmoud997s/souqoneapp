@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  AppState,
+  LayoutChangeEvent,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -16,6 +18,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
+  withRepeat,
+  cancelAnimation,
+  Easing,
 } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -66,8 +72,14 @@ export const CATEGORY_GRID_GAP = 12
 export const CATEGORY_GRID_PADDING_H = 16
 
 /**
+ * Marquee speed in pixels per second.
+ * Constant linear speed across screen sizes (recommended 25-30 px/s).
+ */
+export const MARQUEE_SPEED_PX_PER_SEC = 28
+
+/**
  * Backward-compatible helper functions for category items and gaps.
- * In D-163h, tiles are 78x90 portrait floating without an outer container card.
+ * In D-163h/g, tiles are 78x90 portrait floating without an outer container card.
  */
 export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
   return CATEGORY_GRID_GAP
@@ -82,6 +94,7 @@ interface CategoryTileProps {
   itemWidth: number
   reducedMotion: boolean
   onPress: (route: string) => void
+  isDuplicate?: boolean
 }
 
 const CategoryTile = memo(function CategoryTile({
@@ -89,6 +102,7 @@ const CategoryTile = memo(function CategoryTile({
   itemWidth,
   reducedMotion,
   onPress,
+  isDuplicate = false,
 }: CategoryTileProps) {
   const pressed = useSharedValue(0)
   const scaleFactor = CATEGORY_ICON_SCALES[item.id] ?? 1.0
@@ -137,12 +151,13 @@ const CategoryTile = memo(function CategoryTile({
   return (
     <View style={[s.itemWrap, { width: itemWidth }]}>
       <Pressable
-        testID={`category-tile-${item.id}`}
+        testID={isDuplicate ? `category-tile-${item.id}-dup` : `category-tile-${item.id}`}
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={item.label}
+        accessible={!isDuplicate}
         hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       >
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
@@ -184,31 +199,172 @@ const CategoryTile = memo(function CategoryTile({
   )
 })
 
-export function HomeCategoriesGrid() {
-  const reducedMotion = useAppReducedMotion()
+export function HomeCategoriesGrid({
+  reducedMotion: reducedMotionProp,
+}: {
+  reducedMotion?: boolean
+} = {}) {
+  const hookReducedMotion = useAppReducedMotion()
+  const reducedMotion = reducedMotionProp !== undefined ? reducedMotionProp : hookReducedMotion
+  const [measuredWidth, setMeasuredWidth] = useState<number>(0)
+  const singleSetWidth = measuredWidth > 0
+    ? measuredWidth
+    : HOME_CATEGORIES.length * (CATEGORY_ITEM_WIDTH + CATEGORY_GRID_GAP)
+
+  const translateX = useSharedValue(0)
+  const isPaused = useRef(false)
+  const resumeTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleNavigate = useCallback((route: string) => {
     router.push(route as any)
   }, [])
 
+  const startMarquee = useCallback(() => {
+    if (reducedMotion || singleSetWidth <= 0) return
+    isPaused.current = false
+    const duration = (singleSetWidth / MARQUEE_SPEED_PX_PER_SEC) * 1000
+
+    translateX.value = withRepeat(
+      withTiming(-singleSetWidth, {
+        duration,
+        easing: Easing.linear,
+      }),
+      -1,
+      false
+    )
+  }, [reducedMotion, singleSetWidth, translateX])
+
+  const pauseMarquee = useCallback(() => {
+    isPaused.current = true
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = null
+    }
+    cancelAnimation(translateX)
+  }, [translateX])
+
+  const handleTouchStart = useCallback(() => {
+    pauseMarquee()
+  }, [pauseMarquee])
+
+  const handleTouchEnd = useCallback(() => {
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current)
+    }
+    resumeTimerRef.current = setTimeout(() => {
+      startMarquee()
+    }, 1500)
+  }, [startMarquee])
+
+  useEffect(() => {
+    if (!reducedMotion) {
+      startMarquee()
+    }
+    return () => {
+      if (resumeTimerRef.current) {
+        clearTimeout(resumeTimerRef.current)
+      }
+      cancelAnimation(translateX)
+    }
+  }, [reducedMotion, singleSetWidth, startMarquee, translateX])
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        if (!isPaused.current && !reducedMotion) {
+          startMarquee()
+        }
+      } else {
+        cancelAnimation(translateX)
+      }
+    })
+    return () => {
+      sub.remove()
+    }
+  }, [reducedMotion, startMarquee, translateX])
+
+  const animatedTrackStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    }
+  })
+
+  const onSetALayout = useCallback((e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width
+    if (w > 0 && Math.abs(w + CATEGORY_GRID_GAP - measuredWidth) > 1) {
+      setMeasuredWidth(w + CATEGORY_GRID_GAP)
+    }
+  }, [measuredWidth])
+
+  if (reducedMotion) {
+    return (
+      <View style={s.container}>
+        <ScrollView
+          testID="home-categories-scroll"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.scrollContent}
+        >
+          {HOME_CATEGORIES.map((cat) => (
+            <CategoryTile
+              key={cat.id}
+              item={cat}
+              itemWidth={CATEGORY_ITEM_WIDTH}
+              reducedMotion={true}
+              onPress={handleNavigate}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    )
+  }
+
   return (
     <View style={s.container}>
-      <ScrollView
-        testID="home-categories-scroll"
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.scrollContent}
+      <View
+        testID="home-categories-marquee-container"
+        style={s.marqueeContainer}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
-        {HOME_CATEGORIES.map((cat) => (
-          <CategoryTile
-            key={cat.id}
-            item={cat}
-            itemWidth={CATEGORY_ITEM_WIDTH}
-            reducedMotion={reducedMotion}
-            onPress={handleNavigate}
-          />
-        ))}
-      </ScrollView>
+        <Animated.View
+          testID="home-categories-marquee-track"
+          style={[s.marqueeTrack, animatedTrackStyle]}
+        >
+          {/* Set A: Main accessible items */}
+          <View onLayout={onSetALayout} style={s.row}>
+            {HOME_CATEGORIES.map((cat) => (
+              <CategoryTile
+                key={`a-${cat.id}`}
+                item={cat}
+                itemWidth={CATEGORY_ITEM_WIDTH}
+                reducedMotion={false}
+                onPress={handleNavigate}
+              />
+            ))}
+          </View>
+
+          {/* Set B: Seamless clone hidden from screen readers */}
+          <View
+            testID="home-categories-set-b"
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={s.row}
+          >
+            {HOME_CATEGORIES.map((cat) => (
+              <CategoryTile
+                key={`b-${cat.id}`}
+                item={cat}
+                itemWidth={CATEGORY_ITEM_WIDTH}
+                reducedMotion={false}
+                onPress={handleNavigate}
+                isDuplicate={true}
+              />
+            ))}
+          </View>
+        </Animated.View>
+      </View>
     </View>
   )
 }
@@ -217,6 +373,22 @@ const s = StyleSheet.create({
   container: {
     marginBottom: Spacing.space4,
     width: '100%',
+  },
+  marqueeContainer: {
+    overflow: 'hidden',
+    width: '100%',
+    paddingVertical: 4,
+  },
+  marqueeTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: CATEGORY_GRID_GAP,
+    marginRight: CATEGORY_GRID_GAP,
   },
   scrollContent: {
     flexDirection: 'row',
