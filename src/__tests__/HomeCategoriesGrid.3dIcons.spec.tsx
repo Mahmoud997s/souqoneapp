@@ -19,6 +19,7 @@ import {
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
 import { Colors } from '../constants/colors'
+import { NOTIFICATIONS_EMPTY_CTA_ROUTE } from '../../app/profile/notifications'
 
 jest.mock('react-native-reanimated', () => {
   const reanimated = require('react-native-reanimated/mock')
@@ -271,7 +272,27 @@ describe('HomeCategoriesGrid — 6 Tiles in ONE Static Row, No Animation (D-163j
       await act(async () => {
         fireEvent.press(browseTile)
       })
-      expect(router.push).toHaveBeenCalledWith('/(tabs)/browse')
+      expect(router.push).toHaveBeenCalledWith('/(tabs)/search')
+    })
+
+    it('route-existence guard: every category tile route and notifications CTA target maps to an existing app file', () => {
+      const fs = require('fs')
+      const path = require('path')
+      const appRoot = path.resolve(__dirname, '../../app')
+
+      const routesToVerify = [
+        ...HOME_CATEGORIES.map((cat) => ({ id: cat.id, route: cat.route })),
+        { id: 'notifications-empty-cta', route: NOTIFICATIONS_EMPTY_CTA_ROUTE },
+      ]
+
+      routesToVerify.forEach(({ id, route }) => {
+        const clean = route.replace(/^\//, '')
+        const candidateFile = path.join(appRoot, `${clean}.tsx`)
+        const candidateDirIndex = path.join(appRoot, clean, 'index.tsx')
+        const exists = fs.existsSync(candidateFile) || fs.existsSync(candidateDirIndex)
+
+        expect({ id, route, exists }).toEqual({ id, route, exists: true })
+      })
     })
   })
 })

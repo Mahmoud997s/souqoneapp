@@ -53,7 +53,7 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
   { id: 'parts',     label: 'قطع غيار',  route: '/parts',         image: CATEGORY_ICONS.parts,     icon: 'car-cog' },
   { id: 'equipment', label: 'معدات',     route: '/equipment',     image: CATEGORY_ICONS.equipment, icon: 'excavator' },
   { id: 'buses',     label: 'حافلات',    route: '/buses',         image: CATEGORY_ICONS.buses,     icon: 'bus-side' },
-  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/browse', image: CATEGORY_ICONS.browse,    icon: 'grid-large', isAction: true },
+  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/search', image: CATEGORY_ICONS.browse,    icon: 'grid-large', isAction: true },
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
