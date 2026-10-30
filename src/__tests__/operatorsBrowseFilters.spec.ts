@@ -129,8 +129,8 @@ describe('Operators Browse Server-Side Filters (D-136 PR-2)', () => {
       });
 
       // Simulates useOperatorsInfinite queryFn payload across pagination
-      const page1Payload = { ...params, page: 1, limit: 10 };
-      const page2Payload = { ...params, page: 2, limit: 10 };
+      const page1Payload: Record<string, unknown> = { ...params, page: 1, limit: 10 };
+      const page2Payload: Record<string, unknown> = { ...params, page: 2, limit: 10 };
 
       expect(page1Payload.minDailyRate).toBe(30);
       expect(page1Payload.maxDailyRate).toBe(100);
