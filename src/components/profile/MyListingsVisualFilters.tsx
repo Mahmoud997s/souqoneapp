@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { Spacing } from '../../constants/spacing'
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -190,11 +191,24 @@ export function MyListingsVisualFilters({
       activeTab={activeCategory}
       onTabChange={onSelectCategory}
       isTransparent={isTransparent}
+      segmentedWrapperStyle={s.segmentedWrapper}
+      contentAreaStyle={s.contentArea}
+      containerStyle={s.container}
     />
   )
 }
 
 const s = StyleSheet.create({
+  container: {
+    paddingBottom: Spacing.space3, // 12: Chips -> first section title
+  },
+  segmentedWrapper: {
+    marginTop: Spacing.space3,     // 12: Header (GlassNavBar) -> Tabs
+    marginBottom: Spacing.space2,  // 8: Tabs -> Chips
+  },
+  contentArea: {
+    paddingTop: 0,                 // 0: strictly Spacing.space2 (8) gap between Tabs & Chips
+  },
   glassmorphicIconBox: {
     width: 20,
     height: 20,

@@ -50,6 +50,8 @@ export interface VisualFiltersBaseProps<TTabId extends string = string> {
   onViewAll?: (tabId: TTabId) => void;
   renderFooter?: (activeTabId: TTabId) => React.ReactNode;
   containerStyle?: StyleProp<ViewStyle>;
+  segmentedWrapperStyle?: StyleProp<ViewStyle>;
+  contentAreaStyle?: StyleProp<ViewStyle>;
   isTransparent?: boolean;
 }
 
@@ -70,6 +72,8 @@ export function VisualFiltersBase<TTabId extends string = string>({
   onViewAll,
   renderFooter,
   containerStyle,
+  segmentedWrapperStyle,
+  contentAreaStyle,
   isTransparent = false,
 }: VisualFiltersBaseProps<TTabId>) {
   const [internalActiveTab, setInternalActiveTab] = useState<TTabId>(
@@ -238,9 +242,15 @@ export function VisualFiltersBase<TTabId extends string = string>({
   };
 
   return (
-    <View style={[s.container, isTransparent && { backgroundColor: 'transparent', borderBottomWidth: 0 }, containerStyle]}>
+    <View
+      testID="visual-filters-base"
+      style={[s.container, isTransparent && { backgroundColor: 'transparent', borderBottomWidth: 0 }, containerStyle]}
+    >
       {/* ── TABS ── */}
-      <View style={s.segmentedWrapper}>
+      <View
+        testID="visual-filters-segmented-wrapper"
+        style={[s.segmentedWrapper, segmentedWrapperStyle]}
+      >
         {isFixedTabs ? (
           <View style={s.fixedSegmentedContainer}>
             {tabs.map(renderTabItem)}
@@ -257,7 +267,10 @@ export function VisualFiltersBase<TTabId extends string = string>({
       </View>
 
       {/* ── GRID AREA ── */}
-      <View style={[s.contentArea, activeRows === 1 ? s.contentAreaSingleRow : s.contentAreaDoubleRow]}>
+      <View
+        testID="visual-filters-content-area"
+        style={[s.contentArea, activeRows === 1 ? s.contentAreaSingleRow : s.contentAreaDoubleRow, contentAreaStyle]}
+      >
         {renderActiveGrid()}
       </View>
 

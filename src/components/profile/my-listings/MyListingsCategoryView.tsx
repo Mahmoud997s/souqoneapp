@@ -76,7 +76,7 @@ export function MyListingsCategoryView({
       ListHeaderComponent={header}
       data={data}
       keyExtractor={(item) => `${item.entityType}-${item.id}`}
-      contentContainerStyle={[s.list, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.list, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
       refreshing={isRefreshing}
       onRefresh={onRefresh}
       onEndReached={() => {

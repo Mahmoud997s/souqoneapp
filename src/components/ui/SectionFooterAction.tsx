@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ActionBanner } from './ActionBanner';
 import { SupportHelpButton } from './SupportHelpButton';
@@ -9,7 +9,8 @@ export interface SectionFooterActionProps {
   title: string;
   subtitle: string;
   buttonText: string;
-  iconName: keyof typeof Ionicons.glyphMap;
+  iconName?: keyof typeof Ionicons.glyphMap;
+  iconImage?: ImageSourcePropType;
   onPress: () => void;
   gradientColors?: [string, string, string];
   isLanding?: boolean;
@@ -25,6 +26,7 @@ export function SectionFooterAction({
   subtitle,
   buttonText,
   iconName,
+  iconImage,
   onPress,
   gradientColors,
   isLanding = false,
@@ -41,6 +43,7 @@ export function SectionFooterAction({
         subtitle={subtitle}
         buttonText={buttonText}
         iconName={iconName}
+        iconImage={iconImage}
         onPress={onPress}
         gradientColors={gradientColors}
         style={isLanding ? [styles.bannerLanding, bannerStyle] : bannerStyle}

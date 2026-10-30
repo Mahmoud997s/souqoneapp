@@ -16,6 +16,7 @@ import { CarHorizontalList } from '../../src/components/cars/CarHorizontalList';
 import { HowItWorks } from '../../src/components/cars/HowItWorks';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { usePostStore } from '../../src/store/postStore';
 import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -131,6 +132,7 @@ export default function CarsLandingScreen() {
             subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
             buttonText="أضف إعلانك"
             iconName="car-sport-outline"
+            iconImage={CATEGORY_ICONS.cars}
             onPress={handleAddCar}
           />
         </View>

@@ -79,7 +79,7 @@ export function MyListingsAllView({
         testID="my-listings-empty-scroll"
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={[s.emptyScroll, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
+        contentContainerStyle={[s.emptyScroll, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -123,7 +123,7 @@ export function MyListingsAllView({
       onScroll={onScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[s.contentContainer, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.contentContainer, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}

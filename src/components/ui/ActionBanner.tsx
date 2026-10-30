@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform, StyleProp } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform, StyleProp, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
@@ -11,7 +12,8 @@ export interface ActionBannerProps {
   title: string;
   subtitle: string;
   buttonText: string;
-  iconName: keyof typeof Ionicons.glyphMap;
+  iconName?: keyof typeof Ionicons.glyphMap;
+  iconImage?: ImageSourcePropType;
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
   gradientColors?: readonly [string, string, ...string[]];
@@ -22,6 +24,7 @@ export function ActionBanner({
   subtitle,
   buttonText,
   iconName,
+  iconImage,
   onPress,
   style,
   gradientColors = Gradients.hero,
@@ -52,10 +55,23 @@ export function ActionBanner({
           </Svg>
         </View>
 
-        {/* Icon */}
-        <View style={styles.iconBox}>
-          <Ionicons name={iconName} size={22} color="rgba(255,255,255,0.75)" />
-        </View>
+        {/* Icon or 3D Category Image */}
+        {iconImage ? (
+          <View style={styles.imageContainer} testID="action-banner-image-container">
+            <Image
+              source={iconImage}
+              style={styles.category3dImage}
+              contentFit="contain"
+              testID="action-banner-icon-image"
+              accessibilityElementsHidden={true}
+              importantForAccessibility="no-hide-descendants"
+            />
+          </View>
+        ) : iconName ? (
+          <View style={styles.iconBox} testID="action-banner-icon-box">
+            <Ionicons name={iconName} size={22} color="rgba(255,255,255,0.75)" />
+          </View>
+        ) : null}
 
         {/* Text */}
         <View style={styles.textBlock}>
@@ -105,6 +121,17 @@ const styles = StyleSheet.create({
     marginEnd: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
+  },
+  imageContainer: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginEnd: 12,
+  },
+  category3dImage: {
+    width: 42,
+    height: 42,
   },
   textBlock: {
     flex: 1,

@@ -20,6 +20,7 @@ import { Gradients } from '../../src/constants/gradients';
 import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 export default function ServicesLandingScreen() {
@@ -160,6 +161,7 @@ export default function ServicesLandingScreen() {
             subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
             buttonText="أضف خدمتك"
             iconName="construct-outline"
+            iconImage={CATEGORY_ICONS.services}
             onPress={handleAddService}
           />
         </View>

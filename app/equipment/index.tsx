@@ -20,6 +20,7 @@ import { OperatorHorizontalList } from '../../src/components/equipment/landing/O
 import { EquipmentHowItWorks } from '../../src/components/equipment/landing/EquipmentHowItWorks'
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar'
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction'
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons'
 
 const MOCK_OPERATORS = [
   {
@@ -192,6 +193,7 @@ export default function EquipmentLandingScreen() {
             subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات في منطقتك"
             buttonText="أضف معدتك"
             iconName="construct-outline"
+            iconImage={CATEGORY_ICONS.equipment}
             onPress={() => navigateToEquipmentForm('push')}
           />
         </View>

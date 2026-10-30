@@ -20,7 +20,7 @@ import { SkeletonCard } from '../../ui/SkeletonCard'
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = SCREEN_WIDTH * 0.6
 const GAP = Spacing.space3
-const PADDING_END = Spacing.space5
+const PADDING_END = Spacing.space4
 
 export interface MyListingSectionSliderProps {
   config: ListingSectionConfig
@@ -50,9 +50,9 @@ export function MyListingSectionSlider({
   if (!isLoading && (!items || items.length === 0)) return null
 
   return (
-    <View style={s.section}>
+    <View style={s.section} testID="my-listing-section-slider">
       {/* ── Section Header ── */}
-      <View style={s.sectionHeader}>
+      <View style={s.sectionHeader} testID="my-listing-section-header">
         <View style={s.titleRow}>
           <LinearGradient
             colors={config.gradient as any}
@@ -126,13 +126,13 @@ export function MyListingSectionSlider({
 
 const s = StyleSheet.create({
   section: {
-    marginBottom: Spacing.space6,
+    marginBottom: Spacing.space5,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.space5,
+    paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space3,
   },
   titleRow: {

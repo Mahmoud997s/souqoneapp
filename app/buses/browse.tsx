@@ -28,6 +28,7 @@ import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal'
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { Colors } from '../../src/constants/colors';
@@ -387,6 +388,7 @@ export default function BusesBrowseScreen() {
                 subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
                 buttonText="أضف إعلانك"
                 iconName="bus-outline"
+                iconImage={CATEGORY_ICONS.buses}
                 onPress={() => navigateToBusForm()}
               />
             )}

@@ -17,6 +17,7 @@ import { PartHorizontalList } from '../../src/components/parts/PartHorizontalLis
 import { PartsHowItWorks } from '../../src/components/parts/PartsHowItWorks';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
+import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 
 export default function PartsLandingScreen() {
   const router = useRouter();
@@ -118,7 +119,8 @@ export default function PartsLandingScreen() {
             title="لديك قطع غيار للبيع؟"
             subtitle="انشر إعلانك الآن ووصل لآلاف المشترين في منطقتك"
             buttonText="أضف إعلانك"
-            iconName="camera-outline"
+            iconName="construct-outline"
+            iconImage={CATEGORY_ICONS.parts}
             onPress={handleAddPart}
           />
         </View>

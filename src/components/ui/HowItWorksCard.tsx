@@ -29,19 +29,24 @@ export function HowItWorksCard({ title, subTitle, steps }: HowItWorksCardProps) 
       </View>
 
       <View style={s.stepsContainer}>
-        {steps.map((step) => (
-          <View key={String(step.stepNumber)} style={s.stepItem}>
-            <View style={s.stepIconBox}>
-              <Ionicons name={step.icon} size={24} color={Colors.primary} />
-              <View style={s.stepNumberBadge}>
-                <Text style={s.stepNumberTxt}>{step.stepNumber}</Text>
+        {steps.map((step, index) => (
+          <React.Fragment key={String(step.stepNumber)}>
+            <View style={s.stepItem}>
+              <View testID="how-it-works-icon-box" style={s.stepIconBox}>
+                <Ionicons name={step.icon} size={22} color={Colors.primary} />
+                <View testID="how-it-works-step-badge" style={s.stepNumberBadge}>
+                  <Text style={s.stepNumberTxt}>{step.stepNumber}</Text>
+                </View>
+              </View>
+              <View style={s.stepTextContent}>
+                <Text style={s.stepTitle}>{step.title}</Text>
+                <Text style={s.stepDesc}>{step.desc}</Text>
               </View>
             </View>
-            <View style={s.stepTextContent}>
-              <Text style={s.stepTitle}>{step.title}</Text>
-              <Text style={s.stepDesc}>{step.desc}</Text>
-            </View>
-          </View>
+            {index < steps.length - 1 && (
+              <View testID="step-divider" style={s.divider} />
+            )}
+          </React.Fragment>
         ))}
       </View>
     </View>
@@ -57,7 +62,7 @@ const s = StyleSheet.create({
   },
   sectionTitleHeader: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
     lineHeight: 24,
     paddingTop: 4,
@@ -75,7 +80,6 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: Radius.xl,
     padding: Spacing.space4,
-    gap: Spacing.space4,
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: Colors.primaryDark,
@@ -89,10 +93,16 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.space3,
   },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginStart: 48 + Spacing.space3,
+    marginVertical: Spacing.space3,
+  },
   stepIconBox: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 14,
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -104,7 +114,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryDark,
     width: 20,
     height: 20,
     borderRadius: 10,
