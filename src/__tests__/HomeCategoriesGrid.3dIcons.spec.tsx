@@ -77,9 +77,9 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(scale).toBeGreaterThan(0)
       })
 
-      // Verify specific scale tuning for wide vs square icons
-      expect(CATEGORY_ICON_SCALES['cars']).toBe(1.15)
-      expect(CATEGORY_ICON_SCALES['buses']).toBe(1.15)
+      // Verify specific scale tuning for wide vs square icons (D-153c: 1.10 for wide)
+      expect(CATEGORY_ICON_SCALES['cars']).toBe(1.10)
+      expect(CATEGORY_ICON_SCALES['buses']).toBe(1.10)
       expect(CATEGORY_ICON_SCALES['equipment']).toBe(1.05)
       expect(CATEGORY_ICON_SCALES['services']).toBe(1.0)
       expect(CATEGORY_ICON_SCALES['parts']).toBe(1.0)
@@ -91,12 +91,13 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       expect(CATEGORY_GRID_GAP).toBe(8)
       expect(CATEGORY_GRID_PADDING_H).toBe(32)
       expect(calculateCategoryItemWidth(360)).toBe(104)
+      expect(calculateCategoryItemWidth(430)).toBe(127)
     })
   })
 
   describe('2. Component Rendering & Interaction', () => {
-    it('renders all 6 category tiles with accessibility labels and role button', async () => {
-      const { getByTestId, getAllByTestId } = await render(<HomeCategoriesGrid />)
+    it('renders all 6 category tiles with rectangular cards (80h), 40x40 icons, and 2px line under label (D-153c)', async () => {
+      const { getByTestId, getAllByTestId, queryAllByTestId } = await render(<HomeCategoriesGrid />)
 
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
@@ -108,22 +109,25 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
 
-      // D-153: 52x52 icon dimensions
+      // D-153c: 40x40 icon dimensions
       images.forEach((img) => {
         const flattened = StyleSheet.flatten(img.props.style)
-        expect(flattened.width).toBe(52)
-        expect(flattened.height).toBe(52)
+        expect(flattened.width).toBe(40)
+        expect(flattened.height).toBe(40)
       })
 
-      // D-153: 2px thin ground shadow with 0.30 opacity
-      const shadows = getAllByTestId('category-ground-shadow')
-      expect(shadows).toHaveLength(6)
-      shadows.forEach((shadow) => {
-        const flattened = StyleSheet.flatten(shadow.props.style)
+      // D-153c: 2px thin line under label text with 0.35 opacity and 28 width
+      const lines = getAllByTestId('category-label-line')
+      expect(lines).toHaveLength(6)
+      lines.forEach((line) => {
+        const flattened = StyleSheet.flatten(line.props.style)
         expect(flattened.height).toBe(2)
-        expect(flattened.width).toBe(36)
-        expect(flattened.opacity).toBe(0.3)
+        expect(flattened.width).toBe(28)
+        expect(flattened.opacity).toBe(0.35)
       })
+
+      // D-153c: groundShadow is completely removed
+      expect(queryAllByTestId('category-ground-shadow')).toHaveLength(0)
     })
 
     it('navigates when tiles are pressed and triggers haptics on pressIn', async () => {
@@ -143,14 +147,14 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
     })
   })
 
-  describe('3. Optical Scale Configuration (D-153)', () => {
+  describe('3. Optical Scale Configuration (D-153c)', () => {
     it('each category maintains defined optical scale in CATEGORY_ICON_SCALES', () => {
       HOME_CATEGORIES.forEach((cat) => {
         expect(CATEGORY_ICON_SCALES[cat.id]).toBeDefined()
         expect(typeof CATEGORY_ICON_SCALES[cat.id]).toBe('number')
       })
-      expect(CATEGORY_ICON_SCALES.cars).toBe(1.15)
-      expect(CATEGORY_ICON_SCALES.buses).toBe(1.15)
+      expect(CATEGORY_ICON_SCALES.cars).toBe(1.10)
+      expect(CATEGORY_ICON_SCALES.buses).toBe(1.10)
       expect(CATEGORY_ICON_SCALES.equipment).toBe(1.05)
       expect(CATEGORY_ICON_SCALES.services).toBe(1.0)
       expect(CATEGORY_ICON_SCALES.parts).toBe(1.0)
