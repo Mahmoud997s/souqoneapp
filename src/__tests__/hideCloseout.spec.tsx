@@ -15,19 +15,13 @@ describe('D-134 Hide Closeout Tests', () => {
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
     })
 
-    it('CATEGORY_GRID_COLUMNS is 3 and tile size is 80x80 square (D-163a)', () => {
+    it('CATEGORY_GRID_COLUMNS is 3 and tile size is 88x88 square with 12px gap (D-163e)', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(3)
-      expect(CATEGORY_ITEM_SIZE).toBe(80)
-      expect(calculateCategoryItemWidth(360)).toBe(80)
-      expect(calculateCategoryItemWidth(430)).toBe(80)
-    })
-
-    it('calculateCategoryGridGap calculates equal edge and between gaps correctly for 360dp and 430dp screens (D-163a)', () => {
-      // 360dp screen: (360 - 3 * 80) / 4 = 120 / 4 = 30
-      expect(calculateCategoryGridGap(360)).toBe(30)
-
-      // 430dp screen: (430 - 3 * 80) / 4 = 190 / 4 = 47.5 -> 47
-      expect(calculateCategoryGridGap(430)).toBe(47)
+      expect(CATEGORY_ITEM_SIZE).toBe(88)
+      expect(calculateCategoryItemWidth(360)).toBe(88)
+      expect(calculateCategoryItemWidth(430)).toBe(88)
+      expect(calculateCategoryGridGap(360)).toBe(12)
+      expect(calculateCategoryGridGap(430)).toBe(12)
     })
   })
 })

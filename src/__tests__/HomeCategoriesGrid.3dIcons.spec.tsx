@@ -15,10 +15,19 @@ import {
   calculateCategoryItemWidth,
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
+import { Colors } from '../constants/colors'
 
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
+  },
+}))
+
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children, ...props }: any) => {
+    const React = require('react')
+    const { View } = require('react-native')
+    return React.createElement(View, props, children)
   },
 }))
 
@@ -90,19 +99,20 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
 
     it('Grid geometry math conforms to standard columns and padding', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(3)
-      expect(CATEGORY_ITEM_SIZE).toBe(80)
-      expect(calculateCategoryItemWidth(360)).toBe(80)
-      expect(calculateCategoryItemWidth(430)).toBe(80)
-      expect(calculateCategoryGridGap(360)).toBe(30)
-      expect(calculateCategoryGridGap(430)).toBe(47)
+      expect(CATEGORY_ITEM_SIZE).toBe(88)
+      expect(CATEGORY_GRID_GAP).toBe(12)
+      expect(calculateCategoryItemWidth(360)).toBe(88)
+      expect(calculateCategoryItemWidth(430)).toBe(88)
+      expect(calculateCategoryGridGap(360)).toBe(12)
+      expect(calculateCategoryGridGap(430)).toBe(12)
     })
   })
 
   describe('2. Component Rendering & Interaction', () => {
-    it('renders all 6 category tiles with square cards (80x80), 46x46 icons, and NO line under label (D-163a)', async () => {
+    it('renders all 6 category tiles with square cards (88x88), 52x52 icons, gradient background, and soft ellipse shadow (D-163e)', async () => {
       const { getByTestId, getAllByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
 
-      // (أ) D-163a: category-label-line must NOT exist
+      // (أ) D-163a/e: category-label-line must NOT exist
       expect(queryByTestId('category-label-line')).toBeNull()
 
       HOME_CATEGORIES.forEach((cat) => {
@@ -111,51 +121,58 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
 
-        // (ب) D-163a: الكارت مربع 80x80 (card style width 80, height 80, minHeight 80)
+        // (ب) D-163e: الكارت مربع 88x88 (card style width 88, height 88, minHeight 88)
         const cardView = tile.children[0] as any
         const cardStyle = StyleSheet.flatten(cardView.props.style)
-        expect(cardStyle.width).toBe(80)
-        expect(cardStyle.height).toBe(80)
-        expect(cardStyle.minHeight).toBe(80)
+        expect(cardStyle.width).toBe(88)
+        expect(cardStyle.height).toBe(88)
+        expect(cardStyle.minHeight).toBe(88)
         expect(cardStyle.borderRadius).toBe(16)
 
-        // (ج) D-163a: عرض الـ tile/slot wrapper = 80
+        // (ج) D-163e: عرض الـ tile/slot wrapper = 88
         const itemWrap = tile.parent as any
         expect(itemWrap).toBeTruthy()
         const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
-        expect(itemWrapStyle.width).toBe(80)
+        expect(itemWrapStyle.width).toBe(88)
 
-        // (د) D-163a: card has exactly 2 children (iconContainer + label text), NO line
+        // (د) D-163e: card has gradient background (LinearGradient with testID tile-gradient)
         const cardChildren = React.Children.toArray(cardView.props.children) as any[]
-        expect(cardChildren).toHaveLength(2)
+        const gradient = cardChildren.find((c: any) => c.props.testID === 'tile-gradient')
+        expect(gradient).toBeTruthy()
+        expect(gradient.props.colors).toEqual([Colors.surface, Colors.surfaceAlt])
 
-        // 1) iconContainer has exactly 1 child (iconBox), height = 46
-        const iconContainer = cardChildren[0]
-        const iconContainerStyle = StyleSheet.flatten(iconContainer.props.style)
-        expect(iconContainerStyle.height).toBe(46)
+        // 1) iconContainer contains iconBox (52x52) and soft ellipse shadow
+        const iconContainer = cardChildren.find((c: any) => c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
         const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
-        expect(iconContainerChildren).toHaveLength(1)
         const iconBox = iconContainerChildren[0]
         const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
-        expect(iconBoxStyle.width).toBe(46)
-        expect(iconBoxStyle.height).toBe(46)
+        expect(iconBoxStyle.width).toBe(52)
+        expect(iconBoxStyle.height).toBe(52)
 
-        // 2) Text label is child 1, font size 13/14
-        const labelText = cardChildren[1]
-        expect(labelText.props.children).toBe(cat.label)
+        // soft ellipse shadow under icon
+        const shadow = iconContainerChildren.find((c: any) => c.props.testID === 'category-tile-shadow')
+        expect(shadow).toBeTruthy()
+        const shadowStyle = StyleSheet.flatten(shadow.props.style)
+        expect(shadowStyle.height).toBe(8)
+        expect(shadowStyle.backgroundColor).toBe(Colors.primaryDark)
+        expect(shadowStyle.opacity).toBe(0.12)
+
+        // 2) Text label, font size 14, line height 19
+        const labelText = cardChildren.find((c: any) => c.props.children === cat.label)
+        expect(labelText).toBeTruthy()
         const labelStyle = StyleSheet.flatten(labelText.props.style)
-        expect(labelStyle.fontSize).toBeGreaterThanOrEqual(13)
-        expect(labelStyle.lineHeight).toBeGreaterThanOrEqual(18)
+        expect(labelStyle.fontSize).toBe(14)
+        expect(labelStyle.lineHeight).toBe(19)
       })
 
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
 
-      // D-163a: 46x46 icon dimensions
+      // D-163e: 52x52 icon dimensions
       images.forEach((img) => {
         const flattened = StyleSheet.flatten(img.props.style)
-        expect(flattened.width).toBe(46)
-        expect(flattened.height).toBe(46)
+        expect(flattened.width).toBe(52)
+        expect(flattened.height).toBe(52)
       })
     })
 

@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native'
 import { Image } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import Animated, {
@@ -57,24 +58,22 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-export const CATEGORY_ITEM_SIZE = 80
+export const CATEGORY_ITEM_SIZE = 88
 export const CATEGORY_GRID_COLUMNS = 3
+export const CATEGORY_GRID_GAP = 12
+export const CATEGORY_GRID_PADDING_H = 0
 
 /**
- * Calculates equal gap between tiles and edges across screen width.
- * With 3 columns of size 80, there are 4 equal gaps (left edge, 2 between tiles, right edge).
- * The same value is used for rowGap between rows.
+ * Calculates equal gap between tiles and rows across screen width.
+ * In D-163e, fixed equal gap of 12px horizontal and vertical; 3-tile group is centered.
  */
-export function calculateCategoryGridGap(screenWidth: number = SCREEN_WIDTH): number {
-  return Math.floor((screenWidth - CATEGORY_GRID_COLUMNS * CATEGORY_ITEM_SIZE) / (CATEGORY_GRID_COLUMNS + 1))
+export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
+  return CATEGORY_GRID_GAP
 }
 
 export function calculateCategoryItemWidth(_screenWidth: number = SCREEN_WIDTH): number {
   return CATEGORY_ITEM_SIZE
 }
-
-export const CATEGORY_GRID_GAP = calculateCategoryGridGap(SCREEN_WIDTH)
-export const CATEGORY_GRID_PADDING_H = 0
 
 const ITEM_WIDTH = CATEGORY_ITEM_SIZE
 
@@ -156,9 +155,16 @@ const CategoryTile = memo(function CategoryTile({
         hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       >
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
-          <View style={s.iconContainer}>
+          <LinearGradient
+            testID="tile-gradient"
+            colors={[Colors.surface, Colors.surfaceAlt]}
+            style={s.gradient}
+            pointerEvents="none"
+          />
+          <View testID={`icon-container-${item.id}`} style={s.iconContainer}>
             <Animated.View style={[s.iconBox, animatedIconStyle]}>
               <Image
+                testID="category-tile-image"
                 source={item.image}
                 style={[
                   s.iconImage,
@@ -171,6 +177,7 @@ const CategoryTile = memo(function CategoryTile({
                 accessibilityIgnoresInvertColors
               />
             </Animated.View>
+            <View testID="category-tile-shadow" style={s.iconShadow} pointerEvents="none" />
           </View>
           <Text
             style={[s.label, item.isAction && s.actionLabel]}
@@ -192,11 +199,9 @@ export function HomeCategoriesGrid() {
     router.push(route as any)
   }, [])
 
-  const gridGap = calculateCategoryGridGap(SCREEN_WIDTH)
-
   return (
     <View style={s.container}>
-      <View style={[s.grid, { rowGap: gridGap }]}>
+      <View style={s.grid}>
         {HOME_CATEGORIES.map((cat, index) => (
           <CategoryTile
             key={cat.id}
@@ -221,7 +226,10 @@ const s = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
+    gap: CATEGORY_GRID_GAP,
+    rowGap: CATEGORY_GRID_GAP,
+    columnGap: CATEGORY_GRID_GAP,
     width: '100%',
   },
   itemWrap: {
@@ -231,8 +239,8 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    paddingTop: 6,
-    paddingBottom: 6,
+    paddingTop: 5,
+    paddingBottom: 5,
     paddingHorizontal: 4,
     width: CATEGORY_ITEM_SIZE,
     height: CATEGORY_ITEM_SIZE,
@@ -241,6 +249,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: Colors.primaryDark,
@@ -257,26 +266,41 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
   },
+  gradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 46,
-    marginBottom: 2,
+    height: 54,
+    marginBottom: 1,
   },
   iconBox: {
-    width: 46,
-    height: 46,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 46,
-    height: 46,
+    width: 52,
+    height: 52,
+  },
+  iconShadow: {
+    width: 32,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primaryDark,
+    opacity: 0.12,
+    marginTop: -4,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 19,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
