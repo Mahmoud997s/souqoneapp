@@ -1,9 +1,8 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
-import { render, fireEvent, cleanup } from '@testing-library/react-native'
+import { render, fireEvent, act } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
-import * as Reanimated from 'react-native-reanimated'
 import {
   HomeCategoriesGrid,
   HOME_CATEGORIES,
@@ -12,12 +11,10 @@ import {
   CATEGORY_GRID_COLUMNS,
   CATEGORY_GRID_GAP,
   CATEGORY_GRID_PADDING_H,
-  CATEGORY_ITEM_SIZE,
-  CATEGORY_ITEM_WIDTH,
   CATEGORY_ITEM_HEIGHT,
-  MARQUEE_SPEED_PX_PER_SEC,
-  MARQUEE_DIRECTION,
-  getMarqueeEndpoints,
+  CATEGORY_ICON_SIZE,
+  CATEGORY_ITEM_WIDTH,
+  CATEGORY_ITEM_SIZE,
   calculateCategoryItemWidth,
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
@@ -65,13 +62,13 @@ jest.mock('expo-image', () => ({
   },
 }))
 
-describe('HomeCategoriesGrid — Floating Tiles 78x90 & Live Marquee Loop (D-163h/g)', () => {
+describe('HomeCategoriesGrid — 6 Tiles in ONE Static Row, No Animation (D-163j)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   describe('1. Data, Scale & Configuration Integrity', () => {
-    it('HOME_CATEGORIES has exactly 6 items in preserved order', () => {
+    it('HOME_CATEGORIES has exactly 6 items in preserved Arabic RTL order', () => {
       expect(HOME_CATEGORIES).toHaveLength(6)
       const ids = HOME_CATEGORIES.map((cat) => cat.id)
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
@@ -110,175 +107,171 @@ describe('HomeCategoriesGrid — Floating Tiles 78x90 & Live Marquee Loop (D-163
       expect(CATEGORY_ICON_SCALES['parts']).toBe(1.0)
       expect(CATEGORY_ICON_SCALES['browse']).toBe(1.0)
     })
+  })
 
-    it('Tile geometry math defines compact portrait tile 78x90 with 12px gap (D-163h)', () => {
-      expect(CATEGORY_ITEM_WIDTH).toBe(78)
-      expect(CATEGORY_ITEM_HEIGHT).toBe(90)
-      expect(CATEGORY_ITEM_SIZE).toBe(78)
-      expect(CATEGORY_GRID_GAP).toBe(12)
-      expect(calculateCategoryItemWidth(360)).toBe(78)
-      expect(calculateCategoryGridGap(360)).toBe(12)
+  describe('2. Layout Geometry & Screen Width Fitting Math (D-163j)', () => {
+    it('exports single row layout constants with tight 6px gap and height 76', () => {
+      expect(CATEGORY_GRID_COLUMNS).toBe(6)
+      expect(CATEGORY_GRID_GAP).toBe(6)
+      expect(CATEGORY_GRID_PADDING_H).toBe(16)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(76)
+      expect(CATEGORY_ICON_SIZE).toBe(38)
+      expect(CATEGORY_ITEM_WIDTH).toBeGreaterThan(0)
+      expect(CATEGORY_ITEM_SIZE).toBe(CATEGORY_ITEM_WIDTH)
     })
 
-    it('exports MARQUEE_SPEED_PX_PER_SEC within recommended 25-30 px/s range (D-163g)', () => {
-      expect(typeof MARQUEE_SPEED_PX_PER_SEC).toBe('number')
-      expect(MARQUEE_SPEED_PX_PER_SEC).toBeGreaterThanOrEqual(25)
-      expect(MARQUEE_SPEED_PX_PER_SEC).toBeLessThanOrEqual(30)
-    })
+    it('calculates item width that fits within screen width on 360, 390, and 430 screens', () => {
+      // 360px screen (small Android / iPhone SE):
+      const width360 = calculateCategoryItemWidth(360)
+      expect(width360).toBe(49)
+      const totalOccupied360 = (width360 * 6) + (CATEGORY_GRID_GAP * 5) + (CATEGORY_GRID_PADDING_H * 2)
+      expect(totalOccupied360).toBeLessThanOrEqual(360)
 
-    it('exports MARQUEE_DIRECTION = 1 for left-to-right rightward motion (D-163i)', () => {
-      expect(MARQUEE_DIRECTION).toBe(1)
-    })
+      // 390px screen (iPhone 13 / 14 / 15):
+      const width390 = calculateCategoryItemWidth(390)
+      expect(width390).toBe(54)
+      const totalOccupied390 = (width390 * 6) + (CATEGORY_GRID_GAP * 5) + (CATEGORY_GRID_PADDING_H * 2)
+      expect(totalOccupied390).toBeLessThanOrEqual(390)
 
-    it('getMarqueeEndpoints correctly configures endpoints for rightward (1) and leftward (-1) motions (D-163i)', () => {
-      const singleSetWidth = 540 // 6 * (78 + 12)
+      // 430px screen (iPhone 14/15/16 Pro Max / large Android):
+      const width430 = calculateCategoryItemWidth(430)
+      expect(width430).toBe(61)
+      const totalOccupied430 = (width430 * 6) + (CATEGORY_GRID_GAP * 5) + (CATEGORY_GRID_PADDING_H * 2)
+      expect(totalOccupied430).toBeLessThanOrEqual(430)
 
-      // Rightward motion (1): starts shifted to left (-540) and translates to 0 (+540 displacement = rightward)
-      const rightward = getMarqueeEndpoints(singleSetWidth, 1)
-      expect(rightward.start).toBe(-540)
-      expect(rightward.end).toBe(0)
-      expect(rightward.end - rightward.start).toBe(540) // Positive displacement
+      // Gap is constant 6 across screen sizes
+      expect(calculateCategoryGridGap(360)).toBe(6)
+      expect(calculateCategoryGridGap(390)).toBe(6)
+      expect(calculateCategoryGridGap(430)).toBe(6)
 
-      // Leftward motion (-1): starts at 0 and translates to -540 (-540 displacement = leftward) — teeth proof flip
-      const leftward = getMarqueeEndpoints(singleSetWidth, -1)
-      expect(leftward.start).toBe(0)
-      expect(leftward.end).toBe(-540)
-      expect(leftward.end - leftward.start).toBe(-540) // Negative displacement
-
-      // Seamless loop invariant: difference between start and end is exactly singleSetWidth
-      expect(Math.abs(rightward.end - rightward.start)).toBe(singleSetWidth)
-      expect(Math.abs(leftward.end - leftward.start)).toBe(singleSetWidth)
+      // Teeth proof: if gap increases to 10, item width strictly decreases
+      const wideGapAvailable = 360 - 32 - (10 * 5)
+      expect(Math.floor(wideGapAvailable / 6)).toBeLessThan(width360)
     })
   })
 
-  describe('2. Reduced Motion Fallback', () => {
-    it('renders static horizontal ScrollView with 6 tiles when reduced motion is enabled', async () => {
-      const { getByTestId, queryByTestId } = await render(<HomeCategoriesGrid reducedMotion={true} />)
-      const scrollView = getByTestId('home-categories-scroll')
-      expect(scrollView).toBeTruthy()
-      expect(scrollView.props.horizontal).toBe(true)
+  describe('3. Single Static Row Rendering & No Animation (D-163j)', () => {
+    it('renders exactly 6 tiles in ONE static row with NO ScrollView and NO marquee track', async () => {
+      const { getByTestId, queryByTestId, getAllByTestId } = await render(<HomeCategoriesGrid />)
 
-      HOME_CATEGORIES.forEach((cat) => {
-        expect(getByTestId(`category-tile-${cat.id}`)).toBeTruthy()
-      })
+      // Row container exists and has flexDirection row with gap 6
+      const row = getByTestId('home-categories-row')
+      expect(row).toBeTruthy()
+      const rowStyle = StyleSheet.flatten(row.props.style)
+      expect(rowStyle.flexDirection).toBe('row')
+      expect(rowStyle.gap).toBe(6)
+
+      // No ScrollView in default mode
+      expect(queryByTestId('home-categories-scroll')).toBeNull()
+
+      // No marquee track or container
       expect(queryByTestId('home-categories-marquee-track')).toBeNull()
+      expect(queryByTestId('home-categories-marquee-container')).toBeNull()
+
+      // No duplicate set B or duplicate tile testIDs
+      expect(queryByTestId('home-categories-set-b')).toBeNull()
+      HOME_CATEGORIES.forEach((cat) => {
+        expect(queryByTestId(`category-tile-${cat.id}-dup`)).toBeNull()
+      })
+
+      // Exactly 6 tile images rendered in the entire tree
+      const tileImages = getAllByTestId('category-tile-image')
+      expect(tileImages).toHaveLength(6)
+
+      // No container card, no label line, no shadow pill under icon
+      expect(queryByTestId('category-label-line')).toBeNull()
+      expect(queryByTestId('category-tile-shadow')).toBeNull()
+    })
+
+    it('renders exactly the same static row when reducedMotion is enabled (no ScrollView)', async () => {
+      const { getByTestId, queryByTestId, getAllByTestId } = await render(<HomeCategoriesGrid reducedMotion={true} />)
+
+      expect(getByTestId('home-categories-row')).toBeTruthy()
+      expect(queryByTestId('home-categories-scroll')).toBeNull()
+      expect(queryByTestId('home-categories-marquee-track')).toBeNull()
+      expect(getAllByTestId('category-tile-image')).toHaveLength(6)
     })
   })
 
-  describe('3. Live Marquee Seamless Loop & Rendering (D-163g)', () => {
-    it('renders marquee track with 2 sets (12 tiles total) and hides Set B from accessibility', async () => {
-      const { getByTestId, getAllByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
+  describe('4. Equal Widths, Tile Sizing & Label Fit Props (D-163j)', () => {
+    it('every tile has flex: 1, height 76, radius 14, and label fit props', async () => {
+      const { getByTestId } = await render(<HomeCategoriesGrid />)
 
-      // Marquee track container exists
-      const marqueeTrack = getByTestId('home-categories-marquee-track')
-      expect(marqueeTrack).toBeTruthy()
-
-      // category-label-line must NOT exist
-      expect(queryByTestId('category-label-line')).toBeNull()
-
-      // No grey pill shadow under any icon
-      expect(queryByTestId('category-tile-shadow')).toBeNull()
-
-      // Set A: 6 standard tiles
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
         expect(tile).toBeTruthy()
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
 
-        // Compact card dimensions 78x90
-        const cardView = tile.children[0] as any
-        const cardStyle = StyleSheet.flatten(cardView.props.style)
-        expect(cardStyle.width).toBe(78)
-        expect(cardStyle.height).toBe(90)
-        expect(cardStyle.minHeight).toBe(90)
-        expect(cardStyle.borderRadius).toBe(16)
-
-        // Tile slot width = 78
+        // itemWrap has flex: 1 for equal width distribution
         const itemWrap = tile.parent as any
         expect(itemWrap).toBeTruthy()
         const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
-        expect(itemWrapStyle.width).toBe(78)
+        expect(itemWrapStyle.flex).toBe(1)
 
-        // Uniform gentle gradient
+        // Card styling: height 76, radius 14, overflow hidden
+        const cardView = tile.children[0] as any
+        const cardStyle = StyleSheet.flatten(cardView.props.style)
+        expect(cardStyle.height).toBe(76)
+        expect(cardStyle.minHeight).toBe(76)
+        expect(cardStyle.borderRadius).toBe(14)
+        expect(cardStyle.overflow).toBe('hidden')
+
+        // Gradient background present
         const cardChildren = React.Children.toArray(cardView.props.children) as any[]
         const gradient = cardChildren.find((c: any) => c.props.testID === 'tile-gradient')
         expect(gradient).toBeTruthy()
         expect(gradient.props.colors).toEqual([Colors.surface, Colors.surfaceAlt])
 
-        // Icon container: 52x52
+        // Icon container: 38x38
         const iconContainer = cardChildren.find((c: any) => c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
         const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
         const iconBox = iconContainerChildren[0]
         const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
-        expect(iconBoxStyle.width).toBe(52)
-        expect(iconBoxStyle.height).toBe(52)
+        expect(iconBoxStyle.width).toBe(38)
+        expect(iconBoxStyle.height).toBe(38)
 
-        // Text label font size 14, line height 18
+        // Label: single line, adjustsFontSizeToFit, minimumFontScale 0.8
         const labelText = cardChildren.find((c: any) => c.props.children === cat.label)
         expect(labelText).toBeTruthy()
+        expect(labelText.props.numberOfLines).toBe(1)
+        expect(labelText.props.ellipsizeMode).toBe('tail')
+        expect(labelText.props.adjustsFontSizeToFit).toBe(true)
+        expect(labelText.props.minimumFontScale).toBe(0.8)
+
         const labelStyle = StyleSheet.flatten(labelText.props.style)
-        expect(labelStyle.fontSize).toBe(14)
-        expect(labelStyle.lineHeight).toBe(18)
+        expect(labelStyle.fontSize).toBe(11.5)
+        expect(labelStyle.lineHeight).toBe(15)
+        expect(labelStyle.fontFamily).toBe(cat.isAction ? 'Almarai_800ExtraBold' : 'Almarai_700Bold')
+        expect(labelStyle.color).toBe(cat.isAction ? Colors.primary : Colors.text)
       })
-
-      // Set B: duplicate set hidden from accessibility
-      const setBContainer = getByTestId('home-categories-set-b', { includeHiddenElements: true })
-      expect(setBContainer).toBeTruthy()
-      expect(setBContainer.props.accessibilityElementsHidden).toBe(true)
-      expect(setBContainer.props.importantForAccessibility).toBe('no-hide-descendants')
-
-      HOME_CATEGORIES.forEach((cat) => {
-        const dupTile = getByTestId(`category-tile-${cat.id}-dup`, { includeHiddenElements: true })
-        expect(dupTile).toBeTruthy()
-      })
-
-      // 12 tiles in total (6 accessible in set A + 6 duplicates in set B)
-      const allTileImages = getAllByTestId('category-tile-image', { includeHiddenElements: true })
-      expect(allTileImages).toHaveLength(12)
-    })
-
-    it('pauses animation on touchStart and resumes smoothly after touchEnd (D-163g)', async () => {
-      const { getByTestId } = await render(<HomeCategoriesGrid />)
-
-      const marqueeContainer = getByTestId('home-categories-marquee-container')
-      expect(marqueeContainer).toBeTruthy()
-
-      // User touches row -> cancelAnimation called
-      fireEvent(marqueeContainer, 'touchStart')
-      expect(Reanimated.cancelAnimation).toHaveBeenCalled()
-    })
-
-    it('navigates when tiles in set A or set B are pressed and triggers haptics', async () => {
-      const { getByTestId } = await render(<HomeCategoriesGrid />)
-
-      const carsTile = getByTestId('category-tile-cars')
-      fireEvent(carsTile, 'pressIn')
-      expect(Haptics.impactAsync).toHaveBeenCalledWith('light')
-      fireEvent(carsTile, 'pressOut')
-
-      fireEvent.press(carsTile)
-      expect(router.push).toHaveBeenCalledWith('/cars')
-
-      // Duplicate set B tile also triggers navigation
-      const browseDupTile = getByTestId('category-tile-browse-dup', { includeHiddenElements: true })
-      fireEvent.press(browseDupTile)
-      expect(router.push).toHaveBeenCalledWith('/(tabs)/browse')
     })
   })
 
-  describe('4. Optical Scale Configuration (D-153c)', () => {
-    it('each category maintains defined optical scale in CATEGORY_ICON_SCALES', () => {
-      HOME_CATEGORIES.forEach((cat) => {
-        expect(CATEGORY_ICON_SCALES[cat.id]).toBeDefined()
-        expect(typeof CATEGORY_ICON_SCALES[cat.id]).toBe('number')
+  describe('5. Navigation and Press Feedback', () => {
+    it('navigates to category route and triggers haptics on press', async () => {
+      const { getByTestId } = await render(<HomeCategoriesGrid />)
+
+      const carsTile = getByTestId('category-tile-cars')
+      await act(async () => {
+        fireEvent(carsTile, 'pressIn')
       })
-      expect(CATEGORY_ICON_SCALES.cars).toBe(1.10)
-      expect(CATEGORY_ICON_SCALES.buses).toBe(1.10)
-      expect(CATEGORY_ICON_SCALES.equipment).toBe(1.05)
-      expect(CATEGORY_ICON_SCALES.services).toBe(1.0)
-      expect(CATEGORY_ICON_SCALES.parts).toBe(1.0)
-      expect(CATEGORY_ICON_SCALES.browse).toBe(1.0)
+      expect(Haptics.impactAsync).toHaveBeenCalledWith('light')
+
+      await act(async () => {
+        fireEvent(carsTile, 'pressOut')
+      })
+
+      await act(async () => {
+        fireEvent.press(carsTile)
+      })
+      expect(router.push).toHaveBeenCalledWith('/cars')
+
+      const browseTile = getByTestId('category-tile-browse')
+      await act(async () => {
+        fireEvent.press(browseTile)
+      })
+      expect(router.push).toHaveBeenCalledWith('/(tabs)/browse')
     })
   })
 })
