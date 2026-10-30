@@ -39,6 +39,44 @@ import { OperatorFilterState } from '../../../src/types/filters.types'
 import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
 
+/**
+ * Builds backend query parameters for operator listings.
+ * Maps dailyRateMin/Max to minDailyRate/maxDailyRate and
+ * minExperience/maxExperience to minExperienceYears/maxExperienceYears.
+ */
+export function buildOperatorQueryParams(
+  searchQuery: string,
+  filters: OperatorFilterState
+): Record<string, unknown> {
+  const p: Record<string, unknown> = {}
+  if (searchQuery.trim()) p.search = searchQuery.trim()
+  if (filters.operatorType && filters.operatorType !== 'all') p.operatorType = filters.operatorType
+  if (filters.governorateId) p.governorateId = filters.governorateId
+  if (filters.wilayaId) p.wilayaId = filters.wilayaId
+  if (filters.dailyRateMin !== undefined) p.minDailyRate = filters.dailyRateMin
+  if (filters.dailyRateMax !== undefined) p.maxDailyRate = filters.dailyRateMax
+  if (filters.minExperience !== undefined) p.minExperienceYears = filters.minExperience
+  if (filters.maxExperience !== undefined) p.maxExperienceYears = filters.maxExperience
+  if (filters.sortBy) {
+    if (filters.sortBy === 'dailyRate_asc') {
+      p.sortBy = 'dailyRate'
+      p.sortOrder = 'asc'
+    } else if (filters.sortBy === 'dailyRate_desc') {
+      p.sortBy = 'dailyRate'
+      p.sortOrder = 'desc'
+    } else if (filters.sortBy === 'experienceYears' || filters.sortBy === 'experienceYears_desc') {
+      p.sortBy = 'experienceYears'
+      p.sortOrder = 'desc'
+    } else if (filters.sortBy === 'newest' || filters.sortBy === 'createdAt_desc') {
+      p.sortBy = 'createdAt'
+      p.sortOrder = 'desc'
+    } else {
+      p.sortBy = filters.sortBy
+    }
+  }
+  return p
+}
+
 export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
   const { scrollHandler } = useScrollAwareNav()
@@ -50,13 +88,7 @@ export default function BrowseOperatorsScreen() {
 
   // API Query (Passes all server-supported filters directly)
   const queryParams = useMemo(() => {
-    const p: Record<string, unknown> = {}
-    if (searchQuery.trim()) p.search = searchQuery.trim()
-    if (filters.operatorType && filters.operatorType !== 'all') p.operatorType = filters.operatorType
-    if (filters.governorateId) p.governorateId = filters.governorateId
-    if (filters.wilayaId) p.wilayaId = filters.wilayaId
-    if (filters.sortBy) p.sortBy = filters.sortBy
-    return p
+    return buildOperatorQueryParams(searchQuery, filters)
   }, [searchQuery, filters])
 
   const { data, isLoading, isError, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -74,7 +106,7 @@ export default function BrowseOperatorsScreen() {
     return data?.pages.flatMap((page) => page.items) || []
   }, [data])
 
-  // Client-side instant filter refinement for specialized operator attributes
+  // Client-side instant filter refinement for specialized operator attributes (not yet supported on server)
   const operators = useMemo(() => {
     return rawOperators.filter((cardItem) => {
       const op = ((cardItem as any).raw || cardItem) as OperatorListing
@@ -85,29 +117,12 @@ export default function BrowseOperatorsScreen() {
         if (!types.includes(filters.equipmentType)) return false
       }
 
-      // 2. Experience Level Filter
-      if (filters.minExperience !== undefined && (op.experienceYears ?? 0) < filters.minExperience) {
-        return false
-      }
-      if (filters.maxExperience !== undefined && (op.experienceYears ?? 0) > filters.maxExperience) {
-        return false
-      }
-
-      // 3. Daily Rate Range Filter
-      const rate = op.dailyRate ?? cardItem.price ?? 0
-      if (filters.dailyRateMin !== undefined && rate < filters.dailyRateMin) {
-        return false
-      }
-      if (filters.dailyRateMax !== undefined && rate > filters.dailyRateMax) {
-        return false
-      }
-
-      // 4. Negotiable Price Filter
+      // 2. Negotiable Price Filter
       if (filters.isPriceNegotiable && !op.isPriceNegotiable && !op.isNegotiable) {
         return false
       }
 
-      // 5. Certification Filter
+      // 3. Certification Filter
       if (filters.certification) {
         const certs = (op.certifications || []) as string[]
         const hasCert = certs.some((c) => c.toLowerCase().includes(filters.certification!.toLowerCase()))
@@ -116,7 +131,7 @@ export default function BrowseOperatorsScreen() {
 
       return true
     })
-  }, [rawOperators, filters])
+  }, [rawOperators, filters.equipmentType, filters.isPriceNegotiable, filters.certification])
 
   const activeFiltersCount = useMemo(() => {
     let count = 0
@@ -124,11 +139,11 @@ export default function BrowseOperatorsScreen() {
     if (filters.equipmentType) count++
     if (filters.governorateId) count++
     if (filters.wilayaId) count++
-    if (filters.experienceLevel) count++
+    if (filters.experienceLevel || filters.minExperience !== undefined || filters.maxExperience !== undefined) count++
     if (filters.dailyRateMin !== undefined || filters.dailyRateMax !== undefined) count++
     if (filters.isPriceNegotiable) count++
     if (filters.certification) count++
-    if (filters.sortBy && filters.sortBy !== 'newest') count++
+    if (filters.sortBy && filters.sortBy !== 'newest' && filters.sortBy !== 'createdAt_desc') count++
     return count
   }, [filters])
 
@@ -151,14 +166,23 @@ export default function BrowseOperatorsScreen() {
     }
 
     // 3. Experience
+    let experienceLabel = 'الخبرة'
     const selectedExp = OPERATOR_EXPERIENCE_RANGES.find((e) => e.id === filters.experienceLevel)
-    const experienceLabel = selectedExp ? selectedExp.label : 'الخبرة'
+    if (selectedExp) {
+      experienceLabel = selectedExp.label
+    } else if (filters.minExperience !== undefined && filters.maxExperience !== undefined) {
+      experienceLabel = `${filters.minExperience}-${filters.maxExperience} سنوات`
+    } else if (filters.minExperience !== undefined) {
+      experienceLabel = `+${filters.minExperience} سنوات`
+    }
 
     // 4. Rate
     let rateLabel = 'الأجر'
-    if (filters.dailyRateMax && filters.dailyRateMax < 150) {
+    if (filters.dailyRateMin !== undefined && filters.dailyRateMax !== undefined && filters.dailyRateMax < 150) {
+      rateLabel = `${filters.dailyRateMin} - ${filters.dailyRateMax} ر.ع`
+    } else if (filters.dailyRateMax !== undefined && filters.dailyRateMax < 150) {
       rateLabel = `حتى ${filters.dailyRateMax} ر.ع`
-    } else if (filters.dailyRateMin) {
+    } else if (filters.dailyRateMin !== undefined) {
       rateLabel = `من ${filters.dailyRateMin} ر.ع`
     }
 
@@ -171,10 +195,10 @@ export default function BrowseOperatorsScreen() {
     // 7. Sort
     let sortLabel = 'الترتيب'
     if (filters.sortBy) {
-      if (filters.sortBy === 'experienceYears_desc') sortLabel = 'الأعلى خبرة'
+      if (filters.sortBy === 'experienceYears_desc' || filters.sortBy === 'experienceYears') sortLabel = 'الأعلى خبرة'
       else if (filters.sortBy === 'dailyRate_asc') sortLabel = 'الأقل سعراً'
       else if (filters.sortBy === 'dailyRate_desc') sortLabel = 'الأعلى سعراً'
-      else if (filters.sortBy === 'createdAt_desc') sortLabel = 'الأحدث'
+      else if (filters.sortBy === 'createdAt_desc' || filters.sortBy === 'newest') sortLabel = 'الأحدث'
     }
 
     return [
@@ -194,13 +218,13 @@ export default function BrowseOperatorsScreen() {
         id: 'experience',
         label: experienceLabel,
         icon: 'shield-checkmark-outline',
-        isActive: !!filters.experienceLevel,
+        isActive: !!filters.experienceLevel || filters.minExperience !== undefined || filters.maxExperience !== undefined,
       },
       {
         id: 'rate',
         label: rateLabel,
         icon: 'wallet-outline',
-        isActive: !!filters.dailyRateMin || (!!filters.dailyRateMax && filters.dailyRateMax < 150),
+        isActive: filters.dailyRateMin !== undefined || (filters.dailyRateMax !== undefined && filters.dailyRateMax < 150),
       },
       {
         id: 'certification',
@@ -218,7 +242,7 @@ export default function BrowseOperatorsScreen() {
         id: 'sort',
         label: sortLabel,
         icon: 'swap-vertical-outline',
-        isActive: !!filters.sortBy && filters.sortBy !== 'createdAt_desc',
+        isActive: !!filters.sortBy && filters.sortBy !== 'createdAt_desc' && filters.sortBy !== 'newest',
       },
     ]
   }, [filters])
