@@ -3,14 +3,11 @@ import {
   View,
   StyleSheet,
   Pressable,
-  Platform,
   Keyboard,
   useWindowDimensions,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
   withSpring,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -21,6 +18,7 @@ import { useNavVisibility } from '../../context/NavVisibilityContext'
 import {
   BottomBarTokens,
   getCollapsedCircleAnchorKey,
+  computeBottomBarGeometry,
 } from '../../constants/bottomBarTokens'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 
@@ -125,6 +123,7 @@ export function GlassBottomBarShell({
   }
 
   // ── Animated Container Style ──
+  // Calls computeBottomBarGeometry directly (Single Source of Truth)
   const animatedContainerStyle = useAnimatedStyle(() => {
     if (!navHidden) {
       return {
@@ -135,47 +134,16 @@ export function GlassBottomBarShell({
       }
     }
 
-    if (isReducedMotion) {
-      const isCollapsed = navHidden.value >= 0.5
-      return {
-        width: isCollapsed ? BottomBarTokens.collapsedSize : expandedWidth,
-        height: isCollapsed ? BottomBarTokens.collapsedSize : BottomBarTokens.expandedHeight,
-        borderRadius: isCollapsed
-          ? BottomBarTokens.collapsedRadius
-          : BottomBarTokens.expandedRadius,
-        [anchorKey]: isCollapsed ? collapsedOffset : expandedOffset,
-      }
-    }
-
-    const width = interpolate(
-      navHidden.value,
-      [0, 1],
-      [expandedWidth, BottomBarTokens.collapsedSize],
-      Extrapolation.CLAMP
-    )
-    const height = interpolate(
-      navHidden.value,
-      [0, 1],
-      [BottomBarTokens.expandedHeight, BottomBarTokens.collapsedSize],
-      Extrapolation.CLAMP
-    )
-    const borderRadius = interpolate(
-      navHidden.value,
-      [0, 1],
-      [BottomBarTokens.expandedRadius, BottomBarTokens.collapsedRadius],
-      Extrapolation.CLAMP
-    )
-    const offset = interpolate(
-      navHidden.value,
-      [0, 1],
-      [expandedOffset, collapsedOffset],
-      Extrapolation.CLAMP
-    )
+    const geo = computeBottomBarGeometry(navHidden.value, windowWidth, isReducedMotion)
+    const clampedProgress = Math.max(0, Math.min(1, navHidden.value))
+    const offset = isReducedMotion
+      ? (geo.isCollapsed ? collapsedOffset : expandedOffset)
+      : expandedOffset + (collapsedOffset - expandedOffset) * clampedProgress
 
     return {
-      width,
-      height,
-      borderRadius,
+      width: geo.width,
+      height: geo.height,
+      borderRadius: geo.borderRadius,
       [anchorKey]: offset,
     }
   })
@@ -185,21 +153,8 @@ export function GlassBottomBarShell({
     if (!navHidden) {
       return { borderRadius: BottomBarTokens.expandedRadius }
     }
-    if (isReducedMotion) {
-      return {
-        borderRadius:
-          navHidden.value >= 0.5
-            ? BottomBarTokens.collapsedRadius
-            : BottomBarTokens.expandedRadius,
-      }
-    }
-    const borderRadius = interpolate(
-      navHidden.value,
-      [0, 1],
-      [BottomBarTokens.expandedRadius, BottomBarTokens.collapsedRadius],
-      Extrapolation.CLAMP
-    )
-    return { borderRadius }
+    const geo = computeBottomBarGeometry(navHidden.value, windowWidth, isReducedMotion)
+    return { borderRadius: geo.borderRadius }
   })
 
   // ── Animated Content Style (labels and tabs fade out first) ──
@@ -207,28 +162,10 @@ export function GlassBottomBarShell({
     if (!navHidden) {
       return { opacity: 1, transform: [{ scale: 1 }] }
     }
-    if (isReducedMotion) {
-      const isCollapsed = navHidden.value >= 0.5
-      return {
-        opacity: isCollapsed ? 0 : 1,
-        transform: [{ scale: isCollapsed ? 0 : 1 }],
-      }
-    }
-    const opacity = interpolate(
-      navHidden.value,
-      [0, BottomBarTokens.animation.labelFadeProgress],
-      [1, 0],
-      Extrapolation.CLAMP
-    )
-    const scale = interpolate(
-      navHidden.value,
-      [0, BottomBarTokens.animation.labelFadeProgress],
-      [1, 0.95],
-      Extrapolation.CLAMP
-    )
+    const geo = computeBottomBarGeometry(navHidden.value, windowWidth, isReducedMotion)
     return {
-      opacity,
-      transform: [{ scale }],
+      opacity: geo.labelOpacity,
+      transform: [{ scale: geo.contentScale }],
     }
   })
 
@@ -237,28 +174,10 @@ export function GlassBottomBarShell({
     if (!navHidden) {
       return { opacity: 0, transform: [{ scale: 0 }] }
     }
-    if (isReducedMotion) {
-      const isCollapsed = navHidden.value >= 0.5
-      return {
-        opacity: isCollapsed ? 1 : 0,
-        transform: [{ scale: isCollapsed ? 1 : 0 }],
-      }
-    }
-    const opacity = interpolate(
-      navHidden.value,
-      [BottomBarTokens.animation.iconFadeProgress, 1],
-      [0, 1],
-      Extrapolation.CLAMP
-    )
-    const scale = interpolate(
-      navHidden.value,
-      [BottomBarTokens.animation.iconFadeProgress, 1],
-      [0.8, 1],
-      Extrapolation.CLAMP
-    )
+    const geo = computeBottomBarGeometry(navHidden.value, windowWidth, isReducedMotion)
     return {
-      opacity,
-      transform: [{ scale }],
+      opacity: geo.collapsedIconOpacity,
+      transform: [{ scale: geo.collapsedIconScale }],
     }
   })
 

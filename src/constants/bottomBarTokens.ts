@@ -1,7 +1,8 @@
 import { Platform, I18nManager } from 'react-native'
 import { Colors } from './colors'
-import { Spacing } from './spacing'
-import { Radius } from './radius'
+
+const BLUR_INTENSITY_IOS = 65
+const BLUR_INTENSITY_ANDROID = 45
 
 /**
  * BottomBarTokens
@@ -23,24 +24,22 @@ export const BottomBarTokens = {
   minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
 
   // ── Glass Background Layers ──
-  blurIntensityIos: 65,
-  blurIntensityAndroid: 45,
-  blurIntensity: Platform.OS === 'ios' ? 65 : 45,
+  blurIntensityIos: BLUR_INTENSITY_IOS,
+  blurIntensityAndroid: BLUR_INTENSITY_ANDROID,
+  blurIntensity: Platform.OS === 'ios' ? BLUR_INTENSITY_IOS : BLUR_INTENSITY_ANDROID,
   blurTint: 'light' as const,
   blurMethod: 'dimezisBlurView' as const,
 
   // Translucent white literals strictly itemized per report 409
   whiteWashBg: 'rgba(255, 255, 255, 0.78)',
-  whiteWashGradient: ['rgba(255, 255, 255, 0.70)', 'rgba(255, 255, 255, 0.45)'] as const,
   borderColor: 'rgba(255, 255, 255, 0.60)',
-  borderFallbackColor: Colors.border,
   borderWidth: 1,
   rippleColor: 'rgba(255, 255, 255, 0.20)',
 
   // ── Outer Elevation Shadow ──
   shadow: Platform.select({
     ios: {
-      shadowColor: '#000000',
+      shadowColor: Colors.primaryDark,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.08,
       shadowRadius: 14,
@@ -50,7 +49,7 @@ export const BottomBarTokens = {
     },
   }),
 
-  // ── Active Pill & Tab Item ──
+  // ── Active Pill & Tab Item (used by D-167 section bars & D-168 tab bar) ──
   activePillWidth: 40,
   activePillHeight: 28,
   activePillRadius: 14,
@@ -99,21 +98,6 @@ export function getCollapsedCircleAnchorKey(isRTL: boolean = I18nManager.isRTL):
 }
 
 /**
- * Returns a style object anchoring the collapsed circle to the physical bottom-left edge,
- * correctly taking Fabric RTL coordinate mirroring into account.
- *
- * @param margin Distance from physical left edge in pixels (defaults to BottomBarTokens.marginHorizontal)
- * @param isRTL Override for testing; defaults to I18nManager.isRTL
- */
-export function getCollapsedCircleAnchorStyle(
-  margin: number = BottomBarTokens.marginHorizontal,
-  isRTL: boolean = I18nManager.isRTL
-): { left?: number; right?: number } {
-  const key = getCollapsedCircleAnchorKey(isRTL)
-  return { [key]: margin }
-}
-
-/**
  * Computed bottom bar geometry at any progress point between 0 (expanded) and 1 (collapsed).
  */
 export interface BottomBarGeometry {
@@ -122,12 +106,15 @@ export interface BottomBarGeometry {
   borderRadius: number
   labelOpacity: number
   collapsedIconOpacity: number
+  contentScale: number
+  collapsedIconScale: number
   isCollapsed: boolean
 }
 
 /**
  * Pure geometry helper computing width, height, radius, label opacity, and collapsed icon opacity
  * for any given progress value (0..1) across screen widths (e.g. 360, 390, 430).
+ * Marked with 'worklet' so Reanimated animated styles invoke it directly on UI thread.
  *
  * @param progress Value from 0 (fully expanded) to 1 (fully collapsed)
  * @param screenWidth Screen width in points (e.g. 360, 390, 430)
@@ -138,6 +125,7 @@ export function computeBottomBarGeometry(
   screenWidth: number,
   reducedMotion: boolean = false
 ): BottomBarGeometry {
+  'worklet'
   const clampedProgress = Math.max(0, Math.min(1, progress))
   const expandedWidth = Math.min(
     screenWidth - 2 * BottomBarTokens.marginHorizontal,
@@ -156,6 +144,8 @@ export function computeBottomBarGeometry(
       borderRadius: isCollapsed ? collapsedRadius : expandedRadius,
       labelOpacity: isCollapsed ? 0 : 1,
       collapsedIconOpacity: isCollapsed ? 1 : 0,
+      contentScale: isCollapsed ? 0 : 1,
+      collapsedIconScale: isCollapsed ? 1 : 0,
       isCollapsed,
     }
   }
@@ -165,26 +155,36 @@ export function computeBottomBarGeometry(
   const height = expandedHeight + (collapsedSize - expandedHeight) * clampedProgress
   const borderRadius = expandedRadius + (collapsedRadius - expandedRadius) * clampedProgress
 
-  // Label opacity: fades out over the first 20% (progress 0 -> 0.2)
+  // Label opacity & content scale: fades out and slightly shrinks over the first 20% (progress 0 -> 0.2)
   let labelOpacity = 0
+  let contentScale = 0.95
   if (clampedProgress <= 0) {
     labelOpacity = 1
+    contentScale = 1
   } else if (clampedProgress >= BottomBarTokens.animation.labelFadeProgress) {
     labelOpacity = 0
+    contentScale = 0.95
   } else {
-    labelOpacity = 1 - clampedProgress / BottomBarTokens.animation.labelFadeProgress
+    const fadeRatio = clampedProgress / BottomBarTokens.animation.labelFadeProgress
+    labelOpacity = 1 - fadeRatio
+    contentScale = 1 - 0.05 * fadeRatio
   }
 
-  // Collapsed icon opacity: fades in over the last 20% (progress 0.8 -> 1.0)
+  // Collapsed icon opacity & scale: fades and scales in over the last 20% (progress 0.8 -> 1.0)
   let collapsedIconOpacity = 0
+  let collapsedIconScale = 0
   if (clampedProgress >= 1) {
     collapsedIconOpacity = 1
+    collapsedIconScale = 1
   } else if (clampedProgress <= BottomBarTokens.animation.iconFadeProgress) {
     collapsedIconOpacity = 0
+    collapsedIconScale = 0
   } else {
-    collapsedIconOpacity =
+    const growRatio =
       (clampedProgress - BottomBarTokens.animation.iconFadeProgress) /
       (1 - BottomBarTokens.animation.iconFadeProgress)
+    collapsedIconOpacity = growRatio
+    collapsedIconScale = 0.8 + 0.2 * growRatio
   }
 
   return {
@@ -193,6 +193,8 @@ export function computeBottomBarGeometry(
     borderRadius: Math.round(borderRadius * 100) / 100,
     labelOpacity: Math.round(labelOpacity * 1000) / 1000,
     collapsedIconOpacity: Math.round(collapsedIconOpacity * 1000) / 1000,
+    contentScale: Math.round(contentScale * 1000) / 1000,
+    collapsedIconScale: Math.round(collapsedIconScale * 1000) / 1000,
     isCollapsed: clampedProgress === 1,
   }
 }
