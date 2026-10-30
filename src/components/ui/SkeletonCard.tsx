@@ -41,7 +41,7 @@ export function SkeletonCard({
         {/* Image — aspectRatio 4/3 */}
         <View style={[s.image, { height: imageHeight }, s.placeholder]} />
 
-        <View style={[s.body, compactBody && s.bodyCompact]}>
+        <View testID="skeleton-card-body" style={[s.body, compactBody && s.bodyCompact]}>
           {/* Title row */}
           <View style={s.row}>
             <View style={[s.titleLine, s.placeholder]} />
@@ -159,3 +159,53 @@ const s = StyleSheet.create({
     borderRadius: 9,
   },
 })
+
+export const skeletonCardStyles = s
+
+/**
+ * Pure calculation helper (static estimate from styles, NOT measured on a device).
+ * Derives the static vertical height of the skeleton card body by summing
+ * each row's vertical padding, margin, and placeholder heights.
+ */
+export function computeStaticSkeletonBodyHeight(styles: typeof s = s, isCompact: boolean = false): number {
+  const bodyPadding = isCompact ? styles.bodyCompact : styles.body
+  const padTop = Number(bodyPadding.paddingTop ?? 0)
+  const padBottom = Number(bodyPadding.paddingBottom ?? 0)
+
+  // Title / Badge row: max of titleLine.height (14) and badge.height (18) = 18
+  const rowHeight = Math.max(Number(styles.titleLine.height ?? 0), Number(styles.badge.height ?? 0))
+
+  // Location row: marginTop (2) + marginBottom (4) + locLine.height (11)
+  const locMarginTop = isCompact ? 2 : Number(styles.locationRow.marginTop ?? 3)
+  const locMarginBottom = isCompact ? 4 : Number(styles.locationRow.marginBottom ?? 5)
+  const locHeight = Number(styles.locLine.height ?? 11)
+  const locationTotal = locMarginTop + locMarginBottom + locHeight
+
+  // Divider 1: height (1) + marginTop (1) + marginBottom (5)
+  const divHeight = Number(styles.divider.height ?? 1)
+  const divMarginTop = Number(styles.divider.marginTop ?? 1)
+  const divMarginBottom = isCompact ? 5 : Number(styles.divider.marginBottom ?? 5)
+  const divider1Total = divHeight + divMarginTop + divMarginBottom
+
+  // Chips row: chip.height (20) + chipsRow.marginBottom (5)
+  const chipHeight = Number(styles.chip.height ?? 20)
+  const chipsMarginBottom = Number(styles.chipsRow.marginBottom ?? 5)
+  const chipsTotal = chipHeight + chipsMarginBottom
+
+  // Divider 2: height (1) + marginTop (1) + marginBottom (5)
+  const divider2Total = divHeight + divMarginTop + divMarginBottom
+
+  // Footer: priceLine.height (18)
+  const footerHeight = Math.max(Number(styles.timeLine.height ?? 0), Number(styles.priceLine.height ?? 0))
+
+  return (
+    padTop +
+    padBottom +
+    rowHeight +
+    locationTotal +
+    divider1Total +
+    chipsTotal +
+    divider2Total +
+    footerHeight
+  )
+}

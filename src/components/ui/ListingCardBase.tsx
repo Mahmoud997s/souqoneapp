@@ -293,6 +293,7 @@ export const ListingCardBase = ({
 
       {/* ── DETAILS SECTION ── */}
       <Pressable
+        testID="listing-card-details"
         onPress={onPress}
         style={[
           s.cardDetails,
@@ -333,7 +334,7 @@ export const ListingCardBase = ({
         <View style={[s.divider, compactBody && s.dividerCompact]} />
 
         {/* Details Pills List */}
-        <View style={[s.detailsList, compactBody && s.detailsListCompact]}>
+        <View style={s.detailsList}>
           {(() => {
             if (!pills || pills.length === 0) return null
             const visiblePills = pills.slice(0, maxChips)
@@ -662,9 +663,6 @@ const s = StyleSheet.create({
     marginBottom: 4,
     overflow: 'hidden',
   },
-  detailsListCompact: {
-    marginBottom: 4,
-  },
   detailPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -716,3 +714,64 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
 })
+
+export const listingCardBaseStyles = s
+
+/**
+ * Pure calculation helper (static estimate from styles, NOT measured on a device).
+ * Derives the static vertical height of the listing card body by summing
+ * each row's vertical padding, margin, borders, and line heights.
+ */
+export function computeStaticCardBodyHeight(styles: typeof s = s, isCompact: boolean = false): number {
+  const detailsPadding = isCompact ? styles.cardDetailsCompact : styles.cardDetails
+  const locationRow = isCompact ? styles.locationRowCompact : styles.locationRow
+  const divider = isCompact ? styles.dividerCompact : styles.divider
+  const footerDivider = isCompact ? styles.footerDividerCompact : styles.footerDivider
+
+  const detailsPadTop = Number(detailsPadding.paddingTop ?? 0)
+  const detailsPadBottom = Number(detailsPadding.paddingBottom ?? 0)
+
+  // Title row (single-line title): CardSystem.typography.title.lineHeight (20)
+  const titleHeight = Number(CardSystem.typography.title.lineHeight)
+
+  // Location row: marginTop + marginBottom + CardSystem.typography.subtitle.lineHeight (15)
+  const locMarginTop = Number(locationRow.marginTop ?? styles.locationRow.marginTop ?? 0)
+  const locMarginBottom = Number(locationRow.marginBottom ?? styles.locationRow.marginBottom ?? 0)
+  const locHeight = Number(CardSystem.typography.subtitle.lineHeight)
+  const locationTotal = locMarginTop + locMarginBottom + locHeight
+
+  // Divider 1: height (1) + marginBottom
+  const divHeight = Number(styles.divider.height ?? 1)
+  const divMarginBottom = Number(divider.marginBottom ?? styles.divider.marginBottom ?? 0)
+  const dividerTotal = divHeight + divMarginBottom
+
+  // Chips row (single row): pill paddingVertical*2 (5) + border*2 (2) + pillText.lineHeight (16) + detailsList.marginBottom (4)
+  const pillPadV = Number(styles.detailPill.paddingVertical ?? 0) * 2
+  const pillBorder = 2
+  const pillTextHeight = Number(CardSystem.typography.pillText.lineHeight)
+  const detailsMarginBottom = Number(styles.detailsList.marginBottom ?? 0)
+  const detailsListTotal = pillPadV + pillBorder + pillTextHeight + detailsMarginBottom
+
+  // Footer divider: height (1) + marginTop + marginBottom
+  const fDivHeight = Number(styles.footerDivider.height ?? 1)
+  const fDivMarginTop = Number(footerDivider.marginTop ?? styles.footerDivider.marginTop ?? 0)
+  const fDivMarginBottom = Number(footerDivider.marginBottom ?? styles.footerDivider.marginBottom ?? 0)
+  const footerDividerTotal = fDivHeight + fDivMarginTop + fDivMarginBottom
+
+  // Footer row: budgetValText.lineHeight (15) + pill paddingVertical*2 (5) + border*2 (2)
+  const budgetLineHeight = Number(styles.budgetValText.lineHeight)
+  const footerPillPadV = Number(styles.detailPill.paddingVertical ?? 0) * 2
+  const footerPillBorder = 2
+  const footerRowTotal = budgetLineHeight + footerPillPadV + footerPillBorder
+
+  return (
+    detailsPadTop +
+    detailsPadBottom +
+    titleHeight +
+    locationTotal +
+    dividerTotal +
+    detailsListTotal +
+    footerDividerTotal +
+    footerRowTotal
+  )
+}
