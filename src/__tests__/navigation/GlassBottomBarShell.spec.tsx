@@ -411,5 +411,16 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
 
       expect(queryByTestId('shell-test')).toBeNull()
     })
+
+    it('renders liquid glass background surface by default in test environment', async () => {
+      const { getByTestId, queryByTestId } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      expect(getByTestId('shell-test-glass-liquid')).toBeTruthy()
+      expect(queryByTestId('shell-test-glass-blur')).toBeNull()
+    })
   })
 })
