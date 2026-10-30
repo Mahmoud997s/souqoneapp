@@ -18,7 +18,6 @@ import {
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
 import { Colors } from '../constants/colors'
-import { CATEGORY_TINTS } from '../constants/categoryTints'
 
 jest.mock('expo-router', () => ({
   router: {
@@ -49,7 +48,7 @@ jest.mock('expo-image', () => ({
   },
 }))
 
-describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)', () => {
+describe('HomeCategoriesGrid — Floating Tiles 78x90 & Clean Aesthetic (D-163h)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -58,23 +57,11 @@ describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)',
     cleanup()
   })
 
-  describe('1. Data, Scale & Category Tints Integrity', () => {
+  describe('1. Data, Scale & Configuration Integrity', () => {
     it('HOME_CATEGORIES has exactly 6 items in preserved order', () => {
       expect(HOME_CATEGORIES).toHaveLength(6)
       const ids = HOME_CATEGORIES.map((cat) => cat.id)
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
-    })
-
-    it('CATEGORY_TINTS exports exactly 6 soft pastel tint entries (D-163f)', () => {
-      const keys = Object.keys(CATEGORY_TINTS)
-      expect(keys).toHaveLength(6)
-      expect(keys).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
-      keys.forEach((key) => {
-        expect(typeof CATEGORY_TINTS[key]).toBe('string')
-        expect(CATEGORY_TINTS[key].startsWith('#')).toBe(true)
-      })
-      expect(CATEGORY_TINTS.cars).toBe(Colors.paleMint)
-      expect(CATEGORY_TINTS.browse).toBe(Colors.surfaceAlt)
     })
 
     it('every category tile has a valid non-empty route, label, and image source', () => {
@@ -103,7 +90,6 @@ describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)',
         expect(scale).toBeGreaterThan(0)
       })
 
-      // Verify specific scale tuning for wide vs square icons (D-153c: 1.10 for wide)
       expect(CATEGORY_ICON_SCALES['cars']).toBe(1.10)
       expect(CATEGORY_ICON_SCALES['buses']).toBe(1.10)
       expect(CATEGORY_ICON_SCALES['equipment']).toBe(1.05)
@@ -112,28 +98,31 @@ describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)',
       expect(CATEGORY_ICON_SCALES['browse']).toBe(1.0)
     })
 
-    it('Tile geometry math defines portrait tile 88x100 with 12px gap (D-163f)', () => {
-      expect(CATEGORY_ITEM_WIDTH).toBe(88)
-      expect(CATEGORY_ITEM_HEIGHT).toBe(100)
-      expect(CATEGORY_ITEM_SIZE).toBe(88)
+    it('Tile geometry math defines compact portrait tile 78x90 with 12px gap (D-163h)', () => {
+      expect(CATEGORY_ITEM_WIDTH).toBe(78)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(90)
+      expect(CATEGORY_ITEM_SIZE).toBe(78)
       expect(CATEGORY_GRID_GAP).toBe(12)
-      expect(calculateCategoryItemWidth(360)).toBe(88)
+      expect(calculateCategoryItemWidth(360)).toBe(78)
       expect(calculateCategoryGridGap(360)).toBe(12)
     })
   })
 
-  describe('2. Single Row Horizontal Scroll & Component Rendering (D-163f)', () => {
-    it('renders single horizontal scroll row with 6 portrait tiles (88x100), tinted gradients, and soft ellipse shadow', async () => {
+  describe('2. Floating Tiles Rendering & Clean Minimalist Look (D-163h)', () => {
+    it('renders horizontal scroll row of 6 floating 78x90 tiles without outer card container or icon shadow pills', async () => {
       const { getByTestId, getAllByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
 
-      // (أ) Container is a horizontal ScrollView inside a rounded white card
+      // (أ) ScrollView exists and scrolls horizontally directly without outer card container
       const scrollView = getByTestId('home-categories-scroll')
       expect(scrollView).toBeTruthy()
       expect(scrollView.props.horizontal).toBe(true)
       expect(scrollView.props.showsHorizontalScrollIndicator).toBe(false)
 
-      // (ب) D-163f: category-label-line must NOT exist
+      // (ب) category-label-line must NOT exist
       expect(queryByTestId('category-label-line')).toBeNull()
+
+      // (ج) No grey pill shadow under any icon across the whole component
+      expect(queryByTestId('category-tile-shadow')).toBeNull()
 
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
@@ -141,58 +130,51 @@ describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)',
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
 
-        // (ج) D-163f: الكارت طولي 88x100 (card style width 88, height 100, minHeight 100, borderRadius 18)
+        // (د) Compact card dimensions 78x90
         const cardView = tile.children[0] as any
         const cardStyle = StyleSheet.flatten(cardView.props.style)
-        expect(cardStyle.width).toBe(88)
-        expect(cardStyle.height).toBe(100)
-        expect(cardStyle.minHeight).toBe(100)
-        expect(cardStyle.borderRadius).toBe(18)
+        expect(cardStyle.width).toBe(78)
+        expect(cardStyle.height).toBe(90)
+        expect(cardStyle.minHeight).toBe(90)
+        expect(cardStyle.borderRadius).toBe(16)
 
-        // (د) D-163f: عرض الـ tile/slot wrapper = 88
+        // (هـ) Tile slot width = 78
         const itemWrap = tile.parent as any
         expect(itemWrap).toBeTruthy()
         const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
-        expect(itemWrapStyle.width).toBe(88)
+        expect(itemWrapStyle.width).toBe(78)
 
-        // (هـ) D-163f: card has per-category tinted gradient background
+        // (و) NO entrance animation on mount: wrapper does not have entering prop
+        expect(itemWrap.props.entering).toBeUndefined()
+
+        // (ز) Uniform gentle gradient [Colors.surface, Colors.surfaceAlt]
         const cardChildren = React.Children.toArray(cardView.props.children) as any[]
         const gradient = cardChildren.find((c: any) => c.props.testID === 'tile-gradient')
         expect(gradient).toBeTruthy()
-        expect(gradient.props.colors).toEqual([Colors.surface, CATEGORY_TINTS[cat.id]])
+        expect(gradient.props.colors).toEqual([Colors.surface, Colors.surfaceAlt])
 
-        // (و) iconContainer contains iconBox (54x54) and soft ellipse shadow
+        // (ح) Icon container: 52x52 box without shadow pill
         const iconContainer = cardChildren.find((c: any) => c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
         const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
         const iconBox = iconContainerChildren[0]
         const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
-        expect(iconBoxStyle.width).toBeGreaterThanOrEqual(52)
-        expect(iconBoxStyle.height).toBeGreaterThanOrEqual(52)
+        expect(iconBoxStyle.width).toBe(52)
+        expect(iconBoxStyle.height).toBe(52)
 
-        // soft ellipse shadow under icon
-        const shadow = iconContainerChildren.find((c: any) => c.props.testID === 'category-tile-shadow')
-        expect(shadow).toBeTruthy()
-        const shadowStyle = StyleSheet.flatten(shadow.props.style)
-        expect(shadowStyle.height).toBe(8)
-        expect(shadowStyle.backgroundColor).toBe(Colors.primaryDark)
-        expect(shadowStyle.opacity).toBe(0.12)
-
-        // (ز) Text label, font size 14, line height 19, Almarai bold
+        // (ط) Text label font size 14, line height 18
         const labelText = cardChildren.find((c: any) => c.props.children === cat.label)
         expect(labelText).toBeTruthy()
         const labelStyle = StyleSheet.flatten(labelText.props.style)
         expect(labelStyle.fontSize).toBe(14)
-        expect(labelStyle.lineHeight).toBe(19)
+        expect(labelStyle.lineHeight).toBe(18)
       })
 
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
-
-      // D-163f: icon dimensions 52-56 (using 54x54)
       images.forEach((img) => {
         const flattened = StyleSheet.flatten(img.props.style)
-        expect(flattened.width).toBeGreaterThanOrEqual(52)
-        expect(flattened.height).toBeGreaterThanOrEqual(52)
+        expect(flattened.width).toBe(52)
+        expect(flattened.height).toBe(52)
       })
     })
 

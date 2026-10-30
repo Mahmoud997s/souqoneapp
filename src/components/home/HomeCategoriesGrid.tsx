@@ -13,14 +13,12 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import Animated, {
-  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { CATEGORY_TINTS } from '../../constants/categoryTints'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import type { MaterialCommunityIcons } from '@expo/vector-icons'
 
@@ -60,16 +58,16 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-export const CATEGORY_ITEM_SIZE = 88
-export const CATEGORY_ITEM_WIDTH = 88
-export const CATEGORY_ITEM_HEIGHT = 100
+export const CATEGORY_ITEM_SIZE = 78
+export const CATEGORY_ITEM_WIDTH = 78
+export const CATEGORY_ITEM_HEIGHT = 90
 export const CATEGORY_GRID_COLUMNS = 6
 export const CATEGORY_GRID_GAP = 12
-export const CATEGORY_GRID_PADDING_H = 12
+export const CATEGORY_GRID_PADDING_H = 16
 
 /**
  * Backward-compatible helper functions for category items and gaps.
- * In D-163f, tiles are 88x100 portrait in a single horizontal scroll row with 12px gap.
+ * In D-163h, tiles are 78x90 portrait floating without an outer container card.
  */
 export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
   return CATEGORY_GRID_GAP
@@ -81,7 +79,6 @@ export function calculateCategoryItemWidth(_screenWidth: number = SCREEN_WIDTH):
 
 interface CategoryTileProps {
   item: HomeCategoryItem
-  index: number
   itemWidth: number
   reducedMotion: boolean
   onPress: (route: string) => void
@@ -89,14 +86,12 @@ interface CategoryTileProps {
 
 const CategoryTile = memo(function CategoryTile({
   item,
-  index,
   itemWidth,
   reducedMotion,
   onPress,
 }: CategoryTileProps) {
   const pressed = useSharedValue(0)
   const scaleFactor = CATEGORY_ICON_SCALES[item.id] ?? 1.0
-  const tint = CATEGORY_TINTS[item.id] || Colors.surfaceAlt
 
   const handlePressIn = useCallback(() => {
     pressed.value = 1
@@ -139,15 +134,8 @@ const CategoryTile = memo(function CategoryTile({
     }
   })
 
-  const enteringAnimation = reducedMotion
-    ? undefined
-    : FadeInDown.delay(index * 30).springify().damping(18).stiffness(180)
-
   return (
-    <Animated.View
-      entering={enteringAnimation}
-      style={[s.itemWrap, { width: itemWidth }]}
-    >
+    <View style={[s.itemWrap, { width: itemWidth }]}>
       <Pressable
         testID={`category-tile-${item.id}`}
         onPress={handlePress}
@@ -160,7 +148,7 @@ const CategoryTile = memo(function CategoryTile({
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
           <LinearGradient
             testID="tile-gradient"
-            colors={[Colors.surface, tint]}
+            colors={[Colors.surface, Colors.surfaceAlt]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={s.gradient}
@@ -182,7 +170,6 @@ const CategoryTile = memo(function CategoryTile({
                 accessibilityIgnoresInvertColors
               />
             </Animated.View>
-            <View testID="category-tile-shadow" style={s.iconShadow} pointerEvents="none" />
           </View>
           <Text
             style={[s.label, item.isAction && s.actionLabel]}
@@ -193,7 +180,7 @@ const CategoryTile = memo(function CategoryTile({
           </Text>
         </Animated.View>
       </Pressable>
-    </Animated.View>
+    </View>
   )
 })
 
@@ -206,58 +193,36 @@ export function HomeCategoriesGrid() {
 
   return (
     <View style={s.container}>
-      <View style={s.cardContainer}>
-        <ScrollView
-          testID="home-categories-scroll"
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.scrollContent}
-        >
-          {HOME_CATEGORIES.map((cat, index) => (
-            <CategoryTile
-              key={cat.id}
-              item={cat}
-              index={index}
-              itemWidth={CATEGORY_ITEM_WIDTH}
-              reducedMotion={reducedMotion}
-              onPress={handleNavigate}
-            />
-          ))}
-        </ScrollView>
-      </View>
+      <ScrollView
+        testID="home-categories-scroll"
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.scrollContent}
+      >
+        {HOME_CATEGORIES.map((cat) => (
+          <CategoryTile
+            key={cat.id}
+            item={cat}
+            itemWidth={CATEGORY_ITEM_WIDTH}
+            reducedMotion={reducedMotion}
+            onPress={handleNavigate}
+          />
+        ))}
+      </ScrollView>
     </View>
   )
 }
 
 const s = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    marginBottom: Spacing.space5,
+    marginBottom: Spacing.space4,
     width: '100%',
-  },
-  cardContainer: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
     gap: CATEGORY_GRID_GAP,
   },
   itemWrap: {
@@ -265,33 +230,33 @@ const s = StyleSheet.create({
   },
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 4,
+    borderRadius: 16,
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingHorizontal: 2,
     width: CATEGORY_ITEM_WIDTH,
     height: CATEGORY_ITEM_HEIGHT,
     minHeight: CATEGORY_ITEM_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
     overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.06,
         shadowRadius: 6,
       },
       android: {
-        elevation: 1,
+        elevation: 2,
       },
     }),
   },
   actionCard: {
     backgroundColor: Colors.surface,
-    borderColor: Colors.border,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   gradient: {
     position: 'absolute',
@@ -303,31 +268,23 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56,
-    marginBottom: 4,
+    height: 52,
+    marginBottom: 2,
   },
   iconBox: {
-    width: 54,
-    height: 54,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 54,
-    height: 54,
-  },
-  iconShadow: {
-    width: 32,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primaryDark,
-    opacity: 0.12,
-    marginTop: -4,
+    width: 52,
+    height: 52,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: 18,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
