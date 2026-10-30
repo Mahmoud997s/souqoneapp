@@ -105,7 +105,6 @@ export function useMyListingsScreen() {
         if (activeCategory === 'cars' && item.entityType !== 'car') return false
         if (activeCategory === 'buses' && item.entityType !== 'bus') return false
         if (activeCategory === 'equipment' && item.entityType !== 'equipment') return false
-        if (activeCategory === 'operators' && item.entityType !== 'operator') return false
         if (activeCategory === 'parts' && item.entityType !== 'part') return false
         if (activeCategory === 'services' && item.entityType !== 'service') return false
       }
@@ -137,7 +136,6 @@ export function useMyListingsScreen() {
         raw.busListingType ||
         raw.busType ||
         raw.equipmentType ||
-        raw.operatorType ||
         ''
       ).toUpperCase()
       const rawPartCat = String(raw.partCategory || '').toUpperCase()
@@ -171,31 +169,7 @@ export function useMyListingsScreen() {
 
   const handleDelete = (item: MyListingItem) => {
     // ════════════════════════════════════════════════════════════
-    // OPERATOR DELETION FLOW (Request-based instead of immediate)
-    // ════════════════════════════════════════════════════════════
-    if (item.entityType === 'operator') {
-      dialogService.confirm(
-        'طلب حذف البروفايل',
-        'سيتم رفع طلب لإدارة التطبيق لحذف البروفايل المهني. هل أنت متأكد من رغبتك في الحذف؟',
-        async () => {
-          try {
-            await equipmentApi.deleteOperator(item.id)
-            await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
-            dialogService.alert('تم بنجاح', 'تم إرسال طلب حذف البروفايل للإدارة وسوف يتم مراجعته.', 'success')
-          } catch (err: any) {
-            const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء إرسال طلب الحذف'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
-          }
-        },
-        'إرسال الطلب',
-        'إلغاء',
-        true
-      )
-      return
-    }
-
-    // ════════════════════════════════════════════════════════════
-    // STANDARD DELETION FLOW (Immediate deletion for all other types)
+    // STANDARD DELETION FLOW (Immediate deletion)
     // ════════════════════════════════════════════════════════════
     dialogService.confirm(
       'حذف الإعلان',
@@ -260,7 +234,6 @@ export function useMyListingsScreen() {
       entityType === 'car' ||
       entityType === 'bus' ||
       entityType === 'equipment' ||
-      entityType === 'operator' ||
       entityType === 'part' ||
       entityType === 'service'
     )
@@ -289,9 +262,6 @@ export function useMyListingsScreen() {
       case 'equipment':
         router.push(`/equipment/edit/${item.id}` as any)
         break
-      case 'operator':
-        router.push(`/equipment/operators/edit/${item.id}` as any)
-        break
       case 'part':
         router.push(`/post/edit/${item.id}?type=parts` as any)
         break
@@ -313,9 +283,6 @@ export function useMyListingsScreen() {
         break
       case 'equipment':
         router.push(`/equipment/${item.id}` as any)
-        break
-      case 'operator':
-        router.push(`/equipment/operators/${item.id}` as any)
         break
       case 'part':
         router.push(`/parts/${item.id}` as any)

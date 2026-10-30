@@ -117,7 +117,7 @@ describe('MyListingCardDispatcher - Parity and Wrapper Removal', () => {
     expect(screen.getByLabelText('تعديل الإعلان')).toBeTruthy()
   })
 
-  it('renders OperatorCard directly without wrapper when there is no pending deletion request', async () => {
+  it('returns null and does not render OperatorCard when item.entityType is operator (D-154)', async () => {
     const { toJSON } = await render(
       <QueryClientProvider client={queryClient}>
         <MyListingCardDispatcher
@@ -128,40 +128,7 @@ describe('MyListingCardDispatcher - Parity and Wrapper Removal', () => {
       </QueryClientProvider>
     )
 
-    // OperatorCard renders directly
-    const card = screen.getByTestId('operator-card')
-    expect(card).toBeTruthy()
-
-    // Confirm the root rendered element is the operator-card itself
-    const json: any = toJSON()
-    expect(json.props.testID).toBe('operator-card')
-
-    // Confirm action buttons exist inside the card
-    expect(screen.getByLabelText('حذف الإعلان')).toBeTruthy()
-    expect(screen.getByLabelText('تعديل الإعلان')).toBeTruthy()
-  })
-
-  it('renders pending deletion banner for operator when pendingDeletionRequest status is PENDING', async () => {
-    const pendingOperatorListing: MyListingItem = {
-      ...sampleOperatorListing,
-      pendingDeletionRequest: {
-        id: 'del-req-1',
-        createdAt: new Date().toISOString(),
-        status: 'PENDING',
-      },
-    }
-
-    await render(
-      <QueryClientProvider client={queryClient}>
-        <MyListingCardDispatcher
-          item={pendingOperatorListing}
-          fullWidth={true}
-          {...mockHandlers}
-        />
-      </QueryClientProvider>
-    )
-
-    expect(screen.getByTestId('operator-card')).toBeTruthy()
-    expect(screen.getByText('طلب حذف قيد المراجعة')).toBeTruthy()
+    expect(toJSON()).toBeNull()
+    expect(screen.queryByTestId('operator-card')).toBeNull()
   })
 })
