@@ -17,6 +17,8 @@ export interface CarCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  imageHeight?: number
+  compactBody?: boolean
 }
 
 export const CarCard = ({
@@ -29,6 +31,8 @@ export const CarCard = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  imageHeight,
+  compactBody = false,
 }: CarCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -260,6 +264,8 @@ export const CarCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
       shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

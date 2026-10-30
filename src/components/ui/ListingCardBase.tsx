@@ -70,6 +70,7 @@ export interface ListingCardBaseProps {
   shareMessage?: string
   titleNumberOfLines?: number
   imageHeight?: number
+  compactBody?: boolean
   favoriteType?: string
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
@@ -101,6 +102,7 @@ export const ListingCardBase = ({
   shareMessage,
   titleNumberOfLines = 1,
   imageHeight,
+  compactBody = false,
   favoriteType,
   onFavorite,
   style,
@@ -191,8 +193,11 @@ export const ListingCardBase = ({
             onPress={onPress}
             style={[
               s.imagePlaceholder,
-              imageHeight ? { height: imageHeight, aspectRatio: undefined } : undefined,
-              fullWidth && { height: CardSystem.fullWidthHeight, aspectRatio: undefined },
+              imageHeight
+                ? { height: imageHeight, aspectRatio: undefined }
+                : fullWidth
+                ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+                : undefined,
             ]}
           >
             <Ionicons
@@ -287,7 +292,13 @@ export const ListingCardBase = ({
       </View>
 
       {/* ── DETAILS SECTION ── */}
-      <Pressable onPress={onPress} style={s.cardDetails}>
+      <Pressable
+        onPress={onPress}
+        style={[
+          s.cardDetails,
+          compactBody && s.cardDetailsCompact,
+        ]}
+      >
         <View style={s.headerRow}>
           <Text
             style={[s.cardTitle, { flex: 1 }]}
@@ -301,7 +312,7 @@ export const ListingCardBase = ({
           )}
         </View>
 
-        <View style={s.locationRow}>
+        <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
           <View style={s.locationInner}>
             <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
             <Text style={s.locationTxt} numberOfLines={1}>
@@ -319,10 +330,10 @@ export const ListingCardBase = ({
           )}
         </View>
 
-        <View style={s.divider} />
+        <View style={[s.divider, compactBody && s.dividerCompact]} />
 
         {/* Details Pills List */}
-        <View style={s.detailsList}>
+        <View style={[s.detailsList, compactBody && s.detailsListCompact]}>
           {(() => {
             if (!pills || pills.length === 0) return null
             const visiblePills = pills.slice(0, maxChips)
@@ -372,7 +383,7 @@ export const ListingCardBase = ({
           })()}
         </View>
 
-        <View style={s.footerDivider} />
+        <View style={[s.footerDivider, compactBody && s.footerDividerCompact]} />
 
         {/* Footer Row (Price & Negotiable pill) */}
         <View style={s.footerRow}>
@@ -569,6 +580,11 @@ const s = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 6,
   },
+  cardDetailsCompact: {
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 4,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -589,6 +605,10 @@ const s = StyleSheet.create({
     gap: 4,
     marginTop: 2,
     marginBottom: 5,
+  },
+  locationRowCompact: {
+    marginTop: 1,
+    marginBottom: 3,
   },
   locationInner: {
     flexDirection: 'row',
@@ -621,11 +641,18 @@ const s = StyleSheet.create({
     backgroundColor: Colors.inputBg,
     marginBottom: 6,
   },
+  dividerCompact: {
+    marginBottom: 4,
+  },
   footerDivider: {
     height: 1,
     backgroundColor: Colors.inputBg,
     marginTop: 2,
     marginBottom: 6,
+  },
+  footerDividerCompact: {
+    marginTop: 1,
+    marginBottom: 4,
   },
   detailsList: {
     flexDirection: 'row',
@@ -634,6 +661,9 @@ const s = StyleSheet.create({
     gap: 3.5,
     marginBottom: 4,
     overflow: 'hidden',
+  },
+  detailsListCompact: {
+    marginBottom: 3,
   },
   detailPill: {
     flexDirection: 'row',

@@ -53,6 +53,7 @@ const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
 export const CARS_PEEK_WIDTH_RATIO = 0.80
 export const CARS_PEEK_GAP = 10
+export const CARS_PEEK_IMAGE_HEIGHT = 126
 export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
 export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
@@ -70,6 +71,7 @@ export interface SectionProps {
     item: any
     onPress: () => void
     imageHeight?: number
+    compactBody?: boolean
     disableImageSwipe?: boolean
     fullWidth?: boolean
     maxChips?: number
@@ -124,7 +126,14 @@ export function CategorySection({
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
           keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={() => <SkeletonCard fullWidth={peek} style={{ width: sectionCardWidth }} />}
+          renderItem={() => (
+            <SkeletonCard
+              fullWidth={peek}
+              imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
+              compactBody={peek}
+              style={{ width: sectionCardWidth }}
+            />
+          )}
         />
       ) : (
         <HorizontalScrollCard
@@ -148,6 +157,8 @@ export function CategorySection({
                 disableImageSwipe={true}
                 titleNumberOfLines={1}
                 fullWidth={peek}
+                imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
+                compactBody={peek}
               />
             </View>
           )}
@@ -237,11 +248,13 @@ export default function HomeScreen() {
           data={listings}
           isLoading={loadingListings}
           routeBase="cars"
-          CustomCard={({ item, onPress, fullWidth }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <CarCard
               item={item as any}
               onPress={onPress}
               fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={3}
               disableImageSwipe={true}
               titleNumberOfLines={1}

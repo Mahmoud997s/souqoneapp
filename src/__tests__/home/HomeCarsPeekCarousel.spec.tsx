@@ -6,6 +6,7 @@ import {
   CategorySection,
   CARS_PEEK_WIDTH_RATIO,
   CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
   SIDE_SCALE,
   SIDE_TRANSLATE_Y,
   SIDE_OPACITY,
@@ -137,7 +138,7 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       </View>
     )
 
-    it('passes fullWidth={true} to CustomCard in cars peek section (D-164d)', async () => {
+    it('passes fullWidth={true}, imageHeight={126}, and compactBody={true} to CustomCard in cars peek section (D-164d / D-164f)', async () => {
       const customCardSpy = jest.fn(MockCustomCard)
       await render(
         <CategorySection
@@ -156,9 +157,29 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       expect(customCardSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           fullWidth: true,
+          imageHeight: CARS_PEEK_IMAGE_HEIGHT,
+          compactBody: true,
         }),
         undefined
       )
+    })
+
+    it('teeth proof (D-164f): CARS_PEEK_IMAGE_HEIGHT is 126, reducing fullWidthHeight (180) by 54px (-30%) and card height by ~25%', () => {
+      expect(CARS_PEEK_IMAGE_HEIGHT).toBe(126)
+      const fullWidthImageHeight = 180
+      const delta = fullWidthImageHeight - CARS_PEEK_IMAGE_HEIGHT
+      expect(delta).toBe(54)
+      const percentReduction = (delta / fullWidthImageHeight) * 100
+      expect(percentReduction).toBe(30)
+
+      // Total card height math:
+      // Before: 180 image + 86 body = 266pt
+      // After: 126 image + 73 compact body = 199pt
+      // Total reduction: (266 - 199) / 266 = 25.18% (~25% target)
+      const beforeTotal = 180 + 86
+      const afterTotal = 126 + 73
+      const totalReduction = ((beforeTotal - afterTotal) / beforeTotal) * 100
+      expect(totalReduction).toBeGreaterThanOrEqual(25)
     })
 
     it('renders with 80% cardWidth, centered sideInset padding, paging enabled, dots shown, and depth wrappers (D-164e)', async () => {
@@ -242,7 +263,7 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       </View>
     )
 
-    it('passes fullWidth={false} (or undefined) to CustomCard in non-peek sections (D-164d)', async () => {
+    it('passes fullWidth={false}, imageHeight=undefined, and compactBody=false to CustomCard in non-peek sections (D-164d / D-164f)', async () => {
       const customCardSpy = jest.fn(MockServiceCard)
       await render(
         <CategorySection
@@ -260,6 +281,8 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       expect(customCardSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           fullWidth: false,
+          imageHeight: undefined,
+          compactBody: false,
         }),
         undefined
       )

@@ -6,9 +6,16 @@ import { CardSystem } from '../../constants/cardSystem'
 export interface SkeletonCardProps {
   style?: ViewStyle
   fullWidth?: boolean
+  imageHeight?: number
+  compactBody?: boolean
 }
 
-export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
+export function SkeletonCard({
+  style,
+  fullWidth = false,
+  imageHeight: imageHeightProp,
+  compactBody = false,
+}: SkeletonCardProps) {
   const opacity = useRef(new Animated.Value(0.45)).current
 
   useEffect(() => {
@@ -22,7 +29,9 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
     return () => animation.stop()
   }, [opacity])
 
-  const imageHeight = fullWidth
+  const imageHeight = imageHeightProp
+    ? imageHeightProp
+    : fullWidth
     ? CardSystem.fullWidthHeight
     : CardSystem.aspectRatioHeight
 
@@ -32,7 +41,7 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
         {/* Image — aspectRatio 4/3 */}
         <View style={[s.image, { height: imageHeight }, s.placeholder]} />
 
-        <View style={s.body}>
+        <View style={[s.body, compactBody && s.bodyCompact]}>
           {/* Title row */}
           <View style={s.row}>
             <View style={[s.titleLine, s.placeholder]} />
@@ -40,12 +49,12 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
           </View>
 
           {/* Location row */}
-          <View style={s.locationRow}>
+          <View style={[s.locationRow, compactBody && { marginTop: 1, marginBottom: 3 }]}>
             <View style={[s.locLine, s.placeholder]} />
           </View>
 
           {/* Divider */}
-          <View style={s.divider} />
+          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 4 }]} />
 
           {/* Chips row */}
           <View style={s.chipsRow}>
@@ -55,7 +64,7 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
           </View>
 
           {/* Footer divider */}
-          <View style={s.divider} />
+          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 4 }]} />
 
           {/* Footer */}
           <View style={s.footer}>
@@ -87,6 +96,11 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 8,
     paddingBottom: 6,
+  },
+  bodyCompact: {
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 4,
   },
   row: {
     flexDirection: 'row',
