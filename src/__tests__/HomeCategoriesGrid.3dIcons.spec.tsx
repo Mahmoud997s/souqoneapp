@@ -11,7 +11,9 @@ import {
   CATEGORY_GRID_COLUMNS,
   CATEGORY_GRID_GAP,
   CATEGORY_GRID_PADDING_H,
+  CATEGORY_ITEM_SIZE,
   calculateCategoryItemWidth,
+  calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
 
 jest.mock('expo-router', () => ({
@@ -88,16 +90,20 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
 
     it('Grid geometry math conforms to standard columns and padding', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(3)
-      expect(CATEGORY_GRID_GAP).toBe(8)
-      expect(CATEGORY_GRID_PADDING_H).toBe(32)
-      expect(calculateCategoryItemWidth(360)).toBe(104)
-      expect(calculateCategoryItemWidth(430)).toBe(127)
+      expect(CATEGORY_ITEM_SIZE).toBe(80)
+      expect(calculateCategoryItemWidth(360)).toBe(80)
+      expect(calculateCategoryItemWidth(430)).toBe(80)
+      expect(calculateCategoryGridGap(360)).toBe(30)
+      expect(calculateCategoryGridGap(430)).toBe(47)
     })
   })
 
   describe('2. Component Rendering & Interaction', () => {
-    it('renders all 6 category tiles with rectangular cards (80h), 40x40 icons, and 2px line under label (D-153c)', async () => {
-      const { getByTestId, getAllByTestId } = await render(<HomeCategoriesGrid />)
+    it('renders all 6 category tiles with square cards (80x80), 46x46 icons, and NO line under label (D-163a)', async () => {
+      const { getByTestId, getAllByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
+
+      // (أ) D-163a: category-label-line must NOT exist
+      expect(queryByTestId('category-label-line')).toBeNull()
 
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
@@ -105,65 +111,51 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
 
-        // (أ) D-153c/d: ارتفاع الكارت = 80 (card style height 80, minHeight 80)
+        // (ب) D-163a: الكارت مربع 80x80 (card style width 80, height 80, minHeight 80)
         const cardView = tile.children[0] as any
         const cardStyle = StyleSheet.flatten(cardView.props.style)
+        expect(cardStyle.width).toBe(80)
         expect(cardStyle.height).toBe(80)
         expect(cardStyle.minHeight).toBe(80)
         expect(cardStyle.borderRadius).toBe(16)
 
-        // (ب) D-153c/d: عرض الـ tile/slot wrapper محدد كـ number
+        // (ج) D-163a: عرض الـ tile/slot wrapper = 80
         const itemWrap = tile.parent as any
         expect(itemWrap).toBeTruthy()
         const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
-        expect(typeof itemWrapStyle.width).toBe('number')
+        expect(itemWrapStyle.width).toBe(80)
 
-        // (ج) D-153c/d: category-label-line أخ لـ label وموجود بعده، وليس جوّا iconContainer
+        // (د) D-163a: card has exactly 2 children (iconContainer + label text), NO line
         const cardChildren = React.Children.toArray(cardView.props.children) as any[]
-        expect(cardChildren).toHaveLength(3)
+        expect(cardChildren).toHaveLength(2)
 
-        // 1) iconContainer has exactly 1 child (iconBox), no groundShadow child
+        // 1) iconContainer has exactly 1 child (iconBox), height = 46
         const iconContainer = cardChildren[0]
+        const iconContainerStyle = StyleSheet.flatten(iconContainer.props.style)
+        expect(iconContainerStyle.height).toBe(46)
         const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
         expect(iconContainerChildren).toHaveLength(1)
         const iconBox = iconContainerChildren[0]
-        const iconBoxChildren = React.Children.toArray(iconBox.props.children) as any[]
-        expect(iconBoxChildren).toHaveLength(1) // Image only
+        const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
+        expect(iconBoxStyle.width).toBe(46)
+        expect(iconBoxStyle.height).toBe(46)
 
-        // 2) Text label is child 1
-        expect(cardChildren[1].props.children).toBe(cat.label)
-
-        // 3) category-label-line is child 2 (sibling after label, sharing card parent)
-        const labelLine = cardChildren[2]
-        expect(labelLine.props.testID).toBe('category-label-line')
-        const lineStyle = StyleSheet.flatten(labelLine.props.style)
-        expect(lineStyle.height).toBe(2)
-        expect(lineStyle.width).toBe(28)
-        expect(lineStyle.opacity).toBe(0.35)
+        // 2) Text label is child 1, font size 13/14
+        const labelText = cardChildren[1]
+        expect(labelText.props.children).toBe(cat.label)
+        const labelStyle = StyleSheet.flatten(labelText.props.style)
+        expect(labelStyle.fontSize).toBeGreaterThanOrEqual(13)
+        expect(labelStyle.lineHeight).toBeGreaterThanOrEqual(18)
       })
-
-      // D-153c/d: عرض الـ tile عند 360 = 104 وعند 430 = 127
-      expect(calculateCategoryItemWidth(360)).toBe(104)
-      expect(calculateCategoryItemWidth(430)).toBe(127)
 
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
 
-      // D-153c: 40x40 icon dimensions
+      // D-163a: 46x46 icon dimensions
       images.forEach((img) => {
         const flattened = StyleSheet.flatten(img.props.style)
-        expect(flattened.width).toBe(40)
-        expect(flattened.height).toBe(40)
-      })
-
-      // D-153c: 2px thin line under label text with 0.35 opacity and 28 width
-      const lines = getAllByTestId('category-label-line')
-      expect(lines).toHaveLength(6)
-      lines.forEach((line) => {
-        const flattened = StyleSheet.flatten(line.props.style)
-        expect(flattened.height).toBe(2)
-        expect(flattened.width).toBe(28)
-        expect(flattened.opacity).toBe(0.35)
+        expect(flattened.width).toBe(46)
+        expect(flattened.height).toBe(46)
       })
     })
 

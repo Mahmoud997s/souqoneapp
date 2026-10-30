@@ -57,18 +57,26 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
+export const CATEGORY_ITEM_SIZE = 80
 export const CATEGORY_GRID_COLUMNS = 3
-export const CATEGORY_GRID_GAP = 8
-export const CATEGORY_GRID_PADDING_H = Spacing.space4 * 2 // 16 * 2 = 32
 
-export function calculateCategoryItemWidth(screenWidth: number = SCREEN_WIDTH): number {
-  return Math.floor(
-    (screenWidth - CATEGORY_GRID_PADDING_H - CATEGORY_GRID_GAP * (CATEGORY_GRID_COLUMNS - 1)) /
-      CATEGORY_GRID_COLUMNS
-  )
+/**
+ * Calculates equal gap between tiles and edges across screen width.
+ * With 3 columns of size 80, there are 4 equal gaps (left edge, 2 between tiles, right edge).
+ * The same value is used for rowGap between rows.
+ */
+export function calculateCategoryGridGap(screenWidth: number = SCREEN_WIDTH): number {
+  return Math.floor((screenWidth - CATEGORY_GRID_COLUMNS * CATEGORY_ITEM_SIZE) / (CATEGORY_GRID_COLUMNS + 1))
 }
 
-const ITEM_WIDTH = calculateCategoryItemWidth(SCREEN_WIDTH)
+export function calculateCategoryItemWidth(_screenWidth: number = SCREEN_WIDTH): number {
+  return CATEGORY_ITEM_SIZE
+}
+
+export const CATEGORY_GRID_GAP = calculateCategoryGridGap(SCREEN_WIDTH)
+export const CATEGORY_GRID_PADDING_H = 0
+
+const ITEM_WIDTH = CATEGORY_ITEM_SIZE
 
 interface CategoryTileProps {
   item: HomeCategoryItem
@@ -171,7 +179,6 @@ const CategoryTile = memo(function CategoryTile({
           >
             {item.label}
           </Text>
-          <View testID="category-label-line" style={s.labelLine} pointerEvents="none" />
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -185,15 +192,17 @@ export function HomeCategoriesGrid() {
     router.push(route as any)
   }, [])
 
+  const gridGap = calculateCategoryGridGap(SCREEN_WIDTH)
+
   return (
     <View style={s.container}>
-      <View style={s.grid}>
+      <View style={[s.grid, { rowGap: gridGap }]}>
         {HOME_CATEGORIES.map((cat, index) => (
           <CategoryTile
             key={cat.id}
             item={cat}
             index={index}
-            itemWidth={ITEM_WIDTH}
+            itemWidth={CATEGORY_ITEM_SIZE}
             reducedMotion={reducedMotion}
             onPress={handleNavigate}
           />
@@ -205,26 +214,29 @@ export function HomeCategoriesGrid() {
 
 const s = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.space4,
+    paddingHorizontal: 0,
     marginBottom: Spacing.space5,
+    width: '100%',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: CATEGORY_GRID_GAP,
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
+    width: '100%',
   },
   itemWrap: {
+    width: CATEGORY_ITEM_SIZE,
     marginBottom: 0,
   },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    paddingTop: 8,
-    paddingBottom: 7,
+    paddingTop: 6,
+    paddingBottom: 6,
     paddingHorizontal: 4,
-    height: 80,
-    minHeight: 80,
+    width: CATEGORY_ITEM_SIZE,
+    height: CATEGORY_ITEM_SIZE,
+    minHeight: CATEGORY_ITEM_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -248,38 +260,29 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
-    marginBottom: 4,
+    height: 46,
+    marginBottom: 2,
   },
   iconBox: {
-    width: 40,
-    height: 40,
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 40,
-    height: 40,
+    width: 46,
+    height: 46,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 18,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 3,
   },
   actionLabel: {
     color: Colors.primary,
     fontFamily: 'Almarai_800ExtraBold',
-  },
-  labelLine: {
-    width: 28,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Colors.primary,
-    opacity: 0.35,
-    alignSelf: 'center',
   },
 })
