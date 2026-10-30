@@ -16,6 +16,8 @@ import {
   CATEGORY_ITEM_WIDTH,
   CATEGORY_ITEM_HEIGHT,
   MARQUEE_SPEED_PX_PER_SEC,
+  MARQUEE_DIRECTION,
+  getMarqueeEndpoints,
   calculateCategoryItemWidth,
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
@@ -122,6 +124,30 @@ describe('HomeCategoriesGrid — Floating Tiles 78x90 & Live Marquee Loop (D-163
       expect(typeof MARQUEE_SPEED_PX_PER_SEC).toBe('number')
       expect(MARQUEE_SPEED_PX_PER_SEC).toBeGreaterThanOrEqual(25)
       expect(MARQUEE_SPEED_PX_PER_SEC).toBeLessThanOrEqual(30)
+    })
+
+    it('exports MARQUEE_DIRECTION = 1 for left-to-right rightward motion (D-163i)', () => {
+      expect(MARQUEE_DIRECTION).toBe(1)
+    })
+
+    it('getMarqueeEndpoints correctly configures endpoints for rightward (1) and leftward (-1) motions (D-163i)', () => {
+      const singleSetWidth = 540 // 6 * (78 + 12)
+
+      // Rightward motion (1): starts shifted to left (-540) and translates to 0 (+540 displacement = rightward)
+      const rightward = getMarqueeEndpoints(singleSetWidth, 1)
+      expect(rightward.start).toBe(-540)
+      expect(rightward.end).toBe(0)
+      expect(rightward.end - rightward.start).toBe(540) // Positive displacement
+
+      // Leftward motion (-1): starts at 0 and translates to -540 (-540 displacement = leftward) — teeth proof flip
+      const leftward = getMarqueeEndpoints(singleSetWidth, -1)
+      expect(leftward.start).toBe(0)
+      expect(leftward.end).toBe(-540)
+      expect(leftward.end - leftward.start).toBe(-540) // Negative displacement
+
+      // Seamless loop invariant: difference between start and end is exactly singleSetWidth
+      expect(Math.abs(rightward.end - rightward.start)).toBe(singleSetWidth)
+      expect(Math.abs(leftward.end - leftward.start)).toBe(singleSetWidth)
     })
   })
 

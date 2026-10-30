@@ -78,6 +78,26 @@ export const CATEGORY_GRID_PADDING_H = 16
 export const MARQUEE_SPEED_PX_PER_SEC = 28
 
 /**
+ * Marquee motion direction:
+ *  1 = tiles move left-to-right (towards the physical right)
+ * -1 = tiles move right-to-left (towards the physical left)
+ */
+export const MARQUEE_DIRECTION: 1 | -1 = 1
+
+/**
+ * Calculates start and end translateX values for seamless loop animation.
+ */
+export function getMarqueeEndpoints(
+  singleSetWidth: number,
+  direction: 1 | -1 = MARQUEE_DIRECTION
+): { start: number; end: number } {
+  if (direction === 1) {
+    return { start: -singleSetWidth, end: 0 }
+  }
+  return { start: 0, end: -singleSetWidth }
+}
+
+/**
  * Backward-compatible helper functions for category items and gaps.
  * In D-163h/g, tiles are 78x90 portrait floating without an outer container card.
  */
@@ -211,7 +231,8 @@ export function HomeCategoriesGrid({
     ? measuredWidth
     : HOME_CATEGORIES.length * (CATEGORY_ITEM_WIDTH + CATEGORY_GRID_GAP)
 
-  const translateX = useSharedValue(0)
+  const initialEndpoints = getMarqueeEndpoints(singleSetWidth, MARQUEE_DIRECTION)
+  const translateX = useSharedValue(initialEndpoints.start)
   const isPaused = useRef(false)
   const resumeTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -223,9 +244,14 @@ export function HomeCategoriesGrid({
     if (reducedMotion || singleSetWidth <= 0) return
     isPaused.current = false
     const duration = (singleSetWidth / MARQUEE_SPEED_PX_PER_SEC) * 1000
+    const { start, end } = getMarqueeEndpoints(singleSetWidth, MARQUEE_DIRECTION)
+
+    if (Math.abs(translateX.value - end) < 1) {
+      translateX.value = start
+    }
 
     translateX.value = withRepeat(
-      withTiming(-singleSetWidth, {
+      withTiming(end, {
         duration,
         easing: Easing.linear,
       }),
@@ -258,6 +284,8 @@ export function HomeCategoriesGrid({
 
   useEffect(() => {
     if (!reducedMotion) {
+      const { start } = getMarqueeEndpoints(singleSetWidth, MARQUEE_DIRECTION)
+      translateX.value = start
       startMarquee()
     }
     return () => {
