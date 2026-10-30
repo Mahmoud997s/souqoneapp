@@ -36,10 +36,14 @@ import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
-const CARD_WIDTH = Math.round(SW * 0.6)
+export const CARD_WIDTH = Math.round(SW * 0.6)
+export const CARS_PEEK_WIDTH_RATIO = 0.80
+export const CARS_PEEK_GAP = 10
+export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
+export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
-interface SectionProps {
+export interface SectionProps {
   title: string
   subTitle?: string
   icon: keyof typeof MaterialCommunityIcons.glyphMap
@@ -57,10 +61,28 @@ interface SectionProps {
     maxChips?: number
     titleNumberOfLines?: number
   }>
+  peek?: boolean
 }
 
-function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
+export function CategorySection({
+  title,
+  subTitle,
+  icon,
+  iconColor,
+  seeAllRoute,
+  data,
+  isLoading,
+  routeBase,
+  CustomCard,
+  peek = false,
+}: SectionProps) {
   if (!isLoading && (!data || data.length === 0)) return null
+
+  const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
+  const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
+  const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaging = peek
+  const sectionShowDots = peek
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
@@ -84,25 +106,27 @@ function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, 
         <HorizontalScrollCard
           key="loading-skeletons"
           data={[1, 2, 3]}
-          cardWidth={CARD_WIDTH}
-          gap={Spacing.space3}
-          paddingEnd={Spacing.space5}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
           keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={() => <SkeletonCard style={{ width: CARD_WIDTH }} />}
+          renderItem={() => <SkeletonCard style={{ width: sectionCardWidth }} />}
         />
       ) : (
         <HorizontalScrollCard
           key="loaded-cards"
           data={data || []}
-          cardWidth={CARD_WIDTH}
-          gap={Spacing.space3}
-          paddingEnd={Spacing.space5}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
+          paging={sectionPaging}
+          showDots={sectionShowDots}
           keyExtractor={(item) => item.id}
           onSeeAll={() => router.push(seeAllRoute as any)}
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`تصفح جميع ${title}`}
           renderItem={({ item }) => (
-            <View style={{ width: CARD_WIDTH }}>
+            <View style={{ width: sectionCardWidth }}>
               <CustomCard
                 item={item}
                 onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
@@ -186,8 +210,9 @@ export default function HomeScreen() {
         {/* ── OFFICIAL CATEGORIES GRID (Balanced 4x2) ── */}
         <HomeCategoriesGrid />
 
-        {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture) ── */}
+        {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture, Cars with Peek Carousel D-164) ── */}
         <CategorySection
+          peek={true}
           title="أحدث إعلانات السيارات"
           subTitle="أفضل عروض البيع والإيجار المتاحة"
           icon="car-sports"
