@@ -1,10 +1,10 @@
 import React from 'react'
 import {
   HOME_CATEGORIES,
+  CATEGORY_ITEM_SIZE,
   calculateCategoryItemWidth,
+  calculateCategoryGridGap,
   CATEGORY_GRID_COLUMNS,
-  CATEGORY_GRID_GAP,
-  CATEGORY_GRID_PADDING_H,
 } from '../components/home/HomeCategoriesGrid'
 
 describe('D-134 Hide Closeout Tests', () => {
@@ -15,18 +15,19 @@ describe('D-134 Hide Closeout Tests', () => {
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
     })
 
-    it('CATEGORY_GRID_COLUMNS is 3 with 8px gap and 32px horizontal padding', () => {
+    it('CATEGORY_GRID_COLUMNS is 3 and tile size is 80x80 square (D-163a)', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(3)
-      expect(CATEGORY_GRID_GAP).toBe(8)
-      expect(CATEGORY_GRID_PADDING_H).toBe(32)
+      expect(CATEGORY_ITEM_SIZE).toBe(80)
+      expect(calculateCategoryItemWidth(360)).toBe(80)
+      expect(calculateCategoryItemWidth(430)).toBe(80)
     })
 
-    it('calculateCategoryItemWidth calculates correctly for 360dp and 430dp screens', () => {
-      // 360dp screen: (360 - 32 - (8 * 2)) / 3 = (360 - 32 - 16) / 3 = 312 / 3 = 104
-      expect(calculateCategoryItemWidth(360)).toBe(104)
+    it('calculateCategoryGridGap calculates equal edge and between gaps correctly for 360dp and 430dp screens (D-163a)', () => {
+      // 360dp screen: (360 - 3 * 80) / 4 = 120 / 4 = 30
+      expect(calculateCategoryGridGap(360)).toBe(30)
 
-      // 430dp screen: (430 - 32 - (8 * 2)) / 3 = (430 - 32 - 16) / 3 = 382 / 3 = 127.33 -> 127
-      expect(calculateCategoryItemWidth(430)).toBe(127)
+      // 430dp screen: (430 - 3 * 80) / 4 = 190 / 4 = 47.5 -> 47
+      expect(calculateCategoryGridGap(430)).toBe(47)
     })
   })
 })
