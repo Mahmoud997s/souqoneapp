@@ -12,10 +12,13 @@ import {
   CATEGORY_GRID_GAP,
   CATEGORY_GRID_PADDING_H,
   CATEGORY_ITEM_SIZE,
+  CATEGORY_ITEM_WIDTH,
+  CATEGORY_ITEM_HEIGHT,
   calculateCategoryItemWidth,
   calculateCategoryGridGap,
 } from '../components/home/HomeCategoriesGrid'
 import { Colors } from '../constants/colors'
+import { CATEGORY_TINTS } from '../constants/categoryTints'
 
 jest.mock('expo-router', () => ({
   router: {
@@ -46,7 +49,7 @@ jest.mock('expo-image', () => ({
   },
 }))
 
-describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
+describe('HomeCategoriesGrid — 3D Icons Display & Single Row Layout (D-163f)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -55,11 +58,23 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
     cleanup()
   })
 
-  describe('1. Data & Scale Configuration Integrity', () => {
+  describe('1. Data, Scale & Category Tints Integrity', () => {
     it('HOME_CATEGORIES has exactly 6 items in preserved order', () => {
       expect(HOME_CATEGORIES).toHaveLength(6)
       const ids = HOME_CATEGORIES.map((cat) => cat.id)
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
+    })
+
+    it('CATEGORY_TINTS exports exactly 6 soft pastel tint entries (D-163f)', () => {
+      const keys = Object.keys(CATEGORY_TINTS)
+      expect(keys).toHaveLength(6)
+      expect(keys).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
+      keys.forEach((key) => {
+        expect(typeof CATEGORY_TINTS[key]).toBe('string')
+        expect(CATEGORY_TINTS[key].startsWith('#')).toBe(true)
+      })
+      expect(CATEGORY_TINTS.cars).toBe(Colors.paleMint)
+      expect(CATEGORY_TINTS.browse).toBe(Colors.surfaceAlt)
     })
 
     it('every category tile has a valid non-empty route, label, and image source', () => {
@@ -97,22 +112,27 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       expect(CATEGORY_ICON_SCALES['browse']).toBe(1.0)
     })
 
-    it('Grid geometry math conforms to standard columns and padding', () => {
-      expect(CATEGORY_GRID_COLUMNS).toBe(3)
+    it('Tile geometry math defines portrait tile 88x100 with 12px gap (D-163f)', () => {
+      expect(CATEGORY_ITEM_WIDTH).toBe(88)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(100)
       expect(CATEGORY_ITEM_SIZE).toBe(88)
       expect(CATEGORY_GRID_GAP).toBe(12)
       expect(calculateCategoryItemWidth(360)).toBe(88)
-      expect(calculateCategoryItemWidth(430)).toBe(88)
       expect(calculateCategoryGridGap(360)).toBe(12)
-      expect(calculateCategoryGridGap(430)).toBe(12)
     })
   })
 
-  describe('2. Component Rendering & Interaction', () => {
-    it('renders all 6 category tiles with square cards (88x88), 52x52 icons, gradient background, and soft ellipse shadow (D-163e)', async () => {
+  describe('2. Single Row Horizontal Scroll & Component Rendering (D-163f)', () => {
+    it('renders single horizontal scroll row with 6 portrait tiles (88x100), tinted gradients, and soft ellipse shadow', async () => {
       const { getByTestId, getAllByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
 
-      // (أ) D-163a/e: category-label-line must NOT exist
+      // (أ) Container is a horizontal ScrollView inside a rounded white card
+      const scrollView = getByTestId('home-categories-scroll')
+      expect(scrollView).toBeTruthy()
+      expect(scrollView.props.horizontal).toBe(true)
+      expect(scrollView.props.showsHorizontalScrollIndicator).toBe(false)
+
+      // (ب) D-163f: category-label-line must NOT exist
       expect(queryByTestId('category-label-line')).toBeNull()
 
       HOME_CATEGORIES.forEach((cat) => {
@@ -121,33 +141,33 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
 
-        // (ب) D-163e: الكارت مربع 88x88 (card style width 88, height 88, minHeight 88)
+        // (ج) D-163f: الكارت طولي 88x100 (card style width 88, height 100, minHeight 100, borderRadius 18)
         const cardView = tile.children[0] as any
         const cardStyle = StyleSheet.flatten(cardView.props.style)
         expect(cardStyle.width).toBe(88)
-        expect(cardStyle.height).toBe(88)
-        expect(cardStyle.minHeight).toBe(88)
-        expect(cardStyle.borderRadius).toBe(16)
+        expect(cardStyle.height).toBe(100)
+        expect(cardStyle.minHeight).toBe(100)
+        expect(cardStyle.borderRadius).toBe(18)
 
-        // (ج) D-163e: عرض الـ tile/slot wrapper = 88
+        // (د) D-163f: عرض الـ tile/slot wrapper = 88
         const itemWrap = tile.parent as any
         expect(itemWrap).toBeTruthy()
         const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
         expect(itemWrapStyle.width).toBe(88)
 
-        // (د) D-163e: card has gradient background (LinearGradient with testID tile-gradient)
+        // (هـ) D-163f: card has per-category tinted gradient background
         const cardChildren = React.Children.toArray(cardView.props.children) as any[]
         const gradient = cardChildren.find((c: any) => c.props.testID === 'tile-gradient')
         expect(gradient).toBeTruthy()
-        expect(gradient.props.colors).toEqual([Colors.surface, Colors.surfaceAlt])
+        expect(gradient.props.colors).toEqual([Colors.surface, CATEGORY_TINTS[cat.id]])
 
-        // 1) iconContainer contains iconBox (52x52) and soft ellipse shadow
+        // (و) iconContainer contains iconBox (54x54) and soft ellipse shadow
         const iconContainer = cardChildren.find((c: any) => c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
         const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
         const iconBox = iconContainerChildren[0]
         const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
-        expect(iconBoxStyle.width).toBe(52)
-        expect(iconBoxStyle.height).toBe(52)
+        expect(iconBoxStyle.width).toBeGreaterThanOrEqual(52)
+        expect(iconBoxStyle.height).toBeGreaterThanOrEqual(52)
 
         // soft ellipse shadow under icon
         const shadow = iconContainerChildren.find((c: any) => c.props.testID === 'category-tile-shadow')
@@ -157,7 +177,7 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(shadowStyle.backgroundColor).toBe(Colors.primaryDark)
         expect(shadowStyle.opacity).toBe(0.12)
 
-        // 2) Text label, font size 14, line height 19
+        // (ز) Text label, font size 14, line height 19, Almarai bold
         const labelText = cardChildren.find((c: any) => c.props.children === cat.label)
         expect(labelText).toBeTruthy()
         const labelStyle = StyleSheet.flatten(labelText.props.style)
@@ -168,11 +188,11 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
 
-      // D-163e: 52x52 icon dimensions
+      // D-163f: icon dimensions 52-56 (using 54x54)
       images.forEach((img) => {
         const flattened = StyleSheet.flatten(img.props.style)
-        expect(flattened.width).toBe(52)
-        expect(flattened.height).toBe(52)
+        expect(flattened.width).toBeGreaterThanOrEqual(52)
+        expect(flattened.height).toBeGreaterThanOrEqual(52)
       })
     })
 

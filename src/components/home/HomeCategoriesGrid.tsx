@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  ScrollView,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -19,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { CATEGORY_TINTS } from '../../constants/categoryTints'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import type { MaterialCommunityIcons } from '@expo/vector-icons'
 
@@ -59,23 +61,23 @@ export const HOME_CATEGORIES: HomeCategoryItem[] = [
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 export const CATEGORY_ITEM_SIZE = 88
-export const CATEGORY_GRID_COLUMNS = 3
+export const CATEGORY_ITEM_WIDTH = 88
+export const CATEGORY_ITEM_HEIGHT = 100
+export const CATEGORY_GRID_COLUMNS = 6
 export const CATEGORY_GRID_GAP = 12
-export const CATEGORY_GRID_PADDING_H = 0
+export const CATEGORY_GRID_PADDING_H = 12
 
 /**
- * Calculates equal gap between tiles and rows across screen width.
- * In D-163e, fixed equal gap of 12px horizontal and vertical; 3-tile group is centered.
+ * Backward-compatible helper functions for category items and gaps.
+ * In D-163f, tiles are 88x100 portrait in a single horizontal scroll row with 12px gap.
  */
 export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
   return CATEGORY_GRID_GAP
 }
 
 export function calculateCategoryItemWidth(_screenWidth: number = SCREEN_WIDTH): number {
-  return CATEGORY_ITEM_SIZE
+  return CATEGORY_ITEM_WIDTH
 }
-
-const ITEM_WIDTH = CATEGORY_ITEM_SIZE
 
 interface CategoryTileProps {
   item: HomeCategoryItem
@@ -94,6 +96,7 @@ const CategoryTile = memo(function CategoryTile({
 }: CategoryTileProps) {
   const pressed = useSharedValue(0)
   const scaleFactor = CATEGORY_ICON_SCALES[item.id] ?? 1.0
+  const tint = CATEGORY_TINTS[item.id] || Colors.surfaceAlt
 
   const handlePressIn = useCallback(() => {
     pressed.value = 1
@@ -138,7 +141,7 @@ const CategoryTile = memo(function CategoryTile({
 
   const enteringAnimation = reducedMotion
     ? undefined
-    : FadeInDown.delay(index * 40).springify().damping(18).stiffness(180)
+    : FadeInDown.delay(index * 30).springify().damping(18).stiffness(180)
 
   return (
     <Animated.View
@@ -157,7 +160,9 @@ const CategoryTile = memo(function CategoryTile({
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
           <LinearGradient
             testID="tile-gradient"
-            colors={[Colors.surface, Colors.surfaceAlt]}
+            colors={[Colors.surface, tint]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={s.gradient}
             pointerEvents="none"
           />
@@ -201,17 +206,24 @@ export function HomeCategoriesGrid() {
 
   return (
     <View style={s.container}>
-      <View style={s.grid}>
-        {HOME_CATEGORIES.map((cat, index) => (
-          <CategoryTile
-            key={cat.id}
-            item={cat}
-            index={index}
-            itemWidth={CATEGORY_ITEM_SIZE}
-            reducedMotion={reducedMotion}
-            onPress={handleNavigate}
-          />
-        ))}
+      <View style={s.cardContainer}>
+        <ScrollView
+          testID="home-categories-scroll"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.scrollContent}
+        >
+          {HOME_CATEGORIES.map((cat, index) => (
+            <CategoryTile
+              key={cat.id}
+              item={cat}
+              index={index}
+              itemWidth={CATEGORY_ITEM_WIDTH}
+              reducedMotion={reducedMotion}
+              onPress={handleNavigate}
+            />
+          ))}
+        </ScrollView>
       </View>
     </View>
   )
@@ -219,32 +231,47 @@ export function HomeCategoriesGrid() {
 
 const s = StyleSheet.create({
   container: {
-    paddingHorizontal: 0,
+    paddingHorizontal: 16,
     marginBottom: Spacing.space5,
     width: '100%',
   },
-  grid: {
+  cardContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  scrollContent: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     gap: CATEGORY_GRID_GAP,
-    rowGap: CATEGORY_GRID_GAP,
-    columnGap: CATEGORY_GRID_GAP,
-    width: '100%',
   },
   itemWrap: {
-    width: CATEGORY_ITEM_SIZE,
-    marginBottom: 0,
+    width: CATEGORY_ITEM_WIDTH,
   },
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    paddingTop: 5,
-    paddingBottom: 5,
+    borderRadius: 18,
+    paddingTop: 8,
+    paddingBottom: 8,
     paddingHorizontal: 4,
-    width: CATEGORY_ITEM_SIZE,
-    height: CATEGORY_ITEM_SIZE,
-    minHeight: CATEGORY_ITEM_SIZE,
+    width: CATEGORY_ITEM_WIDTH,
+    height: CATEGORY_ITEM_HEIGHT,
+    minHeight: CATEGORY_ITEM_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -255,10 +282,10 @@ const s = StyleSheet.create({
         shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
     }),
   },
@@ -276,18 +303,18 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 54,
-    marginBottom: 1,
+    height: 56,
+    marginBottom: 4,
   },
   iconBox: {
-    width: 52,
-    height: 52,
+    width: 54,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 52,
-    height: 52,
+    width: 54,
+    height: 54,
   },
   iconShadow: {
     width: 32,
