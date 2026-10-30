@@ -110,7 +110,7 @@ export function CategorySection({
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
           keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={() => <SkeletonCard style={{ width: sectionCardWidth }} />}
+          renderItem={() => <SkeletonCard fullWidth={peek} style={{ width: sectionCardWidth }} />}
         />
       ) : (
         <HorizontalScrollCard
@@ -132,6 +132,7 @@ export function CategorySection({
                 onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
                 disableImageSwipe={true}
                 titleNumberOfLines={1}
+                fullWidth={peek}
               />
             </View>
           )}
@@ -221,10 +222,11 @@ export default function HomeScreen() {
           data={listings}
           isLoading={loadingListings}
           routeBase="cars"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth }) => (
             <CarCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
               maxChips={3}
               disableImageSwipe={true}
               titleNumberOfLines={1}

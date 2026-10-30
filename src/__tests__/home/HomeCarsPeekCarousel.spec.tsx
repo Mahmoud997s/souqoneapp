@@ -67,11 +67,35 @@ describe('Home Cars Section — Peek Carousel & Geometry (D-164)', () => {
       { id: 'car-3', title: 'هوندا أكورد 2022' },
     ]
 
-    const MockCustomCard = ({ item, onPress }: any) => (
-      <View testID={`mock-car-card-${item.id}`}>
+    const MockCustomCard = ({ item, onPress, fullWidth }: any) => (
+      <View testID={`mock-car-card-${item.id}`} accessibilityLabel={fullWidth ? 'full-width-card' : 'standard-card'}>
         <Text onPress={onPress}>{item.title}</Text>
       </View>
     )
+
+    it('passes fullWidth={true} to CustomCard in cars peek section (D-164d)', async () => {
+      const customCardSpy = jest.fn(MockCustomCard)
+      await render(
+        <CategorySection
+          peek={true}
+          title="أحدث إعلانات السيارات"
+          subTitle="أفضل عروض البيع والإيجار المتاحة"
+          icon="car-sports"
+          seeAllRoute="/cars/browse"
+          data={mockCarsData as any}
+          isLoading={false}
+          routeBase="cars"
+          CustomCard={customCardSpy}
+        />
+      )
+
+      expect(customCardSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fullWidth: true,
+        }),
+        undefined
+      )
+    })
 
     it('renders with 80% cardWidth, centered sideInset padding, paging enabled, and dots shown', async () => {
       const { getByTestId } = await render(
@@ -136,11 +160,34 @@ describe('Home Cars Section — Peek Carousel & Geometry (D-164)', () => {
       { id: 'svc-2', title: 'تغيير زيت' },
     ]
 
-    const MockServiceCard = ({ item }: any) => (
-      <View testID={`mock-svc-card-${item.id}`}>
+    const MockServiceCard = ({ item, fullWidth }: any) => (
+      <View testID={`mock-svc-card-${item.id}`} accessibilityLabel={fullWidth ? 'full-width-card' : 'standard-card'}>
         <Text>{item.title}</Text>
       </View>
     )
+
+    it('passes fullWidth={false} (or undefined) to CustomCard in non-peek sections (D-164d)', async () => {
+      const customCardSpy = jest.fn(MockServiceCard)
+      await render(
+        <CategorySection
+          peek={false}
+          title="خدمات السيارات"
+          icon="car-wrench"
+          seeAllRoute="/services/browse"
+          data={mockServicesData as any}
+          isLoading={false}
+          routeBase="services"
+          CustomCard={customCardSpy}
+        />
+      )
+
+      expect(customCardSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fullWidth: false,
+        }),
+        undefined
+      )
+    })
 
     it('renders with standard CARD_WIDTH (60%), standard Spacing.space5 padding, no dots, and no paging', async () => {
       const { getByTestId } = await render(
