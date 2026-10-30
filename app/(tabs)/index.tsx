@@ -52,8 +52,8 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
 export const CARS_PEEK_WIDTH_RATIO = 0.80
-export const CARS_PEEK_GAP = 10
-export const CARS_PEEK_IMAGE_HEIGHT = 126
+export const CARS_PEEK_GAP = 6
+export const CARS_PEEK_IMAGE_HEIGHT = 144
 export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
 export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
