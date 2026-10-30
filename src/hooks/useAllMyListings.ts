@@ -3,7 +3,6 @@ import { useMyCarsInfinite } from './queries/useMyCarsInfinite'
 import { useMyBusesInfinite } from './queries/useMyBusesInfinite'
 import { useMyServicesInfinite } from './queries/useMyServicesInfinite'
 import { useMyEquipment } from './queries/useMyEquipment'
-import { useMyOperators } from './useEquipment'
 import { useMyParts } from './queries/useMyParts'
 import { normalizeAndMerge, extractArray } from '../utils/normalizeAndMerge'
 import { MyListingItem } from '../types/my-listings.types'
@@ -29,7 +28,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
   const buses = useMyBusesInfinite()
   const services = useMyServicesInfinite()
   const equipment = useMyEquipment()
-  const operators = useMyOperators()
   const parts = useMyParts()
 
   const items = useMemo(() => {
@@ -39,7 +37,7 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
       services: extractPagesItems(services.data?.pages),
       jobs: [],
       equipment: equipment.data,
-      operators: operators.data,
+      operators: [],
       parts: parts.data,
     })
   }, [
@@ -47,7 +45,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     buses.data,
     services.data,
     equipment.data,
-    operators.data,
     parts.data,
   ])
 
@@ -62,14 +59,12 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
         return [services]
       case 'equipment':
         return [equipment]
-      case 'operators':
-        return [operators]
       case 'parts':
         return [parts]
       default:
-        return [cars, buses, services, equipment, operators, parts]
+        return [cars, buses, services, equipment, parts]
     }
-  }, [activeCategory, cars, buses, services, equipment, operators, parts])
+  }, [activeCategory, cars, buses, services, equipment, parts])
 
   const isError = useMemo(() => {
     return activeQueries.some((q) => q.isError)
@@ -86,7 +81,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     buses.status,
     services.status,
     equipment.status,
-    operators.status,
     parts.status,
   ].some((status) => status === 'pending')
 
@@ -135,7 +129,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
       buses.refetch(),
       services.refetch(),
       equipment.refetch(),
-      operators.refetch(),
       parts.refetch(),
     ])
   }, [
@@ -143,7 +136,6 @@ export function useAllMyListings(activeCategory: string = 'all'): UseAllMyListin
     buses.refetch,
     services.refetch,
     equipment.refetch,
-    operators.refetch,
     parts.refetch,
   ])
 

@@ -82,21 +82,6 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     ],
   },
   {
-    id: 'operators',
-    label: 'مشغلو معدات',
-    icon: 'person-outline',
-    items: [
-      { id: 'all_operators', label: 'كل المشغلين', icon: 'person-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
-      { id: 'DRIVER', label: 'سائق معدات', icon: 'car-outline' },
-      { id: 'OPERATOR', label: 'مشغل فني', icon: 'construct-outline' },
-      { id: 'TECHNICIAN', label: 'فني صيانة', icon: 'build-outline' },
-    ],
-  },
-  {
     id: 'parts',
     label: 'قطع غيار',
     icon: 'settings-outline',

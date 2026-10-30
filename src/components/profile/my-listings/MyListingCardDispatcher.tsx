@@ -6,7 +6,6 @@ import { MyListingActionButtons } from './MyListingActionButtons'
 import { CarCard } from '../../cars/CarCard'
 import { BusCard } from '../../buses/BusCard'
 import { EquipCard } from '../../cards/EquipCard'
-import { OperatorCard } from '../../cards/OperatorCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
 
@@ -107,32 +106,6 @@ export function MyListingCardDispatcher({
           actionMenu={menu}
         />
       )
-    case 'operator': {
-      const banner = renderPendingBanner()
-      if (banner) {
-        return (
-          <View style={[s.pendingBannerWrap, !fullWidth && s.operatorFixed]}>
-            <OperatorCard
-              item={item.mapped as any}
-              onPress={() => onView(item)}
-              maxChips={3}
-              actionMenu={menu}
-              fullWidth={fullWidth}
-            />
-            {banner}
-          </View>
-        )
-      }
-      return (
-        <OperatorCard
-          item={item.mapped as any}
-          onPress={() => onView(item)}
-          maxChips={3}
-          actionMenu={menu}
-          fullWidth={fullWidth}
-        />
-      )
-    }
     case 'job':
       return null
     default:
@@ -144,9 +117,6 @@ const s = StyleSheet.create({
   pendingBannerWrap: {
     position: 'relative',
     width: '100%',
-  },
-  operatorFixed: {
-    alignSelf: 'flex-start',
   },
   pendingBanner: {
     position: 'absolute',

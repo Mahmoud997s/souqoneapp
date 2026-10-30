@@ -32,13 +32,6 @@ export const MY_LISTINGS_SECTIONS_CONFIG: readonly ListingSectionConfig[] = [
     categoryId: 'equipment',
   },
   {
-    entityType: 'operator',
-    title: 'مشغلو المعدات',
-    icon: 'person',
-    gradient: ['#10B981', '#34D399'],
-    categoryId: 'operators',
-  },
-  {
     entityType: 'part',
     title: 'قطع الغيار',
     icon: 'settings',

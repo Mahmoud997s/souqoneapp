@@ -76,6 +76,7 @@ export function MyListingsAllView({
 
     return (
       <Animated.ScrollView
+        testID="my-listings-empty-scroll"
         onScroll={onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={[s.emptyScroll, { paddingTop: topInset + Spacing.space4, paddingBottom: bottomInset + 80 }]}
@@ -89,28 +90,30 @@ export function MyListingsAllView({
         }
       >
         {header}
-        {isError && errorProps ? (
-          <EmptyState
-            testID="my-listings-error-state"
-            icon={errorProps.icon}
-            iconType="ionicons"
-            iconColor={errorProps.iconColor}
-            title={errorProps.title}
-            subtitle={errorProps.subtitle}
-            actionLabel={errorProps.actionLabel}
-            onAction={onRefresh}
-          />
-        ) : (
-          <EmptyState
-            testID="my-listings-empty-state"
-            icon="document-text-outline"
-            title="لا توجد إعلانات"
-            subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
-            actionLabel="أضف إعلانك الأول"
-            actionIcon="add"
-            onAction={() => router.push('/post' as any)}
-          />
-        )}
+        <View style={s.emptyStateWrapper} testID="my-listings-empty-wrapper">
+          {isError && errorProps ? (
+            <EmptyState
+              testID="my-listings-error-state"
+              icon={errorProps.icon}
+              iconType="ionicons"
+              iconColor={errorProps.iconColor}
+              title={errorProps.title}
+              subtitle={errorProps.subtitle}
+              actionLabel={errorProps.actionLabel}
+              onAction={onRefresh}
+            />
+          ) : (
+            <EmptyState
+              testID="my-listings-empty-state"
+              icon="document-text-outline"
+              title="لا توجد إعلانات"
+              subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
+              actionLabel="أضف إعلانك الأول"
+              actionIcon="add"
+              onAction={() => router.push('/post' as any)}
+            />
+          )}
+        </View>
       </Animated.ScrollView>
     )
   }
@@ -157,7 +160,11 @@ const s = StyleSheet.create({
   },
   emptyScroll: {
     flexGrow: 1,
-    paddingHorizontal: Spacing.space5,
+  },
+  emptyStateWrapper: {
+    flex: 1,
     justifyContent: 'center',
+    paddingHorizontal: Spacing.space5,
+    minHeight: 280,
   },
 })

@@ -36,11 +36,11 @@ export const CATEGORY_ICONS = {
  * maintain balanced visual weight across the grid.
  */
 export const CATEGORY_ICON_SCALES: Record<string, number> = {
-  cars: 1.15,
+  cars: 1.10,
   services: 1.0,
   parts: 1.0,
   equipment: 1.05,
-  buses: 1.15,
+  buses: 1.10,
   browse: 1.0,
 } as const
 
@@ -169,7 +169,6 @@ const CategoryTile = memo(function CategoryTile({
                 accessibilityIgnoresInvertColors
               />
             </Animated.View>
-            <View style={s.groundShadow} pointerEvents="none" />
           </View>
           <Text
             style={[s.label, item.isAction && s.actionLabel]}
@@ -178,6 +177,7 @@ const CategoryTile = memo(function CategoryTile({
           >
             {item.label}
           </Text>
+          <View testID="category-label-line" style={s.labelLine} pointerEvents="none" />
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -225,10 +225,12 @@ const s = StyleSheet.create({
   },
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingVertical: 12,
+    borderRadius: 16,
+    paddingTop: 8,
+    paddingBottom: 7,
     paddingHorizontal: 4,
-    minHeight: 112,
+    height: 80,
+    minHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -252,27 +254,18 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 72,
-    marginBottom: 6,
+    height: 40,
+    marginBottom: 4,
   },
   iconBox: {
-    width: 64,
-    height: 64,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 64,
-    height: 64,
-  },
-  groundShadow: {
-    width: 36,
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: Colors.primary,
-    opacity: 0.18,
-    marginTop: 2,
-    alignSelf: 'center',
+    width: 40,
+    height: 40,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
@@ -281,10 +274,18 @@ const s = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
-    paddingTop: 1,
+    marginBottom: 3,
   },
   actionLabel: {
     color: Colors.primary,
     fontFamily: 'Almarai_800ExtraBold',
+  },
+  labelLine: {
+    width: 28,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.primary,
+    opacity: 0.35,
+    alignSelf: 'center',
   },
 })
