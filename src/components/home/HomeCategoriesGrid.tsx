@@ -169,7 +169,7 @@ const CategoryTile = memo(function CategoryTile({
                 accessibilityIgnoresInvertColors
               />
             </Animated.View>
-            <View style={s.groundShadow} pointerEvents="none" />
+            <View testID="category-ground-shadow" style={s.groundShadow} pointerEvents="none" />
           </View>
           <Text
             style={[s.label, item.isAction && s.actionLabel]}
@@ -228,7 +228,7 @@ const s = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 12,
     paddingHorizontal: 4,
-    minHeight: 112,
+    minHeight: 100,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -252,25 +252,25 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 72,
+    height: 60,
     marginBottom: 6,
   },
   iconBox: {
-    width: 64,
-    height: 64,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 64,
-    height: 64,
+    width: 52,
+    height: 52,
   },
   groundShadow: {
     width: 36,
-    height: 8,
+    height: 2,
     borderRadius: 999,
     backgroundColor: Colors.primary,
-    opacity: 0.18,
+    opacity: 0.3,
     marginTop: 2,
     alignSelf: 'center',
   },

@@ -1,4 +1,5 @@
 import React from 'react'
+import { StyleSheet } from 'react-native'
 import { render, fireEvent, cleanup } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
@@ -106,6 +107,23 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
 
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
+
+      // D-153: 52x52 icon dimensions
+      images.forEach((img) => {
+        const flattened = StyleSheet.flatten(img.props.style)
+        expect(flattened.width).toBe(52)
+        expect(flattened.height).toBe(52)
+      })
+
+      // D-153: 2px thin ground shadow with 0.30 opacity
+      const shadows = getAllByTestId('category-ground-shadow')
+      expect(shadows).toHaveLength(6)
+      shadows.forEach((shadow) => {
+        const flattened = StyleSheet.flatten(shadow.props.style)
+        expect(flattened.height).toBe(2)
+        expect(flattened.width).toBe(36)
+        expect(flattened.opacity).toBe(0.3)
+      })
     })
 
     it('navigates when tiles are pressed and triggers haptics on pressIn', async () => {
@@ -114,6 +132,7 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       const carsTile = getByTestId('category-tile-cars')
       fireEvent(carsTile, 'pressIn')
       expect(Haptics.impactAsync).toHaveBeenCalledWith('light')
+      fireEvent(carsTile, 'pressOut')
 
       fireEvent.press(carsTile)
       expect(router.push).toHaveBeenCalledWith('/cars')
@@ -121,6 +140,21 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
       const browseTile = getByTestId('category-tile-browse')
       fireEvent.press(browseTile)
       expect(router.push).toHaveBeenCalledWith('/(tabs)/browse')
+    })
+  })
+
+  describe('3. Optical Scale Configuration (D-153)', () => {
+    it('each category maintains defined optical scale in CATEGORY_ICON_SCALES', () => {
+      HOME_CATEGORIES.forEach((cat) => {
+        expect(CATEGORY_ICON_SCALES[cat.id]).toBeDefined()
+        expect(typeof CATEGORY_ICON_SCALES[cat.id]).toBe('number')
+      })
+      expect(CATEGORY_ICON_SCALES.cars).toBe(1.15)
+      expect(CATEGORY_ICON_SCALES.buses).toBe(1.15)
+      expect(CATEGORY_ICON_SCALES.equipment).toBe(1.05)
+      expect(CATEGORY_ICON_SCALES.services).toBe(1.0)
+      expect(CATEGORY_ICON_SCALES.parts).toBe(1.0)
+      expect(CATEGORY_ICON_SCALES.browse).toBe(1.0)
     })
   })
 })
