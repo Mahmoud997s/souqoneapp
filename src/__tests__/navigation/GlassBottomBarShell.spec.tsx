@@ -1,10 +1,10 @@
 import React from 'react'
-import { Text, View, Keyboard } from 'react-native'
+import { Text, View, Keyboard, StyleSheet, Dimensions } from 'react-native'
 import { render, fireEvent, act, renderHook, cleanup } from '@testing-library/react-native'
+import { Colors } from '../../constants/colors'
 import {
   BottomBarTokens,
   getCollapsedCircleAnchorKey,
-  getCollapsedCircleAnchorStyle,
   computeBottomBarGeometry,
 } from '../../constants/bottomBarTokens'
 import {
@@ -33,7 +33,7 @@ jest.mock('../../utils/listing-detail/useAppReducedMotion', () => ({
   useAppReducedMotion: jest.fn(() => false),
 }))
 
-// Mock NavVisibilityContext
+// Mock NavVisibilityContext with mutable shared value
 const mockNavHidden = { value: 0 }
 jest.mock('../../context/NavVisibilityContext', () => ({
   useNavVisibility: () => ({
@@ -41,7 +41,7 @@ jest.mock('../../context/NavVisibilityContext', () => ({
   }),
 }))
 
-describe('GlassBottomBarShell & BottomBarTokens (Task D-166 Stage 1)', () => {
+describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
   afterEach(() => {
     cleanup()
     jest.restoreAllMocks()
@@ -132,21 +132,15 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 Stage 1)', () => {
   })
 
   // ── 2. Physical Side Helper Tests ─────────────────────────────────────────
-  describe('Physical Side Helper (getCollapsedCircleAnchorKey & Style)', () => {
+  describe('Physical Side Helper (getCollapsedCircleAnchorKey)', () => {
     it('anchors collapsed circle using right style key in RTL mode to land on physical bottom-left', () => {
       const key = getCollapsedCircleAnchorKey(true)
       expect(key).toBe('right')
-
-      const style = getCollapsedCircleAnchorStyle(16, true)
-      expect(style).toEqual({ right: 16 })
     })
 
     it('anchors collapsed circle using left style key in LTR mode', () => {
       const key = getCollapsedCircleAnchorKey(false)
       expect(key).toBe('left')
-
-      const style = getCollapsedCircleAnchorStyle(16, false)
-      expect(style).toEqual({ left: 16 })
     })
   })
 
@@ -187,18 +181,177 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 Stage 1)', () => {
     })
   })
 
-  // ── 4. Component Rendering & Accessibility Tests ─────────────────────────
-  describe('GlassBottomBarShell (Component)', () => {
-    it('renders expanded children inside content layer by default', async () => {
+  // ── 4. Shell Resolved Styles & Single Source of Truth Tests (C1) ───────────
+  describe('GlassBottomBarShell Resolved Styles (C1 Single Source of Truth)', () => {
+    const screenWidth = Dimensions.get('window').width
+    const anchorKey = getCollapsedCircleAnchorKey()
+    const expectedExpandedWidth = Math.min(
+      screenWidth - 2 * BottomBarTokens.marginHorizontal,
+      BottomBarTokens.maxWidth
+    )
+    const isTablet = screenWidth > BottomBarTokens.maxWidth + 2 * BottomBarTokens.marginHorizontal
+    const expandedOffset = isTablet
+      ? (screenWidth - expectedExpandedWidth) / 2
+      : BottomBarTokens.marginHorizontal
+
+    it('renders expanded container dimensions and layer opacities at navHidden = 0', async () => {
+      mockNavHidden.value = 0
       const { getByTestId } = await render(
         <GlassBottomBarShell testID="shell-test">
           <Text testID="tab-label">شاشة التابات</Text>
         </GlassBottomBarShell>
       )
 
-      expect(getByTestId('shell-test')).toBeTruthy()
-      expect(getByTestId('tab-label')).toBeTruthy()
-      expect(getByTestId('tab-label').props.children).toBe('شاشة التابات')
+      const containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
+      expect(containerStyle.width).toBe(expectedExpandedWidth)
+      expect(containerStyle.height).toBe(BottomBarTokens.expandedHeight) // 52
+      expect(containerStyle.borderRadius).toBe(BottomBarTokens.expandedRadius) // 26
+      expect(containerStyle[anchorKey]).toBe(expandedOffset)
+
+      const contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(1)
+      expect(contentStyle.transform).toEqual([{ scale: 1 }])
+
+      const collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(0)
+      expect(collapsedStyle.transform).toEqual([{ scale: 0 }])
+    })
+
+    it('renders midway morph dimensions at navHidden = 0.5', async () => {
+      mockNavHidden.value = 0.5
+      const { getByTestId } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      const expectedMidWidth =
+        Math.round((expectedExpandedWidth + (BottomBarTokens.collapsedSize - expectedExpandedWidth) * 0.5) * 100) / 100
+      const containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
+      expect(containerStyle.width).toBe(expectedMidWidth)
+      expect(containerStyle.height).toBe(54) // 52 + (56 - 52) * 0.5
+      expect(containerStyle.borderRadius).toBe(27) // 26 + (28 - 26) * 0.5
+
+      const contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(0) // label drops to 0 at progress 0.2
+      expect(contentStyle.transform).toEqual([{ scale: 0.95 }])
+
+      const collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(0) // icon fades in starting at 0.8
+      expect(collapsedStyle.transform).toEqual([{ scale: 0 }])
+    })
+
+    it('renders collapsed circle dimensions and layer opacities at navHidden = 1', async () => {
+      mockNavHidden.value = 1
+      const { getByTestId } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      const containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
+      expect(containerStyle.width).toBe(BottomBarTokens.collapsedSize) // 56
+      expect(containerStyle.height).toBe(BottomBarTokens.collapsedSize) // 56
+      expect(containerStyle.borderRadius).toBe(BottomBarTokens.collapsedRadius) // 28
+      expect(containerStyle[anchorKey]).toBe(BottomBarTokens.marginHorizontal) // 16
+
+      const contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(0)
+      expect(contentStyle.transform).toEqual([{ scale: 0.95 }])
+
+      const collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(1)
+      expect(collapsedStyle.transform).toEqual([{ scale: 1 }])
+    })
+  })
+
+  // ── 5. Component Behavior & Missing Tests (C4) ─────────────────────────────
+  describe('GlassBottomBarShell Behavior & Accessibility (C4)', () => {
+    const screenWidth = Dimensions.get('window').width
+    const expectedExpandedWidth = Math.min(
+      screenWidth - 2 * BottomBarTokens.marginHorizontal,
+      BottomBarTokens.maxWidth
+    )
+
+    it('(a) default expand sets navHidden.value to 0 and navigates nowhere', async () => {
+      mockNavHidden.value = 1
+      const { getByTestId } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      const btn = getByTestId('bottom-bar-collapsed-button')
+      fireEvent.press(btn)
+
+      expect(mockNavHidden.value).toBe(0)
+    })
+
+    it('(b) reduced motion at SHELL level switches instantly at threshold 0.5', async () => {
+      // Below threshold (0.3) -> fully expanded
+      mockNavHidden.value = 0.3
+      const { getByTestId, rerender } = await render(
+        <GlassBottomBarShell testID="shell-test" reducedMotion={true}>
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      let containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
+      expect(containerStyle.width).toBe(expectedExpandedWidth)
+      expect(containerStyle.height).toBe(BottomBarTokens.expandedHeight) // 52
+      expect(containerStyle.borderRadius).toBe(BottomBarTokens.expandedRadius) // 26
+
+      let contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(1)
+      expect(contentStyle.transform).toEqual([{ scale: 1 }])
+
+      let collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(0)
+      expect(collapsedStyle.transform).toEqual([{ scale: 0 }])
+
+      // Above threshold (0.7) -> fully collapsed circle
+      mockNavHidden.value = 0.7
+      await rerender(
+        <GlassBottomBarShell testID="shell-test" reducedMotion={true}>
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
+      expect(containerStyle.width).toBe(BottomBarTokens.collapsedSize) // 56
+      expect(containerStyle.height).toBe(BottomBarTokens.collapsedSize) // 56
+      expect(containerStyle.borderRadius).toBe(BottomBarTokens.collapsedRadius) // 28
+
+      contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(0)
+      expect(contentStyle.transform).toEqual([{ scale: 0 }])
+
+      collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(1)
+      expect(collapsedStyle.transform).toEqual([{ scale: 1 }])
+    })
+
+    it('(c) collapsed layer is inert while expanded (opacity 0 and scale 0 at navHidden 0)', async () => {
+      mockNavHidden.value = 0
+      const { getByTestId } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+
+      const collapsedStyle = StyleSheet.flatten(getByTestId('shell-test-collapsed-wrap').props.style)
+      expect(collapsedStyle.opacity).toBe(0)
+      expect(collapsedStyle.transform).toEqual([{ scale: 0 }])
+
+      // At navHidden 1, content layer is inert (opacity 0)
+      mockNavHidden.value = 1
+      const { getByTestId: getByTestId1 } = await render(
+        <GlassBottomBarShell testID="shell-test">
+          <Text>محتوى</Text>
+        </GlassBottomBarShell>
+      )
+      const contentStyle = StyleSheet.flatten(getByTestId1('shell-test-content').props.style)
+      expect(contentStyle.opacity).toBe(0)
     })
 
     it('collapsed circle button meets accessibility standards (role button, Arabic label, >= 44pt target)', async () => {
@@ -221,7 +374,7 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 Stage 1)', () => {
       expect(btnStyle.height).toBe(BottomBarTokens.collapsedSize) // 56
     })
 
-    it('tapping collapsed circle button invokes onExpand callback', async () => {
+    it('custom onExpand callback overrides default expand when provided', async () => {
       const onExpandMock = jest.fn()
       const { getByTestId } = await render(
         <GlassBottomBarShell testID="shell-test" onExpand={onExpandMock}>
