@@ -11,14 +11,6 @@ export const CategoriesGrid = () => {
 
   const tabs: GlassCategoryTabItem[] = [
     {
-      id: 'used',
-      label: 'مستعملة',
-      icon: 'car-sport',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=used' as any),
-    },
-    {
       id: 'new',
       label: 'جديدة',
       icon: 'sparkles',
@@ -27,12 +19,12 @@ export const CategoriesGrid = () => {
       onPress: () => router.push('/cars/browse?type=new' as any),
     },
     {
-      id: 'wanted',
-      label: 'مطلوب',
-      icon: 'megaphone',
+      id: 'used',
+      label: 'مستعملة',
+      icon: 'car-sport',
       iconBg: Colors.paleMint,
       iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=wanted' as any),
+      onPress: () => router.push('/cars/browse?type=used' as any),
     },
     {
       id: 'rental',
@@ -41,6 +33,14 @@ export const CategoriesGrid = () => {
       iconBg: Colors.paleMint,
       iconColor: Colors.primary,
       onPress: () => router.push('/cars/browse?type=rental' as any),
+    },
+    {
+      id: 'wanted',
+      label: 'مطلوب',
+      icon: 'megaphone',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
+      onPress: () => router.push('/cars/browse?type=wanted' as any),
     },
   ]
 
