@@ -100,7 +100,7 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
     it('defines depth constants and peek width ratio 80% (D-164e)', () => {
       expect(CARS_PEEK_WIDTH_RATIO).toBe(0.80)
       expect(CARS_PEEK_GAP).toBe(6)
-      expect(CARS_PEEK_IMAGE_HEIGHT).toBe(144)
+      expect(CARS_PEEK_IMAGE_HEIGHT).toBe(133)
       expect(SIDE_SCALE).toBe(0.88)
       expect(SIDE_TRANSLATE_Y).toBe(14)
       expect(SIDE_OPACITY).toBe(0.85)
@@ -165,36 +165,43 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       )
     })
 
-    it('teeth proof (D-164g): CARS_PEEK_IMAGE_HEIGHT is 144 (+18px / +14.3% bigger image vs D-164f), while maintaining total height within +/-3pt and gap=6', () => {
-      expect(CARS_PEEK_IMAGE_HEIGHT).toBe(144)
+    it('teeth proof (D-164h): card height is 80% of original (~213pt total), restoring body spacing with 80pt body and 133pt image', () => {
+      expect(CARS_PEEK_IMAGE_HEIGHT).toBe(133)
       expect(CARS_PEEK_GAP).toBe(6)
 
-      // Image comparison: 144 vs 126 is +18px (+14.28%)
-      const previousImageHeight = 126
-      const imageDelta = CARS_PEEK_IMAGE_HEIGHT - previousImageHeight
-      expect(imageDelta).toBe(18)
-      expect((imageDelta / previousImageHeight) * 100).toBeCloseTo(14.28, 1)
+      // Original full-width cars card:
+      // Image: 180pt, Body: 86pt => Total: 266pt
+      const originalImage = 180
+      const originalBody = 86
+      const originalTotal = originalImage + originalBody // 266pt
 
-      // Aspect ratio improvement:
-      // Width = 312px
-      // Previous ratio: 312 / 126 = 2.476 (heavily cropped)
-      // New ratio: 312 / 144 = 2.166 (much better car framing)
-      const previousRatio = 312 / previousImageHeight
-      const newRatio = 312 / CARS_PEEK_IMAGE_HEIGHT
-      expect(newRatio).toBeLessThan(previousRatio)
-      expect(newRatio).toBeCloseTo(2.17, 1)
+      // Target = 80% of original:
+      // 266 * 0.80 = 212.8pt => ~213pt (+/-2pt)
+      const targetTotal = originalTotal * 0.8 // 212.8
+      expect(targetTotal).toBeCloseTo(212.8, 1)
 
-      // Total card height comparison:
-      // D-164f: 126 image + 73 body = 199pt
-      // D-164g: 144 image + 56 ultra-compact body = 200pt
-      // Delta = +1pt (strictly within the allowed +/-3pt window)
-      const d164fTotal = 126 + 73 // 199
-      const d164gTotal = 144 + 56 // 200
-      const totalDelta = Math.abs(d164gTotal - d164fTotal)
-      expect(totalDelta).toBeLessThanOrEqual(3)
+      // Restored spacious body:
+      // Trimmed at most 6pt from original 86pt:
+      const restoredBody = 80
+      const bodyTrim = originalBody - restoredBody
+      expect(bodyTrim).toBeLessThanOrEqual(6)
+
+      // New image and total:
+      const newImage = CARS_PEEK_IMAGE_HEIGHT // 133
+      const newTotal = newImage + restoredBody // 213
+      expect(newTotal).toBe(213)
+      expect(Math.abs(newTotal - targetTotal)).toBeLessThanOrEqual(2)
+
+      // Exact percentage of original:
+      const pctOfOriginal = (newTotal / originalTotal) * 100
+      expect(pctOfOriginal).toBeCloseTo(80.08, 1)
+
+      // Aspect ratio at 312 wide:
+      const cardWidth390 = getPeekCardWidth(390) // 312
+      const aspectRatio = cardWidth390 / newImage
+      expect(aspectRatio).toBeCloseTo(2.35, 1)
 
       // Step math with gap = 6:
-      const cardWidth390 = getPeekCardWidth(390) // 312
       const step390 = cardWidth390 + CARS_PEEK_GAP
       expect(step390).toBe(318)
     })

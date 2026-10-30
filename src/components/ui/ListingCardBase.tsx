@@ -301,7 +301,7 @@ export const ListingCardBase = ({
       >
         <View style={s.headerRow}>
           <Text
-            style={[s.cardTitle, { flex: 1 }, compactBody && s.cardTitleCompact]}
+            style={[s.cardTitle, { flex: 1 }]}
             numberOfLines={titleNumberOfLines}
             ellipsizeMode="tail"
           >
@@ -314,8 +314,8 @@ export const ListingCardBase = ({
 
         <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
           <View style={s.locationInner}>
-            <Ionicons name="location-outline" size={compactBody ? 12 : 14} color={Colors.textMuted} />
-            <Text style={[s.locationTxt, compactBody && s.locationTxtCompact]} numberOfLines={1}>
+            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+            <Text style={s.locationTxt} numberOfLines={1}>
               {resolvedLocation}
             </Text>
           </View>
@@ -323,7 +323,7 @@ export const ListingCardBase = ({
             <>
               <Text style={s.dotSeparator}>•</Text>
               <View style={s.timeInner}>
-                <Ionicons name="time-outline" size={compactBody ? 11 : 12} color={Colors.textMuted} />
+                <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
                 <Text style={s.timeTxt}>{formatDate(item.createdAt)}</Text>
               </View>
             </>
@@ -347,22 +347,22 @@ export const ListingCardBase = ({
                   const textColor = pill.textColor || defaultTextColor
 
                   return (
-                    <View key={pill.key} style={[s.detailPill, pillBgStyle, compactBody && s.detailPillCompact]}>
+                    <View key={pill.key} style={[s.detailPill, pillBgStyle]}>
                       {pill.iconFamily === 'MaterialCommunityIcons' ? (
                         <MaterialCommunityIcons
                           name={pill.iconName as keyof typeof MaterialCommunityIcons.glyphMap}
-                          size={compactBody ? 11 : 12}
+                          size={12}
                           color={textColor}
                         />
                       ) : pill.iconName ? (
                         <Ionicons
                           name={pill.iconName as keyof typeof Ionicons.glyphMap}
-                          size={compactBody ? 11 : 13}
+                          size={13}
                           color={textColor}
                         />
                       ) : null}
                       <Text
-                        style={[s.detailText, { color: textColor }, compactBody && s.detailTextCompact]}
+                        style={[s.detailText, { color: textColor }]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -372,8 +372,8 @@ export const ListingCardBase = ({
                   )
                 })}
                 {remainingCount > 0 && (
-                  <View style={[s.detailPill, s.pillNeutral, s.remainingPill, compactBody && s.detailPillCompact]}>
-                    <Text style={[s.remainingText, compactBody && { fontSize: 10, lineHeight: 14 }]} numberOfLines={1}>
+                  <View style={[s.detailPill, s.pillNeutral, s.remainingPill]}>
+                    <Text style={s.remainingText} numberOfLines={1}>
                       +{remainingCount}
                     </Text>
                   </View>
@@ -391,20 +391,18 @@ export const ListingCardBase = ({
             style={[
               s.detailPill,
               isPriceNegotiable ? s.pillGreen : s.pillNeutral,
-              compactBody && s.detailPillCompact,
               { flex: 1 },
             ]}
           >
             <Ionicons
               name="wallet-outline"
-              size={compactBody ? 13 : 15}
+              size={15}
               color={isPriceNegotiable ? Colors.primary : Colors.text2}
             />
             <Text
               style={[
                 s.budgetValText,
                 isPriceNegotiable && { color: Colors.primary },
-                compactBody && s.budgetValTextCompact,
               ]}
             >
               {priceLabel}
@@ -584,12 +582,8 @@ const s = StyleSheet.create({
   },
   cardDetailsCompact: {
     paddingHorizontal: 10,
-    paddingTop: 4,
-    paddingBottom: 3,
-  },
-  cardTitleCompact: {
-    fontSize: 12,
-    lineHeight: 16,
+    paddingTop: 7,
+    paddingBottom: 5,
   },
   headerRow: {
     flexDirection: 'row',
@@ -613,12 +607,8 @@ const s = StyleSheet.create({
     marginBottom: 5,
   },
   locationRowCompact: {
-    marginTop: 1,
-    marginBottom: 2,
-  },
-  locationTxtCompact: {
-    fontSize: 11,
-    lineHeight: 14,
+    marginTop: 2,
+    marginBottom: 4,
   },
   locationInner: {
     flexDirection: 'row',
@@ -652,7 +642,7 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   dividerCompact: {
-    marginBottom: 3,
+    marginBottom: 5,
   },
   footerDivider: {
     height: 1,
@@ -662,7 +652,7 @@ const s = StyleSheet.create({
   },
   footerDividerCompact: {
     marginTop: 1,
-    marginBottom: 3,
+    marginBottom: 5,
   },
   detailsList: {
     flexDirection: 'row',
@@ -673,7 +663,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   detailsListCompact: {
-    marginBottom: 2,
+    marginBottom: 4,
   },
   detailPill: {
     flexDirection: 'row',
@@ -683,10 +673,6 @@ const s = StyleSheet.create({
     paddingVertical: 2.5,
     borderRadius: CardSystem.radius.inner,
     flexShrink: 1,
-  },
-  detailPillCompact: {
-    paddingHorizontal: 4.5,
-    paddingVertical: 1.5,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
@@ -699,10 +685,6 @@ const s = StyleSheet.create({
     color: Colors.text2,
     writingDirection: 'rtl',
     flexShrink: 1,
-  },
-  detailTextCompact: {
-    fontSize: 11,
-    lineHeight: 14,
   },
   remainingPill: {
     paddingHorizontal: 4.5,
@@ -726,10 +708,6 @@ const s = StyleSheet.create({
     color: Colors.accent,
     lineHeight: 15,
     writingDirection: 'rtl',
-  },
-  budgetValTextCompact: {
-    fontSize: 11,
-    lineHeight: 14,
   },
   cardActionsRow: {
     flexDirection: 'row',

@@ -44,32 +44,32 @@ export function SkeletonCard({
         <View style={[s.body, compactBody && s.bodyCompact]}>
           {/* Title row */}
           <View style={s.row}>
-            <View style={[s.titleLine, compactBody && { height: 12, borderRadius: 6 }, s.placeholder]} />
-            <View style={[s.badge, compactBody && { height: 16 }, s.placeholder]} />
+            <View style={[s.titleLine, s.placeholder]} />
+            <View style={[s.badge, s.placeholder]} />
           </View>
 
           {/* Location row */}
-          <View style={[s.locationRow, compactBody && { marginTop: 1, marginBottom: 2 }]}>
-            <View style={[s.locLine, compactBody && { height: 10 }, s.placeholder]} />
+          <View style={[s.locationRow, compactBody && { marginTop: 2, marginBottom: 4 }]}>
+            <View style={[s.locLine, s.placeholder]} />
           </View>
 
           {/* Divider */}
-          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 3 }]} />
+          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 5 }]} />
 
           {/* Chips row */}
-          <View style={[s.chipsRow, compactBody && { marginBottom: 2 }]}>
-            <View style={[s.chip, compactBody && { height: 16, borderRadius: 8 }, s.placeholder]} />
-            <View style={[s.chip, compactBody && { height: 16, borderRadius: 8 }, s.placeholder]} />
-            <View style={[s.chip, compactBody && { height: 16, borderRadius: 8 }, s.placeholder]} />
+          <View style={s.chipsRow}>
+            <View style={[s.chip, s.placeholder]} />
+            <View style={[s.chip, s.placeholder]} />
+            <View style={[s.chip, s.placeholder]} />
           </View>
 
           {/* Footer divider */}
-          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 3 }]} />
+          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 5 }]} />
 
           {/* Footer */}
           <View style={s.footer}>
-            <View style={[s.timeLine, compactBody && { height: 10 }, s.placeholder]} />
-            <View style={[s.priceLine, compactBody && { height: 16 }, s.placeholder]} />
+            <View style={[s.timeLine, s.placeholder]} />
+            <View style={[s.priceLine, s.placeholder]} />
           </View>
         </View>
       </Animated.View>
@@ -99,8 +99,8 @@ const s = StyleSheet.create({
   },
   bodyCompact: {
     paddingHorizontal: 10,
-    paddingTop: 4,
-    paddingBottom: 3,
+    paddingTop: 7,
+    paddingBottom: 5,
   },
   row: {
     flexDirection: 'row',
