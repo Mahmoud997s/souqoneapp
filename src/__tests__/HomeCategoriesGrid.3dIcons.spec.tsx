@@ -97,14 +97,54 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
 
   describe('2. Component Rendering & Interaction', () => {
     it('renders all 6 category tiles with rectangular cards (80h), 40x40 icons, and 2px line under label (D-153c)', async () => {
-      const { getByTestId, getAllByTestId, queryAllByTestId } = await render(<HomeCategoriesGrid />)
+      const { getByTestId, getAllByTestId } = await render(<HomeCategoriesGrid />)
 
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
         expect(tile).toBeTruthy()
         expect(tile.props.accessibilityLabel).toBe(cat.label)
         expect(tile.props.accessibilityRole).toBe('button')
+
+        // (أ) D-153c/d: ارتفاع الكارت = 80 (card style height 80, minHeight 80)
+        const cardView = tile.children[0] as any
+        const cardStyle = StyleSheet.flatten(cardView.props.style)
+        expect(cardStyle.height).toBe(80)
+        expect(cardStyle.minHeight).toBe(80)
+        expect(cardStyle.borderRadius).toBe(16)
+
+        // (ب) D-153c/d: عرض الـ tile/slot wrapper محدد كـ number
+        const itemWrap = tile.parent as any
+        expect(itemWrap).toBeTruthy()
+        const itemWrapStyle = StyleSheet.flatten(itemWrap.props.style)
+        expect(typeof itemWrapStyle.width).toBe('number')
+
+        // (ج) D-153c/d: category-label-line أخ لـ label وموجود بعده، وليس جوّا iconContainer
+        const cardChildren = React.Children.toArray(cardView.props.children) as any[]
+        expect(cardChildren).toHaveLength(3)
+
+        // 1) iconContainer has exactly 1 child (iconBox), no groundShadow child
+        const iconContainer = cardChildren[0]
+        const iconContainerChildren = React.Children.toArray(iconContainer.props.children) as any[]
+        expect(iconContainerChildren).toHaveLength(1)
+        const iconBox = iconContainerChildren[0]
+        const iconBoxChildren = React.Children.toArray(iconBox.props.children) as any[]
+        expect(iconBoxChildren).toHaveLength(1) // Image only
+
+        // 2) Text label is child 1
+        expect(cardChildren[1].props.children).toBe(cat.label)
+
+        // 3) category-label-line is child 2 (sibling after label, sharing card parent)
+        const labelLine = cardChildren[2]
+        expect(labelLine.props.testID).toBe('category-label-line')
+        const lineStyle = StyleSheet.flatten(labelLine.props.style)
+        expect(lineStyle.height).toBe(2)
+        expect(lineStyle.width).toBe(28)
+        expect(lineStyle.opacity).toBe(0.35)
       })
+
+      // D-153c/d: عرض الـ tile عند 360 = 104 وعند 430 = 127
+      expect(calculateCategoryItemWidth(360)).toBe(104)
+      expect(calculateCategoryItemWidth(430)).toBe(127)
 
       const images = getAllByTestId('category-tile-image')
       expect(images).toHaveLength(6)
@@ -125,9 +165,6 @@ describe('HomeCategoriesGrid — 3D Icons Display & Parity', () => {
         expect(flattened.width).toBe(28)
         expect(flattened.opacity).toBe(0.35)
       })
-
-      // D-153c: groundShadow is completely removed
-      expect(queryAllByTestId('category-ground-shadow')).toHaveLength(0)
     })
 
     it('navigates when tiles are pressed and triggers haptics on pressIn', async () => {
