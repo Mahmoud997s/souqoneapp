@@ -19,7 +19,21 @@ import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
 import { ServiceCard } from '../../src/components/services/ServiceCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
-import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
+import {
+  HorizontalScrollCard,
+  SIDE_SCALE,
+  SIDE_TRANSLATE_Y,
+  SIDE_OPACITY,
+  SNAP_DURATION,
+  computeCardDepth,
+} from '../../src/components/ui/HorizontalScrollCard'
+export {
+  SIDE_SCALE,
+  SIDE_TRANSLATE_Y,
+  SIDE_OPACITY,
+  SNAP_DURATION,
+  computeCardDepth,
+}
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
@@ -121,6 +135,7 @@ export function CategorySection({
           paddingEnd={sectionPaddingEnd}
           paging={sectionPaging}
           showDots={sectionShowDots}
+          depthEffect={peek}
           keyExtractor={(item) => item.id}
           onSeeAll={() => router.push(seeAllRoute as any)}
           seeAllTitle="عرض الكل"
