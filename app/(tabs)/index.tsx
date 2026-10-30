@@ -20,29 +20,6 @@ import { PartCard } from '../../src/components/parts/PartCard'
 import { ServiceCard } from '../../src/components/services/ServiceCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
-import {
-  PeekCarousel,
-  CARS_PEEK_WIDTH_RATIO,
-  CARS_PEEK_GAP,
-  SIDE_SCALE,
-  SIDE_TRANSLATE_Y,
-  SIDE_OPACITY,
-  SNAP_DURATION,
-  getPeekCardWidth,
-  getPeekSideInset,
-  computeCardDepth,
-} from '../../src/components/home/PeekCarousel'
-export {
-  CARS_PEEK_WIDTH_RATIO,
-  CARS_PEEK_GAP,
-  SIDE_SCALE,
-  SIDE_TRANSLATE_Y,
-  SIDE_OPACITY,
-  SNAP_DURATION,
-  getPeekCardWidth,
-  getPeekSideInset,
-  computeCardDepth,
-}
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
@@ -60,6 +37,10 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
+export const CARS_PEEK_WIDTH_RATIO = 0.80
+export const CARS_PEEK_GAP = 10
+export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
+export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 export interface SectionProps {
@@ -100,6 +81,8 @@ export function CategorySection({
   const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
   const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
   const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaging = peek
+  const sectionShowDots = peek
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
@@ -119,75 +102,40 @@ export function CategorySection({
         </TouchableOpacity>
       </View>
 
-      {peek ? (
-        isLoading ? (
-          <PeekCarousel
-            key="loading-skeletons"
-            data={[1, 2, 3]}
-            cardWidth={sectionCardWidth}
-            gap={sectionGap}
-            paddingEnd={sectionPaddingEnd}
-            keyExtractor={(item) => `skeleton-${item}`}
-            renderItem={() => <SkeletonCard style={{ width: sectionCardWidth }} />}
-          />
-        ) : (
-          <PeekCarousel
-            key="loaded-cards"
-            data={data || []}
-            cardWidth={sectionCardWidth}
-            gap={sectionGap}
-            paddingEnd={sectionPaddingEnd}
-            showDots={true}
-            keyExtractor={(item) => item.id}
-            onSeeAll={() => router.push(seeAllRoute as any)}
-            seeAllTitle="عرض الكل"
-            seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: sectionCardWidth }}>
-                <CustomCard
-                  item={item}
-                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              </View>
-            )}
-          />
-        )
+      {isLoading ? (
+        <HorizontalScrollCard
+          key="loading-skeletons"
+          data={[1, 2, 3]}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
+          keyExtractor={(item) => `skeleton-${item}`}
+          renderItem={() => <SkeletonCard style={{ width: sectionCardWidth }} />}
+        />
       ) : (
-        isLoading ? (
-          <HorizontalScrollCard
-            key="loading-skeletons"
-            data={[1, 2, 3]}
-            cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
-            keyExtractor={(item) => `skeleton-${item}`}
-            renderItem={() => <SkeletonCard style={{ width: CARD_WIDTH }} />}
-          />
-        ) : (
-          <HorizontalScrollCard
-            key="loaded-cards"
-            data={data || []}
-            cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
-            keyExtractor={(item) => item.id}
-            onSeeAll={() => router.push(seeAllRoute as any)}
-            seeAllTitle="عرض الكل"
-            seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH }}>
-                <CustomCard
-                  item={item}
-                  onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              </View>
-            )}
-          />
-        )
+        <HorizontalScrollCard
+          key="loaded-cards"
+          data={data || []}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
+          paging={sectionPaging}
+          showDots={sectionShowDots}
+          keyExtractor={(item) => item.id}
+          onSeeAll={() => router.push(seeAllRoute as any)}
+          seeAllTitle="عرض الكل"
+          seeAllSubtitle={`تصفح جميع ${title}`}
+          renderItem={({ item }) => (
+            <View style={{ width: sectionCardWidth }}>
+              <CustomCard
+                item={item}
+                onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
+                disableImageSwipe={true}
+                titleNumberOfLines={1}
+              />
+            </View>
+          )}
+        />
       )}
     </Animated.View>
   )

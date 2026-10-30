@@ -6,14 +6,9 @@ import {
   CategorySection,
   CARS_PEEK_WIDTH_RATIO,
   CARS_PEEK_GAP,
-  SIDE_SCALE,
-  SIDE_TRANSLATE_Y,
-  SIDE_OPACITY,
-  SNAP_DURATION,
   CARD_WIDTH,
   getPeekCardWidth,
   getPeekSideInset,
-  computeCardDepth,
 } from '../../../app/(tabs)/index'
 import { Spacing } from '../../constants/spacing'
 
@@ -33,76 +28,17 @@ jest.mock('react-native-reanimated', () => {
   }
 })
 
-describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', () => {
+describe('Home Cars Section — Peek Carousel & Geometry (D-164)', () => {
   const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  describe('1. Pure Interpolation Helper: computeCardDepth (D-164b)', () => {
-    it('returns scale 1, translateY 0, opacity 1 when card is centered (distance = 0)', () => {
-      const centerDepth = computeCardDepth(0, false)
-      expect(centerDepth.scale).toBe(1)
-      expect(centerDepth.translateY).toBe(0)
-      expect(centerDepth.opacity).toBe(1)
-    })
-
-    it('returns SIDE_SCALE (0.88), SIDE_TRANSLATE_Y (14), SIDE_OPACITY (0.85) when card is at side (distance = 1)', () => {
-      const sideDepth = computeCardDepth(1, false)
-      expect(sideDepth.scale).toBe(SIDE_SCALE)
-      expect(sideDepth.scale).toBe(0.88)
-      expect(sideDepth.translateY).toBe(SIDE_TRANSLATE_Y)
-      expect(sideDepth.translateY).toBe(14)
-      expect(sideDepth.opacity).toBe(SIDE_OPACITY)
-      expect(sideDepth.opacity).toBe(0.85)
-    })
-
-    it('interpolates smoothly at intermediate distance (0.5)', () => {
-      const midDepth = computeCardDepth(0.5, false)
-      expect(midDepth.scale).toBeCloseTo(0.94, 2)
-      expect(midDepth.translateY).toBe(7)
-      expect(midDepth.opacity).toBeCloseTo(0.925, 2)
-    })
-
-    it('clamps transformations at max depth when distance >= 1', () => {
-      const farDepth = computeCardDepth(2, false)
-      expect(farDepth.scale).toBe(SIDE_SCALE)
-      expect(farDepth.translateY).toBe(SIDE_TRANSLATE_Y)
-      expect(farDepth.opacity).toBe(SIDE_OPACITY)
-    })
-
-    it('handles negative distance symmetrically (Math.abs)', () => {
-      const negDepth = computeCardDepth(-1, false)
-      expect(negDepth.scale).toBe(SIDE_SCALE)
-      expect(negDepth.translateY).toBe(SIDE_TRANSLATE_Y)
-      expect(negDepth.opacity).toBe(SIDE_OPACITY)
-    })
-
-    it('reduced motion returns flat values (scale 1, translateY 0, opacity 1) regardless of distance', () => {
-      expect(computeCardDepth(0, true)).toEqual({ scale: 1, translateY: 0, opacity: 1 })
-      expect(computeCardDepth(0.5, true)).toEqual({ scale: 1, translateY: 0, opacity: 1 })
-      expect(computeCardDepth(1, true)).toEqual({ scale: 1, translateY: 0, opacity: 1 })
-      expect(computeCardDepth(2, true)).toEqual({ scale: 1, translateY: 0, opacity: 1 })
-    })
-
-    it('teeth proof: moving card from center (0) to side (1) strictly decreases scale and opacity and increases translateY', () => {
-      const center = computeCardDepth(0, false)
-      const side = computeCardDepth(1, false)
-      expect(side.scale).toBeLessThan(center.scale)
-      expect(side.opacity).toBeLessThan(center.opacity)
-      expect(side.translateY).toBeGreaterThan(center.translateY)
-    })
-  })
-
-  describe('2. Peek Carousel Mathematical & Responsive Specs', () => {
-    it('defines depth constants and peek width ratio 80% (D-164b)', () => {
+  describe('1. Peek Carousel Mathematical & Responsive Specs', () => {
+    it('defines peek width ratio as 80% (0.80) and gap as 10px', () => {
       expect(CARS_PEEK_WIDTH_RATIO).toBe(0.80)
       expect(CARS_PEEK_GAP).toBe(10)
-      expect(SIDE_SCALE).toBe(0.88)
-      expect(SIDE_TRANSLATE_Y).toBe(14)
-      expect(SIDE_OPACITY).toBe(0.85)
-      expect(SNAP_DURATION).toBe(350)
     })
 
     it('calculates correct cardWidth and centered sideInset across standard screen sizes (360/390/430)', () => {
@@ -124,7 +60,7 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
     })
   })
 
-  describe('3. CategorySection with peek={true} (CARS Section uses PeekCarousel)', () => {
+  describe('2. CategorySection with peek={true} (CARS Section)', () => {
     const mockCarsData = [
       { id: 'car-1', title: 'تويوتا كامري 2024' },
       { id: 'car-2', title: 'نيسان باترول 2023' },
@@ -137,8 +73,8 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
       </View>
     )
 
-    it('renders PeekCarousel with snapToInterval, fast deceleration, depth wrappers, and dots', async () => {
-      const { getByTestId, queryByTestId } = await render(
+    it('renders with 80% cardWidth, centered sideInset padding, paging enabled, and dots shown', async () => {
+      const { getByTestId } = await render(
         <CategorySection
           peek={true}
           title="أحدث إعلانات السيارات"
@@ -152,26 +88,17 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
         />
       )
 
-      // PeekCarousel is rendered (NOT HorizontalScrollCard)
-      const carousel = getByTestId('peek-carousel')
-      expect(carousel).toBeTruthy()
-      expect(queryByTestId('horizontal-scroll-card')).toBeNull()
+      // HorizontalScrollCard receives peek props
+      const scroller = getByTestId('horizontal-scroll-card')
+      expect(scroller).toBeTruthy()
 
-      // ScrollView has snapToInterval = cardWidth + gap and fast deceleration
-      const scrollView = getByTestId('peek-carousel-scroll')
-      expect(scrollView).toBeTruthy()
-      const expectedStep = getPeekCardWidth(SCREEN_WIDTH) + CARS_PEEK_GAP
-      expect(scrollView.props.snapToInterval).toBe(expectedStep)
-      expect(scrollView.props.decelerationRate).toBe('fast')
-      expect(scrollView.props.disableIntervalMomentum).toBe(true)
+      // Card 0 is rendered with peek card width
+      const car1Card = getByTestId('mock-car-card-car-1')
+      expect(car1Card).toBeTruthy()
 
-      // Each card has its depth wrapper
-      expect(getByTestId('peek-card-depth-0')).toBeTruthy()
-      expect(getByTestId('peek-card-depth-1')).toBeTruthy()
-      expect(getByTestId('peek-card-depth-2')).toBeTruthy()
-
-      // Dots container rendered
-      expect(getByTestId('peek-carousel-dots')).toBeTruthy()
+      const cardWrapper = car1Card.parent as any
+      expect(cardWrapper).toBeTruthy()
+      expect(cardWrapper.props.style.width).toBe(getPeekCardWidth(SCREEN_WIDTH))
     })
 
     it('navigates to car detail when card is tapped, and to seeAllRoute when SeeAll button is tapped', async () => {
@@ -203,7 +130,7 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
     })
   })
 
-  describe('4. CategorySection with peek={false} (Other Sections DO NOT use PeekCarousel)', () => {
+  describe('3. CategorySection with peek={false} (Other Sections Unchanged)', () => {
     const mockServicesData = [
       { id: 'svc-1', title: 'صيانة مكابح' },
       { id: 'svc-2', title: 'تغيير زيت' },
@@ -215,8 +142,8 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
       </View>
     )
 
-    it('renders with standard HorizontalScrollCard (60% width), and PeekCarousel is NOT rendered', async () => {
-      const { getByTestId, queryByTestId } = await render(
+    it('renders with standard CARD_WIDTH (60%), standard Spacing.space5 padding, no dots, and no paging', async () => {
+      const { getByTestId } = await render(
         <CategorySection
           peek={false}
           title="خدمات السيارات"
@@ -229,12 +156,8 @@ describe('Home Cars Section — Peek Carousel & Depth Motion (D-164 / D-164b)', 
         />
       )
 
-      // HorizontalScrollCard is used
       const scroller = getByTestId('horizontal-scroll-card')
       expect(scroller).toBeTruthy()
-
-      // PeekCarousel is NOT used
-      expect(queryByTestId('peek-carousel')).toBeNull()
 
       const svc1Card = getByTestId('mock-svc-card-svc-1')
       const cardWrapper = svc1Card.parent as any
