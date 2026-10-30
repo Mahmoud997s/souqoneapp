@@ -21,13 +21,15 @@ import { CardSystem } from '../../constants/cardSystem'
 import {
   ListingCardBase,
   listingCardBaseStyles,
-  computeStaticCardBodyHeight,
 } from '../../components/ui/ListingCardBase'
 import {
   SkeletonCard,
   skeletonCardStyles,
-  computeStaticSkeletonBodyHeight,
 } from '../../components/ui/SkeletonCard'
+import {
+  computeStaticCardBodyHeight,
+  computeStaticSkeletonBodyHeight,
+} from '../helpers/cardHeightEstimate'
 
 jest.mock('expo-router', () => ({
   router: {
@@ -187,7 +189,7 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       )
     })
 
-    it('teeth proof (D-164h / D-165): reads real styles and asserts static body height and compact body trimming from real code', async () => {
+    it('teeth proof (D-164h / D-165 / D-165b): reads real styles and asserts static body height and compact body trimming from real code (static estimate from styles, NOT device-measured)', async () => {
       expect(CARS_PEEK_IMAGE_HEIGHT).toBe(133)
       expect(CARS_PEEK_GAP).toBe(6)
 
@@ -199,6 +201,12 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       expect(listingCardBaseStyles.dividerCompact.marginBottom).toBe(5)
       expect(listingCardBaseStyles.footerDividerCompact.marginTop).toBe(1)
       expect(listingCardBaseStyles.footerDividerCompact.marginBottom).toBe(5)
+
+      // SkeletonCard compact style values hoisted to StyleSheet (F2):
+      expect(skeletonCardStyles.locationRowCompact.marginTop).toBe(2)
+      expect(skeletonCardStyles.locationRowCompact.marginBottom).toBe(4)
+      expect(skeletonCardStyles.dividerCompact.marginTop).toBe(1)
+      expect(skeletonCardStyles.dividerCompact.marginBottom).toBe(5)
 
       // Non-compact baseline style values:
       expect(listingCardBaseStyles.cardDetails.paddingTop).toBe(8)
@@ -242,6 +250,8 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       expect(standardDetailsStyle.paddingBottom).toBe(6)
 
       // 3. Compute static totals through the pure helper deriving from actual style objects & CardSystem:
+      // Regression totals: static estimate from styles, NOT device-measured.
+      // NOTE: If a new row or margin is added to ListingCardBase or SkeletonCard JSX, it must be added to the calculation helper as well.
       const staticBodyStandard = computeStaticCardBodyHeight(listingCardBaseStyles, false)
       const staticBodyCompact = computeStaticCardBodyHeight(listingCardBaseStyles, true)
 

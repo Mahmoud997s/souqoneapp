@@ -49,12 +49,12 @@ export function SkeletonCard({
           </View>
 
           {/* Location row */}
-          <View style={[s.locationRow, compactBody && { marginTop: 2, marginBottom: 4 }]}>
+          <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
             <View style={[s.locLine, s.placeholder]} />
           </View>
 
           {/* Divider */}
-          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 5 }]} />
+          <View style={[s.divider, compactBody && s.dividerCompact]} />
 
           {/* Chips row */}
           <View style={s.chipsRow}>
@@ -64,7 +64,7 @@ export function SkeletonCard({
           </View>
 
           {/* Footer divider */}
-          <View style={[s.divider, compactBody && { marginTop: 1, marginBottom: 5 }]} />
+          <View style={[s.divider, compactBody && s.dividerCompact]} />
 
           {/* Footer */}
           <View style={s.footer}>
@@ -121,6 +121,10 @@ const s = StyleSheet.create({
     marginTop: 3,
     marginBottom: 5,
   },
+  locationRowCompact: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
   locLine: {
     width: 75,
     height: 11,
@@ -129,6 +133,10 @@ const s = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#f1f5f9',
+    marginTop: 1,
+    marginBottom: 5,
+  },
+  dividerCompact: {
     marginTop: 1,
     marginBottom: 5,
   },
@@ -162,50 +170,3 @@ const s = StyleSheet.create({
 
 export const skeletonCardStyles = s
 
-/**
- * Pure calculation helper (static estimate from styles, NOT measured on a device).
- * Derives the static vertical height of the skeleton card body by summing
- * each row's vertical padding, margin, and placeholder heights.
- */
-export function computeStaticSkeletonBodyHeight(styles: typeof s = s, isCompact: boolean = false): number {
-  const bodyPadding = isCompact ? styles.bodyCompact : styles.body
-  const padTop = Number(bodyPadding.paddingTop ?? 0)
-  const padBottom = Number(bodyPadding.paddingBottom ?? 0)
-
-  // Title / Badge row: max of titleLine.height (14) and badge.height (18) = 18
-  const rowHeight = Math.max(Number(styles.titleLine.height ?? 0), Number(styles.badge.height ?? 0))
-
-  // Location row: marginTop (2) + marginBottom (4) + locLine.height (11)
-  const locMarginTop = isCompact ? 2 : Number(styles.locationRow.marginTop ?? 3)
-  const locMarginBottom = isCompact ? 4 : Number(styles.locationRow.marginBottom ?? 5)
-  const locHeight = Number(styles.locLine.height ?? 11)
-  const locationTotal = locMarginTop + locMarginBottom + locHeight
-
-  // Divider 1: height (1) + marginTop (1) + marginBottom (5)
-  const divHeight = Number(styles.divider.height ?? 1)
-  const divMarginTop = Number(styles.divider.marginTop ?? 1)
-  const divMarginBottom = isCompact ? 5 : Number(styles.divider.marginBottom ?? 5)
-  const divider1Total = divHeight + divMarginTop + divMarginBottom
-
-  // Chips row: chip.height (20) + chipsRow.marginBottom (5)
-  const chipHeight = Number(styles.chip.height ?? 20)
-  const chipsMarginBottom = Number(styles.chipsRow.marginBottom ?? 5)
-  const chipsTotal = chipHeight + chipsMarginBottom
-
-  // Divider 2: height (1) + marginTop (1) + marginBottom (5)
-  const divider2Total = divHeight + divMarginTop + divMarginBottom
-
-  // Footer: priceLine.height (18)
-  const footerHeight = Math.max(Number(styles.timeLine.height ?? 0), Number(styles.priceLine.height ?? 0))
-
-  return (
-    padTop +
-    padBottom +
-    rowHeight +
-    locationTotal +
-    divider1Total +
-    chipsTotal +
-    divider2Total +
-    footerHeight
-  )
-}
