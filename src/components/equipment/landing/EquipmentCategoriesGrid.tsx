@@ -11,6 +11,22 @@ export function EquipmentCategoriesGrid() {
 
   const tabs: GlassCategoryTabItem[] = [
     {
+      id: 'new',
+      label: 'جديدة',
+      icon: 'sparkles',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
+      onPress: () => router.push('/equipment/browse?type=new' as any),
+    },
+    {
+      id: 'used',
+      label: 'مستعملة',
+      icon: 'construct-outline',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
+      onPress: () => router.push('/equipment/browse?type=used' as any),
+    },
+    {
       id: 'sale',
       label: 'للبيع',
       icon: 'cube-outline',
@@ -25,22 +41,6 @@ export function EquipmentCategoriesGrid() {
       iconBg: Colors.paleMint,
       iconColor: Colors.primary,
       onPress: () => router.push('/equipment/browse?type=rental' as any),
-    },
-    {
-      id: 'used',
-      label: 'مستعملة',
-      icon: 'construct-outline',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/equipment/browse?type=used' as any),
-    },
-    {
-      id: 'new',
-      label: 'جديدة',
-      icon: 'sparkles',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/equipment/browse?type=new' as any),
     },
     {
       id: 'operators',

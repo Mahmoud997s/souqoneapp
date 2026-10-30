@@ -11,20 +11,20 @@ export function BusCategoriesGrid() {
 
   const tabs: GlassCategoryTabItem[] = [
     {
-      id: 'used',
-      label: 'مستعملة',
-      icon: 'bus-outline',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/buses/browse?condition=USED' as any),
-    },
-    {
       id: 'new',
       label: 'جديدة',
       icon: 'sparkles',
       iconBg: Colors.paleMint,
       iconColor: Colors.primary,
       onPress: () => router.push('/buses/browse?condition=NEW' as any),
+    },
+    {
+      id: 'used',
+      label: 'مستعملة',
+      icon: 'bus-outline',
+      iconBg: Colors.paleMint,
+      iconColor: Colors.primary,
+      onPress: () => router.push('/buses/browse?condition=USED' as any),
     },
     {
       id: 'contract',
