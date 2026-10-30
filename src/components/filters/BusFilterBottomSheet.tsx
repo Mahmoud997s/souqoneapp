@@ -59,7 +59,6 @@ export interface BusFilterBottomSheetProps {
 export const BUS_SORT_OPTIONS = [
   { id: 'default', label: 'الترتيب الافتراضي', value: undefined },
   { id: 'newest', label: 'الأحدث أولاً', value: 'newest' },
-  { id: 'popular', label: 'الأكثر شيوعاً', value: 'popular' },
   { id: 'price_asc', label: 'السعر: الأقل للأعلى', value: 'price_asc' },
   { id: 'price_desc', label: 'السعر: الأعلى للأقل', value: 'price_desc' },
 ]

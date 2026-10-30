@@ -373,6 +373,13 @@ describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 P
     expect(applied.governorateId).toBe(1)
   })
 
+  it('ensures sort options contain exactly the 4 backend-supported values (newest, price_asc, price_desc, default) and excludes unsupported popular', () => {
+    expect(BUS_SORT_OPTIONS).toHaveLength(4)
+    expect(BUS_SORT_OPTIONS.map((o) => o.id)).toEqual(['default', 'newest', 'price_asc', 'price_desc'])
+    expect(BUS_SORT_OPTIONS.map((o) => o.value)).toEqual([undefined, 'newest', 'price_asc', 'price_desc'])
+    expect(BUS_SORT_OPTIONS.some((o) => o.id === 'popular')).toBe(false)
+  })
+
   it('has structural parity with Cars and Equipment filter sheets pattern', () => {
     const carsFilePath = path.join(__dirname, '../FilterBottomSheet.tsx')
     const busFilePath = path.join(__dirname, '../BusFilterBottomSheet.tsx')
