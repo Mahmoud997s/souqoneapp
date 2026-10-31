@@ -42,7 +42,21 @@ export interface ImageGalleryProps {
   aspectRatio?: number
   category?: GalleryCategory
   fallbackIcon?: keyof typeof Ionicons.glyphMap
+  compactEmptyState?: boolean
 }
+
+/**
+ * Compact empty gallery strip height calculation (static tokens arithmetic):
+ * - Top padding: Spacing.space4 (16)
+ * - Icon height: 32 (category glyph)
+ * - Content gap: Spacing.space2 (8)
+ * - Text line height: lineHeightFor(13) (21, Math.ceil(13 * 1.6))
+ * - Bottom padding: Spacing.space4 (16)
+ * Total height = 16 + 32 + 8 + 21 + 16 = 93pt.
+ * (Saves ~175pt on 390w screen compared to standard 16/11 aspect ratio of ~268pt).
+ */
+export const COMPACT_EMPTY_GALLERY_HEIGHT =
+  Spacing.space4 + 32 + Spacing.space2 + lineHeightFor(13) + Spacing.space4
 
 /**
  * ImageGallery
@@ -61,6 +75,7 @@ export function ImageGallery({
   aspectRatio = 16 / 11,
   category,
   fallbackIcon,
+  compactEmptyState = false,
 }: ImageGalleryProps) {
   const { width: windowWidth } = useWindowDimensions()
   const count = images.length
@@ -100,6 +115,23 @@ export function ImageGallery({
   }, [panGesture, tapGesture])
 
   if (count === 0) {
+    if (compactEmptyState) {
+      return (
+        <View
+          style={[s.container, s.compactEmptyContainer]}
+          testID="gallery-empty-placeholder"
+        >
+          <Ionicons
+            name={resolvedFallbackIcon}
+            size={32}
+            color={Colors.borderStrong}
+            testID="gallery-empty-icon"
+          />
+          <Text style={s.compactPlaceholderText}>لا توجد صور متاحة لهذا الإعلان</Text>
+        </View>
+      )
+    }
+
     return (
       <View
         style={[s.container, { aspectRatio }, s.placeholderContainer]}
@@ -236,6 +268,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
+  },
+  compactEmptyContainer: {
+    height: COMPACT_EMPTY_GALLERY_HEIGHT,
+    paddingTop: Spacing.space4,
+    paddingBottom: Spacing.space4,
+    paddingHorizontal: Spacing.space4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: Spacing.space2,
+  },
+  compactPlaceholderText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.textMuted,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   placeholderText: {
     fontFamily: 'Almarai_400Regular',

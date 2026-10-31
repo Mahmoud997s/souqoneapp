@@ -435,6 +435,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
               setIsViewerOpen(true)
             }}
             category="services"
+            compactEmptyState={true}
           />
         </Animated.View>
 

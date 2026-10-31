@@ -362,6 +362,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
               setIsViewerOpen(true)
             }}
             category="parts"
+            compactEmptyState={true}
           />
         </Animated.View>
 
