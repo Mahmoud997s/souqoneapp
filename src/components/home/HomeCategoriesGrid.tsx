@@ -48,7 +48,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 export const CATEGORY_GRID_COLUMNS = 4
 export const CATEGORY_GRID_GAP = 6
 export const CATEGORY_GRID_PADDING_H = 16
-export const CATEGORY_ICON_SIZE = 38
+// 3D Category icon size: increased by exactly 4% per user directive (38 * 1.04 = 39.52 -> 39.5)
+export const CATEGORY_ICON_SIZE = 39.5
 
 /**
  * Calculates item width so that 4 tiles with gaps and padding fit on any screen width.
@@ -59,10 +60,10 @@ export function calculateCategoryItemWidth(screenWidth: number = SCREEN_WIDTH): 
 }
 
 /**
- * Calculates item height so every tile is strictly square (width == height).
+ * Calculates item height with 10% reduction from width while preserving geometric harmony.
  */
 export function calculateCategoryItemHeight(screenWidth: number = SCREEN_WIDTH): number {
-  return calculateCategoryItemWidth(screenWidth)
+  return Math.round(calculateCategoryItemWidth(screenWidth) * 0.9)
 }
 
 export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
@@ -70,7 +71,7 @@ export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): n
 }
 
 export const CATEGORY_ITEM_WIDTH = calculateCategoryItemWidth(SCREEN_WIDTH)
-export const CATEGORY_ITEM_HEIGHT = CATEGORY_ITEM_WIDTH
+export const CATEGORY_ITEM_HEIGHT = calculateCategoryItemHeight(SCREEN_WIDTH)
 export const CATEGORY_ITEM_SIZE = CATEGORY_ITEM_WIDTH
 
 interface CategoryTileProps {
@@ -251,7 +252,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: 'transparent',
     borderRadius: 14,
-    paddingTop: 6,
+    paddingTop: 5,
     paddingBottom: 4,
     paddingHorizontal: 2,
     width: CATEGORY_ITEM_WIDTH,
@@ -282,7 +283,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: CATEGORY_ICON_SIZE,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   iconBox: {
     width: CATEGORY_ICON_SIZE,

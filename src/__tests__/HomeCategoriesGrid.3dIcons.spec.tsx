@@ -124,34 +124,34 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
   })
 
   describe('2. Layout Geometry & Screen Width Fitting Math (Req 3, 7)', () => {
-    it('exports 4 columns layout constants with tight 6px gap and square items', () => {
+    it('exports 4 columns layout constants with tight 6px gap and geometric proportion', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(4)
       expect(CATEGORY_GRID_GAP).toBe(6)
       expect(CATEGORY_GRID_PADDING_H).toBe(16)
-      expect(CATEGORY_ICON_SIZE).toBe(38)
+      expect(CATEGORY_ICON_SIZE).toBe(39.5)
       expect(CATEGORY_ITEM_WIDTH).toBeGreaterThan(0)
-      expect(CATEGORY_ITEM_HEIGHT).toBe(CATEGORY_ITEM_WIDTH)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(calculateCategoryItemHeight())
       expect(CATEGORY_ITEM_SIZE).toBe(CATEGORY_ITEM_WIDTH)
     })
 
-    it('Tooth d: square tiles: for widths 360/390/430 the computed width equals the height and 4 tiles plus 3 gaps plus padding fit', () => {
+    it('Tooth d: 10% height reduction & geometric harmony: for widths 360/390/430 the computed height is 10% less than width and 4 tiles plus 3 gaps plus padding fit', () => {
       ;[360, 390, 430].forEach((w) => {
         const itemWidth = calculateCategoryItemWidth(w)
         const itemHeight = calculateCategoryItemHeight(w)
-        expect(itemWidth).toBe(itemHeight)
+        expect(itemHeight).toBe(Math.round(itemWidth * 0.9))
         const totalOccupied = (itemWidth * 4) + (CATEGORY_GRID_GAP * 3) + (CATEGORY_GRID_PADDING_H * 2)
         expect(totalOccupied).toBeLessThanOrEqual(w)
         expect(itemWidth).toBeGreaterThanOrEqual(44)
       })
 
       expect(calculateCategoryItemWidth(360)).toBe(77)
-      expect(calculateCategoryItemHeight(360)).toBe(77)
+      expect(calculateCategoryItemHeight(360)).toBe(69)
 
       expect(calculateCategoryItemWidth(390)).toBe(85)
-      expect(calculateCategoryItemHeight(390)).toBe(85)
+      expect(calculateCategoryItemHeight(390)).toBe(77)
 
       expect(calculateCategoryItemWidth(430)).toBe(95)
-      expect(calculateCategoryItemHeight(430)).toBe(95)
+      expect(calculateCategoryItemHeight(430)).toBe(86)
 
       expect(calculateCategoryGridGap(360)).toBe(6)
       expect(calculateCategoryGridGap(390)).toBe(6)

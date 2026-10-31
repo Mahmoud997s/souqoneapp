@@ -5,6 +5,7 @@ import {
   CATEGORY_ITEM_WIDTH,
   CATEGORY_ITEM_HEIGHT,
   calculateCategoryItemWidth,
+  calculateCategoryItemHeight,
   calculateCategoryGridGap,
   CATEGORY_GRID_COLUMNS,
 } from '../components/home/HomeCategoriesGrid'
@@ -17,9 +18,9 @@ describe('D-134 Hide Closeout Tests', () => {
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'operators', 'browse'])
     })
 
-    it('CATEGORY_GRID_COLUMNS is defined and tile layout matches 4 columns with square tiles (D-172a)', () => {
+    it('CATEGORY_GRID_COLUMNS is defined and tile layout matches 4 columns with geometric proportion (D-172a)', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(4)
-      expect(CATEGORY_ITEM_HEIGHT).toBe(CATEGORY_ITEM_WIDTH)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(calculateCategoryItemHeight())
       expect(CATEGORY_ITEM_WIDTH).toBeGreaterThan(0)
       expect(CATEGORY_ITEM_SIZE).toBe(CATEGORY_ITEM_WIDTH)
       expect(calculateCategoryGridGap(360)).toBe(6)
