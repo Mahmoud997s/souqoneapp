@@ -7,6 +7,7 @@ import {
   type BottomBarTabItem,
 } from '../../components/navigation/UnifiedBottomBar'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
+import { ADD_BUTTON_ASSET } from '../../components/navigation/AddListingButton'
 import { CarsBottomBar } from '../../components/cars/CarsBottomBar'
 import { BusesBottomBar } from '../../components/buses/BusesBottomBar'
 import { EquipmentBottomBar } from '../../components/equipment/EquipmentBottomBar'
@@ -34,6 +35,15 @@ jest.mock('expo-blur', () => {
   const { View } = require('react-native')
   return {
     BlurView: (props: any) => React.createElement(View, props),
+  }
+})
+
+// Mock expo-image
+jest.mock('expo-image', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    Image: (props: any) => React.createElement(View, { testID: 'mock-expo-image', ...props }),
   }
 })
 
@@ -272,5 +282,39 @@ describe('UnifiedBottomBar (Task D-167 Stage 2 Adoption)', () => {
     const collapsedScope = within(collapsedBtn)
     expect(collapsedScope.getByText('3')).toBeTruthy()
     expect(collapsedScope.getByTestId('icon-Ionicons-heart')).toBeTruthy()
+  })
+
+  it('Tooth a & d (D-173): section bar renders glossy add button image, pressing it calls onPostPress and never onTabPress, no gradient or old icon', async () => {
+    const onTabPressMock = jest.fn()
+    const onPostPressMock = jest.fn()
+
+    const { getByTestId, queryByTestId } = await render(
+      <UnifiedBottomBar
+        tabs={sampleTabs}
+        activeTab="home"
+        onTabPress={onTabPressMock}
+        onPostPress={onPostPressMock}
+      />
+    )
+
+    // Add button rendered
+    const addBtn = getByTestId('section-bottom-bar-add-button')
+    expect(addBtn).toBeTruthy()
+    expect(addBtn.props.accessibilityLabel).toBe('إضافة إعلان جديد')
+
+    // Image rendered with exact asset module
+    const img = getByTestId('section-bottom-bar-add-button-image')
+    expect(img).toBeTruthy()
+    expect(img.props.source).toBe(ADD_BUTTON_ASSET)
+
+    // Press calls onPostPress once and never onTabPress
+    await act(async () => {
+      fireEvent.press(addBtn)
+    })
+    expect(onPostPressMock).toHaveBeenCalledTimes(1)
+    expect(onTabPressMock).not.toHaveBeenCalled()
+
+    // No old gradient squircle or Ionicons add
+    expect(queryByTestId('icon-Ionicons-add')).toBeNull()
   })
 })

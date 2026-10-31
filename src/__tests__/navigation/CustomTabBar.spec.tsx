@@ -1,8 +1,9 @@
 import React from 'react'
 import { View } from 'react-native'
-import { render, fireEvent, cleanup, within } from '@testing-library/react-native'
+import { render, fireEvent, cleanup, within, act } from '@testing-library/react-native'
 import { CustomTabBar } from '../../../app/(tabs)/_layout'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
+import { ADD_BUTTON_ASSET } from '../../components/navigation/AddListingButton'
 
 // Mock expo-router
 const mockPush = jest.fn()
@@ -54,6 +55,15 @@ jest.mock('expo-blur', () => {
   const { View } = require('react-native')
   return {
     BlurView: (props: any) => React.createElement(View, props),
+  }
+})
+
+// Mock expo-image
+jest.mock('expo-image', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    Image: (props: any) => React.createElement(View, { testID: 'mock-expo-image', ...props }),
   }
 })
 
@@ -238,5 +248,28 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
     const collapsedScope = within(collapsedBtn)
     expect(collapsedScope.getByTestId('collapsed-chat-badge')).toBeTruthy()
     expect(collapsedScope.getByTestId('icon-Ionicons-chatbubble')).toBeTruthy()
+  })
+
+  it('Tooth b & d (D-173): main tab bar renders glossy add button image, pressing it triggers post handler and never navigation.navigate, no old icon', async () => {
+    mockNavHidden.value = 0
+    mockIsLoggedIn = true
+    const props = makeProps({ index: 0 })
+    const { getByTestId, queryByTestId } = await render(<CustomTabBar {...props} />)
+
+    const postFab = getByTestId('tab-post-fab')
+    expect(postFab).toBeTruthy()
+    expect(postFab.props.accessibilityLabel).toBe('إضافة إعلان')
+
+    const img = getByTestId('tab-post-fab-image')
+    expect(img).toBeTruthy()
+    expect(img.props.source).toBe(ADD_BUTTON_ASSET)
+
+    await act(async () => {
+      fireEvent.press(postFab)
+    })
+    expect(mockPush).toHaveBeenCalledWith('/(modals)/post-category')
+    expect(props.navigation.navigate).not.toHaveBeenCalled()
+
+    expect(queryByTestId('icon-Ionicons-add')).toBeNull()
   })
 })
