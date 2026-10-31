@@ -492,7 +492,7 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space3,
     padding: Spacing.space4,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.white,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
