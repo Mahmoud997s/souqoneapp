@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Pressable, Platform, PanResponder } from 'react
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -14,9 +13,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Colors } from '../../constants/colors';
-import { Gradients } from '../../constants/gradients';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
+import { AddListingButton } from './AddListingButton';
 
 export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
 
@@ -58,56 +57,6 @@ function DynamicTabIcon({
     return <MaterialCommunityIcons name={name as any} size={size} color={color} />;
   }
   return <Ionicons name={name as any} size={size} color={color} />;
-}
-
-function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: boolean }) {
-  const pressScale = useSharedValue(1);
-
-  React.useEffect(() => {
-    if (isHovered) {
-      pressScale.value = withSpring(1.08, { damping: 10, stiffness: 300 });
-    } else {
-      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
-    }
-  }, [isHovered, pressScale]);
-
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pressScale.value }],
-  }));
-
-  const handlePress = useCallback(() => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {}
-    pressScale.value = withSpring(0.85, { damping: 9, stiffness: 350 }, () => {
-      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
-    });
-    onPress();
-  }, [onPress, pressScale]);
-
-  return (
-    <View style={s.fabItem}>
-      <Pressable
-        onPress={handlePress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityRole="button"
-        accessibilityLabel="إضافة إعلان جديد"
-      >
-        <View style={s.fabCenterWrapper}>
-          <Animated.View style={[s.fabSquircleWrap, fabAnimStyle]}>
-            <LinearGradient
-              colors={Gradients.hero}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.fabSquircle}
-            >
-              <Ionicons name="add" size={20} color={Colors.white} />
-            </LinearGradient>
-          </Animated.View>
-        </View>
-      </Pressable>
-    </View>
-  );
 }
 
 function TabItem({
@@ -393,11 +342,14 @@ export function UnifiedBottomBar({
       {tabs.map((tab) => {
         if (tab.isPost) {
           return (
-            <FABItem
-              key={tab.id}
-              onPress={onPostPress}
-              isHovered={effectiveActiveTab === tab.id}
-            />
+            <View key={tab.id} style={s.fabItem}>
+              <AddListingButton
+                onPress={onPostPress}
+                isHovered={effectiveActiveTab === tab.id}
+                accessibilityLabel="إضافة إعلان جديد"
+                testID="section-bottom-bar-add-button"
+              />
+            </View>
           );
         }
 
@@ -506,35 +458,5 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
-  },
-  fabCenterWrapper: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  fabSquircleWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-      },
-      android: { elevation: 4 },
-    }),
-  },
-  fabSquircle: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
