@@ -10,6 +10,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { lineHeightFor } from '../../../constants/typography'
+import { VerifiedBadge } from '../../ui/VerifiedBadge'
 
 export interface OperatorCardHeaderProps {
   name: string
@@ -58,7 +59,7 @@ export function OperatorCardHeader({
             accessible
             accessibilityLabel="حساب موثق"
           >
-            <Ionicons name="checkmark-circle" size={14} color={Colors.primary} />
+            <VerifiedBadge size={14} />
           </View>
         )}
       </View>

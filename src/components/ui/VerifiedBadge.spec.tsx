@@ -1,14 +1,32 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
 import { Text } from 'react-native'
-import { VerifiedBadge } from './VerifiedBadge'
+import { Image } from 'expo-image'
 import Svg, { Polygon, Path } from 'react-native-svg'
+import { VerifiedBadge, VERIFIED_BADGE_3D } from './VerifiedBadge'
 
-describe('VerifiedBadge (The Royal Octagram Seal)', () => {
-  it('renders the SVG Octagram emblem when showText is false', () => {
+describe('VerifiedBadge (3D Royal Octagram Badge)', () => {
+  it('renders the 3D Octagram image emblem by default when showText is false', () => {
     let renderer: any
     act(() => {
       renderer = TestRenderer.create(<VerifiedBadge size={14} />)
+    })
+
+    const img = renderer.root.findByType(Image)
+    expect(img).toBeDefined()
+    expect(img.props.source).toEqual(VERIFIED_BADGE_3D)
+    expect(img.props.style.width).toBe(14)
+    expect(img.props.style.height).toBe(14)
+
+    // No text rendered when showText is false
+    const texts = renderer.root.findAllByType(Text)
+    expect(texts.length).toBe(0)
+  })
+
+  it('renders the SVG Octagram fallback when use3d is false', () => {
+    let renderer: any
+    act(() => {
+      renderer = TestRenderer.create(<VerifiedBadge size={14} use3d={false} />)
     })
 
     const svg = renderer.root.findByType(Svg)
@@ -21,20 +39,16 @@ describe('VerifiedBadge (The Royal Octagram Seal)', () => {
 
     const paths = renderer.root.findAllByType(Path)
     expect(paths.length).toBeGreaterThan(0)
-
-    // No text rendered when showText is false
-    const texts = renderer.root.findAllByType(Text)
-    expect(texts.length).toBe(0)
   })
 
-  it('renders label and seal when showText is true', () => {
+  it('renders label and 3D badge when showText is true', () => {
     let renderer: any
     act(() => {
       renderer = TestRenderer.create(<VerifiedBadge showText text="موثق" variant="dark" />)
     })
 
-    const svg = renderer.root.findByType(Svg)
-    expect(svg).toBeDefined()
+    const img = renderer.root.findByType(Image)
+    expect(img).toBeDefined()
 
     const textComp = renderer.root.findByType(Text)
     expect(textComp).toBeDefined()
