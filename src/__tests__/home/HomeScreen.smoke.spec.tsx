@@ -149,11 +149,23 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
   })
 
   it('mounts full HomeScreen and renders all 5 CategorySection headers and the first car card', async () => {
-    const { getByText } = await render(
+    const { getByText, getByTestId, queryByTestId } = await render(
       <QueryClientProvider client={queryClient}>
         <HomeScreen />
       </QueryClientProvider>
     )
+
+    // 0. Home navbar glass buttons and glossy turquoise add button
+    expect(getByTestId('home-brand-icon-btn')).toBeTruthy()
+    expect(
+      queryByTestId('home-brand-icon-btn-glass-liquid') ||
+        queryByTestId('home-brand-icon-btn-glass-blur')
+    ).toBeTruthy()
+    expect(
+      queryByTestId('hero-header-notification-btn-glass-liquid') ||
+        queryByTestId('hero-header-notification-btn-glass-blur')
+    ).toBeTruthy()
+    expect(getByTestId('hero-header-add-btn-image')).toBeTruthy()
 
     // 1. All 5 CategorySection Titles
     expect(getByText('أحدث إعلانات السيارات')).toBeTruthy()

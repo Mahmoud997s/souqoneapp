@@ -36,6 +36,8 @@ export {
 }
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
+import { GlassSurface } from '../../src/components/navigation/glassSupport'
+import { TopBarTokens } from '../../src/constants/topBarTokens'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
@@ -200,7 +202,8 @@ export default function HomeScreen() {
         scrollY={scrollY}
         hideBackButton
         rightElement={
-          <View style={s.brandIconBtn}>
+          <View style={s.brandIconBtn} testID="home-brand-icon-btn">
+            <GlassSurface testID="home-brand-icon-btn" borderRadius={TopBarTokens.buttonRadius} />
             <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
           </View>
         }
@@ -353,19 +356,14 @@ const s = StyleSheet.create({
 
   // Header & Brand Icon
   brandIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    ...TopBarTokens.buttonShadow,
   },
 
   content: { },

@@ -14,6 +14,8 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { TopBarTokens } from '../../constants/topBarTokens';
+import { GlassSurface } from '../navigation/glassSupport';
+import { AddListingButton } from '../navigation/AddListingButton';
 
 export interface AnimatedHeroHeaderProps {
   scrollY?: SharedValue<number>;
@@ -215,11 +217,14 @@ export function AnimatedHeroHeader({
           {/* 1. Back Button or Custom Right Element (Physical Right in RTL — Fixed 38px circle) */}
           {!hideBackButton && onBackPress ? (
             <TouchableOpacity
+              testID="hero-header-back-btn"
               style={s.circularBtn}
               onPress={onBackPress}
               activeOpacity={0.7}
+              hitSlop={TopBarTokens.buttonHitSlop}
               accessibilityLabel="رجوع"
             >
+              <GlassSurface testID="hero-header-back-btn" borderRadius={TopBarTokens.buttonRadius} />
               <Ionicons name="arrow-forward-outline" size={19} color={Colors.primary} />
             </TouchableOpacity>
           ) : rightElement ? (
@@ -268,25 +273,26 @@ export function AnimatedHeroHeader({
             {/* Add Listing Button (Visible in expanded state, smoothly collapses on scroll) */}
             {primaryCta && (
               <Animated.View style={[s.addBtnWrapper, addBtnAnimStyle]}>
-                <TouchableOpacity
-                  style={[s.circularBtn, s.addBtn]}
+                <AddListingButton
                   onPress={primaryCta.onPress}
-                  activeOpacity={0.7}
                   accessibilityLabel={primaryCta.label || 'إضافة إعلان'}
-                >
-                  <Ionicons name="add" size={22} color="#FFFFFF" />
-                </TouchableOpacity>
+                  testID="hero-header-add-btn"
+                  hitSlop={TopBarTokens.buttonHitSlop}
+                />
               </Animated.View>
             )}
 
             {/* Notification Bell (Always visible in both states!) */}
             <TouchableOpacity
+              testID="hero-header-notification-btn"
               style={s.circularBtn}
               onPress={onHeaderIconPress}
               activeOpacity={0.7}
+              hitSlop={TopBarTokens.buttonHitSlop}
               accessibilityLabel="الإشعارات"
             >
-              <Ionicons name={headerIcon as any} size={19} color={Colors.primary} />
+              <GlassSurface testID="hero-header-notification-btn" borderRadius={TopBarTokens.buttonRadius} />
+              <Ionicons name={headerIcon} size={19} color={Colors.primary} />
               <View style={s.greenDot} />
             </TouchableOpacity>
           </View>
@@ -434,20 +440,11 @@ const s = StyleSheet.create({
     width: TopBarTokens.buttonSize,
     height: TopBarTokens.buttonSize,
     borderRadius: TopBarTokens.buttonRadius,
-    backgroundColor: TopBarTokens.buttonBg,
-    borderWidth: TopBarTokens.buttonBorderWidth,
-    borderColor: TopBarTokens.buttonBorderColor,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     ...TopBarTokens.buttonShadow,
-  },
-  addBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.65)',
   },
   greenDot: {
     position: 'absolute',
