@@ -157,7 +157,7 @@ export function CategorySection({
                 item={item}
                 onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
                 disableImageSwipe={true}
-                titleNumberOfLines={1}
+                titleNumberOfLines={2}
                 fullWidth={peek}
                 imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
                 compactBody={peek}
@@ -262,9 +262,9 @@ export default function HomeScreen() {
               fullWidth={fullWidth ?? true}
               imageHeight={imageHeight}
               compactBody={compactBody}
-              maxChips={3}
+              maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={1}
+              titleNumberOfLines={2}
             />
           )}
         />
@@ -283,7 +283,7 @@ export default function HomeScreen() {
               item={item as any}
               onPress={onPress}
               disableImageSwipe={true}
-              titleNumberOfLines={1}
+              titleNumberOfLines={2}
             />
           )}
         />
@@ -301,9 +301,9 @@ export default function HomeScreen() {
             <PartCard
               item={item as any}
               onPress={onPress}
-              maxChips={3}
+              maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={1}
+              titleNumberOfLines={2}
             />
           )}
         />
@@ -321,9 +321,9 @@ export default function HomeScreen() {
             <BusCard
               item={item as any}
               onPress={onPress}
-              maxChips={3}
+              maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={1}
+              titleNumberOfLines={2}
             />
           )}
         />
@@ -341,9 +341,9 @@ export default function HomeScreen() {
             <EquipCard
               item={item as any}
               onPress={onPress}
-              maxChips={3}
+              maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={1}
+              titleNumberOfLines={2}
             />
           )}
         />

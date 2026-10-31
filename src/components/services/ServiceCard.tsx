@@ -61,6 +61,12 @@ export const ServiceCard = ({
   const providerType = rawData.providerType || ''
   const isHomeService = rawData.isHomeService || false
   const serviceType = rawData.serviceType || ''
+  const isSellerVerified =
+    (item as any).isVerified ??
+    rawData.isVerified ??
+    rawData.user?.isVerified ??
+    rawData.seller?.isVerified ??
+    false
 
   const serviceTypeLabel = SERVICE_TYPE_LABELS[serviceType] || serviceType
   const providerTypeLabel = PROVIDER_TYPE_LABELS[providerType] || providerType
@@ -136,6 +142,7 @@ export const ServiceCard = ({
       placeholderIcon="build"
       pills={pills}
       badges={badges}
+      isSellerVerified={isSellerVerified}
       fullWidth={fullWidth}
       gridMode={gridMode}
       disableImageSwipe={disableImageSwipe}
