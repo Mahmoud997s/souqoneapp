@@ -25,6 +25,7 @@ export type GlassSupport = LiquidGlassSupport | BlurGlassSupport
 const BLUR_SUPPORT: BlurGlassSupport = { kind: 'blur' }
 
 let cachedNativeSupport: GlassSupport | null = null
+let cachedReduceTransparency: boolean | null = null
 
 function loadGlassModule(): GlassEffectModule | null {
   try {
@@ -82,12 +83,15 @@ export function getGlassSupport(reduceTransparencyEnabled: boolean): GlassSuppor
 
 /**
  * Reactive glass decision for components.
- * Starts on blur until the Reduce Transparency setting is known (safest first frame),
+ * Starts from the last known Reduce Transparency setting (blur only on very first read
+ * if setting has not yet resolved, then liquid on subsequent mounts if disabled),
  * then follows the setting live. Subscribes only when the binary supports liquid glass.
  */
 export function useGlassSupport(): GlassSupport {
   const isLiquidCapable = resolveNativeGlassSupport().kind === 'liquid'
-  const [reduceTransparency, setReduceTransparency] = useState(true)
+  const [reduceTransparency, setReduceTransparency] = useState<boolean>(() => {
+    return cachedReduceTransparency ?? true
+  })
 
   useEffect(() => {
     if (!isLiquidCapable) {
@@ -96,6 +100,7 @@ export function useGlassSupport(): GlassSupport {
     let isMounted = true
     AccessibilityInfo.isReduceTransparencyEnabled()
       .then((enabled) => {
+        cachedReduceTransparency = enabled
         if (isMounted) setReduceTransparency(enabled)
       })
       .catch(() => {
@@ -104,7 +109,10 @@ export function useGlassSupport(): GlassSupport {
       })
     const subscription = AccessibilityInfo.addEventListener(
       'reduceTransparencyChanged',
-      setReduceTransparency
+      (enabled) => {
+        cachedReduceTransparency = enabled
+        setReduceTransparency(enabled)
+      }
     )
     return () => {
       isMounted = false
@@ -113,9 +121,4 @@ export function useGlassSupport(): GlassSupport {
   }, [isLiquidCapable])
 
   return getGlassSupport(reduceTransparency)
-}
-
-/** Test-only cache reset to verify capability detection under different platforms/mocks. */
-export function __resetGlassSupportCacheForTests(): void {
-  cachedNativeSupport = null
 }

@@ -5,7 +5,6 @@ import {
   resolveNativeGlassSupport,
   getGlassSupport,
   useGlassSupport,
-  __resetGlassSupportCacheForTests,
 } from '../../components/navigation/glassSupport'
 
 const mockIsLiquidGlassAvailable = jest.fn(() => true)
@@ -19,11 +18,10 @@ jest.mock('expo-glass-effect', () => ({
   isGlassEffectAPIAvailable: () => mockIsGlassEffectAPIAvailable(),
 }))
 
-describe('glassSupport adapter (Task D-166b)', () => {
+describe('glassSupport adapter (Task D-166b & D-166d)', () => {
   const originalOS = Platform.OS
 
   beforeEach(() => {
-    __resetGlassSupportCacheForTests()
     mockIsLiquidGlassAvailable.mockReturnValue(true)
     mockIsGlassEffectAPIAvailable.mockReturnValue(true)
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => 'ios' })
@@ -32,7 +30,6 @@ describe('glassSupport adapter (Task D-166b)', () => {
   afterEach(() => {
     cleanup()
     jest.restoreAllMocks()
-    __resetGlassSupportCacheForTests()
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => originalOS })
   })
 
@@ -53,14 +50,22 @@ describe('glassSupport adapter (Task D-166b)', () => {
     setPlatform('ios')
     mockIsLiquidGlassAvailable.mockReturnValue(false)
 
-    expect(getGlassSupport(false)).toEqual({ kind: 'blur' })
+    jest.isolateModules(() => {
+      const { getGlassSupport: getGlassSupportIsolated } =
+        require('../../components/navigation/glassSupport')
+      expect(getGlassSupportIsolated(false)).toEqual({ kind: 'blur' })
+    })
   })
 
   it('(d) isGlassEffectAPIAvailable() false: blur', () => {
     setPlatform('ios')
     mockIsGlassEffectAPIAvailable.mockReturnValue(false)
 
-    expect(getGlassSupport(false)).toEqual({ kind: 'blur' })
+    jest.isolateModules(() => {
+      const { getGlassSupport: getGlassSupportIsolated } =
+        require('../../components/navigation/glassSupport')
+      expect(getGlassSupportIsolated(false)).toEqual({ kind: 'blur' })
+    })
   })
 
   it('(d) isGlassEffectAPIAvailable() throwing: blur and does not throw', () => {
@@ -69,8 +74,12 @@ describe('glassSupport adapter (Task D-166b)', () => {
       throw new Error("Cannot find native module 'ExpoGlassEffect'")
     })
 
-    expect(() => getGlassSupport(false)).not.toThrow()
-    expect(getGlassSupport(false)).toEqual({ kind: 'blur' })
+    jest.isolateModules(() => {
+      const { getGlassSupport: getGlassSupportIsolated } =
+        require('../../components/navigation/glassSupport')
+      expect(() => getGlassSupportIsolated(false)).not.toThrow()
+      expect(getGlassSupportIsolated(false)).toEqual({ kind: 'blur' })
+    })
   })
 
   it('(e) reduce-transparency enabled: blur', () => {
@@ -96,24 +105,58 @@ describe('glassSupport adapter (Task D-166b)', () => {
     expect(result.current.kind).toBe('liquid')
   })
 
+  it('(D1) module-level cache prevents flash on second mount (first render returns liquid)', async () => {
+    setPlatform('ios')
+    jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(false)
+
+    // First mount resolves reduceTransparency = false and caches it at module level
+    const first = await renderHook(() => useGlassSupport())
+    await act(async () => {})
+    expect(first.result.current.kind).toBe('liquid')
+
+    // Second mount in same module lifecycle: must initialize synchronously to liquid on FIRST render
+    let firstRenderResult: ReturnType<typeof useGlassSupport> | null = null
+    const second = await renderHook(() => {
+      const res = useGlassSupport()
+      if (!firstRenderResult) {
+        firstRenderResult = res
+      }
+      return res
+    })
+
+    expect(firstRenderResult).not.toBeNull()
+    expect(firstRenderResult!.kind).toBe('liquid')
+    expect(second.result.current.kind).toBe('liquid')
+  })
+
   it('(f) Android: blur and the package is never required', () => {
-    setPlatform('android')
     mockIsLiquidGlassAvailable.mockClear()
     mockIsGlassEffectAPIAvailable.mockClear()
 
-    const support = getGlassSupport(false)
-    expect(support).toEqual({ kind: 'blur' })
-    expect(mockIsLiquidGlassAvailable).not.toHaveBeenCalled()
-    expect(mockIsGlassEffectAPIAvailable).not.toHaveBeenCalled()
+    // Test under isolateModules to have fresh module cache for capability
+    jest.isolateModules(() => {
+      setPlatform('android')
+      const { getGlassSupport: getGlassSupportIsolated } =
+        require('../../components/navigation/glassSupport')
+      const support = getGlassSupportIsolated(false)
+      expect(support).toEqual({ kind: 'blur' })
+      expect(mockIsLiquidGlassAvailable).not.toHaveBeenCalled()
+      expect(mockIsGlassEffectAPIAvailable).not.toHaveBeenCalled()
+    })
   })
 
   it('(g) the adapter result is cached (one require)', () => {
     setPlatform('ios')
     mockIsLiquidGlassAvailable.mockClear()
 
-    const first = resolveNativeGlassSupport()
-    const second = resolveNativeGlassSupport()
-    getGlassSupport(false)
+    let first: ReturnType<typeof resolveNativeGlassSupport> | undefined
+    let second: ReturnType<typeof resolveNativeGlassSupport> | undefined
+    jest.isolateModules(() => {
+      const mod = require('../../components/navigation/glassSupport')
+      first = mod.resolveNativeGlassSupport()
+      second = mod.resolveNativeGlassSupport()
+      mod.getGlassSupport(false)
+    })
 
     expect(second).toBe(first)
     expect(mockIsLiquidGlassAvailable).toHaveBeenCalledTimes(1)
