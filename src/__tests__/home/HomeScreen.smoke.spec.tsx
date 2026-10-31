@@ -155,7 +155,7 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
       </QueryClientProvider>
     )
 
-    // 0. Home navbar glass buttons and glossy turquoise add button
+    // 0. Home navbar glass buttons (brand, chat, notifications, large search)
     expect(getByTestId('home-brand-icon-btn')).toBeTruthy()
     expect(
       queryByTestId('home-brand-icon-btn-glass-liquid') ||
@@ -165,7 +165,15 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
       queryByTestId('hero-header-notification-btn-glass-liquid') ||
         queryByTestId('hero-header-notification-btn-glass-blur')
     ).toBeTruthy()
-    expect(getByTestId('hero-header-add-btn-image')).toBeTruthy()
+    expect(
+      queryByTestId('hero-header-chat-btn-glass-liquid') ||
+        queryByTestId('hero-header-chat-btn-glass-blur')
+    ).toBeTruthy()
+    expect(
+      queryByTestId('hero-header-large-search-glass-liquid') ||
+        queryByTestId('hero-header-large-search-glass-blur')
+    ).toBeTruthy()
+    expect(queryByTestId('hero-header-add-btn')).toBeNull()
 
     // 1. All 5 CategorySection Titles
     expect(getByText('أحدث إعلانات السيارات')).toBeTruthy()

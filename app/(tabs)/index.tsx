@@ -192,6 +192,14 @@ export default function HomeScreen() {
     router.push('/(modals)/post-category' as any)
   }
 
+  const handleChat = () => {
+    if (!user) {
+      router.push('/(auth)/login')
+      return
+    }
+    router.push('/(tabs)/chat')
+  }
+
   const userName = user?.displayName || user?.username || 'ضيف'
 
   return (
@@ -215,11 +223,7 @@ export default function HomeScreen() {
         onNavSearchPress={() => router.push('/(tabs)/search')}
         headerIcon="notifications-outline"
         onHeaderIconPress={() => router.push('/profile/notifications')}
-        primaryCta={{
-          label: 'إضافة إعلان',
-          icon: 'add',
-          onPress: handlePost,
-        }}
+        onChatPress={handleChat}
       />
 
       <Animated.ScrollView 

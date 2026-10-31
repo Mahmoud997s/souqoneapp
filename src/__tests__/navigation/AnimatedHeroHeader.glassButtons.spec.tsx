@@ -2,11 +2,18 @@ import React from 'react'
 import { AccessibilityInfo, View, StyleSheet } from 'react-native'
 import { render, fireEvent, act } from '@testing-library/react-native'
 import { AnimatedHeroHeader } from '../../components/ui/AnimatedHeroHeader'
-import { ADD_BUTTON_ASSET } from '../../components/navigation/AddListingButton'
 import { TopBarTokens } from '../../constants/topBarTokens'
+import { Radius } from '../../constants/radius'
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}))
+
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+    back: jest.fn(),
+  },
 }))
 
 jest.mock('expo-haptics', () => ({
@@ -41,12 +48,12 @@ jest.mock('@expo/vector-icons', () => {
   }
 })
 
-describe('AnimatedHeroHeader — Liquid Glass Buttons & Glossy Turquoise Add Button', () => {
+describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', () => {
   afterEach(() => {
     jest.restoreAllMocks()
   })
 
-  it('Tooth a (Blur branch): circular buttons render GlassSurface blur branch with transparent container and radius 19', async () => {
+  it('Tooth a (Blur branch): circular buttons (back, notif, chat) render GlassSurface blur branch with transparent container and radius 19', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(true)
 
     const { getByTestId } = await render(
@@ -54,13 +61,16 @@ describe('AnimatedHeroHeader — Liquid Glass Buttons & Glossy Turquoise Add But
         title="ســوق ون"
         onBackPress={jest.fn()}
         onHeaderIconPress={jest.fn()}
+        onChatPress={jest.fn()}
       />
     )
     await act(async () => {})
 
     const backBtn = getByTestId('hero-header-back-btn')
     const notifBtn = getByTestId('hero-header-notification-btn')
+    const chatBtn = getByTestId('hero-header-chat-btn')
 
+    // 1. Transparent background and overflow hidden
     const backStyle = StyleSheet.flatten(backBtn.props.style)
     expect(backStyle.width).toBe(TopBarTokens.buttonSize)
     expect(backStyle.height).toBe(TopBarTokens.buttonSize)
@@ -74,6 +84,12 @@ describe('AnimatedHeroHeader — Liquid Glass Buttons & Glossy Turquoise Add But
     expect(notifStyle.overflow).toBe('hidden')
     expect(notifStyle.borderWidth).toBeUndefined()
 
+    const chatStyle = StyleSheet.flatten(chatBtn.props.style)
+    expect(chatStyle.backgroundColor).toBe('transparent')
+    expect(chatStyle.overflow).toBe('hidden')
+    expect(chatStyle.borderWidth).toBeUndefined()
+
+    // 2. GlassSurface blur instances
     const backBlur = getByTestId('hero-header-back-btn-glass-blur')
     expect(backBlur).toBeTruthy()
     expect(StyleSheet.flatten(backBlur.props.style).borderRadius).toBe(TopBarTokens.buttonRadius)
@@ -81,6 +97,10 @@ describe('AnimatedHeroHeader — Liquid Glass Buttons & Glossy Turquoise Add But
     const notifBlur = getByTestId('hero-header-notification-btn-glass-blur')
     expect(notifBlur).toBeTruthy()
     expect(StyleSheet.flatten(notifBlur.props.style).borderRadius).toBe(TopBarTokens.buttonRadius)
+
+    const chatBlur = getByTestId('hero-header-chat-btn-glass-blur')
+    expect(chatBlur).toBeTruthy()
+    expect(StyleSheet.flatten(chatBlur.props.style).borderRadius).toBe(TopBarTokens.buttonRadius)
   })
 
   it('Tooth b (Liquid branch): circular buttons render native GlassView when liquid glass is supported', async () => {
@@ -91,48 +111,75 @@ describe('AnimatedHeroHeader — Liquid Glass Buttons & Glossy Turquoise Add But
         title="ســوق ون"
         onBackPress={jest.fn()}
         onHeaderIconPress={jest.fn()}
+        onChatPress={jest.fn()}
       />
     )
     await act(async () => {})
 
     expect(getByTestId('hero-header-back-btn-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-notification-btn-glass-liquid')).toBeTruthy()
+    expect(getByTestId('hero-header-chat-btn-glass-liquid')).toBeTruthy()
     expect(queryByTestId('hero-header-back-btn-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-notification-btn-glass-blur')).toBeNull()
+    expect(queryByTestId('hero-header-chat-btn-glass-blur')).toBeNull()
   })
 
-  it('Tooth c (Glossy Turquoise Add Button): primaryCta renders AddListingButton with ADD_BUTTON_ASSET and calls onPress', async () => {
-    const onPostMock = jest.fn()
+  it('Tooth c (Navbar Chat button & Add button removal): navbar renders Chat button and NO add listing button remains', async () => {
+    const onChatMock = jest.fn()
     const { getByTestId, queryByTestId } = await render(
       <AnimatedHeroHeader
         title="ســوق ون"
         hideBackButton
-        primaryCta={{
-          label: 'إضافة إعلان',
-          icon: 'add',
-          onPress: onPostMock,
-        }}
+        onChatPress={onChatMock}
       />
     )
 
-    const addBtn = getByTestId('hero-header-add-btn')
-    expect(addBtn).toBeTruthy()
-    expect(addBtn.props.accessibilityLabel).toBe('إضافة إعلان')
-    expect(addBtn.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
+    // Chat button exists with chat icon
+    const chatBtn = getByTestId('hero-header-chat-btn')
+    expect(chatBtn).toBeTruthy()
+    expect(chatBtn.props.accessibilityLabel).toBe('الرسائل والمحادثات')
+    expect(chatBtn.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
+    expect(getByTestId('icon-Ionicons-chatbubble-ellipses-outline')).toBeTruthy()
 
-    const addImg = getByTestId('hero-header-add-btn-image')
-    expect(addImg).toBeTruthy()
-    expect(addImg.props.source).toBe(ADD_BUTTON_ASSET)
+    // Press calls onChatPress
+    fireEvent.press(chatBtn)
+    expect(onChatMock).toHaveBeenCalledTimes(1)
 
-    await act(async () => {
-      fireEvent.press(addBtn)
-    })
-    expect(onPostMock).toHaveBeenCalledTimes(1)
-
-    expect(queryByTestId('icon-Ionicons-add')).toBeNull()
+    // No Add listing button exists in navbar
+    expect(queryByTestId('hero-header-add-btn')).toBeNull()
   })
 
-  it('Tooth d (Callbacks & HitSlop): back and notification buttons preserve hitSlop and press callbacks', async () => {
+  it('Tooth d (Liquid Glass Search Bars): both compact and large search bars render GlassSurface with transparent background', async () => {
+    jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(true)
+
+    const { getByTestId } = await render(
+      <AnimatedHeroHeader
+        title="ســوق ون"
+        hideBackButton
+      />
+    )
+    await act(async () => {})
+
+    // 1. Compact Search Bar (Row 1)
+    const compactSearch = getByTestId('hero-header-compact-search')
+    const compactStyle = StyleSheet.flatten(compactSearch.props.style)
+    expect(compactStyle.backgroundColor).toBe('transparent')
+    expect(compactStyle.overflow).toBe('hidden')
+    expect(compactStyle.height).toBe(TopBarTokens.searchHeight)
+    expect(compactStyle.borderRadius).toBe(TopBarTokens.searchRadius)
+    expect(getByTestId('hero-header-compact-search-glass-blur')).toBeTruthy()
+
+    // 2. Large Search Bar (Row 2)
+    const largeSearch = getByTestId('hero-header-large-search')
+    const largeStyle = StyleSheet.flatten(largeSearch.props.style)
+    expect(largeStyle.backgroundColor).toBe('transparent')
+    expect(largeStyle.overflow).toBe('hidden')
+    expect(largeStyle.height).toBe(44)
+    expect(largeStyle.borderRadius).toBe(Radius.md)
+    expect(getByTestId('hero-header-large-search-glass-blur')).toBeTruthy()
+  })
+
+  it('Tooth e (Callbacks & HitSlop): back and notification buttons preserve hitSlop and press callbacks', async () => {
     const onBackMock = jest.fn()
     const onNotifMock = jest.fn()
 
