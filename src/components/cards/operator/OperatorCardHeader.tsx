@@ -59,7 +59,7 @@ export function OperatorCardHeader({
             accessible
             accessibilityLabel="حساب موثق"
           >
-            <VerifiedBadge size={16} />
+            <VerifiedBadge size={17} />
           </View>
         )}
       </View>

@@ -7,7 +7,7 @@ import { Colors } from '../../constants/colors';
 export const VERIFIED_BADGE_3D = require('../../../assets/images/verified-badge-3d.png');
 
 export interface VerifiedBadgeProps {
-  /** حجم رمز الختم بالبكسل (الافتراضي: 16) */
+  /** حجم رمز الختم بالبكسل (الافتراضي: 17) */
   size?: number;
   /** إظهار النص المرفق «موثق» بجوار الختم (الافتراضي: false) */
   showText?: boolean;
@@ -29,7 +29,7 @@ export interface VerifiedBadgeProps {
  * يدعم وضع 3D عالي الدقة مع إمكانية التبديل إلى رسم SVG الهندسي كـ fallback.
  */
 export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
-  size = 16,
+  size = 17,
   showText = false,
   text = 'موثق',
   variant = 'dark',

@@ -15,8 +15,8 @@ describe('VerifiedBadge (3D Royal Octagram Badge)', () => {
     const img = renderer.root.findByType(Image)
     expect(img).toBeDefined()
     expect(img.props.source).toEqual(VERIFIED_BADGE_3D)
-    expect(img.props.style.width).toBe(16)
-    expect(img.props.style.height).toBe(16)
+    expect(img.props.style.width).toBe(17)
+    expect(img.props.style.height).toBe(17)
 
     // No text rendered when showText is false
     const texts = renderer.root.findAllByType(Text)
