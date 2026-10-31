@@ -147,13 +147,13 @@ export function AnimatedHeroHeader({
     if (!scrollY) return { opacity: 0 };
     const opacity = interpolate(
       scrollY.value,
-      [SCROLL_THRESHOLD + 8, SCROLL_END],
-      [0, 1],
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 12],
+      [0, 0, 1],
       Extrapolation.CLAMP
     );
     return {
       opacity,
-      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 8 ? 'none' : 'auto',
+      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 4 ? 'none' : 'auto',
     };
   });
 
@@ -277,8 +277,9 @@ export function AnimatedHeroHeader({
                 <Text style={s.compactSearchTxt} numberOfLines={1}>
                   {searchPlaceholder}
                 </Text>
-                <View style={s.compactFilterBtn}>
-                  <Ionicons name="options-outline" size={15} color={Colors.primary} />
+                <View style={s.compactFilterBtn} testID="hero-header-compact-filter-btn">
+                  <GlassSurface testID="hero-header-compact-filter-btn" borderRadius={13} />
+                  <Ionicons name="options-outline" size={14} color={Colors.primary} />
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -334,8 +335,9 @@ export function AnimatedHeroHeader({
             <Text style={s.searchPlaceholder} numberOfLines={1}>
               {searchPlaceholder}
             </Text>
-            <View style={s.filterBtnInner}>
-              <Ionicons name="options-outline" size={17} color={Colors.primary} />
+            <View style={s.filterBtnInner} testID="hero-header-large-filter-btn">
+              <GlassSurface testID="hero-header-large-filter-btn" borderRadius={Radius.sm} />
+              <Ionicons name="options-outline" size={16} color={Colors.primary} />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -443,10 +445,11 @@ const s = StyleSheet.create({
     paddingTop: 1,
   },
   compactFilterBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.paleMint,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -509,8 +512,9 @@ const s = StyleSheet.create({
   filterBtnInner: {
     width: 28,
     height: 28,
-    borderRadius: 6,
-    backgroundColor: Colors.paleMint,
+    borderRadius: Radius.sm,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
