@@ -1,6 +1,13 @@
 import React from 'react'
 import { Text, View, Keyboard, StyleSheet, Dimensions, type ViewStyle } from 'react-native'
-import { render, fireEvent, act, renderHook, cleanup } from '@testing-library/react-native'
+import {
+  render,
+  fireEvent,
+  act,
+  renderHook,
+  cleanup,
+  type RenderResult,
+} from '@testing-library/react-native'
 import { Colors } from '../../constants/colors'
 import {
   BottomBarTokens,
@@ -425,11 +432,13 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
     })
 
     describe('Hierarchy Opacity Verification (D4)', () => {
+      type SurfaceElement = ReturnType<RenderResult['getByTestId']>
+
       function assertNoOpacityInAncestry(
-        startElement: ReturnType<typeof render>['UNSAFE_root'],
+        startElement: SurfaceElement,
         rootTestId: string
       ) {
-        let current: typeof startElement | null = startElement
+        let current: SurfaceElement | null = startElement
         while (current) {
           const flatStyle = (StyleSheet.flatten(current.props?.style) || {}) as ViewStyle
           expect(flatStyle.opacity).toBeUndefined()
