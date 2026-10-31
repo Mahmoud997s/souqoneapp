@@ -272,12 +272,13 @@ export function AnimatedHeroHeader({
                 onPress={handleSearchPress}
                 activeOpacity={0.88}
               >
+                <GlassSurface testID="hero-header-compact-search" borderRadius={TopBarTokens.searchRadius} />
                 <Ionicons name="search" size={16} color={Colors.primary} style={{ opacity: 0.8 }} />
                 <Text style={s.compactSearchTxt} numberOfLines={1}>
                   {searchPlaceholder}
                 </Text>
                 <View style={s.compactFilterBtn} testID="hero-header-compact-filter-btn">
-                  <GlassSurface testID="hero-header-compact-filter-btn" borderRadius={13} />
+                  <GlassSurface testID="hero-header-compact-filter-btn" borderRadius={14} />
                   <Ionicons name="options-outline" size={14} color={Colors.primary} />
                 </View>
               </TouchableOpacity>
@@ -427,8 +428,6 @@ const s = StyleSheet.create({
     height: TopBarTokens.searchHeight,
     borderRadius: TopBarTokens.searchRadius,
     backgroundColor: 'transparent',
-    borderWidth: TopBarTokens.searchBorderWidth,
-    borderColor: TopBarTokens.searchBorderColor,
     overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,9 +445,9 @@ const s = StyleSheet.create({
     paddingTop: 1,
   },
   compactFilterBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: 'transparent',
     overflow: 'hidden',
     alignItems: 'center',

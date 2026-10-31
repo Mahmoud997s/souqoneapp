@@ -103,7 +103,7 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     expect(StyleSheet.flatten(chatBlur.props.style).borderRadius).toBe(TopBarTokens.buttonRadius)
   })
 
-  it('Tooth b (Liquid branch): circular buttons and filter buttons render native GlassView when liquid glass is supported', async () => {
+  it('Tooth b (Liquid branch): circular buttons, search bars, and filter buttons render native GlassView when liquid glass is supported', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(false)
 
     const { getByTestId, queryByTestId } = await render(
@@ -119,12 +119,14 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     expect(getByTestId('hero-header-back-btn-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-notification-btn-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-chat-btn-glass-liquid')).toBeTruthy()
+    expect(getByTestId('hero-header-compact-search-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-compact-filter-btn-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-large-search-glass-liquid')).toBeTruthy()
     expect(getByTestId('hero-header-large-filter-btn-glass-liquid')).toBeTruthy()
     expect(queryByTestId('hero-header-back-btn-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-notification-btn-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-chat-btn-glass-blur')).toBeNull()
+    expect(queryByTestId('hero-header-compact-search-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-compact-filter-btn-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-large-search-glass-blur')).toBeNull()
     expect(queryByTestId('hero-header-large-filter-btn-glass-blur')).toBeNull()
@@ -155,7 +157,7 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     expect(queryByTestId('hero-header-add-btn')).toBeNull()
   })
 
-  it('Tooth d (Search Bars & Filter Buttons): compact search adopts navbar color with clean border, large search renders Liquid Glass, and both filter buttons render GlassSurface', async () => {
+  it('Tooth d (Search Bars & Filter Buttons): compact and large search bars render Liquid Glass styling with drawn shapes, and filter buttons render GlassSurface', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(true)
 
     const { getByTestId } = await render(
@@ -166,15 +168,14 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     )
     await act(async () => {})
 
-    // 1. Compact Search Bar (Row 1) — Adopts navbar background with clean border
+    // 1. Compact Search Bar (Row 1) — Renders Liquid Glass with compact capsule/pill shape
     const compactSearch = getByTestId('hero-header-compact-search')
     const compactStyle = StyleSheet.flatten(compactSearch.props.style)
     expect(compactStyle.backgroundColor).toBe('transparent')
     expect(compactStyle.overflow).toBe('hidden')
     expect(compactStyle.height).toBe(TopBarTokens.searchHeight)
     expect(compactStyle.borderRadius).toBe(TopBarTokens.searchRadius)
-    expect(compactStyle.borderWidth).toBe(TopBarTokens.searchBorderWidth)
-    expect(compactStyle.borderColor).toBe(TopBarTokens.searchBorderColor)
+    expect(getByTestId('hero-header-compact-search-glass-blur')).toBeTruthy()
 
     // 2. Large Search Bar (Row 2)
     const largeSearch = getByTestId('hero-header-large-search')
@@ -190,9 +191,9 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     const compactFilterStyle = StyleSheet.flatten(compactFilter.props.style)
     expect(compactFilterStyle.backgroundColor).toBe('transparent')
     expect(compactFilterStyle.overflow).toBe('hidden')
-    expect(compactFilterStyle.width).toBe(26)
-    expect(compactFilterStyle.height).toBe(26)
-    expect(compactFilterStyle.borderRadius).toBe(13)
+    expect(compactFilterStyle.width).toBe(28)
+    expect(compactFilterStyle.height).toBe(28)
+    expect(compactFilterStyle.borderRadius).toBe(14)
     expect(getByTestId('hero-header-compact-filter-btn-glass-blur')).toBeTruthy()
 
     // 4. Large Search Filter Button (Inside Large Search)
