@@ -12,7 +12,6 @@ import Animated, {
   withSpring,
   type SharedValue,
 } from 'react-native-reanimated'
-import { BlurView } from 'expo-blur'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { useNavVisibility } from '../../context/NavVisibilityContext'
@@ -22,7 +21,7 @@ import {
   computeBottomBarGeometry,
 } from '../../constants/bottomBarTokens'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
-import { useGlassSupport } from './glassSupport'
+import { GlassSurface, useGlassSupport } from './glassSupport'
 
 /**
  * Hook to detect if the software keyboard is currently visible.
@@ -49,53 +48,6 @@ export function useBottomBarKeyboardHide(): boolean {
   }, [])
 
   return isKeyboardVisible
-}
-
-type AnimatedRadiusStyle = ReturnType<typeof useAnimatedStyle<ViewStyle>>
-
-interface GlassSurfaceProps {
-  testID: string
-  radiusStyle: AnimatedRadiusStyle
-}
-
-/**
- * GlassSurface
- * The single background surface shared by the expanded bar and the collapsed circle.
- * - Liquid branch (iOS 26 binary with expo-glass-effect, transparency not reduced): native GlassView.
- * - Blur branch (everything else): the BlurView + white wash recipe from BottomBarTokens.
- * The surface itself never fades: it always stays at opacity 1 and only its radius morphs
- * (fading a GlassView or any parent to opacity 0 stops the glass from rendering).
- */
-function GlassSurface({ testID, radiusStyle }: GlassSurfaceProps) {
-  const glass = useGlassSupport()
-
-  if (glass.kind === 'liquid') {
-    const { GlassView } = glass
-    return (
-      <Animated.View
-        testID={`${testID}-glass-liquid`}
-        pointerEvents="none"
-        style={[s.liquidWrapper, radiusStyle]}
-      >
-        <GlassView
-          glassEffectStyle="regular"
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    )
-  }
-
-  return (
-    <Animated.View testID={`${testID}-glass-blur`} style={[s.blurWrapper, radiusStyle]}>
-      <BlurView
-        intensity={BottomBarTokens.blurIntensity}
-        tint={BottomBarTokens.blurTint}
-        experimentalBlurMethod={BottomBarTokens.blurMethod}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={s.whiteWashOverlay} />
-    </Animated.View>
-  )
 }
 
 export interface GlassBottomBarShellProps {
@@ -135,6 +87,7 @@ export function GlassBottomBarShell({
   const isKeyboardVisible = useBottomBarKeyboardHide()
   const systemReducedMotion = useAppReducedMotion()
   const isReducedMotion = reducedMotionProp ?? systemReducedMotion
+  const glass = useGlassSupport()
 
   const windowDimensions = useWindowDimensions()
   const windowWidth = windowDimensions?.width > 0 ? windowDimensions.width : 390
@@ -247,6 +200,7 @@ export function GlassBottomBarShell({
       <GlassSurface
         testID={testID}
         radiusStyle={animatedBackgroundStyle}
+        support={glass}
       />
 
       {/* ── Expanded Content Layer ── */}
@@ -291,22 +245,6 @@ const s = StyleSheet.create({
     position: 'absolute',
     zIndex: 100,
     ...BottomBarTokens.shadow,
-  },
-  blurWrapper: {
-    ...StyleSheet.absoluteFill,
-    overflow: 'hidden',
-    borderWidth: BottomBarTokens.borderWidth,
-    borderColor: BottomBarTokens.borderColor,
-  },
-  liquidWrapper: {
-    ...StyleSheet.absoluteFill,
-    overflow: 'hidden',
-    borderWidth: BottomBarTokens.borderWidth,
-    borderColor: BottomBarTokens.borderColor,
-  },
-  whiteWashOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: BottomBarTokens.whiteWashBg,
   },
   contentLayer: {
     ...StyleSheet.absoluteFill,

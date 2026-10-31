@@ -9,7 +9,6 @@ import {
   type ImageSourcePropType,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import Animated, {
@@ -20,6 +19,7 @@ import Animated, {
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
 import type { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { CATEGORY_ICONS } from '../../constants/categoryIcons'
@@ -77,12 +77,14 @@ interface CategoryTileProps {
   item: HomeCategoryItem
   reducedMotion: boolean
   onPress: (route: string) => void
+  support?: GlassSupport
 }
 
 const CategoryTile = memo(function CategoryTile({
   item,
   reducedMotion,
   onPress,
+  support,
 }: CategoryTileProps) {
   const pressed = useSharedValue(0)
 
@@ -140,13 +142,11 @@ const CategoryTile = memo(function CategoryTile({
         style={s.pressable}
       >
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
-          <LinearGradient
-            testID="tile-gradient"
-            colors={[Colors.surface, Colors.surfaceAlt]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.gradient}
-            pointerEvents="none"
+          <GlassSurface
+            testID={`category-tile-${item.id}`}
+            borderRadius={14}
+            noBorder={true}
+            support={support}
           />
           <View testID={`icon-container-${item.id}`} style={s.iconContainer}>
             <Animated.View style={[s.iconBox, animatedIconStyle]}>
@@ -179,11 +179,15 @@ const CategoryTile = memo(function CategoryTile({
 
 export function HomeCategoriesGrid({
   reducedMotion: reducedMotionProp,
+  support: supportProp,
 }: {
   reducedMotion?: boolean
+  support?: GlassSupport
 } = {}) {
   const hookReducedMotion = useAppReducedMotion()
   const reducedMotion = reducedMotionProp !== undefined ? reducedMotionProp : hookReducedMotion
+  const hookGlass = useGlassSupport()
+  const glass = supportProp ?? hookGlass
 
   const handleNavigate = useCallback((route: string) => {
     router.push(route as any)
@@ -201,6 +205,7 @@ export function HomeCategoriesGrid({
             item={cat}
             reducedMotion={reducedMotion}
             onPress={handleNavigate}
+            support={glass}
           />
         ))}
       </View>
@@ -211,6 +216,7 @@ export function HomeCategoriesGrid({
             item={cat}
             reducedMotion={reducedMotion}
             onPress={handleNavigate}
+            support={glass}
           />
         ))}
       </View>
@@ -243,7 +249,7 @@ const s = StyleSheet.create({
     height: '100%',
   },
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
     borderRadius: 14,
     paddingTop: 6,
     paddingBottom: 4,
@@ -269,15 +275,8 @@ const s = StyleSheet.create({
     }),
   },
   actionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
     borderColor: Colors.border,
-  },
-  gradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   iconContainer: {
     alignItems: 'center',

@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react'
-import { StyleSheet, View, type ViewStyle, type TextStyle } from 'react-native'
+import { StyleSheet, View, Platform, type ViewStyle, type TextStyle } from 'react-native'
 import { render, fireEvent, act } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
@@ -22,6 +22,25 @@ import {
 } from '../components/home/HomeCategoriesGrid'
 import { Colors } from '../constants/colors'
 import { NOTIFICATIONS_EMPTY_CTA_ROUTE } from '../../app/profile/notifications'
+import * as glassSupportModule from '../components/navigation/glassSupport'
+
+jest.mock('expo-blur', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    BlurView: (props: any) => React.createElement(View, props),
+  }
+})
+
+jest.mock('expo-glass-effect', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    GlassView: (props: any) => React.createElement(View, props),
+    isLiquidGlassAvailable: () => true,
+    isGlassEffectAPIAvailable: () => true,
+  }
+})
 
 jest.mock('react-native-reanimated', () => {
   const reanimated = require('react-native-reanimated/mock')
@@ -242,7 +261,7 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
     })
 
     it('every tile has square width and height, radius 14, and label fit props', async () => {
-      const { getByTestId } = await render(<HomeCategoriesGrid />)
+      const { getByTestId, queryByTestId } = await render(<HomeCategoriesGrid />)
 
       HOME_CATEGORIES.forEach((cat) => {
         const tile = getByTestId(`category-tile-${cat.id}`)
@@ -266,9 +285,10 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
         expect(cardStyle.overflow).toBe('hidden')
 
         const cardChildren = React.Children.toArray((cardView as { props?: { children?: ReactNode } })?.props?.children)
-        const gradient = cardChildren.find((c) => React.isValidElement<{ testID?: string; colors?: unknown }>(c) && c.props.testID === 'tile-gradient')
-        expect(gradient).toBeTruthy()
-        expect(React.isValidElement<{ colors?: unknown }>(gradient) ? gradient.props.colors : null).toEqual([Colors.surface, Colors.surfaceAlt])
+        const glassSurface =
+          queryByTestId(`category-tile-${cat.id}-glass-liquid`) ||
+          queryByTestId(`category-tile-${cat.id}-glass-blur`)
+        expect(glassSurface).toBeTruthy()
 
         const iconContainer = cardChildren.find((c) => React.isValidElement<{ testID?: string }>(c) && c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
         const iconContainerChildren = React.isValidElement<{ children?: ReactNode }>(iconContainer) ? React.Children.toArray(iconContainer.props.children) : []
@@ -328,6 +348,106 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
 
         expect({ id, route, exists }).toEqual({ id, route, exists: true })
       })
+    })
+  })
+
+  describe('6. Liquid Glass Surface & Fallbacks (D-172b Teeth Tests)', () => {
+    it('Tooth a: liquid branch renders a glass surface per tile when module is available', async () => {
+      const liquidSupport: glassSupportModule.LiquidGlassSupport = {
+        kind: 'liquid',
+        GlassView: ((props: any) => <View testID="mock-native-glass-view" {...props} />) as any,
+      }
+
+      const { getByTestId } = await render(
+        <HomeCategoriesGrid support={liquidSupport} />
+      )
+
+      HOME_CATEGORIES.forEach((cat) => {
+        const liquidSurface = getByTestId(`category-tile-${cat.id}-glass-liquid`)
+        expect(liquidSurface).toBeTruthy()
+        expect(liquidSurface.props.pointerEvents).toBe('none')
+      })
+    })
+
+    it('Tooth b: blur branch when module is missing: no crash, all 7 tiles render blur and press normally', async () => {
+      const blurSupport: glassSupportModule.BlurGlassSupport = {
+        kind: 'blur',
+      }
+
+      const { getByTestId } = await render(
+        <HomeCategoriesGrid support={blurSupport} />
+      )
+
+      HOME_CATEGORIES.forEach((cat) => {
+        const blurSurface = getByTestId(`category-tile-${cat.id}-glass-blur`)
+        expect(blurSurface).toBeTruthy()
+        expect(blurSurface.props.pointerEvents).toBe('none')
+      })
+
+      // Presses still work
+      const operatorsTile = getByTestId('category-tile-operators')
+      await act(async () => {
+        fireEvent.press(operatorsTile)
+      })
+      expect(router.push).toHaveBeenCalledWith('/equipment/operators/browse')
+    })
+
+    it('Tooth c: reduce-transparency fallback: returns blur support and renders blur surfaces', async () => {
+      const resolved = glassSupportModule.getGlassSupport(true)
+      expect(resolved.kind).toBe('blur')
+
+      const { getByTestId } = await render(
+        <HomeCategoriesGrid support={resolved} />
+      )
+
+      HOME_CATEGORIES.forEach((cat) => {
+        const blurSurface = getByTestId(`category-tile-${cat.id}-glass-blur`)
+        expect(blurSurface).toBeTruthy()
+      })
+    })
+
+    it('Tooth d: Android platform: package is never required and defaults to blur', () => {
+      const originalPlatform = Platform.OS
+      try {
+        jest.isolateModules(() => {
+          Object.defineProperty(Platform, 'OS', { configurable: true, get: () => 'android' })
+          const { getGlassSupport: getGlassSupportIsolated } =
+            require('../components/navigation/glassSupport')
+          const support = getGlassSupportIsolated(false)
+          expect(support.kind).toBe('blur')
+        })
+      } finally {
+        Object.defineProperty(Platform, 'OS', { configurable: true, get: () => originalPlatform })
+      }
+    })
+
+    it('Tooth e: 7 tiles preserve exact order and routes', () => {
+      expect(HOME_CATEGORIES.map((c) => c.id)).toEqual([
+        'cars',
+        'services',
+        'parts',
+        'equipment',
+        'buses',
+        'operators',
+        'browse',
+      ])
+      expect(HOME_CATEGORIES.map((c) => c.route)).toEqual([
+        '/cars',
+        '/services',
+        '/parts',
+        '/equipment',
+        '/buses',
+        '/equipment/operators/browse',
+        '/(tabs)/search',
+      ])
+    })
+
+    it('Tooth f: no direct import of expo-glass-effect or expo-blur outside adapter', () => {
+      const gridSourcePath = path.resolve(__dirname, '../components/home/HomeCategoriesGrid.tsx')
+      const source = fs.readFileSync(gridSourcePath, 'utf8')
+      expect(source.includes('expo-glass-effect')).toBe(false)
+      expect(source.includes('expo-blur')).toBe(false)
+      expect(source.includes("from '../navigation/glassSupport'")).toBe(true)
     })
   })
 })

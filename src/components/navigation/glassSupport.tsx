@@ -1,6 +1,16 @@
-import { useEffect, useState, type ComponentType } from 'react'
-import { AccessibilityInfo, Platform } from 'react-native'
+import React, { useEffect, useState, type ComponentType } from 'react'
+import {
+  AccessibilityInfo,
+  Platform,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native'
+import Animated, { type useAnimatedStyle } from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
 import type { GlassViewProps } from 'expo-glass-effect'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 
 /**
  * glassSupport
@@ -122,3 +132,96 @@ export function useGlassSupport(): GlassSupport {
 
   return getGlassSupport(reduceTransparency)
 }
+
+export type AnimatedRadiusStyle = ReturnType<typeof useAnimatedStyle<ViewStyle>>
+
+export interface GlassSurfaceProps {
+  testID?: string
+  radiusStyle?: AnimatedRadiusStyle | StyleProp<ViewStyle>
+  style?: StyleProp<ViewStyle>
+  borderRadius?: number
+  glassEffectStyle?: 'regular' | 'clear'
+  intensity?: number
+  tint?: 'light' | 'default' | 'dark'
+  noBorder?: boolean
+  support?: GlassSupport
+}
+
+/**
+ * GlassSurface
+ * The shared glass background surface for bottom bars and category tiles.
+ * - Liquid branch (iOS 26 binary with expo-glass-effect, transparency not reduced): native GlassView.
+ * - Blur branch (Android, older iOS, or reduce-transparency on): BlurView + white wash overlay.
+ * The surface itself never fades: it always stays at opacity 1 and only its radius/bounds morph.
+ */
+export function GlassSurface({
+  testID = 'glass-surface',
+  radiusStyle,
+  style,
+  borderRadius,
+  glassEffectStyle = 'regular',
+  intensity = BottomBarTokens.blurIntensity,
+  tint = BottomBarTokens.blurTint,
+  noBorder = false,
+  support,
+}: GlassSurfaceProps) {
+  const hookSupport = useGlassSupport()
+  const glass = support ?? hookSupport
+
+  const borderStyle = noBorder ? s.noBorder : null
+  const radiusOverride = borderRadius !== undefined ? { borderRadius } : null
+
+  if (glass.kind === 'liquid') {
+    const { GlassView } = glass
+    return (
+      <Animated.View
+        testID={`${testID}-glass-liquid`}
+        pointerEvents="none"
+        style={[s.liquidWrapper, borderStyle, radiusOverride, radiusStyle, style]}
+      >
+        <GlassView
+          glassEffectStyle={glassEffectStyle}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    )
+  }
+
+  return (
+    <Animated.View
+      testID={`${testID}-glass-blur`}
+      pointerEvents="none"
+      style={[s.blurWrapper, borderStyle, radiusOverride, radiusStyle, style]}
+    >
+      <BlurView
+        intensity={intensity}
+        tint={tint}
+        experimentalBlurMethod={BottomBarTokens.blurMethod}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={s.whiteWashOverlay} />
+    </Animated.View>
+  )
+}
+
+const s = StyleSheet.create({
+  blurWrapper: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    borderWidth: BottomBarTokens.borderWidth,
+    borderColor: BottomBarTokens.borderColor,
+  },
+  liquidWrapper: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    borderWidth: BottomBarTokens.borderWidth,
+    borderColor: BottomBarTokens.borderColor,
+  },
+  whiteWashOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: BottomBarTokens.whiteWashBg,
+  },
+  noBorder: {
+    borderWidth: 0,
+  },
+})
