@@ -9,14 +9,14 @@ describe('VerifiedBadge (3D Royal Octagram Badge)', () => {
   it('renders the 3D Octagram image emblem by default when showText is false', () => {
     let renderer: any
     act(() => {
-      renderer = TestRenderer.create(<VerifiedBadge size={14} />)
+      renderer = TestRenderer.create(<VerifiedBadge />)
     })
 
     const img = renderer.root.findByType(Image)
     expect(img).toBeDefined()
     expect(img.props.source).toEqual(VERIFIED_BADGE_3D)
-    expect(img.props.style.width).toBe(14)
-    expect(img.props.style.height).toBe(14)
+    expect(img.props.style.width).toBe(16)
+    expect(img.props.style.height).toBe(16)
 
     // No text rendered when showText is false
     const texts = renderer.root.findAllByType(Text)

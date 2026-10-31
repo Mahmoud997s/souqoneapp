@@ -309,7 +309,7 @@ export const ListingCardBase = ({
             {title}
           </Text>
           {isSellerVerified && (
-            <VerifiedBadge variant="dark" showText size={12} style={{ marginTop: 2 }} />
+            <VerifiedBadge size={16} style={{ marginTop: 2 }} />
           )}
         </View>
 
