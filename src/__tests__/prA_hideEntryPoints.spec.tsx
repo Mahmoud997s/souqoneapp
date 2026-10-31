@@ -16,11 +16,11 @@ describe('PR-A: Hide Jobs & Transport Entry Points', () => {
     expect(FEATURES.TRANSPORT_ENABLED).toBe(false)
   })
 
-  it('HOME_CATEGORIES contains only 6 active items and omits jobs and transport', () => {
+  it('HOME_CATEGORIES contains only active items and omits jobs and transport', () => {
     const ids = HOME_CATEGORIES.map(c => c.id)
     expect(ids).not.toContain('jobs')
     expect(ids).not.toContain('transport')
-    expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
+    expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'operators', 'browse'])
   })
 
   it('routeForNotification routes jobs and transport to null (safe fallback)', () => {

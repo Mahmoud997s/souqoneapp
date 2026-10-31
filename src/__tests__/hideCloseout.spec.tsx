@@ -10,23 +10,23 @@ import {
 } from '../components/home/HomeCategoriesGrid'
 
 describe('D-134 Hide Closeout Tests', () => {
-  describe('Part A: Home Categories (Single Row Layout D-163j)', () => {
-    it('HOME_CATEGORIES length is exactly 6 and order is unchanged', () => {
-      expect(HOME_CATEGORIES).toHaveLength(6)
+  describe('Part A: Home Categories (4 Columns Square Layout D-172a)', () => {
+    it('HOME_CATEGORIES length is exactly 7 and order is unchanged', () => {
+      expect(HOME_CATEGORIES).toHaveLength(7)
       const ids = HOME_CATEGORIES.map((c) => c.id)
-      expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'browse'])
+      expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'operators', 'browse'])
     })
 
-    it('CATEGORY_GRID_COLUMNS is defined and tile layout matches single row 6 in one row (D-163j)', () => {
-      expect(CATEGORY_GRID_COLUMNS).toBe(6)
-      expect(CATEGORY_ITEM_HEIGHT).toBe(76)
+    it('CATEGORY_GRID_COLUMNS is defined and tile layout matches 4 columns with square tiles (D-172a)', () => {
+      expect(CATEGORY_GRID_COLUMNS).toBe(4)
+      expect(CATEGORY_ITEM_HEIGHT).toBe(CATEGORY_ITEM_WIDTH)
       expect(CATEGORY_ITEM_WIDTH).toBeGreaterThan(0)
       expect(CATEGORY_ITEM_SIZE).toBe(CATEGORY_ITEM_WIDTH)
       expect(calculateCategoryGridGap(360)).toBe(6)
       expect(calculateCategoryGridGap(430)).toBe(6)
-      expect(calculateCategoryItemWidth(360)).toBe(49)
-      expect(calculateCategoryItemWidth(390)).toBe(54)
-      expect(calculateCategoryItemWidth(430)).toBe(61)
+      expect(calculateCategoryItemWidth(360)).toBe(77)
+      expect(calculateCategoryItemWidth(390)).toBe(85)
+      expect(calculateCategoryItemWidth(430)).toBe(95)
     })
   })
 })
