@@ -1,0 +1,212 @@
+import { Platform, I18nManager } from 'react-native'
+import { Colors } from './colors'
+
+const BLUR_INTENSITY_IOS = 65
+const BLUR_INTENSITY_ANDROID = 45
+
+/**
+ * BottomBarTokens
+ * Single source of truth for the glassmorphic bottom navigation bar styling,
+ * shared across the unified bottom bar shell, section action bars, and tab bar.
+ * Built per task D-166 to eliminate visual drift between bottom bars.
+ */
+export const BottomBarTokens = {
+  // ── Layout Dimensions (Expanded) ──
+  expandedHeight: 52,
+  expandedRadius: 26,
+  marginHorizontal: 16,
+  maxWidth: 480,
+
+  // ── Layout Dimensions (Collapsed Circle) ──
+  collapsedSize: 56,
+  collapsedRadius: 28,
+  collapsedIconSize: 24,
+  minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
+  addButtonSize: 38,
+
+  // ── Glass Background Layers ──
+  blurIntensityIos: BLUR_INTENSITY_IOS,
+  blurIntensityAndroid: BLUR_INTENSITY_ANDROID,
+  blurIntensity: Platform.OS === 'ios' ? BLUR_INTENSITY_IOS : BLUR_INTENSITY_ANDROID,
+  blurTint: 'light' as const,
+  blurMethod: 'dimezisBlurView' as const,
+
+  // Translucent white literals strictly itemized per report 409
+  whiteWashBg: 'rgba(255, 255, 255, 0.78)',
+  borderColor: 'rgba(255, 255, 255, 0.60)',
+  borderWidth: 1,
+  rippleColor: 'rgba(255, 255, 255, 0.20)',
+
+  // ── Outer Elevation Shadow ──
+  shadow: Platform.select({
+    ios: {
+      shadowColor: Colors.primaryDark,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 14,
+    },
+    android: {
+      elevation: 6,
+    },
+  }),
+  addButtonShadow: Platform.select({
+    ios: {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+    },
+    android: {
+      elevation: 4,
+    },
+  }),
+
+  // ── Active Pill & Tab Item (used by D-167 section bars & D-168 tab bar) ──
+  activePillWidth: 40,
+  activePillHeight: 28,
+  activePillRadius: 14,
+  activePillBg: Colors.paleMint,
+  activeIconColor: Colors.primary,
+  inactiveIconColor: Colors.textMuted,
+
+  // ── Animation Timings & Thresholds ──
+  animation: {
+    /** Labels fade out completely during the first 20% of progress (~60ms in 300ms transition) */
+    labelFadeProgress: 0.2,
+    /** Collapsed icon fades in during the final 20% of progress (0.8 -> 1.0) */
+    iconFadeProgress: 0.8,
+    /** Spring configuration for smooth natural motion on expand/collapse */
+    springConfig: {
+      damping: 20,
+      stiffness: 180,
+      mass: 0.8,
+    },
+  },
+
+  // ── Accessibility & Labels ──
+  accessibility: {
+    collapsedRole: 'button' as const,
+    collapsedLabelArabic: 'توسيع شريط التنقل',
+  },
+} as const
+
+/**
+ * Returns the positioning style key ('left' or 'right') to anchor the collapsed
+ * bottom bar circle at the PHYSICAL BOTTOM-LEFT of the screen.
+ *
+ * Fabric RTL Mirroring Fact:
+ * - When I18nManager.isRTL is true, Fabric automatically mirrors `left` to physical Right,
+ *   and mirrors `right` to physical Left.
+ * - When I18nManager.isRTL is false, standard `left` is on physical Left.
+ *
+ * Therefore:
+ * - In RTL mode (true): style key 'right' lands on the PHYSICAL LEFT edge.
+ * - In LTR mode (false): style key 'left' lands on the PHYSICAL LEFT edge.
+ *
+ * @param isRTL Override for testing; defaults to I18nManager.isRTL
+ */
+export function getCollapsedCircleAnchorKey(isRTL: boolean = I18nManager.isRTL): 'left' | 'right' {
+  return isRTL ? 'right' : 'left'
+}
+
+/**
+ * Computed bottom bar geometry at any progress point between 0 (expanded) and 1 (collapsed).
+ */
+export interface BottomBarGeometry {
+  width: number
+  height: number
+  borderRadius: number
+  labelOpacity: number
+  collapsedIconOpacity: number
+  contentScale: number
+  collapsedIconScale: number
+  isCollapsed: boolean
+}
+
+/**
+ * Pure geometry helper computing width, height, radius, label opacity, and collapsed icon opacity
+ * for any given progress value (0..1) across screen widths (e.g. 360, 390, 430).
+ * Marked with 'worklet' so Reanimated animated styles invoke it directly on UI thread.
+ *
+ * @param progress Value from 0 (fully expanded) to 1 (fully collapsed)
+ * @param screenWidth Screen width in points (e.g. 360, 390, 430)
+ * @param reducedMotion If true, switches instantly at progress 0.5 without continuous interpolation
+ */
+export function computeBottomBarGeometry(
+  progress: number,
+  screenWidth: number,
+  reducedMotion: boolean = false
+): BottomBarGeometry {
+  'worklet'
+  const clampedProgress = Math.max(0, Math.min(1, progress))
+  const expandedWidth = Math.min(
+    screenWidth - 2 * BottomBarTokens.marginHorizontal,
+    BottomBarTokens.maxWidth
+  )
+  const collapsedSize = BottomBarTokens.collapsedSize
+  const expandedHeight = BottomBarTokens.expandedHeight
+  const expandedRadius = BottomBarTokens.expandedRadius
+  const collapsedRadius = BottomBarTokens.collapsedRadius
+
+  if (reducedMotion) {
+    const isCollapsed = clampedProgress >= 0.5
+    return {
+      width: isCollapsed ? collapsedSize : expandedWidth,
+      height: isCollapsed ? collapsedSize : expandedHeight,
+      borderRadius: isCollapsed ? collapsedRadius : expandedRadius,
+      labelOpacity: isCollapsed ? 0 : 1,
+      collapsedIconOpacity: isCollapsed ? 1 : 0,
+      contentScale: isCollapsed ? 0 : 1,
+      collapsedIconScale: isCollapsed ? 1 : 0,
+      isCollapsed,
+    }
+  }
+
+  // Continuous interpolation
+  const width = expandedWidth + (collapsedSize - expandedWidth) * clampedProgress
+  const height = expandedHeight + (collapsedSize - expandedHeight) * clampedProgress
+  const borderRadius = expandedRadius + (collapsedRadius - expandedRadius) * clampedProgress
+
+  // Label opacity & content scale: fades out and slightly shrinks over the first 20% (progress 0 -> 0.2)
+  let labelOpacity = 0
+  let contentScale = 0.95
+  if (clampedProgress <= 0) {
+    labelOpacity = 1
+    contentScale = 1
+  } else if (clampedProgress >= BottomBarTokens.animation.labelFadeProgress) {
+    labelOpacity = 0
+    contentScale = 0.95
+  } else {
+    const fadeRatio = clampedProgress / BottomBarTokens.animation.labelFadeProgress
+    labelOpacity = 1 - fadeRatio
+    contentScale = 1 - 0.05 * fadeRatio
+  }
+
+  // Collapsed icon opacity & scale: fades and scales in over the last 20% (progress 0.8 -> 1.0)
+  let collapsedIconOpacity = 0
+  let collapsedIconScale = 0
+  if (clampedProgress >= 1) {
+    collapsedIconOpacity = 1
+    collapsedIconScale = 1
+  } else if (clampedProgress <= BottomBarTokens.animation.iconFadeProgress) {
+    collapsedIconOpacity = 0
+    collapsedIconScale = 0
+  } else {
+    const growRatio =
+      (clampedProgress - BottomBarTokens.animation.iconFadeProgress) /
+      (1 - BottomBarTokens.animation.iconFadeProgress)
+    collapsedIconOpacity = growRatio
+    collapsedIconScale = 0.8 + 0.2 * growRatio
+  }
+
+  return {
+    width: Math.round(width * 100) / 100,
+    height: Math.round(height * 100) / 100,
+    borderRadius: Math.round(borderRadius * 100) / 100,
+    labelOpacity: Math.round(labelOpacity * 1000) / 1000,
+    collapsedIconOpacity: Math.round(collapsedIconOpacity * 1000) / 1000,
+    contentScale: Math.round(contentScale * 1000) / 1000,
+    collapsedIconScale: Math.round(collapsedIconScale * 1000) / 1000,
+    isCollapsed: clampedProgress === 1,
+  }
+}

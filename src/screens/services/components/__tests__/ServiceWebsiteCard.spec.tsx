@@ -1,8 +1,10 @@
 import React from 'react'
-import { Linking } from 'react-native'
+import { Linking, StyleSheet } from 'react-native'
 import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { ServiceWebsiteCard } from '../ServiceWebsiteCard'
 import { dialogService } from '../../../../store/dialogStore'
+import { Colors } from '../../../../constants/colors'
+import { Spacing } from '../../../../constants/spacing'
 
 jest.setTimeout(15000)
 
@@ -90,5 +92,38 @@ describe('ServiceWebsiteCard', () => {
     })
 
     expect(alertSpy).toHaveBeenCalledWith('تنبيه', 'حدث خطأ أثناء فتح الرابط', 'error')
+  })
+
+  describe('Card Spacing and Visual Tokens (D-170b)', () => {
+    it('applies Spacing.space4 horizontal margin and Spacing.space2 vertical margin (Req a)', async () => {
+      await render(
+        <ServiceWebsiteCard
+          website={{
+            url: 'https://myservice.om',
+            displayUrl: 'myservice.om',
+          }}
+        />,
+      )
+      const card = screen.getByTestId('service-website-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.marginHorizontal).toBe(Spacing.space4)
+      expect(flatStyle.marginVertical).toBe(Spacing.space2)
+    })
+
+    it('uses Colors.white background and card border matching Cars and Parts (Req b)', async () => {
+      await render(
+        <ServiceWebsiteCard
+          website={{
+            url: 'https://myservice.om',
+            displayUrl: 'myservice.om',
+          }}
+        />,
+      )
+      const card = screen.getByTestId('service-website-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.backgroundColor).toBe(Colors.white)
+      expect(flatStyle.borderWidth).toBe(1)
+      expect(flatStyle.borderColor).toBe(Colors.border)
+    })
   })
 })

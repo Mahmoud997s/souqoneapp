@@ -9,10 +9,6 @@ import {
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { BlurView } from 'expo-blur'
-import { LinearGradient } from 'expo-linear-gradient'
-import Svg, { Path, Pattern, Defs, Rect } from 'react-native-svg'
-import { Gradients } from '../../src/constants/gradients'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,29 +19,28 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { useAuthStore } from '../../src/store/authStore'
-import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { Colors } from '../../src/constants/colors'
 import { Shadows } from '../../src/constants/shadows'
 import { Typography } from '../../src/constants/typography'
+import { BottomBarTokens } from '../../src/constants/bottomBarTokens'
+import { GlassBottomBarShell } from '../../src/components/navigation/GlassBottomBarShell'
+import { AddListingButton } from '../../src/components/navigation/AddListingButton'
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const T = {
   primary:    Colors.primary,
-  primaryBg:  Colors.paleMint, // minimal green pale mint for active icon bubble
+  primaryBg:  BottomBarTokens.activePillBg, // minimal green pale mint for active icon bubble
   accent:     Colors.accent,
   inactive:   Colors.textMuted,
   label:      Colors.text,
   white:      Colors.white,
   border:     Colors.border,
   barBg:      Colors.white,
-  fabBg:      Colors.primary,
-  fabIcon:    Colors.white,
   badgeBg:    Colors.accent,
   badgeBorder:Colors.white,
 } as const
 
-const BAR_H      = 52
-const FAB_SIZE   = 38
+const BAR_H      = BottomBarTokens.expandedHeight
 const ICON_SIZE  = 20
 const FONT_ACT   = Typography.labelMd.fontFamily
 const FONT_INACT = Typography.caption.fontFamily
@@ -72,13 +67,15 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
   const bgAlpha = useSharedValue(focused ? 1 : 0)
 
   // Sync animations with focus state
-  if (focused && dotW.value < 1) {
-    dotW.value    = withSpring(1, { damping: 18, stiffness: 200 })
-    bgAlpha.value = withTiming(1, { duration: 180 })
-  } else if (!focused && dotW.value > 0) {
-    dotW.value    = withTiming(0, { duration: 150 })
-    bgAlpha.value = withTiming(0, { duration: 150 })
-  }
+  React.useEffect(() => {
+    if (focused && dotW.value < 1) {
+      dotW.value    = withSpring(1, { damping: 18, stiffness: 200 })
+      bgAlpha.value = withTiming(1, { duration: 180 })
+    } else if (!focused && dotW.value > 0) {
+      dotW.value    = withTiming(0, { duration: 150 })
+      bgAlpha.value = withTiming(0, { duration: 150 })
+    }
+  }, [focused, dotW, bgAlpha])
 
   const iconAnimStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -129,7 +126,7 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
         </Animated.View>
 
         {showBadge && (
-          <View style={s.badge} />
+          <View style={s.badge} testID="chat-tab-badge" />
         )}
       </View>
 
@@ -147,133 +144,91 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
   )
 }
 
-// ─── FAB (Center Post Button) ─────────────────────────────────────────────────
-function FABItem({ onPress }: { onPress: () => void }) {
-  const scale = useSharedValue(1)
-
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }))
-
-  const handlePress = useCallback(() => {
-    scale.value = withSpring(0.85, { damping: 8, stiffness: 300 }, () => {
-      scale.value = withSpring(1, { damping: 12, stiffness: 250 })
-    })
-    onPress()
-  }, [onPress])
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={s.fabItem}
-      accessibilityRole="button"
-      accessibilityLabel="إضافة إعلان"
-    >
-      <Animated.View style={[s.fabCircle, fabAnimStyle]}>
-        <Ionicons name="add" size={22} color={T.fabIcon} />
-      </Animated.View>
-    </Pressable>
-  )
-}
-
 // ─── Custom Tab Bar ───────────────────────────────────────────────────────────
-function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
-  const insets  = useSafeAreaInsets()
-  const router  = useRouter()
+export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets()
+  const router = useRouter()
   const { isLoggedIn } = useAuthStore()
-  const { navHidden } = useNavVisibility()
 
   const handlePost = useCallback(() => {
     if (!isLoggedIn) { router.push('/(auth)/login'); return }
     router.push('/(modals)/post-category' as any)
   }, [isLoggedIn, router])
 
-  const bottomPad = insets.bottom > 0 ? insets.bottom : 16
-  const totalHeight = BAR_H + bottomPad + 20
-
-  // Animate tab bar down based on navHidden shared value (0 to 1)
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(navHidden.value, [0, 1], [0, totalHeight], Extrapolation.CLAMP) }],
-    opacity: interpolate(navHidden.value, [0, 1], [1, 0], Extrapolation.CLAMP),
-  }))
-
-  // Animate the floating capsule up when navHidden is 1
-  const capsuleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(navHidden.value, [0, 1], [totalHeight + 20, 0], Extrapolation.CLAMP) }],
-    opacity: interpolate(navHidden.value, [0.5, 1], [0, 1], Extrapolation.CLAMP),
-  }))
-
   // Dynamically hide tab bar if the focused route explicitly disables it
-  const currentDescriptor = descriptors[state.routes[state.index].key]
-  const tabBarStyle = currentDescriptor.options.tabBarStyle as any
+  const currentDescriptor = descriptors[state.routes[state.index]?.key]
+  const tabBarStyle = currentDescriptor?.options?.tabBarStyle as any
   if (tabBarStyle?.display === 'none') {
     return null
   }
 
+  const bottomPad = insets.bottom > 0 ? insets.bottom : 16
+
+  const activeRoute = state.routes[state.index]
+  const currentMeta = TABS[state.index] ?? TABS[0]
+
+  const collapsedIcon = (
+    <Ionicons
+      name={currentMeta.icon}
+      size={BottomBarTokens.collapsedIconSize}
+      color={BottomBarTokens.activeIconColor}
+    />
+  )
+
+  const collapsedBadge = activeRoute?.name === 'chat' ? (
+    <View style={s.collapsedBadge} testID="collapsed-chat-badge" />
+  ) : undefined
+
   return (
-    <>
-      <Animated.View style={[s.wrapper, { bottom: bottomPad }, containerStyle]}>
-        <BlurView intensity={80} tint="light" style={s.blurBackground} />
-        <View style={s.bar}>
-          {state.routes.map((route: any, index: number) => {
-            const meta    = TABS[index]
-            const focused = state.index === index
+    <GlassBottomBarShell
+      bottomPad={bottomPad}
+      collapsedIcon={collapsedIcon}
+      badge={collapsedBadge}
+      testID="custom-tab-bar"
+    >
+      <View style={s.bar}>
+        {state.routes.map((route: any, index: number) => {
+          const meta    = TABS[index]
+          const focused = state.index === index
 
-            if (route.name === 'post') {
-              return <FABItem key={route.key} onPress={handlePost} />
-            }
-
-            const onPress = () => {
-              if ((route.name === 'chat' || route.name === 'profile') && !isLoggedIn) {
-                router.push('/(auth)/login'); return
-              }
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              })
-              if (!focused && !event.defaultPrevented) {
-                navigation.navigate(route.name)
-              }
-            }
-
+          if (route.name === 'post') {
             return (
-              <TabItem
-                key={route.key}
-                meta={meta}
-                focused={focused}
-                onPress={onPress}
-                showBadge={route.name === 'chat'}
-              />
+              <View key={route.key} style={s.fabItem}>
+                <AddListingButton
+                  onPress={handlePost}
+                  accessibilityLabel="إضافة إعلان"
+                  testID="tab-post-fab"
+                />
+              </View>
             )
-          })}
-        </View>
-      </Animated.View>
+          }
 
-      {/* ── Floating Capsule (Replaces Tab Bar when hidden) ── */}
-      <Animated.View style={[s.floatingFabWrap, { bottom: bottomPad + 4 }, capsuleStyle]} pointerEvents="box-none">
-        <Pressable onPress={handlePost} android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: true, radius: 26 }}>
-          <LinearGradient
-            colors={Gradients.hero as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.floatingFab}
-          >
-            <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]} pointerEvents="none">
-              <Svg width="100%" height="100%">
-                <Defs>
-                  <Pattern id="fabGridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                  </Pattern>
-                </Defs>
-                <Rect width="100%" height="100%" fill="url(#fabGridPattern)" />
-              </Svg>
-            </View>
-            <Ionicons name="add" size={30} color={T.white} />
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
-    </>
+          const onPress = () => {
+            if ((route.name === 'chat' || route.name === 'profile') && !isLoggedIn) {
+              router.push('/(auth)/login'); return
+            }
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            })
+            if (!focused && !event.defaultPrevented) {
+              navigation.navigate(route.name)
+            }
+          }
+
+          return (
+            <TabItem
+              key={route.key}
+              meta={meta}
+              focused={focused}
+              onPress={onPress}
+              showBadge={route.name === 'chat'}
+            />
+          )
+        })}
+      </View>
+    </GlassBottomBarShell>
   )
 }
 
@@ -295,32 +250,6 @@ export default function TabsLayout() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  // ── Container ──
-  wrapper: {
-    position: 'absolute',
-    left: 16, right: 16,
-    maxWidth: 480,
-    alignSelf: 'center',
-    borderRadius: 28,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.1,
-        shadowRadius: 14,
-      },
-      android: { elevation: 10 },
-    }),
-  },
-  blurBackground: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 28,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)', // fallback
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-  },
-
   // ── Main row ──
   bar: {
     flexDirection: 'row',
@@ -407,40 +336,13 @@ const s = StyleSheet.create({
     height: BAR_H,
   },
 
-  fabCircle: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_SIZE / 2,
-    backgroundColor: T.fabBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: Shadows.floating,
-      android: { elevation: 8 },
-    }),
-  },
-
-  // ── Floating Capsule ──
-  floatingFabWrap: {
-    position: 'absolute',
-    alignSelf: 'center',
-    zIndex: 100,
-    ...Platform.select({
-      ios: {
-        shadowColor: T.primary,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      },
-      android: { elevation: 10 },
-    }),
-  },
-  floatingFab: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+  // ── Collapsed Circle Badge ──
+  collapsedBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: T.badgeBg,
+    borderWidth: 1.5,
+    borderColor: T.badgeBorder,
   },
 })

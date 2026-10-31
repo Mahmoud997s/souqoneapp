@@ -19,9 +19,25 @@ import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
 import { ServiceCard } from '../../src/components/services/ServiceCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
-import { HorizontalScrollCard } from '../../src/components/ui/HorizontalScrollCard'
+import {
+  HorizontalScrollCard,
+  SIDE_SCALE,
+  SIDE_TRANSLATE_Y,
+  SIDE_OPACITY,
+  SNAP_DURATION,
+  computeCardDepth,
+} from '../../src/components/ui/HorizontalScrollCard'
+export {
+  SIDE_SCALE,
+  SIDE_TRANSLATE_Y,
+  SIDE_OPACITY,
+  SNAP_DURATION,
+  computeCardDepth,
+}
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
+import { GlassSurface } from '../../src/components/navigation/glassSupport'
+import { TopBarTokens } from '../../src/constants/topBarTokens'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
@@ -36,10 +52,15 @@ import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const { width: SW } = Dimensions.get('window')
-const CARD_WIDTH = Math.round(SW * 0.6)
+export const CARD_WIDTH = Math.round(SW * 0.6)
+export const CARS_PEEK_WIDTH_RATIO = 0.80
+export const CARS_PEEK_GAP = 6
+export const CARS_PEEK_IMAGE_HEIGHT = 133
+export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
+export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
-interface SectionProps {
+export interface SectionProps {
   title: string
   subTitle?: string
   icon: keyof typeof MaterialCommunityIcons.glyphMap
@@ -52,15 +73,34 @@ interface SectionProps {
     item: any
     onPress: () => void
     imageHeight?: number
+    compactBody?: boolean
     disableImageSwipe?: boolean
     fullWidth?: boolean
     maxChips?: number
     titleNumberOfLines?: number
   }>
+  peek?: boolean
 }
 
-function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, isLoading, routeBase, CustomCard }: SectionProps) {
+export function CategorySection({
+  title,
+  subTitle,
+  icon,
+  iconColor,
+  seeAllRoute,
+  data,
+  isLoading,
+  routeBase,
+  CustomCard,
+  peek = false,
+}: SectionProps) {
   if (!isLoading && (!data || data.length === 0)) return null
+
+  const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
+  const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
+  const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaging = peek
+  const sectionShowDots = peek
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
@@ -84,30 +124,43 @@ function CategorySection({ title, subTitle, icon, iconColor, seeAllRoute, data, 
         <HorizontalScrollCard
           key="loading-skeletons"
           data={[1, 2, 3]}
-          cardWidth={CARD_WIDTH}
-          gap={Spacing.space3}
-          paddingEnd={Spacing.space5}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
           keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={() => <SkeletonCard style={{ width: CARD_WIDTH }} />}
+          renderItem={() => (
+            <SkeletonCard
+              fullWidth={peek}
+              imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
+              compactBody={peek}
+              style={{ width: sectionCardWidth }}
+            />
+          )}
         />
       ) : (
         <HorizontalScrollCard
           key="loaded-cards"
           data={data || []}
-          cardWidth={CARD_WIDTH}
-          gap={Spacing.space3}
-          paddingEnd={Spacing.space5}
+          cardWidth={sectionCardWidth}
+          gap={sectionGap}
+          paddingEnd={sectionPaddingEnd}
+          paging={sectionPaging}
+          showDots={sectionShowDots}
+          depthEffect={peek}
           keyExtractor={(item) => item.id}
           onSeeAll={() => router.push(seeAllRoute as any)}
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`تصفح جميع ${title}`}
           renderItem={({ item }) => (
-            <View style={{ width: CARD_WIDTH }}>
+            <View style={{ width: sectionCardWidth }}>
               <CustomCard
                 item={item}
                 onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
                 disableImageSwipe={true}
                 titleNumberOfLines={1}
+                fullWidth={peek}
+                imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
+                compactBody={peek}
               />
             </View>
           )}
@@ -139,6 +192,14 @@ export default function HomeScreen() {
     router.push('/(modals)/post-category' as any)
   }
 
+  const handleChat = () => {
+    if (!user) {
+      router.push('/(auth)/login')
+      return
+    }
+    router.push('/(tabs)/chat')
+  }
+
   const userName = user?.displayName || user?.username || 'ضيف'
 
   return (
@@ -149,7 +210,8 @@ export default function HomeScreen() {
         scrollY={scrollY}
         hideBackButton
         rightElement={
-          <View style={s.brandIconBtn}>
+          <View style={s.brandIconBtn} testID="home-brand-icon-btn">
+            <GlassSurface testID="home-brand-icon-btn" borderRadius={TopBarTokens.buttonRadius} />
             <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
           </View>
         }
@@ -161,11 +223,7 @@ export default function HomeScreen() {
         onNavSearchPress={() => router.push('/(tabs)/search')}
         headerIcon="notifications-outline"
         onHeaderIconPress={() => router.push('/profile/notifications')}
-        primaryCta={{
-          label: 'إضافة إعلان',
-          icon: 'add',
-          onPress: handlePost,
-        }}
+        onChatPress={handleChat}
       />
 
       <Animated.ScrollView 
@@ -186,8 +244,9 @@ export default function HomeScreen() {
         {/* ── OFFICIAL CATEGORIES GRID (Balanced 4x2) ── */}
         <HomeCategoriesGrid />
 
-        {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture) ── */}
+        {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture, Cars with Peek Carousel D-164) ── */}
         <CategorySection
+          peek={true}
           title="أحدث إعلانات السيارات"
           subTitle="أفضل عروض البيع والإيجار المتاحة"
           icon="car-sports"
@@ -196,10 +255,13 @@ export default function HomeScreen() {
           data={listings}
           isLoading={loadingListings}
           routeBase="cars"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <CarCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={3}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -298,19 +360,14 @@ const s = StyleSheet.create({
 
   // Header & Brand Icon
   brandIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    ...TopBarTokens.buttonShadow,
   },
 
   content: { },

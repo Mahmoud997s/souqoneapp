@@ -23,6 +23,8 @@ import { navigateFromNotification } from '../../src/utils/notificationRouter'
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
+export const NOTIFICATIONS_EMPTY_CTA_ROUTE = '/(tabs)/search' as const
+
 function formatTime(iso: string) {
   if (!iso) return 'غير معروف'
   const d = new Date(iso)
@@ -384,7 +386,7 @@ export default function NotificationsScreen() {
                 style={s.ctaButton} 
                 onPress={() => {
                   Haptics.selectionAsync()
-                  router.push('/(tabs)/browse' as any)
+                  router.push(NOTIFICATIONS_EMPTY_CTA_ROUTE)
                 }}
                 activeOpacity={0.8}
               >

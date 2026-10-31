@@ -6,12 +6,12 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  type ImageSourcePropType,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import Animated, {
-  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -19,74 +19,75 @@ import Animated, {
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
 import type { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { CATEGORY_ICONS } from '../../constants/categoryIcons'
 export { CATEGORY_ICONS } from '../../constants/categoryIcons'
 
-/**
- * Optical size balance config:
- * Defines per-icon scale factor so wide icons (cars, buses) and square icons
- * maintain balanced visual weight across the grid.
- */
-export const CATEGORY_ICON_SCALES: Record<string, number> = {
-  cars: 1.10,
-  services: 1.0,
-  parts: 1.0,
-  equipment: 1.05,
-  buses: 1.10,
-  browse: 1.0,
-} as const
-
 export interface HomeCategoryItem {
   id: string
   label: string
   route: string
-  image: any
+  image: ImageSourcePropType
   icon?: keyof typeof MaterialCommunityIcons.glyphMap
   isAction?: boolean
 }
 
 export const HOME_CATEGORIES: HomeCategoryItem[] = [
-  { id: 'cars',      label: 'سيارات',    route: '/cars',          image: CATEGORY_ICONS.cars,      icon: 'car-sports' },
-  { id: 'services',  label: 'خدمات',     route: '/services',      image: CATEGORY_ICONS.services,  icon: 'car-wrench' },
-  { id: 'parts',     label: 'قطع غيار',  route: '/parts',         image: CATEGORY_ICONS.parts,     icon: 'car-cog' },
-  { id: 'equipment', label: 'معدات',     route: '/equipment',     image: CATEGORY_ICONS.equipment, icon: 'excavator' },
-  { id: 'buses',     label: 'حافلات',    route: '/buses',         image: CATEGORY_ICONS.buses,     icon: 'bus-side' },
-  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/browse', image: CATEGORY_ICONS.browse,    icon: 'grid-large', isAction: true },
+  { id: 'cars',      label: 'سيارات',    route: '/cars',                     image: CATEGORY_ICONS.cars,      icon: 'car-sports' },
+  { id: 'services',  label: 'خدمات',     route: '/services',                 image: CATEGORY_ICONS.services,  icon: 'car-wrench' },
+  { id: 'parts',     label: 'قطع غيار',  route: '/parts',                    image: CATEGORY_ICONS.parts,     icon: 'car-cog' },
+  { id: 'equipment', label: 'معدات',     route: '/equipment',                image: CATEGORY_ICONS.equipment, icon: 'excavator' },
+  { id: 'buses',     label: 'حافلات',    route: '/buses',                    image: CATEGORY_ICONS.buses,     icon: 'bus-side' },
+  { id: 'operators', label: 'المشغلين',  route: '/equipment/operators/browse', image: CATEGORY_ICONS.operators, icon: 'account-hard-hat' },
+  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/search',            image: CATEGORY_ICONS.browse,    icon: 'grid-large', isAction: true },
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-export const CATEGORY_GRID_COLUMNS = 3
-export const CATEGORY_GRID_GAP = 8
-export const CATEGORY_GRID_PADDING_H = Spacing.space4 * 2 // 16 * 2 = 32
+export const CATEGORY_GRID_COLUMNS = 4
+export const CATEGORY_GRID_GAP = 6
+export const CATEGORY_GRID_PADDING_H = 16
+// 3D Category icon size: increased by exactly 4% per user directive (38 * 1.04 = 39.52 -> 39.5)
+export const CATEGORY_ICON_SIZE = 39.5
 
+/**
+ * Calculates item width so that 4 tiles with gaps and padding fit on any screen width.
+ */
 export function calculateCategoryItemWidth(screenWidth: number = SCREEN_WIDTH): number {
-  return Math.floor(
-    (screenWidth - CATEGORY_GRID_PADDING_H - CATEGORY_GRID_GAP * (CATEGORY_GRID_COLUMNS - 1)) /
-      CATEGORY_GRID_COLUMNS
-  )
+  const available = screenWidth - (CATEGORY_GRID_PADDING_H * 2) - (CATEGORY_GRID_GAP * (CATEGORY_GRID_COLUMNS - 1))
+  return Math.floor(available / CATEGORY_GRID_COLUMNS)
 }
 
-const ITEM_WIDTH = calculateCategoryItemWidth(SCREEN_WIDTH)
+/**
+ * Calculates item height with 10% reduction from width while preserving geometric harmony.
+ */
+export function calculateCategoryItemHeight(screenWidth: number = SCREEN_WIDTH): number {
+  return Math.round(calculateCategoryItemWidth(screenWidth) * 0.9)
+}
+
+export function calculateCategoryGridGap(_screenWidth: number = SCREEN_WIDTH): number {
+  return CATEGORY_GRID_GAP
+}
+
+export const CATEGORY_ITEM_WIDTH = calculateCategoryItemWidth(SCREEN_WIDTH)
+export const CATEGORY_ITEM_HEIGHT = calculateCategoryItemHeight(SCREEN_WIDTH)
+export const CATEGORY_ITEM_SIZE = CATEGORY_ITEM_WIDTH
 
 interface CategoryTileProps {
   item: HomeCategoryItem
-  index: number
-  itemWidth: number
   reducedMotion: boolean
   onPress: (route: string) => void
+  support?: GlassSupport
 }
 
 const CategoryTile = memo(function CategoryTile({
   item,
-  index,
-  itemWidth,
   reducedMotion,
   onPress,
+  support,
 }: CategoryTileProps) {
   const pressed = useSharedValue(0)
-  const scaleFactor = CATEGORY_ICON_SCALES[item.id] ?? 1.0
 
   const handlePressIn = useCallback(() => {
     pressed.value = 1
@@ -129,15 +130,8 @@ const CategoryTile = memo(function CategoryTile({
     }
   })
 
-  const enteringAnimation = reducedMotion
-    ? undefined
-    : FadeInDown.delay(index * 40).springify().damping(18).stiffness(180)
-
   return (
-    <Animated.View
-      entering={enteringAnimation}
-      style={[s.itemWrap, { width: itemWidth }]}
-    >
+    <View style={s.itemWrap}>
       <Pressable
         testID={`category-tile-${item.id}`}
         onPress={handlePress}
@@ -145,57 +139,85 @@ const CategoryTile = memo(function CategoryTile({
         onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={item.label}
-        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+        hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }}
+        style={s.pressable}
       >
         <Animated.View style={[s.card, item.isAction && s.actionCard, animatedCardStyle]}>
-          <View style={s.iconContainer}>
+          <GlassSurface
+            testID={`category-tile-${item.id}`}
+            borderRadius={14}
+            noBorder={true}
+            support={support}
+          />
+          <View testID={`icon-container-${item.id}`} style={s.iconContainer}>
             <Animated.View style={[s.iconBox, animatedIconStyle]}>
               <Image
+                testID="category-tile-image"
                 source={item.image}
-                style={[
-                  s.iconImage,
-                  {
-                    transform: [{ scale: scaleFactor }],
-                  },
-                ]}
+                style={s.iconImage}
                 contentFit="contain"
                 cachePolicy="memory-disk"
                 accessibilityIgnoresInvertColors
               />
             </Animated.View>
           </View>
-          <Text
-            style={[s.label, item.isAction && s.actionLabel]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.label}
-          </Text>
-          <View testID="category-label-line" style={s.labelLine} pointerEvents="none" />
+          <View testID="category-tile-label-box" style={s.labelBox}>
+            <Text
+              style={[s.label, item.isAction && s.actionLabel]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
+              {item.label}
+            </Text>
+          </View>
         </Animated.View>
       </Pressable>
-    </Animated.View>
+    </View>
   )
 })
 
-export function HomeCategoriesGrid() {
-  const reducedMotion = useAppReducedMotion()
+export function HomeCategoriesGrid({
+  reducedMotion: reducedMotionProp,
+  support: supportProp,
+}: {
+  reducedMotion?: boolean
+  support?: GlassSupport
+} = {}) {
+  const hookReducedMotion = useAppReducedMotion()
+  const reducedMotion = reducedMotionProp !== undefined ? reducedMotionProp : hookReducedMotion
+  const hookGlass = useGlassSupport()
+  const glass = supportProp ?? hookGlass
 
   const handleNavigate = useCallback((route: string) => {
     router.push(route as any)
   }, [])
 
+  const topRowItems = HOME_CATEGORIES.slice(0, 4)
+  const bottomRowItems = HOME_CATEGORIES.slice(4)
+
   return (
-    <View style={s.container}>
-      <View style={s.grid}>
-        {HOME_CATEGORIES.map((cat, index) => (
+    <View testID="home-categories-container" style={s.container}>
+      <View testID="home-categories-row-top" style={s.row}>
+        {topRowItems.map((cat) => (
           <CategoryTile
             key={cat.id}
             item={cat}
-            index={index}
-            itemWidth={ITEM_WIDTH}
             reducedMotion={reducedMotion}
             onPress={handleNavigate}
+            support={glass}
+          />
+        ))}
+      </View>
+      <View testID="home-categories-row-bottom" style={[s.row, s.bottomRow]}>
+        {bottomRowItems.map((cat) => (
+          <CategoryTile
+            key={cat.id}
+            item={cat}
+            reducedMotion={reducedMotion}
+            onPress={handleNavigate}
+            support={glass}
           />
         ))}
       </View>
@@ -205,36 +227,48 @@ export function HomeCategoriesGrid() {
 
 const s = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.space4,
-    marginBottom: Spacing.space5,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    marginBottom: Spacing.space4,
+    width: '100%',
+    paddingHorizontal: CATEGORY_GRID_PADDING_H,
     gap: CATEGORY_GRID_GAP,
-    justifyContent: 'space-between',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: CATEGORY_GRID_GAP,
+    width: '100%',
+  },
+  bottomRow: {
+    justifyContent: 'flex-start',
   },
   itemWrap: {
-    marginBottom: 0,
+    width: CATEGORY_ITEM_WIDTH,
+    height: CATEGORY_ITEM_HEIGHT,
+  },
+  pressable: {
+    width: '100%',
+    height: '100%',
   },
   card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    paddingTop: 8,
-    paddingBottom: 7,
-    paddingHorizontal: 4,
-    height: 80,
-    minHeight: 80,
+    backgroundColor: 'transparent',
+    borderRadius: 14,
+    paddingTop: 5,
+    paddingBottom: 4,
+    paddingHorizontal: 2,
+    width: CATEGORY_ITEM_WIDTH,
+    height: CATEGORY_ITEM_HEIGHT,
+    minHeight: CATEGORY_ITEM_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 4,
       },
       android: {
         elevation: 2,
@@ -242,44 +276,43 @@ const s = StyleSheet.create({
     }),
   },
   actionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
     borderColor: Colors.border,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
-    marginBottom: 4,
+    height: CATEGORY_ICON_SIZE,
+    marginBottom: 3,
   },
   iconBox: {
-    width: 40,
-    height: 40,
+    width: CATEGORY_ICON_SIZE,
+    height: CATEGORY_ICON_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconImage: {
-    width: 40,
-    height: 40,
+    width: CATEGORY_ICON_SIZE,
+    height: CATEGORY_ICON_SIZE,
+  },
+  labelBox: {
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 2,
   },
   label: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11.5,
+    lineHeight: 15,
     color: Colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 3,
+    width: '100%',
   },
   actionLabel: {
     color: Colors.primary,
     fontFamily: 'Almarai_800ExtraBold',
-  },
-  labelLine: {
-    width: 28,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Colors.primary,
-    opacity: 0.35,
-    alignSelf: 'center',
   },
 })

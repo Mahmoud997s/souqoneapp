@@ -1,7 +1,10 @@
 import React from 'react'
+import { StyleSheet } from 'react-native'
 import { render, screen } from '@testing-library/react-native'
 import { ServiceScheduleCard } from '../ServiceScheduleCard'
 import type { ServiceScheduleViewModel } from '../../../../types/serviceDetailViewModel.types'
+import { Colors } from '../../../../constants/colors'
+import { Spacing } from '../../../../constants/spacing'
 
 jest.setTimeout(15000)
 
@@ -66,5 +69,24 @@ describe('ServiceScheduleCard', () => {
       screen.getByText('خدمة منزلية / متنقلة متاحة عند الطلب'),
     ).toBeTruthy()
     expect(screen.queryByText('أيام العمل:')).toBeNull()
+  })
+
+  describe('Card Spacing and Visual Tokens (D-170b)', () => {
+    it('applies Spacing.space4 horizontal margin and Spacing.space2 vertical margin (Req a)', async () => {
+      await render(<ServiceScheduleCard schedule={fullSchedule} />)
+      const card = screen.getByTestId('service-schedule-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.marginHorizontal).toBe(Spacing.space4)
+      expect(flatStyle.marginVertical).toBe(Spacing.space2)
+    })
+
+    it('uses Colors.white background and card border matching Cars and Parts (Req b)', async () => {
+      await render(<ServiceScheduleCard schedule={fullSchedule} />)
+      const card = screen.getByTestId('service-schedule-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.backgroundColor).toBe(Colors.white)
+      expect(flatStyle.borderWidth).toBe(1)
+      expect(flatStyle.borderColor).toBe(Colors.border)
+    })
   })
 })
