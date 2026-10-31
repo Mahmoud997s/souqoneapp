@@ -20,6 +20,7 @@ import { dialogService } from '../../src/store/dialogStore'
 import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 import { useCarWizardStore } from '../../src/store/carWizardStore';
 import { useListingContact } from '../../src/hooks/listing-detail/useListingContact';
+import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -390,7 +391,7 @@ export default function ListingDetailScreen() {
                   <View style={s.sellerTexts}>
                     <View style={s.sellerNameRow}>
                       <Text style={s.sellerName}>{seller.displayName || seller.username || 'بائع'}</Text>
-                      {seller.isVerified && <Ionicons name="checkmark-circle" size={16} color="#1877F2" />}
+                      {seller.isVerified && <VerifiedBadge size={17} style={{ marginStart: 4 }} />}
                     </View>
                     <Text style={s.sellerGov}>عضو منذ {new Date(seller.createdAt).getFullYear()}</Text>
                   </View>
@@ -630,7 +631,7 @@ export default function ListingDetailScreen() {
                 </View>
                 {seller.isVerified && (
                   <View style={s.verifiedBadgeContact}>
-                    <Ionicons name="checkmark" size={10} color="#fff" />
+                    <VerifiedBadge size={16} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -826,7 +827,7 @@ const s = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#f1f5f9',
     shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 16 },
   iconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  verifiedBadgeContact: { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#ffffff' },
+  verifiedBadgeContact: { position: 'absolute', bottom: -2, right: -2, backgroundColor: '#ffffff', borderRadius: 10, padding: 1.5 },
   chatIconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   waBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   callWideBtn: { flex: 1, height: 56, backgroundColor: '#EFF6FF', borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },

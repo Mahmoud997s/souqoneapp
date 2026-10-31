@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
+import { VerifiedBadge } from '../../ui/VerifiedBadge'
 
 export interface OperatorAvatarBlockProps {
   avatarUrl?: string | null
@@ -42,7 +43,7 @@ export function OperatorAvatarBlock({
           accessible
           accessibilityLabel="حساب موثق"
         >
-          <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+          <VerifiedBadge size={26} />
         </View>
       )}
     </View>

@@ -1,11 +1,12 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Gradients } from '../../constants/gradients'
+import { VerifiedBadge } from '../ui/VerifiedBadge'
 
 interface ProfileHeroCardProps {
   displayName: string
@@ -71,7 +72,7 @@ export function ProfileHeroCard({
           <View style={s.nameRow}>
             <Text style={s.userName} numberOfLines={1}>{displayName}</Text>
             {isVerified && (
-              <MaterialIcons name="verified" size={16} color="#0284C7" style={{ marginStart: 4 }} />
+              <VerifiedBadge size={17} style={{ marginStart: 4 }} />
             )}
           </View>
           {handle ? <Text style={s.userHandle} numberOfLines={1}>{handle}</Text> : null}

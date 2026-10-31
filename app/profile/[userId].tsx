@@ -11,6 +11,7 @@ import { Radius } from '../../src/constants/radius'
 import { CarCard } from '../../src/components/cars/CarCard'
 import { chatApi } from '../../src/api/chat'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge'
 import { useListings } from '../../src/hooks/useListings'
 import { usePublicProfile } from '../../src/hooks/useProfile'
 import { useAuthStore } from '../../src/store/authStore'
@@ -77,7 +78,7 @@ export default function PublicProfileScreen() {
             )}
             {profile?.isVerified && (
               <View style={s.verified}>
-                <Ionicons name="checkmark" size={12} color={Colors.white} />
+                <VerifiedBadge size={20} />
               </View>
             )}
           </View>
@@ -102,7 +103,11 @@ export default function PublicProfileScreen() {
             <Text style={s.statLbl}>عضو منذ</Text>
           </View>
           <View style={s.statBox}>
-            <Ionicons name="checkmark-circle-outline" size={24} color={profile?.isVerified ? Colors.success : Colors.border} />
+            {profile?.isVerified ? (
+              <VerifiedBadge size={24} />
+            ) : (
+              <Ionicons name="checkmark-circle-outline" size={24} color={Colors.border} />
+            )}
             <Text style={s.statVal}>{profile?.isVerified ? 'موثّق' : 'غير موثّق'}</Text>
             <Text style={s.statLbl}>الحالة</Text>
           </View>
@@ -166,10 +171,9 @@ const s = StyleSheet.create({
   avatarFallback: { backgroundColor: Colors.primary + '20', alignItems: 'center', justifyContent: 'center' },
   avatarLetter: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 32, color: Colors.primary },
   verified: {
-    position: 'absolute', bottom: 0, right: 0,
-    width: 20, height: 20, borderRadius: 10,
-    backgroundColor: Colors.success, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: Colors.white,
+    position: 'absolute', bottom: -2, right: -2,
+    backgroundColor: Colors.white, borderRadius: Radius.pill,
+    padding: 1.5,
   },
   name: { fontFamily: 'Almarai_700Bold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl' },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },

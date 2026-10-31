@@ -15,6 +15,7 @@ import { formatLocation } from '../../src/utils/mappers'
 import { formatSalary } from '../../src/utils/format'
 import { LICENSE_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from '../../src/constants/jobs'
 import { dialogService } from '../../src/store/dialogStore'
+import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge'
 
 
 const { width: SW } = Dimensions.get('window')
@@ -171,7 +172,7 @@ export default function JobDetailScreen() {
                   <View style={s.sellerTexts}>
                     <View style={s.sellerNameRow}>
                       <Text style={s.sellerName} numberOfLines={1}>{employer.displayName || employer.username || 'صاحب عمل'}</Text>
-                      {employer.isVerified && <Ionicons name="checkmark-circle" size={16} color="#1877F2" />}
+                      {employer.isVerified && <VerifiedBadge size={17} style={{ marginStart: 4 }} />}
                     </View>
                     {employer.governorate && <Text style={s.sellerGov}>{formatLocation(employer)}</Text>}
                   </View>

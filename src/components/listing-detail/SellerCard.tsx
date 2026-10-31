@@ -9,6 +9,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import type { SellerView } from '../../types/carDetailViewModel.types'
 import { lineHeightFor } from '../../constants/typography'
+import { VerifiedBadge } from '../ui/VerifiedBadge'
 
 export interface SellerCardProps {
   seller: SellerView
@@ -56,10 +57,8 @@ export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
             <View style={s.nameRow}>
               <Text style={s.nameText}>{seller.name}</Text>
               {seller.isVerified ? (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color={Colors.primary}
+                <VerifiedBadge
+                  size={17}
                   style={s.verifiedIcon}
                 />
               ) : null}
