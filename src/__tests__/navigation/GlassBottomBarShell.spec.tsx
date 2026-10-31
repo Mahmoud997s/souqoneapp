@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View, Keyboard, StyleSheet, Dimensions } from 'react-native'
+import { Text, View, Keyboard, StyleSheet, Dimensions, type ViewStyle } from 'react-native'
 import { render, fireEvent, act, renderHook, cleanup } from '@testing-library/react-native'
 import { Colors } from '../../constants/colors'
 import {
@@ -11,6 +11,7 @@ import {
   GlassBottomBarShell,
   useBottomBarKeyboardHide,
 } from '../../components/navigation/GlassBottomBarShell'
+import * as glassSupportModule from '../../components/navigation/glassSupport'
 
 jest.mock('expo-blur', () => {
   const React = require('react')
@@ -421,6 +422,56 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
 
       expect(getByTestId('shell-test-glass-liquid')).toBeTruthy()
       expect(queryByTestId('shell-test-glass-blur')).toBeNull()
+    })
+
+    describe('Hierarchy Opacity Verification (D4)', () => {
+      function assertNoOpacityInAncestry(
+        startElement: ReturnType<typeof render>['UNSAFE_root'],
+        rootTestId: string
+      ) {
+        let current: typeof startElement | null = startElement
+        while (current) {
+          const flatStyle = (StyleSheet.flatten(current.props?.style) || {}) as ViewStyle
+          expect(flatStyle.opacity).toBeUndefined()
+          if (current.props?.testID === rootTestId) {
+            break
+          }
+          current = current.parent
+        }
+      }
+
+      it('asserts neither glass surface nor any ancestor has opacity style (liquid branch)', async () => {
+        jest.spyOn(glassSupportModule, 'useGlassSupport').mockReturnValue({
+          kind: 'liquid',
+          GlassView: (props) => <View {...props} />,
+        })
+
+        const { getByTestId } = await render(
+          <GlassBottomBarShell testID="shell-test">
+            <Text>محتوى</Text>
+          </GlassBottomBarShell>
+        )
+
+        const liquidSurface = getByTestId('shell-test-glass-liquid')
+        expect(liquidSurface).toBeTruthy()
+        assertNoOpacityInAncestry(liquidSurface, 'shell-test')
+      })
+
+      it('asserts neither glass surface nor any ancestor has opacity style (blur branch)', async () => {
+        jest.spyOn(glassSupportModule, 'useGlassSupport').mockReturnValue({
+          kind: 'blur',
+        })
+
+        const { getByTestId } = await render(
+          <GlassBottomBarShell testID="shell-test">
+            <Text>محتوى</Text>
+          </GlassBottomBarShell>
+        )
+
+        const blurSurface = getByTestId('shell-test-glass-blur')
+        expect(blurSurface).toBeTruthy()
+        assertNoOpacityInAncestry(blurSurface, 'shell-test')
+      })
     })
   })
 })

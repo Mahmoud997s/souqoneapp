@@ -9,8 +9,6 @@ import {
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
-  useAnimatedReaction,
-  runOnJS,
   withSpring,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -58,8 +56,6 @@ type AnimatedRadiusStyle = ReturnType<typeof useAnimatedStyle<ViewStyle>>
 interface GlassSurfaceProps {
   testID: string
   radiusStyle: AnimatedRadiusStyle
-  /** True only while the shell is the collapsed circle (liquid glass press feedback). */
-  interactive: boolean
 }
 
 /**
@@ -70,7 +66,7 @@ interface GlassSurfaceProps {
  * The surface itself never fades: it always stays at opacity 1 and only its radius morphs
  * (fading a GlassView or any parent to opacity 0 stops the glass from rendering).
  */
-function GlassSurface({ testID, radiusStyle, interactive }: GlassSurfaceProps) {
+function GlassSurface({ testID, radiusStyle }: GlassSurfaceProps) {
   const glass = useGlassSupport()
 
   if (glass.kind === 'liquid') {
@@ -83,7 +79,6 @@ function GlassSurface({ testID, radiusStyle, interactive }: GlassSurfaceProps) {
       >
         <GlassView
           glassEffectStyle="regular"
-          isInteractive={interactive}
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
@@ -211,21 +206,6 @@ export function GlassBottomBarShell({
     return { borderRadius: geo.borderRadius }
   })
 
-  // ── Collapsed state mirrored to JS (drives liquid glass isInteractive only) ──
-  const [isCollapsedForGlass, setIsCollapsedForGlass] = useState(false)
-  useAnimatedReaction(
-    () => {
-      if (!navHidden) return false
-      return computeBottomBarGeometry(navHidden.value, windowWidth, isReducedMotion).isCollapsed
-    },
-    (isCollapsed, previous) => {
-      if (isCollapsed !== previous) {
-        runOnJS(setIsCollapsedForGlass)(isCollapsed)
-      }
-    },
-    [navHidden, windowWidth, isReducedMotion]
-  )
-
   // ── Animated Content Style (labels and tabs fade out first) ──
   const animatedContentStyle = useAnimatedStyle(() => {
     if (!navHidden) {
@@ -264,7 +244,6 @@ export function GlassBottomBarShell({
       <GlassSurface
         testID={testID}
         radiusStyle={animatedBackgroundStyle}
-        interactive={isCollapsedForGlass}
       />
 
       {/* ── Expanded Content Layer ── */}
