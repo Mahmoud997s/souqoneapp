@@ -402,7 +402,7 @@ describe('PartDetailScreen', () => {
       // Initially all rows exist
       expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
       expect(screen.getByTestId('spec-row-category')).toBeTruthy()
-      expect(screen.getByTestId('spec-row-condition')).toBeTruthy()
+      expect(screen.getByTestId('spec-row-originality')).toBeTruthy()
       expect(screen.queryByTestId('specs-no-match')).toBeNull()
 
       // Type part number
@@ -414,9 +414,9 @@ describe('PartDetailScreen', () => {
       expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
       expect(screen.getByText('04465-33471')).toBeTruthy()
 
-      // Category and condition do not match
+      // Category and originality do not match
       expect(screen.queryByTestId('spec-row-category')).toBeNull()
-      expect(screen.queryByTestId('spec-row-condition')).toBeNull()
+      expect(screen.queryByTestId('spec-row-originality')).toBeNull()
       expect(screen.queryByTestId('specs-no-match')).toBeNull()
     })
 
@@ -443,6 +443,34 @@ describe('PartDetailScreen', () => {
       expect(screen.queryByTestId('specs-no-match')).toBeNull()
       expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
       expect(screen.getByTestId('spec-row-category')).toBeTruthy()
+    })
+  })
+
+  describe('Single Placement of Facts & No Duplication (D-170d Req b)', () => {
+    it('asserts condition label and negotiable label each appear exactly once on the whole page for visitor view', async () => {
+      mockCurrentUser = { id: 'visitor-user' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      // Condition label appears exactly once (in header block)
+      const conditionMatches = screen.getAllByText('جديد')
+      expect(conditionMatches).toHaveLength(1)
+
+      // Negotiable label appears exactly once (in price container)
+      const negotiableMatches = screen.getAllByText('قابل للتفاوض')
+      expect(negotiableMatches).toHaveLength(1)
+    })
+
+    it('asserts condition label and negotiable label each appear exactly once on the whole page for owner view', async () => {
+      mockCurrentUser = { id: 'seller-999' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      // Condition label appears exactly once (in header block)
+      const conditionMatches = screen.getAllByText('جديد')
+      expect(conditionMatches).toHaveLength(1)
+
+      // Negotiable label appears exactly once (in price container)
+      const negotiableMatches = screen.getAllByText('قابل للتفاوض')
+      expect(negotiableMatches).toHaveLength(1)
     })
   })
 })
