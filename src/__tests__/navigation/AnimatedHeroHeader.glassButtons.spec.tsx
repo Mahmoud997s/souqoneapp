@@ -153,7 +153,7 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     expect(queryByTestId('hero-header-add-btn')).toBeNull()
   })
 
-  it('Tooth d (Liquid Glass Search Bars): both compact and large search bars render GlassSurface with transparent background', async () => {
+  it('Tooth d (Search Bars & Filter Buttons): compact search adopts navbar color with clean border, large search renders Liquid Glass, and both filter buttons render GlassSurface', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(true)
 
     const { getByTestId } = await render(
@@ -164,14 +164,15 @@ describe('AnimatedHeroHeader — Liquid Glass Controls & Navbar Chat Button', ()
     )
     await act(async () => {})
 
-    // 1. Compact Search Bar (Row 1)
+    // 1. Compact Search Bar (Row 1) — Adopts navbar background with clean border
     const compactSearch = getByTestId('hero-header-compact-search')
     const compactStyle = StyleSheet.flatten(compactSearch.props.style)
     expect(compactStyle.backgroundColor).toBe('transparent')
     expect(compactStyle.overflow).toBe('hidden')
     expect(compactStyle.height).toBe(TopBarTokens.searchHeight)
     expect(compactStyle.borderRadius).toBe(TopBarTokens.searchRadius)
-    expect(getByTestId('hero-header-compact-search-glass-blur')).toBeTruthy()
+    expect(compactStyle.borderWidth).toBe(TopBarTokens.searchBorderWidth)
+    expect(compactStyle.borderColor).toBe(TopBarTokens.searchBorderColor)
 
     // 2. Large Search Bar (Row 2)
     const largeSearch = getByTestId('hero-header-large-search')
