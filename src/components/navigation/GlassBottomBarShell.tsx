@@ -106,6 +106,8 @@ export interface GlassBottomBarShellProps {
   reducedMotion?: boolean
   bottomPad?: number
   testID?: string
+  /** When false, the bar remains statically expanded and never collapses with scroll. Defaults to true. */
+  scrollAware?: boolean
 }
 
 /**
@@ -128,6 +130,7 @@ export function GlassBottomBarShell({
   reducedMotion: reducedMotionProp,
   bottomPad = BottomBarTokens.marginHorizontal,
   testID = 'glass-bottom-bar-shell',
+  scrollAware = true,
 }: GlassBottomBarShellProps) {
   const isKeyboardVisible = useBottomBarKeyboardHide()
   const systemReducedMotion = useAppReducedMotion()
@@ -143,7 +146,7 @@ export function GlassBottomBarShell({
   } catch {
     navCtx = null
   }
-  const navHidden = navCtx?.navHidden ?? null
+  const navHidden = scrollAware ? (navCtx?.navHidden ?? null) : null
 
   // Layout calculations
   const expandedWidth = Math.min(

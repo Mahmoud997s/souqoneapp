@@ -3,25 +3,22 @@ import { View, Text, StyleSheet, Pressable, Platform, PanResponder } from 'react
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
-  withRepeat,
-  withSequence,
   interpolate,
   Extrapolation,
-  Easing,
 } from 'react-native-reanimated';
 
 import { Colors } from '../../constants/colors';
 import { Gradients } from '../../constants/gradients';
-import { useNavVisibility } from '../../context/NavVisibilityContext';
+import { BottomBarTokens } from '../../constants/bottomBarTokens';
+import { GlassBottomBarShell } from './GlassBottomBarShell';
 
-export const UNIFIED_BOTTOM_BAR_HEIGHT = 52;
+export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
 
 export type IconFamily = 'Ionicons' | 'MaterialCommunityIcons';
 
@@ -254,64 +251,13 @@ function TabItem({
   );
 }
 
-function ScrollAwareWrapper({
-  children,
-  bottomPad,
-  scrollAware,
-}: {
-  children: React.ReactNode;
-  bottomPad: number;
-  scrollAware: boolean;
-}) {
-  let navHidden: any = null;
-  try {
-    const navCtx = useNavVisibility();
-    navHidden = navCtx?.navHidden ?? null;
-  } catch {
-    // If rendered outside of NavVisibilityProvider, gracefully fallback to static position
-    navHidden = null;
-  }
-
-  const totalHeight = UNIFIED_BOTTOM_BAR_HEIGHT + bottomPad + 16;
-
-  const animatedStyle = useAnimatedStyle(() => {
-    if (!scrollAware || !navHidden) {
-      return { transform: [{ translateY: 0 }], opacity: 1 };
-    }
-    return {
-      transform: [
-        {
-          translateY: interpolate(
-            navHidden.value,
-            [0, 1],
-            [0, totalHeight],
-            Extrapolation.CLAMP
-          ),
-        },
-      ],
-      opacity: interpolate(
-        navHidden.value,
-        [0, 1],
-        [1, 0],
-        Extrapolation.CLAMP
-      ),
-    };
-  });
-
-  return (
-    <Animated.View style={[s.wrapper, { bottom: bottomPad }, animatedStyle]}>
-      {children}
-    </Animated.View>
-  );
-}
-
 export function UnifiedBottomBar({
   tabs,
   activeTab,
   onTabPress,
   onPostPress,
   activeColor = Colors.primary,
-  activeBgColor = Colors.paleMint,
+  activeBgColor = BottomBarTokens.activePillBg,
   scrollAware = true,
 }: UnifiedBottomBarProps) {
   const insets = useSafeAreaInsets();
@@ -409,88 +355,81 @@ export function UnifiedBottomBar({
 
   const effectiveActiveTab = draggingTabId ?? activeTab;
 
-  return (
-    <ScrollAwareWrapper bottomPad={bottomPad} scrollAware={scrollAware}>
-      <BlurView
-        intensity={Platform.OS === 'ios' ? 65 : 45}
-        tint="default"
-        style={s.blurBackground}
-      >
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.42)', 'rgba(255, 255, 255, 0.16)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={s.topHighlight} />
-      </BlurView>
-      <View
-        style={s.bar}
-        onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-        {...panResponder.panHandlers}
-      >
-        {tabs.map((tab) => {
-          if (tab.isPost) {
-            return (
-              <FABItem
-                key={tab.id}
-                onPress={onPostPress}
-                isHovered={effectiveActiveTab === tab.id}
-              />
-            );
-          }
+  // Active tab item for collapsed state icon & badge
+  const activeTabItem = useMemo(() => {
+    return tabs.find((t) => t.id === effectiveActiveTab) ?? tabs[0];
+  }, [tabs, effectiveActiveTab]);
 
-          const isActive = effectiveActiveTab === tab.id;
+  const collapsedIconName = activeTabItem
+    ? activeTabItem.icon || activeTabItem.iconOutline || 'ellipse'
+    : 'ellipse';
+
+  const collapsedIconSize = activeTabItem?.family === 'MaterialCommunityIcons' ? 24 : 22;
+
+  const collapsedIcon = activeTabItem ? (
+    <DynamicTabIcon
+      family={activeTabItem.family}
+      name={collapsedIconName}
+      size={collapsedIconSize}
+      color={activeColor}
+    />
+  ) : undefined;
+
+  const collapsedBadge =
+    activeTabItem?.badgeCount != null && activeTabItem.badgeCount > 0 ? (
+      <View style={s.badge}>
+        <Text style={s.badgeText}>
+          {activeTabItem.badgeCount > 99 ? '99+' : activeTabItem.badgeCount}
+        </Text>
+      </View>
+    ) : undefined;
+
+  const content = (
+    <View
+      style={s.bar}
+      onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+      {...panResponder.panHandlers}
+    >
+      {tabs.map((tab) => {
+        if (tab.isPost) {
           return (
-            <TabItem
+            <FABItem
               key={tab.id}
-              tab={tab}
-              isActive={isActive}
-              onPress={() => onTabPress(tab)}
-              activeColor={activeColor}
-              activeBgColor={activeBgColor}
+              onPress={onPostPress}
+              isHovered={effectiveActiveTab === tab.id}
             />
           );
-        })}
-      </View>
-    </ScrollAwareWrapper>
+        }
+
+        const isActive = effectiveActiveTab === tab.id;
+        return (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            isActive={isActive}
+            onPress={() => onTabPress(tab)}
+            activeColor={activeColor}
+            activeBgColor={activeBgColor}
+          />
+        );
+      })}
+    </View>
+  );
+
+  return (
+    <GlassBottomBarShell
+      bottomPad={bottomPad}
+      collapsedIcon={collapsedIcon}
+      badge={collapsedBadge}
+      scrollAware={scrollAware}
+      testID="unified-bottom-bar"
+    >
+      {content}
+    </GlassBottomBarShell>
   );
 }
 
 const s = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    maxWidth: 480,
-    alignSelf: 'center',
-    borderRadius: 26,
-    zIndex: 100,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 14,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  blurBackground: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 26,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.55)',
-  },
-  topHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
-  },
   bar: {
     flexDirection: 'row',
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
