@@ -22,6 +22,7 @@ export const BottomBarTokens = {
   collapsedRadius: 28,
   collapsedIconSize: 24,
   minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
+  addButtonSize: 38,
 
   // ── Glass Background Layers ──
   blurIntensityIos: BLUR_INTENSITY_IOS,
@@ -46,6 +47,17 @@ export const BottomBarTokens = {
     },
     android: {
       elevation: 6,
+    },
+  }),
+  addButtonShadow: Platform.select({
+    ios: {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+    },
+    android: {
+      elevation: 4,
     },
   }),
 
