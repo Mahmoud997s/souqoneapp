@@ -11,6 +11,66 @@ import type { PartDetailViewModel } from '../../../types/partDetailViewModel.typ
 
 export interface PartSpecsSectionProps {
   vm: PartDetailViewModel
+  searchQuery?: string
+}
+
+export function hasMatchingPartSpecs(
+  vm: PartDetailViewModel,
+  searchQuery?: string
+): boolean {
+  if (!searchQuery || !searchQuery.trim()) return true
+  const q = searchQuery.trim().toLowerCase()
+
+  const matchCategory =
+    Boolean(vm.partCategoryLabel) &&
+    (vm.partCategoryLabel.toLowerCase().includes(q) || 'فئة القطعة'.includes(q))
+  const matchCondition =
+    Boolean(vm.conditionLabel) &&
+    (vm.conditionLabel.toLowerCase().includes(q) || 'الحالة'.includes(q))
+  const matchOriginality =
+    Boolean(vm.originalityLabel) &&
+    (vm.originalityLabel.toLowerCase().includes(q) || 'النوع'.includes(q))
+  const matchPartNumber =
+    Boolean(vm.partNumber && (vm.partNumber.toLowerCase().includes(q) || 'رقم القطعة الأصلي'.includes(q)))
+  const matchQuantity =
+    Boolean(vm.quantityLabel && (vm.quantityLabel.toLowerCase().includes(q) || 'الكمية المتوفرة'.includes(q)))
+  const matchWarranty =
+    Boolean(vm.warrantyDurationLabel && (vm.warrantyDurationLabel.toLowerCase().includes(q) || 'الضمان'.includes(q)))
+  const matchNegotiable =
+    Boolean(vm.price?.isNegotiable && ('قابل للتفاوض'.includes(q) || 'قابلية التفاوض'.includes(q)))
+
+  const matchYearRange =
+    Boolean(vm.yearRangeLabel && (vm.yearRangeLabel.toLowerCase().includes(q) || 'سنوات الصنع'.includes(q)))
+  const matchVehicleTypes =
+    Boolean(vm.compatibleVehicleTypesLabels && vm.compatibleVehicleTypesLabels.length > 0) &&
+    (vm.compatibleVehicleTypesLabels.some((t) => t.toLowerCase().includes(q)) ||
+      'أنواع المركبات'.includes(q))
+
+  const matchMakes =
+    (Boolean(vm.compatibleMakesLabels && vm.compatibleMakesLabels.length > 0) ||
+      Boolean(vm.compatibleMakes && vm.compatibleMakes.length > 0)) &&
+    ('الماركات المتوافقة'.includes(q) ||
+      (vm.compatibleMakesLabels || []).some((m) => m.toLowerCase().includes(q)) ||
+      (vm.compatibleMakes || []).some((m) => m.toLowerCase().includes(q)))
+
+  const matchModels =
+    Boolean(vm.compatibleModels && vm.compatibleModels.length > 0) &&
+    ('الموديلات المتوافقة'.includes(q) ||
+      vm.compatibleModels.some((m) => m.toLowerCase().includes(q)))
+
+  return (
+    matchCategory ||
+    matchCondition ||
+    matchOriginality ||
+    matchPartNumber ||
+    matchQuantity ||
+    matchWarranty ||
+    matchNegotiable ||
+    matchYearRange ||
+    matchVehicleTypes ||
+    matchMakes ||
+    matchModels
+  )
 }
 
 const COLLAPSED_MAKES_LIMIT = 4
@@ -22,111 +82,182 @@ const COLLAPSED_MODELS_LIMIT = 6
  * Groups data cleanly into Basic Specs and Vehicle Compatibility cards.
  * Provides expandable chip lists for makes and models to prevent overflow.
  */
-export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
+export function PartSpecsSection({ vm, searchQuery }: PartSpecsSectionProps) {
   const [makesExpanded, setMakesExpanded] = useState(false)
   const [modelsExpanded, setModelsExpanded] = useState(false)
 
-  const hasMakes = vm.compatibleMakesLabels && vm.compatibleMakesLabels.length > 0
-  const hasModels = vm.compatibleModels && vm.compatibleModels.length > 0
-  const hasYearRange = Boolean(vm.yearRangeLabel)
-  const hasVehicleTypes =
-    vm.compatibleVehicleTypesLabels && vm.compatibleVehicleTypesLabels.length > 0
+  const q = searchQuery ? searchQuery.trim().toLowerCase() : ''
 
-  const hasCompatibilitySection = hasMakes || hasModels || hasYearRange || hasVehicleTypes
+  // Row match checks for Card 1 (Basic Technical Specifications)
+  const showCategory =
+    Boolean(vm.partCategoryLabel) &&
+    (!q || vm.partCategoryLabel.toLowerCase().includes(q) || 'فئة القطعة'.includes(q))
+  const showCondition =
+    Boolean(vm.conditionLabel) &&
+    (!q || vm.conditionLabel.toLowerCase().includes(q) || 'الحالة'.includes(q))
+  const showOriginality =
+    Boolean(vm.originalityLabel) &&
+    (!q || vm.originalityLabel.toLowerCase().includes(q) || 'النوع'.includes(q))
+  const showPartNumber =
+    Boolean(vm.partNumber && (!q || vm.partNumber.toLowerCase().includes(q) || 'رقم القطعة الأصلي'.includes(q)))
+  const showQuantity =
+    Boolean(vm.quantityLabel && (!q || vm.quantityLabel.toLowerCase().includes(q) || 'الكمية المتوفرة'.includes(q)))
+  const showWarranty =
+    Boolean(vm.warrantyDurationLabel && (!q || vm.warrantyDurationLabel.toLowerCase().includes(q) || 'الضمان'.includes(q)))
+  const showNegotiable =
+    Boolean(vm.price?.isNegotiable) &&
+    (!q || 'قابل للتفاوض'.includes(q) || 'قابلية التفاوض'.includes(q))
+
+  const hasBasicSection =
+    showCategory ||
+    showCondition ||
+    showOriginality ||
+    showPartNumber ||
+    showQuantity ||
+    showWarranty ||
+    showNegotiable
+
+  // Match checks for Card 2 (Vehicle Compatibility)
+  const showYearRange =
+    Boolean(vm.yearRangeLabel && (!q || vm.yearRangeLabel.toLowerCase().includes(q) || 'سنوات الصنع'.includes(q)))
+  const showVehicleTypes =
+    Boolean(vm.compatibleVehicleTypesLabels && vm.compatibleVehicleTypesLabels.length > 0) &&
+    (!q ||
+      vm.compatibleVehicleTypesLabels.some((t) => t.toLowerCase().includes(q)) ||
+      'أنواع المركبات'.includes(q))
+
+  const allMakes = vm.compatibleMakesLabels || []
+  const filteredMakes =
+    !q || 'الماركات المتوافقة'.includes(q)
+      ? allMakes
+      : allMakes.filter((m, i) => {
+          const makeKey = vm.compatibleMakes?.[i] || ''
+          return m.toLowerCase().includes(q) || makeKey.toLowerCase().includes(q)
+        })
+  const hasMakes = filteredMakes.length > 0
+
+  const allModels = vm.compatibleModels || []
+  const filteredModels =
+    !q || 'الموديلات المتوافقة'.includes(q)
+      ? allModels
+      : allModels.filter((m) => m.toLowerCase().includes(q))
+  const hasModels = filteredModels.length > 0
+
+  const hasCompatibilitySection =
+    showYearRange || showVehicleTypes || hasMakes || hasModels
 
   const visibleMakes = hasMakes
-    ? makesExpanded || vm.compatibleMakesLabels.length <= COLLAPSED_MAKES_LIMIT
-      ? vm.compatibleMakesLabels
-      : vm.compatibleMakesLabels.slice(0, COLLAPSED_MAKES_LIMIT)
+    ? makesExpanded || filteredMakes.length <= COLLAPSED_MAKES_LIMIT
+      ? filteredMakes
+      : filteredMakes.slice(0, COLLAPSED_MAKES_LIMIT)
     : []
 
   const visibleModels = hasModels
-    ? modelsExpanded || vm.compatibleModels.length <= COLLAPSED_MODELS_LIMIT
-      ? vm.compatibleModels
-      : vm.compatibleModels.slice(0, COLLAPSED_MODELS_LIMIT)
+    ? modelsExpanded || filteredModels.length <= COLLAPSED_MODELS_LIMIT
+      ? filteredModels
+      : filteredModels.slice(0, COLLAPSED_MODELS_LIMIT)
     : []
+
+  let hasPrevBasicRow = false
+  const getBasicRowStyle = () => {
+    const isBorder = hasPrevBasicRow
+    hasPrevBasicRow = true
+    return [s.specRow, isBorder && s.specRowBorder]
+  }
+
+  let hasPrevCompatRow = false
+  const getCompatRowStyle = () => {
+    const isBorder = hasPrevCompatRow
+    hasPrevCompatRow = true
+    return isBorder
+  }
 
   return (
     <View style={s.container}>
       {/* ── Card 1: Basic Technical Specifications ── */}
-      <View style={s.card} testID="part-specs-basic-card">
-        <View style={s.cardHeader}>
-          <Ionicons name="options-outline" size={18} color={Colors.primary} />
-          <Text style={s.sectionTitle}>المواصفات الفنية</Text>
-        </View>
+      {hasBasicSection && (
+        <View style={s.card} testID="part-specs-basic-card">
+          <View style={s.cardHeader}>
+            <Ionicons name="options-outline" size={18} color={Colors.primary} />
+            <Text style={s.sectionTitle}>المواصفات الفنية</Text>
+          </View>
 
-        <View style={s.specsTable}>
-          {/* Category */}
-          {Boolean(vm.partCategoryLabel) && (
-            <View style={s.specRow} testID="spec-row-category">
-              <Text style={s.specLabel}>فئة القطعة</Text>
-              <Text style={s.specValue}>{vm.partCategoryLabel}</Text>
-            </View>
-          )}
-
-          {/* Condition */}
-          {Boolean(vm.conditionLabel) && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-condition">
-              <Text style={s.specLabel}>الحالة</Text>
-              <Text style={s.specValue}>{vm.conditionLabel}</Text>
-            </View>
-          )}
-
-          {/* Originality */}
-          {Boolean(vm.originalityLabel) && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-originality">
-              <Text style={s.specLabel}>النوع</Text>
-              <View style={[s.badge, vm.isOriginal ? s.badgeOriginal : s.badgeAftermarket]}>
-                <Ionicons
-                  name={vm.isOriginal ? 'shield-checkmark' : 'construct-outline'}
-                  size={13}
-                  color={vm.isOriginal ? Colors.primary : Colors.text2}
-                />
-                <Text
-                  style={[s.badgeText, vm.isOriginal ? s.badgeTextOriginal : s.badgeTextAftermarket]}
-                >
-                  {vm.originalityLabel}
-                </Text>
+          <View style={s.specsTable}>
+            {/* Category */}
+            {showCategory && (
+              <View style={getBasicRowStyle()} testID="spec-row-category">
+                <Text style={s.specLabel}>فئة القطعة</Text>
+                <Text style={s.specValue}>{vm.partCategoryLabel}</Text>
               </View>
-            </View>
-          )}
+            )}
 
-          {/* Part Number (Only if available) */}
-          {Boolean(vm.partNumber) && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-part-number">
-              <Text style={s.specLabel}>رقم القطعة الأصلي</Text>
-              <Text style={[s.specValue, s.codeValue]}>{vm.partNumber}</Text>
-            </View>
-          )}
-
-          {/* Quantity (Only if available) */}
-          {Boolean(vm.quantityLabel) && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-quantity">
-              <Text style={s.specLabel}>الكمية المتوفرة</Text>
-              <Text style={s.specValue}>{vm.quantityLabel}</Text>
-            </View>
-          )}
-
-          {/* Warranty */}
-          {Boolean(vm.warrantyDurationLabel) && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-warranty">
-              <Text style={s.specLabel}>الضمان</Text>
-              <Text style={s.specValue}>{vm.warrantyDurationLabel}</Text>
-            </View>
-          )}
-
-          {/* Negotiable Price Badge */}
-          {vm.price.isNegotiable && (
-            <View style={[s.specRow, s.specRowBorder]} testID="spec-row-negotiable">
-              <Text style={s.specLabel}>قابلية التفاوض</Text>
-              <View style={s.negotiableBadge}>
-                <Ionicons name="chatbubbles-outline" size={12} color={Colors.accent} />
-                <Text style={s.negotiableBadgeText}>قابل للتفاوض</Text>
+            {/* Condition */}
+            {showCondition && (
+              <View style={getBasicRowStyle()} testID="spec-row-condition">
+                <Text style={s.specLabel}>الحالة</Text>
+                <Text style={s.specValue}>{vm.conditionLabel}</Text>
               </View>
-            </View>
-          )}
+            )}
+
+            {/* Originality */}
+            {showOriginality && (
+              <View style={getBasicRowStyle()} testID="spec-row-originality">
+                <Text style={s.specLabel}>النوع</Text>
+                <View style={[s.badge, vm.isOriginal ? s.badgeOriginal : s.badgeAftermarket]}>
+                  <Ionicons
+                    name={vm.isOriginal ? 'shield-checkmark' : 'construct-outline'}
+                    size={13}
+                    color={vm.isOriginal ? Colors.primary : Colors.text2}
+                  />
+                  <Text
+                    style={[
+                      s.badgeText,
+                      vm.isOriginal ? s.badgeTextOriginal : s.badgeTextAftermarket,
+                    ]}
+                  >
+                    {vm.originalityLabel}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Part Number (Only if available) */}
+            {showPartNumber && (
+              <View style={getBasicRowStyle()} testID="spec-row-part-number">
+                <Text style={s.specLabel}>رقم القطعة الأصلي</Text>
+                <Text style={[s.specValue, s.codeValue]}>{vm.partNumber}</Text>
+              </View>
+            )}
+
+            {/* Quantity (Only if available) */}
+            {showQuantity && (
+              <View style={getBasicRowStyle()} testID="spec-row-quantity">
+                <Text style={s.specLabel}>الكمية المتوفرة</Text>
+                <Text style={s.specValue}>{vm.quantityLabel}</Text>
+              </View>
+            )}
+
+            {/* Warranty */}
+            {showWarranty && (
+              <View style={getBasicRowStyle()} testID="spec-row-warranty">
+                <Text style={s.specLabel}>الضمان</Text>
+                <Text style={s.specValue}>{vm.warrantyDurationLabel}</Text>
+              </View>
+            )}
+
+            {/* Negotiable Price Badge */}
+            {showNegotiable && (
+              <View style={getBasicRowStyle()} testID="spec-row-negotiable">
+                <Text style={s.specLabel}>قابلية التفاوض</Text>
+                <View style={s.negotiableBadge}>
+                  <Ionicons name="chatbubbles-outline" size={12} color={Colors.accent} />
+                  <Text style={s.negotiableBadgeText}>قابل للتفاوض</Text>
+                </View>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* ── Card 2: Vehicle Compatibility ── */}
       {hasCompatibilitySection && (
@@ -138,17 +269,20 @@ export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
 
           <View style={s.specsTable}>
             {/* Year Range (Only if available) */}
-            {hasYearRange && (
-              <View style={s.specRow} testID="spec-row-year-range">
+            {showYearRange && (
+              <View
+                style={[s.specRow, getCompatRowStyle() && s.specRowBorder]}
+                testID="spec-row-year-range"
+              >
                 <Text style={s.specLabel}>سنوات الصنع</Text>
                 <Text style={s.specValue}>{vm.yearRangeLabel}</Text>
               </View>
             )}
 
             {/* Compatible Vehicle Types */}
-            {hasVehicleTypes && (
+            {showVehicleTypes && (
               <View
-                style={[s.specRow, hasYearRange && s.specRowBorder]}
+                style={[s.specRow, getCompatRowStyle() && s.specRowBorder]}
                 testID="spec-row-vehicle-types"
               >
                 <Text style={s.specLabel}>أنواع المركبات</Text>
@@ -158,10 +292,10 @@ export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
 
             {/* Compatible Makes */}
             {hasMakes && (
-              <View style={[s.chipsBlock, (hasYearRange || hasVehicleTypes) && s.specRowBorder]}>
+              <View style={[s.chipsBlock, getCompatRowStyle() && s.specRowBorder]}>
                 <View style={s.chipsHeader}>
                   <Text style={s.specLabel}>الماركات المتوافقة</Text>
-                  {vm.compatibleMakesLabels.length > COLLAPSED_MAKES_LIMIT && (
+                  {filteredMakes.length > COLLAPSED_MAKES_LIMIT && (
                     <TouchableOpacity
                       testID="toggle-makes-btn"
                       onPress={() => setMakesExpanded(!makesExpanded)}
@@ -173,7 +307,7 @@ export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
                       style={s.toggleBtn}
                     >
                       <Text style={s.toggleBtnText}>
-                        {makesExpanded ? 'عرض أقل' : `عرض الكل (${vm.compatibleMakesLabels.length})`}
+                        {makesExpanded ? 'عرض أقل' : `عرض الكل (${filteredMakes.length})`}
                       </Text>
                       <Ionicons
                         name={makesExpanded ? 'chevron-up' : 'chevron-down'}
@@ -197,10 +331,10 @@ export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
 
             {/* Compatible Models */}
             {hasModels && (
-              <View style={[s.chipsBlock, s.specRowBorder]}>
+              <View style={[s.chipsBlock, getCompatRowStyle() && s.specRowBorder]}>
                 <View style={s.chipsHeader}>
                   <Text style={s.specLabel}>الموديلات المتوافقة</Text>
-                  {vm.compatibleModels.length > COLLAPSED_MODELS_LIMIT && (
+                  {filteredModels.length > COLLAPSED_MODELS_LIMIT && (
                     <TouchableOpacity
                       testID="toggle-models-btn"
                       onPress={() => setModelsExpanded(!modelsExpanded)}
@@ -212,7 +346,7 @@ export function PartSpecsSection({ vm }: PartSpecsSectionProps) {
                       style={s.toggleBtn}
                     >
                       <Text style={s.toggleBtnText}>
-                        {modelsExpanded ? 'عرض أقل' : `عرض الكل (${vm.compatibleModels.length})`}
+                        {modelsExpanded ? 'عرض أقل' : `عرض الكل (${filteredModels.length})`}
                       </Text>
                       <Ionicons
                         name={modelsExpanded ? 'chevron-up' : 'chevron-down'}

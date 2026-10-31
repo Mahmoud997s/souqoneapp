@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
-import { PartSpecsSection } from '../PartSpecsSection'
+import { PartSpecsSection, hasMatchingPartSpecs } from '../PartSpecsSection'
 import { mapPartDetailViewModel } from '../../mappers/partDetailViewModel'
 
 jest.mock('@expo/vector-icons', () => {
@@ -124,5 +124,33 @@ describe('PartSpecsSection', () => {
     // Collapse
     await fireEvent.press(screen.getByTestId('toggle-models-btn'))
     expect(screen.getByText('عرض الكل (7)')).toBeTruthy()
+  })
+
+  describe('hasMatchingPartSpecs & Search Filtering', () => {
+    it('returns true when query is empty or whitespace', () => {
+      const vm = mapPartDetailViewModel(basePart)
+      expect(hasMatchingPartSpecs(vm, '')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, '   ')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, undefined)).toBe(true)
+    })
+
+    it('matches part number, category, make, and model', () => {
+      const vm = mapPartDetailViewModel(basePart)
+      expect(hasMatchingPartSpecs(vm, '04465')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, 'فرامل')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, 'toyota')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, 'camry')).toBe(true)
+      expect(hasMatchingPartSpecs(vm, 'غير موجود')).toBe(false)
+    })
+
+    it('filters rendered rows based on searchQuery', async () => {
+      const vm = mapPartDetailViewModel(basePart)
+      await render(<PartSpecsSection vm={vm} searchQuery="04465-33471" />)
+
+      expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
+      expect(screen.queryByTestId('spec-row-category')).toBeNull()
+      expect(screen.queryByTestId('spec-row-condition')).toBeNull()
+      expect(screen.queryByTestId('part-specs-compat-card')).toBeNull()
+    })
   })
 })

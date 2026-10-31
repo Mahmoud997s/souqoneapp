@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import {
   View,
+  Text,
   StyleSheet,
   StatusBar,
   Linking,
@@ -17,6 +18,9 @@ import { useRouter, router as globalRouter } from 'expo-router'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
@@ -122,6 +126,17 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
   const [isOwnerBusy, setIsOwnerBusy] = useState<boolean>(false)
+  const [searchQuery, setSearchQuery] = useState<string>('')
+
+  // Filter specializations by in-page search query
+  const filteredSpecializations = useMemo(() => {
+    if (!vm?.specializations) return []
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return vm.specializations
+    return vm.specializations.filter((spec) =>
+      spec.toLowerCase().includes(q)
+    )
+  }, [vm?.specializations, searchQuery])
 
   // 4. Shared Foundation Hooks
   const favoriteToggle = useFavoriteToggle('CAR_SERVICE', id, false, {
@@ -191,6 +206,13 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
     } else {
       router.push('/')
     }
+  }
+
+  const handleSearchSubmit = (text: string) => {
+    router.push({
+      pathname: '/services/browse' as any,
+      params: { q: text },
+    })
   }
 
   const handleSupportPress = () => {
@@ -370,6 +392,10 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
         onToggleFavorite={favoriteToggle.toggle}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل الخدمة..."
       />
 
       {/* Pinned Stale Data Banner directly below top bar */}
@@ -426,16 +452,46 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 3. Specializations & Tags */}
-        {vm.specializations.length > 0 && (
+        {/* 3. Inline Contact Actions (visitor only) */}
+        {!isOwner && contactAvailability.mode !== 'hidden' ? (
           <Animated.View entering={getEnteringAnimation(2)}>
-            <ServiceSpecializations specializations={vm.specializations} />
+            <ContactActions
+              variant="inline"
+              availability={contactAvailability}
+              onChat={contact.chat}
+              onCall={contact.call}
+              onWhatsApp={contact.whatsApp}
+              busy={contact.busy}
+            />
+          </Animated.View>
+        ) : null}
+
+        {/* 4. Seller Card (Section 4 - below contact actions, above specializations) */}
+        {!isOwner ? (
+          <Animated.View entering={getEnteringAnimation(3)}>
+            <SellerCard
+              seller={sellerCardData}
+              onPressProfile={handleSellerProfilePress}
+            />
+          </Animated.View>
+        ) : null}
+
+        {/* 5. Specializations & Tags */}
+        {(vm.specializations.length > 0 || searchQuery.trim().length > 0) && (
+          <Animated.View entering={getEnteringAnimation(4)}>
+            {searchQuery.trim() && filteredSpecializations.length === 0 ? (
+              <View style={s.noMatchContainer} testID="specs-no-match">
+                <Text style={s.noMatchText}>لا توجد نتائج مطابقة</Text>
+              </View>
+            ) : (
+              <ServiceSpecializations specializations={filteredSpecializations} />
+            )}
           </Animated.View>
         )}
 
-        {/* 4. Schedule & Working Days Card */}
+        {/* 6. Schedule & Working Days Card */}
         {(vm.workingSchedule.hasSchedule || vm.isHomeService) && (
-          <Animated.View entering={getEnteringAnimation(3)}>
+          <Animated.View entering={getEnteringAnimation(5)}>
             <ServiceScheduleCard
               schedule={vm.workingSchedule}
               isHomeService={vm.isHomeService}
@@ -443,15 +499,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           </Animated.View>
         )}
 
-        {/* 5. Description */}
+        {/* 7. Description */}
         {Boolean(vm.description) && (
-          <Animated.View entering={getEnteringAnimation(4)}>
+          <Animated.View entering={getEnteringAnimation(6)}>
             <ListingDescription text={vm.description} collapsedLines={5} />
           </Animated.View>
         )}
 
-        {/* 6. Location Card with embedded map if coordinates exist */}
-        <Animated.View entering={getEnteringAnimation(5)}>
+        {/* 8. Location Card with embedded map if coordinates exist */}
+        <Animated.View entering={getEnteringAnimation(7)}>
           <LocationCard
             locationText={locationText}
             latitude={vm.location.latitude}
@@ -459,23 +515,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 7. Website Card */}
+        {/* 9. Website Card */}
         {Boolean(vm.website) && (
-          <Animated.View entering={getEnteringAnimation(6)}>
+          <Animated.View entering={getEnteringAnimation(8)}>
             <ServiceWebsiteCard website={vm.website} />
           </Animated.View>
         )}
 
-        {/* 8. Seller Card */}
-        <Animated.View entering={getEnteringAnimation(7)}>
-          <SellerCard
-            seller={sellerCardData}
-            onPressProfile={handleSellerProfilePress}
-          />
-        </Animated.View>
-
-        {/* 9. Safety Tips */}
-        <Animated.View entering={getEnteringAnimation(8)}>
+        {/* 10. Safety Tips */}
+        <Animated.View entering={getEnteringAnimation(9)}>
           <SafetyTips
             role={isOwner ? 'seller' : 'buyer'}
             title={
@@ -491,8 +539,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 10. Support Button */}
-        <Animated.View entering={getEnteringAnimation(9)}>
+        {/* 11. Support Button */}
+        <Animated.View entering={getEnteringAnimation(10)}>
           <SupportButton onPress={handleSupportPress} />
         </Animated.View>
       </Animated.ScrollView>
@@ -540,5 +588,25 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     gap: Spacing.space2,
+  },
+  noMatchContainer: {
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space3,
+    padding: Spacing.space4,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.card,
+  },
+  noMatchText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 })
