@@ -6,8 +6,9 @@ import { PartCard } from '../parts/PartCard'
 import { ServiceCard } from '../services/ServiceCard'
 import { Listing } from '../../types/listing.types'
 import { UnifiedCardItem } from '../../types/unified-card.types'
+import { PublicProfileListingVertical } from '../../hooks/public-profile/publicProfileKeys'
 
-export type ProfileListingVertical = 'car' | 'bus' | 'equipment' | 'part' | 'service'
+export type ProfileListingVertical = PublicProfileListingVertical
 
 export interface ListingCardByTypeProps {
   vertical: ProfileListingVertical

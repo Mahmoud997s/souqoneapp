@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -8,12 +8,15 @@ import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
-import { CarCard } from '../../src/components/cars/CarCard'
 import { chatApi } from '../../src/api/chat'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge'
-import { useListings } from '../../src/hooks/useListings'
 import { usePublicProfile } from '../../src/hooks/useProfile'
+import { usePublicProfileCars } from '../../src/hooks/public-profile/usePublicProfileCars'
+import { PublicProfileListingVertical } from '../../src/hooks/public-profile/publicProfileKeys'
+import { PublicProfileTabs } from '../../src/components/profile/public-profile/PublicProfileTabs'
+import { PublicProfileSectionList } from '../../src/components/profile/public-profile/PublicProfileSectionList'
+import { UnifiedCardItem } from '../../src/types/unified-card.types'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
 
@@ -21,7 +24,8 @@ export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>()
   const insets = useSafeAreaInsets()
   const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = usePublicProfile(userId)
-  const { data: userListings, isLoading: listingsLoading, refetch: refetchListings } = useListings({ sellerId: userId })
+  const { data: carPages, isLoading: carsLoading, isError: carsError, isFetching: carsFetching, isFetchingNextPage, hasNextPage, fetchNextPage, refetch: refetchCars } = usePublicProfileCars(userId)
+  const [activeTab, setActiveTab] = useState<PublicProfileListingVertical>('car')
   const { user } = useAuthStore()
 
   if (profileLoading) {
@@ -61,6 +65,48 @@ export default function PublicProfileScreen() {
 
   const displayName = profile?.displayName ?? profile?.username ?? 'مستخدم'
   const joinYear = profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '—'
+  const carItems = carPages?.pages.flatMap((page) => page.data) ?? []
+  const profileCount = profile._count.listings + profile._count.busListings + profile._count.equipmentListings + profile._count.spareParts + profile._count.carServices
+  const inventoryHeader = (
+    <>
+      <View style={s.profileCard}>
+        <View style={s.avatarBox}>
+          {profile.avatarUrl ? (
+            <Image source={{ uri: profile.avatarUrl }} style={s.avatar} contentFit="cover" />
+          ) : (
+            <View style={[s.avatar, s.avatarFallback]}><Text style={s.avatarLetter}>{displayName.charAt(0)}</Text></View>
+          )}
+          {profile.isVerified && <View style={s.verified}><VerifiedBadge size={20} /></View>}
+        </View>
+        <Text style={s.name}>{displayName}</Text>
+        {(profile.governorateRef?.nameAr || profile.wilayaRef?.nameAr || profile.governorate) && (
+          <View style={s.locationRow}>
+            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+            <Text style={s.locationTxt}>{profile.governorateRef?.nameAr ?? profile.wilayaRef?.nameAr ?? profile.governorate}</Text>
+          </View>
+        )}
+        {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
+      </View>
+      <View style={s.statsRow}>
+        <View style={s.statBox}>
+          <Ionicons name="cube-outline" size={24} color={Colors.primary} />
+          <Text style={s.statVal}>{profileCount}</Text>
+          <Text style={s.statLbl}>إعلانات</Text>
+        </View>
+        <View style={s.statBox}>
+          <Ionicons name="calendar-outline" size={24} color={Colors.primary} />
+          <Text style={s.statVal}>{joinYear}</Text>
+          <Text style={s.statLbl}>عضو منذ</Text>
+        </View>
+        <View style={s.statBox}>
+          {profile.isVerified ? <VerifiedBadge size={24} /> : <Ionicons name="checkmark-circle-outline" size={24} color={Colors.border} />}
+          <Text style={s.statVal}>{profile.isVerified ? 'موثّق' : 'غير موثّق'}</Text>
+          <Text style={s.statLbl}>الحالة</Text>
+        </View>
+      </View>
+      <PublicProfileTabs counts={profile._count} selected={activeTab} onSelect={setActiveTab} />
+    </>
+  )
   const handleChat = async () => {
     if (!user) {
       router.push('/(auth)/login' as any)
@@ -92,87 +138,20 @@ export default function PublicProfileScreen() {
     <View style={s.root}>
       <AppHeader title="الملف الشخصي" showBack />
 
-      <ScrollView
-        contentContainerStyle={s.content}
-        refreshControl={<RefreshControl refreshing={profileLoading || listingsLoading} onRefresh={() => { void Promise.all([refetchProfile(), refetchListings()]) }} />}
-      >
-        <View style={s.profileCard}>
-          <View style={s.avatarBox}>
-            {profile?.avatarUrl ? (
-              <Image source={{ uri: profile.avatarUrl }} style={s.avatar} contentFit="cover" />
-            ) : (
-              <View style={[s.avatar, s.avatarFallback]}>
-                <Text style={s.avatarLetter}>{displayName.charAt(0)}</Text>
-              </View>
-            )}
-            {profile?.isVerified && (
-              <View style={s.verified}>
-                <VerifiedBadge size={20} />
-              </View>
-            )}
-          </View>
-          <Text style={s.name}>{displayName}</Text>
-          {(profile.governorateRef?.nameAr || profile.wilayaRef?.nameAr || profile.governorate) && (
-            <View style={s.locationRow}>
-              <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.locationTxt}>{profile.governorateRef?.nameAr ?? profile.wilayaRef?.nameAr ?? profile.governorate}</Text>
-            </View>
-          )}
-          {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
-        </View>
-
-        <View style={s.statsRow}>
-          <View style={s.statBox}>
-            <Ionicons name="cube-outline" size={24} color={Colors.primary} />
-            <Text style={s.statVal}>{userListings?.length ?? '—'}</Text>
-            <Text style={s.statLbl}>إعلانات</Text>
-          </View>
-          <View style={s.statBox}>
-            <Ionicons name="calendar-outline" size={24} color={Colors.primary} />
-            <Text style={s.statVal}>{joinYear}</Text>
-            <Text style={s.statLbl}>عضو منذ</Text>
-          </View>
-          <View style={s.statBox}>
-            {profile?.isVerified ? (
-              <VerifiedBadge size={24} />
-            ) : (
-              <Ionicons name="checkmark-circle-outline" size={24} color={Colors.border} />
-            )}
-            <Text style={s.statVal}>{profile?.isVerified ? 'موثّق' : 'غير موثّق'}</Text>
-            <Text style={s.statLbl}>الحالة</Text>
-          </View>
-        </View>
-
-        {(userListings?.length ?? 0) > 0 && (
-          <>
-            <Text style={s.sectionTitle}>إعلانات {displayName}</Text>
-            {listingsLoading ? (
-              <View style={s.list}>
-                {[1, 2].map(i => <SkeletonCard key={i} />)}
-              </View>
-            ) : (
-              <View style={s.list}>
-                {(userListings ?? []).slice(0, 6).map(item => (
-                  <CarCard
-                    key={item.id}
-                    item={item as any}
-                    onPress={() => router.push(`/cars/${item.id}` as any)}
-                    fullWidth
-                    showChips
-                  />
-                ))}
-              </View>
-            )}
-          </>
-        )}
-
-        {!listingsLoading && (userListings?.length ?? 0) === 0 && (
-          <View style={s.emptyState}>
-            <Ionicons name="cube-outline" size={48} color={Colors.border} />
-            <Text style={s.emptyTxt}>لا توجد إعلانات</Text>
-          </View>
-        )}
-      </ScrollView>
+      <PublicProfileSectionList
+        vertical={activeTab}
+        header={inventoryHeader}
+        items={activeTab === 'car' ? carItems : []}
+        isLoading={activeTab === 'car' && carsLoading}
+        isError={activeTab === 'car' && carsError}
+        isRefreshing={carsFetching && !carsLoading}
+        isFetchingNextPage={activeTab === 'car' && isFetchingNextPage}
+        hasNextPage={activeTab === 'car' && Boolean(hasNextPage)}
+        onRefresh={() => { void Promise.all([refetchProfile(), refetchCars()]) }}
+        onRetry={() => { void refetchCars() }}
+        onLoadMore={() => { void fetchNextPage() }}
+        onPressItem={(item: UnifiedCardItem) => router.push({ pathname: '/cars/[id]', params: { id: item.id } })}
+      />
 
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
@@ -220,9 +199,6 @@ const s = StyleSheet.create({
   },
   statVal: { fontFamily: 'Almarai_700Bold',  fontSize: 16, lineHeight: 24, color: Colors.text, marginVertical: 4 },
   statLbl: { fontFamily: 'Almarai_400Regular',  fontSize: 12, lineHeight: 18, color: Colors.text2 },
-  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, lineHeight: 26, color: Colors.text, marginBottom: Spacing.space3, writingDirection: 'rtl' },
-  list: { gap: Spacing.space4 },
-  emptyState: { alignItems: 'center', paddingTop: 40, gap: Spacing.space3 },
   emptyTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text2, fontSize: 16, lineHeight: 24 },
   contactBar: {
     position: 'absolute', bottom: 0, start: 0, end: 0,

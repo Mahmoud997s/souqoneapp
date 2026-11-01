@@ -14,6 +14,9 @@ jest.mock('../api/chat', () => ({ chatApi: { createRoom: jest.fn() } }))
 jest.mock('../components/ui/SkeletonCard', () => ({ SkeletonCard: () => null }))
 jest.mock('../components/ui/VerifiedBadge', () => ({ VerifiedBadge: () => null }))
 jest.mock('../hooks/useListings', () => ({ useListings: () => ({ data: [], isLoading: false, refetch: jest.fn() }) }))
+jest.mock('../hooks/public-profile/usePublicProfileCars', () => ({
+  usePublicProfileCars: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }),
+}))
 jest.mock('../store/authStore', () => ({ useAuthStore: () => ({ user: null }) }))
 jest.mock('../store/dialogStore', () => ({ dialogService: { alert: jest.fn() } }))
 
@@ -53,6 +56,6 @@ describe('public profile route states', () => {
     } as never)
     await render(<PublicProfileScreen />)
     expect(screen.getByText('بائع السوق')).toBeTruthy()
-    expect(screen.getByText('لا توجد إعلانات')).toBeTruthy()
+    expect(screen.getByText('لا توجد سيارات حالياً')).toBeTruthy()
   })
 })
