@@ -15,6 +15,8 @@ import { usePublicProfile } from '../../src/hooks/useProfile'
 import { usePublicProfileCars } from '../../src/hooks/public-profile/usePublicProfileCars'
 import { usePublicProfileBuses } from '../../src/hooks/public-profile/usePublicProfileBuses'
 import { usePublicProfileEquipment } from '../../src/hooks/public-profile/usePublicProfileEquipment'
+import { usePublicProfileParts } from '../../src/hooks/public-profile/usePublicProfileParts'
+import { usePublicProfileServices } from '../../src/hooks/public-profile/usePublicProfileServices'
 import { PublicProfileListingVertical } from '../../src/hooks/public-profile/publicProfileKeys'
 import { PublicProfileTabs } from '../../src/components/profile/public-profile/PublicProfileTabs'
 import { PublicProfileSectionList } from '../../src/components/profile/public-profile/PublicProfileSectionList'
@@ -30,7 +32,9 @@ export default function PublicProfileScreen() {
   const carsQuery = usePublicProfileCars(userId, activeTab === 'car')
   const busesQuery = usePublicProfileBuses(userId, activeTab === 'bus')
   const equipmentQuery = usePublicProfileEquipment(userId, activeTab === 'equipment')
-  const activeInventoryQuery = activeTab === 'car' ? carsQuery : activeTab === 'bus' ? busesQuery : activeTab === 'equipment' ? equipmentQuery : undefined
+  const partsQuery = usePublicProfileParts(userId, activeTab === 'part')
+  const servicesQuery = usePublicProfileServices(userId, activeTab === 'service')
+  const activeInventoryQuery = activeTab === 'car' ? carsQuery : activeTab === 'bus' ? busesQuery : activeTab === 'equipment' ? equipmentQuery : activeTab === 'part' ? partsQuery : servicesQuery
   const { user } = useAuthStore()
 
   if (profileLoading) {
@@ -159,6 +163,8 @@ export default function PublicProfileScreen() {
           if (activeTab === 'car') router.push({ pathname: '/cars/[id]', params: { id: item.id } })
           if (activeTab === 'bus') router.push({ pathname: '/buses/[id]', params: { id: item.id } })
           if (activeTab === 'equipment') router.push({ pathname: '/equipment/[id]', params: { id: item.id } })
+          if (activeTab === 'part') router.push({ pathname: '/parts/[id]', params: { id: item.id } })
+          if (activeTab === 'service') router.push({ pathname: '/services/[id]', params: { id: item.id } })
         }}
       />
 

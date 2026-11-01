@@ -19,6 +19,8 @@ jest.mock('../hooks/public-profile/usePublicProfileCars', () => ({
 }))
 jest.mock('../hooks/public-profile/usePublicProfileBuses', () => ({ usePublicProfileBuses: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../hooks/public-profile/usePublicProfileEquipment', () => ({ usePublicProfileEquipment: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
+jest.mock('../hooks/public-profile/usePublicProfileParts', () => ({ usePublicProfileParts: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
+jest.mock('../hooks/public-profile/usePublicProfileServices', () => ({ usePublicProfileServices: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../store/authStore', () => ({ useAuthStore: () => ({ user: null }) }))
 jest.mock('../store/dialogStore', () => ({ dialogService: { alert: jest.fn() } }))
 
@@ -51,13 +53,14 @@ describe('public profile route states', () => {
 
   it('renders typed profile data and a distinct empty listings state', async () => {
     mockedUsePublicProfile.mockReturnValue({
-      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 0, equipmentListings: 0, operatorListings: 0, spareParts: 0, carServices: 0, jobs: 0 }, totalListings: 0 },
+      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 2, equipmentListings: 3, operatorListings: 9, spareParts: 4, carServices: 5, jobs: 4 }, totalListings: 27 },
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
     } as never)
     await render(<PublicProfileScreen />)
     expect(screen.getByText('بائع السوق')).toBeTruthy()
+    expect(screen.getByText('14')).toBeTruthy()
     expect(screen.getByText('لا توجد سيارات حالياً')).toBeTruthy()
   })
 })

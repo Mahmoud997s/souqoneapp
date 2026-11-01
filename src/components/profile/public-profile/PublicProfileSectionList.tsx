@@ -37,7 +37,7 @@ export function PublicProfileSectionList({
 }: PublicProfileSectionListProps) {
   return (
     <ScrollView
-      contentContainerStyle={[s.content, !isLoading && !isError && items.length === 0 && s.emptyContent]}
+      contentContainerStyle={s.content}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
     >
       {header}
@@ -51,7 +51,7 @@ export function PublicProfileSectionList({
               </TouchableOpacity>
             </View>
           : items.length === 0
-            ? <Text style={s.stateText}>{EMPTY_LABELS[vertical]}</Text>
+            ? <View style={s.state}><Text style={s.stateText}>{EMPTY_LABELS[vertical]}</Text></View>
             : items.map((item) => <ListingCardByType key={`${vertical}-${item.id}`} vertical={vertical} item={item} onPress={() => onPressItem(item)} />)}
       {!isLoading && !isError && hasNextPage && (
         <TouchableOpacity style={s.action} onPress={onLoadMore} disabled={isFetchingNextPage} accessibilityRole="button" accessibilityLabel="تحميل المزيد من الإعلانات">
@@ -64,7 +64,6 @@ export function PublicProfileSectionList({
 
 const s = StyleSheet.create({
   content: { gap: Spacing.space4, paddingBottom: Spacing.space6 },
-  emptyContent: { minHeight: 180, alignItems: 'center', justifyContent: 'center' },
   list: { gap: Spacing.space4 },
   state: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: Spacing.space3 },
   stateText: { fontFamily: 'Almarai_700Bold', fontSize: 15, lineHeight: 24, color: Colors.textMuted, textAlign: 'center' },
