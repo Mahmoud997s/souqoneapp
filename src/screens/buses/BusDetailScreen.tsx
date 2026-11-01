@@ -6,9 +6,9 @@ import {
   StatusBar,
   TouchableOpacity,
   Linking,
-  InteractionManager,
   RefreshControl,
 } from 'react-native'
+import { scheduleIdleTask } from '../../utils/scheduleIdleTask'
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -155,7 +155,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   const [isMapMounted, setIsMapMounted] = useState<boolean>(false)
 
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
+    const task = scheduleIdleTask(() => {
       setIsMapMounted(true)
     })
     return () => task.cancel()

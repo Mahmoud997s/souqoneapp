@@ -127,6 +127,7 @@ export function CategorySection({
           cardWidth={sectionCardWidth}
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
+          trackPendingIndex
           keyExtractor={(item) => `skeleton-${item}`}
           renderItem={() => (
             <SkeletonCard
@@ -144,6 +145,7 @@ export function CategorySection({
           cardWidth={sectionCardWidth}
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
+          trackPendingIndex
           paging={sectionPaging}
           showDots={sectionShowDots}
           depthEffect={peek}

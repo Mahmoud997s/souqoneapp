@@ -16,6 +16,7 @@ import Animated, {
   withTiming,
   withSpring,
   runOnJS,
+  cancelAnimation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -59,6 +60,7 @@ export function ImageViewerModal({
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
   const [modalFailedIndices, setModalFailedIndices] = useState<Record<number, boolean>>({})
+  const gestureIndex = useSharedValue(initialIndex)
   const count = images.length
 
   const resolvedFallbackIcon =
@@ -69,6 +71,7 @@ export function ImageViewerModal({
   useEffect(() => {
     if (visible) {
       setActiveIndex(initialIndex)
+      gestureIndex.value = initialIndex
       setModalFailedIndices({})
     }
   }, [visible, initialIndex])
@@ -76,6 +79,8 @@ export function ImageViewerModal({
   const scale = useSharedValue(1)
   const translateX = useSharedValue(0)
   const translateY = useSharedValue(0)
+  const startTranslateX = useSharedValue(0)
+  const startTranslateY = useSharedValue(0)
 
   // Compute once on JS thread — safe to capture in worklet closure
   const gestureDir = getGestureDirectionMultiplier()
@@ -102,10 +107,16 @@ export function ImageViewerModal({
   const panGesture = Gesture.Pan()
     .activeOffsetX([-15, 15])
     .activeOffsetY([-15, 15])
+    .onStart(() => {
+      cancelAnimation(translateX)
+      cancelAnimation(translateY)
+      startTranslateX.value = translateX.value
+      startTranslateY.value = translateY.value
+    })
     .onUpdate((e) => {
       if (scale.value <= 1.05) {
-        translateX.value = e.translationX
-        translateY.value = Math.max(0, e.translationY)
+        translateX.value = startTranslateX.value + e.translationX
+        translateY.value = Math.max(0, startTranslateY.value + e.translationY)
       }
     })
     .onEnd((e) => {
@@ -115,10 +126,15 @@ export function ImageViewerModal({
         } else {
           const dx = e.translationX * gestureDir
           const THRESHOLD = 50
-          if (dx > THRESHOLD && activeIndex < count - 1) {
-            runOnJS(changeIndex)(activeIndex + 1)
-          } else if (dx < -THRESHOLD && activeIndex > 0) {
-            runOnJS(changeIndex)(activeIndex - 1)
+          const currentIndex = gestureIndex.value
+          if (dx > THRESHOLD && currentIndex < count - 1) {
+            const nextIndex = currentIndex + 1
+            gestureIndex.value = nextIndex
+            runOnJS(changeIndex)(nextIndex)
+          } else if (dx < -THRESHOLD && currentIndex > 0) {
+            const nextIndex = currentIndex - 1
+            gestureIndex.value = nextIndex
+            runOnJS(changeIndex)(nextIndex)
           }
         }
         translateX.value = withSpring(0)

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
@@ -21,6 +21,7 @@ import { ActionBanner } from '../../src/components/ui/ActionBanner';
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 export default function ServicesLandingScreen() {
@@ -39,10 +40,14 @@ export default function ServicesLandingScreen() {
   
   const [loadRest, setLoadRest] = useState(false);
   React.useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => setLoadRest(true), 150);
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const task = scheduleIdleTask(() => {
+      timeout = setTimeout(() => setLoadRest(true), 150);
     });
-    return () => task.cancel();
+    return () => {
+      task.cancel();
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   const { data: maintenanceServices = [], isLoading: loadingMaintenance } = useServices({ serviceType: 'MAINTENANCE', limit: 10 }, { enabled: loadRest });

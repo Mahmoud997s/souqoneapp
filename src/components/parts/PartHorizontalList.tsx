@@ -50,6 +50,7 @@ export const PartHorizontalList = ({
             cardWidth={CARD_WIDTH}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
+            trackPendingIndex
             keyExtractor={(item) => String(item)}
             renderItem={() => (
               <PartSkeletonCard style={{ width: CARD_WIDTH, marginBottom: 0 }} />
@@ -64,6 +65,7 @@ export const PartHorizontalList = ({
             cardWidth={CARD_WIDTH}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
+            trackPendingIndex
             keyExtractor={(item, idx) => item.id ?? String(idx)}
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"

@@ -98,6 +98,7 @@ export function ImageGallery({
     initialIndex: index,
     onActiveIndexChange: onIndexChange,
     paging: true,
+    trackPendingIndex: true,
   })
 
   // Tap gesture composed with pan gesture

@@ -46,6 +46,8 @@ export interface UseGestureSwiperOptions {
    * Maximum number of cards that can be traversed in a single swipe when paging is false (default: 5).
    */
   maxScrollCards?: number
+  /** Keep the logical target index in sync while a snap animation is running (default: false). */
+  trackPendingIndex?: boolean
 }
 
 /**
@@ -74,6 +76,7 @@ export function useGestureSwiper({
   paging = false,
   momentumFactor = 0.22,
   maxScrollCards = 5,
+  trackPendingIndex = false,
 }: UseGestureSwiperOptions) {
   const [activeIndex, setActiveIndex] = useState(initialIndex)
 
@@ -194,6 +197,10 @@ export function useGestureSwiper({
         targetIndex = Math.max(0, Math.min(count - 1, targetIndex))
 
         const targetX = targetIndex * step
+        // Let opted-in car lists continue from the target of an interrupted snap.
+        if (trackPendingIndex) {
+          currentIndex.value = targetIndex
+        }
         translateX.value = withSpring(
           targetX,
           {
@@ -223,6 +230,7 @@ export function useGestureSwiper({
     paging,
     momentumFactor,
     maxScrollCards,
+    trackPendingIndex,
   ])
 
   const animatedTrackStyle = useAnimatedStyle(() => {

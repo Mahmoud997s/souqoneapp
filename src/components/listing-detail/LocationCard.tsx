@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
-  InteractionManager,
 } from 'react-native'
+import { scheduleIdleTask } from '../../utils/scheduleIdleTask'
 import { Ionicons } from '@expo/vector-icons'
 import MapView, { Marker } from '../ui/Map'
 import { Colors } from '../../constants/colors'
@@ -42,7 +42,7 @@ export function LocationCard({
 
   useEffect(() => {
     if (!hasCoordinates) return
-    const task = InteractionManager.runAfterInteractions(() => {
+    const task = scheduleIdleTask(() => {
       setIsMapMounted(true)
     })
     return () => task.cancel()

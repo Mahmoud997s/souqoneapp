@@ -77,6 +77,7 @@ export function CardImageSwiper({
     invertedGesture,
     onActiveIndexChange,
     paging: true,
+    trackPendingIndex: true,
   })
 
   // Tap gesture composed exclusively with pan gesture:

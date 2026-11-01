@@ -87,6 +87,7 @@ export function MyListingSectionSlider({
         <HorizontalScrollCard
           key="loading-skeleton"
           data={[1, 2, 3]}
+          trackPendingIndex
           cardWidth={CARD_WIDTH}
           gap={GAP}
           paddingEnd={PADDING_END}
@@ -99,6 +100,7 @@ export function MyListingSectionSlider({
         <HorizontalScrollCard
           key="loaded-cards"
           data={items}
+          trackPendingIndex
           cardWidth={CARD_WIDTH}
           gap={GAP}
           paddingEnd={PADDING_END}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
@@ -20,6 +20,7 @@ import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask';
 
 export default function BusesLandingScreen() {
   const router = useRouter();
@@ -28,10 +29,14 @@ export default function BusesLandingScreen() {
 
   const [loadRest, setLoadRest] = useState(false);
   React.useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => setLoadRest(true), 150);
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const task = scheduleIdleTask(() => {
+      timeout = setTimeout(() => setLoadRest(true), 150);
     });
-    return () => task.cancel();
+    return () => {
+      task.cancel();
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   // Stable, cached queries at the screen root (Matching Cars architecture)
