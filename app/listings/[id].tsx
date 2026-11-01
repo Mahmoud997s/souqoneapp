@@ -827,7 +827,7 @@ const s = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#f1f5f9',
     shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 16 },
   iconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  verifiedBadgeContact: { position: 'absolute', bottom: -2, right: -2, backgroundColor: '#ffffff', borderRadius: 10, padding: 1.5 },
+  verifiedBadgeContact: { position: 'absolute', bottom: -2, right: -2, backgroundColor: Colors.white, borderRadius: 10, padding: 1.5 },
   chatIconBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   waBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, flexShrink: 0 },
   callWideBtn: { flex: 1, height: 56, backgroundColor: '#EFF6FF', borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },

@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
 import { Colors } from '../../constants/colors'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
+import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 
 export interface GlassNavBarAction {
   icon?: React.ComponentProps<typeof Ionicons>['name']
@@ -15,13 +16,15 @@ export interface GlassNavBarAction {
   customContent?: React.ReactNode
 }
 
-interface GlassNavBarProps {
+export interface GlassNavBarProps {
   title: string
   paddingTop: number
   onBackPress: () => void
   actions?: GlassNavBarAction[]
   hideBottomBorder?: boolean
   isTransparent?: boolean
+  support?: GlassSupport
+  testID?: string
 }
 
 const softShadow = Platform.select({
@@ -34,14 +37,30 @@ const softShadow = Platform.select({
   android: { elevation: 1.5 },
 })
 
-export function GlassNavBar({ title, paddingTop, onBackPress, actions = [], hideBottomBorder = false, isTransparent = false }: GlassNavBarProps) {
-  
+export function GlassNavBar({
+  title,
+  paddingTop,
+  onBackPress,
+  actions = [],
+  hideBottomBorder = false,
+  isTransparent = false,
+  support,
+  testID = 'glass-nav-bar',
+}: GlassNavBarProps) {
   const content = (
     <>
       {!isTransparent && (
         <>
-          <View style={s.whiteWash} pointerEvents="none" />
-          <View style={s.tintOverlay} pointerEvents="none" />
+          <GlassSurface
+            testID="glass-nav-bar-surface"
+            variant="surface"
+            intensity={60}
+            washColor={Colors.white}
+            washOpacity={BottomBarTokens.lightWashOpacity}
+            noBorder
+            support={support}
+          />
+          <View style={s.tintOverlay} pointerEvents="none" testID="glass-nav-bar-tint" />
         </>
       )}
 
@@ -94,23 +113,18 @@ export function GlassNavBar({ title, paddingTop, onBackPress, actions = [], hide
     </>
   )
 
-  if (isTransparent) {
-    return (
-      <View style={[s.navBarFixed, { paddingTop }, hideBottomBorder && s.noBorder, { backgroundColor: 'transparent' }]}>
-        {content}
-      </View>
-    )
-  }
-
   return (
-    <BlurView
-      intensity={60}
-      tint="light"
-      blurMethod="dimezisBlurView"
-      style={[s.navBarFixed, { paddingTop }, hideBottomBorder && s.noBorder]}
+    <View
+      style={[
+        s.navBarFixed,
+        { paddingTop },
+        hideBottomBorder && s.noBorder,
+        isTransparent && { backgroundColor: 'transparent' },
+      ]}
+      testID={testID}
     >
       {content}
-    </BlurView>
+    </View>
   )
 }
 
@@ -143,11 +157,6 @@ const s = StyleSheet.create({
     shadowRadius: 0,
     shadowColor: 'transparent',
     elevation: 0,
-  },
-  whiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
   },
   tintOverlay: {
     ...StyleSheet.absoluteFill,

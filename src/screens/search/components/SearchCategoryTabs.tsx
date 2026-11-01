@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
+import { TopBarTokens } from '../../../constants/topBarTokens'
 import { CategoryFilterType } from '../../../hooks/useSearchLogic'
 
 interface CategoryTabItem {
@@ -103,7 +104,7 @@ const s = StyleSheet.create({
   segmentedTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: TopBarTokens.categoryTrackBg,
     borderRadius: 8,
     padding: 3,
     gap: 4,
@@ -121,7 +122,7 @@ const s = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabActive: {
-    backgroundColor: '#ffffff',
+    backgroundColor: TopBarTokens.categoryTabBg,
     ...Platform.select({
       ios: {
         shadowColor: Colors.primaryDark,

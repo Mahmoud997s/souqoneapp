@@ -9,10 +9,10 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../../constants/colors'
 import { TopBarTokens } from '../../../constants/topBarTokens'
+import { GlassSurface, type GlassSupport } from '../../../components/navigation/glassSupport'
 
 interface SearchHeaderBarProps {
   query: string
@@ -21,6 +21,7 @@ interface SearchHeaderBarProps {
   onClear: () => void
   activeFiltersCount: number
   onOpenFilters: () => void
+  support?: GlassSupport
 }
 
 /**
@@ -41,21 +42,20 @@ export const SearchHeaderBar = React.memo(function SearchHeaderBar({
   onClear,
   activeFiltersCount,
   onOpenFilters,
+  support,
 }: SearchHeaderBarProps) {
   const insets = useSafeAreaInsets()
   const paddingTop = insets.top + TopBarTokens.topPadOffset
 
   return (
     <View style={[s.container, { paddingTop }]}>
-      {/* ── GLASSMORPHISM BLUR BACKGROUND (Matches Home Compact Bar) ── */}
-      <BlurView
-        intensity={TopBarTokens.blurIntensity}
-        tint={TopBarTokens.blurTint}
-        blurMethod={TopBarTokens.blurMethod}
-        style={StyleSheet.absoluteFill}
-        testID="search-header-blur"
+      {/* ── SHARED GLASS SURFACE (Liquid on iOS 26, Blur fallback on other) ── */}
+      <GlassSurface
+        testID="search-header"
+        variant="surface"
+        noBorder
+        support={support}
       />
-      <View style={s.whiteWash} pointerEvents="none" testID="search-header-whitewash" />
       <View style={s.tintOverlay} pointerEvents="none" testID="search-header-tint" />
 
       {/* ── ARCHITECTURAL GREEN GRID PATTERN OVERLAY (5% Opacity) ── */}
@@ -154,14 +154,6 @@ const s = StyleSheet.create({
     borderBottomColor: TopBarTokens.borderBottomColor,
     overflow: 'hidden',
     ...TopBarTokens.shadow,
-  },
-  whiteWash: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: TopBarTokens.whiteWashBg,
   },
   tintOverlay: {
     position: 'absolute',

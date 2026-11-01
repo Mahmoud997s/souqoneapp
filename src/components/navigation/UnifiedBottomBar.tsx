@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, PanResponder } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { Colors } from '../../constants/colors';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
 import { AddListingButton } from './AddListingButton';
+import { useTabDragSelect } from '../../hooks/useTabDragSelect';
 
 export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
 
@@ -211,96 +212,12 @@ export function UnifiedBottomBar({
 }: UnifiedBottomBarProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 12);
-  const [barWidth, setBarWidth] = useState(0);
-  const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
 
-  const tabsRef = useRef(tabs);
-  tabsRef.current = tabs;
-
-  const barWidthRef = useRef(barWidth);
-  barWidthRef.current = barWidth;
-
-  const onTabPressRef = useRef(onTabPress);
-  onTabPressRef.current = onTabPress;
-
-  const onPostPressRef = useRef(onPostPress);
-  onPostPressRef.current = onPostPress;
-
-  const currentHoverIdRef = useRef<string | null>(null);
-
-  const getTabIndexFromX = useCallback((x: number) => {
-    const w = barWidthRef.current;
-    const currentTabs = tabsRef.current;
-    if (w <= 0 || currentTabs.length === 0) return 0;
-    const tabWidth = w / currentTabs.length;
-    const index = Math.floor(x / tabWidth);
-    return Math.min(Math.max(0, index), currentTabs.length - 1);
-  }, []);
-
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, gestureState) =>
-          Math.abs(gestureState.dx) > 6,
-
-        onPanResponderGrant: (evt) => {
-          const x = evt.nativeEvent.locationX;
-          const index = getTabIndexFromX(x);
-          const currentTabs = tabsRef.current;
-          const targetTab = currentTabs[index];
-          if (targetTab) {
-            currentHoverIdRef.current = targetTab.id;
-            setDraggingTabId(targetTab.id);
-            try {
-              Haptics.selectionAsync();
-            } catch {}
-          }
-        },
-
-        onPanResponderMove: (evt) => {
-          const x = evt.nativeEvent.locationX;
-          const index = getTabIndexFromX(x);
-          const currentTabs = tabsRef.current;
-          const targetTab = currentTabs[index];
-          if (targetTab && targetTab.id !== currentHoverIdRef.current) {
-            currentHoverIdRef.current = targetTab.id;
-            setDraggingTabId(targetTab.id);
-            try {
-              Haptics.selectionAsync();
-            } catch {}
-          }
-        },
-
-        onPanResponderRelease: (evt) => {
-          const x = evt.nativeEvent.locationX;
-          const index = getTabIndexFromX(x);
-          const currentTabs = tabsRef.current;
-          const targetTab = currentTabs[index];
-
-          setDraggingTabId(null);
-          currentHoverIdRef.current = null;
-
-          if (targetTab) {
-            try {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch {}
-
-            if (targetTab.isPost) {
-              onPostPressRef.current();
-            } else {
-              onTabPressRef.current(targetTab);
-            }
-          }
-        },
-
-        onPanResponderTerminate: () => {
-          setDraggingTabId(null);
-          currentHoverIdRef.current = null;
-        },
-      }),
-    [getTabIndexFromX]
-  );
+  const { panHandlers, draggingTabId, onBarLayout } = useTabDragSelect({
+    tabs,
+    onTabPress,
+    onPostPress,
+  });
 
   const effectiveActiveTab = draggingTabId ?? activeTab;
 
@@ -336,8 +253,8 @@ export function UnifiedBottomBar({
   const content = (
     <View
       style={s.bar}
-      onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-      {...panResponder.panHandlers}
+      onLayout={onBarLayout}
+      {...panHandlers}
     >
       {tabs.map((tab) => {
         if (tab.isPost) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { BlurView } from 'expo-blur';
+import { GlassSurface } from '../navigation/glassSupport';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import Animated, {
@@ -15,7 +15,6 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { TopBarTokens } from '../../constants/topBarTokens';
-import { GlassSurface } from '../navigation/glassSupport';
 
 export interface AnimatedHeroHeaderProps {
   scrollY?: SharedValue<number>;
@@ -204,14 +203,13 @@ export function AnimatedHeroHeader({
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <Animated.View style={[s.stickyHeader, { paddingTop: topPad + 6 }, headerAnimStyle]}>
         
-        {/* ── GLASSMORPHISM BLUR BACKGROUND (Matches Profile GlassNavBar) ── */}
-        <BlurView
+        {/* ── SHARED GLASS SURFACE (Liquid on iOS 26, Blur fallback on other) ── */}
+        <GlassSurface
+          testID="animated-hero-header-glass"
+          variant="surface"
+          noBorder
           intensity={65}
-          tint="light"
-          blurMethod="dimezisBlurView"
-          style={StyleSheet.absoluteFill}
         />
-        <View style={s.whiteWash} pointerEvents="none" />
         <View style={s.tintOverlay} pointerEvents="none" />
 
         {/* ── ARCHITECTURAL GREEN GRID PATTERN OVERLAY (5% Opacity) ── */}
@@ -362,15 +360,7 @@ const s = StyleSheet.create({
     borderBottomColor: TopBarTokens.borderBottomColor,
     ...TopBarTokens.shadow,
   },
-  whiteWash: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: TopBarTokens.whiteWashBg,
-  },
-  tintOverlay: {
+    tintOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,

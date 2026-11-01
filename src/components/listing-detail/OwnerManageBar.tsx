@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native'
-import { BlurView } from 'expo-blur'
 import Animated, {
   useAnimatedStyle,
   interpolate,
@@ -21,6 +20,12 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
 import { dialogService } from '../../store/dialogStore'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
+import { GlassSurface } from '../navigation/GlassSurface'
+import type { GlassSupport } from '../navigation/glassCapability'
+
+export const OWNER_MANAGE_BAR_HEIGHT = 60.4
+export const OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y = 100
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
@@ -62,6 +67,7 @@ export interface OwnerManageBarProps {
   scrollY?: SharedValue<number>
   /** Scroll position (px) at which the sticky bar fully appears */
   threshold?: number
+  support?: GlassSupport
 }
 
 /**
@@ -77,6 +83,7 @@ export function OwnerManageBar({
   onAction,
   scrollY,
   threshold = 300,
+  support,
 }: OwnerManageBarProps) {
   const insets = useSafeAreaInsets()
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -120,22 +127,15 @@ export function OwnerManageBar({
   // Scroll-aware animation for sticky variant
   const animatedStickyStyle = useAnimatedStyle(() => {
     if (!scrollY) {
-      return { opacity: 1, transform: [{ translateY: 0 }] }
+      return { transform: [{ translateY: 0 }] }
     }
-    const opacity = interpolate(
-      scrollY.value,
-      [threshold - 50, threshold],
-      [0, 1],
-      Extrapolation.CLAMP
-    )
     const translateY = interpolate(
       scrollY.value,
       [threshold - 50, threshold],
-      [24, 0],
+      [OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y, 0],
       Extrapolation.CLAMP
     )
     return {
-      opacity,
       transform: [{ translateY }],
       pointerEvents: scrollY.value >= threshold - 30 ? 'auto' : 'none',
     }
@@ -218,12 +218,16 @@ export function OwnerManageBar({
         ]}
         pointerEvents="box-none"
       >
-        <BlurView
-          intensity={70}
-          tint="light"
-          blurMethod="dimezisBlurView"
-          style={s.stickyCard}
-        >
+        <View style={s.stickyCard}>
+          <GlassSurface
+            testID="owner-manage-bar"
+            variant="surface"
+            borderRadius={Radius.xl}
+            noBorder
+            intensity={70}
+            washColor={BottomBarTokens.stickyCardWashBg}
+            support={support}
+          />
           {/* Owner badge */}
           <View style={s.stickyOwnerBadge}>
             <Ionicons name="shield-checkmark-outline" size={13} color={Colors.primary} />
@@ -262,7 +266,7 @@ export function OwnerManageBar({
             ) : null}
             {deleteAction ? renderStickyActionButton(deleteAction) : null}
           </View>
-        </BlurView>
+        </View>
       </Animated.View>
     )
   }
@@ -407,7 +411,7 @@ const s = StyleSheet.create({
     zIndex: 90,
   },
   stickyCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.80)',
+    backgroundColor: 'transparent',
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2 + 2,
     borderRadius: Radius.xl,

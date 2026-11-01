@@ -76,7 +76,7 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
       const geo = computeBottomBarGeometry(1, 390, false)
       expect(geo.width).toBe(BottomBarTokens.collapsedSize) // 56
       expect(geo.height).toBe(BottomBarTokens.collapsedSize) // 56
-      expect(geo.borderRadius).toBe(BottomBarTokens.collapsedRadius) // 28
+      expect(geo.borderRadius).toBe(28)
       expect(geo.labelOpacity).toBe(0)
       expect(geo.collapsedIconOpacity).toBe(1)
       expect(geo.isCollapsed).toBe(true)
@@ -260,7 +260,7 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
       const containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
       expect(containerStyle.width).toBe(BottomBarTokens.collapsedSize) // 56
       expect(containerStyle.height).toBe(BottomBarTokens.collapsedSize) // 56
-      expect(containerStyle.borderRadius).toBe(BottomBarTokens.collapsedRadius) // 28
+      expect(containerStyle.borderRadius).toBe(28)
       expect(containerStyle[anchorKey]).toBe(BottomBarTokens.marginHorizontal) // 16
 
       const contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
@@ -328,7 +328,7 @@ describe('GlassBottomBarShell & BottomBarTokens (Task D-166 & D-166c)', () => {
       containerStyle = StyleSheet.flatten(getByTestId('shell-test').props.style)
       expect(containerStyle.width).toBe(BottomBarTokens.collapsedSize) // 56
       expect(containerStyle.height).toBe(BottomBarTokens.collapsedSize) // 56
-      expect(containerStyle.borderRadius).toBe(BottomBarTokens.collapsedRadius) // 28
+      expect(containerStyle.borderRadius).toBe(28)
 
       contentStyle = StyleSheet.flatten(getByTestId('shell-test-content').props.style)
       expect(contentStyle.opacity).toBe(0)

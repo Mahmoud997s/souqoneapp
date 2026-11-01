@@ -7,6 +7,10 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import {
+  getCardPriceNegotiable,
+  getCardSellerVerified,
+} from '../../utils/cardItemHelpers'
 
 export interface CarCardProps {
   item: Listing
@@ -55,11 +59,7 @@ export const CarCard = ({
   const listingTypeStr = String(item.listingType || (item as any).type || '')
   const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
   const isSale = listingTypeStr === 'SALE' || listingTypeStr === 'EQUIPMENT_SALE'
-  const isSellerVerified =
-    (item as any).isVerified ??
-    rawData.user?.isVerified ??
-    rawData.seller?.isVerified ??
-    false
+  const isSellerVerified = getCardSellerVerified(item)
 
   // Price Calculation
   let priceLabel = `${item.price} ${item.currency === 'USD' ? '$' : 'ر.ع'}`
@@ -255,7 +255,7 @@ export const CarCard = ({
       item={item}
       title={carName}
       priceLabel={priceLabel}
-      isPriceNegotiable={Boolean(isSale && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))}
+      isPriceNegotiable={Boolean(isSale && getCardPriceNegotiable(item))}
       onPress={onPress}
       displayImages={displayImages}
       placeholderIcon="car-sport"
