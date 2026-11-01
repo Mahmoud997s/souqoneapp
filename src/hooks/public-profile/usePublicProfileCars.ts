@@ -6,12 +6,12 @@ import { publicProfileKeys } from './publicProfileKeys'
 
 const PAGE_SIZE = 10
 
-export function usePublicProfileCars(userId: string) {
+export function usePublicProfileCars(userId: string, enabled = true) {
   const filters = { sellerId: userId, status: 'ACTIVE', limit: PAGE_SIZE }
 
   return useInfiniteQuery({
     queryKey: publicProfileKeys.list(userId, 'car', filters),
-    enabled: Boolean(userId),
+    enabled: Boolean(userId) && enabled,
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await listingsApi.getAll({ ...filters, page: pageParam })

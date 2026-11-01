@@ -17,6 +17,8 @@ jest.mock('../hooks/useListings', () => ({ useListings: () => ({ data: [], isLoa
 jest.mock('../hooks/public-profile/usePublicProfileCars', () => ({
   usePublicProfileCars: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }),
 }))
+jest.mock('../hooks/public-profile/usePublicProfileBuses', () => ({ usePublicProfileBuses: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
+jest.mock('../hooks/public-profile/usePublicProfileEquipment', () => ({ usePublicProfileEquipment: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../store/authStore', () => ({ useAuthStore: () => ({ user: null }) }))
 jest.mock('../store/dialogStore', () => ({ dialogService: { alert: jest.fn() } }))
 

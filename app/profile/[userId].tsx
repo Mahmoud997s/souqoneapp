@@ -13,6 +13,8 @@ import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge'
 import { usePublicProfile } from '../../src/hooks/useProfile'
 import { usePublicProfileCars } from '../../src/hooks/public-profile/usePublicProfileCars'
+import { usePublicProfileBuses } from '../../src/hooks/public-profile/usePublicProfileBuses'
+import { usePublicProfileEquipment } from '../../src/hooks/public-profile/usePublicProfileEquipment'
 import { PublicProfileListingVertical } from '../../src/hooks/public-profile/publicProfileKeys'
 import { PublicProfileTabs } from '../../src/components/profile/public-profile/PublicProfileTabs'
 import { PublicProfileSectionList } from '../../src/components/profile/public-profile/PublicProfileSectionList'
@@ -23,9 +25,12 @@ import { dialogService } from '../../src/store/dialogStore'
 export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>()
   const insets = useSafeAreaInsets()
-  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = usePublicProfile(userId)
-  const { data: carPages, isLoading: carsLoading, isError: carsError, isFetching: carsFetching, isFetchingNextPage, hasNextPage, fetchNextPage, refetch: refetchCars } = usePublicProfileCars(userId)
   const [activeTab, setActiveTab] = useState<PublicProfileListingVertical>('car')
+  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = usePublicProfile(userId)
+  const carsQuery = usePublicProfileCars(userId, activeTab === 'car')
+  const busesQuery = usePublicProfileBuses(userId, activeTab === 'bus')
+  const equipmentQuery = usePublicProfileEquipment(userId, activeTab === 'equipment')
+  const activeInventoryQuery = activeTab === 'car' ? carsQuery : activeTab === 'bus' ? busesQuery : activeTab === 'equipment' ? equipmentQuery : undefined
   const { user } = useAuthStore()
 
   if (profileLoading) {
@@ -65,7 +70,7 @@ export default function PublicProfileScreen() {
 
   const displayName = profile?.displayName ?? profile?.username ?? 'مستخدم'
   const joinYear = profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '—'
-  const carItems = carPages?.pages.flatMap((page) => page.data) ?? []
+  const inventoryItems = activeInventoryQuery?.data?.pages.flatMap((page) => page.data) ?? []
   const profileCount = profile._count.listings + profile._count.busListings + profile._count.equipmentListings + profile._count.spareParts + profile._count.carServices
   const inventoryHeader = (
     <>
@@ -141,16 +146,20 @@ export default function PublicProfileScreen() {
       <PublicProfileSectionList
         vertical={activeTab}
         header={inventoryHeader}
-        items={activeTab === 'car' ? carItems : []}
-        isLoading={activeTab === 'car' && carsLoading}
-        isError={activeTab === 'car' && carsError}
-        isRefreshing={carsFetching && !carsLoading}
-        isFetchingNextPage={activeTab === 'car' && isFetchingNextPage}
-        hasNextPage={activeTab === 'car' && Boolean(hasNextPage)}
-        onRefresh={() => { void Promise.all([refetchProfile(), refetchCars()]) }}
-        onRetry={() => { void refetchCars() }}
-        onLoadMore={() => { void fetchNextPage() }}
-        onPressItem={(item: UnifiedCardItem) => router.push({ pathname: '/cars/[id]', params: { id: item.id } })}
+        items={inventoryItems}
+        isLoading={activeInventoryQuery?.isLoading ?? false}
+        isError={activeInventoryQuery?.isError ?? false}
+        isRefreshing={Boolean(activeInventoryQuery?.isFetching && !activeInventoryQuery.isLoading)}
+        isFetchingNextPage={activeInventoryQuery?.isFetchingNextPage ?? false}
+        hasNextPage={Boolean(activeInventoryQuery?.hasNextPage)}
+        onRefresh={() => { void Promise.all([refetchProfile(), activeInventoryQuery?.refetch() ?? Promise.resolve()]) }}
+        onRetry={() => { void activeInventoryQuery?.refetch() }}
+        onLoadMore={() => { if (activeInventoryQuery?.hasNextPage) void activeInventoryQuery.fetchNextPage() }}
+        onPressItem={(item: UnifiedCardItem) => {
+          if (activeTab === 'car') router.push({ pathname: '/cars/[id]', params: { id: item.id } })
+          if (activeTab === 'bus') router.push({ pathname: '/buses/[id]', params: { id: item.id } })
+          if (activeTab === 'equipment') router.push({ pathname: '/equipment/[id]', params: { id: item.id } })
+        }}
       />
 
       <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
