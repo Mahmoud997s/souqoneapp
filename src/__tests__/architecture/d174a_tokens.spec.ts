@@ -28,6 +28,7 @@ describe('D-174a Token Deduplication & Dead Token Absence (Value-Equality)', () 
     it('SearchCategoryTabs tokens equal exact literals and prove surfaceAlt inequality', () => {
       expect(TopBarTokens.categoryTrackBg).toBe('#f1f5f9')
       expect(TopBarTokens.categoryTabBg).toBe('#ffffff')
+      // Note: Equality check is intentionally case-insensitive as color parsing in React Native/CSS is case-insensitive (#ffffff vs #FFFFFF)
       expect(Colors.white.toLowerCase()).toBe('#ffffff')
       // Proves why Colors.surfaceAlt (#F7F8FA) was not used in place of #f1f5f9
       expect(Colors.surfaceAlt.toLowerCase()).not.toBe('#f1f5f9')

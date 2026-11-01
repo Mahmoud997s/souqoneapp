@@ -168,6 +168,7 @@ describe('D-174b: Type Holes & Card Item Helpers', () => {
 
     it('CarCard: matches old inline isPriceNegotiable logic', () => {
       inputShapes.forEach((item) => {
+        // Note: 'as any' is intentionally preserved here to test exact equivalence against the legacy pre-D-174b inline expression
         const rawData = (item as any).raw || item
         const oldLogicSale = Boolean(true && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))
         const oldLogicNotSale = Boolean(false && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))
@@ -182,6 +183,7 @@ describe('D-174b: Type Holes & Card Item Helpers', () => {
 
     it('BusCard: matches old inline isPriceNegotiable logic', () => {
       inputShapes.forEach((item) => {
+        // Note: 'as any' is intentionally preserved here to test exact equivalence against the legacy pre-D-174b inline expression
         const rawData = (item as any).raw || item
         const oldLogic = Boolean(true && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))
         const newLogic = Boolean(true && getCardPriceNegotiable(item))
@@ -191,6 +193,7 @@ describe('D-174b: Type Holes & Card Item Helpers', () => {
 
     it('EquipCard: matches old inline isPriceNegotiable logic', () => {
       inputShapes.forEach((item) => {
+        // Note: 'as any' is intentionally preserved here to test exact equivalence against the legacy pre-D-174b inline expression
         const rawData = (item as any).raw || item
         const oldLogic = Boolean(true && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))
         const newLogic = Boolean(true && getCardPriceNegotiable(item))
@@ -200,6 +203,7 @@ describe('D-174b: Type Holes & Card Item Helpers', () => {
 
     it('ServiceCard: matches old inline isSellerVerified logic', () => {
       inputShapes.forEach((item) => {
+        // Note: 'as any' is intentionally preserved here to test exact equivalence against the legacy pre-D-174b inline expression
         const rawData = (item as any).raw || item
         const oldLogic =
           (item as any).isVerified ??
