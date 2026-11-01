@@ -6,6 +6,17 @@ import { ListingCardBase } from '../../ui/ListingCardBase'
 import { CardSystem } from '../../../constants/cardSystem'
 import { Colors } from '../../../constants/colors'
 
+jest.mock('@expo/vector-icons', () => {
+  const ReactLib = require('react')
+  const { View: RNView } = require('react-native')
+  return {
+    Ionicons: (props: Record<string, unknown>) =>
+      ReactLib.createElement(RNView, { testID: `icon-${String(props.name)}`, ...props }),
+    MaterialCommunityIcons: (props: Record<string, unknown>) =>
+      ReactLib.createElement(RNView, { testID: `m-icon-${String(props.name)}`, ...props }),
+  }
+})
+
 const mockIsLiquidGlassAvailable = jest.fn(() => true)
 const mockIsGlassEffectAPIAvailable = jest.fn(() => true)
 const MockGlassView = (props: Record<string, unknown>) =>
@@ -107,9 +118,13 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(getByTestId('listing-card-price-pill-glass-liquid')).toBeTruthy()
     expect(getByTestId('listing-card-negotiable-pill-glass-liquid')).toBeTruthy()
 
-    // 5. Floating share & favorite buttons render liquid branch
+    // 5. Floating share & favorite buttons render liquid branch with primary turquoise outline icons
     expect(getByTestId('listing-card-share-btn-glass-liquid')).toBeTruthy()
     expect(getByTestId('listing-card-favorite-btn-glass-liquid')).toBeTruthy()
+    const shareIcon = getByTestId('icon-share-social-outline')
+    const favIcon = getByTestId('icon-heart-outline')
+    expect(shareIcon.props.color).toBe(Colors.primary)
+    expect(favIcon.props.color).toBe(Colors.primary)
   })
 
   it('(b) Blur branch (Reduce Transparency / fallback): renders blur card surface and frosted capsule wash without nested BlurViews inside capsules', async () => {

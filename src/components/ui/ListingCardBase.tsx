@@ -239,14 +239,15 @@ export const ListingCardBase = ({
               <GlassSurface
                 testID="listing-card-share-btn"
                 borderRadius={13}
-                glassEffectStyle="clear"
-                intensity={50}
-                tint="dark"
                 noBorder={true}
                 support={glass}
               />
             )}
-            <Ionicons name="share-social" size={16} color={Colors.white} />
+            <Ionicons
+              name={liquidGlass ? 'share-social-outline' : 'share-social'}
+              size={16}
+              color={liquidGlass ? Colors.primary : Colors.white}
+            />
           </TouchableOpacity>
           {resolvedType !== null && !isOwner && (
             <TouchableOpacity
@@ -259,9 +260,6 @@ export const ListingCardBase = ({
                 <GlassSurface
                   testID="listing-card-favorite-btn"
                   borderRadius={13}
-                  glassEffectStyle="clear"
-                  intensity={50}
-                  tint="dark"
                   noBorder={true}
                   support={glass}
                 />
@@ -269,7 +267,7 @@ export const ListingCardBase = ({
               <Ionicons
                 name={isFav ? 'heart' : 'heart-outline'}
                 size={16}
-                color={isFav ? Colors.error : Colors.white}
+                color={isFav ? Colors.error : liquidGlass ? Colors.primary : Colors.white}
               />
             </TouchableOpacity>
           )}
