@@ -17,12 +17,16 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
-import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import {
   physicalRightStyle,
   getGestureDirectionMultiplier,
 } from '../../utils/physicalDirection'
+import {
+  GlassSurface,
+  useGlassSupport,
+  type GlassSupport,
+} from '../navigation/glassSupport'
 
 export interface GlassCategoryTabItem {
   id: string
@@ -40,6 +44,7 @@ export interface GlassCategoriesGridProps {
   scrollable?: boolean
   tabWidth?: number
   containerStyle?: StyleProp<ViewStyle>
+  support?: GlassSupport
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -53,7 +58,11 @@ export function GlassCategoriesGrid({
   scrollable,
   tabWidth = DEFAULT_TAB_WIDTH,
   containerStyle,
+  support: supportProp,
 }: GlassCategoriesGridProps) {
+  const hookGlass = useGlassSupport()
+  const glass = supportProp ?? hookGlass
+
   const isScrollable = scrollable ?? items.length > 5
   const isCompact = compact ?? (!isScrollable && items.length >= 5)
 
@@ -177,10 +186,17 @@ export function GlassCategoriesGrid({
                     ]}
                   >
                     <TouchableOpacity
+                      testID={`category-tile-${item.id}`}
                       style={s.catItemScrollable}
                       activeOpacity={0.7}
                       onPress={item.onPress}
                     >
+                      <GlassSurface
+                        testID={`category-tile-${item.id}`}
+                        borderRadius={14}
+                        noBorder={true}
+                        support={glass}
+                      />
                       <View
                         style={[
                           s.catIconBox,
@@ -214,10 +230,17 @@ export function GlassCategoriesGrid({
         {items.map((item) => (
           <TouchableOpacity
             key={item.id}
+            testID={`category-tile-${item.id}`}
             style={[s.catItem, isCompact && s.catItemCompact]}
             activeOpacity={0.7}
             onPress={item.onPress}
           >
+            <GlassSurface
+              testID={`category-tile-${item.id}`}
+              borderRadius={14}
+              noBorder={true}
+              support={glass}
+            />
             <View
               style={[
                 s.catIconBox,
@@ -252,27 +275,23 @@ const s = StyleSheet.create({
   },
   catItem: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.65)', // Glass transparency
+    backgroundColor: 'transparent',
     paddingVertical: 10,
-    borderRadius: Radius.lg,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.95)', // 3D edge light reflection
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
     shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3, // 3D floating shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   catItemCompact: {
     paddingVertical: 8,
     paddingHorizontal: 2,
-    borderRadius: Radius.md,
-    borderWidth: 1.2,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 6,
-    elevation: 2,
   },
   catIconBox: {
     width: 36,
@@ -326,19 +345,20 @@ const s = StyleSheet.create({
     top: 4,
   },
   catItemScrollable: {
-    backgroundColor: 'rgba(255, 255, 255, 0.65)', // Glass transparency
+    backgroundColor: 'transparent',
     paddingVertical: 10,
     paddingHorizontal: 4,
-    borderRadius: Radius.lg,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.95)', // 3D edge light reflection
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
     shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   catLabelScrollable: {
     fontFamily: 'Almarai_700Bold',
