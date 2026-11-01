@@ -111,7 +111,7 @@ describe('ContactActions Glass Conversion Specification', () => {
     const washView = Array.isArray(children) ? children[1] : null
     expect(washView).toBeTruthy()
     const washStyle = StyleSheet.flatten(washView.props.style)
-    expect(washStyle.backgroundColor).toBe(BottomBarTokens.whiteWashBg)
+    expect(washStyle.backgroundColor).toBe(BottomBarTokens.stickyCardWashBg)
 
     assertNoOpacityInAncestry(blurSurface)
   })

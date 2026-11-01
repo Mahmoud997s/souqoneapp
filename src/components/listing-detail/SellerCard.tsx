@@ -39,6 +39,7 @@ export function SellerCard({ seller, onPressProfile, support }: SellerCardProps)
           borderRadius={Radius.lg}
           noBorder
           intensity={70}
+          washColor={Colors.white}
           support={support}
         />
         <View style={s.row}>

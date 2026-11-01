@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, Platform, StyleProp, ViewStyle } from 'react-native'
 import { GlassSurface } from '../navigation/glassSupport'
 import type { GlassSupport } from '../navigation/glassCapability'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
@@ -19,10 +20,13 @@ export function WizardCard({ title, subtitle, children, style, support, testID =
   return (
     <View testID={testID} style={[s.card, style]}>
       <GlassSurface
+        testID={`${testID}-surface`}
         variant="surface"
         borderRadius={Radius.lg}
         noBorder
         intensity={50}
+        washColor={Colors.white}
+        washOpacity={BottomBarTokens.lightWashOpacity}
         support={support}
       />
       <View style={s.tint} pointerEvents="none" />

@@ -96,10 +96,12 @@ export function DraftResumeScreen({
         <View style={styles.cardOuter}>
           <View style={[styles.cardContainer, { backgroundColor: 'transparent' }]}>
             <GlassSurface
+              testID="draft-card-glass-surface"
               variant="surface"
               borderRadius={Radius.xl}
               noBorder
               intensity={45}
+              washOpacity={0}
             />
             {images.length > 0 && (
               <View style={styles.photoRow}>
@@ -178,9 +180,11 @@ export function DraftResumeScreen({
         style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14), backgroundColor: 'transparent' }]}
       >
         <GlassSurface
+          testID="draft-footer-glass-surface"
           variant="surface"
           noBorder
           intensity={55}
+          washOpacity={0}
         />
         <TouchableOpacity style={styles.primaryBtn} onPress={onResume} activeOpacity={0.9}>
           <Ionicons name="rocket-outline" size={20} color={Colors.white} />

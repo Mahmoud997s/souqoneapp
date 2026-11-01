@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { GlassSurface } from '../navigation/glassSupport'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -78,6 +79,8 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
           borderRadius={Radius.lg}
           noBorder
           intensity={50}
+          washColor={Colors.white}
+          washOpacity={BottomBarTokens.lightWashOpacity}
         />
         <View style={s.tint} pointerEvents="none" />
         {body}

@@ -87,20 +87,22 @@ jest.mock('react-native-reanimated', () => {
   }
 })
 
-function assertNoOpacityInAncestry(startElement: any, stopAtTestId?: string) {
+function assertNoOpacityInAncestry(startElement: any) {
   let curr = startElement
+  let checkedCount = 0
   while (curr) {
     if (curr.props && curr.props.style) {
       const flatStyle = StyleSheet.flatten(curr.props.style)
       if (flatStyle && flatStyle.opacity !== undefined) {
-        expect(flatStyle.opacity).toBeUndefined()
+        throw new Error(
+          `Detected opacity: ${flatStyle.opacity} in ancestry on element testID: ${curr.props.testID || 'anonymous'}`
+        )
       }
     }
-    if (stopAtTestId && curr.props && curr.props.testID === stopAtTestId) {
-      break
-    }
+    checkedCount++
     curr = curr.parent
   }
+  expect(checkedCount).toBeGreaterThan(1)
 }
 
 describe('D-175c Characterization & Architectural Guard Tests', () => {
@@ -168,9 +170,27 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </WizardStickyFooter>
       )
 
-      const footer = getByTestId('test-sticky-footer')
-      expect(footer).toBeTruthy()
-      assertNoOpacityInAncestry(footer, 'test-sticky-footer')
+      const innerGlass = getByTestId('test-sticky-footer-surface-glass-liquid')
+      expect(innerGlass).toBeTruthy()
+      assertNoOpacityInAncestry(innerGlass)
+    })
+
+    it('teeth proof: assertNoOpacityInAncestry fails when an ancestor has opacity', async () => {
+      const { getByTestId } = await render(
+        <View style={{ opacity: 0.5 }}>
+          <WizardStickyFooter
+            testID="test-sticky-footer-teeth"
+            paddingBottom={20}
+          >
+            <Text>Footer Content</Text>
+          </WizardStickyFooter>
+        </View>
+      )
+
+      const innerGlass = getByTestId('test-sticky-footer-teeth-surface-glass-liquid')
+      expect(() => assertNoOpacityInAncestry(innerGlass)).toThrow(
+        /Detected opacity: 0.5 in ancestry/
+      )
     })
   })
 
@@ -182,9 +202,9 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </WizardReviewCard>
       )
 
-      const card = getByTestId('test-review-card')
-      expect(card).toBeTruthy()
-      assertNoOpacityInAncestry(card, 'test-review-card')
+      const innerGlass = getByTestId('test-review-card-surface-glass-liquid')
+      expect(innerGlass).toBeTruthy()
+      assertNoOpacityInAncestry(innerGlass)
     })
   })
 
@@ -200,9 +220,9 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </WizardCard>
       )
 
-      const card = getByTestId('test-wizard-card')
-      expect(card).toBeTruthy()
-      assertNoOpacityInAncestry(card, 'test-wizard-card')
+      const innerGlass = getByTestId('test-wizard-card-surface-glass-liquid')
+      expect(innerGlass).toBeTruthy()
+      assertNoOpacityInAncestry(innerGlass)
     })
   })
 
@@ -227,6 +247,7 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
       const { getByTestId } = await render(
         <AnimatedHeroHeader
           title="العنوان الرئيسي"
+          // Note: 'as any' is intentionally preserved on this characterization test fixture to mock a SharedValue without full native Reanimated bindings
           scrollY={{ value: 0 } as any}
         />
       )

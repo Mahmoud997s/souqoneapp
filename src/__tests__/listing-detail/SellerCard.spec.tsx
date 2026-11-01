@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import type { GlassViewProps } from 'expo-glass-effect'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
+import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
@@ -121,7 +122,7 @@ describe('SellerCard Glass Conversion Specification', () => {
     const washView = Array.isArray(children) ? children[1] : null
     expect(washView).toBeTruthy()
     const washStyle = StyleSheet.flatten(washView.props.style)
-    expect(washStyle.backgroundColor).toBe(BottomBarTokens.whiteWashBg)
+    expect(washStyle.backgroundColor).toBe(Colors.white)
 
     assertNoOpacityInAncestry(blurSurface, 'seller-card-container')
   })

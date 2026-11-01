@@ -306,6 +306,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
           title="شاشة ليكويد"
           paddingTop={44}
           onBackPress={jest.fn()}
+          // Note: 'as any' is intentionally used on MockGlassView fixture to satisfy GlassSupport type in unit test environment without expo-glass-effect native module
           support={{ kind: 'liquid', GlassView: MockGlassView as any }}
         />
       )

@@ -20,8 +20,12 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
 import { dialogService } from '../../store/dialogStore'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { GlassSurface } from '../navigation/GlassSurface'
 import type { GlassSupport } from '../navigation/glassCapability'
+
+export const OWNER_MANAGE_BAR_HEIGHT = 60.4
+export const OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y = 100
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
@@ -128,7 +132,7 @@ export function OwnerManageBar({
     const translateY = interpolate(
       scrollY.value,
       [threshold - 50, threshold],
-      [80, 0],
+      [OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y, 0],
       Extrapolation.CLAMP
     )
     return {
@@ -221,6 +225,7 @@ export function OwnerManageBar({
             borderRadius={Radius.xl}
             noBorder
             intensity={70}
+            washColor={BottomBarTokens.stickyCardWashBg}
             support={support}
           />
           {/* Owner badge */}

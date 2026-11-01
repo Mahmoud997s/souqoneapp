@@ -19,8 +19,12 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { GlassSurface } from '../navigation/GlassSurface'
 import type { GlassSupport } from '../navigation/glassCapability'
+
+export const CONTACT_ACTIONS_BAR_HEIGHT = 64.4
+export const CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y = 100
 
 export type ContactAvailability =
   | { mode: 'full' }
@@ -74,7 +78,7 @@ export function ContactActions({
     const translateY = interpolate(
       scrollY.value,
       [threshold - 50, threshold],
-      [80, 0],
+      [CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y, 0],
       Extrapolation.CLAMP
     )
     return {
@@ -170,6 +174,7 @@ export function ContactActions({
             borderRadius={Radius.xl}
             noBorder
             intensity={70}
+            washColor={BottomBarTokens.stickyCardWashBg}
             support={support}
           />
           {content}

@@ -24,6 +24,8 @@ export interface GlassSurfaceProps {
   noBorder?: boolean
   variant?: 'surface' | 'capsule'
   tintOverlayColor?: string
+  washColor?: string
+  washOpacity?: number
   support?: GlassSupport
 }
 
@@ -42,6 +44,8 @@ function GlassSurfaceView({
   noBorder = false,
   variant = 'surface',
   tintOverlayColor,
+  washColor,
+  washOpacity,
   support: glass,
 }: GlassSurfaceViewProps) {
   const isCapsule = variant === 'capsule'
@@ -104,6 +108,13 @@ function GlassSurfaceView({
     )
   }
 
+  const effectiveWashColor = washColor ?? BottomBarTokens.whiteWashBg
+  const effectiveWashOpacity = washOpacity
+  const washStyle: ViewStyle = {
+    backgroundColor: effectiveWashColor,
+    ...(effectiveWashOpacity !== undefined ? { opacity: effectiveWashOpacity } : null),
+  }
+
   return (
     <Animated.View
       testID={`${testID}-glass-blur`}
@@ -117,8 +128,10 @@ function GlassSurfaceView({
         style={StyleSheet.absoluteFill}
       />
       <View
+        testID={`${testID}-wash-overlay`}
         style={[
           s.whiteWashOverlay,
+          washStyle,
           tintOverlayColor ? { backgroundColor: tintOverlayColor } : null,
         ]}
       />

@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 
 export interface GlassNavBarAction {
@@ -54,6 +55,8 @@ export function GlassNavBar({
             testID="glass-nav-bar-surface"
             variant="surface"
             intensity={60}
+            washColor={Colors.white}
+            washOpacity={BottomBarTokens.lightWashOpacity}
             noBorder
             support={support}
           />

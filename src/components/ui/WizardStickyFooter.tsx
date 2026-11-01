@@ -28,9 +28,12 @@ export function WizardStickyFooter({
       ]}
     >
       <GlassSurface
+        testID={`${testID}-surface`}
         variant="surface"
         noBorder
         intensity={60}
+        washColor={Colors.white}
+        washOpacity={BottomBarTokens.lightWashOpacity}
       />
       <View style={s.footerTint} pointerEvents="none" />
       {children}

@@ -29,8 +29,11 @@ export const BottomBarTokens = {
   blurTint: 'light' as const,
   blurMethod: 'dimezisBlurView' as const,
 
-  // Translucent white literals strictly itemized per report 409
+  // Translucent white literals strictly itemized per report 409 & 415 (D-176b)
   whiteWashBg: 'rgba(255, 255, 255, 0.78)',
+  lightWashOpacity: 0.08,
+  subtleTintOpacity: 0.04,
+  stickyCardWashBg: 'rgba(255, 255, 255, 0.80)',
   borderColor: 'rgba(255, 255, 255, 0.60)',
   borderWidth: 1,
   rippleColor: 'rgba(255, 255, 255, 0.20)',

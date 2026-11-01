@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlassSurface } from '../navigation/glassSupport';
+import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -113,10 +114,13 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
         >
           <View style={[s.glassCard, { backgroundColor: 'transparent' }]}>
             <GlassSurface
+              testID="profile-phone-guard-glass-surface"
               variant="surface"
               borderRadius={Radius.lg}
               noBorder
               intensity={50}
+              washColor={Colors.white}
+              washOpacity={BottomBarTokens.lightWashOpacity}
             />
             <View style={s.tint} pointerEvents="none" />
             {body}

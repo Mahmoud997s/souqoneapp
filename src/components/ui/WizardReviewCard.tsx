@@ -20,10 +20,13 @@ export function WizardReviewCard({
   return (
     <View testID={testID} style={[s.card, style]}>
       <GlassSurface
+        testID={testID ? `${testID}-surface` : undefined}
         variant="surface"
         borderRadius={Radius.lg}
         noBorder
         intensity={50}
+        washColor={Colors.white}
+        washOpacity={BottomBarTokens.lightWashOpacity}
       />
       <View style={s.cardTint} pointerEvents="none" />
       {children}
