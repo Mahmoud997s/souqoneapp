@@ -16,7 +16,7 @@ export const CardSystem = {
   // Liquid Glass Tokens for Cards & Capsules
   glass: {
     outerRadius: 16,
-    capsuleRadius: 10,
+    capsuleRadius: 6, // Restored to match original CardSystem.radius.inner (6)
     cardTint: 'rgba(255, 255, 255, 0.81)',
     cardBorderColor: Colors.border,
     capsuleTint: 'rgba(238, 242, 245, 0.55)',

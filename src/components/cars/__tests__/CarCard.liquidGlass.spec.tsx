@@ -104,12 +104,13 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     // 2. Card main surface renders liquid branch
     expect(getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
 
-    // 3. Specification capsules render liquid branch with capsule radius
+    // 3. Specification capsules render liquid branch with restored original capsule radius (6px)
+    expect(CardSystem.glass.capsuleRadius).toBe(CardSystem.radius.inner)
     for (const key of ['model', 'year', 'trans', 'mileage']) {
       const wrap = getByTestId(`listing-card-pill-wrap-${key}`)
       const wrapStyle = StyleSheet.flatten(wrap.props.style)
       expect(wrapStyle.backgroundColor).toBe('transparent')
-      expect(wrapStyle.borderRadius).toBe(CardSystem.glass.capsuleRadius)
+      expect(wrapStyle.borderRadius).toBe(CardSystem.radius.inner)
       expect(wrapStyle.overflow).toBe('hidden')
       expect(getByTestId(`listing-card-pill-${key}-glass-liquid`)).toBeTruthy()
     }
@@ -118,9 +119,10 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(getByTestId('listing-card-price-pill-glass-liquid')).toBeTruthy()
     expect(getByTestId('listing-card-negotiable-pill-glass-liquid')).toBeTruthy()
 
-    // 5. Floating share & favorite buttons render liquid branch with primary turquoise outline icons
-    expect(getByTestId('listing-card-share-btn-glass-liquid')).toBeTruthy()
-    expect(getByTestId('listing-card-favorite-btn-glass-liquid')).toBeTruthy()
+    // 5. Floating share & favorite buttons render frosted styling with primary turquoise outline icons
+    const shareBtn = getByTestId('listing-card-share')
+    const shareBtnStyle = StyleSheet.flatten(shareBtn.props.style)
+    expect(shareBtnStyle.backgroundColor).toBe('rgba(255, 255, 255, 0.88)')
     const shareIcon = getByTestId('icon-share-social-outline')
     const favIcon = getByTestId('icon-heart-outline')
     expect(shareIcon.props.color).toBe(Colors.primary)
@@ -141,10 +143,9 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(getByTestId('listing-card-price-pill-glass-blur')).toBeTruthy()
     expect(getByTestId('listing-card-negotiable-pill-glass-blur')).toBeTruthy()
 
-    // Only the card surface and the 2 floating image buttons use BlurView (3 total),
-    // NOT the 6 inner body capsules (avoiding nested BlurView overdraw on Android)
+    // Only the card surface uses BlurView (1 total), avoiding GPU conflicts over image and nested BlurViews
     const blurViews = getAllByTestId('mock-blur-view')
-    expect(blurViews.length).toBe(3)
+    expect(blurViews.length).toBe(1)
   })
 
   it('(c) Hook deduplication: registers at most 1 reduceTransparencyChanged listener per card (not per capsule), and 0 when glassSupport prop is provided', async () => {

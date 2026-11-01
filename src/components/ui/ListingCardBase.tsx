@@ -235,17 +235,9 @@ export const ListingCardBase = ({
             onPress={handleShare}
             activeOpacity={0.8}
           >
-            {liquidGlass && (
-              <GlassSurface
-                testID="listing-card-share-btn"
-                borderRadius={13}
-                noBorder={true}
-                support={glass}
-              />
-            )}
             <Ionicons
               name={liquidGlass ? 'share-social-outline' : 'share-social'}
-              size={16}
+              size={15}
               color={liquidGlass ? Colors.primary : Colors.white}
             />
           </TouchableOpacity>
@@ -256,14 +248,6 @@ export const ListingCardBase = ({
               onPress={handleFavorite}
               activeOpacity={0.8}
             >
-              {liquidGlass && (
-                <GlassSurface
-                  testID="listing-card-favorite-btn"
-                  borderRadius={13}
-                  noBorder={true}
-                  support={glass}
-                />
-              )}
               <Ionicons
                 name={isFav ? 'heart' : 'heart-outline'}
                 size={16}
@@ -627,10 +611,20 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   actionBtnGlass: {
-    backgroundColor: 'transparent',
-    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
     borderWidth: 1,
-    borderColor: CardSystem.glass.actionBtnBorderColor,
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   soldOverlay: {
     zIndex: 10,
