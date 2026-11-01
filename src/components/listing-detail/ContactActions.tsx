@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native'
-import { BlurView } from 'expo-blur'
 import Animated, {
   useAnimatedStyle,
   interpolate,
@@ -20,6 +19,8 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
+import { GlassSurface } from '../navigation/GlassSurface'
+import type { GlassSupport } from '../navigation/glassCapability'
 
 export type ContactAvailability =
   | { mode: 'full' }
@@ -36,6 +37,7 @@ export interface ContactActionsProps {
   onChat: () => void
   scrollY?: SharedValue<number>
   threshold?: number
+  support?: GlassSupport
 }
 
 /**
@@ -55,6 +57,7 @@ export function ContactActions({
   onChat,
   scrollY,
   threshold = 300,
+  support,
 }: ContactActionsProps) {
   const insets = useSafeAreaInsets()
 
@@ -66,22 +69,15 @@ export function ContactActions({
 
   const animatedStickyStyle = useAnimatedStyle(() => {
     if (!scrollY) {
-      return { opacity: 1, transform: [{ translateY: 0 }] }
+      return { transform: [{ translateY: 0 }] }
     }
-    const opacity = interpolate(
-      scrollY.value,
-      [threshold - 50, threshold],
-      [0, 1],
-      Extrapolation.CLAMP
-    )
     const translateY = interpolate(
       scrollY.value,
       [threshold - 50, threshold],
-      [24, 0],
+      [80, 0],
       Extrapolation.CLAMP
     )
     return {
-      opacity,
       transform: [{ translateY }],
       pointerEvents: scrollY.value >= threshold - 30 ? 'auto' : 'none',
     }
@@ -167,14 +163,17 @@ export function ContactActions({
         ]}
         pointerEvents="box-none"
       >
-        <BlurView
-          intensity={70}
-          tint="light"
-          blurMethod="dimezisBlurView"
-          style={s.stickyCard}
-        >
+        <View style={s.stickyCard}>
+          <GlassSurface
+            testID="contact-actions"
+            variant="surface"
+            borderRadius={Radius.xl}
+            noBorder
+            intensity={70}
+            support={support}
+          />
           {content}
-        </BlurView>
+        </View>
       </Animated.View>
     )
   }
@@ -194,7 +193,7 @@ const s = StyleSheet.create({
     zIndex: 90,
   },
   stickyCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.80)',
+    backgroundColor: 'transparent',
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2 + 2,
     borderRadius: Radius.xl,

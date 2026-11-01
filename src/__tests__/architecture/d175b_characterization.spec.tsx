@@ -136,6 +136,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}
           scrollY={{ value: 400 } as unknown as SharedValue<number>}
+          support={{ kind: 'blur' }}
         />
       )
 
@@ -185,6 +186,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
           busy={false}
           onAction={onAction}
           scrollY={{ value: 400 } as unknown as SharedValue<number>}
+          support={{ kind: 'blur' }}
         />
       )
 
