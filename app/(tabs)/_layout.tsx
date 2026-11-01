@@ -103,7 +103,7 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
   return (
     <Pressable
       onPress={handlePress}
-      style={({ pressed, hovered }: any) => [
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
         s.tabItem,
         hovered && s.tabItemHovered,
         pressed && s.tabItemPressed,
@@ -152,12 +152,12 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
 
   const handlePost = useCallback(() => {
     if (!isLoggedIn) { router.push('/(auth)/login'); return }
-    router.push('/(modals)/post-category' as any)
+    router.push('/(modals)/post-category')
   }, [isLoggedIn, router])
 
   // Dynamically hide tab bar if the focused route explicitly disables it
   const currentDescriptor = descriptors[state.routes[state.index]?.key]
-  const tabBarStyle = currentDescriptor?.options?.tabBarStyle as any
+  const tabBarStyle = StyleSheet.flatten(currentDescriptor?.options?.tabBarStyle)
   if (tabBarStyle?.display === 'none') {
     return null
   }
@@ -187,7 +187,7 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
       testID="custom-tab-bar"
     >
       <View style={s.bar}>
-        {state.routes.map((route: any, index: number) => {
+        {state.routes.map((route: BottomTabBarProps['state']['routes'][number], index: number) => {
           const meta    = TABS[index]
           const focused = state.index === index
 
@@ -237,7 +237,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props: any) => <CustomTabBar {...props} />}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tabs.Screen name="index"   options={{ title: 'الرئيسية' }} />
       <Tabs.Screen name="search"  options={{ title: 'البحث'    }} />

@@ -12,9 +12,7 @@ import { Colors } from '../../src/constants/colors'
 import { useMyListingsScreen } from '../../src/hooks/useMyListingsScreen'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
-import { BlurView } from 'expo-blur'
 
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 const FILTER_BAR_HEIGHT_ESTIMATE = 108
 
 export default function MyListingsScreen() {

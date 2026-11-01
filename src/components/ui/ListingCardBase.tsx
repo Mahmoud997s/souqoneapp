@@ -613,9 +613,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   actionBtnGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: CardSystem.glass.actionBtnBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.95)',
+    borderColor: CardSystem.glass.actionBtnBorderColor,
     ...Platform.select({
       ios: {
         shadowColor: Colors.primaryDark,

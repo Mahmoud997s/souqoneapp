@@ -2,6 +2,7 @@ import { StyleSheet, Platform } from 'react-native'
 import { Colors } from './colors'
 import { Spacing } from './spacing'
 import { Radius } from './radius'
+import { BottomBarTokens } from './bottomBarTokens'
 
 /**
  * TopBarTokens
@@ -21,7 +22,7 @@ export const TopBarTokens = {
   blurIntensity: 65,
   blurTint: 'light' as const,
   blurMethod: 'dimezisBlurView' as const,
-  whiteWashBg: 'rgba(255, 255, 255, 0.78)',
+  whiteWashBg: BottomBarTokens.whiteWashBg,
   tintOverlayColor: Colors.primary,
   tintOverlayOpacity: 0.03,
   gridPatternSize: 30,
@@ -30,6 +31,10 @@ export const TopBarTokens = {
   gridStrokeWidth: 1,
   borderBottomColor: Colors.border,
   borderBottomWidth: 1,
+
+  // Segmented category tabs tokens (SearchCategoryTabs)
+  categoryTrackBg: '#f1f5f9',
+  categoryTabBg: '#ffffff',
 
   // Outer Elevation Shadow
   shadow: Platform.select({

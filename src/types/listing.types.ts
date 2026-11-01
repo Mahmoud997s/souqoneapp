@@ -17,6 +17,14 @@ export interface CarDetails {
   color: string
 }
 
+export interface CardRawPayload {
+  isPriceNegotiable?: boolean
+  isVerified?: boolean
+  user?: { isVerified?: boolean; id?: string; displayName?: string; username?: string; name?: string; [key: string]: unknown }
+  seller?: { isVerified?: boolean; id?: string; displayName?: string; username?: string; name?: string; [key: string]: unknown }
+  [key: string]: unknown
+}
+
 export interface Listing {
   id: string
   title: string
@@ -45,6 +53,9 @@ export interface Listing {
   fuelType?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'ELECTRIC'
   transmission?: 'AUTOMATIC' | 'MANUAL'
   isPriceNegotiable?: boolean
+  isVerified?: boolean
+  raw?: CardRawPayload
+  seller?: UserSummary
   // Rental specific properties
   dailyPrice?: string | number
   monthlyPrice?: string | number
