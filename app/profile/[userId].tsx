@@ -9,6 +9,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { chatApi } from '../../src/api/chat'
+import { findNewestPublicProfileChatTarget } from '../../src/utils/publicProfileChatTarget'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge'
 import { usePublicProfile } from '../../src/hooks/useProfile'
@@ -36,7 +37,7 @@ export default function PublicProfileScreen() {
   const partsQuery = usePublicProfileParts(userId, activeTab === 'part')
   const servicesQuery = usePublicProfileServices(userId, activeTab === 'service')
   const activeInventoryQuery = activeTab === 'car' ? carsQuery : activeTab === 'bus' ? busesQuery : activeTab === 'equipment' ? equipmentQuery : activeTab === 'part' ? partsQuery : servicesQuery
-  const { user } = useAuthStore()
+  const { user, isLoading: authLoading } = useAuthStore()
 
   if (profileLoading) {
     return (
@@ -146,20 +147,21 @@ export default function PublicProfileScreen() {
       return
     }
     try {
-      const res = await chatApi.createRoom({
-        entityType: 'USER',
-        entityId: userId as string,
-      })
+      const target = await findNewestPublicProfileChatTarget(userId)
+      if (!target) {
+        dialogService.alert('تعذر فتح المحادثة', 'لم نعثر على إعلان نشط. أعد المحاولة.')
+        return
+      }
+
+      const res = await chatApi.createRoom(target)
       const conversationId = res.data?.id
       if (conversationId) {
         router.push(`/chat/${conversationId}` as any)
       } else {
-        dialogService.alert('خطأ', 'لم يتم إرجاع المحادثة من الخادم')
+        dialogService.alert('تعذر فتح المحادثة', 'أعد المحاولة لبدء المحادثة.')
       }
-    } catch (e: any) {
-      const errorMsg = e?.response?.data?.message
-      const parsedMsg = Array.isArray(errorMsg) ? errorMsg.join('\\n') : (typeof errorMsg === 'string' ? errorMsg : 'تعذر فتح المحادثة')
-      dialogService.alert('خطأ', parsedMsg)
+    } catch {
+      dialogService.alert('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
     }
   }
 
@@ -192,16 +194,24 @@ export default function PublicProfileScreen() {
         }}
       />
 
-      <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <TouchableOpacity
-          style={s.chatBtn}
-          onPress={handleChat}
-          activeOpacity={0.9}
-        >
-          <Ionicons name="chatbubble-ellipses" size={22} color={Colors.white} />
-          <Text style={s.chatTxt}>محادثة</Text>
-        </TouchableOpacity>
-      </View>
+      {!authLoading && (user?.id === userId || profileCount > 0) && (
+        <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <TouchableOpacity
+            style={s.chatBtn}
+            onPress={user?.id === userId ? () => router.push('/profile/edit-profile') : handleChat}
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={user?.id === userId ? 'تعديل ملفي الشخصي' : 'محادثة'}
+          >
+            <Ionicons
+              name={user?.id === userId ? 'create-outline' : 'chatbubble-ellipses'}
+              size={22}
+              color={Colors.white}
+            />
+            <Text style={s.chatTxt}>{user?.id === userId ? 'تعديل ملفي الشخصي' : 'محادثة'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   )
 }
