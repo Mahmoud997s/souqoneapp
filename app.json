@@ -2,7 +2,7 @@
   "expo": {
     "name": "SouqOne",
     "slug": "souqone",
-    "version": "1.1.0",
+    "version": "2.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -40,7 +40,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "runtimeVersion": "1.1.0"
+      "runtimeVersion": "2.2.1"
     },
     "web": {
       "favicon": "./assets/favicon.png",

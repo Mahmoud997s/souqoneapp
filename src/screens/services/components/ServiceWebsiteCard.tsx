@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
+import { Shadows } from '../../../constants/shadows'
 import type { ServiceWebsiteViewModel } from '../../../types/serviceDetailViewModel.types'
 import { dialogService } from '../../../store/dialogStore'
 
@@ -61,12 +62,15 @@ export function ServiceWebsiteCard({ website }: ServiceWebsiteCardProps) {
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.space4,
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space2,
     gap: Spacing.space3,
+    ...Shadows.card,
   },
   headerRow: {
     flexDirection: 'row',

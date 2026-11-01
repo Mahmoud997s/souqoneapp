@@ -5,11 +5,11 @@ import {
   Text,
   StyleSheet,
   View,
+  Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
-import { Radius } from '../../../constants/radius'
 import { CategoryFilterType } from '../../../hooks/useSearchLogic'
 
 interface CategoryTabItem {
@@ -34,6 +34,17 @@ interface SearchCategoryTabsProps {
   onSelectCategory: (category: CategoryFilterType) => void
 }
 
+/**
+ * SearchCategoryTabs
+ * Quick category tabs for SearchScreen matching the segmented tab styling
+ * of MyListingsVisualFilters / VisualFiltersBase (D-163d).
+ *
+ * - Light grey segmented track (#f1f5f9 / surfaceAlt) with borderRadius 8 and padding 3.
+ * - Tabs with borderRadius 6, paddingVertical 6, paddingHorizontal 12, gap 5.
+ * - Active tab: crisp white #ffffff background with subtle shadow, primary color text & icon.
+ * - Inactive tab: transparent background, textMuted typography.
+ * - 100% behavioral parity: selectedCategory, onSelectCategory, item order preserved.
+ */
 export const SearchCategoryTabs = React.memo(function SearchCategoryTabs({
   selectedCategory,
   onSelectCategory,
@@ -43,29 +54,37 @@ export const SearchCategoryTabs = React.memo(function SearchCategoryTabs({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.container}
+        contentContainerStyle={s.scrollContainer}
       >
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat.id
-          return (
-            <TouchableOpacity
-              key={cat.id}
-              style={[s.tab, isActive && s.tabActive]}
-              onPress={() => onSelectCategory(cat.id)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={cat.icon}
-                size={15}
-                color={isActive ? Colors.white : Colors.text2}
-                style={s.tabIcon}
-              />
-              <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
+        <View style={s.segmentedTrack}>
+          {CATEGORIES.map((cat) => {
+            const isActive = selectedCategory === cat.id
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                testID={`category-tab-${cat.id}`}
+                style={[s.tab, isActive ? s.tabActive : s.tabInactive]}
+                onPress={() => onSelectCategory(cat.id)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={cat.label}
+              >
+                <Ionicons
+                  name={cat.icon}
+                  size={14}
+                  color={isActive ? Colors.primary : Colors.textMuted}
+                  style={s.tabIcon}
+                />
+                <Text
+                  testID={`category-tab-text-${cat.id}`}
+                  style={[s.tabText, isActive ? s.tabTextActive : s.tabTextInactive]}
+                >
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
       </ScrollView>
     </View>
   )
@@ -73,45 +92,63 @@ export const SearchCategoryTabs = React.memo(function SearchCategoryTabs({
 
 const s = StyleSheet.create({
   wrapper: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingVertical: 10,
+    borderBottomColor: Colors.border,
+    paddingVertical: Spacing.space2,
   },
-  container: {
+  scrollContainer: {
     paddingHorizontal: Spacing.space4,
-    gap: 8,
+  },
+  segmentedTrack: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 3,
+    gap: 4,
   },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: Radius.pill,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 5,
+  },
+  tabInactive: {
+    backgroundColor: 'transparent',
   },
   tabActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#ffffff',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.12,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   tabIcon: {
-    marginRight: 6,
+    marginEnd: 2,
   },
   tabText: {
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    fontSize: 11.5,
+    lineHeight: 16,
+  },
+  tabTextInactive: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: Colors.text2,
+    color: Colors.textMuted,
   },
   tabTextActive: {
-    color: Colors.white,
+    fontFamily: 'Almarai_800ExtraBold',
+    color: Colors.primary,
   },
 })

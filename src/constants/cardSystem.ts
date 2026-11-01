@@ -13,6 +13,21 @@ export const CardSystem = {
     badge: 100,
   },
 
+  // Liquid Glass Tokens for Cards & Capsules
+  glass: {
+    outerRadius: 16,
+    capsuleRadius: 6, // Restored to match original CardSystem.radius.inner (6)
+    cardTint: 'rgba(255, 255, 255, 0.81)',
+    cardBorderColor: Colors.border,
+    capsuleTint: 'rgba(238, 242, 245, 0.55)',
+    capsuleBlurWashBg: 'rgba(238, 242, 245, 0.82)',
+    capsuleBorderColor: 'rgba(229, 231, 235, 0.90)',
+    negotiableTint: 'rgba(0, 156, 181, 0.12)',
+    negotiableBorderColor: 'rgba(0, 156, 181, 0.30)',
+    dividerColor: 'rgba(17, 35, 46, 0.06)',
+    actionBtnBorderColor: 'rgba(255, 255, 255, 0.45)',
+  },
+
   // Paddings and Gaps
   padding: {
     dense: 12,

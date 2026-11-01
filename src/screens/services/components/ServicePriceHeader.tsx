@@ -61,7 +61,7 @@ export function ServicePriceHeader({
 
       {/* Provider Name Box */}
       {Boolean(providerName) && (
-        <View style={s.providerBox}>
+        <View style={s.providerBox} testID="service-provider-box">
           <Ionicons name="ribbon-outline" size={15} color={Colors.primary} />
           <Text style={s.providerLabel}>مقدم الخدمة:</Text>
           <Text style={s.providerName}>{providerName}</Text>
@@ -69,7 +69,7 @@ export function ServicePriceHeader({
       )}
 
       {/* Price Box */}
-      <View style={s.priceBox}>
+      <View style={s.priceBox} testID="service-price-box">
         {Boolean(price.typeLabel) && (
           <Text style={s.priceTypeLabel}>{price.typeLabel}</Text>
         )}
@@ -96,7 +96,7 @@ export function ServicePriceHeader({
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.white,
     paddingHorizontal: Spacing.space4,
     paddingTop: Spacing.space3,
     paddingBottom: Spacing.space4,
@@ -177,6 +177,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.space2,
     backgroundColor: Colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
@@ -198,9 +200,9 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   priceBox: {
-    backgroundColor: Colors.surfaceAlt,
+    backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.primary + '25',
     padding: Spacing.space3,
     borderRadius: Radius.md,
     gap: 2,

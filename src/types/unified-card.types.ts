@@ -4,6 +4,7 @@ export interface UnifiedCardItem {
   price?: number
   priceText?: string
   priceLabel?: string
+  isPriceNegotiable?: boolean
   currency?: string
   governorate?: string
   images: string[]

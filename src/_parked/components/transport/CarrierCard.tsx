@@ -47,7 +47,7 @@ export function CarrierCard({ carrier, onPress, compact = false, maxChips = 3 }:
         <View style={s.infoContainer}>
           <View style={s.nameRow}>
             <Text style={s.nameText} numberOfLines={1}>{name}</Text>
-            {isVerified && <VerifiedBadge size={14} variant="dark" />}
+            {isVerified && <VerifiedBadge size={17} />}
           </View>
           
           <View style={s.locationRow}>

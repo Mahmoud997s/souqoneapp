@@ -369,4 +369,108 @@ describe('PartDetailScreen', () => {
       expect(mockRouterBack).toHaveBeenCalled()
     })
   })
+
+  describe('Search and Filter (D-170a)', () => {
+    it('passes search props to DetailTopBar, updates on typing, and submits to /parts/browse with q', async () => {
+      mockCurrentUser = { id: 'other-user' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      const searchInput = screen.getByPlaceholderText('ابحث في تفاصيل القطعة...')
+      expect(searchInput).toBeTruthy()
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'سفايف')
+      })
+      expect(searchInput.props.value).toBe('سفايف')
+
+      await act(async () => {
+        fireEvent(searchInput, 'submitEditing', { nativeEvent: { text: 'سفايف' } })
+      })
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        pathname: '/parts/browse',
+        params: { q: 'سفايف' },
+      })
+    })
+
+    it('filters specs section by part number and displays matching row while filtering others', async () => {
+      mockCurrentUser = { id: 'other-user' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      const searchInput = screen.getByPlaceholderText('ابحث في تفاصيل القطعة...')
+
+      // Initially all rows exist
+      expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
+      expect(screen.getByTestId('spec-row-category')).toBeTruthy()
+      expect(screen.getByTestId('spec-row-originality')).toBeTruthy()
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+
+      // Type part number
+      await act(async () => {
+        fireEvent.changeText(searchInput, '04465-33471')
+      })
+
+      // Part number matches
+      expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
+      expect(screen.getByText('04465-33471')).toBeTruthy()
+
+      // Category and originality do not match
+      expect(screen.queryByTestId('spec-row-category')).toBeNull()
+      expect(screen.queryByTestId('spec-row-originality')).toBeNull()
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+    })
+
+    it('displays no-match message when no specifications match search query', async () => {
+      mockCurrentUser = { id: 'other-user' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      const searchInput = screen.getByPlaceholderText('ابحث في تفاصيل القطعة...')
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'مواصفة غير موجودة بتاتا')
+      })
+
+      expect(screen.getByTestId('specs-no-match')).toBeTruthy()
+      expect(screen.getByText('لا توجد نتائج مطابقة')).toBeTruthy()
+      expect(screen.queryByTestId('spec-row-part-number')).toBeNull()
+      expect(screen.queryByTestId('spec-row-category')).toBeNull()
+
+      // Clearing restores specs
+      await act(async () => {
+        fireEvent.changeText(searchInput, '')
+      })
+
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+      expect(screen.getByTestId('spec-row-part-number')).toBeTruthy()
+      expect(screen.getByTestId('spec-row-category')).toBeTruthy()
+    })
+  })
+
+  describe('Single Placement of Facts & No Duplication (D-170d Req b)', () => {
+    it('asserts condition label and negotiable label each appear exactly once on the whole page for visitor view', async () => {
+      mockCurrentUser = { id: 'visitor-user' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      // Condition label appears exactly once (in header block)
+      const conditionMatches = screen.getAllByText('جديد')
+      expect(conditionMatches).toHaveLength(1)
+
+      // Negotiable label appears exactly once (in price container)
+      const negotiableMatches = screen.getAllByText('قابل للتفاوض')
+      expect(negotiableMatches).toHaveLength(1)
+    })
+
+    it('asserts condition label and negotiable label each appear exactly once on the whole page for owner view', async () => {
+      mockCurrentUser = { id: 'seller-999' }
+      await render(<PartDetailScreen id="part-101" />)
+
+      // Condition label appears exactly once (in header block)
+      const conditionMatches = screen.getAllByText('جديد')
+      expect(conditionMatches).toHaveLength(1)
+
+      // Negotiable label appears exactly once (in price container)
+      const negotiableMatches = screen.getAllByText('قابل للتفاوض')
+      expect(negotiableMatches).toHaveLength(1)
+    })
+  })
 })

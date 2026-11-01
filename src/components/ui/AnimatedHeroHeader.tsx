@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
@@ -13,6 +14,8 @@ import Animated, {
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
+import { TopBarTokens } from '../../constants/topBarTokens';
+import { GlassSurface } from '../navigation/glassSupport';
 
 export interface AnimatedHeroHeaderProps {
   scrollY?: SharedValue<number>;
@@ -36,7 +39,10 @@ export interface AnimatedHeroHeaderProps {
   hideBackButton?: boolean;
   rightElement?: React.ReactNode;
 
-  // Right Icon (Left in RTL)
+  // Header Actions (Chat & Notifications)
+  onChatPress?: () => void;
+  chatIcon?: keyof typeof Ionicons.glyphMap;
+  hideChatButton?: boolean;
   headerIcon?: keyof typeof Ionicons.glyphMap;
   onHeaderIconPress?: () => void;
   headerIconBadgeCount?: number;
@@ -86,6 +92,9 @@ export function AnimatedHeroHeader({
   onBackPress,
   hideBackButton = false,
   rightElement,
+  onChatPress,
+  chatIcon,
+  hideChatButton = false,
   headerIcon = 'notifications-outline',
   onHeaderIconPress,
   headerIconBadgeCount = 0,
@@ -99,6 +108,14 @@ export function AnimatedHeroHeader({
 
   const searchPlaceholder = heroSearchPlaceholder || navSearchPlaceholder || 'عن ماذا تبحث اليوم؟';
   const handleSearchPress = onHeroSearchPress || onNavSearchPress;
+
+  const handleChatPress = () => {
+    if (onChatPress) {
+      onChatPress();
+    } else {
+      router.push('/(tabs)/chat');
+    }
+  };
 
   // ── ANIMATED STYLES ──
   const headerAnimStyle = useAnimatedStyle(() => {
@@ -130,17 +147,17 @@ export function AnimatedHeroHeader({
     if (!scrollY) return { opacity: 0 };
     const opacity = interpolate(
       scrollY.value,
-      [SCROLL_THRESHOLD + 8, SCROLL_END],
-      [0, 1],
+      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 12],
+      [0, 0, 1],
       Extrapolation.CLAMP
     );
     return {
       opacity,
-      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 8 ? 'none' : 'auto',
+      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 4 ? 'none' : 'auto',
     };
   });
 
-  const addBtnAnimStyle = useAnimatedStyle(() => {
+  const chatBtnAnimStyle = useAnimatedStyle(() => {
     if (!scrollY) return { opacity: 1, width: 38, marginEnd: 6 };
     const opacity = interpolate(
       scrollY.value,
@@ -214,11 +231,14 @@ export function AnimatedHeroHeader({
           {/* 1. Back Button or Custom Right Element (Physical Right in RTL — Fixed 38px circle) */}
           {!hideBackButton && onBackPress ? (
             <TouchableOpacity
+              testID="hero-header-back-btn"
               style={s.circularBtn}
               onPress={onBackPress}
               activeOpacity={0.7}
+              hitSlop={TopBarTokens.buttonHitSlop}
               accessibilityLabel="رجوع"
             >
+              <GlassSurface testID="hero-header-back-btn" borderRadius={TopBarTokens.buttonRadius} />
               <Ionicons name="arrow-forward-outline" size={19} color={Colors.primary} />
             </TouchableOpacity>
           ) : rightElement ? (
@@ -247,16 +267,19 @@ export function AnimatedHeroHeader({
             {/* Compact Layer: Compact Search Bar (Height 38px, matches circular buttons!) */}
             <Animated.View style={[StyleSheet.absoluteFill, s.compactSearchWrapper, compactSearchStyle]}>
               <TouchableOpacity
+                testID="hero-header-compact-search"
                 style={s.compactSearchBar}
                 onPress={handleSearchPress}
                 activeOpacity={0.88}
               >
+                <GlassSurface testID="hero-header-compact-search" borderRadius={TopBarTokens.searchRadius} />
                 <Ionicons name="search" size={16} color={Colors.primary} style={{ opacity: 0.8 }} />
                 <Text style={s.compactSearchTxt} numberOfLines={1}>
                   {searchPlaceholder}
                 </Text>
-                <View style={s.compactFilterBtn}>
-                  <Ionicons name="options-outline" size={15} color={Colors.primary} />
+                <View style={s.compactFilterBtn} testID="hero-header-compact-filter-btn">
+                  <GlassSurface testID="hero-header-compact-filter-btn" borderRadius={14} />
+                  <Ionicons name="options-outline" size={14} color={Colors.primary} />
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -264,28 +287,36 @@ export function AnimatedHeroHeader({
 
           {/* 3. Left Action Buttons Group in RTL */}
           <View style={s.leftButtonsGroup}>
-            {/* Add Listing Button (Visible in expanded state, smoothly collapses on scroll) */}
-            {primaryCta && (
-              <Animated.View style={[s.addBtnWrapper, addBtnAnimStyle]}>
+            {/* Chat / Messages Button (Replaces Add Listing button in navbar per user instruction) */}
+            {!hideChatButton && (
+              <Animated.View style={[s.chatBtnWrapper, chatBtnAnimStyle]}>
                 <TouchableOpacity
-                  style={[s.circularBtn, s.addBtn]}
-                  onPress={primaryCta.onPress}
+                  testID="hero-header-chat-btn"
+                  style={s.circularBtn}
+                  onPress={handleChatPress}
                   activeOpacity={0.7}
-                  accessibilityLabel={primaryCta.label || 'إضافة إعلان'}
+                  hitSlop={TopBarTokens.buttonHitSlop}
+                  accessibilityRole="button"
+                  accessibilityLabel="الرسائل والمحادثات"
                 >
-                  <Ionicons name="add" size={22} color="#FFFFFF" />
+                  <GlassSurface testID="hero-header-chat-btn" borderRadius={TopBarTokens.buttonRadius} />
+                  <Ionicons name={chatIcon || 'chatbubble-ellipses-outline'} size={19} color={Colors.primary} />
                 </TouchableOpacity>
               </Animated.View>
             )}
 
             {/* Notification Bell (Always visible in both states!) */}
             <TouchableOpacity
+              testID="hero-header-notification-btn"
               style={s.circularBtn}
               onPress={onHeaderIconPress}
               activeOpacity={0.7}
+              hitSlop={TopBarTokens.buttonHitSlop}
+              accessibilityRole="button"
               accessibilityLabel="الإشعارات"
             >
-              <Ionicons name={headerIcon as any} size={19} color={Colors.primary} />
+              <GlassSurface testID="hero-header-notification-btn" borderRadius={TopBarTokens.buttonRadius} />
+              <Ionicons name={headerIcon} size={19} color={Colors.primary} />
               <View style={s.greenDot} />
             </TouchableOpacity>
           </View>
@@ -294,16 +325,19 @@ export function AnimatedHeroHeader({
         {/* ── ROW 2: LARGE SEARCH BAR (Fades out and translates up on scroll) ── */}
         <Animated.View style={[s.row2, row2AnimStyle]}>
           <TouchableOpacity
+            testID="hero-header-large-search"
             style={s.searchBar}
             onPress={handleSearchPress}
             activeOpacity={0.88}
           >
+            <GlassSurface testID="hero-header-large-search" borderRadius={Radius.md} />
             <Ionicons name="search" size={18} color={Colors.primary} style={{ opacity: 0.8 }} />
             <Text style={s.searchPlaceholder} numberOfLines={1}>
               {searchPlaceholder}
             </Text>
-            <View style={s.filterBtnInner}>
-              <Ionicons name="options-outline" size={17} color={Colors.primary} />
+            <View style={s.filterBtnInner} testID="hero-header-large-filter-btn">
+              <GlassSurface testID="hero-header-large-filter-btn" borderRadius={Radius.sm} />
+              <Ionicons name="options-outline" size={16} color={Colors.primary} />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -324,17 +358,9 @@ const s = StyleSheet.create({
     right: 0,
     zIndex: 50,
     overflow: 'hidden',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: { elevation: 3 },
-    }),
+    borderBottomWidth: TopBarTokens.borderBottomWidth,
+    borderBottomColor: TopBarTokens.borderBottomColor,
+    ...TopBarTokens.shadow,
   },
   whiteWash: {
     position: 'absolute',
@@ -342,7 +368,7 @@ const s = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    backgroundColor: TopBarTokens.whiteWashBg,
   },
   tintOverlay: {
     position: 'absolute',
@@ -350,19 +376,19 @@ const s = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.primary,
-    opacity: 0.03,
+    backgroundColor: TopBarTokens.tintOverlayColor,
+    opacity: TopBarTokens.tintOverlayOpacity,
   },
   row1: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.space3,
-    height: 44,
-    gap: 6,
+    paddingHorizontal: TopBarTokens.rowPaddingHorizontal,
+    height: TopBarTokens.rowHeight,
+    gap: TopBarTokens.rowGap,
   },
   centerContainer: {
     flex: 1,
-    height: 38,
+    height: TopBarTokens.searchHeight,
     justifyContent: 'center',
     position: 'relative',
     marginHorizontal: 0,
@@ -377,9 +403,9 @@ const s = StyleSheet.create({
     gap: 5,
   },
   mainTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 22,
+    fontFamily: TopBarTokens.titleFontFamily,
+    fontSize: TopBarTokens.titleFontSize,
+    lineHeight: TopBarTokens.titleLineHeight,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -388,9 +414,9 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
   subTitle: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 16,
+    fontFamily: TopBarTokens.subTitleFontFamily,
+    fontSize: TopBarTokens.subTitleFontSize,
+    lineHeight: TopBarTokens.subTitleLineHeight,
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -399,31 +425,31 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   compactSearchBar: {
-    height: 38,
-    borderRadius: Radius.pill,
-    backgroundColor: 'rgba(238, 242, 245, 0.95)',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    height: TopBarTokens.searchHeight,
+    borderRadius: TopBarTokens.searchRadius,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    gap: 6,
+    paddingHorizontal: TopBarTokens.searchPaddingHorizontal,
+    gap: TopBarTokens.searchGap,
   },
   compactSearchTxt: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.textMuted,
+    fontFamily: TopBarTokens.searchFontFamily,
+    fontSize: TopBarTokens.searchFontSize,
+    lineHeight: TopBarTokens.searchLineHeight,
+    color: TopBarTokens.searchTextColor,
     textAlign: 'left',
     writingDirection: 'rtl',
     paddingTop: 1,
   },
   compactFilterBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.paleMint,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -431,34 +457,21 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  addBtnWrapper: {
-    height: 38,
+  chatBtnWrapper: {
+    height: TopBarTokens.buttonSize,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   circularBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  addBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.65)',
+    ...TopBarTokens.buttonShadow,
   },
   greenDot: {
     position: 'absolute',
@@ -469,7 +482,7 @@ const s = StyleSheet.create({
     borderRadius: 3.5,
     backgroundColor: Colors.primary,
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
   },
   row2: {
     paddingHorizontal: Spacing.space4,
@@ -479,9 +492,8 @@ const s = StyleSheet.create({
   searchBar: {
     height: 44,
     borderRadius: Radius.md,
-    backgroundColor: 'rgba(238, 242, 245, 0.85)',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -500,8 +512,9 @@ const s = StyleSheet.create({
   filterBtnInner: {
     width: 28,
     height: 28,
-    borderRadius: 6,
-    backgroundColor: Colors.paleMint,
+    borderRadius: Radius.sm,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },

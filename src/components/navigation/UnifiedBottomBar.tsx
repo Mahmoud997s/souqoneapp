@@ -3,25 +3,21 @@ import { View, Text, StyleSheet, Pressable, Platform, PanResponder } from 'react
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
-  withRepeat,
-  withSequence,
   interpolate,
   Extrapolation,
-  Easing,
 } from 'react-native-reanimated';
 
 import { Colors } from '../../constants/colors';
-import { Gradients } from '../../constants/gradients';
-import { useNavVisibility } from '../../context/NavVisibilityContext';
+import { BottomBarTokens } from '../../constants/bottomBarTokens';
+import { GlassBottomBarShell } from './GlassBottomBarShell';
+import { AddListingButton } from './AddListingButton';
 
-export const UNIFIED_BOTTOM_BAR_HEIGHT = 52;
+export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
 
 export type IconFamily = 'Ionicons' | 'MaterialCommunityIcons';
 
@@ -61,56 +57,6 @@ function DynamicTabIcon({
     return <MaterialCommunityIcons name={name as any} size={size} color={color} />;
   }
   return <Ionicons name={name as any} size={size} color={color} />;
-}
-
-function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: boolean }) {
-  const pressScale = useSharedValue(1);
-
-  React.useEffect(() => {
-    if (isHovered) {
-      pressScale.value = withSpring(1.08, { damping: 10, stiffness: 300 });
-    } else {
-      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
-    }
-  }, [isHovered, pressScale]);
-
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pressScale.value }],
-  }));
-
-  const handlePress = useCallback(() => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {}
-    pressScale.value = withSpring(0.85, { damping: 9, stiffness: 350 }, () => {
-      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
-    });
-    onPress();
-  }, [onPress, pressScale]);
-
-  return (
-    <View style={s.fabItem}>
-      <Pressable
-        onPress={handlePress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityRole="button"
-        accessibilityLabel="إضافة إعلان جديد"
-      >
-        <View style={s.fabCenterWrapper}>
-          <Animated.View style={[s.fabSquircleWrap, fabAnimStyle]}>
-            <LinearGradient
-              colors={Gradients.hero}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.fabSquircle}
-            >
-              <Ionicons name="add" size={20} color={Colors.white} />
-            </LinearGradient>
-          </Animated.View>
-        </View>
-      </Pressable>
-    </View>
-  );
 }
 
 function TabItem({
@@ -254,64 +200,13 @@ function TabItem({
   );
 }
 
-function ScrollAwareWrapper({
-  children,
-  bottomPad,
-  scrollAware,
-}: {
-  children: React.ReactNode;
-  bottomPad: number;
-  scrollAware: boolean;
-}) {
-  let navHidden: any = null;
-  try {
-    const navCtx = useNavVisibility();
-    navHidden = navCtx?.navHidden ?? null;
-  } catch {
-    // If rendered outside of NavVisibilityProvider, gracefully fallback to static position
-    navHidden = null;
-  }
-
-  const totalHeight = UNIFIED_BOTTOM_BAR_HEIGHT + bottomPad + 16;
-
-  const animatedStyle = useAnimatedStyle(() => {
-    if (!scrollAware || !navHidden) {
-      return { transform: [{ translateY: 0 }], opacity: 1 };
-    }
-    return {
-      transform: [
-        {
-          translateY: interpolate(
-            navHidden.value,
-            [0, 1],
-            [0, totalHeight],
-            Extrapolation.CLAMP
-          ),
-        },
-      ],
-      opacity: interpolate(
-        navHidden.value,
-        [0, 1],
-        [1, 0],
-        Extrapolation.CLAMP
-      ),
-    };
-  });
-
-  return (
-    <Animated.View style={[s.wrapper, { bottom: bottomPad }, animatedStyle]}>
-      {children}
-    </Animated.View>
-  );
-}
-
 export function UnifiedBottomBar({
   tabs,
   activeTab,
   onTabPress,
   onPostPress,
   activeColor = Colors.primary,
-  activeBgColor = Colors.paleMint,
+  activeBgColor = BottomBarTokens.activePillBg,
   scrollAware = true,
 }: UnifiedBottomBarProps) {
   const insets = useSafeAreaInsets();
@@ -409,88 +304,84 @@ export function UnifiedBottomBar({
 
   const effectiveActiveTab = draggingTabId ?? activeTab;
 
-  return (
-    <ScrollAwareWrapper bottomPad={bottomPad} scrollAware={scrollAware}>
-      <BlurView
-        intensity={Platform.OS === 'ios' ? 65 : 45}
-        tint="default"
-        style={s.blurBackground}
-      >
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.42)', 'rgba(255, 255, 255, 0.16)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={s.topHighlight} />
-      </BlurView>
-      <View
-        style={s.bar}
-        onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-        {...panResponder.panHandlers}
-      >
-        {tabs.map((tab) => {
-          if (tab.isPost) {
-            return (
-              <FABItem
-                key={tab.id}
+  // Active tab item for collapsed state icon & badge
+  const activeTabItem = useMemo(() => {
+    return tabs.find((t) => t.id === effectiveActiveTab) ?? tabs[0];
+  }, [tabs, effectiveActiveTab]);
+
+  const collapsedIconName = activeTabItem
+    ? activeTabItem.icon || activeTabItem.iconOutline || 'ellipse'
+    : 'ellipse';
+
+  const collapsedIconSize = activeTabItem?.family === 'MaterialCommunityIcons' ? 24 : 22;
+
+  const collapsedIcon = activeTabItem ? (
+    <DynamicTabIcon
+      family={activeTabItem.family}
+      name={collapsedIconName}
+      size={collapsedIconSize}
+      color={activeColor}
+    />
+  ) : undefined;
+
+  const collapsedBadge =
+    activeTabItem?.badgeCount != null && activeTabItem.badgeCount > 0 ? (
+      <View style={s.badge}>
+        <Text style={s.badgeText}>
+          {activeTabItem.badgeCount > 99 ? '99+' : activeTabItem.badgeCount}
+        </Text>
+      </View>
+    ) : undefined;
+
+  const content = (
+    <View
+      style={s.bar}
+      onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+      {...panResponder.panHandlers}
+    >
+      {tabs.map((tab) => {
+        if (tab.isPost) {
+          return (
+            <View key={tab.id} style={s.fabItem}>
+              <AddListingButton
                 onPress={onPostPress}
                 isHovered={effectiveActiveTab === tab.id}
+                accessibilityLabel="إضافة إعلان جديد"
+                testID="section-bottom-bar-add-button"
               />
-            );
-          }
-
-          const isActive = effectiveActiveTab === tab.id;
-          return (
-            <TabItem
-              key={tab.id}
-              tab={tab}
-              isActive={isActive}
-              onPress={() => onTabPress(tab)}
-              activeColor={activeColor}
-              activeBgColor={activeBgColor}
-            />
+            </View>
           );
-        })}
-      </View>
-    </ScrollAwareWrapper>
+        }
+
+        const isActive = effectiveActiveTab === tab.id;
+        return (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            isActive={isActive}
+            onPress={() => onTabPress(tab)}
+            activeColor={activeColor}
+            activeBgColor={activeBgColor}
+          />
+        );
+      })}
+    </View>
+  );
+
+  return (
+    <GlassBottomBarShell
+      bottomPad={bottomPad}
+      collapsedIcon={collapsedIcon}
+      badge={collapsedBadge}
+      scrollAware={scrollAware}
+      testID="unified-bottom-bar"
+    >
+      {content}
+    </GlassBottomBarShell>
   );
 }
 
 const s = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    maxWidth: 480,
-    alignSelf: 'center',
-    borderRadius: 26,
-    zIndex: 100,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 14,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  blurBackground: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 26,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.55)',
-  },
-  topHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
-  },
   bar: {
     flexDirection: 'row',
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
@@ -567,35 +458,5 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
-  },
-  fabCenterWrapper: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  fabSquircleWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-      },
-      android: { elevation: 4 },
-    }),
-  },
-  fabSquircle: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

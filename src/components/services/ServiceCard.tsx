@@ -4,6 +4,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 import { UnifiedCardItem } from '../../types/unified-card.types'
 
@@ -34,6 +35,8 @@ export interface ServiceCardProps {
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
   actionMenu?: React.ReactNode
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const ServiceCard = ({
@@ -44,6 +47,8 @@ export const ServiceCard = ({
   disableImageSwipe = false,
   titleNumberOfLines = 1,
   actionMenu,
+  liquidGlass,
+  glassSupport,
 }: ServiceCardProps) => {
   const rawData = item.raw || {}
   const rawImages = (item.images && item.images.length > 0)
@@ -61,6 +66,12 @@ export const ServiceCard = ({
   const providerType = rawData.providerType || ''
   const isHomeService = rawData.isHomeService || false
   const serviceType = rawData.serviceType || ''
+  const isSellerVerified =
+    (item as any).isVerified ??
+    rawData.isVerified ??
+    rawData.user?.isVerified ??
+    rawData.seller?.isVerified ??
+    false
 
   const serviceTypeLabel = SERVICE_TYPE_LABELS[serviceType] || serviceType
   const providerTypeLabel = PROVIDER_TYPE_LABELS[providerType] || providerType
@@ -136,10 +147,13 @@ export const ServiceCard = ({
       placeholderIcon="build"
       pills={pills}
       badges={badges}
+      isSellerVerified={isSellerVerified}
       fullWidth={fullWidth}
       gridMode={gridMode}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       favoriteType="CAR_SERVICE"
       shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\nhttps://souqone.app/services/${item.id}`}
       actionMenu={actionMenu}

@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 
 export interface CarCardProps {
@@ -17,6 +18,10 @@ export interface CarCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  imageHeight?: number
+  compactBody?: boolean
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const CarCard = ({
@@ -29,6 +34,10 @@ export const CarCard = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  imageHeight,
+  compactBody = false,
+  liquidGlass,
+  glassSupport,
 }: CarCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -246,7 +255,7 @@ export const CarCard = ({
       item={item}
       title={carName}
       priceLabel={priceLabel}
-      isPriceNegotiable={Boolean(isSale && item.isPriceNegotiable)}
+      isPriceNegotiable={Boolean(isSale && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))}
       onPress={onPress}
       displayImages={displayImages}
       placeholderIcon="car-sport"
@@ -260,6 +269,10 @@ export const CarCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

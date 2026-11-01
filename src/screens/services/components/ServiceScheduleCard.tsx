@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
+import { Shadows } from '../../../constants/shadows'
 import type { ServiceScheduleViewModel } from '../../../types/serviceDetailViewModel.types'
 
 export interface ServiceScheduleCardProps {
@@ -81,12 +82,15 @@ export function ServiceScheduleCard({
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.space4,
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space2,
     gap: Spacing.space3,
+    ...Shadows.card,
   },
   headerRow: {
     flexDirection: 'row',

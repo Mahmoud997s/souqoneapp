@@ -9,11 +9,10 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
-import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
-import { Shadows } from '../../constants/shadows'
-import { lineHeightFor } from '../../constants/typography'
+import { TopBarTokens } from '../../constants/topBarTokens'
 
 interface BaseDetailTopBarProps {
   onBack: () => void
@@ -46,13 +45,15 @@ export type DetailTopBarProps =
 
 /**
  * DetailTopBar
- * Shared fixed navigation bar for detail screens (cars, buses, equipment, operators).
+ * Shared fixed navigation bar for detail screens (cars, buses, equipment, operators, parts, services).
  * - Placed in normal layout flow at top of root container (NOT position: absolute).
  * - Safe area top padding derived directly from useSafeAreaInsets().top.
- * - Solid surface background with subtle hairline bottom border.
- * - In-page search bar is always visible and immediately interactive when search props provided.
- * - Minimum 44x44 touch targets for all interactive controls (Spacing.touch).
- * - Zero raw hex or rgba color codes (100% Colors design tokens).
+ * - Visual styling matches the compact state of AnimatedHeroHeader on the home page (D-160):
+ *   * Glassmorphic background: BlurView (intensity 65, tint light) + white wash (0.78) + tint overlay (3%) + 5% architectural green grid pattern
+ *   * Circular buttons: 38x38 with radius 19, white 0.85, 1px border, soft shadow, Colors.primary icons (19px)
+ *   * Minimum 44x44 touch target preserved via hitSlop 3 on 38px circular controls
+ *   * Compact search bar: height 38, radius pill, background rgba(238,242,245,0.95), 12/16 Almarai typography
+ * - Zero raw hex codes in component (100% design tokens from Colors & TopBarTokens).
  */
 export function DetailTopBar(props: DetailTopBarProps) {
   const insets = useSafeAreaInsets()
@@ -85,29 +86,73 @@ export function DetailTopBar(props: DetailTopBarProps) {
       testID={testID}
       pointerEvents="box-none"
     >
+      {/* ── GLASSMORPHISM BLUR BACKGROUND (Matches Home Compact Bar) ── */}
+      <BlurView
+        intensity={TopBarTokens.blurIntensity}
+        tint={TopBarTokens.blurTint}
+        blurMethod={TopBarTokens.blurMethod}
+        style={StyleSheet.absoluteFill}
+        testID="detail-top-bar-blur"
+      />
+      <View style={s.whiteWash} pointerEvents="none" testID="detail-top-bar-whitewash" />
+      <View style={s.tintOverlay} pointerEvents="none" testID="detail-top-bar-tint" />
+
+      {/* ── ARCHITECTURAL GREEN GRID PATTERN OVERLAY (5% Opacity) ── */}
+      <View style={[StyleSheet.absoluteFill, s.gridContainer]} pointerEvents="none" testID="detail-top-bar-grid">
+        <Svg width="100%" height="100%">
+          <Defs>
+            <Pattern
+              id="detailTopBarGrid"
+              width={TopBarTokens.gridPatternSize}
+              height={TopBarTokens.gridPatternSize}
+              patternUnits="userSpaceOnUse"
+            >
+              <Path
+                d="M 30 0 L 0 0 0 30"
+                fill="none"
+                stroke={TopBarTokens.gridStrokeColor}
+                strokeWidth={TopBarTokens.gridStrokeWidth}
+                strokeOpacity={TopBarTokens.gridStrokeOpacity}
+              />
+            </Pattern>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#detailTopBarGrid)" />
+        </Svg>
+      </View>
+
       <View style={s.contentRow} pointerEvents="box-none">
-        {/* Back Button */}
+        {/* Back Button (Circular 38x38, hitSlop 3 for 44px min touch target) */}
         <TouchableOpacity
           onPress={onBack}
           style={s.actionButton}
           activeOpacity={0.7}
+          hitSlop={TopBarTokens.buttonHitSlop}
           testID="nav-back-button"
           accessibilityRole="button"
           accessibilityLabel="الرجوع"
         >
-          <Ionicons name="arrow-forward" size={20} color={Colors.text} />
+          <Ionicons
+            name="arrow-forward-outline"
+            size={TopBarTokens.buttonIconSize}
+            color={TopBarTokens.buttonIconColor}
+          />
         </TouchableOpacity>
 
-        {/* Search Bar (always visible & interactive) or flexible spacer if search omitted */}
+        {/* Search Bar or Flexible Spacer */}
         {hasSearch ? (
           <View style={s.searchContainer} testID="nav-search-container">
-            <Ionicons name="search" size={16} color={Colors.textMuted} style={s.searchIcon} />
+            <Ionicons
+              name="search"
+              size={TopBarTokens.searchIconSize}
+              color={TopBarTokens.searchIconColor}
+              style={s.searchIcon}
+            />
             <TextInput
               value={searchValue}
               onChangeText={onSearchChange}
               onSubmitEditing={() => onSearchSubmit?.(searchValue)}
               placeholder={placeholder}
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={TopBarTokens.searchPlaceholderColor}
               style={s.searchInput}
               returnKeyType="search"
               textAlign="right"
@@ -125,7 +170,11 @@ export function DetailTopBar(props: DetailTopBarProps) {
                 accessibilityRole="button"
                 accessibilityLabel="مسح البحث"
               >
-                <Ionicons name="close-circle" size={16} color={Colors.placeholder} />
+                <Ionicons
+                  name="close-circle"
+                  size={TopBarTokens.clearIconSize}
+                  color={TopBarTokens.clearIconColor}
+                />
               </TouchableOpacity>
             ) : null}
           </View>
@@ -141,11 +190,16 @@ export function DetailTopBar(props: DetailTopBarProps) {
                 onPress={onShare}
                 style={s.actionButton}
                 activeOpacity={0.7}
+                hitSlop={TopBarTokens.buttonHitSlop}
                 testID="btn-detail-share"
                 accessibilityRole="button"
                 accessibilityLabel="مشاركة"
               >
-                <Ionicons name="share-social-outline" size={19} color={Colors.text} />
+                <Ionicons
+                  name="share-social-outline"
+                  size={TopBarTokens.buttonIconSize}
+                  color={TopBarTokens.buttonIconColor}
+                />
               </TouchableOpacity>
             ) : null}
 
@@ -155,17 +209,18 @@ export function DetailTopBar(props: DetailTopBarProps) {
                 style={s.actionButton}
                 activeOpacity={0.7}
                 disabled={favoriteBusy}
+                hitSlop={TopBarTokens.buttonHitSlop}
                 testID="nav-favorite-button"
                 accessibilityRole="button"
                 accessibilityLabel={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
               >
                 {favoriteBusy ? (
-                  <ActivityIndicator size="small" color={Colors.primary} />
+                  <ActivityIndicator size="small" color={TopBarTokens.buttonIconColor} />
                 ) : (
                   <Ionicons
                     name={isFavorite ? 'heart' : 'heart-outline'}
-                    size={20}
-                    color={isFavorite ? Colors.error : Colors.text}
+                    size={TopBarTokens.buttonIconSize}
+                    color={isFavorite ? Colors.error : TopBarTokens.buttonIconColor}
                   />
                 )}
               </TouchableOpacity>
@@ -179,64 +234,87 @@ export function DetailTopBar(props: DetailTopBarProps) {
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: Spacing.space2,
+    borderBottomWidth: TopBarTokens.borderBottomWidth,
+    borderBottomColor: TopBarTokens.borderBottomColor,
+    paddingHorizontal: TopBarTokens.rowPaddingHorizontal,
+    paddingBottom: TopBarTokens.bottomPad,
     zIndex: 10,
-    ...Shadows.card,
+    overflow: 'hidden',
+    ...TopBarTokens.shadow,
+  },
+  whiteWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: TopBarTokens.whiteWashBg,
+  },
+  tintOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: TopBarTokens.tintOverlayColor,
+    opacity: TopBarTokens.tintOverlayOpacity,
+  },
+  gridContainer: {
+    overflow: 'hidden',
   },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: Spacing.touch,
-    gap: Spacing.space2,
+    height: TopBarTokens.rowHeight,
+    gap: TopBarTokens.rowGap,
+    marginTop: TopBarTokens.topPadOffset,
   },
   actionButton: {
-    width: Spacing.touch,
-    height: Spacing.touch,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
+    backgroundColor: TopBarTokens.buttonBg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
   },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
+    gap: TopBarTokens.rowGap,
   },
   flexibleSpacer: {
     flex: 1,
   },
   searchContainer: {
     flex: 1,
-    height: Spacing.touch,
+    height: TopBarTokens.searchHeight,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.inputBg,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.space3,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: TopBarTokens.searchBg,
+    borderRadius: TopBarTokens.searchRadius,
+    paddingHorizontal: TopBarTokens.searchPaddingHorizontal,
+    borderWidth: TopBarTokens.searchBorderWidth,
+    borderColor: TopBarTokens.searchBorderColor,
+    gap: TopBarTokens.searchGap,
   },
   searchIcon: {
-    marginEnd: Spacing.space2,
+    opacity: TopBarTokens.searchIconOpacity,
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: lineHeightFor(13),
-    color: Colors.text,
+    fontFamily: TopBarTokens.searchFontFamily,
+    fontSize: TopBarTokens.searchFontSize,
+    lineHeight: TopBarTokens.searchLineHeight,
+    color: TopBarTokens.searchTextColor,
     textAlign: 'right',
     writingDirection: 'rtl',
-    paddingVertical: Platform.OS === 'ios' ? 6 : 2,
+    paddingVertical: Platform.OS === 'ios' ? 4 : 1,
   },
   clearButton: {
-    padding: Spacing.space1,
+    padding: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

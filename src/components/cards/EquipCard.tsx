@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 
 export interface EquipCardProps {
@@ -17,6 +18,8 @@ export interface EquipCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const EquipCard = ({
@@ -29,6 +32,8 @@ export const EquipCard = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  liquidGlass,
+  glassSupport,
 }: EquipCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -214,7 +219,7 @@ export const EquipCard = ({
       item={item}
       title={equipName}
       priceLabel={priceLabel}
-      isPriceNegotiable={Boolean(isSale && item.isPriceNegotiable)}
+      isPriceNegotiable={Boolean(isSale && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))}
       location={location}
       onPress={onPress}
       displayImages={displayImages}
@@ -230,6 +235,8 @@ export const EquipCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       favoriteType="EQUIPMENT_LISTING"
       shareMessage={`شاهد هذه المعدة المعروضة على سوق ون: ${equipName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />

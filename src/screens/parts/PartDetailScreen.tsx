@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import {
   View,
+  Text,
   StyleSheet,
   StatusBar,
   Linking,
@@ -17,6 +18,9 @@ import Animated, {
 import { useRouter, router as expoRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
+import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
@@ -64,7 +68,7 @@ import {
 } from '../../constants/listing-detail/safetyTips'
 
 // Parts-specific components
-import { PartSpecsSection } from './components/PartSpecsSection'
+import { PartSpecsSection, hasMatchingPartSpecs } from './components/PartSpecsSection'
 import type { PartDetailViewModel } from '../../types/partDetailViewModel.types'
 
 const DUMMY_VM: PartDetailViewModel = {
@@ -142,6 +146,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
   // 4. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [ownerBusy, setOwnerBusy] = useState<boolean>(false)
 
   // 5. Scroll Tracker for glassmorphic navbar and sticky bars
@@ -166,6 +171,12 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
     shouldReduceMotion ? undefined : FadeInDown.delay(index * 50).springify()
 
   const goBackSafely = () => (router.canGoBack() ? router.back() : router.push('/'))
+  const handleSearchSubmit = (text: string) => {
+    router.push({
+      pathname: '/parts/browse' as any,
+      params: { q: text },
+    })
+  }
   const handleProfilePress = (sellerId: string) => sellerId && router.push(`/profile/${sellerId}`)
   const handleSupportPress = () => Linking.openURL(SUPPORT_MAILTO).catch(() => {})
 
@@ -308,6 +319,10 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
         favoriteBusy={favoriteToggle.isBusy}
         canFavorite={!isOwner}
         onToggleFavorite={favoriteToggle.toggle}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل القطعة..."
       />
 
       {/* Pinned Stale Data Banner directly below top bar */}
@@ -347,6 +362,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
               setIsViewerOpen(true)
             }}
             category="parts"
+            compactEmptyState={true}
           />
         </Animated.View>
 
@@ -396,7 +412,13 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
 
         {/* 6. Technical Specifications & Compatibility Section */}
         <Animated.View entering={getEnteringAnimation(5)}>
-          <PartSpecsSection vm={vm} />
+          {searchQuery.trim() && !hasMatchingPartSpecs(vm, searchQuery) ? (
+            <View style={s.noMatchContainer} testID="specs-no-match">
+              <Text style={s.noMatchText}>لا توجد نتائج مطابقة</Text>
+            </View>
+          ) : (
+            <PartSpecsSection vm={vm} searchQuery={searchQuery} />
+          )}
         </Animated.View>
 
         {/* 7. Location Card with embedded map */}
@@ -466,5 +488,25 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     gap: Spacing.space2,
+  },
+  noMatchContainer: {
+    marginHorizontal: Spacing.space4,
+    marginVertical: Spacing.space3,
+    padding: Spacing.space4,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.card,
+  },
+  noMatchText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.textMuted,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 })

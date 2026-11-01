@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, memo } from 'react'
 import { View, StyleSheet, Dimensions, StyleProp, ViewStyle } from 'react-native'
-import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import Animated from 'react-native-reanimated'
+import { GestureDetector } from 'react-native-gesture-handler'
+import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import {
@@ -9,7 +9,38 @@ import {
   physicalRowDirection,
 } from '../../utils/physicalDirection'
 import { useGestureSwiper } from '../../hooks/useGestureSwiper'
+import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import { SeeAllHorizontalCard } from './SeeAllHorizontalCard'
+
+export const SIDE_SCALE = 0.88
+export const SIDE_TRANSLATE_Y = 14
+export const SIDE_OPACITY = 0.85
+export const SNAP_DURATION = 350
+
+export interface CardDepthStyle {
+  scale: number
+  translateY: number
+  opacity: number
+}
+
+/**
+ * Pure interpolation helper calculating depth transformations
+ * (scale, translateY, opacity) based on distance from viewport center.
+ */
+export function computeCardDepth(
+  distanceFromCenter: number,
+  reducedMotion: boolean = false
+): CardDepthStyle {
+  'worklet'
+  if (reducedMotion) {
+    return { scale: 1, translateY: 0, opacity: 1 }
+  }
+  const clampedDist = Math.min(1, Math.max(0, Math.abs(distanceFromCenter)))
+  const scale = 1 - clampedDist * (1 - SIDE_SCALE)
+  const translateY = clampedDist * SIDE_TRANSLATE_Y
+  const opacity = 1 - clampedDist * (1 - SIDE_OPACITY)
+  return { scale, translateY, opacity }
+}
 
 export interface HorizontalScrollCardProps<T> {
   /** Array of items to display */
@@ -59,6 +90,10 @@ export interface HorizontalScrollCardProps<T> {
   dragThresholdRatio?: number
   /** Optional testID for testing */
   testID?: string
+  /** Optional depth interpolation effect for peek carousels (default: false) */
+  depthEffect?: boolean
+  /** Optional override for reduced motion setting */
+  reducedMotion?: boolean
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -74,6 +109,75 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
  * - Direct manipulation: cards follow touch 1:1, with velocity-based snapping and soft rubber-banding.
  * - Displays a unified See All card as the final item when onSeeAll or renderSeeAllCard is provided.
  */
+interface HorizontalCardSlotProps {
+  index: number
+  step: number
+  cardWidth: number
+  cardHeight?: number
+  rightOffset: number
+  translateX: SharedValue<number>
+  depthEffect: boolean
+  reducedMotion: boolean
+  onLayout?: (e: any) => void
+  testID?: string
+  children: React.ReactNode
+}
+
+const HorizontalCardSlot = memo(function HorizontalCardSlot({
+  index,
+  step,
+  cardWidth,
+  cardHeight,
+  rightOffset,
+  translateX,
+  depthEffect,
+  reducedMotion,
+  onLayout,
+  testID,
+  children,
+}: HorizontalCardSlotProps) {
+  const animatedDepthStyle = useAnimatedStyle(() => {
+    if (!depthEffect || reducedMotion) {
+      return {
+        transform: [{ scale: 1 }, { translateY: 0 }],
+        opacity: 1,
+      }
+    }
+    const distance = Math.abs(translateX.value - index * step) / step
+    const { scale, translateY, opacity } = computeCardDepth(distance, false)
+    return {
+      transform: [{ scale }, { translateY }],
+      opacity,
+    }
+  })
+
+  return (
+    <View
+      testID={testID}
+      onLayout={onLayout}
+      style={[
+        styles.cardWrapper,
+        {
+          width: cardWidth,
+          ...physicalRightStyle(rightOffset),
+        },
+        cardHeight ? { height: cardHeight } : undefined,
+      ]}
+    >
+      {depthEffect ? (
+        <Animated.View
+          testID={testID ? `${testID}-depth` : `card-depth-${index}`}
+          style={[styles.depthWrapper, animatedDepthStyle]}
+        >
+          {children}
+        </Animated.View>
+      ) : (
+        children
+      )}
+    </View>
+  )
+})
+
 export function HorizontalScrollCard<T>({
   data,
   renderItem,
@@ -97,9 +201,14 @@ export function HorizontalScrollCard<T>({
   velocityThreshold,
   dragThresholdRatio,
   testID,
+  depthEffect = false,
+  reducedMotion: reducedMotionProp,
 }: HorizontalScrollCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH)
   const [measuredHeight, setMeasuredHeight] = useState<number | undefined>(cardHeight)
+
+  const hookReducedMotion = useAppReducedMotion()
+  const reducedMotion = reducedMotionProp !== undefined ? reducedMotionProp : hookReducedMotion
 
   const showSeeAll = Boolean((onSeeAll || renderSeeAllCard) && data.length > 0)
   const count = data.length + (showSeeAll ? 1 : 0)
@@ -108,6 +217,7 @@ export function HorizontalScrollCard<T>({
   const {
     panGesture,
     animatedTrackStyle,
+    translateX,
     activeIndex,
   } = useGestureSwiper({
     count,
@@ -150,7 +260,10 @@ export function HorizontalScrollCard<T>({
       }}
     >
       <GestureDetector gesture={panGesture}>
-        <View style={[styles.gestureArea, { height: finalHeight }]}>
+        <View
+          testID={testID ? `${testID}-gesture-area` : 'horizontal-scroll-card-gesture-area'}
+          style={[styles.gestureArea, { height: finalHeight }]}
+        >
           <Animated.View style={[styles.track, animatedTrackStyle, trackStyle]}>
             {data.map((item, index) => {
               const key = keyExtractor ? keyExtractor(item, index) : (item as any)?.id || `card-${index}`
@@ -161,35 +274,37 @@ export function HorizontalScrollCard<T>({
               const rightOffset = paddingEnd + index * step
 
               return (
-                <View
+                <HorizontalCardSlot
                   key={key}
+                  testID={`card-slot-${index}`}
+                  index={index}
+                  step={step}
+                  cardWidth={cardWidth}
+                  cardHeight={cardHeight}
+                  rightOffset={rightOffset}
+                  translateX={translateX}
+                  depthEffect={depthEffect}
+                  reducedMotion={reducedMotion}
                   onLayout={index === 0 ? handleCardLayout : undefined}
-                  style={[
-                    styles.cardWrapper,
-                    {
-                      width: cardWidth,
-                      ...physicalRightStyle(rightOffset),
-                    },
-                    cardHeight ? { height: cardHeight } : undefined,
-                  ]}
                 >
                   {renderItem({ item, index })}
-                </View>
+                </HorizontalCardSlot>
               )
             })}
 
             {/* See All Card as the final item in the track */}
             {showSeeAll && (
-              <View
+              <HorizontalCardSlot
                 key="see-all-card"
-                style={[
-                  styles.cardWrapper,
-                  {
-                    width: cardWidth,
-                    ...physicalRightStyle(paddingEnd + data.length * step),
-                    height: cardHeight || (measuredHeight ? measuredHeight - 8 : undefined),
-                  },
-                ]}
+                testID="card-slot-see-all"
+                index={data.length}
+                step={step}
+                cardWidth={cardWidth}
+                cardHeight={cardHeight || (measuredHeight ? measuredHeight - 8 : undefined)}
+                rightOffset={paddingEnd + data.length * step}
+                translateX={translateX}
+                depthEffect={depthEffect}
+                reducedMotion={reducedMotion}
               >
                 {renderSeeAllCard ? (
                   renderSeeAllCard()
@@ -203,7 +318,7 @@ export function HorizontalScrollCard<T>({
                     height={cardHeight || (measuredHeight ? measuredHeight - 8 : undefined)}
                   />
                 ) : null}
-              </View>
+              </HorizontalCardSlot>
             )}
           </Animated.View>
         </View>
@@ -242,6 +357,9 @@ const styles = StyleSheet.create({
   cardWrapper: {
     position: 'absolute',
     top: 4,
+  },
+  depthWrapper: {
+    width: '100%',
   },
   dotsContainer: {
     justifyContent: 'center',

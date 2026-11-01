@@ -6,9 +6,16 @@ import { CardSystem } from '../../constants/cardSystem'
 export interface SkeletonCardProps {
   style?: ViewStyle
   fullWidth?: boolean
+  imageHeight?: number
+  compactBody?: boolean
 }
 
-export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
+export function SkeletonCard({
+  style,
+  fullWidth = false,
+  imageHeight: imageHeightProp,
+  compactBody = false,
+}: SkeletonCardProps) {
   const opacity = useRef(new Animated.Value(0.45)).current
 
   useEffect(() => {
@@ -22,7 +29,9 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
     return () => animation.stop()
   }, [opacity])
 
-  const imageHeight = fullWidth
+  const imageHeight = imageHeightProp
+    ? imageHeightProp
+    : fullWidth
     ? CardSystem.fullWidthHeight
     : CardSystem.aspectRatioHeight
 
@@ -32,7 +41,7 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
         {/* Image — aspectRatio 4/3 */}
         <View style={[s.image, { height: imageHeight }, s.placeholder]} />
 
-        <View style={s.body}>
+        <View testID="skeleton-card-body" style={[s.body, compactBody && s.bodyCompact]}>
           {/* Title row */}
           <View style={s.row}>
             <View style={[s.titleLine, s.placeholder]} />
@@ -40,12 +49,12 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
           </View>
 
           {/* Location row */}
-          <View style={s.locationRow}>
+          <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
             <View style={[s.locLine, s.placeholder]} />
           </View>
 
           {/* Divider */}
-          <View style={s.divider} />
+          <View style={[s.divider, compactBody && s.dividerCompact]} />
 
           {/* Chips row */}
           <View style={s.chipsRow}>
@@ -55,7 +64,7 @@ export function SkeletonCard({ style, fullWidth = false }: SkeletonCardProps) {
           </View>
 
           {/* Footer divider */}
-          <View style={s.divider} />
+          <View style={[s.divider, compactBody && s.dividerCompact]} />
 
           {/* Footer */}
           <View style={s.footer}>
@@ -88,6 +97,11 @@ const s = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 6,
   },
+  bodyCompact: {
+    paddingHorizontal: 10,
+    paddingTop: 7,
+    paddingBottom: 5,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -107,6 +121,10 @@ const s = StyleSheet.create({
     marginTop: 3,
     marginBottom: 5,
   },
+  locationRowCompact: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
   locLine: {
     width: 75,
     height: 11,
@@ -115,6 +133,10 @@ const s = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#f1f5f9',
+    marginTop: 1,
+    marginBottom: 5,
+  },
+  dividerCompact: {
     marginTop: 1,
     marginBottom: 5,
   },
@@ -145,3 +167,6 @@ const s = StyleSheet.create({
     borderRadius: 9,
   },
 })
+
+export const skeletonCardStyles = s
+

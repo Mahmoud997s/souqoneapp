@@ -269,11 +269,11 @@ describe('ServiceDetailScreen', () => {
       expect(screen.queryByTestId('btn-owner-edit')).toBeNull()
       expect(screen.queryByTestId('btn-owner-delete')).toBeNull()
 
-      // Contact actions are rendered with "محادثة"
-      expect(screen.getByTestId('btn-contact-chat')).toBeTruthy()
-      expect(screen.getByText('محادثة')).toBeTruthy()
-      expect(screen.getByText('واتساب')).toBeTruthy()
-      expect(screen.getByText('اتصال')).toBeTruthy()
+      // Contact actions are rendered with "محادثة" (both inline and bottom bar)
+      expect(screen.getAllByTestId('btn-contact-chat').length).toBe(2)
+      expect(screen.getAllByText('محادثة').length).toBe(2)
+      expect(screen.getAllByText('واتساب').length).toBe(2)
+      expect(screen.getAllByText('اتصال').length).toBe(2)
 
       // Service header elements
       expect(screen.getByText('كراج النخبة لصيانة وتعديل السيارات')).toBeTruthy()
@@ -301,9 +301,9 @@ describe('ServiceDetailScreen', () => {
 
       await render(<ServiceDetailScreen id="srv-101" />)
 
-      const chatBtn = screen.getByTestId('btn-contact-chat')
-      const callBtn = screen.getByTestId('btn-contact-call')
-      const whatsappBtn = screen.getByTestId('btn-contact-whatsapp')
+      const chatBtn = screen.getAllByTestId('btn-contact-chat')[0]
+      const callBtn = screen.getAllByTestId('btn-contact-call')[0]
+      const whatsappBtn = screen.getAllByTestId('btn-contact-whatsapp')[0]
 
       await act(async () => {
         fireEvent.press(chatBtn)
@@ -503,6 +503,193 @@ describe('ServiceDetailScreen', () => {
       expect(
         screen.getByText('تعذر تحديث البيانات، قد تكون المعلومات المعروضة قديمة'),
       ).toBeTruthy()
+    })
+  })
+
+  describe('Layout and Search Parity (D-170a)', () => {
+    it('passes search props to DetailTopBar, updates on typing, and submits to /services/browse with q (Req a)', async () => {
+      mockCurrentUser = { id: 'visitor-user-123' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const searchInput = screen.getByPlaceholderText('ابحث في تفاصيل الخدمة...')
+      expect(searchInput).toBeTruthy()
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'ميكانيكا')
+      })
+      expect(searchInput.props.value).toBe('ميكانيكا')
+
+      await act(async () => {
+        fireEvent(searchInput, 'submitEditing', { nativeEvent: { text: 'ميكانيكا' } })
+      })
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        pathname: '/services/browse',
+        params: { q: 'ميكانيكا' },
+      })
+    })
+
+    it('filters specializations chips on typing and shows specs-no-match when query has no matches (Req b)', async () => {
+      mockCurrentUser = { id: 'visitor-user-123' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const searchInput = screen.getByPlaceholderText('ابحث في تفاصيل الخدمة...')
+
+      // Initially all 3 specializations are rendered
+      expect(screen.getByText('صيانة ميكانيكية')).toBeTruthy()
+      expect(screen.getByText('تغيير زيت وفلاتر')).toBeTruthy()
+      expect(screen.getByText('فحص كمبيوتر')).toBeTruthy()
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+
+      // Type matching query
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'ميكانيكية')
+      })
+
+      // Matching specialization remains, non-matching filtered out
+      expect(screen.getByText('صيانة ميكانيكية')).toBeTruthy()
+      expect(screen.queryByText('تغيير زيت وفلاتر')).toBeNull()
+      expect(screen.queryByText('فحص كمبيوتر')).toBeNull()
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+
+      // Type query with no matches
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'صاروخ فضائي غير متوفر')
+      })
+
+      expect(screen.getByTestId('specs-no-match')).toBeTruthy()
+      expect(screen.getByText('لا توجد نتائج مطابقة')).toBeTruthy()
+      expect(screen.queryByText('صيانة ميكانيكية')).toBeNull()
+
+      // Clear restores all
+      await act(async () => {
+        fireEvent.changeText(searchInput, '')
+      })
+
+      expect(screen.queryByTestId('specs-no-match')).toBeNull()
+      expect(screen.getByText('صيانة ميكانيكية')).toBeTruthy()
+      expect(screen.getByText('تغيير زيت وفلاتر')).toBeTruthy()
+      expect(screen.getByText('فحص كمبيوتر')).toBeTruthy()
+    })
+
+    it('visitor sees seller card BEFORE description in render tree (Req c)', async () => {
+      mockCurrentUser = { id: 'visitor-user-123' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: false,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const sellerNode = screen.getByTestId('seller-card-touchable')
+      const descNode = screen.getByText('الوصف')
+
+      // Compare position via common ancestor hierarchy
+      const getAncestors = (node: any) => {
+        const list: any[] = []
+        let curr = node
+        while (curr) {
+          list.push(curr)
+          curr = curr.parent
+        }
+        return list
+      }
+
+      const sellerAncestors = getAncestors(sellerNode)
+      const descAncestors = getAncestors(descNode)
+
+      const commonAncestor = sellerAncestors.find((a) => descAncestors.includes(a))
+      expect(commonAncestor).toBeDefined()
+
+      const sellerBranch = sellerAncestors[sellerAncestors.indexOf(commonAncestor) - 1]
+      const descBranch = descAncestors[descAncestors.indexOf(commonAncestor) - 1]
+
+      const sellerIdx = commonAncestor.children.indexOf(sellerBranch)
+      const descIdx = commonAncestor.children.indexOf(descBranch)
+
+      expect(sellerIdx).toBeGreaterThan(-1)
+      expect(descIdx).toBeGreaterThan(-1)
+      expect(sellerIdx).toBeLessThan(descIdx)
+    })
+
+    it('owner does NOT see seller card (Req c owner)', async () => {
+      mockCurrentUser = { id: 'seller-user-99' } // same as seller.id
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: false,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+      expect(screen.queryByTestId('seller-card-touchable')).toBeNull()
+    })
+
+    it('visitor sees inline contact actions and bottom bar (Req d)', async () => {
+      mockCurrentUser = { id: 'visitor-user-123' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: false,
+      }
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+      expect(screen.getAllByTestId('btn-contact-chat').length).toBe(2)
+    })
+
+    it('owner and hidden availability do not render contact actions (Req d hidden)', async () => {
+      // 1. Owner view
+      mockCurrentUser = { id: 'seller-user-99' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm(),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: false,
+      }
+
+      const { unmount } = await render(<ServiceDetailScreen id="srv-101" />)
+      expect(screen.queryByTestId('btn-contact-chat')).toBeNull()
+      unmount()
+
+      // 2. Hidden availability
+      mockCurrentUser = { id: 'visitor-user-123' }
+      mockServiceDetailResult = {
+        state: 'ready',
+        vm: makeSampleVm({ status: 'ARCHIVED' as any }),
+        raw: makeSampleRaw(),
+        refetch: jest.fn(),
+        error: null,
+        isRefetchError: false,
+      }
+      await render(<ServiceDetailScreen id="srv-101" />)
+      expect(screen.queryByTestId('btn-contact-chat')).toBeNull()
     })
   })
 })

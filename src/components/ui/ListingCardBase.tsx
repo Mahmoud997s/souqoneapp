@@ -26,6 +26,7 @@ import { resolveListingLocation } from '../../utils/listingLocation'
 import { isOwnListing } from '../../utils/isOwnListing'
 import { CardImageSwiper } from './CardImageSwiper'
 import { VerifiedBadge } from './VerifiedBadge'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
 
 export interface ListingCardPill {
   key: string
@@ -70,9 +71,12 @@ export interface ListingCardBaseProps {
   shareMessage?: string
   titleNumberOfLines?: number
   imageHeight?: number
+  compactBody?: boolean
   favoriteType?: string
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
   style?: StyleProp<ViewStyle>
 }
 
@@ -101,12 +105,17 @@ export const ListingCardBase = ({
   shareMessage,
   titleNumberOfLines = 1,
   imageHeight,
+  compactBody = false,
   favoriteType,
   onFavorite,
+  liquidGlass = true,
+  glassSupport,
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
   const { user } = useAuthStore()
+  const hookGlass = useGlassSupport(Boolean(liquidGlass && !glassSupport))
+  const glass = glassSupport ?? hookGlass
   const isOwner = isOwnListing(item, user?.id)
   const resolvedType = favoriteTypeForCard(item, favoriteType)
   const targetId = item?.id || item?.raw?.id
@@ -157,13 +166,25 @@ export const ListingCardBase = ({
 
   return (
     <View
+      testID="listing-card-root"
       style={[
         s.card,
+        liquidGlass && s.cardLiquidGlass,
         fullWidth && { width: '100%' },
         gridMode && { width: '100%', flex: 1 },
         style,
       ]}
     >
+      {liquidGlass && (
+        <GlassSurface
+          testID="listing-card-surface"
+          borderRadius={CardSystem.radius.outer}
+          glassEffectStyle="clear"
+          tintOverlayColor={CardSystem.glass.cardTint}
+          noBorder={true}
+          support={glass}
+        />
+      )}
       {/* ── IMAGE SECTION ── */}
       <View
         style={[
@@ -191,8 +212,11 @@ export const ListingCardBase = ({
             onPress={onPress}
             style={[
               s.imagePlaceholder,
-              imageHeight ? { height: imageHeight, aspectRatio: undefined } : undefined,
-              fullWidth && { height: CardSystem.fullWidthHeight, aspectRatio: undefined },
+              imageHeight
+                ? { height: imageHeight, aspectRatio: undefined }
+                : fullWidth
+                ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+                : undefined,
             ]}
           >
             <Ionicons
@@ -206,15 +230,20 @@ export const ListingCardBase = ({
         {/* Action Buttons (Share & Favorite) */}
         <View style={s.actionsContainer}>
           <TouchableOpacity
-            style={s.actionBtn}
+            testID="listing-card-share"
+            style={[s.actionBtn, liquidGlass && s.actionBtnGlass]}
             onPress={handleShare}
             activeOpacity={0.8}
           >
-            <Ionicons name="share-social" size={16} color={Colors.white} />
+            <Ionicons
+              name={liquidGlass ? 'share-social-outline' : 'share-social'}
+              size={15}
+              color={liquidGlass ? Colors.primary : Colors.white}
+            />
           </TouchableOpacity>
           {resolvedType !== null && !isOwner && (
             <TouchableOpacity
-              style={s.actionBtn}
+              style={[s.actionBtn, liquidGlass && s.actionBtnGlass]}
               testID="listing-card-favorite"
               onPress={handleFavorite}
               activeOpacity={0.8}
@@ -222,7 +251,7 @@ export const ListingCardBase = ({
               <Ionicons
                 name={isFav ? 'heart' : 'heart-outline'}
                 size={16}
-                color={isFav ? Colors.error : Colors.white}
+                color={isFav ? Colors.error : liquidGlass ? Colors.primary : Colors.white}
               />
             </TouchableOpacity>
           )}
@@ -287,21 +316,28 @@ export const ListingCardBase = ({
       </View>
 
       {/* ── DETAILS SECTION ── */}
-      <Pressable onPress={onPress} style={s.cardDetails}>
+      <Pressable
+        testID="listing-card-details"
+        onPress={onPress}
+        style={[
+          s.cardDetails,
+          compactBody && s.cardDetailsCompact,
+        ]}
+      >
         <View style={s.headerRow}>
           <Text
             style={[s.cardTitle, { flex: 1 }]}
-            numberOfLines={titleNumberOfLines}
+            numberOfLines={1}
             ellipsizeMode="tail"
           >
             {title}
           </Text>
           {isSellerVerified && (
-            <VerifiedBadge variant="dark" showText size={12} style={{ marginTop: 2 }} />
+            <VerifiedBadge size={17} style={{ marginTop: 2 }} />
           )}
         </View>
 
-        <View style={s.locationRow}>
+        <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
           <View style={s.locationInner}>
             <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
             <Text style={s.locationTxt} numberOfLines={1}>
@@ -319,7 +355,7 @@ export const ListingCardBase = ({
           )}
         </View>
 
-        <View style={s.divider} />
+        <View style={[s.divider, compactBody && s.dividerCompact, liquidGlass && s.dividerGlass]} />
 
         {/* Details Pills List */}
         <View style={s.detailsList}>
@@ -336,7 +372,23 @@ export const ListingCardBase = ({
                   const textColor = pill.textColor || defaultTextColor
 
                   return (
-                    <View key={pill.key} style={[s.detailPill, pillBgStyle]}>
+                    <View
+                      key={pill.key}
+                      testID={`listing-card-pill-wrap-${pill.key}`}
+                      style={[
+                        s.detailPill,
+                        liquidGlass ? s.pillGlass : pillBgStyle,
+                      ]}
+                    >
+                      {liquidGlass && (
+                        <GlassSurface
+                          testID={`listing-card-pill-${pill.key}`}
+                          variant="capsule"
+                          borderRadius={CardSystem.glass.capsuleRadius}
+                          noBorder={true}
+                          support={glass}
+                        />
+                      )}
                       {pill.iconFamily === 'MaterialCommunityIcons' ? (
                         <MaterialCommunityIcons
                           name={pill.iconName as keyof typeof MaterialCommunityIcons.glyphMap}
@@ -361,7 +413,23 @@ export const ListingCardBase = ({
                   )
                 })}
                 {remainingCount > 0 && (
-                  <View style={[s.detailPill, s.pillNeutral, s.remainingPill]}>
+                  <View
+                    testID="listing-card-pill-wrap-remaining"
+                    style={[
+                      s.detailPill,
+                      liquidGlass ? s.pillGlass : s.pillNeutral,
+                      s.remainingPill,
+                    ]}
+                  >
+                    {liquidGlass && (
+                      <GlassSurface
+                        testID="listing-card-pill-remaining"
+                        variant="capsule"
+                        borderRadius={CardSystem.glass.capsuleRadius}
+                        noBorder={true}
+                        support={glass}
+                      />
+                    )}
                     <Text style={s.remainingText} numberOfLines={1}>
                       +{remainingCount}
                     </Text>
@@ -372,23 +440,69 @@ export const ListingCardBase = ({
           })()}
         </View>
 
-        <View style={s.footerDivider} />
+        <View style={[s.footerDivider, compactBody && s.footerDividerCompact, liquidGlass && s.dividerGlass]} />
 
-        {/* Footer Row (Price & Negotiable pill) */}
+        {/* Footer Row (Negotiable in flex:1 & Price in responsive compact slot) */}
         <View style={s.footerRow}>
+          {isPriceNegotiable ? (
+            <View
+              testID="listing-card-negotiable-pill-wrap"
+              style={[
+                s.footerPill,
+                liquidGlass ? [s.pillGlass, s.pillGlassNegotiable] : s.pillGreen,
+                s.footerNegotiablePill,
+              ]}
+            >
+              {liquidGlass && (
+                <GlassSurface
+                  testID="listing-card-negotiable-pill"
+                  variant="capsule"
+                  borderRadius={CardSystem.glass.capsuleRadius}
+                  tintOverlayColor={CardSystem.glass.negotiableTint}
+                  noBorder={true}
+                  support={glass}
+                />
+              )}
+              <Text
+                numberOfLines={1}
+                style={s.negotiableText}
+              >
+                قابل للتفاوض
+              </Text>
+            </View>
+          ) : (
+            <View style={s.footerNegotiableSpacer} pointerEvents="none" />
+          )}
+
           <View
+            testID="listing-card-price-pill-wrap"
             style={[
-              s.detailPill,
-              isPriceNegotiable ? s.pillGreen : s.pillNeutral,
-              { flex: 1 },
+              s.footerPill,
+              liquidGlass
+                ? [s.pillGlass, isPriceNegotiable && s.pillGlassNegotiable]
+                : isPriceNegotiable
+                ? s.pillGreen
+                : s.pillNeutral,
+              s.footerPricePillCompact,
             ]}
           >
+            {liquidGlass && (
+              <GlassSurface
+                testID="listing-card-price-pill"
+                variant="capsule"
+                borderRadius={CardSystem.glass.capsuleRadius}
+                tintOverlayColor={isPriceNegotiable ? CardSystem.glass.negotiableTint : undefined}
+                noBorder={true}
+                support={glass}
+              />
+            )}
             <Ionicons
               name="wallet-outline"
-              size={15}
+              size={14}
               color={isPriceNegotiable ? Colors.primary : Colors.text2}
             />
             <Text
+              numberOfLines={1}
               style={[
                 s.budgetValText,
                 isPriceNegotiable && { color: Colors.primary },
@@ -397,19 +511,6 @@ export const ListingCardBase = ({
               {priceLabel}
             </Text>
           </View>
-
-          {isPriceNegotiable && (
-            <View style={[s.detailPill, s.pillGreen]}>
-              <Text
-                style={[
-                  s.detailText,
-                  { color: Colors.primary, fontFamily: 'Almarai_700Bold' },
-                ]}
-              >
-                قابل للتفاوض
-              </Text>
-            </View>
-          )}
         </View>
 
         {cardActions && (
@@ -431,6 +532,10 @@ const s = StyleSheet.create({
     ...CardSystem.styles.border,
     overflow: 'hidden',
     ...CardSystem.styles.softShadow,
+  },
+  cardLiquidGlass: {
+    backgroundColor: 'transparent',
+    borderColor: CardSystem.glass.cardBorderColor,
   },
   imageContainer: {
     width: '100%',
@@ -507,6 +612,22 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionBtnGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
   soldOverlay: {
     zIndex: 10,
     justifyContent: 'center',
@@ -569,6 +690,11 @@ const s = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 6,
   },
+  cardDetailsCompact: {
+    paddingHorizontal: 10,
+    paddingTop: 7,
+    paddingBottom: 5,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -589,6 +715,10 @@ const s = StyleSheet.create({
     gap: 4,
     marginTop: 2,
     marginBottom: 5,
+  },
+  locationRowCompact: {
+    marginTop: 2,
+    marginBottom: 4,
   },
   locationInner: {
     flexDirection: 'row',
@@ -621,11 +751,21 @@ const s = StyleSheet.create({
     backgroundColor: Colors.inputBg,
     marginBottom: 6,
   },
+  dividerCompact: {
+    marginBottom: 5,
+  },
+  dividerGlass: {
+    backgroundColor: CardSystem.glass.dividerColor,
+  },
   footerDivider: {
     height: 1,
     backgroundColor: Colors.inputBg,
     marginTop: 2,
     marginBottom: 6,
+  },
+  footerDividerCompact: {
+    marginTop: 1,
+    marginBottom: 5,
   },
   detailsList: {
     flexDirection: 'row',
@@ -643,6 +783,16 @@ const s = StyleSheet.create({
     paddingVertical: 2.5,
     borderRadius: CardSystem.radius.inner,
     flexShrink: 1,
+  },
+  pillGlass: {
+    backgroundColor: 'transparent',
+    borderRadius: CardSystem.glass.capsuleRadius,
+    borderWidth: 1,
+    borderColor: CardSystem.glass.capsuleBorderColor,
+    overflow: 'hidden',
+  },
+  pillGlassNegotiable: {
+    borderColor: CardSystem.glass.negotiableBorderColor,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
@@ -672,8 +822,37 @@ const s = StyleSheet.create({
     justifyContent: 'flex-start',
     gap: 5,
   },
+  footerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    gap: 5,
+    borderRadius: CardSystem.radius.inner,
+  },
+  footerNegotiablePill: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'flex-start',
+  },
+  footerNegotiableSpacer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  footerPricePillCompact: {
+    flexShrink: 0,
+    justifyContent: 'center',
+  },
+  negotiableText: {
+    fontSize: 11,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+    lineHeight: 15,
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  },
   budgetValText: {
-    fontSize: 11.5,
+    fontSize: 12.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: Colors.accent,
     lineHeight: 15,
@@ -686,3 +865,6 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
 })
+
+export const listingCardBaseStyles = s
+
