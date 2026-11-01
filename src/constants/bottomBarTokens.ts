@@ -3,6 +3,7 @@ import { Colors } from './colors'
 
 const BLUR_INTENSITY_IOS = 65
 const BLUR_INTENSITY_ANDROID = 45
+const COLLAPSED_RADIUS = 28
 
 /**
  * BottomBarTokens
@@ -19,14 +20,11 @@ export const BottomBarTokens = {
 
   // ── Layout Dimensions (Collapsed Circle) ──
   collapsedSize: 56,
-  collapsedRadius: 28,
   collapsedIconSize: 24,
   minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
   addButtonSize: 38,
 
   // ── Glass Background Layers ──
-  blurIntensityIos: BLUR_INTENSITY_IOS,
-  blurIntensityAndroid: BLUR_INTENSITY_ANDROID,
   blurIntensity: Platform.OS === 'ios' ? BLUR_INTENSITY_IOS : BLUR_INTENSITY_ANDROID,
   blurTint: 'light' as const,
   blurMethod: 'dimezisBlurView' as const,
@@ -62,12 +60,8 @@ export const BottomBarTokens = {
   }),
 
   // ── Active Pill & Tab Item (used by D-167 section bars & D-168 tab bar) ──
-  activePillWidth: 40,
-  activePillHeight: 28,
-  activePillRadius: 14,
   activePillBg: Colors.paleMint,
   activeIconColor: Colors.primary,
-  inactiveIconColor: Colors.textMuted,
 
   // ── Animation Timings & Thresholds ──
   animation: {
@@ -146,7 +140,7 @@ export function computeBottomBarGeometry(
   const collapsedSize = BottomBarTokens.collapsedSize
   const expandedHeight = BottomBarTokens.expandedHeight
   const expandedRadius = BottomBarTokens.expandedRadius
-  const collapsedRadius = BottomBarTokens.collapsedRadius
+  const collapsedRadius = COLLAPSED_RADIUS
 
   if (reducedMotion) {
     const isCollapsed = clampedProgress >= 0.5

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import Svg, { Polygon, Path } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
+import { CardSystem } from '../../constants/cardSystem';
 
 export const VERIFIED_BADGE_3D = require('../../../assets/images/verified-badge-3d.png');
 
@@ -41,7 +42,7 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
   const isPure = variant === 'pure';
 
   const starFill = Colors.primary;
-  const checkStroke = '#FFFFFF';
+  const checkStroke = Colors.white;
   const textColor = isDark ? Colors.paleMint : Colors.primary;
 
   const renderIcon = (emblemSize: number) => {
@@ -126,7 +127,7 @@ const s = StyleSheet.create({
   },
   containerDark: {
     backgroundColor: Colors.primaryDark,
-    borderColor: 'rgba(0, 156, 181, 0.35)',
+    borderColor: CardSystem.glass.verifiedBadgeDarkBorderColor,
     shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 1.5 },
     shadowOpacity: 0.15,

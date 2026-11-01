@@ -19,7 +19,8 @@ jest.mock('expo-blur', () => {
 })
 
 // Mock expo-glass-effect
-const MockGlassView = (props: Record<string, unknown>) =>
+import type { GlassViewProps } from 'expo-glass-effect'
+const MockGlassView: React.ComponentType<GlassViewProps> = (props: GlassViewProps) =>
   React.createElement(View, { testID: 'mock-glass-view', ...props })
 
 jest.mock('expo-glass-effect', () => ({
@@ -94,7 +95,7 @@ describe('D-174a Characterization Tests (Pre-Change Baseline)', () => {
         <GlassSurface
           testID="test-surface"
           variant="surface"
-          support={{ kind: 'liquid', GlassView: MockGlassView as any }}
+          support={{ kind: 'liquid', GlassView: MockGlassView }}
         />
       )
 
@@ -133,7 +134,7 @@ describe('D-174a Characterization Tests (Pre-Change Baseline)', () => {
         <GlassSurface
           testID="test-capsule"
           variant="capsule"
-          support={{ kind: 'liquid', GlassView: MockGlassView as any }}
+          support={{ kind: 'liquid', GlassView: MockGlassView }}
         />
       )
 
@@ -167,8 +168,10 @@ describe('D-174a Characterization Tests (Pre-Change Baseline)', () => {
       const { getByTestId } = await render(
         <ListingCardBase
           item={sampleItem}
+          title="إعلان تجريبي"
+          priceLabel="1,500 ر.ع"
           onPress={jest.fn()}
-          showShareButton={true}
+          shareMessage="مشاركة الإعلان"
         />
       )
 

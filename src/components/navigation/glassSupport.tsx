@@ -11,6 +11,7 @@ import Animated, { type useAnimatedStyle } from 'react-native-reanimated'
 import { BlurView } from 'expo-blur'
 import type { GlassViewProps } from 'expo-glass-effect'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
+import { CardSystem } from '../../constants/cardSystem'
 
 /**
  * glassSupport
@@ -173,7 +174,7 @@ function GlassSurfaceView({
   const isCapsule = variant === 'capsule'
   const effectiveGlassStyle = glassEffectStyle ?? 'regular'
   const effectiveCapsuleOverlay =
-    tintOverlayColor ?? (isCapsule ? 'rgba(238, 242, 245, 0.55)' : undefined)
+    tintOverlayColor ?? (isCapsule ? CardSystem.glass.capsuleTint : undefined)
   const borderStyle = noBorder ? s.noBorder : null
   const radiusOverride = borderRadius !== undefined ? { borderRadius } : null
 
@@ -289,13 +290,13 @@ const s = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.90)',
+    borderColor: CardSystem.glass.capsuleBorderColor,
   },
   capsuleBlurWrapper: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.90)',
+    borderColor: CardSystem.glass.capsuleBorderColor,
   },
   whiteWashOverlay: {
     ...StyleSheet.absoluteFill,
@@ -303,7 +304,7 @@ const s = StyleSheet.create({
   },
   capsuleWashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(238, 242, 245, 0.82)',
+    backgroundColor: CardSystem.glass.capsuleBlurWashBg,
   },
   noBorder: {
     borderWidth: 0,
