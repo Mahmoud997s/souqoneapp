@@ -12,7 +12,7 @@ export function usePublicProfileServices(userId: string, enabled = true) {
     userId,
     enabled,
     vertical: 'service',
-    filters: { userId, status: 'ACTIVE' },
+    filters: { userId },
     fetchPage: fetchServicePage,
     mapItem: mapServiceToCard,
   })

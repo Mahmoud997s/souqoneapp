@@ -34,18 +34,18 @@ describe('public profile parts and services queries', () => {
     const { result } = await renderHook(() => usePublicProfileParts('seller-part'), { wrapper: createWrapper() })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockedPartsGetAll).toHaveBeenCalledWith({ sellerId: 'seller-part', status: 'ACTIVE', limit: 10, page: 1 })
+    expect(mockedPartsGetAll).toHaveBeenCalledWith({ sellerId: 'seller-part', limit: 10, page: 1 })
     expect(result.current.data?.pages[0].data[0].raw).toEqual({ id: 'part-1' })
   })
 
   it('filters services by user id and uses an isolated service query key', async () => {
-    mockedServicesGetAll.mockResolvedValueOnce({ data: { data: [{ id: 'service-1' }], meta: { page: 1, totalPages: 1 } } } as never)
+    mockedServicesGetAll.mockResolvedValueOnce({ data: { items: [{ id: 'service-1' }], meta: { page: 1, totalPages: 1 } } } as never)
     const { result } = await renderHook(() => usePublicProfileServices('seller-service'), { wrapper: createWrapper() })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockedServicesGetAll).toHaveBeenCalledWith({ userId: 'seller-service', status: 'ACTIVE', limit: 10, page: 1 })
+    expect(mockedServicesGetAll).toHaveBeenCalledWith({ userId: 'seller-service', limit: 10, page: 1 })
     const keys = queryClient.getQueryCache().getAll().map((query) => query.queryKey)
-    expect(keys).toContainEqual(['public-profile-listings', 'seller-service', 'service', { userId: 'seller-service', status: 'ACTIVE', limit: 10 }])
+    expect(keys).toContainEqual(['public-profile-listings', 'seller-service', 'service', { userId: 'seller-service', limit: 10 }])
     expect(result.current.data?.pages[0].data[0].raw).toEqual({ id: 'service-1' })
   })
 })
