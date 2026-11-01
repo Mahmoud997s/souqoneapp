@@ -198,7 +198,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   const handleSearchSubmit = (text: string) => {
     router.push({
-      pathname: '/cars/browse' as any,
+      pathname: '/cars/browse',
       params: { search: text },
     })
   }

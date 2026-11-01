@@ -210,7 +210,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
 
   const handleSearchSubmit = (text: string) => {
     router.push({
-      pathname: '/services/browse' as any,
+      pathname: '/services/browse',
       params: { q: text },
     })
   }

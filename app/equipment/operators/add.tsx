@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
 import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
+import { WizardStickyFooter } from '../../../src/components/ui/WizardStickyFooter'
 import { Colors } from '../../../src/constants/colors'
 import { Radius } from '../../../src/constants/radius'
 import { Spacing } from '../../../src/constants/spacing'
@@ -242,15 +242,7 @@ export default function AddOperatorScreen() {
         </ScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
-        <BlurView
-          intensity={60}
-          tint="light"
-          blurMethod="dimezisBlurView"
-          style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
-        >
-          <View style={s.footerWhiteWash} pointerEvents="none" />
-          <View style={s.footerTint} pointerEvents="none" />
-
+        <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>
           {currentStep > 1 ? (
             <View style={s.footerBtnGroup}>
               <AppButton
@@ -279,7 +271,7 @@ export default function AddOperatorScreen() {
               disabled={createMutation.isPending}
             />
           )}
-        </BlurView>
+        </WizardStickyFooter>
       </View>
     </KeyboardAvoidingView>
   )
@@ -372,31 +364,6 @@ const s = StyleSheet.create({
     color: '#DC2626',
     textAlign: 'left',
     writingDirection: 'rtl',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.5)',
-    paddingHorizontal: Spacing.space4,
-    paddingTop: 10,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },
-      android: { elevation: 8 },
-    }),
-  },
-  footerWhiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
-  },
-  footerTint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
   footerBtnGroup: {
     flexDirection: 'row',

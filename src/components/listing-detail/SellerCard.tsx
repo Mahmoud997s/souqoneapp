@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -10,10 +9,13 @@ import { Shadows } from '../../constants/shadows'
 import type { SellerView } from '../../types/carDetailViewModel.types'
 import { lineHeightFor } from '../../constants/typography'
 import { VerifiedBadge } from '../ui/VerifiedBadge'
+import { GlassSurface } from '../navigation/GlassSurface'
+import type { GlassSupport } from '../navigation/glassCapability'
 
 export interface SellerCardProps {
   seller: SellerView
   onPressProfile: (sellerId: string) => void
+  support?: GlassSupport
 }
 
 /**
@@ -22,7 +24,7 @@ export interface SellerCardProps {
  * Same layout as the original — avatar, name, verified badge,
  * membership label, account type badge, and chevron.
  */
-export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
+export function SellerCard({ seller, onPressProfile, support }: SellerCardProps) {
   return (
     <TouchableOpacity
       onPress={() => onPressProfile(seller.id)}
@@ -30,12 +32,16 @@ export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
       testID="seller-card-touchable"
       style={s.wrapper}
     >
-      <BlurView
-        intensity={70}
-        tint="light"
-        blurMethod="dimezisBlurView"
-        style={s.card}
-      >
+      <View style={s.card} testID="seller-card-container">
+        <GlassSurface
+          testID="seller-card"
+          variant="surface"
+          borderRadius={Radius.lg}
+          noBorder
+          intensity={70}
+          washColor={Colors.white}
+          support={support}
+        />
         <View style={s.row}>
           {/* Avatar */}
           <View style={s.avatarContainer}>
@@ -78,7 +84,7 @@ export function SellerCard({ seller, onPressProfile }: SellerCardProps) {
             <Ionicons name="chevron-back" size={20} color={Colors.primary} />
           </View>
         </View>
-      </BlurView>
+      </View>
     </TouchableOpacity>
   )
 }
@@ -92,7 +98,7 @@ const s = StyleSheet.create({
     ...Shadows.card,
   },
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'transparent',
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,

@@ -15,7 +15,6 @@ export const CardSystem = {
 
   // Liquid Glass Tokens for Cards & Capsules
   glass: {
-    outerRadius: 16,
     capsuleRadius: 6, // Restored to match original CardSystem.radius.inner (6)
     cardTint: 'rgba(255, 255, 255, 0.81)',
     cardBorderColor: Colors.border,
@@ -25,7 +24,9 @@ export const CardSystem = {
     negotiableTint: 'rgba(0, 156, 181, 0.12)',
     negotiableBorderColor: 'rgba(0, 156, 181, 0.30)',
     dividerColor: 'rgba(17, 35, 46, 0.06)',
-    actionBtnBorderColor: 'rgba(255, 255, 255, 0.45)',
+    actionBtnBg: 'rgba(255, 255, 255, 0.88)',
+    actionBtnBorderColor: 'rgba(255, 255, 255, 0.95)',
+    verifiedBadgeDarkBorderColor: 'rgba(0, 156, 181, 0.35)',
   },
 
   // Paddings and Gaps
