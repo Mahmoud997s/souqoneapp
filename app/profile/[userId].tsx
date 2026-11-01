@@ -52,7 +52,16 @@ export default function PublicProfileScreen() {
 
   const isProfileNotFound = isHttpNotFound(profileErrorDetails)
 
-  if (profileError && !profile && !isProfileNotFound) {
+  if (isProfileNotFound) {
+    return (
+      <View style={s.root}>
+        <AppHeader title="الملف الشخصي" showBack />
+        <View style={s.center}><Text style={s.emptyTxt}>الملف الشخصي غير موجود</Text></View>
+      </View>
+    )
+  }
+
+  if (profileError && !profile) {
     return (
       <View style={s.root}>
         <AppHeader title="الملف الشخصي" showBack />

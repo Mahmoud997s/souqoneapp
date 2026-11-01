@@ -93,6 +93,19 @@ describe('public profile route states', () => {
     expect(screen.queryByRole('button', { name: 'إعادة المحاولة' })).toBeNull()
   })
 
+  it('shows not-found when a refresh returns 404 despite previously loaded profile data', async () => {
+    mockedUsePublicProfile.mockReturnValue({
+      data: { id: 'seller-1', displayName: 'بائع قديم', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 0, equipmentListings: 0, spareParts: 0, carServices: 0, driverJobs: 0 }, totalListings: 0 },
+      isLoading: false,
+      isError: true,
+      error: { response: { status: 404 } },
+      refetch: jest.fn(),
+    } as never)
+    await render(<PublicProfileScreen />)
+    expect(screen.getByText('الملف الشخصي غير موجود')).toBeTruthy()
+    expect(screen.queryByText('بائع قديم')).toBeNull()
+  })
+
   it('renders typed profile data and a distinct empty listings state', async () => {
     mockedUsePublicProfile.mockReturnValue({
       data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 2, equipmentListings: 3, operatorListings: 9, spareParts: 4, carServices: 5, driverJobs: 4 }, totalListings: 27 },
