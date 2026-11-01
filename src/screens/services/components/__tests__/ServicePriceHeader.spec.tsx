@@ -73,6 +73,30 @@ describe('ServicePriceHeader', () => {
     expect(screen.getByText('42 مشاهدة')).toBeTruthy()
   })
 
+  it('hides viewCount when showViewCount is explicitly false (D-182a owner view)', async () => {
+    const minimalPrice: ServicePriceViewModel = {
+      amountLabel: 'السعر يبدأ من 20 ر.ع.',
+      typeLabel: 'السعر يبدأ من',
+      isRange: false,
+    }
+
+    await render(
+      <ServicePriceHeader
+        title="خدمة تلميع سيارات"
+        price={minimalPrice}
+        serviceTypeLabel="تلميع وتنظيف"
+        isHomeService={false}
+        postedAtLabel="اليوم"
+        viewCount={42}
+        showViewCount={false}
+      />,
+    )
+
+    expect(screen.getByText('خدمة تلميع سيارات')).toBeTruthy()
+    expect(screen.getByText('اليوم')).toBeTruthy()
+    expect(screen.queryByText('42 مشاهدة')).toBeNull()
+  })
+
   describe('Visual Alignment with ListingHeaderBlock (D-170b)', () => {
     it('uses Colors.white container background and paleMint price box (Req c)', async () => {
       await render(

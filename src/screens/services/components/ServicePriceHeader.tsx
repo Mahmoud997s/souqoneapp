@@ -15,6 +15,7 @@ export interface ServicePriceHeaderProps {
   isHomeService?: boolean
   postedAtLabel: string
   viewCount: number
+  showViewCount?: boolean
 }
 
 /**
@@ -31,6 +32,7 @@ export function ServicePriceHeader({
   isHomeService,
   postedAtLabel,
   viewCount,
+  showViewCount = true,
 }: ServicePriceHeaderProps) {
   return (
     <View style={s.container} testID="service-price-header">
@@ -76,19 +78,23 @@ export function ServicePriceHeader({
         <Text style={s.priceAmount}>{price.amountLabel}</Text>
       </View>
 
-      {/* Meta Row: Posted at & Views */}
+      {/* Meta Row: Posted at & Views (views hidden for owner to avoid duplication with OwnerManageBar) */}
       <View style={s.metaRow}>
         <View style={s.metaItem}>
           <Ionicons name="time-outline" size={14} color={Colors.textMuted} />
           <Text style={s.metaText}>{postedAtLabel}</Text>
         </View>
 
-        <View style={s.metaDivider} />
+        {showViewCount ? (
+          <>
+            <View style={s.metaDivider} />
 
-        <View style={s.metaItem}>
-          <Ionicons name="eye-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.metaText}>{viewCount.toLocaleString('en-US')} مشاهدة</Text>
-        </View>
+            <View style={s.metaItem}>
+              <Ionicons name="eye-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.metaText}>{viewCount.toLocaleString('en-US')} مشاهدة</Text>
+            </View>
+          </>
+        ) : null}
       </View>
     </View>
   )

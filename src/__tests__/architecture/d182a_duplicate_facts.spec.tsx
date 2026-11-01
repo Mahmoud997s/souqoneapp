@@ -17,6 +17,10 @@ jest.setTimeout(30000)
 const mockRouterPush = jest.fn()
 const mockRouterBack = jest.fn()
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}))
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
@@ -81,7 +85,7 @@ jest.mock('../../api/services', () => ({
 let mockCurrentUser: { id: string; username?: string; name?: string; phone?: string } | null = null
 
 jest.mock('../../store/authStore', () => {
-  const hook: any = (selector?: (s: unknown) => unknown) => {
+  const hook = (selector?: (s: { user: typeof mockCurrentUser; isLoggedIn: boolean }) => unknown) => {
     const state = {
       user: mockCurrentUser,
       isLoggedIn: Boolean(mockCurrentUser),
@@ -263,11 +267,11 @@ function makeSampleServiceVm(overrides?: Partial<ServiceDetailViewModel>): Servi
 }
 
 const sampleOwnerActions: OwnerAction[] = [
-  { id: 'edit', label: 'تعديل', tone: 'primary' },
-  { id: 'delete', label: 'حذف', tone: 'danger' },
+  { id: 'edit', label: 'تعديل', tone: 'primary', icon: 'create-outline', requiresConfirm: false },
+  { id: 'delete', label: 'حذف', tone: 'danger', icon: 'trash-outline', requiresConfirm: true },
 ]
 
-describe('D-182a Characterization: Duplicate Facts Pre-Change Baseline', () => {
+describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', () => {
   afterEach(() => {
     cleanup()
   })
@@ -278,9 +282,11 @@ describe('D-182a Characterization: Duplicate Facts Pre-Change Baseline', () => {
     mockPartDetailResult = {
       state: 'ready',
       vm: makeSamplePartVm(),
-      raw: null,
+      raw: undefined,
       refetch: jest.fn(),
       error: null,
+      errorKind: 'unknown',
+      isRefetchError: false,
     }
     mockServiceDetailResult = {
       state: 'ready',
@@ -291,44 +297,61 @@ describe('D-182a Characterization: Duplicate Facts Pre-Change Baseline', () => {
     }
   })
 
-  // ── 1. PARTS: Location Duplicate ───────────────────────────────────────────
-  describe('Parts Location Duplication Characterization', () => {
-    it('characterizes pre-change baseline: location appears TWICE on PartDetailScreen (header + LocationCard)', async () => {
+  // ── 1. PARTS: Location Fact Appears Once in LocationCard ────────────────────
+  describe('Parts Location Single-Source Specification (D-182a decision 1)', () => {
+    it('shows location text exactly ONCE on PartDetailScreen (in LocationCard only, omitted from header)', async () => {
       await render(<PartDetailScreen id="part-101" />)
 
-      // Pre-change: 'مسقط، السيب' is rendered in ListingHeaderBlock AND LocationCard
+      // Post-change: location text 'مسقط، السيب' appears exactly ONCE across the entire screen
       const locationMatches = screen.getAllByText('مسقط، السيب')
-      expect(locationMatches.length).toBe(2)
+      expect(locationMatches.length).toBe(1)
     })
 
-    it('characterizes ListingHeaderBlock: renders locationText when provided', async () => {
+    it('ListingHeaderBlock: omits location item and dot divider when locationText is omitted or empty', async () => {
       await render(
         <ListingHeaderBlock
           title="سفايف تويوتا"
           kindLabel="قطعة غيار"
           price={{ amount: 45, formattedAmount: '45', currency: 'ر.ع', fullPriceLabel: '45 ر.ع', isNegotiable: false, listingType: 'SALE' }}
-          locationText="مسقط، السيب"
           postedAtLabel="منذ يوم"
         />,
       )
 
+      expect(screen.getByText('سفايف تويوتا')).toBeTruthy()
+      expect(screen.getByText('منذ يوم')).toBeTruthy()
+      expect(screen.queryByText('مسقط، السيب')).toBeNull()
+    })
+
+    it('Cars/Buses/Equipment parity: ListingHeaderBlock renders locationText normally when provided', async () => {
+      await render(
+        <ListingHeaderBlock
+          title="تويوتا كامري 2023"
+          kindLabel="للبيع"
+          price={{ amount: 7500, formattedAmount: '7,500', currency: 'ر.ع', fullPriceLabel: '7,500 ر.ع', isNegotiable: true, listingType: 'SALE' }}
+          locationText="مسقط، السيب"
+          postedAtLabel="منذ ساعتين"
+        />,
+      )
+
+      expect(screen.getByText('تويوتا كامري 2023')).toBeTruthy()
       expect(screen.getByText('مسقط، السيب')).toBeTruthy()
+      expect(screen.getByText('منذ ساعتين')).toBeTruthy()
     })
   })
 
-  // ── 2. SERVICES: Home Service Duplication ──────────────────────────────────
-  describe('Services Home Service Duplication Characterization', () => {
-    it('characterizes pre-change baseline: home service fact appears in header and in ServiceScheduleCard', async () => {
+  // ── 2. SERVICES: Home Service Fact Appears Once in Header Badge ─────────────
+  describe('Services Home Service Single-Source Specification (D-182a decision 2)', () => {
+    it('shows home-service fact in header badge and strictly omits duplicate badge from ServiceScheduleCard', async () => {
       await render(<ServiceDetailScreen id="srv-101" />)
 
-      // 1. In header (ServicePriceHeader)
+      // 1. In header (ServicePriceHeader): top-level header badge is present
       expect(screen.getByText('خدمة متنقلة')).toBeTruthy()
 
-      // 2. In schedule card (ServiceScheduleCard)
-      expect(screen.getByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeTruthy()
+      // 2. In schedule card (ServiceScheduleCard): duplicate badge is strictly omitted
+      expect(screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeNull()
     })
 
-    it('characterizes pre-change ServiceScheduleCard: renders card even when hasSchedule is false if isHomeService is true', async () => {
+    it('ServiceScheduleCard: returns null when hasSchedule is false, even if isHomeService is true', async () => {
       const scheduleWithoutDays: ServiceScheduleViewModel = {
         hasSchedule: false,
         workingDays: [],
@@ -339,14 +362,30 @@ describe('D-182a Characterization: Duplicate Facts Pre-Change Baseline', () => {
 
       await render(<ServiceScheduleCard schedule={scheduleWithoutDays} isHomeService={true} />)
 
-      expect(screen.getByTestId('service-schedule-card')).toBeTruthy()
-      expect(screen.getByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeTruthy()
+      expect(screen.queryByTestId('service-schedule-card')).toBeNull()
+      expect(screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeNull()
     })
   })
 
-  // ── 3. SERVICES: View Count Duplication ────────────────────────────────────
-  describe('Services View Count Duplication Characterization', () => {
-    it('characterizes ServicePriceHeader: renders view count by default', async () => {
+  // ── 3. SERVICES: View Count Single-Source Specification (D-182a decision 3) ──
+  describe('Services View Count Single-Source Specification (D-182a decision 3)', () => {
+    it('shows viewCount in header for visitor (owner bar hidden)', async () => {
+      mockCurrentUser = { id: 'visitor-user-1' } // visitor
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
+      expect(screen.queryByTestId('owner-manage-bar')).toBeNull()
+    })
+
+    it('strictly hides viewCount from header when viewer is owner (showViewCount=false)', async () => {
+      mockCurrentUser = { id: 'seller-user-99' } // same as seller.id -> owner
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      // Header strictly omits view count for owner
+      expect(screen.queryByText('1,540 مشاهدة')).toBeNull()
+    })
+
+    it('ServicePriceHeader: renders view count by default (showViewCount=true)', async () => {
       await render(
         <ServicePriceHeader
           title="كراج النخبة"
@@ -356,37 +395,36 @@ describe('D-182a Characterization: Duplicate Facts Pre-Change Baseline', () => {
           viewCount={1540}
         />,
       )
-
       expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
     })
 
-    it('characterizes OwnerManageBar (inline): renders view count in stats header', async () => {
+    it('ServicePriceHeader: strictly hides view count when showViewCount=false', async () => {
+      await render(
+        <ServicePriceHeader
+          title="كراج النخبة"
+          price={{ amountLabel: '15 ر.ع.', isRange: false }}
+          serviceTypeLabel="صيانة"
+          postedAtLabel="منذ يومين"
+          viewCount={1540}
+          showViewCount={false}
+        />,
+      )
+      expect(screen.queryByText('1,540 مشاهدة')).toBeNull()
+    })
+
+    it('OwnerManageBar (inline): preserves view count rendering in stats header', async () => {
       await render(
         <OwnerManageBar
+          variant="inline"
           viewCount={1540}
+          busy={false}
           actions={sampleOwnerActions}
           onAction={jest.fn()}
         />,
       )
 
-      expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
-    })
-
-    it('characterizes pre-change ServiceDetailScreen as owner: viewCount is rendered in header', async () => {
-      mockCurrentUser = { id: 'seller-user-99' } // same as seller.id -> owner
-      await render(<ServiceDetailScreen id="srv-101" />)
-
-      // Pre-change: '1,540 مشاهدة' is rendered in ServicePriceHeader
-      expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
-    })
-
-    it('characterizes ServiceDetailScreen as visitor: viewCount is rendered in header', async () => {
-      mockCurrentUser = { id: 'visitor-user-1' } // visitor
-      await render(<ServiceDetailScreen id="srv-101" />)
-
-      // Header shows view count
-      expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
-      expect(screen.queryByTestId('owner-manage-bar')).toBeNull()
+      expect(screen.getByText(/مشاهدة/)).toBeTruthy()
+      expect(screen.getByText('أنت مالك هذا الإعلان')).toBeTruthy()
     })
   })
 })

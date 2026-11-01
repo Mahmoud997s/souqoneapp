@@ -450,6 +450,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             isHomeService={vm.isHomeService}
             postedAtLabel={vm.postedAtLabel}
             viewCount={vm.viewCount}
+            showViewCount={!isOwner}
           />
         </Animated.View>
 
@@ -490,12 +491,11 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           </Animated.View>
         )}
 
-        {/* 6. Schedule & Working Days Card */}
-        {(vm.workingSchedule.hasSchedule || vm.isHomeService) && (
+        {/* 6. Schedule & Working Days Card (renders only when listing provides a schedule) */}
+        {vm.workingSchedule.hasSchedule && (
           <Animated.View entering={getEnteringAnimation(5)}>
             <ServiceScheduleCard
               schedule={vm.workingSchedule}
-              isHomeService={vm.isHomeService}
             />
           </Animated.View>
         )}
