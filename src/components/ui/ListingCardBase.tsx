@@ -444,7 +444,7 @@ export const ListingCardBase = ({
 
         {/* Footer Row (Negotiable in flex:1 & Price in responsive compact slot) */}
         <View style={s.footerRow}>
-          {isPriceNegotiable && (
+          {isPriceNegotiable ? (
             <View
               testID="listing-card-negotiable-pill-wrap"
               style={[
@@ -470,6 +470,8 @@ export const ListingCardBase = ({
                 قابل للتفاوض
               </Text>
             </View>
+          ) : (
+            <View style={s.footerNegotiableSpacer} pointerEvents="none" />
           )}
 
           <View
@@ -481,7 +483,7 @@ export const ListingCardBase = ({
                 : isPriceNegotiable
                 ? s.pillGreen
                 : s.pillNeutral,
-              isPriceNegotiable ? s.footerPricePillCompact : s.footerPricePillFull,
+              s.footerPricePillCompact,
             ]}
           >
             {liquidGlass && (
@@ -831,15 +833,15 @@ const s = StyleSheet.create({
   footerNegotiablePill: {
     flex: 1,
     minWidth: 0,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  footerNegotiableSpacer: {
+    flex: 1,
+    minWidth: 0,
   },
   footerPricePillCompact: {
     flexShrink: 0,
     justifyContent: 'center',
-  },
-  footerPricePillFull: {
-    flex: 1,
-    justifyContent: 'flex-start',
   },
   negotiableText: {
     fontSize: 11,
@@ -847,13 +849,13 @@ const s = StyleSheet.create({
     color: Colors.primary,
     lineHeight: 15,
     writingDirection: 'rtl',
-    textAlign: 'center',
+    textAlign: 'right',
   },
   budgetValText: {
-    fontSize: 11.5,
+    fontSize: 12.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: Colors.accent,
-    lineHeight: 16,
+    lineHeight: 17.5,
     writingDirection: 'rtl',
   },
   cardActionsRow: {

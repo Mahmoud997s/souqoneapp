@@ -257,15 +257,19 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(priceStyle.paddingHorizontal).toBe(8)
     expect(priceStyle.paddingVertical).toBe(3.5)
 
-    // 2. With negotiable=false: price pill takes flex:1
-    const { getByTestId: getNoNeg } = await render(
+    // 2. With negotiable=false: price pill maintains exact compact size and position (flexShrink: 0) without stretching
+    const { getByTestId: getNoNeg, queryByTestId: queryNoNeg } = await render(
       <CarCard
         item={{ ...sampleCarListing, isPriceNegotiable: false, price: 5000 }}
         onPress={jest.fn()}
       />
     )
+    expect(queryNoNeg('listing-card-negotiable-pill-wrap')).toBeNull()
     const priceOnlyWrap = getNoNeg('listing-card-price-pill-wrap')
     const priceOnlyStyle = StyleSheet.flatten(priceOnlyWrap.props.style)
-    expect(priceOnlyStyle.flex).toBe(1)
+    expect(priceOnlyStyle.flexShrink).toBe(0)
+    expect(priceOnlyStyle.flex).toBeUndefined()
+    expect(priceOnlyStyle.paddingHorizontal).toBe(8)
+    expect(priceOnlyStyle.paddingVertical).toBe(3.5)
   })
 })
