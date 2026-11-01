@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 
 export interface CarCardProps {
@@ -19,6 +20,8 @@ export interface CarCardProps {
   titleNumberOfLines?: number
   imageHeight?: number
   compactBody?: boolean
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const CarCard = ({
@@ -33,6 +36,8 @@ export const CarCard = ({
   titleNumberOfLines = 1,
   imageHeight,
   compactBody = false,
+  liquidGlass,
+  glassSupport,
 }: CarCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -266,6 +271,8 @@ export const CarCard = ({
       titleNumberOfLines={titleNumberOfLines}
       imageHeight={imageHeight}
       compactBody={compactBody}
+      liquidGlass={liquidGlass ?? !isEquipment}
+      glassSupport={glassSupport}
       shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />
   )

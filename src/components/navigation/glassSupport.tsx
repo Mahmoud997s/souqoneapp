@@ -97,8 +97,8 @@ export function getGlassSupport(reduceTransparencyEnabled: boolean): GlassSuppor
  * if setting has not yet resolved, then liquid on subsequent mounts if disabled),
  * then follows the setting live. Subscribes only when the binary supports liquid glass.
  */
-export function useGlassSupport(): GlassSupport {
-  const isLiquidCapable = resolveNativeGlassSupport().kind === 'liquid'
+export function useGlassSupport(enabled: boolean = true): GlassSupport {
+  const isLiquidCapable = enabled && resolveNativeGlassSupport().kind === 'liquid'
   const [reduceTransparency, setReduceTransparency] = useState<boolean>(() => {
     return cachedReduceTransparency ?? true
   })
@@ -109,9 +109,9 @@ export function useGlassSupport(): GlassSupport {
     }
     let isMounted = true
     AccessibilityInfo.isReduceTransparencyEnabled()
-      .then((enabled) => {
-        cachedReduceTransparency = enabled
-        if (isMounted) setReduceTransparency(enabled)
+      .then((enabledSetting) => {
+        cachedReduceTransparency = enabledSetting
+        if (isMounted) setReduceTransparency(enabledSetting)
       })
       .catch(() => {
         // Setting unreadable: keep blur (safe default).
@@ -119,9 +119,9 @@ export function useGlassSupport(): GlassSupport {
       })
     const subscription = AccessibilityInfo.addEventListener(
       'reduceTransparencyChanged',
-      (enabled) => {
-        cachedReduceTransparency = enabled
-        setReduceTransparency(enabled)
+      (enabledSetting) => {
+        cachedReduceTransparency = enabledSetting
+        setReduceTransparency(enabledSetting)
       }
     )
     return () => {
@@ -129,6 +129,10 @@ export function useGlassSupport(): GlassSupport {
       subscription.remove()
     }
   }, [isLiquidCapable])
+
+  if (!enabled) {
+    return BLUR_SUPPORT
+  }
 
   return getGlassSupport(reduceTransparency)
 }
@@ -144,30 +148,30 @@ export interface GlassSurfaceProps {
   intensity?: number
   tint?: 'light' | 'default' | 'dark'
   noBorder?: boolean
+  variant?: 'surface' | 'capsule'
+  tintOverlayColor?: string
   support?: GlassSupport
 }
 
-/**
- * GlassSurface
- * The shared glass background surface for bottom bars and category tiles.
- * - Liquid branch (iOS 26 binary with expo-glass-effect, transparency not reduced): native GlassView.
- * - Blur branch (Android, older iOS, or reduce-transparency on): BlurView + white wash overlay.
- * The surface itself never fades: it always stays at opacity 1 and only its radius/bounds morph.
- */
-export function GlassSurface({
+interface GlassSurfaceViewProps extends Omit<GlassSurfaceProps, 'support'> {
+  support: GlassSupport
+}
+
+function GlassSurfaceView({
   testID = 'glass-surface',
   radiusStyle,
   style,
   borderRadius,
-  glassEffectStyle = 'regular',
+  glassEffectStyle,
   intensity = BottomBarTokens.blurIntensity,
   tint = BottomBarTokens.blurTint,
   noBorder = false,
-  support,
-}: GlassSurfaceProps) {
-  const hookSupport = useGlassSupport()
-  const glass = support ?? hookSupport
-
+  variant = 'surface',
+  tintOverlayColor,
+  support: glass,
+}: GlassSurfaceViewProps) {
+  const isCapsule = variant === 'capsule'
+  const effectiveGlassStyle = glassEffectStyle ?? (isCapsule ? 'clear' : 'regular')
   const borderStyle = noBorder ? s.noBorder : null
   const radiusOverride = borderRadius !== undefined ? { borderRadius } : null
 
@@ -177,11 +181,48 @@ export function GlassSurface({
       <Animated.View
         testID={`${testID}-glass-liquid`}
         pointerEvents="none"
-        style={[s.liquidWrapper, borderStyle, radiusOverride, radiusStyle, style]}
+        style={[
+          isCapsule ? s.capsuleLiquidWrapper : s.liquidWrapper,
+          borderStyle,
+          radiusOverride,
+          radiusStyle,
+          style,
+        ]}
       >
         <GlassView
-          glassEffectStyle={glassEffectStyle}
+          glassEffectStyle={effectiveGlassStyle}
           style={StyleSheet.absoluteFill}
+        />
+        {tintOverlayColor ? (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: tintOverlayColor },
+            ]}
+          />
+        ) : null}
+      </Animated.View>
+    )
+  }
+
+  if (isCapsule) {
+    return (
+      <Animated.View
+        testID={`${testID}-glass-blur`}
+        pointerEvents="none"
+        style={[
+          s.capsuleBlurWrapper,
+          borderStyle,
+          radiusOverride,
+          radiusStyle,
+          style,
+        ]}
+      >
+        <View
+          style={[
+            s.capsuleWashOverlay,
+            tintOverlayColor ? { backgroundColor: tintOverlayColor } : null,
+          ]}
         />
       </Animated.View>
     )
@@ -199,9 +240,34 @@ export function GlassSurface({
         experimentalBlurMethod={BottomBarTokens.blurMethod}
         style={StyleSheet.absoluteFill}
       />
-      <View style={s.whiteWashOverlay} />
+      <View
+        style={[
+          s.whiteWashOverlay,
+          tintOverlayColor ? { backgroundColor: tintOverlayColor } : null,
+        ]}
+      />
     </Animated.View>
   )
+}
+
+function GlassSurfaceWithHook(props: Omit<GlassSurfaceProps, 'support'>) {
+  const support = useGlassSupport()
+  return <GlassSurfaceView {...props} support={support} />
+}
+
+/**
+ * GlassSurface
+ * The shared glass background surface for bottom bars, category tiles, and listing cards/capsules.
+ * - When `support` is passed, renders `GlassSurfaceView` directly WITHOUT calling `useGlassSupport()`.
+ * - Liquid branch (iOS 26 binary with expo-glass-effect, transparency not reduced): native GlassView.
+ * - Blur branch (Android, older iOS, or reduce-transparency on): BlurView + white wash overlay (for 'surface'),
+ *   or lightweight frosted translucent wash (for 'capsule' inside an already-blurred card).
+ */
+export function GlassSurface({ support, ...rest }: GlassSurfaceProps) {
+  if (support) {
+    return <GlassSurfaceView {...rest} support={support} />
+  }
+  return <GlassSurfaceWithHook {...rest} />
 }
 
 const s = StyleSheet.create({
@@ -217,9 +283,25 @@ const s = StyleSheet.create({
     borderWidth: BottomBarTokens.borderWidth,
     borderColor: BottomBarTokens.borderColor,
   },
+  capsuleLiquidWrapper: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.72)',
+  },
+  capsuleBlurWrapper: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.80)',
+  },
   whiteWashOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: BottomBarTokens.whiteWashBg,
+  },
+  capsuleWashOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.68)',
   },
   noBorder: {
     borderWidth: 0,

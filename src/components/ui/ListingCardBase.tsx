@@ -26,6 +26,7 @@ import { resolveListingLocation } from '../../utils/listingLocation'
 import { isOwnListing } from '../../utils/isOwnListing'
 import { CardImageSwiper } from './CardImageSwiper'
 import { VerifiedBadge } from './VerifiedBadge'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
 
 export interface ListingCardPill {
   key: string
@@ -74,6 +75,8 @@ export interface ListingCardBaseProps {
   favoriteType?: string
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
   style?: StyleProp<ViewStyle>
 }
 
@@ -105,10 +108,14 @@ export const ListingCardBase = ({
   compactBody = false,
   favoriteType,
   onFavorite,
+  liquidGlass = false,
+  glassSupport,
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
   const { user } = useAuthStore()
+  const hookGlass = useGlassSupport(Boolean(liquidGlass && !glassSupport))
+  const glass = glassSupport ?? hookGlass
   const isOwner = isOwnListing(item, user?.id)
   const resolvedType = favoriteTypeForCard(item, favoriteType)
   const targetId = item?.id || item?.raw?.id
@@ -159,13 +166,23 @@ export const ListingCardBase = ({
 
   return (
     <View
+      testID="listing-card-root"
       style={[
         s.card,
+        liquidGlass && s.cardLiquidGlass,
         fullWidth && { width: '100%' },
         gridMode && { width: '100%', flex: 1 },
         style,
       ]}
     >
+      {liquidGlass && (
+        <GlassSurface
+          testID="listing-card-surface"
+          borderRadius={CardSystem.radius.outer}
+          noBorder={true}
+          support={glass}
+        />
+      )}
       {/* ── IMAGE SECTION ── */}
       <View
         style={[
@@ -211,19 +228,42 @@ export const ListingCardBase = ({
         {/* Action Buttons (Share & Favorite) */}
         <View style={s.actionsContainer}>
           <TouchableOpacity
-            style={s.actionBtn}
+            testID="listing-card-share"
+            style={[s.actionBtn, liquidGlass && s.actionBtnGlass]}
             onPress={handleShare}
             activeOpacity={0.8}
           >
+            {liquidGlass && (
+              <GlassSurface
+                testID="listing-card-share-btn"
+                borderRadius={13}
+                glassEffectStyle="clear"
+                intensity={50}
+                tint="dark"
+                noBorder={true}
+                support={glass}
+              />
+            )}
             <Ionicons name="share-social" size={16} color={Colors.white} />
           </TouchableOpacity>
           {resolvedType !== null && !isOwner && (
             <TouchableOpacity
-              style={s.actionBtn}
+              style={[s.actionBtn, liquidGlass && s.actionBtnGlass]}
               testID="listing-card-favorite"
               onPress={handleFavorite}
               activeOpacity={0.8}
             >
+              {liquidGlass && (
+                <GlassSurface
+                  testID="listing-card-favorite-btn"
+                  borderRadius={13}
+                  glassEffectStyle="clear"
+                  intensity={50}
+                  tint="dark"
+                  noBorder={true}
+                  support={glass}
+                />
+              )}
               <Ionicons
                 name={isFav ? 'heart' : 'heart-outline'}
                 size={16}
@@ -331,7 +371,7 @@ export const ListingCardBase = ({
           )}
         </View>
 
-        <View style={[s.divider, compactBody && s.dividerCompact]} />
+        <View style={[s.divider, compactBody && s.dividerCompact, liquidGlass && s.dividerGlass]} />
 
         {/* Details Pills List */}
         <View style={s.detailsList}>
@@ -348,7 +388,23 @@ export const ListingCardBase = ({
                   const textColor = pill.textColor || defaultTextColor
 
                   return (
-                    <View key={pill.key} style={[s.detailPill, pillBgStyle]}>
+                    <View
+                      key={pill.key}
+                      testID={`listing-card-pill-wrap-${pill.key}`}
+                      style={[
+                        s.detailPill,
+                        liquidGlass ? s.pillGlass : pillBgStyle,
+                      ]}
+                    >
+                      {liquidGlass && (
+                        <GlassSurface
+                          testID={`listing-card-pill-${pill.key}`}
+                          variant="capsule"
+                          borderRadius={CardSystem.glass.capsuleRadius}
+                          noBorder={true}
+                          support={glass}
+                        />
+                      )}
                       {pill.iconFamily === 'MaterialCommunityIcons' ? (
                         <MaterialCommunityIcons
                           name={pill.iconName as keyof typeof MaterialCommunityIcons.glyphMap}
@@ -373,7 +429,23 @@ export const ListingCardBase = ({
                   )
                 })}
                 {remainingCount > 0 && (
-                  <View style={[s.detailPill, s.pillNeutral, s.remainingPill]}>
+                  <View
+                    testID="listing-card-pill-wrap-remaining"
+                    style={[
+                      s.detailPill,
+                      liquidGlass ? s.pillGlass : s.pillNeutral,
+                      s.remainingPill,
+                    ]}
+                  >
+                    {liquidGlass && (
+                      <GlassSurface
+                        testID="listing-card-pill-remaining"
+                        variant="capsule"
+                        borderRadius={CardSystem.glass.capsuleRadius}
+                        noBorder={true}
+                        support={glass}
+                      />
+                    )}
                     <Text style={s.remainingText} numberOfLines={1}>
                       +{remainingCount}
                     </Text>
@@ -384,17 +456,32 @@ export const ListingCardBase = ({
           })()}
         </View>
 
-        <View style={[s.footerDivider, compactBody && s.footerDividerCompact]} />
+        <View style={[s.footerDivider, compactBody && s.footerDividerCompact, liquidGlass && s.dividerGlass]} />
 
         {/* Footer Row (Price & Negotiable pill) */}
         <View style={s.footerRow}>
           <View
+            testID="listing-card-price-pill-wrap"
             style={[
               s.detailPill,
-              isPriceNegotiable ? s.pillGreen : s.pillNeutral,
+              liquidGlass
+                ? [s.pillGlass, isPriceNegotiable && s.pillGlassNegotiable]
+                : isPriceNegotiable
+                ? s.pillGreen
+                : s.pillNeutral,
               { flex: 1 },
             ]}
           >
+            {liquidGlass && (
+              <GlassSurface
+                testID="listing-card-price-pill"
+                variant="capsule"
+                borderRadius={CardSystem.glass.capsuleRadius}
+                tintOverlayColor={isPriceNegotiable ? CardSystem.glass.negotiableTint : undefined}
+                noBorder={true}
+                support={glass}
+              />
+            )}
             <Ionicons
               name="wallet-outline"
               size={15}
@@ -411,7 +498,23 @@ export const ListingCardBase = ({
           </View>
 
           {isPriceNegotiable && (
-            <View style={[s.detailPill, s.pillGreen]}>
+            <View
+              testID="listing-card-negotiable-pill-wrap"
+              style={[
+                s.detailPill,
+                liquidGlass ? [s.pillGlass, s.pillGlassNegotiable] : s.pillGreen,
+              ]}
+            >
+              {liquidGlass && (
+                <GlassSurface
+                  testID="listing-card-negotiable-pill"
+                  variant="capsule"
+                  borderRadius={CardSystem.glass.capsuleRadius}
+                  tintOverlayColor={CardSystem.glass.negotiableTint}
+                  noBorder={true}
+                  support={glass}
+                />
+              )}
               <Text
                 style={[
                   s.detailText,
@@ -443,6 +546,10 @@ const s = StyleSheet.create({
     ...CardSystem.styles.border,
     overflow: 'hidden',
     ...CardSystem.styles.softShadow,
+  },
+  cardLiquidGlass: {
+    backgroundColor: 'transparent',
+    borderColor: CardSystem.glass.cardBorderColor,
   },
   imageContainer: {
     width: '100%',
@@ -518,6 +625,12 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actionBtnGlass: {
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: CardSystem.glass.actionBtnBorderColor,
   },
   soldOverlay: {
     zIndex: 10,
@@ -645,6 +758,9 @@ const s = StyleSheet.create({
   dividerCompact: {
     marginBottom: 5,
   },
+  dividerGlass: {
+    backgroundColor: CardSystem.glass.dividerColor,
+  },
   footerDivider: {
     height: 1,
     backgroundColor: Colors.inputBg,
@@ -671,6 +787,16 @@ const s = StyleSheet.create({
     paddingVertical: 2.5,
     borderRadius: CardSystem.radius.inner,
     flexShrink: 1,
+  },
+  pillGlass: {
+    backgroundColor: 'transparent',
+    borderRadius: CardSystem.glass.capsuleRadius,
+    borderWidth: 1,
+    borderColor: CardSystem.glass.capsuleBorderColor,
+    overflow: 'hidden',
+  },
+  pillGlassNegotiable: {
+    borderColor: CardSystem.glass.negotiableBorderColor,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
