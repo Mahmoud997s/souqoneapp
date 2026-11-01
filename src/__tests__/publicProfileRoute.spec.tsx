@@ -1,6 +1,8 @@
 import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react-native'
 import PublicProfileScreen from '../../app/profile/[userId]'
+import { router } from 'expo-router'
+import { useAuthStore } from '../store/authStore'
 import { usePublicProfile } from '../hooks/useProfile'
 import { usePublicProfileCars } from '../hooks/public-profile/usePublicProfileCars'
 
@@ -20,11 +22,13 @@ jest.mock('../hooks/public-profile/usePublicProfileBuses', () => ({ usePublicPro
 jest.mock('../hooks/public-profile/usePublicProfileEquipment', () => ({ usePublicProfileEquipment: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../hooks/public-profile/usePublicProfileParts', () => ({ usePublicProfileParts: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../hooks/public-profile/usePublicProfileServices', () => ({ usePublicProfileServices: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
-jest.mock('../store/authStore', () => ({ useAuthStore: () => ({ user: null }) }))
+jest.mock('../store/authStore', () => ({ useAuthStore: jest.fn() }))
 jest.mock('../store/dialogStore', () => ({ dialogService: { alert: jest.fn() } }))
 
 jest.mock('../hooks/useProfile', () => ({ usePublicProfile: jest.fn() }))
 
+const mockedUseAuthStore = jest.mocked(useAuthStore)
+const mockedRouter = jest.mocked(router)
 const mockedUsePublicProfile = jest.mocked(usePublicProfile)
 const mockedUsePublicProfileCars = jest.mocked(usePublicProfileCars)
 const defaultCarsQuery = { data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }
@@ -32,8 +36,18 @@ const defaultCarsQuery = { data: { pages: [] }, isLoading: false, isError: false
 describe('public profile route states', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockedUseAuthStore.mockReturnValue({ user: null, isLoading: false } as never)
     mockedUsePublicProfileCars.mockReturnValue(defaultCarsQuery as never)
   })
+
+  function loadSellerProfile() {
+    mockedUsePublicProfile.mockReturnValue({
+      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 1, busListings: 0, equipmentListings: 0, spareParts: 0, carServices: 0, driverJobs: 0 }, totalListings: 1 },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as never)
+  }
 
   it('keeps a loading state visible while profile data is pending', async () => {
     mockedUsePublicProfile.mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch: jest.fn() } as never)
@@ -106,6 +120,39 @@ describe('public profile route states', () => {
     expect(screen.queryByText('بائع قديم')).toBeNull()
   })
 
+  it('waits for auth hydration before rendering owner or visitor actions', async () => {
+    loadSellerProfile()
+    mockedUseAuthStore.mockReturnValue({ user: { id: 'seller-1' }, isLoading: true } as never)
+
+    await render(<PublicProfileScreen />)
+
+    expect(screen.queryByRole('button', { name: 'تعديل ملفي الشخصي' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
+  })
+
+  it('shows the edit action and no chat action for the profile owner', async () => {
+    loadSellerProfile()
+    mockedUseAuthStore.mockReturnValue({ user: { id: 'seller-1' }, isLoading: false } as never)
+
+    await render(<PublicProfileScreen />)
+
+    fireEvent.press(screen.getByRole('button', { name: 'تعديل ملفي الشخصي' }))
+    expect(mockedRouter.push).toHaveBeenCalledWith('/profile/edit-profile')
+    expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
+  })
+
+  it.each([
+    ['visitor', { id: 'visitor-1' }],
+    ['guest', null],
+  ] as const)('keeps the contact action for a %s and hides owner edit', async (_viewerKind, user) => {
+    loadSellerProfile()
+    mockedUseAuthStore.mockReturnValue({ user, isLoading: false } as never)
+
+    await render(<PublicProfileScreen />)
+
+    expect(screen.getByRole('button', { name: 'محادثة' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'تعديل ملفي الشخصي' })).toBeNull()
+  })
   it('renders typed profile data and a distinct empty listings state', async () => {
     mockedUsePublicProfile.mockReturnValue({
       data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 2, equipmentListings: 3, operatorListings: 9, spareParts: 4, carServices: 5, driverJobs: 4 }, totalListings: 27 },

@@ -36,7 +36,7 @@ export default function PublicProfileScreen() {
   const partsQuery = usePublicProfileParts(userId, activeTab === 'part')
   const servicesQuery = usePublicProfileServices(userId, activeTab === 'service')
   const activeInventoryQuery = activeTab === 'car' ? carsQuery : activeTab === 'bus' ? busesQuery : activeTab === 'equipment' ? equipmentQuery : activeTab === 'part' ? partsQuery : servicesQuery
-  const { user } = useAuthStore()
+  const { user, isLoading: authLoading } = useAuthStore()
 
   if (profileLoading) {
     return (
@@ -192,16 +192,24 @@ export default function PublicProfileScreen() {
         }}
       />
 
-      <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <TouchableOpacity
-          style={s.chatBtn}
-          onPress={handleChat}
-          activeOpacity={0.9}
-        >
-          <Ionicons name="chatbubble-ellipses" size={22} color={Colors.white} />
-          <Text style={s.chatTxt}>محادثة</Text>
-        </TouchableOpacity>
-      </View>
+      {!authLoading && (
+        <View style={[s.contactBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <TouchableOpacity
+            style={s.chatBtn}
+            onPress={user?.id === userId ? () => router.push('/profile/edit-profile') : handleChat}
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={user?.id === userId ? 'تعديل ملفي الشخصي' : 'محادثة'}
+          >
+            <Ionicons
+              name={user?.id === userId ? 'create-outline' : 'chatbubble-ellipses'}
+              size={22}
+              color={Colors.white}
+            />
+            <Text style={s.chatTxt}>{user?.id === userId ? 'تعديل ملفي الشخصي' : 'محادثة'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   )
 }
