@@ -175,16 +175,17 @@ export const ListingCardBase = ({
         style,
       ]}
     >
-      {liquidGlass && (
-        <GlassSurface
-          testID="listing-card-surface"
-          borderRadius={CardSystem.radius.outer}
-          glassEffectStyle="clear"
-          tintOverlayColor={CardSystem.glass.cardTint}
-          noBorder={true}
-          support={glass}
-        />
-      )}
+      <View style={[s.cardInner, gridMode && { flex: 1 }]}>
+        {liquidGlass && (
+          <GlassSurface
+            testID="listing-card-surface"
+            borderRadius={CardSystem.radius.outer}
+            glassEffectStyle="clear"
+            tintOverlayColor={CardSystem.glass.cardTint}
+            noBorder={true}
+            support={glass}
+          />
+        )}
       {/* ── IMAGE SECTION ── */}
       <View
         style={[
@@ -533,6 +534,7 @@ export const ListingCardBase = ({
           </View>
         )}
       </Pressable>
+      </View>
     </View>
   )
 }
@@ -544,12 +546,18 @@ const s = StyleSheet.create({
     borderRadius: CardSystem.radius.outer,
     alignSelf: 'flex-start',
     ...CardSystem.styles.border,
-    overflow: 'hidden',
     ...CardSystem.styles.softShadow,
   },
   cardLiquidGlass: {
     backgroundColor: 'transparent',
     borderColor: CardSystem.glass.cardBorderColor,
+    ...CardSystem.glass.cardShadow,
+  },
+  cardInner: {
+    width: '100%',
+    borderRadius: CardSystem.radius.outer - 1,
+    overflow: 'hidden',
+    position: 'relative',
   },
   imageContainer: {
     width: '100%',

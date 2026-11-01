@@ -18,14 +18,25 @@ export const CardSystem = {
     outerRadius: 16,
     capsuleRadius: 10,
     cardTint: 'rgba(255, 255, 255, 0.81)',
-    cardBorderColor: Colors.border,
+    cardBorderColor: 'rgba(255, 255, 255, 0.82)',
     capsuleTint: 'rgba(238, 242, 245, 0.55)',
     capsuleBlurWashBg: 'rgba(238, 242, 245, 0.82)',
-    capsuleBorderColor: 'rgba(229, 231, 235, 0.90)',
+    capsuleBorderColor: 'rgba(255, 255, 255, 0.88)',
     negotiableTint: 'rgba(0, 156, 181, 0.12)',
-    negotiableBorderColor: 'rgba(0, 156, 181, 0.30)',
+    negotiableBorderColor: 'rgba(0, 156, 181, 0.35)',
     dividerColor: 'rgba(17, 35, 46, 0.06)',
-    actionBtnBorderColor: 'rgba(255, 255, 255, 0.45)',
+    actionBtnBorderColor: 'rgba(255, 255, 255, 0.60)',
+    cardShadow: Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
 
   // Paddings and Gaps
