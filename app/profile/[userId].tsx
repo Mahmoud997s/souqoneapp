@@ -81,6 +81,14 @@ export default function PublicProfileScreen() {
   const profileCount = profile._count.listings + profile._count.busListings + profile._count.equipmentListings + profile._count.spareParts + profile._count.carServices
   const inventoryHeader = (
     <>
+      {profileError && (
+        <View style={s.refreshError}>
+          <Text style={s.refreshErrorText}>تعذر تحديث بيانات الملف الشخصي</Text>
+          <TouchableOpacity onPress={() => { void refetchProfile() }} accessibilityRole="button" accessibilityLabel="إعادة محاولة تحديث الملف الشخصي">
+            <Text style={s.refreshRetryText}>إعادة المحاولة</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={s.profileCard}>
         <View style={s.avatarBox}>
           {profile.avatarUrl ? (
@@ -161,7 +169,10 @@ export default function PublicProfileScreen() {
         isFetchingNextPage={activeInventoryQuery?.isFetchingNextPage ?? false}
         hasNextPage={Boolean(activeInventoryQuery?.hasNextPage)}
         onRefresh={() => { void Promise.all([refetchProfile(), activeInventoryQuery?.refetch() ?? Promise.resolve()]) }}
-        onRetry={() => { void activeInventoryQuery?.refetch() }}
+        onRetry={() => {
+          if (activeInventoryQuery?.isFetchNextPageError) void activeInventoryQuery.fetchNextPage()
+          else void activeInventoryQuery?.refetch()
+        }}
         onLoadMore={() => { if (activeInventoryQuery?.hasNextPage) void activeInventoryQuery.fetchNextPage() }}
         onPressItem={(item: UnifiedCardItem) => {
           if (activeTab === 'car') router.push({ pathname: '/cars/[id]', params: { id: item.id } })
@@ -200,6 +211,9 @@ const s = StyleSheet.create({
   retryButton: { minHeight: Spacing.touch, minWidth: 120, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.space4, marginTop: Spacing.space3, borderRadius: Radius.md, backgroundColor: Colors.primary },
   retryText: { fontFamily: 'Almarai_700Bold', fontSize: 14, lineHeight: 20, color: Colors.white },
   content: { padding: Spacing.space4, paddingBottom: 100 },
+  refreshError: { marginBottom: Spacing.space3, padding: Spacing.space3, borderRadius: Radius.md, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, gap: Spacing.space2 },
+  refreshErrorText: { fontFamily: 'Almarai_400Regular', fontSize: 13, lineHeight: 20, color: Colors.textMuted, textAlign: 'center' },
+  refreshRetryText: { fontFamily: 'Almarai_700Bold', fontSize: 14, lineHeight: 20, color: Colors.primary, textAlign: 'center' },
   profileCard: {
     backgroundColor: Colors.white, borderRadius: Radius.xl, padding: Spacing.space4,
     alignItems: 'center', marginBottom: Spacing.space4, borderWidth: 1, borderColor: Colors.border,
