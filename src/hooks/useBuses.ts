@@ -1,7 +1,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { busesApi } from '../api/buses'
 import { mapBusToCard } from '../utils/mappers'
-import { BusManufacturer, BusModel } from '../types/bus.types'
+import { BusManufacturer, BusModel, BusListing } from '../types/bus.types'
 import { UnifiedCardItem } from '../types/unified-card.types'
 
 export function useBuses(params?: Record<string, unknown>, options?: any) {
@@ -25,12 +25,21 @@ export function useInfiniteBuses(params?: Record<string, unknown>) {
     queryKey: ['buses_infinite', params],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await busesApi.getAll({ ...params, page: pageParam, limit: 10 });
-      const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data;
-      const arr = Array.isArray(raw) ? raw : [];
+      const response = res.data as unknown as {
+        data?: unknown
+        items?: unknown
+        meta?: { page?: number; totalPages?: number }
+      }
+      const raw = response.items ?? response.data ?? res.data;
+      const arr = Array.isArray(raw) ? raw as BusListing[] : [];
+      const page = response.meta?.page
+      const totalPages = response.meta?.totalPages
+      const hasValidMeta = typeof page === 'number' && typeof totalPages === 'number'
+        && Number.isInteger(page) && Number.isInteger(totalPages) && page > 0 && totalPages >= page
       return {
         data: arr.map(mapBusToCard),
-        page: (res.data as any)?.page || pageParam,
-        totalPages: (res.data as any)?.totalPages || 1,
+        page: hasValidMeta ? page : pageParam,
+        totalPages: hasValidMeta ? totalPages : pageParam,
       };
     },
     getNextPageParam: (lastPage) => {
