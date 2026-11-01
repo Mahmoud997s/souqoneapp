@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Defs, RadialGradient, Rect, Stop, Svg } from 'react-native-svg'
+import { I18nManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { chatApi } from '../../src/api/chat'
 import { Colors } from '../../src/constants/colors'
@@ -40,13 +40,23 @@ export default function PublicProfileScreen() {
 
   const background = (
     <>
-      <LinearGradient
-        colors={PublicProfileTokens.pageGlowColors}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 1, y: 0.85 }}
+      <Svg
+        testID="public-profile-top-glow"
+        width="100%"
+        height={PublicProfileTokens.pageTopGlowHeight}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
         style={s.topGlow}
         pointerEvents="none"
-      />
+      >
+        <Defs>
+          <RadialGradient id="seller-profile-top-glow-gradient" cx={I18nManager.isRTL ? '94%' : '6%'} cy="0%" r="85%">
+            <Stop offset="0%" stopColor={Colors.primary} stopOpacity={0.12} />
+            <Stop offset="100%" stopColor={Colors.surfaceAlt} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill="url(#seller-profile-top-glow-gradient)" />
+      </Svg>
       <PublicProfileTopBar topInset={insets.top} onBack={() => router.back()} />
     </>
   )

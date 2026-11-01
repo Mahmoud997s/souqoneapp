@@ -151,6 +151,7 @@ describe('public profile route states', () => {
 
     await render(<PublicProfileScreen />)
 
+    expect(screen.getByTestId('public-profile-top-glow')).toBeTruthy()
     expect(screen.getByText('ملف البائع')).toBeTruthy()
     fireEvent.press(screen.getByRole('button', { name: 'رجوع' }))
     expect(mockedRouter.back).toHaveBeenCalledTimes(1)

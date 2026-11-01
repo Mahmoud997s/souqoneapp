@@ -24,5 +24,4 @@ export const PublicProfileTokens = {
   actionHeight: 52,
   actionRadius: 26,
   actionGradient: [Colors.primary, Colors.primaryDark] as const,
-  pageGlowColors: [Colors.paleMint, Colors.surfaceAlt] as const,
 } as const
