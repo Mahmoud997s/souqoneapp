@@ -1,15 +1,18 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { usersApi } from '../api/users'
 import { notificationsApi } from '../api/notifications'
+import { PublicProfile } from '../types/profile.types'
 
-export function usePublicProfile(userId: string) {
+export function usePublicProfile(userId?: string) {
   return useQuery({
     queryKey: ['user', userId],
     queryFn: async () => {
+      if (!userId) throw new Error('A user id is required')
       const res = await usersApi.getById(userId)
-      return res.data as any
+      return res.data
     },
-    enabled: !!userId,
+    enabled: Boolean(userId),
+    retry: false,
   })
 }
 

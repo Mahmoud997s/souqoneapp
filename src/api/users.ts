@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import { User } from '../types/auth.types'
+import { PublicProfile } from '../types/profile.types'
 
 export interface UpdateProfilePayload {
   displayName?: string
@@ -28,7 +29,7 @@ export interface DeleteAccountPayload {
 }
 
 export const usersApi = {
-  getById: (id: string) => apiClient.get<User>(`/users/${id}`),
+  getById: (id: string) => apiClient.get<PublicProfile>(`/users/${id}`),
   updatePushToken: (token: string) => apiClient.post('/users/push-token', { token }),
   unregisterPushToken: () => apiClient.delete('/users/push-token'),
   updateProfile: (data: UpdateProfilePayload | Partial<User>) => apiClient.patch<User>('/users/me', data),

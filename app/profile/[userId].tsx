@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -20,15 +20,41 @@ import { dialogService } from '../../src/store/dialogStore'
 export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>()
   const insets = useSafeAreaInsets()
-  const { data: profile, isLoading: profileLoading } = usePublicProfile(userId)
-  const { data: userListings, isLoading: listingsLoading } = useListings({ sellerId: userId })
+  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = usePublicProfile(userId)
+  const { data: userListings, isLoading: listingsLoading, refetch: refetchListings } = useListings({ sellerId: userId })
   const { user } = useAuthStore()
 
   if (profileLoading) {
     return (
       <View style={s.root}>
         <AppHeader title="الملف الشخصي" showBack />
-        <View style={s.center}><ActivityIndicator size="large" color={Colors.primary} /></View>
+        <View style={s.loadingCard} accessibilityRole="progressbar" accessibilityLabel="جارٍ تحميل الملف الشخصي">
+          <SkeletonCard fullWidth imageHeight={72} compactBody />
+          <Text style={s.loadingText}>جارٍ تحميل الملف الشخصي</Text>
+        </View>
+      </View>
+    )
+  }
+
+  if (profileError) {
+    return (
+      <View style={s.root}>
+        <AppHeader title="الملف الشخصي" showBack />
+        <View style={s.center}>
+          <Text style={s.emptyTxt} accessibilityRole="alert">تعذر تحميل الملف الشخصي</Text>
+          <TouchableOpacity style={s.retryButton} onPress={() => { void refetchProfile() }} accessibilityRole="button" accessibilityLabel="إعادة المحاولة">
+            <Text style={s.retryText}>إعادة المحاولة</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <View style={s.root}>
+        <AppHeader title="الملف الشخصي" showBack />
+        <View style={s.center}><Text style={s.emptyTxt}>الملف الشخصي غير موجود</Text></View>
       </View>
     )
   }
@@ -66,7 +92,10 @@ export default function PublicProfileScreen() {
     <View style={s.root}>
       <AppHeader title="الملف الشخصي" showBack />
 
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView
+        contentContainerStyle={s.content}
+        refreshControl={<RefreshControl refreshing={profileLoading || listingsLoading} onRefresh={() => { void Promise.all([refetchProfile(), refetchListings()]) }} />}
+      >
         <View style={s.profileCard}>
           <View style={s.avatarBox}>
             {profile?.avatarUrl ? (
@@ -83,12 +112,13 @@ export default function PublicProfileScreen() {
             )}
           </View>
           <Text style={s.name}>{displayName}</Text>
-          {profile?.governorate && (
+          {(profile.governorateRef?.nameAr || profile.wilayaRef?.nameAr || profile.governorate) && (
             <View style={s.locationRow}>
               <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.locationTxt}>{profile.governorate}</Text>
+              <Text style={s.locationTxt}>{profile.governorateRef?.nameAr ?? profile.wilayaRef?.nameAr ?? profile.governorate}</Text>
             </View>
           )}
+          {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
         </View>
 
         <View style={s.statsRow}>
@@ -150,7 +180,7 @@ export default function PublicProfileScreen() {
           onPress={handleChat}
           activeOpacity={0.9}
         >
-          <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
+          <Ionicons name="chatbubble-ellipses" size={22} color={Colors.white} />
           <Text style={s.chatTxt}>محادثة</Text>
         </TouchableOpacity>
       </View>
@@ -159,46 +189,49 @@ export default function PublicProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: Colors.surfaceAlt },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingCard: { margin: Spacing.space4, minHeight: 140, backgroundColor: Colors.white, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, justifyContent: 'center', gap: Spacing.space3, padding: Spacing.space3 },
+  loadingText: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: 20, color: Colors.textMuted },
+  retryButton: { minHeight: Spacing.touch, minWidth: 120, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.space4, marginTop: Spacing.space3, borderRadius: Radius.md, backgroundColor: Colors.primary },
+  retryText: { fontFamily: 'Almarai_700Bold', fontSize: 14, lineHeight: 20, color: Colors.white },
   content: { padding: Spacing.space4, paddingBottom: 100 },
   profileCard: {
     backgroundColor: Colors.white, borderRadius: Radius.xl, padding: Spacing.space4,
     alignItems: 'center', marginBottom: Spacing.space4, borderWidth: 1, borderColor: Colors.border,
   },
   avatarBox: { position: 'relative', marginBottom: Spacing.space3 },
-  avatar: { width: 80, height: 80, borderRadius: Radius.pill, borderWidth: 3, borderColor: '#f7f9fc' },
-  avatarFallback: { backgroundColor: Colors.primary + '20', alignItems: 'center', justifyContent: 'center' },
-  avatarLetter: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 32, color: Colors.primary },
+  avatar: { width: 80, height: 80, borderRadius: Radius.pill, borderWidth: 3, borderColor: Colors.surfaceAlt },
+  avatarFallback: { backgroundColor: Colors.paleMint, alignItems: 'center', justifyContent: 'center' },
+  avatarLetter: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 32, lineHeight: 40, color: Colors.primary },
   verified: {
     position: 'absolute', bottom: -2, right: -2,
     backgroundColor: Colors.white, borderRadius: Radius.pill,
     padding: 1.5,
   },
-  name: { fontFamily: 'Almarai_700Bold',  fontSize: 20, color: Colors.text, writingDirection: 'rtl' },
+  name: { fontFamily: 'Almarai_700Bold',  fontSize: 20, lineHeight: 28, color: Colors.text, writingDirection: 'rtl' },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  locationTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.textMuted },
+  locationTxt: { fontFamily: 'Almarai_400Regular',  fontSize: 13, lineHeight: 20, color: Colors.textMuted },
+  bio: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: 22, color: Colors.textMuted, textAlign: 'center', marginTop: Spacing.space2 },
   statsRow: { flexDirection: 'row', gap: Spacing.space3, marginBottom: Spacing.space6 },
   statBox: {
     flex: 1, backgroundColor: Colors.white, borderRadius: Radius.xl,
     padding: Spacing.space3, alignItems: 'center', borderWidth: 1, borderColor: Colors.border,
   },
-  statVal: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text, marginVertical: 4 },
-  statLbl: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
-  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text, marginBottom: Spacing.space3, writingDirection: 'rtl' },
+  statVal: { fontFamily: 'Almarai_700Bold',  fontSize: 16, lineHeight: 24, color: Colors.text, marginVertical: 4 },
+  statLbl: { fontFamily: 'Almarai_400Regular',  fontSize: 12, lineHeight: 18, color: Colors.text2 },
+  sectionTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, lineHeight: 26, color: Colors.text, marginBottom: Spacing.space3, writingDirection: 'rtl' },
   list: { gap: Spacing.space4 },
   emptyState: { alignItems: 'center', paddingTop: 40, gap: Spacing.space3 },
-  emptyTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text2, fontSize: 16 },
+  emptyTxt: { fontFamily: 'Almarai_700Bold',  color: Colors.text2, fontSize: 16, lineHeight: 24 },
   contactBar: {
     position: 'absolute', bottom: 0, start: 0, end: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 20, paddingTop: 16,
     flexDirection: 'row', gap: 12,
-    borderTopWidth: 1, borderTopColor: '#f1f5f9',
-    shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 16,
+    borderTopWidth: 1, borderTopColor: Colors.border,
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 16,
   },
-  callBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  waBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#25D366', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   chatBtn: { flex: 1, height: 56, backgroundColor: Colors.primary, borderRadius: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  chatTxt: { fontFamily: 'Almarai_800ExtraBold',  color: '#fff', fontSize: 16 },
+  chatTxt: { fontFamily: 'Almarai_800ExtraBold',  color: Colors.white, fontSize: 16, lineHeight: 24 },
 })
