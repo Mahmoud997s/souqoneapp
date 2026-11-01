@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, RefreshControl, ScrollView, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -17,6 +17,7 @@ const EMPTY_LABELS: Record<PublicProfileListingVertical, string> = {
 }
 
 export interface PublicProfileSectionListProps {
+  contentContainerStyle?: StyleProp<ViewStyle>
   vertical: PublicProfileListingVertical
   header?: ReactNode
   items: UnifiedCardItem[]
@@ -32,18 +33,18 @@ export interface PublicProfileSectionListProps {
 }
 
 export function PublicProfileSectionList({
-  vertical, header, items, isLoading, isError, isRefreshing, isFetchingNextPage, hasNextPage,
+  vertical, header, items, isLoading, isError, isRefreshing, isFetchingNextPage, hasNextPage, contentContainerStyle,
   onRefresh, onRetry, onLoadMore, onPressItem,
 }: PublicProfileSectionListProps) {
   return (
     <ScrollView
-      contentContainerStyle={s.content}
+      contentContainerStyle={[s.content, contentContainerStyle]}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
     >
       {header}
       {isLoading
         ? <View style={s.list} accessibilityRole="progressbar" accessibilityLabel="جارٍ تحميل الإعلانات"><SkeletonCard fullWidth /><SkeletonCard fullWidth /></View>
-        : isError
+        : isError && items.length === 0
           ? <View style={s.state}>
               <Text style={s.stateText} accessibilityRole="alert">تعذر تحميل الإعلانات</Text>
               <TouchableOpacity style={s.action} onPress={onRetry} accessibilityRole="button" accessibilityLabel="إعادة تحميل الإعلانات">
@@ -53,6 +54,11 @@ export function PublicProfileSectionList({
           : items.length === 0
             ? <View style={s.state}><Text style={s.stateText}>{EMPTY_LABELS[vertical]}</Text></View>
             : items.map((item) => <ListingCardByType key={`${vertical}-${item.id}`} vertical={vertical} item={item} onPress={() => onPressItem(item)} />)}
+      {!isLoading && isError && items.length > 0 && (
+        <TouchableOpacity style={s.action} onPress={onRetry} accessibilityRole="button" accessibilityLabel="إعادة تحميل الإعلانات">
+          <Text style={s.actionText}>إعادة المحاولة</Text>
+        </TouchableOpacity>
+      )}
       {!isLoading && !isError && hasNextPage && (
         <TouchableOpacity style={s.action} onPress={onLoadMore} disabled={isFetchingNextPage} accessibilityRole="button" accessibilityLabel="تحميل المزيد من الإعلانات">
           {isFetchingNextPage ? <ActivityIndicator color={Colors.white} /> : <Text style={s.actionText}>تحميل المزيد</Text>}

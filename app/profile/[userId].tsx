@@ -49,7 +49,7 @@ export default function PublicProfileScreen() {
     )
   }
 
-  if (profileError) {
+  if (profileError && !profile) {
     return (
       <View style={s.root}>
         <AppHeader title="الملف الشخصي" showBack />
@@ -148,12 +148,13 @@ export default function PublicProfileScreen() {
       <AppHeader title="الملف الشخصي" showBack />
 
       <PublicProfileSectionList
+        contentContainerStyle={{ paddingHorizontal: Spacing.space4, paddingBottom: 16 + 56 + Math.max(insets.bottom, 16) + 1 }}
         vertical={activeTab}
         header={inventoryHeader}
         items={inventoryItems}
         isLoading={activeInventoryQuery?.isLoading ?? false}
         isError={activeInventoryQuery?.isError ?? false}
-        isRefreshing={Boolean(activeInventoryQuery?.isFetching && !activeInventoryQuery.isLoading)}
+        isRefreshing={Boolean(activeInventoryQuery?.isRefetching && !activeInventoryQuery.isFetchingNextPage)}
         isFetchingNextPage={activeInventoryQuery?.isFetchingNextPage ?? false}
         hasNextPage={Boolean(activeInventoryQuery?.hasNextPage)}
         onRefresh={() => { void Promise.all([refetchProfile(), activeInventoryQuery?.refetch() ?? Promise.resolve()]) }}

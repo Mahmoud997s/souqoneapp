@@ -48,4 +48,13 @@ describe('PublicProfileSectionList states', () => {
     fireEvent.press(screen.getByRole('button', { name: 'تحميل المزيد من الإعلانات' }))
     expect(onLoadMore).toHaveBeenCalledTimes(1)
   })
+
+  it('keeps loaded listings visible and offers retry after a later-page error', async () => {
+    const onRetry = jest.fn()
+    await renderList({ items: [item], isError: true, hasNextPage: true, onRetry })
+    expect(screen.getByTestId('inventory-card')).toBeTruthy()
+    expect(screen.queryByText('تعذر تحميل الإعلانات')).toBeNull()
+    fireEvent.press(screen.getByRole('button', { name: 'إعادة تحميل الإعلانات' }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
 })

@@ -45,6 +45,18 @@ describe('public profile route states', () => {
     expect(refetch).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps a loaded profile visible after a refresh error', async () => {
+    mockedUsePublicProfile.mockReturnValue({
+      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 0, equipmentListings: 0, spareParts: 0, carServices: 0 }, totalListings: 0 },
+      isLoading: false,
+      isError: true,
+      refetch: jest.fn(),
+    } as never)
+    await render(<PublicProfileScreen />)
+    expect(screen.getByText('بائع السوق')).toBeTruthy()
+    expect(screen.queryByText('تعذر تحميل الملف الشخصي')).toBeNull()
+  })
+
   it('renders a not-found state when the response has no profile', async () => {
     mockedUsePublicProfile.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: jest.fn() } as never)
     await render(<PublicProfileScreen />)
