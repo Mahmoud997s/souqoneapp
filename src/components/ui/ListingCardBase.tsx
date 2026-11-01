@@ -855,7 +855,7 @@ const s = StyleSheet.create({
     fontSize: 12.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: Colors.accent,
-    lineHeight: 17.5,
+    lineHeight: 15,
     writingDirection: 'rtl',
   },
   cardActionsRow: {
