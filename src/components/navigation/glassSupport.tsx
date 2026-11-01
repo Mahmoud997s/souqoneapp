@@ -171,7 +171,9 @@ function GlassSurfaceView({
   support: glass,
 }: GlassSurfaceViewProps) {
   const isCapsule = variant === 'capsule'
-  const effectiveGlassStyle = glassEffectStyle ?? (isCapsule ? 'clear' : 'regular')
+  const effectiveGlassStyle = glassEffectStyle ?? 'regular'
+  const effectiveCapsuleOverlay =
+    tintOverlayColor ?? (isCapsule ? 'rgba(238, 242, 245, 0.55)' : undefined)
   const borderStyle = noBorder ? s.noBorder : null
   const radiusOverride = borderRadius !== undefined ? { borderRadius } : null
 
@@ -193,11 +195,11 @@ function GlassSurfaceView({
           glassEffectStyle={effectiveGlassStyle}
           style={StyleSheet.absoluteFill}
         />
-        {tintOverlayColor ? (
+        {effectiveCapsuleOverlay ? (
           <View
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: tintOverlayColor },
+              { backgroundColor: effectiveCapsuleOverlay },
             ]}
           />
         ) : null}
@@ -287,13 +289,13 @@ const s = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.72)',
+    borderColor: 'rgba(229, 231, 235, 0.90)',
   },
   capsuleBlurWrapper: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.80)',
+    borderColor: 'rgba(229, 231, 235, 0.90)',
   },
   whiteWashOverlay: {
     ...StyleSheet.absoluteFill,
@@ -301,7 +303,7 @@ const s = StyleSheet.create({
   },
   capsuleWashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    backgroundColor: 'rgba(238, 242, 245, 0.82)',
   },
   noBorder: {
     borderWidth: 0,

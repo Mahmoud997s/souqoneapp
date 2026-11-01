@@ -179,6 +179,8 @@ export const ListingCardBase = ({
         <GlassSurface
           testID="listing-card-surface"
           borderRadius={CardSystem.radius.outer}
+          glassEffectStyle="clear"
+          tintOverlayColor={CardSystem.glass.cardTint}
           noBorder={true}
           support={glass}
         />
