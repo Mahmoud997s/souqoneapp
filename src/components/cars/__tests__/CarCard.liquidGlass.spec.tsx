@@ -142,7 +142,7 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     await act(async () => {})
 
     const reduceTransparencyListeners = addListenerSpy.mock.calls.filter(
-      (call) => call[0] === 'reduceTransparencyChanged'
+      (call) => String(call[0]) === 'reduceTransparencyChanged'
     )
     // Despite 8 GlassSurface instances inside the card, useGlassSupport subscribes only ONCE
     expect(isReduceTransparencySpy).toHaveBeenCalledTimes(1)
@@ -162,7 +162,7 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     )
     await act(async () => {})
     const reduceTransparencyListenersWithProp = addListenerSpy.mock.calls.filter(
-      (call) => call[0] === 'reduceTransparencyChanged'
+      (call) => String(call[0]) === 'reduceTransparencyChanged'
     )
     expect(isReduceTransparencySpy).toHaveBeenCalledTimes(0)
     expect(reduceTransparencyListenersWithProp.length).toBe(0)
@@ -192,7 +192,8 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(queryByTestId('listing-card-surface-glass-blur')).toBeNull()
     expect(isReduceTransparencySpy).toHaveBeenCalledTimes(0)
     expect(
-      addListenerSpy.mock.calls.filter((call) => call[0] === 'reduceTransparencyChanged').length
+      addListenerSpy.mock.calls.filter((call) => String(call[0]) === 'reduceTransparencyChanged')
+        .length
     ).toBe(0)
 
     // Direct ListingCardBase without liquidGlass prop also stays standard
@@ -208,7 +209,8 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(queryBase('listing-card-surface-glass-blur')).toBeNull()
     expect(isReduceTransparencySpy).toHaveBeenCalledTimes(0)
     expect(
-      addListenerSpy.mock.calls.filter((call) => call[0] === 'reduceTransparencyChanged').length
+      addListenerSpy.mock.calls.filter((call) => String(call[0]) === 'reduceTransparencyChanged')
+        .length
     ).toBe(0)
   })
 })
