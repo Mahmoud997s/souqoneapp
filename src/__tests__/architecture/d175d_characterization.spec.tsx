@@ -2,7 +2,10 @@ import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { render, cleanup } from '@testing-library/react-native'
 import TestRenderer, { act } from 'react-test-renderer'
+import fs from 'fs'
+import path from 'path'
 import { GlassNavBar, type GlassNavBarAction } from '../../components/ui/GlassNavBar'
+import type { GlassViewProps } from 'expo-glass-effect'
 
 // Mock expo-blur
 jest.mock('expo-blur', () => {
@@ -14,6 +17,17 @@ jest.mock('expo-blur', () => {
   }
 })
 
+// Mock expo-glass-effect
+const MockGlassView: React.ComponentType<GlassViewProps> = (props: GlassViewProps) =>
+  React.createElement(View, { testID: 'mock-glass-view', ...props })
+
+jest.mock('expo-glass-effect', () => ({
+  GlassView: MockGlassView,
+  GlassContainer: MockGlassView,
+  isLiquidGlassAvailable: () => true,
+  isGlassEffectAPIAvailable: () => true,
+}))
+
 // Mock vector icons
 jest.mock('@expo/vector-icons', () => {
   const ReactLib = require('react')
@@ -23,6 +37,26 @@ jest.mock('@expo/vector-icons', () => {
       ReactLib.createElement(RNView, { testID: `icon-${String(props.name)}`, ...props }),
   }
 })
+
+function assertNoOpacityInAncestry(startElement: any, stopAtTestId?: string) {
+  let current = startElement
+  while (current) {
+    if (current.props) {
+      if (stopAtTestId && current.props.testID === stopAtTestId) {
+        break
+      }
+      if (current.props.style) {
+        const flat = StyleSheet.flatten(current.props.style)
+        if (flat && typeof flat.opacity === 'number' && flat.opacity < 1) {
+          throw new Error(
+            `Opacity ancestor detected! Found opacity=${flat.opacity} on element testID=${current.props.testID || 'unknown'}`
+          )
+        }
+      }
+    }
+    current = current.parent
+  }
+}
 
 describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () => {
   afterEach(() => {
@@ -78,7 +112,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
     })
 
     it('(c) isTransparent renders transparent container without blur', async () => {
-      const { getByLabelText } = await render(
+      const { getByLabelText, queryByTestId } = await render(
         <GlassNavBar
           title="شاشة شفافة"
           paddingTop={44}
@@ -91,6 +125,8 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
       const container = backBtn.parent?.parent
       const style = StyleSheet.flatten(container?.props.style)
       expect(style.backgroundColor).toBe('transparent')
+      expect(queryByTestId('glass-nav-bar-surface-glass-blur')).toBeNull()
+      expect(queryByTestId('glass-nav-bar-surface-glass-liquid')).toBeNull()
     })
   })
 
@@ -260,6 +296,95 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
 
       const style = StyleSheet.flatten(saveBtn.props.style)
       expect(style.opacity).toBe(0.6)
+    })
+  })
+
+  describe('4. GlassSurface Dual Branching & Ancestry Opacity', () => {
+    it('(a) Liquid branch renders GlassView and has no opacity in ancestry', async () => {
+      const { getByTestId } = await render(
+        <GlassNavBar
+          title="شاشة ليكويد"
+          paddingTop={44}
+          onBackPress={jest.fn()}
+          support={{ kind: 'liquid', GlassView: MockGlassView as any }}
+        />
+      )
+
+      const liquidSurface = getByTestId('glass-nav-bar-surface-glass-liquid')
+      expect(liquidSurface).toBeTruthy()
+      expect(getByTestId('mock-glass-view')).toBeTruthy()
+
+      assertNoOpacityInAncestry(liquidSurface, 'glass-nav-bar')
+    })
+
+    it('(b) Blur branch renders BlurView with intensity 60, tint light, and has no opacity in ancestry', async () => {
+      const { getByTestId } = await render(
+        <GlassNavBar
+          title="شاشة بلور"
+          paddingTop={44}
+          onBackPress={jest.fn()}
+          support={{ kind: 'blur' }}
+        />
+      )
+
+      const blurSurface = getByTestId('glass-nav-bar-surface-glass-blur')
+      expect(blurSurface).toBeTruthy()
+      const blurView = getByTestId('mock-blur-view')
+      expect(blurView).toBeTruthy()
+      expect(blurView.props.intensity).toBe(60)
+      expect(blurView.props.tint).toBe('light')
+
+      assertNoOpacityInAncestry(blurSurface, 'glass-nav-bar')
+    })
+  })
+
+  describe('5. Architectural Guard: expo-blur whitelist enforcement', () => {
+    it('verifies GlassNavBar.tsx does NOT import expo-blur, and only 3 allowed files remain', () => {
+      const glassNavBarPath = path.resolve(__dirname, '../../components/ui/GlassNavBar.tsx')
+      const glassNavBarContent = fs.readFileSync(glassNavBarPath, 'utf8')
+
+      expect(glassNavBarContent).not.toContain("from 'expo-blur'")
+      expect(glassNavBarContent).not.toContain('from "expo-blur"')
+
+      const allowedFiles = new Set([
+        path.normalize('src/components/navigation/GlassSurface.tsx'),
+        path.normalize('src/components/ui/ListingCardBase.tsx'),
+        path.normalize('app/(auth)/login.tsx'),
+      ])
+
+      const rootDir = path.resolve(__dirname, '../../..')
+      const targetDirs = ['app', 'src']
+      const violatingFiles: string[] = []
+
+      function scanDir(dirPath: string) {
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+        for (const entry of entries) {
+          const fullPath = path.join(dirPath, entry.name)
+          if (entry.isDirectory()) {
+            if (entry.name === '__tests__' || entry.name === 'node_modules' || entry.name === '_parked') {
+              continue
+            }
+            scanDir(fullPath)
+          } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx'))) {
+            if (entry.name.endsWith('.spec.ts') || entry.name.endsWith('.spec.tsx') || entry.name.endsWith('.test.tsx')) {
+              continue
+            }
+            const relPath = path.relative(rootDir, fullPath)
+            const content = fs.readFileSync(fullPath, 'utf8')
+            if (content.includes("from 'expo-blur'") || content.includes('from "expo-blur"')) {
+              if (!allowedFiles.has(relPath)) {
+                violatingFiles.push(relPath)
+              }
+            }
+          }
+        }
+      }
+
+      for (const dir of targetDirs) {
+        scanDir(path.resolve(rootDir, dir))
+      }
+
+      expect(violatingFiles).toEqual([])
     })
   })
 })
