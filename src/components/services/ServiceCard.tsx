@@ -6,6 +6,7 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import { getCardSellerVerified } from '../../utils/cardItemHelpers'
 import { UnifiedCardItem } from '../../types/unified-card.types'
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {
@@ -66,12 +67,7 @@ export const ServiceCard = ({
   const providerType = rawData.providerType || ''
   const isHomeService = rawData.isHomeService || false
   const serviceType = rawData.serviceType || ''
-  const isSellerVerified =
-    (item as any).isVerified ??
-    rawData.isVerified ??
-    rawData.user?.isVerified ??
-    rawData.seller?.isVerified ??
-    false
+  const isSellerVerified = getCardSellerVerified(item)
 
   const serviceTypeLabel = SERVICE_TYPE_LABELS[serviceType] || serviceType
   const providerTypeLabel = PROVIDER_TYPE_LABELS[providerType] || providerType

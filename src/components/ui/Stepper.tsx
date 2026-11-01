@@ -2,13 +2,13 @@ import React from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
+import { GlassSurface } from '../navigation/glassSupport'
+import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
 import { Gradients } from '../../constants/gradients'
-
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
 interface StepperProps {
   currentStep: number
@@ -70,18 +70,21 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
 
   if (isLight) {
     return (
-      <AnimatedBlurView
+      <Animated.View
         entering={FadeIn.duration(400)}
-        intensity={50}
-        tint="light"
-        blurMethod="dimezisBlurView"
         style={[s.banner, s.bannerLight]}
       >
-        {/* Same wash + tint formula used across the rest of this session's glass surfaces */}
-        <View style={s.whiteWash} pointerEvents="none" />
+        <GlassSurface
+          variant="surface"
+          borderRadius={Radius.lg}
+          noBorder
+          intensity={50}
+          washColor={Colors.white}
+          washOpacity={BottomBarTokens.lightWashOpacity}
+        />
         <View style={s.tint} pointerEvents="none" />
         {body}
-      </AnimatedBlurView>
+      </Animated.View>
     )
   }
 
@@ -197,11 +200,6 @@ const s = StyleSheet.create({
       },
       android: { elevation: 1.5 },
     }),
-  },
-  whiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
   },
   tint: {
     ...StyleSheet.absoluteFill,

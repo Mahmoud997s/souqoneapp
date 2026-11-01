@@ -1,27 +1,49 @@
 import React from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { render, fireEvent, cleanup } from '@testing-library/react-native'
 import { SearchHeaderBar } from '../../screens/search/components/SearchHeaderBar'
 import { TopBarTokens } from '../../constants/topBarTokens'
+import type { GlassViewProps } from 'expo-glass-effect'
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }))
 
 jest.mock('expo-blur', () => {
-  const React = require('react')
-  const { View } = require('react-native')
+  const ReactLib = require('react')
+  const { View: RNView } = require('react-native')
   return {
-    BlurView: (props: any) => React.createElement(View, props),
+    BlurView: (props: Record<string, unknown>) =>
+      ReactLib.createElement(RNView, { testID: 'mock-blur-view', ...props }),
   }
 })
 
-describe('SearchHeaderBar — TopBarTokens & Glassmorphism Parity (D-163b)', () => {
+describe('SearchHeaderBar — TopBarTokens & Glassmorphism Parity (D-163b / D-175a)', () => {
   afterEach(() => {
     cleanup()
   })
 
-  it('renders glassmorphic layers with TopBarTokens matching Home compact bar', async () => {
+  interface TestElementNode {
+    props?: { style?: unknown; testID?: string; children?: unknown }
+    parent: unknown
+  }
+
+  function assertNoOpacityInAncestry(startElement: unknown, rootTestId: string) {
+    let current = startElement as TestElementNode | null
+    while (current) {
+      const flatStyle = (StyleSheet.flatten(current.props?.style) || {}) as Record<string, unknown>
+      expect(flatStyle.opacity).toBeUndefined()
+      if (current.props?.testID === rootTestId) {
+        break
+      }
+      current = current.parent as TestElementNode | null
+    }
+  }
+
+  it('renders liquid branch GlassView and has no opacity in ancestry', async () => {
+    const MockGlassView: React.ComponentType<GlassViewProps> = (props: GlassViewProps) => (
+      <View testID="search-mock-glass-view" {...props} />
+    )
     const { getByTestId } = await render(
       <SearchHeaderBar
         query=""
@@ -30,29 +52,57 @@ describe('SearchHeaderBar — TopBarTokens & Glassmorphism Parity (D-163b)', () 
         onClear={jest.fn()}
         activeFiltersCount={0}
         onOpenFilters={jest.fn()}
+        support={{ kind: 'liquid', GlassView: MockGlassView }}
       />
     )
 
-    // 1. BlurView
-    const blur = getByTestId('search-header-blur')
+    const liquidSurface = getByTestId('search-header-glass-liquid')
+    expect(liquidSurface).toBeTruthy()
+    expect(getByTestId('search-mock-glass-view')).toBeTruthy()
+    assertNoOpacityInAncestry(liquidSurface, 'search-header')
+  })
+
+  it('renders blur branch matching exact TopBarTokens recipe and has no opacity in ancestry', async () => {
+    const { getByTestId } = await render(
+      <SearchHeaderBar
+        query=""
+        onChangeText={jest.fn()}
+        onSubmit={jest.fn()}
+        onClear={jest.fn()}
+        activeFiltersCount={0}
+        onOpenFilters={jest.fn()}
+        support={{ kind: 'blur' }}
+      />
+    )
+
+    const blurSurface = getByTestId('search-header-glass-blur')
+    expect(blurSurface).toBeTruthy()
+
+    // 1. BlurView recipe
+    const blur = getByTestId('mock-blur-view')
     expect(blur).toBeTruthy()
     expect(blur.props.intensity).toBe(TopBarTokens.blurIntensity)
     expect(blur.props.tint).toBe(TopBarTokens.blurTint)
+    expect(blur.props.blurMethod).toBe(TopBarTokens.blurMethod)
 
-    // 2. Whitewash overlay
-    const whitewash = getByTestId('search-header-whitewash')
-    const whitewashStyle = StyleSheet.flatten(whitewash.props.style)
-    expect(whitewashStyle.backgroundColor).toBe(TopBarTokens.whiteWashBg)
+    // 2. Whitewash overlay recipe
+    const children = blurSurface.props.children
+    const washView = Array.isArray(children) ? children[1] : null
+    expect(washView).toBeTruthy()
+    const washStyle = StyleSheet.flatten(washView.props.style)
+    expect(washStyle.backgroundColor).toBe(TopBarTokens.whiteWashBg)
 
-    // 3. Tint overlay
+    // 3. Tint overlay and grid
     const tint = getByTestId('search-header-tint')
     const tintStyle = StyleSheet.flatten(tint.props.style)
     expect(tintStyle.backgroundColor).toBe(TopBarTokens.tintOverlayColor)
     expect(tintStyle.opacity).toBe(TopBarTokens.tintOverlayOpacity)
 
-    // 4. Architectural Grid pattern
     const grid = getByTestId('search-header-grid')
     expect(grid).toBeTruthy()
+
+    // 4. No opacity in ancestry
+    assertNoOpacityInAncestry(blurSurface, 'search-header')
   })
 
   it('uses 38h pill search bar and 38x38 circular filter button with 44px min touch target', async () => {

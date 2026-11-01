@@ -7,6 +7,10 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import {
+  getCardPriceNegotiable,
+  getCardSellerVerified,
+} from '../../utils/cardItemHelpers'
 
 export interface EquipCardProps {
   item: Listing
@@ -56,11 +60,7 @@ export const EquipCard = ({
   const listingTypeStr = String(item.listingType || (item as any).type || '')
   const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
   const isSale = listingTypeStr === 'SALE' || listingTypeStr === 'EQUIPMENT_SALE'
-  const isSellerVerified =
-    (item as any).isVerified ??
-    rawData.user?.isVerified ??
-    rawData.seller?.isVerified ??
-    false
+  const isSellerVerified = getCardSellerVerified(item)
 
   // Price Calculation
   let priceLabel = `${item.price} ${item.currency === 'USD' ? '$' : 'ر.ع'}`
@@ -219,7 +219,7 @@ export const EquipCard = ({
       item={item}
       title={equipName}
       priceLabel={priceLabel}
-      isPriceNegotiable={Boolean(isSale && ((item as any).isPriceNegotiable ?? rawData.isPriceNegotiable))}
+      isPriceNegotiable={Boolean(isSale && getCardPriceNegotiable(item))}
       location={location}
       onPress={onPress}
       displayImages={displayImages}

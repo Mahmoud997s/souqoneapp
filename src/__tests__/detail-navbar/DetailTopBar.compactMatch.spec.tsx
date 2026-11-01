@@ -1,19 +1,21 @@
 import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
-import { render, screen } from '@testing-library/react-native'
+import { render, screen, fireEvent } from '@testing-library/react-native'
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { TopBarTokens } from '../../constants/topBarTokens'
 import { Colors } from '../../constants/colors'
+import type { GlassViewProps } from 'expo-glass-effect'
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }))
 
 jest.mock('expo-blur', () => {
-  const React = require('react')
-  const { View } = require('react-native')
+  const ReactLib = require('react')
+  const { View: RNView } = require('react-native')
   return {
-    BlurView: (props: any) => React.createElement(View, props),
+    BlurView: (props: Record<string, unknown>) =>
+      ReactLib.createElement(RNView, { testID: 'mock-blur-view', ...props }),
   }
 })
 
@@ -122,30 +124,80 @@ describe('D-160: DetailTopBar Compact State Parity with AnimatedHeroHeader', () 
     expect(iconStyle.opacity).toBe(TopBarTokens.searchIconOpacity) // 0.8
   })
 
-  it('4. Glassmorphism background layers are present and styled per TopBarTokens', async () => {
-    await render(<DetailTopBar onBack={jest.fn()} />)
+  interface TestElementNode {
+    props?: { style?: unknown; testID?: string; children?: unknown }
+    parent: unknown
+  }
+
+  function assertNoOpacityInAncestry(startElement: unknown, rootTestId: string) {
+    let current = startElement as TestElementNode | null
+    while (current) {
+      const flatStyle = (StyleSheet.flatten(current.props?.style) || {}) as Record<string, unknown>
+      expect(flatStyle.opacity).toBeUndefined()
+      if (current.props?.testID === rootTestId) {
+        break
+      }
+      current = current.parent as TestElementNode | null
+    }
+  }
+
+  it('4a. GlassSurface liquid branch renders native GlassView and has no opacity in ancestry', async () => {
+    const MockGlassView: React.ComponentType<GlassViewProps> = (props: GlassViewProps) => (
+      <View testID="mock-glass-view" {...props} />
+    )
+    await render(
+      <DetailTopBar
+        onBack={jest.fn()}
+        support={{ kind: 'liquid', GlassView: MockGlassView }}
+      />
+    )
 
     const bar = screen.getByTestId('detail-top-bar')
     const barStyle = StyleSheet.flatten(bar.props.style)
+    expect(barStyle.borderBottomWidth).toBe(TopBarTokens.borderBottomWidth)
+    expect(barStyle.borderBottomColor).toBe(TopBarTokens.borderBottomColor)
+    expect(barStyle.overflow).toBe('hidden')
 
+    const liquidSurface = screen.getByTestId('detail-top-bar-glass-liquid')
+    expect(liquidSurface).toBeTruthy()
+    expect(screen.getByTestId('mock-glass-view')).toBeTruthy()
+    assertNoOpacityInAncestry(liquidSurface, 'detail-top-bar')
+  })
+
+  it('4b. GlassSurface blur branch matches exact blur recipe and has no opacity in ancestry', async () => {
+    await render(
+      <DetailTopBar
+        onBack={jest.fn()}
+        support={{ kind: 'blur' }}
+      />
+    )
+
+    const bar = screen.getByTestId('detail-top-bar')
+    const barStyle = StyleSheet.flatten(bar.props.style)
     expect(barStyle.borderBottomWidth).toBe(TopBarTokens.borderBottomWidth)
     expect(barStyle.borderBottomColor).toBe(TopBarTokens.borderBottomColor)
     expect(barStyle.paddingHorizontal).toBe(TopBarTokens.rowPaddingHorizontal)
     expect(barStyle.paddingBottom).toBe(TopBarTokens.bottomPad)
     expect(barStyle.overflow).toBe('hidden')
 
-    // Find BlurView and overlays
-    const blurView = screen.getByTestId('detail-top-bar-blur')
+    const blurSurface = screen.getByTestId('detail-top-bar-glass-blur')
+    expect(blurSurface).toBeTruthy()
+
+    // 1. BlurView recipe
+    const blurView = screen.getByTestId('mock-blur-view')
     expect(blurView).toBeTruthy()
     expect(blurView.props.intensity).toBe(TopBarTokens.blurIntensity)
     expect(blurView.props.tint).toBe(TopBarTokens.blurTint)
     expect(blurView.props.blurMethod).toBe(TopBarTokens.blurMethod)
 
-    const whiteWash = screen.getByTestId('detail-top-bar-whitewash')
-    expect(whiteWash).toBeTruthy()
-    const whiteWashStyle = StyleSheet.flatten(whiteWash.props.style)
-    expect(whiteWashStyle.backgroundColor).toBe(TopBarTokens.whiteWashBg)
+    // 2. White wash overlay recipe
+    const children = blurSurface.props.children
+    const washView = Array.isArray(children) ? children[1] : null
+    expect(washView).toBeTruthy()
+    const washStyle = StyleSheet.flatten(washView.props.style)
+    expect(washStyle.backgroundColor).toBe(TopBarTokens.whiteWashBg)
 
+    // 3. Tint overlay and architectural grid
     const tintOverlay = screen.getByTestId('detail-top-bar-tint')
     expect(tintOverlay).toBeTruthy()
     const tintStyle = StyleSheet.flatten(tintOverlay.props.style)
@@ -154,6 +206,9 @@ describe('D-160: DetailTopBar Compact State Parity with AnimatedHeroHeader', () 
 
     const grid = screen.getByTestId('detail-top-bar-grid')
     expect(grid).toBeTruthy()
+
+    // 4. No opacity in ancestry
+    assertNoOpacityInAncestry(blurSurface, 'detail-top-bar')
   })
 
   it('5. TEETH PROOF: verifies assertion failure when buttonSize is not 38', async () => {
@@ -166,5 +221,25 @@ describe('D-160: DetailTopBar Compact State Parity with AnimatedHeroHeader', () 
     // TopBarTokens.buttonIconColor is strictly Colors.primary
     expect(TopBarTokens.buttonIconColor).toBe(Colors.primary)
     expect(TopBarTokens.buttonIconColor).not.toBe(Colors.text)
+  })
+
+  it('7. D-170a search props work: typing and submitEditing fire correctly', async () => {
+    const onSearchChange = jest.fn()
+    const onSearchSubmit = jest.fn()
+    await render(
+      <DetailTopBar
+        onBack={jest.fn()}
+        searchValue="أوريون"
+        onSearchChange={onSearchChange}
+        onSearchSubmit={onSearchSubmit}
+      />
+    )
+
+    const searchInput = screen.getByTestId('nav-search-input')
+    fireEvent.changeText(searchInput, 'كامري')
+    expect(onSearchChange).toHaveBeenCalledWith('كامري')
+
+    fireEvent(searchInput, 'submitEditing')
+    expect(onSearchSubmit).toHaveBeenCalledWith('أوريون')
   })
 })

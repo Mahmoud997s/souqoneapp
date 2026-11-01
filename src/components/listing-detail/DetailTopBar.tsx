@@ -9,10 +9,10 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { Colors } from '../../constants/colors'
 import { TopBarTokens } from '../../constants/topBarTokens'
+import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 
 interface BaseDetailTopBarProps {
   onBack: () => void
@@ -23,6 +23,7 @@ interface BaseDetailTopBarProps {
   onToggleFavorite?: () => void
   paddingTop?: number
   testID?: string
+  support?: GlassSupport
 }
 
 interface DetailTopBarWithoutSearchProps extends BaseDetailTopBarProps {
@@ -86,15 +87,13 @@ export function DetailTopBar(props: DetailTopBarProps) {
       testID={testID}
       pointerEvents="box-none"
     >
-      {/* ── GLASSMORPHISM BLUR BACKGROUND (Matches Home Compact Bar) ── */}
-      <BlurView
-        intensity={TopBarTokens.blurIntensity}
-        tint={TopBarTokens.blurTint}
-        blurMethod={TopBarTokens.blurMethod}
-        style={StyleSheet.absoluteFill}
-        testID="detail-top-bar-blur"
+      {/* ── SHARED GLASS SURFACE (Liquid on iOS 26, Blur fallback on other) ── */}
+      <GlassSurface
+        testID="detail-top-bar"
+        variant="surface"
+        noBorder
+        support={props.support}
       />
-      <View style={s.whiteWash} pointerEvents="none" testID="detail-top-bar-whitewash" />
       <View style={s.tintOverlay} pointerEvents="none" testID="detail-top-bar-tint" />
 
       {/* ── ARCHITECTURAL GREEN GRID PATTERN OVERLAY (5% Opacity) ── */}
@@ -241,14 +240,6 @@ const s = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
     ...TopBarTokens.shadow,
-  },
-  whiteWash: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: TopBarTokens.whiteWashBg,
   },
   tintOverlay: {
     position: 'absolute',

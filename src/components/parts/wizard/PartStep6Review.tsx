@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
+import { WizardReviewCard } from '../../ui/WizardReviewCard'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -87,10 +87,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
       </View>
 
       {/* ── CARD 1: Photos Gallery ── */}
-      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
-        <View style={s.cardWhiteWash} pointerEvents="none" />
-        <View style={s.cardTint} pointerEvents="none" />
-
+      <WizardReviewCard>
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -130,13 +127,10 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
         ) : (
           <Text style={s.emptyTxt}>لم يتم إرفاق صور للقطعة (اختياري)</Text>
         )}
-      </BlurView>
+      </WizardReviewCard>
 
       {/* ── CARD 2: Basic Information ── */}
-      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
-        <View style={s.cardWhiteWash} pointerEvents="none" />
-        <View style={s.cardTint} pointerEvents="none" />
-
+      <WizardReviewCard>
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -178,13 +172,10 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
             <Text style={s.descTxt}>{formData.description}</Text>
           </View>
         ) : null}
-      </BlurView>
+      </WizardReviewCard>
 
       {/* ── CARD 3: Part Details & Specifications ── */}
-      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
-        <View style={s.cardWhiteWash} pointerEvents="none" />
-        <View style={s.cardTint} pointerEvents="none" />
-
+      <WizardReviewCard>
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -273,14 +264,11 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
             </View>
           </View>
         </View>
-      </BlurView>
+      </WizardReviewCard>
 
       {/* ── CARD 4: Compatibility (Conditional) ── */}
       {hasCompatibilityData && (
-        <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card} testID="compatibility-card">
-          <View style={s.cardWhiteWash} pointerEvents="none" />
-          <View style={s.cardTint} pointerEvents="none" />
-
+        <WizardReviewCard testID="compatibility-card">
           <View style={s.cardHeader}>
             <View style={s.headerTitleWrap}>
               <View style={s.stepNumBadge}>
@@ -343,14 +331,11 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
               </View>
             )}
           </View>
-        </BlurView>
+        </WizardReviewCard>
       )}
 
       {/* ── CARD 5: Pricing & Location ── */}
-      <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.card}>
-        <View style={s.cardWhiteWash} pointerEvents="none" />
-        <View style={s.cardTint} pointerEvents="none" />
-
+      <WizardReviewCard>
         <View style={s.cardHeader}>
           <View style={s.headerTitleWrap}>
             <View style={s.stepNumBadge}>
@@ -420,7 +405,7 @@ export function PartStep6Review({ formData, onEditStep, brands = [] }: PartStep6
             <Text style={s.value}>{formData.whatsappEnabled ? 'مفعّل' : 'معطّل'}</Text>
           </View>
         </View>
-      </BlurView>
+      </WizardReviewCard>
     </View>
   )
 }
@@ -448,28 +433,6 @@ const s = StyleSheet.create({
     color: '#065F46',
     textAlign: 'left',
     writingDirection: 'rtl',
-  },
-  card: {
-    overflow: 'hidden',
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
-    gap: 12,
-    ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3 },
-      android: { elevation: 1 },
-    }),
-  },
-  cardWhiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
-  },
-  cardTint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
   cardHeader: {
     flexDirection: 'row',

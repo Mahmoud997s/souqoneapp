@@ -173,7 +173,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
   const goBackSafely = () => (router.canGoBack() ? router.back() : router.push('/'))
   const handleSearchSubmit = (text: string) => {
     router.push({
-      pathname: '/parts/browse' as any,
+      pathname: '/parts/browse',
       params: { q: text },
     })
   }

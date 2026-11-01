@@ -13,7 +13,7 @@ import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation } from '@tanstack/react-query'
-import { BlurView } from 'expo-blur'
+import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { LinearGradient } from 'expo-linear-gradient'
 
 import { Colors } from '../../src/constants/colors'
@@ -492,15 +492,7 @@ export default function NewServiceListingScreen() {
         </ScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
-        <BlurView
-          intensity={60}
-          tint="light"
-          blurMethod="dimezisBlurView"
-          style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
-        >
-          <View style={s.footerWhiteWash} pointerEvents="none" />
-          <View style={s.footerTint} pointerEvents="none" />
-
+        <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>
           {currentStep > 1 ? (
             <View style={s.footerBtnGroup}>
               <AppButton
@@ -535,7 +527,7 @@ export default function NewServiceListingScreen() {
               disabled={isSubmitting}
             />
           )}
-        </BlurView>
+        </WizardStickyFooter>
       </View>
     </KeyboardAvoidingView>
   )
@@ -626,31 +618,6 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     color: Colors.error,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    overflow: 'hidden',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.5)',
-    paddingHorizontal: Spacing.space4,
-    paddingTop: 10,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },
-      android: { elevation: 8 },
-    }),
-  },
-  footerWhiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
-  },
-  footerTint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
   footerBtnGroup: {
     flexDirection: 'row',
