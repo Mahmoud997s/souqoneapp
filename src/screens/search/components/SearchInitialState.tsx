@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ImageSourcePropType,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
@@ -26,7 +27,7 @@ export const TRENDING_KEYWORDS = [
 export interface QuickCategoryItem {
   id: CategoryFilterType
   label: string
-  image: any
+  image: ImageSourcePropType
   icon?: keyof typeof Ionicons.glyphMap
 }
 

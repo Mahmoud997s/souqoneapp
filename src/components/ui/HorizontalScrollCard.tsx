@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, memo } from 'react'
-import { View, StyleSheet, Dimensions, StyleProp, ViewStyle } from 'react-native'
+import { View, StyleSheet, Dimensions, StyleProp, ViewStyle, LayoutChangeEvent } from 'react-native'
 import { GestureDetector } from 'react-native-gesture-handler'
 import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
@@ -120,7 +120,7 @@ interface HorizontalCardSlotProps {
   translateX: SharedValue<number>
   depthEffect: boolean
   reducedMotion: boolean
-  onLayout?: (e: any) => void
+  onLayout?: (e: LayoutChangeEvent) => void
   testID?: string
   children: React.ReactNode
 }

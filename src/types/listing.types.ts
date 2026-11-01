@@ -45,6 +45,9 @@ export interface Listing {
   fuelType?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'ELECTRIC'
   transmission?: 'AUTOMATIC' | 'MANUAL'
   isPriceNegotiable?: boolean
+  isVerified?: boolean
+  raw?: any
+  seller?: UserSummary
   // Rental specific properties
   dailyPrice?: string | number
   monthlyPrice?: string | number
