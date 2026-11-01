@@ -28,7 +28,8 @@ export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>()
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState<PublicProfileListingVertical>('car')
-  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = usePublicProfile(userId)
+  const profileQuery = usePublicProfile(userId)
+  const { data: profile, isLoading: profileLoading, isError: profileError, error: profileErrorDetails, refetch: refetchProfile } = profileQuery
   const carsQuery = usePublicProfileCars(userId, activeTab === 'car')
   const busesQuery = usePublicProfileBuses(userId, activeTab === 'bus')
   const equipmentQuery = usePublicProfileEquipment(userId, activeTab === 'equipment')
@@ -49,7 +50,9 @@ export default function PublicProfileScreen() {
     )
   }
 
-  if (profileError && !profile) {
+  const isProfileNotFound = isHttpNotFound(profileErrorDetails)
+
+  if (profileError && !profile && !isProfileNotFound) {
     return (
       <View style={s.root}>
         <AppHeader title="الملف الشخصي" showBack />
@@ -154,7 +157,7 @@ export default function PublicProfileScreen() {
         items={inventoryItems}
         isLoading={activeInventoryQuery?.isLoading ?? false}
         isError={activeInventoryQuery?.isError ?? false}
-        isRefreshing={Boolean(activeInventoryQuery?.isRefetching && !activeInventoryQuery.isFetchingNextPage)}
+        isRefreshing={Boolean(profileQuery.isRefetching || (activeInventoryQuery?.isRefetching && !activeInventoryQuery.isFetchingNextPage))}
         isFetchingNextPage={activeInventoryQuery?.isFetchingNextPage ?? false}
         hasNextPage={Boolean(activeInventoryQuery?.hasNextPage)}
         onRefresh={() => { void Promise.all([refetchProfile(), activeInventoryQuery?.refetch() ?? Promise.resolve()]) }}
@@ -181,6 +184,12 @@ export default function PublicProfileScreen() {
       </View>
     </View>
   )
+}
+
+function isHttpNotFound(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('response' in error)) return false
+  const response = error.response
+  return Boolean(response && typeof response === 'object' && 'status' in response && response.status === 404)
 }
 
 const s = StyleSheet.create({

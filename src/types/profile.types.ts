@@ -7,7 +7,7 @@ export interface PublicProfileCounts {
   operatorListings: number
   spareParts: number
   carServices: number
-  jobs: number
+  driverJobs: number
 }
 
 export interface PublicProfile extends User {

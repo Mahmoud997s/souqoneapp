@@ -10,7 +10,7 @@ const counts: PublicProfileCounts = {
   operatorListings: 9,
   spareParts: 0,
   carServices: 3,
-  jobs: 4,
+  driverJobs: 4,
 }
 
 describe('PublicProfileTabs', () => {

@@ -39,7 +39,7 @@ describe('public profile route states', () => {
 
   it('shows a retry action after a profile request error', async () => {
     const refetch = jest.fn()
-    mockedUsePublicProfile.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch } as never)
+    mockedUsePublicProfile.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: { response: { status: 500 } }, refetch } as never)
     await render(<PublicProfileScreen />)
     fireEvent.press(screen.getByRole('button', { name: 'إعادة المحاولة' }))
     expect(refetch).toHaveBeenCalledTimes(1)
@@ -47,7 +47,7 @@ describe('public profile route states', () => {
 
   it('keeps a loaded profile visible after a refresh error', async () => {
     mockedUsePublicProfile.mockReturnValue({
-      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 0, equipmentListings: 0, spareParts: 0, carServices: 0 }, totalListings: 0 },
+      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 0, equipmentListings: 0, spareParts: 0, carServices: 0, driverJobs: 0 }, totalListings: 0 },
       isLoading: false,
       isError: true,
       refetch: jest.fn(),
@@ -63,9 +63,16 @@ describe('public profile route states', () => {
     expect(screen.getByText('الملف الشخصي غير موجود')).toBeTruthy()
   })
 
+  it('renders not-found for a 404 without offering an automatic retry action', async () => {
+    mockedUsePublicProfile.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: { response: { status: 404 } }, refetch: jest.fn() } as never)
+    await render(<PublicProfileScreen />)
+    expect(screen.getByText('الملف الشخصي غير موجود')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'إعادة المحاولة' })).toBeNull()
+  })
+
   it('renders typed profile data and a distinct empty listings state', async () => {
     mockedUsePublicProfile.mockReturnValue({
-      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 2, equipmentListings: 3, operatorListings: 9, spareParts: 4, carServices: 5, jobs: 4 }, totalListings: 27 },
+      data: { id: 'seller-1', displayName: 'بائع السوق', username: 'seller', createdAt: '2024-01-01', isVerified: false, _count: { listings: 0, busListings: 2, equipmentListings: 3, operatorListings: 9, spareParts: 4, carServices: 5, driverJobs: 4 }, totalListings: 27 },
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
