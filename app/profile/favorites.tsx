@@ -17,10 +17,7 @@ import { usePullToRefresh } from '../../src/hooks/usePullToRefresh'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
-import { BlurView } from 'expo-blur'
 import { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated'
-
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
 export const FAVORITES_CATEGORY_FILTERS = [
   { id: 'all', label: 'الكل' },

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusB
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassSurface } from '../navigation/glassSupport';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -111,11 +111,16 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
           contentContainerStyle={[s.glassContent, { paddingTop: insets.top + 52 + Spacing.space3 }]}
           showsVerticalScrollIndicator={false}
         >
-          <BlurView intensity={50} tint="light" blurMethod="dimezisBlurView" style={s.glassCard}>
-            <View style={s.whiteWash} pointerEvents="none" />
+          <View style={[s.glassCard, { backgroundColor: 'transparent' }]}>
+            <GlassSurface
+              variant="surface"
+              borderRadius={Radius.lg}
+              noBorder
+              intensity={50}
+            />
             <View style={s.tint} pointerEvents="none" />
             {body}
-          </BlurView>
+          </View>
         </ScrollView>
       </View>
     );
@@ -201,11 +206,6 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  whiteWash: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.08,
   },
   tint: {
     ...StyleSheet.absoluteFill,

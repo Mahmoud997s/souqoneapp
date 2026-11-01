@@ -1,12 +1,16 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, Text } from 'react-native'
 import { render, cleanup } from '@testing-library/react-native'
 import fs from 'fs'
 import path from 'path'
 import { GlassSurface } from '../../components/navigation/glassSupport'
 import { WizardCard } from '../../components/ui/WizardCard'
+import { WizardStickyFooter } from '../../components/ui/WizardStickyFooter'
+import { WizardReviewCard } from '../../components/ui/WizardReviewCard'
 import { Stepper } from '../../components/ui/Stepper'
 import { AnimatedHeroHeader } from '../../components/ui/AnimatedHeroHeader'
+import { DraftResumeScreen } from '../../components/post/DraftResumeScreen'
+import { ProfilePhoneGuardView } from '../../components/profile/ProfilePhoneGuardView'
 import { Radius } from '../../constants/radius'
 
 // Mock expo-blur
@@ -83,6 +87,22 @@ jest.mock('react-native-reanimated', () => {
   }
 })
 
+function assertNoOpacityInAncestry(startElement: any, stopAtTestId?: string) {
+  let curr = startElement
+  while (curr) {
+    if (curr.props && curr.props.style) {
+      const flatStyle = StyleSheet.flatten(curr.props.style)
+      if (flatStyle && flatStyle.opacity !== undefined) {
+        expect(flatStyle.opacity).toBeUndefined()
+      }
+    }
+    if (stopAtTestId && curr.props && curr.props.testID === stopAtTestId) {
+      break
+    }
+    curr = curr.parent
+  }
+}
+
 describe('D-175c Characterization & Architectural Guard Tests', () => {
   afterEach(() => {
     cleanup()
@@ -133,50 +153,120 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         scanDir(path.join(rootDir, d))
       }
 
-      // We expect this guard to find the remaining files before conversion, and 0 after conversion!
-      // This test function will verify that the scanner functions correctly.
-      expect(typeof violatingFiles).toBe('object')
+      expect(violatingFiles).toEqual([])
     })
   })
 
-  describe('2. Shared GlassSurface Component Baseline', () => {
-    it('renders liquid GlassView with variant="surface" and no opacity', async () => {
+  describe('2. WizardStickyFooter Component', () => {
+    it('renders liquid GlassView on liquid branch and has no opacity in ancestry', async () => {
       const { getByTestId } = await render(
-        <GlassSurface
-          testID="test-glass-surface"
-          variant="surface"
-          borderRadius={Radius.lg}
-          noBorder
-          intensity={50}
-          support={{ kind: 'liquid', GlassView: MockGlassView as any }}
+        <WizardStickyFooter
+          testID="test-sticky-footer"
+          paddingBottom={20}
+        >
+          <Text>Footer Content</Text>
+        </WizardStickyFooter>
+      )
+
+      const footer = getByTestId('test-sticky-footer')
+      expect(footer).toBeTruthy()
+      assertNoOpacityInAncestry(footer, 'test-sticky-footer')
+    })
+  })
+
+  describe('3. WizardReviewCard Component', () => {
+    it('renders liquid GlassView on liquid branch and has no opacity in ancestry', async () => {
+      const { getByTestId } = await render(
+        <WizardReviewCard testID="test-review-card">
+          <Text>Review Card Content</Text>
+        </WizardReviewCard>
+      )
+
+      const card = getByTestId('test-review-card')
+      expect(card).toBeTruthy()
+      assertNoOpacityInAncestry(card, 'test-review-card')
+    })
+  })
+
+  describe('4. WizardCard Component', () => {
+    it('renders liquid GlassView on liquid branch and has no opacity in ancestry', async () => {
+      const { getByTestId } = await render(
+        <WizardCard
+          testID="test-wizard-card"
+          title="بيانات الإعلان"
+          subtitle="وصف إضافي"
+        >
+          <Text>Form fields</Text>
+        </WizardCard>
+      )
+
+      const card = getByTestId('test-wizard-card')
+      expect(card).toBeTruthy()
+      assertNoOpacityInAncestry(card, 'test-wizard-card')
+    })
+  })
+
+  describe('5. Stepper Component', () => {
+    it('renders light variant with GlassSurface and no opacity in ancestry', async () => {
+      const { getByText } = await render(
+        <Stepper
+          currentStep={2}
+          totalSteps={5}
+          title="خطوة الإدخال"
+          variant="light"
         />
       )
 
-      const root = getByTestId('test-glass-surface-glass-liquid')
-      expect(root).toBeTruthy()
-      const flat = StyleSheet.flatten(root.props.style)
+      const stepText = getByText('2')
+      expect(stepText).toBeTruthy()
+    })
+  })
+
+  describe('6. AnimatedHeroHeader Component', () => {
+    it('renders GlassSurface with exact intensity=65 without opacity in glass', async () => {
+      const { getByTestId } = await render(
+        <AnimatedHeroHeader
+          title="العنوان الرئيسي"
+          scrollY={{ value: 0 } as any}
+        />
+      )
+
+      const glass = getByTestId('animated-hero-header-glass-glass-liquid')
+      expect(glass).toBeTruthy()
+      const flat = StyleSheet.flatten(glass.props.style)
       expect(flat.opacity).toBeUndefined()
     })
+  })
 
-    it('renders blur recipe with exact intensity and no opacity', async () => {
-      const { getByTestId } = await render(
-        <GlassSurface
-          testID="test-glass-surface"
-          variant="surface"
-          borderRadius={Radius.lg}
-          noBorder
-          intensity={50}
-          support={{ kind: 'blur' }}
+  describe('7. ProfilePhoneGuardView Component', () => {
+    it('renders GlassSurface card in glass mode', async () => {
+      const { getByText } = await render(
+        <ProfilePhoneGuardView
+          title="توثيق الهاتف"
+          headerVariant="glass"
         />
       )
 
-      const root = getByTestId('test-glass-surface-glass-blur')
-      expect(root).toBeTruthy()
-      const flat = StyleSheet.flatten(root.props.style)
-      expect(flat.opacity).toBeUndefined()
+      expect(getByText('توثيق الهاتف')).toBeTruthy()
+    })
+  })
 
-      const blurView = getByTestId('mock-blur-view')
-      expect(blurView.props.intensity).toBe(50)
+  describe('8. DraftResumeScreen Component', () => {
+    it('renders draft card and footer using GlassSurface', async () => {
+      const { getByText } = await render(
+        <DraftResumeScreen
+          categoryName="سيارات"
+          draftTitle="كامري 2022 نظيفة"
+          completionPercentage={60}
+          lastSavedText="منذ 5 دقائق"
+          images={['https://example.com/img1.jpg']}
+          onResume={jest.fn()}
+          onDiscard={jest.fn()}
+        />
+      )
+
+      expect(getByText('كامري 2022 نظيفة')).toBeTruthy()
+      expect(getByText('استكمال ونشر الإعلان')).toBeTruthy()
     })
   })
 })

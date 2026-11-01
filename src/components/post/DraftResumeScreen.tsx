@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Image } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
+import { GlassSurface } from '../navigation/glassSupport'
 import Svg, { Circle } from 'react-native-svg'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -94,7 +94,13 @@ export function DraftResumeScreen({
 
         {/* Glass Draft Card */}
         <View style={styles.cardOuter}>
-          <BlurView intensity={45} tint="light" blurMethod="dimezisBlurView" style={styles.cardContainer}>
+          <View style={[styles.cardContainer, { backgroundColor: 'transparent' }]}>
+            <GlassSurface
+              variant="surface"
+              borderRadius={Radius.xl}
+              noBorder
+              intensity={45}
+            />
             {images.length > 0 && (
               <View style={styles.photoRow}>
                 <View style={styles.photoStack}>
@@ -163,17 +169,19 @@ export function DraftResumeScreen({
               <Ionicons name="time-outline" size={14} color="#64748B" />
               <Text style={styles.metaText}>{lastSavedText}</Text>
             </View>
-          </BlurView>
+          </View>
         </View>
       </ScrollView>
 
       {/* ── Fixed Bottom Actions ── */}
-      <BlurView
-        intensity={55}
-        tint="light"
-        blurMethod="dimezisBlurView"
-        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]}
+      <View
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14), backgroundColor: 'transparent' }]}
       >
+        <GlassSurface
+          variant="surface"
+          noBorder
+          intensity={55}
+        />
         <TouchableOpacity style={styles.primaryBtn} onPress={onResume} activeOpacity={0.9}>
           <Ionicons name="rocket-outline" size={20} color={Colors.white} />
           <Text style={styles.primaryBtnText}>استكمال ونشر الإعلان</Text>
@@ -185,7 +193,7 @@ export function DraftResumeScreen({
             <Text style={styles.secondaryBtnText}>تجاهل المسودة والبدء من جديد</Text>
           </TouchableOpacity>
         </View>
-      </BlurView>
+      </View>
     </View>
   )
 }
