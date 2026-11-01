@@ -271,7 +271,7 @@ export const CarCard = ({
       titleNumberOfLines={titleNumberOfLines}
       imageHeight={imageHeight}
       compactBody={compactBody}
-      liquidGlass={liquidGlass ?? !isEquipment}
+      liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />

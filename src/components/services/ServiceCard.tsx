@@ -4,6 +4,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 import { UnifiedCardItem } from '../../types/unified-card.types'
 
@@ -34,6 +35,8 @@ export interface ServiceCardProps {
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
   actionMenu?: React.ReactNode
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const ServiceCard = ({
@@ -44,6 +47,8 @@ export const ServiceCard = ({
   disableImageSwipe = false,
   titleNumberOfLines = 1,
   actionMenu,
+  liquidGlass,
+  glassSupport,
 }: ServiceCardProps) => {
   const rawData = item.raw || {}
   const rawImages = (item.images && item.images.length > 0)
@@ -147,6 +152,8 @@ export const ServiceCard = ({
       gridMode={gridMode}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       favoriteType="CAR_SERVICE"
       shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\nhttps://souqone.app/services/${item.id}`}
       actionMenu={actionMenu}

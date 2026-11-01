@@ -108,7 +108,7 @@ export const ListingCardBase = ({
   compactBody = false,
   favoriteType,
   onFavorite,
-  liquidGlass = false,
+  liquidGlass = true,
   glassSupport,
   style,
 }: ListingCardBaseProps) => {
@@ -327,7 +327,7 @@ export const ListingCardBase = ({
         <View style={s.headerRow}>
           <Text
             style={[s.cardTitle, { flex: 1 }]}
-            numberOfLines={titleNumberOfLines}
+            numberOfLines={1}
             ellipsizeMode="tail"
           >
             {title}

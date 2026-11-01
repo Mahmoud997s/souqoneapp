@@ -1,7 +1,11 @@
 import React from 'react'
-import { AccessibilityInfo, Platform, StyleSheet, View } from 'react-native'
+import { AccessibilityInfo, Platform, StyleSheet, View, Text } from 'react-native'
 import { render, act, cleanup } from '@testing-library/react-native'
 import { CarCard } from '../CarCard'
+import { BusCard } from '../../buses/BusCard'
+import { EquipCard } from '../../cards/EquipCard'
+import { PartCard } from '../../parts/PartCard'
+import { ServiceCard } from '../../services/ServiceCard'
 import { ListingCardBase } from '../../ui/ListingCardBase'
 import { CardSystem } from '../../../constants/cardSystem'
 import { Colors } from '../../../constants/colors'
@@ -95,11 +99,12 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     )
     await act(async () => {})
 
-    // 1. Card root is transparent with glass border color
+    // 1. Card root is transparent with glass border color and 1-line title limit
     const cardRoot = getByTestId('listing-card-root')
     const rootStyle = StyleSheet.flatten(cardRoot.props.style)
     expect(rootStyle.backgroundColor).toBe('transparent')
     expect(rootStyle.borderColor).toBe(CardSystem.glass.cardBorderColor)
+    expect(getByTestId('listing-card-details')).toBeTruthy()
 
     // 2. Card main surface renders liquid branch
     expect(getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
@@ -184,49 +189,50 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(reduceTransparencyListenersWithProp.length).toBe(0)
   })
 
-  it('(d) Scope isolation: equipment items passed through CarCard and default ListingCardBase do NOT activate liquidGlass automatically', async () => {
-    const isReduceTransparencySpy = jest
-      .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
-      .mockResolvedValue(false)
-    const addListenerSpy = jest.spyOn(AccessibilityInfo, 'addEventListener')
+  it('(d) Global adoption & opt-out: all cards (EquipCard, BusCard, PartCard, ServiceCard, CarCard) adopt Liquid Glass by default, and liquidGlass={false} disables it', async () => {
+    jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(false)
 
-    const equipmentItem: any = {
-      ...sampleCarListing,
-      id: 'eq-1',
-      listingType: 'EQUIPMENT_SALE',
-      category: 'equipment',
-    }
-
-    const { getByTestId, queryByTestId } = await render(
-      <CarCard item={equipmentItem} onPress={jest.fn()} />
-    )
-
-    const cardRoot = getByTestId('listing-card-root')
-    const rootStyle = StyleSheet.flatten(cardRoot.props.style)
-    expect(rootStyle.backgroundColor).toBe(Colors.white)
-    expect(queryByTestId('listing-card-surface-glass-liquid')).toBeNull()
-    expect(queryByTestId('listing-card-surface-glass-blur')).toBeNull()
-    expect(isReduceTransparencySpy).toHaveBeenCalledTimes(0)
-    expect(
-      addListenerSpy.mock.calls.filter((call) => String(call[0]) === 'reduceTransparencyChanged')
-        .length
-    ).toBe(0)
-
-    // Direct ListingCardBase without liquidGlass prop also stays standard
-    const { queryByTestId: queryBase } = await render(
-      <ListingCardBase
-        item={sampleCarListing}
-        title="إعلان عادي"
-        priceLabel="5,000 ر.ع"
+    // 1. EquipCard adopts Liquid Glass by default
+    const { getByTestId: getEquip } = await render(
+      <EquipCard
+        item={{
+          ...sampleCarListing,
+          id: 'eq-1',
+          equipmentType: 'EXCAVATOR',
+        } as any}
         onPress={jest.fn()}
       />
     )
-    expect(queryBase('listing-card-surface-glass-liquid')).toBeNull()
-    expect(queryBase('listing-card-surface-glass-blur')).toBeNull()
-    expect(isReduceTransparencySpy).toHaveBeenCalledTimes(0)
-    expect(
-      addListenerSpy.mock.calls.filter((call) => String(call[0]) === 'reduceTransparencyChanged')
-        .length
-    ).toBe(0)
+    expect(getEquip('listing-card-surface-glass-liquid')).toBeTruthy()
+
+    // 2. BusCard adopts Liquid Glass by default
+    const { getByTestId: getBus } = await render(
+      <BusCard
+        item={{
+          ...sampleCarListing,
+          id: 'bus-1',
+          busType: 'COASTER',
+          capacity: 30,
+        } as any}
+        onPress={jest.fn()}
+      />
+    )
+    expect(getBus('listing-card-surface-glass-liquid')).toBeTruthy()
+
+    // 3. Explicit liquidGlass={false} cleanly disables glass surface
+    const { getByTestId: getDisabled, queryByTestId: queryDisabled } = await render(
+      <ListingCardBase
+        item={sampleCarListing}
+        title="إعلان عادي بدون زجاج"
+        priceLabel="5,000 ر.ع"
+        onPress={jest.fn()}
+        liquidGlass={false}
+      />
+    )
+    const cardRoot = getDisabled('listing-card-root')
+    const rootStyle = StyleSheet.flatten(cardRoot.props.style)
+    expect(rootStyle.backgroundColor).toBe(Colors.white)
+    expect(queryDisabled('listing-card-surface-glass-liquid')).toBeNull()
+    expect(queryDisabled('listing-card-surface-glass-blur')).toBeNull()
   })
 })

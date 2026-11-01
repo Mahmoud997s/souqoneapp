@@ -5,6 +5,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 
 const BUS_TYPE_NAMES: Record<string, string> = {
@@ -25,6 +26,8 @@ export interface BusCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const BusCard = ({
@@ -37,6 +40,8 @@ export const BusCard = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  liquidGlass,
+  glassSupport,
 }: BusCardProps) => {
   const rawData = (item as any).raw || item
   const rawImages = (item.images && item.images.length > 0)
@@ -245,6 +250,8 @@ export const BusCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       favoriteType="BUS_LISTING"
       shareMessage={`شاهد هذه الحافلة المعروضة على سوق ون: ${busName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
     />

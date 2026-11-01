@@ -4,6 +4,7 @@ import {
   ListingCardPill,
   ListingCardBadge,
 } from '../ui/ListingCardBase'
+import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 import { formatLocation } from '../../utils/mappers'
 import {
@@ -23,6 +24,8 @@ export interface PartCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  liquidGlass?: boolean
+  glassSupport?: GlassSupport
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -58,6 +61,8 @@ export const PartCard: React.FC<PartCardProps> = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  liquidGlass,
+  glassSupport,
 }) => {
   const rawData = item.raw || item
   const { data: brands } = useBrands()
@@ -285,6 +290,8 @@ export const PartCard: React.FC<PartCardProps> = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      liquidGlass={liquidGlass ?? true}
+      glassSupport={glassSupport}
       favoriteType="SPARE_PART"
       shareMessage={`شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\nhttps://souqone.app/parts/${rawData.id || item.id}`}
     />

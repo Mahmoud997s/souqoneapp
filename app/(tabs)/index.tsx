@@ -157,7 +157,7 @@ export function CategorySection({
                 item={item}
                 onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
                 disableImageSwipe={true}
-                titleNumberOfLines={2}
+                titleNumberOfLines={1}
                 fullWidth={peek}
                 imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
                 compactBody={peek}
@@ -264,7 +264,7 @@ export default function HomeScreen() {
               compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={2}
+              titleNumberOfLines={1}
             />
           )}
         />
@@ -283,7 +283,7 @@ export default function HomeScreen() {
               item={item as any}
               onPress={onPress}
               disableImageSwipe={true}
-              titleNumberOfLines={2}
+              titleNumberOfLines={1}
             />
           )}
         />
@@ -303,7 +303,7 @@ export default function HomeScreen() {
               onPress={onPress}
               maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={2}
+              titleNumberOfLines={1}
             />
           )}
         />
@@ -323,7 +323,7 @@ export default function HomeScreen() {
               onPress={onPress}
               maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={2}
+              titleNumberOfLines={1}
             />
           )}
         />
@@ -343,7 +343,7 @@ export default function HomeScreen() {
               onPress={onPress}
               maxChips={4}
               disableImageSwipe={true}
-              titleNumberOfLines={2}
+              titleNumberOfLines={1}
             />
           )}
         />
