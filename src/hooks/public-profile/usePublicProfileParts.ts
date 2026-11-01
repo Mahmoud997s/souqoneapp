@@ -12,7 +12,7 @@ export function usePublicProfileParts(userId: string, enabled = true) {
     userId,
     enabled,
     vertical: 'part',
-    filters: { sellerId: userId, status: 'ACTIVE' },
+    filters: { sellerId: userId },
     fetchPage: fetchPartPage,
     mapItem: mapPartToCard,
   })

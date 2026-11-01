@@ -13,7 +13,7 @@ export function usePublicProfileBuses(userId: string, enabled = true) {
     userId,
     enabled,
     vertical: 'bus',
-    filters: { userId, status: 'ACTIVE' },
+    filters: { userId },
     fetchPage: fetchBusPage,
     mapItem: mapBusToCard,
   })

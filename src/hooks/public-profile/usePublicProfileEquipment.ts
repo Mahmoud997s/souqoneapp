@@ -13,7 +13,7 @@ export function usePublicProfileEquipment(userId: string, enabled = true) {
     userId,
     enabled,
     vertical: 'equipment',
-    filters: { userId, status: 'ACTIVE' },
+    filters: { userId },
     fetchPage: fetchEquipmentPage,
     mapItem: mapEquipmentToCard,
   })

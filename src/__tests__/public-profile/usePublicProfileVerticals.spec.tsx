@@ -31,17 +31,17 @@ describe('public profile bus and equipment queries', () => {
 
   it('filters buses by user and uses backend meta for every page', async () => {
     mockedBusesGetAll
-      .mockResolvedValueOnce({ data: { data: [{ id: 'bus-1' }], meta: { page: 1, totalPages: 3 } } } as never)
-      .mockResolvedValueOnce({ data: { data: [{ id: 'bus-2' }], meta: { page: 2, totalPages: 3 } } } as never)
-      .mockResolvedValueOnce({ data: { data: [{ id: 'bus-3' }], meta: { page: 3, totalPages: 3 } } } as never)
+      .mockResolvedValueOnce({ data: { items: [{ id: 'bus-1' }], meta: { page: 1, totalPages: 3 } } } as never)
+      .mockResolvedValueOnce({ data: { items: [{ id: 'bus-2' }], meta: { page: 2, totalPages: 3 } } } as never)
+      .mockResolvedValueOnce({ data: { items: [{ id: 'bus-3' }], meta: { page: 3, totalPages: 3 } } } as never)
     const { result } = await renderHook(() => usePublicProfileBuses('seller-bus'), { wrapper: createWrapper() })
 
     await waitFor(() => expect(result.current.hasNextPage).toBe(true))
-    expect(mockedBusesGetAll).toHaveBeenNthCalledWith(1, { userId: 'seller-bus', status: 'ACTIVE', limit: 10, page: 1 })
+    expect(mockedBusesGetAll).toHaveBeenNthCalledWith(1, { userId: 'seller-bus', limit: 10, page: 1 })
     let fetchedNextPage: Awaited<ReturnType<typeof result.current.fetchNextPage>> | undefined
     await act(async () => { fetchedNextPage = await result.current.fetchNextPage() })
     await waitFor(() => expect(mockedBusesGetAll).toHaveBeenCalledTimes(2))
-    expect(mockedBusesGetAll).toHaveBeenNthCalledWith(2, { userId: 'seller-bus', status: 'ACTIVE', limit: 10, page: 2 })
+    expect(mockedBusesGetAll).toHaveBeenNthCalledWith(2, { userId: 'seller-bus', limit: 10, page: 2 })
     expect(result.current.error).toBeNull()
     expect(fetchedNextPage?.data?.pages).toHaveLength(2)
     let fetchedThirdPage: Awaited<ReturnType<typeof result.current.fetchNextPage>> | undefined
@@ -56,9 +56,9 @@ describe('public profile bus and equipment queries', () => {
     const { result } = await renderHook(() => usePublicProfileEquipment('seller-equipment'), { wrapper: createWrapper() })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockedEquipmentGetAll).toHaveBeenCalledWith({ userId: 'seller-equipment', status: 'ACTIVE', limit: 10, page: 1 })
+    expect(mockedEquipmentGetAll).toHaveBeenCalledWith({ userId: 'seller-equipment', limit: 10, page: 1 })
     const keys = queryClient.getQueryCache().getAll().map((query) => query.queryKey)
-    expect(keys).toContainEqual(['public-profile-listings', 'seller-equipment', 'equipment', { userId: 'seller-equipment', status: 'ACTIVE', limit: 10 }])
+    expect(keys).toContainEqual(['public-profile-listings', 'seller-equipment', 'equipment', { userId: 'seller-equipment', limit: 10 }])
     expect(keys[0][0]).toBe('public-profile-listings')
     expect(result.current.data?.pages[0].data[0].id).toBe('equipment-1')
   })
