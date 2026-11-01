@@ -180,6 +180,17 @@ describe('public profile route states', () => {
     expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
   })
 
+  it('shows the transient retry message when every listing lookup fails', async () => {
+    loadSellerProfile()
+    mockedUseAuthStore.mockReturnValue({ user: { id: 'visitor-1' }, isLoading: false } as never)
+    jest.mocked(findNewestPublicProfileChatTarget).mockRejectedValue(new Error('All public profile listing queries failed'))
+
+    await render(<PublicProfileScreen />)
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
+
+    expect(chatApi.createRoom).not.toHaveBeenCalled()
+    expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
+  })
   it('shows a retryable message when no chat target is available', async () => {
     loadSellerProfile()
     mockedUseAuthStore.mockReturnValue({ user: { id: 'visitor-1' }, isLoading: false } as never)

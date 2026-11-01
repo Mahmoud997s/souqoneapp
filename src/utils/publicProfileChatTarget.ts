@@ -29,6 +29,15 @@ interface DatedCandidate extends PublicProfileChatTarget {
   createdAt: string
 }
 
+function readResponseItems<T>(response: unknown): T[] {
+  if (!response || typeof response !== 'object' || !('data' in response)) return []
+  const payload = response.data
+  if (!payload || typeof payload !== 'object') return []
+  if ('items' in payload && Array.isArray(payload.items)) return payload.items as T[]
+  if ('data' in payload && Array.isArray(payload.data)) return payload.data as T[]
+  return []
+}
+
 function toCandidate<T extends DatedListing>(vertical: PublicProfileChatVertical, item?: T): DatedCandidate | null {
   if (!item || !item.createdAt || !Number.isFinite(Date.parse(item.createdAt))) return null
 
@@ -40,21 +49,27 @@ function toCandidate<T extends DatedListing>(vertical: PublicProfileChatVertical
 }
 
 export async function findNewestPublicProfileChatTarget(userId: string): Promise<PublicProfileChatTarget | null> {
-  const [cars, buses, equipment, parts, services] = await Promise.all([
+  const results = await Promise.allSettled([
     listingsApi.getAll({ sellerId: userId, status: 'ACTIVE', page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
-    busesApi.getAll({ userId, status: 'ACTIVE', page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
-    equipmentApi.getAll({ userId, status: 'ACTIVE', page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
-    partsApi.getAll({ sellerId: userId, status: 'ACTIVE', page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
-    servicesApi.getAll({ userId, status: 'ACTIVE', page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
+    busesApi.getAll({ userId, page: 1, limit: 1 }),
+    equipmentApi.getAll({ userId, page: 1, limit: 1 }),
+    partsApi.getAll({ sellerId: userId, page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' }),
+    servicesApi.getAll({ userId, page: 1, limit: 1 }),
   ])
 
-  const candidates = [
-    toCandidate('car', cars.data.data[0]),
-    toCandidate('bus', buses.data.data[0]),
-    toCandidate('equipment', equipment.data.data[0]),
-    toCandidate('part', parts.data.data[0]),
-    toCandidate('service', services.data.data[0]),
-  ].filter((candidate): candidate is DatedCandidate => candidate !== null)
+  if (results.every((result) => result.status === 'rejected')) {
+    throw new Error('All public profile listing queries failed')
+  }
+
+  const verticals = ['car', 'bus', 'equipment', 'part', 'service'] as const
+  const candidates: DatedCandidate[] = []
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') return
+    const vertical = verticals[index]
+    if (!vertical) return
+    const candidate = toCandidate(vertical, readResponseItems<DatedListing>(result.value)[0])
+    if (candidate) candidates.push(candidate)
+  })
 
   const newest = candidates.reduce<DatedCandidate | null>((current, candidate) => {
     if (!current || Date.parse(candidate.createdAt) > Date.parse(current.createdAt)) return candidate
