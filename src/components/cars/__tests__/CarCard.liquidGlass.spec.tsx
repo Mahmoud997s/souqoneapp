@@ -235,4 +235,37 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(queryDisabled('listing-card-surface-glass-liquid')).toBeNull()
     expect(queryDisabled('listing-card-surface-glass-blur')).toBeNull()
   })
+
+  it('(e) Footer capsules arrangement & responsive inline padding: negotiable in flex:1 and price in responsive compact pill', async () => {
+    // 1. With negotiable=true: negotiable pill gets flex:1, price pill gets flexShrink:0
+    const { getByTestId } = await render(
+      <CarCard
+        item={{ ...sampleCarListing, isPriceNegotiable: true, price: 12500 }}
+        onPress={jest.fn()}
+      />
+    )
+    const negWrap = getByTestId('listing-card-negotiable-pill-wrap')
+    const priceWrap = getByTestId('listing-card-price-pill-wrap')
+    const negStyle = StyleSheet.flatten(negWrap.props.style)
+    const priceStyle = StyleSheet.flatten(priceWrap.props.style)
+
+    expect(negStyle.flex).toBe(1)
+    expect(negStyle.paddingHorizontal).toBe(8)
+    expect(negStyle.paddingVertical).toBe(3.5)
+
+    expect(priceStyle.flexShrink).toBe(0)
+    expect(priceStyle.paddingHorizontal).toBe(8)
+    expect(priceStyle.paddingVertical).toBe(3.5)
+
+    // 2. With negotiable=false: price pill takes flex:1
+    const { getByTestId: getNoNeg } = await render(
+      <CarCard
+        item={{ ...sampleCarListing, isPriceNegotiable: false, price: 5000 }}
+        onPress={jest.fn()}
+      />
+    )
+    const priceOnlyWrap = getNoNeg('listing-card-price-pill-wrap')
+    const priceOnlyStyle = StyleSheet.flatten(priceOnlyWrap.props.style)
+    expect(priceOnlyStyle.flex).toBe(1)
+  })
 })

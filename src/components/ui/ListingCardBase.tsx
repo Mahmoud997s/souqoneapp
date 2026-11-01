@@ -442,18 +442,46 @@ export const ListingCardBase = ({
 
         <View style={[s.footerDivider, compactBody && s.footerDividerCompact, liquidGlass && s.dividerGlass]} />
 
-        {/* Footer Row (Price & Negotiable pill) */}
+        {/* Footer Row (Negotiable in flex:1 & Price in responsive compact slot) */}
         <View style={s.footerRow}>
+          {isPriceNegotiable && (
+            <View
+              testID="listing-card-negotiable-pill-wrap"
+              style={[
+                s.footerPill,
+                liquidGlass ? [s.pillGlass, s.pillGlassNegotiable] : s.pillGreen,
+                s.footerNegotiablePill,
+              ]}
+            >
+              {liquidGlass && (
+                <GlassSurface
+                  testID="listing-card-negotiable-pill"
+                  variant="capsule"
+                  borderRadius={CardSystem.glass.capsuleRadius}
+                  tintOverlayColor={CardSystem.glass.negotiableTint}
+                  noBorder={true}
+                  support={glass}
+                />
+              )}
+              <Text
+                numberOfLines={1}
+                style={s.negotiableText}
+              >
+                قابل للتفاوض
+              </Text>
+            </View>
+          )}
+
           <View
             testID="listing-card-price-pill-wrap"
             style={[
-              s.detailPill,
+              s.footerPill,
               liquidGlass
                 ? [s.pillGlass, isPriceNegotiable && s.pillGlassNegotiable]
                 : isPriceNegotiable
                 ? s.pillGreen
                 : s.pillNeutral,
-              { flex: 1 },
+              isPriceNegotiable ? s.footerPricePillCompact : s.footerPricePillFull,
             ]}
           >
             {liquidGlass && (
@@ -468,10 +496,11 @@ export const ListingCardBase = ({
             )}
             <Ionicons
               name="wallet-outline"
-              size={15}
+              size={14}
               color={isPriceNegotiable ? Colors.primary : Colors.text2}
             />
             <Text
+              numberOfLines={1}
               style={[
                 s.budgetValText,
                 isPriceNegotiable && { color: Colors.primary },
@@ -480,35 +509,6 @@ export const ListingCardBase = ({
               {priceLabel}
             </Text>
           </View>
-
-          {isPriceNegotiable && (
-            <View
-              testID="listing-card-negotiable-pill-wrap"
-              style={[
-                s.detailPill,
-                liquidGlass ? [s.pillGlass, s.pillGlassNegotiable] : s.pillGreen,
-              ]}
-            >
-              {liquidGlass && (
-                <GlassSurface
-                  testID="listing-card-negotiable-pill"
-                  variant="capsule"
-                  borderRadius={CardSystem.glass.capsuleRadius}
-                  tintOverlayColor={CardSystem.glass.negotiableTint}
-                  noBorder={true}
-                  support={glass}
-                />
-              )}
-              <Text
-                style={[
-                  s.detailText,
-                  { color: Colors.primary, fontFamily: 'Almarai_700Bold' },
-                ]}
-              >
-                قابل للتفاوض
-              </Text>
-            </View>
-          )}
         </View>
 
         {cardActions && (
@@ -820,11 +820,40 @@ const s = StyleSheet.create({
     justifyContent: 'flex-start',
     gap: 5,
   },
+  footerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    gap: 5,
+    borderRadius: CardSystem.radius.inner,
+  },
+  footerNegotiablePill: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  footerPricePillCompact: {
+    flexShrink: 0,
+    justifyContent: 'center',
+  },
+  footerPricePillFull: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  negotiableText: {
+    fontSize: 11,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primary,
+    lineHeight: 15,
+    writingDirection: 'rtl',
+    textAlign: 'center',
+  },
   budgetValText: {
     fontSize: 11.5,
     fontFamily: 'Almarai_800ExtraBold',
     color: Colors.accent,
-    lineHeight: 15,
+    lineHeight: 16,
     writingDirection: 'rtl',
   },
   cardActionsRow: {
