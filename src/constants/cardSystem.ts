@@ -17,7 +17,7 @@ export const CardSystem = {
   glass: {
     outerRadius: 16,
     capsuleRadius: 10,
-    cardTint: 'rgba(255, 255, 255, 0.86)',
+    cardTint: 'rgba(255, 255, 255, 0.81)',
     cardBorderColor: Colors.border,
     capsuleTint: 'rgba(238, 242, 245, 0.55)',
     capsuleBlurWashBg: 'rgba(238, 242, 245, 0.82)',
