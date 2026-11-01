@@ -239,7 +239,7 @@ function GlassSurfaceView({
       <BlurView
         intensity={intensity}
         tint={tint}
-        experimentalBlurMethod={BottomBarTokens.blurMethod}
+        blurMethod={BottomBarTokens.blurMethod}
         style={StyleSheet.absoluteFill}
       />
       <View

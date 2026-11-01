@@ -276,7 +276,7 @@ export default function EditOperatorScreen() {
         <BlurView
           intensity={60}
           tint="light"
-          experimentalBlurMethod="dimezisBlurView"
+          blurMethod="dimezisBlurView"
           style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
         >
           <View style={s.footerWhiteWash} pointerEvents="none" />

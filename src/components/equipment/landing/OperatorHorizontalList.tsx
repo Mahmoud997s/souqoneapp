@@ -59,6 +59,7 @@ export function OperatorHorizontalList({
           <HorizontalScrollCard
             key="loading-skeleton"
             data={[1, 2, 3]}
+            trackPendingIndex
             cardWidth={cardWidth}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
@@ -73,6 +74,7 @@ export function OperatorHorizontalList({
           <HorizontalScrollCard
             key="loaded-operators"
             data={data}
+            trackPendingIndex
             cardWidth={cardWidth}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}

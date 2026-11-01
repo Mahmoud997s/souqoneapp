@@ -59,6 +59,7 @@ export function EquipmentHorizontalList({
             cardWidth={CARD_WIDTH}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
+            trackPendingIndex
             keyExtractor={(item) => String(item)}
             renderItem={() => (
               <SkeletonCard style={{ width: CARD_WIDTH }} />
@@ -73,6 +74,7 @@ export function EquipmentHorizontalList({
             cardWidth={CARD_WIDTH}
             gap={Spacing.space3}
             paddingEnd={Spacing.space5}
+            trackPendingIndex
             keyExtractor={(item) => item.id}
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"

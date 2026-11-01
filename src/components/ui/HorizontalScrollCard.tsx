@@ -94,6 +94,8 @@ export interface HorizontalScrollCardProps<T> {
   depthEffect?: boolean
   /** Optional override for reduced motion setting */
   reducedMotion?: boolean
+  /** Track the pending snap target during animation for consecutive swipes. */
+  trackPendingIndex?: boolean
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -203,6 +205,7 @@ export function HorizontalScrollCard<T>({
   testID,
   depthEffect = false,
   reducedMotion: reducedMotionProp,
+  trackPendingIndex = false,
 }: HorizontalScrollCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH)
   const [measuredHeight, setMeasuredHeight] = useState<number | undefined>(cardHeight)
@@ -228,6 +231,7 @@ export function HorizontalScrollCard<T>({
     momentumFactor,
     velocityThreshold,
     dragThresholdRatio,
+    trackPendingIndex,
   })
 
 

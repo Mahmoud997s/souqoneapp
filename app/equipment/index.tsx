@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, StatusBar, InteractionManager } from 'react-native'
+import { View, StyleSheet, StatusBar } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated from 'react-native-reanimated'
@@ -21,6 +21,7 @@ import { EquipmentHowItWorks } from '../../src/components/equipment/landing/Equi
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar'
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction'
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons'
+import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask'
 
 const MOCK_OPERATORS = [
   {
@@ -69,10 +70,14 @@ export default function EquipmentLandingScreen() {
 
   const [loadRest, setLoadRest] = useState(false)
   React.useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => setLoadRest(true), 150)
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    const task = scheduleIdleTask(() => {
+      timeout = setTimeout(() => setLoadRest(true), 150)
     })
-    return () => task.cancel()
+    return () => {
+      task.cancel()
+      if (timeout) clearTimeout(timeout)
+    }
   }, [])
 
   // Data fetching logic (Matching Cars & Buses architecture)

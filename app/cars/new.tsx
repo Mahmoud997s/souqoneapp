@@ -485,7 +485,7 @@ export default function NewCarListingScreen() {
         <BlurView
           intensity={60}
           tint="light"
-          experimentalBlurMethod="dimezisBlurView"
+          blurMethod="dimezisBlurView"
           style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
         >
           {/* Same wash + tint formula as GlassNavBar, so the footer matches the header */}
