@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
@@ -11,11 +11,17 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Typography } from '../../constants/typography'
 import { Gradients } from '../../constants/gradients'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
+import { TopBarTokens } from '../../constants/topBarTokens'
+
+const APP_HEADER_BUTTON_SIZE = 32
+const APP_HEADER_BUTTON_RADIUS = 16
+const APP_HEADER_BUTTON_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 }
 
 interface AppHeaderProps {
   title?: string
-  leftIcon?: string
-  rightIcon?: string
+  leftIcon?: ComponentProps<typeof Ionicons>['name']
+  rightIcon?: ComponentProps<typeof Ionicons>['name']
   onLeftPress?: () => void
   onRightPress?: () => void
   leftSlot?: ReactNode
@@ -24,6 +30,7 @@ interface AppHeaderProps {
   showBack?: boolean
   variant?: 'default' | 'jobs'
   theme?: 'dark' | 'light'
+  glassBackground?: boolean
 }
 
 export function AppHeader({
@@ -38,6 +45,7 @@ export function AppHeader({
   showBack,
   variant = 'default',
   theme = 'dark',
+  glassBackground = true,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets()
   const isLight = theme === 'light'
@@ -47,7 +55,7 @@ export function AppHeader({
       style={[
         s.header, 
         { paddingTop: insets.top },
-        isLight && { 
+        isLight && !glassBackground && {
           backgroundColor: Colors.white,
           borderBottomWidth: 1,
           borderBottomColor: '#F1F5F9',
@@ -55,12 +63,13 @@ export function AppHeader({
         }
       ]}
     >
+      {glassBackground && <TopBarGlassSurface testID="browse-header" kind="background" />}
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />
-      {!isLight && (
+      {!isLight && !glassBackground && (
         <>
           <LinearGradient
             colors={Gradients.hero as any}
@@ -87,19 +96,44 @@ export function AppHeader({
           leftSlot
         ) : showBack ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            testID="app-header-back"
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onLeftPress || (() => router.back())}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-forward-outline" size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-back-glass"
+                kind="ice-control"
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
+              />
+            )}
+            <Ionicons
+              name="arrow-forward-outline"
+              size={18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : leftIcon ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onLeftPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={leftIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-left-icon-glass"
+                kind="ice-control"
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
+              />
+            )}
+            <Ionicons
+              name={leftIcon}
+              size={18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -109,7 +143,7 @@ export function AppHeader({
         {centerSlot ? (
           centerSlot
         ) : title ? (
-          <Text style={[s.title, isLight && s.titleLight]} numberOfLines={1}>
+          <Text style={[s.title, (isLight || glassBackground) && s.titleLight]} numberOfLines={1}>
             {title}
           </Text>
         ) : (
@@ -121,11 +155,23 @@ export function AppHeader({
           rightSlot
         ) : rightIcon ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onRightPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={rightIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-right-glass"
+                kind="ice-control"
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
+              />
+            )}
+            <Ionicons
+              name={rightIcon}
+              size={18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -153,11 +199,11 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
   },
   iconBtn: {
-    width: 32,
-    height: 32,
+    width: APP_HEADER_BUTTON_SIZE,
+    height: APP_HEADER_BUTTON_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: APP_HEADER_BUTTON_RADIUS,
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   title: {
@@ -177,6 +223,12 @@ const s = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  iconBtnGlass: {
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
   },
   spacer: { width: 32 },
 })

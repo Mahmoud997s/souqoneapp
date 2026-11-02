@@ -61,6 +61,7 @@ export const TopBarTokens = {
   buttonBorderWidth: 1,
   buttonIconSize: 19,
   buttonIconColor: Colors.primary,
+  legacyNavIconColor: '#1E293B',
   buttonHitSlop: { top: 3, bottom: 3, left: 3, right: 3 }, // 38 + 6 = 44 minimum touch target
   buttonShadow: {
     shadowColor: Colors.primaryDark,

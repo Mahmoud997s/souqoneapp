@@ -4,6 +4,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
+import { TopBarTokens } from '../../constants/topBarTokens'
+
+const NAV_BUTTON_SIZE = 38
+const NAV_BUTTON_RADIUS = 12
 
 export interface GlassNavBarAction {
   icon?: React.ComponentProps<typeof Ionicons>['name']
@@ -23,6 +28,7 @@ export interface GlassNavBarProps {
   actions?: GlassNavBarAction[]
   hideBottomBorder?: boolean
   isTransparent?: boolean
+  appearance?: 'default' | 'home'
   support?: GlassSupport
   testID?: string
 }
@@ -44,39 +50,64 @@ export function GlassNavBar({
   actions = [],
   hideBottomBorder = false,
   isTransparent = false,
+  appearance = 'home',
   support,
   testID = 'glass-nav-bar',
 }: GlassNavBarProps) {
+  const isHomeAppearance = appearance === 'home'
   const content = (
     <>
       {!isTransparent && (
-        <>
-          <GlassSurface
-            testID="glass-nav-bar-surface"
-            variant="surface"
-            intensity={60}
-            washColor={Colors.white}
-            washOpacity={BottomBarTokens.lightWashOpacity}
-            noBorder
-            support={support}
-          />
-          <View style={s.tintOverlay} pointerEvents="none" testID="glass-nav-bar-tint" />
-        </>
+        isHomeAppearance ? (
+          <TopBarGlassSurface testID={`${testID}-background`} kind="background" />
+        ) : (
+          <>
+            <GlassSurface
+              testID="glass-nav-bar-surface"
+              variant="surface"
+              intensity={60}
+              washColor={Colors.white}
+              washOpacity={BottomBarTokens.lightWashOpacity}
+              noBorder
+              support={support}
+            />
+            <View style={s.tintOverlay} pointerEvents="none" testID="glass-nav-bar-tint" />
+          </>
+        )
       )}
 
       <View style={s.navBarRow}>
         {/* Back Button (Right in RTL) */}
         <TouchableOpacity
-          style={s.navBtn}
+          style={[s.navBtn, isHomeAppearance && s.navBtnHome]}
+          hitSlop={isHomeAppearance ? TopBarTokens.buttonHitSlop : undefined}
           activeOpacity={0.75}
           onPress={onBackPress}
           accessibilityLabel="رجوع"
         >
-          <Ionicons name="arrow-forward-outline" size={18} color="#1E293B" />
+          {isHomeAppearance && (
+            <TopBarGlassSurface
+              testID={`${testID}-back-glass`}
+              kind="ice-control"
+              borderRadius={NAV_BUTTON_RADIUS}
+            />
+          )}
+          <Ionicons
+            name="arrow-forward-outline"
+            size={18}
+            color={TopBarTokens.legacyNavIconColor}
+          />
         </TouchableOpacity>
 
         {/* Title Badge (flex:1) */}
-        <View style={s.navTitleBadge}>
+        <View style={[s.navTitleBadge, isHomeAppearance && s.navTitleBadgeHome]}>
+          {isHomeAppearance && (
+            <TopBarGlassSurface
+              testID={testID + '-title-glass'}
+              kind="ice-control"
+              borderRadius={NAV_BUTTON_RADIUS}
+            />
+          )}
           <Text style={s.navTitle} numberOfLines={1}>{title}</Text>
         </View>
 
@@ -85,23 +116,46 @@ export function GlassNavBar({
           <View style={s.navActions}>
             {actions.map((action, idx) => {
               const isDisabled = action.disabled || action.loading
+              const actionContent = action.loading ? (
+                <ActivityIndicator size="small" color={action.iconColor || Colors.primary} />
+              ) : action.customContent ? (
+                action.customContent
+              ) : action.icon ? (
+                <Ionicons
+                  name={action.icon}
+                  size={17}
+                  color={
+                    action.iconColor ||
+                    TopBarTokens.legacyNavIconColor
+                  }
+                />
+              ) : null
+
               return (
                 <TouchableOpacity
                   key={idx}
                   testID={action.testID}
-                  style={[s.navBtn, isDisabled && s.navBtnDisabled]}
+                  style={[
+                    s.navBtn,
+                    isHomeAppearance && s.navBtnHome,
+                    isDisabled && !isHomeAppearance && s.navBtnDisabled,
+                  ]}
+                  hitSlop={isHomeAppearance ? TopBarTokens.buttonHitSlop : undefined}
                   activeOpacity={0.75}
                   onPress={action.onPress}
                   disabled={isDisabled}
                   accessibilityLabel={action.accessibilityLabel}
                 >
-                  {action.loading ? (
-                    <ActivityIndicator size="small" color={action.iconColor || Colors.primary} />
-                  ) : action.customContent ? (
-                    action.customContent
-                  ) : action.icon ? (
-                    <Ionicons name={action.icon} size={17} color={action.iconColor || '#1E293B'} />
-                  ) : null}
+                  {isHomeAppearance && (
+                    <TopBarGlassSurface
+                      testID={`${testID}-action-${idx}-glass`}
+                      kind="ice-control"
+                      borderRadius={NAV_BUTTON_RADIUS}
+                    />
+                  )}
+                  {isDisabled && isHomeAppearance ? (
+                    <View style={s.disabledHomeContent}>{actionContent}</View>
+                  ) : actionContent}
                 </TouchableOpacity>
               )
             })}
@@ -174,9 +228,9 @@ const s = StyleSheet.create({
     gap: 8,
   },
   navBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    borderRadius: NAV_BUTTON_RADIUS,
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.8)',
@@ -184,9 +238,18 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     ...softShadow,
   },
+  navBtnHome: {
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    borderRadius: NAV_BUTTON_RADIUS,
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
+  },
   navBtnPlaceholder: {
-    width: 38,
-    height: 38,
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
   },
   navTitleBadge: {
     flex: 1,
@@ -199,6 +262,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...softShadow,
+  },
+  navTitleBadgeHome: {
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
   },
   navTitle: {
     fontFamily: 'Almarai_800ExtraBold',
@@ -214,6 +283,9 @@ const s = StyleSheet.create({
     gap: 6,
   },
   navBtnDisabled: {
+    opacity: 0.6,
+  },
+  disabledHomeContent: {
     opacity: 0.6,
   },
 })

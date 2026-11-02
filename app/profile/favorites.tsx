@@ -152,6 +152,7 @@ export default function FavoritesScreen() {
         />
       )}
       <GlassNavBar
+        appearance="home"
         title="المفضلة"
         paddingTop={insets.top}
         onBackPress={() => router.back()}

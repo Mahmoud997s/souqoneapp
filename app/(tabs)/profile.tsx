@@ -34,6 +34,7 @@ export default function ProfileScreen() {
 
       {/* ── Fixed Top Navigation Bar ── */}
       <GlassNavBar
+        appearance="home"
         title="الملف الشخصي"
         paddingTop={insets.top}
         onBackPress={handleBack}

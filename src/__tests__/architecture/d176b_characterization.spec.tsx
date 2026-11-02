@@ -127,6 +127,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
           title="شريط التنقل"
           paddingTop={44}
           onBackPress={jest.fn()}
+          appearance="default"
           support={fallbackSupport}
         />
       )
@@ -414,6 +415,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
           title="اختبار السن"
           paddingTop={44}
           onBackPress={jest.fn()}
+          appearance="default"
           support={fallbackSupport}
         />
       )
