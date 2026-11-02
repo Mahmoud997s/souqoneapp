@@ -44,7 +44,7 @@ No forbidden auth route imports AppHeader. app/profile/delete-account.tsx also d
 | app/profile/subscription.tsx | AppHeader | dark default | back, title | Global AppHeader change |
 | app/profile/settings.tsx | GlassNavBar | light | back, title | Already glass but not the Home ice control recipe; outside the explicit custom-header restyle list, leave unchanged |
 | app/profile/change-password.tsx | GlassNavBar | light | back, title, save action | Already glass; leave unchanged |
-| app/profile/delete-account.tsx | GlassNavBar | light | back, title, retry/cancel actions | Forbidden file; leave unchanged; not an AppHeader user |
+| app/profile/delete-account.tsx | GlassNavBar | light → Home (shared default) | back, title, retry/cancel actions | Route file remains untouched and inherits the shared GlassNavBar Home appearance; not an AppHeader user |
 | app/profile/[userId].tsx | PublicProfileTopBar | light | back + centered title | GlassSurface white wash; custom, not AppHeader; leave unchanged |
 | app/(tabs)/index.tsx (Home), app/{buses,cars,equipment,parts,services}/index.tsx | AnimatedHeroHeader (six route files) | light glass | back/custom right element, title/subtitle, search, chat/notification actions | Already uses GlassSurface, tint/grid, and iceGlass controls; leave unchanged |
 | app/{buses,cars,equipment,equipment/operators,parts,services}/browse.tsx (six route files) | BrowseHeader | light | back, search, filter | Already uses the new glass/ice recipe; leave unchanged |
@@ -68,9 +68,9 @@ Other active AppHeader users not in profile pages are the four post steps and re
 2. The app variant of ProfilePhoneGuardView used in post step 2.
 3. Four GlassNavBar profile routes explicitly named by Mahmoud: profile tab, my listings, favorites, edit profile.
 4. Existing BrowseHeader routes already pass glassBackground and use ice controls, so the default change does not alter them.
-5. No auth route or delete-account screen changes: neither uses AppHeader; delete-account remains on its own GlassNavBar.
+5. No auth route or delete-account route-file changes: neither uses AppHeader; delete-account remains on its own GlassNavBar and inherits the shared Home appearance.
 
-The AppHeader change must apply the same background surface and iceGlass controls in both light and dark themes, use dark readable title/icon colors on glass, keep all controls and callbacks, and retain glassBackground=false as an escape hatch. A profile-only GlassNavBar appearance option must be opt-in to avoid changing settings, password, deletion, posting, drafts, and vertical wizard screens.
+The AppHeader change must apply the same background surface and iceGlass controls in both light and dark themes, use dark readable title/icon colors on glass, keep all controls and callbacks, and retain glassBackground=false as an escape hatch. PR #80 uses Home as the shared GlassNavBar default, so callers that omit appearance—including settings, password, deletion, posting, drafts, and vertical wizard screens—inherit that appearance while their route files remain untouched.
 
 ## Source-search evidence
 
@@ -92,4 +92,4 @@ The AppHeader change must apply the same background surface and iceGlass control
 
 ## Next phase
 
-Characterization specs must be committed before source changes: default AppHeader glass surface, light and dark themes, back/no-back, right slot/icon, contrast and explicit legacy escape hatch; GlassNavBar profile-only home recipe; smoke render coverage for affected route groups. Then change AppHeader's default and the four named profile GlassNavBar routes. No code change has started in this inventory phase.
+Characterization specs must be committed before source changes: default AppHeader glass surface, light and dark themes, back/no-back, right slot/icon, contrast and explicit legacy escape hatch; GlassNavBar shared Home appearance plus its explicit legacy escape hatch; smoke render coverage for affected route groups. Then change AppHeader's default and make Home the shared GlassNavBar default. No code change has started in this inventory phase.
