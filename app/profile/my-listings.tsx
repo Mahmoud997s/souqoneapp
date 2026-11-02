@@ -123,6 +123,7 @@ export default function MyListingsScreen() {
 
       {/* Fixed Profile Style Navigation Bar */}
       <GlassNavBar
+        appearance="home"
         title="إعلاناتي"
         paddingTop={insets.top}
         onBackPress={() => router.back()}

@@ -73,6 +73,7 @@ export default function EditProfileScreen() {
     <View style={s.root}>
       {/* ── Fixed Navigation Bar (Back, Title, Messages, Save) ── */}
       <GlassNavBar
+        appearance="home"
         title="تعديل الملف الشخصي"
         paddingTop={insets.top}
         onBackPress={handleBackPress}

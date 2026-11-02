@@ -52,10 +52,24 @@ const profileScreens: Array<{
 
 describe('GlassNavBar profile-only Home recipe', () => {
   test('keeps the default glass recipe unchanged for other routes', () => {
-    const renderer = renderNavBar({ title: 'إعدادات الحساب', paddingTop: 24, onBackPress: jest.fn() })
+    const renderer = renderNavBar({
+      title: 'إعدادات الحساب',
+      paddingTop: 24,
+      onBackPress: jest.fn(),
+      actions: [
+        {
+          icon: 'filter-outline',
+          onPress: jest.fn(),
+          accessibilityLabel: 'تصفية',
+        },
+      ],
+    })
+    const icons = renderer.root.findAll((node) => String(node.type) === 'Ionicons')
 
-    expect(renderer.root.findAllByType('TopBarGlassSurface')).toHaveLength(0)
-    expect(renderer.root.findAllByType('GlassSurface')).toHaveLength(1)
+    expect(renderer.root.findAll((node) => String(node.type) === 'TopBarGlassSurface')).toHaveLength(0)
+    expect(renderer.root.findAll((node) => String(node.type) === 'GlassSurface')).toHaveLength(1)
+    expect(icons).toHaveLength(2)
+    expect(icons.every((icon) => icon.props.color === TopBarTokens.legacyNavIconColor)).toBe(true)
   })
 
   test.each(profileScreens)('smoke renders the $name route controls', ({ title, actions }) => {
@@ -67,7 +81,7 @@ describe('GlassNavBar profile-only Home recipe', () => {
       appearance: 'home',
     }
     const renderer = renderNavBar(props)
-    const surfaces = renderer.root.findAllByType('TopBarGlassSurface')
+    const surfaces = renderer.root.findAll((node) => String(node.type) === 'TopBarGlassSurface')
     const iceControls = surfaces.filter((surface) => surface.props.kind === 'ice-control')
     const backButton = renderer.root.findAllByType(TouchableOpacity)[0]
     const backStyle = StyleSheet.flatten(backButton.props.style)
@@ -80,5 +94,6 @@ describe('GlassNavBar profile-only Home recipe', () => {
       borderRadius: TopBarTokens.buttonRadius,
       backgroundColor: TopBarTokens.iceGlass,
     })
+    expect(backButton.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
   })
 })

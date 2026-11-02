@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
@@ -12,11 +12,12 @@ import { Typography } from '../../constants/typography'
 import { Gradients } from '../../constants/gradients'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { TopBarGlassSurface } from './TopBarGlassSurface'
+import { TopBarTokens } from '../../constants/topBarTokens'
 
 interface AppHeaderProps {
   title?: string
-  leftIcon?: string
-  rightIcon?: string
+  leftIcon?: ComponentProps<typeof Ionicons>['name']
+  rightIcon?: ComponentProps<typeof Ionicons>['name']
   onLeftPress?: () => void
   onRightPress?: () => void
   leftSlot?: ReactNode
@@ -40,7 +41,7 @@ export function AppHeader({
   showBack,
   variant = 'default',
   theme = 'dark',
-  glassBackground = false,
+  glassBackground = true,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets()
   const isLight = theme === 'light'
@@ -91,19 +92,44 @@ export function AppHeader({
           leftSlot
         ) : showBack ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            testID="app-header-back"
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
             onPress={onLeftPress || (() => router.back())}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-forward-outline" size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-back-glass"
+                kind="ice-control"
+                borderRadius={TopBarTokens.buttonRadius}
+              />
+            )}
+            <Ionicons
+              name="arrow-forward-outline"
+              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : leftIcon ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
             onPress={onLeftPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={leftIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-left-icon-glass"
+                kind="ice-control"
+                borderRadius={TopBarTokens.buttonRadius}
+              />
+            )}
+            <Ionicons
+              name={leftIcon}
+              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -113,7 +139,7 @@ export function AppHeader({
         {centerSlot ? (
           centerSlot
         ) : title ? (
-          <Text style={[s.title, isLight && s.titleLight]} numberOfLines={1}>
+          <Text style={[s.title, (isLight || glassBackground) && s.titleLight]} numberOfLines={1}>
             {title}
           </Text>
         ) : (
@@ -125,11 +151,23 @@ export function AppHeader({
           rightSlot
         ) : rightIcon ? (
           <TouchableOpacity
-            style={[s.iconBtn, isLight && s.iconBtnLight]}
+            style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
+            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
             onPress={onRightPress}
             activeOpacity={0.7}
           >
-            <Ionicons name={rightIcon as any} size={18} color={isLight ? Colors.text : Colors.white} />
+            {glassBackground && (
+              <TopBarGlassSurface
+                testID="app-header-right-glass"
+                kind="ice-control"
+                borderRadius={TopBarTokens.buttonRadius}
+              />
+            )}
+            <Ionicons
+              name={rightIcon}
+              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
+            />
           </TouchableOpacity>
         ) : (
           <View style={s.spacer} />
@@ -181,6 +219,15 @@ const s = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  iconBtnGlass: {
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
   },
   spacer: { width: 32 },
 })

@@ -54,6 +54,7 @@ describe('AppHeader Home glass default', () => {
       borderRadius: TopBarTokens.buttonRadius,
       backgroundColor: TopBarTokens.iceGlass,
     })
+    expect(backButton.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
     expect(renderer.root.findByType(Text).props.style).toContainEqual(
       expect.objectContaining({ color: Colors.text }),
     )
@@ -71,7 +72,11 @@ describe('AppHeader Home glass default', () => {
 
     expect(renderer.root.findAllByProps({ testID: 'browse-header' })).toHaveLength(1)
     expect(renderer.root.findAllByProps({ testID: 'app-header-back-glass' })).toHaveLength(1)
-    expect(renderer.root.findAllByProps({ testID: 'notification-mark-all-read' })).toHaveLength(1)
+    expect(
+      renderer.root
+        .findAllByType(View)
+        .some(({ props }) => props.testID === 'notification-mark-all-read'),
+    ).toBe(true)
   })
 
   test('uses an ice-glass right icon button in the dark theme', () => {
@@ -88,6 +93,7 @@ describe('AppHeader Home glass default', () => {
       borderRadius: TopBarTokens.buttonRadius,
       backgroundColor: TopBarTokens.iceGlass,
     })
+    expect(button.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
   })
 
   test('keeps an explicit legacy escape hatch', () => {
@@ -95,8 +101,8 @@ describe('AppHeader Home glass default', () => {
       <AppHeader title="Legacy" showBack glassBackground={false} />,
     )
 
-    expect(renderer.root.findAllByType('TopBarGlassSurface')).toHaveLength(0)
-    expect(renderer.root.findAllByType('LinearGradient')).toHaveLength(1)
+    expect(renderer.root.findAll((node) => String(node.type) === 'TopBarGlassSurface')).toHaveLength(0)
+    expect(renderer.root.findAll((node) => String(node.type) === 'LinearGradient')).toHaveLength(1)
   })
 
   test('smoke renders the post, notifications, subscription, and reviews route props', () => {
