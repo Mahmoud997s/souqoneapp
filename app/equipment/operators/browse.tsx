@@ -39,6 +39,8 @@ import {
 import { OperatorFilterState } from '../../../src/types/filters.types'
 import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
+import { EquipmentBottomBar } from '../../../src/components/equipment/EquipmentBottomBar'
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../../src/components/navigation/UnifiedBottomBar'
 
 /**
  * Builds backend query parameters for operator listings.
@@ -325,7 +327,7 @@ export default function BrowseOperatorsScreen() {
           s.listContent,
           {
             paddingTop: Spacing.space2,
-            paddingBottom: Math.max(insets.bottom, 16) + 8,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -441,6 +443,8 @@ export default function BrowseOperatorsScreen() {
         }}
         resultsCount={operators.length}
       />
+
+      <EquipmentBottomBar />
     </View>
   )
 }

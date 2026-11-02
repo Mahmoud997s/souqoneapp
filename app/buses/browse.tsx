@@ -33,6 +33,8 @@ import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
+import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 const DROPDOWN_FILTERS = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
@@ -359,7 +361,10 @@ export default function BusesBrowseScreen() {
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={[
           s.listContent,
-          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
+          {
+            paddingTop: Spacing.space2,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -458,6 +463,8 @@ export default function BusesBrowseScreen() {
         brands={manufacturers || []}
         isBus={true}
       />
+
+      <BusesBottomBar />
     </View>
   );
 }

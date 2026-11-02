@@ -50,18 +50,40 @@ export function useDepartmentBottomBar({
   scrollAware = true,
 }: DepartmentBottomBarConfig) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = typeof usePathname === 'function' ? usePathname() : undefined;
   const { isLoggedIn } = useAuthStore();
   const { set } = usePostStore();
 
-  const [activeTab, setActiveTab] = useState('home');
+  // Derive default active tab from current route if matched in customTabs, else fallback to 'home'
+  const getInitialTab = useCallback(() => {
+    if (customTabs && pathname) {
+      const cleanPath = pathname.split('?')[0].replace(/\/+$/, '');
+      const match = customTabs.find((t) => {
+        if (!t.route) return false;
+        const tabPath = t.route.split('?')[0].replace(/\/+$/, '');
+        return tabPath === cleanPath;
+      });
+      if (match) return match.id;
+    }
+    return 'home';
+  }, [customTabs, pathname]);
 
-  // Always reset activeTab to 'home' whenever the department screen comes into focus
-  useFocusEffect(
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  const safeFocusEffect = typeof useFocusEffect === 'function' ? useFocusEffect : useEffect;
+
+  // Sync activeTab whenever the department screen comes into focus or route changes
+  safeFocusEffect(
     useCallback(() => {
-      setActiveTab('home');
-    }, [])
+      const initial = getInitialTab();
+      setActiveTab((prev) => (prev !== initial ? initial : prev));
+    }, [getInitialTab])
   );
+
+  useEffect(() => {
+    const initial = getInitialTab();
+    setActiveTab((prev) => (prev !== initial ? initial : prev));
+  }, [getInitialTab]);
 
   const tabs: BottomBarTabItem[] = useMemo(() => {
     if (customTabs && customTabs.length > 0) {
