@@ -25,11 +25,25 @@ export interface SellerCardProps {
  * membership label, account type badge, and chevron.
  */
 export function SellerCard({ seller, onPressProfile, support }: SellerCardProps) {
+  const sellerName = seller.name.trim()
+  const accessibilityDetails = [
+    sellerName,
+    seller.isVerified ? 'موثق' : undefined,
+    seller.accountType?.trim(),
+    seller.memberSinceLabel?.trim(),
+  ].filter(Boolean)
+
   return (
     <TouchableOpacity
       onPress={() => onPressProfile(seller.id)}
       activeOpacity={0.75}
       testID="seller-card-touchable"
+      accessibilityRole="button"
+      accessibilityLabel={
+        accessibilityDetails.length > 0
+          ? `ملف البائع ${accessibilityDetails.join('، ')}`
+          : 'ملف البائع'
+      }
       style={s.wrapper}
     >
       <View style={s.card} testID="seller-card-container">

@@ -70,6 +70,7 @@ export function ContactActions({
   }
 
   const isSticky = variant === 'sticky'
+  const buttonSizeStyle = isSticky ? null : s.inlineButton
 
   const animatedStickyStyle = useAnimatedStyle(() => {
     if (!scrollY) {
@@ -93,6 +94,7 @@ export function ContactActions({
       <TouchableOpacity
         style={[
           s.button,
+          buttonSizeStyle,
           s.chatButton,
           availability.mode === 'chatOnly' && s.fullWidthButton,
         ]}
@@ -118,7 +120,7 @@ export function ContactActions({
       {/* WhatsApp Action (only in full mode) */}
       {availability.mode === 'full' ? (
         <TouchableOpacity
-          style={[s.button, s.whatsappButton]}
+          style={[s.button, buttonSizeStyle, s.whatsappButton]}
           onPress={onWhatsApp}
           disabled={busy}
           activeOpacity={0.8}
@@ -138,7 +140,7 @@ export function ContactActions({
       {/* Call Action (in full & noWhatsapp modes) */}
       {availability.mode === 'full' || availability.mode === 'noWhatsapp' ? (
         <TouchableOpacity
-          style={[s.button, s.callButton]}
+          style={[s.button, buttonSizeStyle, s.callButton]}
           onPress={onCall}
           disabled={busy}
           activeOpacity={0.8}
@@ -220,6 +222,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Radius.md,
     gap: 6,
+  },
+  inlineButton: {
+    height: Spacing.touch,
   },
   fullWidthButton: {
     flex: 1,
