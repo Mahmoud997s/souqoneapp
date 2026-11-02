@@ -1,12 +1,13 @@
 import React from 'react'
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup, waitFor } from '@testing-library/react-native'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceDetailScreen } from '../ServiceDetailScreen'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { dialogService } from '../../../store/dialogStore'
 import { servicesApi } from '../../../api/services'
 import { useServiceWizardStore } from '../../../store/serviceWizardStore'
 import * as queryKeys from '../hooks/serviceQueryKeys'
-import type { Service } from '../../../types/listing.types'
+import type { ServiceDetailResponse } from '../../../types/serviceDetailResponse.types'
 
 jest.setTimeout(25000)
 
@@ -14,6 +15,8 @@ jest.setTimeout(25000)
 
 const mockRouterPush = jest.fn()
 const mockRouterBack = jest.fn()
+let mockUseActualQueryClient = false
+let mockUseActualServiceDetail = false
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -27,10 +30,12 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query')
   return {
     ...actual,
-    useQueryClient: () => ({
-      invalidateQueries: jest.fn(),
-      removeQueries: jest.fn(),
-    }),
+    useQueryClient: () => mockUseActualQueryClient
+      ? actual.useQueryClient()
+      : {
+          invalidateQueries: jest.fn(),
+          removeQueries: jest.fn(),
+        },
   }
 })
 
@@ -58,6 +63,7 @@ jest.mock('../../../store/dialogStore', () => ({
 
 jest.mock('../../../api/services', () => ({
   servicesApi: {
+    getById: jest.fn(),
     remove: jest.fn().mockResolvedValue({ success: true }),
   },
 }))
@@ -107,7 +113,7 @@ jest.mock('react-native/Libraries/Share/Share', () => ({
 let mockServiceDetailResult: {
   state: 'loading' | 'ready' | 'notFound' | 'error'
   vm: ServiceDetailViewModel | null
-  raw: Service | null
+  raw: ServiceDetailResponse | null
   refetch: jest.Mock
   error: unknown
   errorKind?: any
@@ -122,7 +128,13 @@ let mockServiceDetailResult: {
 }
 
 jest.mock('../hooks/useServiceDetail', () => ({
-  useServiceDetail: () => mockServiceDetailResult,
+  useServiceDetail: (...args: unknown[]) => {
+    if (mockUseActualServiceDetail) {
+      const actual = jest.requireActual('../hooks/useServiceDetail')
+      return actual.useServiceDetail(...args)
+    }
+    return mockServiceDetailResult
+  },
 }))
 
 // ── FIXTURE BUILDER ─────────────────────────────────────────────────────────
@@ -185,11 +197,12 @@ function makeSampleVm(
   }
 }
 
-function makeSampleRaw(overrides?: Partial<Service>): Service {
+function makeSampleRaw(
+  overrides?: Partial<ServiceDetailResponse>,
+): ServiceDetailResponse {
   return {
     id: 'srv-101',
     title: 'كراج النخبة لصيانة وتعديل السيارات',
-    serviceName: 'كراج النخبة لصيانة وتعديل السيارات',
     description: 'نقدم خدمات صيانة متكاملة لجميع أنواع السيارات باستخدام أحدث الأجهزة',
     serviceType: 'MAINTENANCE',
     providerType: 'WORKSHOP',
@@ -204,8 +217,16 @@ function makeSampleRaw(overrides?: Partial<Service>): Service {
     currency: 'OMR',
     whatsappEnabled: true,
     website: 'https://elite-garage.om',
-    governorate: 'مسقط',
-    city: 'السيب',
+    governorateId: 1,
+    governorateRef: { id: 1, nameAr: 'مسقط', nameEn: 'Muscat', isActive: true },
+    wilayaId: 16,
+    wilayaRef: {
+      id: 16,
+      nameAr: 'السيب',
+      nameEn: 'Seeb',
+      isActive: true,
+      governorateId: 1,
+    },
     address: 'شارع 12 مبنى 45',
     latitude: 23.588,
     longitude: 58.3829,
@@ -243,6 +264,8 @@ describe('ServiceDetailScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockUseActualQueryClient = false
+    mockUseActualServiceDetail = false
     mockCurrentUser = null
     mockServiceDetailResult = {
       state: 'ready',
@@ -252,6 +275,28 @@ describe('ServiceDetailScreen', () => {
       error: null,
       isRefetchError: false,
     }
+  })
+
+  it('renders location from the real response through the detail hook', async () => {
+    mockUseActualQueryClient = true
+    mockUseActualServiceDetail = true
+    jest.mocked(servicesApi.getById).mockResolvedValue({
+      data: makeSampleRaw({ latitude: undefined, longitude: undefined }),
+    } as Awaited<ReturnType<typeof servicesApi.getById>>)
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceDetailScreen id="srv-101" />
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('مسقط - السيب - شارع 12 مبنى 45')).toBeTruthy()
+    })
+    queryClient.clear()
   })
 
   describe('Visitor View', () => {
@@ -279,6 +324,9 @@ describe('ServiceDetailScreen', () => {
       expect(screen.getByText('كراج النخبة لصيانة وتعديل السيارات')).toBeTruthy()
       expect(screen.getByText('15 - 45 ر.ع.')).toBeTruthy()
       expect(screen.getByText('صيانة وإصلاح')).toBeTruthy()
+      expect(
+        screen.getByText('مسقط، السيب، المعبيلة الصناعية - شارع 12 مبنى 45'),
+      ).toBeTruthy()
 
       // Specializations
       expect(screen.getByText('صيانة ميكانيكية')).toBeTruthy()

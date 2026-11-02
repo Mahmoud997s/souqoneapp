@@ -1,13 +1,7 @@
 import { mapServiceDetailViewModel } from '../serviceDetailViewModel'
-import type { Service } from '../../../../types/listing.types'
-import type { UserSummary } from '../../../../types/auth.types'
+import type { ServiceDetailResponse } from '../../../../types/serviceDetailResponse.types'
 
-interface MockSellerSummary extends UserSummary {
-  createdAt?: string
-  governorate?: string
-}
-
-const sampleSellerUser: MockSellerSummary = {
+const sampleSellerUser = {
   id: 'seller-500',
   username: 'alofuq_om',
   displayName: 'كراج الأفق',
@@ -18,48 +12,69 @@ const sampleSellerUser: MockSellerSummary = {
 }
 
 describe('mapServiceDetailViewModel', () => {
-  const sampleService: Service = {
+  const sampleService: ServiceDetailResponse = {
     id: 'srv-100',
     title: 'مركز الأفق لصيانة وتعديل المحركات',
+    slug: 'al-ofuq-service',
+    description: 'نقدم خدمات صيانة السيارات.',
     serviceType: 'MAINTENANCE',
     providerType: 'WORKSHOP',
     providerName: 'كراج الأفق المتطور',
-    isHomeService: true,
     specializations: ['تغيير زيت وفلاتر', 'ميكانيكا عامة', 'إصلاح تكييف'],
-    description: 'نقدم خدمات صيانة السيارات الشاملة بأحدث أجهزة الفحص.',
-    priceFrom: 15,
-    priceTo: 45,
+    isHomeService: true,
+    priceFrom: '15',
+    priceTo: '45',
     currency: 'OMR',
-    workingDays: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
     workingHoursOpen: '08:00',
     workingHoursClose: '21:00',
+    workingDays: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
     address: 'شارع المعارض، بجانب محطة شل',
-    website: 'https://al-ofuq-garage.om',
-    whatsappEnabled: true,
-    governorate: 'مسقط',
-    city: 'السيب',
     latitude: 23.6143,
     longitude: 58.5453,
+    contactPhone: null,
+    whatsapp: null,
+    whatsappEnabled: true,
+    website: 'https://al-ofuq-garage.om',
+    status: 'ACTIVE',
+    hiddenByOwnerStatus: false,
+    viewCount: 24,
+    userId: sampleSellerUser.id,
+    version: 1,
+    deletedAt: null,
+    updatedAt: '2026-10-15T10:00:00.000Z',
+    governorateId: 1,
+    governorateRef: { id: 1, nameAr: 'مسقط', nameEn: 'Muscat', isActive: true },
+    wilayaId: 16,
+    wilayaRef: {
+      id: 16,
+      nameAr: 'السيب',
+      nameEn: 'Seeb',
+      isActive: true,
+      governorateId: 1,
+    },
     images: [
       {
         id: 'img-1',
         url: 'https://img.souqone.app/s1.jpg',
         isPrimary: true,
         order: 0,
+        carServiceId: 'srv-100',
+        createdAt: '2026-10-15T10:00:00.000Z',
       },
       {
         id: 'img-2',
         url: 'https://img.souqone.app/s2.jpg',
         isPrimary: false,
         order: 1,
+        carServiceId: 'srv-100',
+        createdAt: '2026-10-15T10:00:00.000Z',
       },
     ],
     createdAt: '2026-10-15T10:00:00.000Z',
-    isPremium: true,
     user: sampleSellerUser,
   }
 
-  it('correctly maps a full Service object with all fields', () => {
+  it('maps a Prisma-shaped service detail response', () => {
     const vm = mapServiceDetailViewModel(sampleService)
 
     expect(vm.id).toBe('srv-100')
@@ -113,13 +128,13 @@ describe('mapServiceDetailViewModel', () => {
   })
 
   it('handles sparse/empty service object with safe fallbacks', () => {
-    const minimal: Service = {
+    const minimal: ServiceDetailResponse = {
       id: 'srv-min',
       title: '',
       serviceType: 'UNKNOWN_TYPE',
       description: '',
-      governorate: '',
-      city: '',
+      governorateRef: null,
+      wilayaRef: null,
       images: [],
       createdAt: 'invalid-date',
     }
@@ -144,7 +159,7 @@ describe('mapServiceDetailViewModel', () => {
   })
 
   it('maps single starting price correctly', () => {
-    const service: Service = {
+    const service: ServiceDetailResponse = {
       ...sampleService,
       priceFrom: 25,
       priceTo: undefined,

@@ -1,6 +1,7 @@
 import { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
 import { Service } from '../types/listing.types'
+import type { ServiceDetailResponse } from '../types/serviceDetailResponse.types'
 import { PaginatedResponse } from '../types/api.types'
 import { PaginationMeta } from '../types/my-listings.types'
 
@@ -8,7 +9,7 @@ export const servicesApi = {
   getAll:  (params?: Record<string, unknown>) =>
              apiClient.get<PaginatedResponse<Service>>('/services', { params }),
   getById: (id: string, config?: AxiosRequestConfig) =>
-             apiClient.get<Service>(`/services/${id}`, config),
+             apiClient.get<ServiceDetailResponse>(`/services/${id}`, config),
   getMy:   (params?: { page?: number; limit?: number }) =>
              apiClient.get<{ items: Service[]; meta: PaginationMeta }>('/services/my', { params }),
   create:  (data: Partial<Service>) => apiClient.post<Service>('/services', data),

@@ -233,8 +233,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
     if (actionId === 'edit') {
       const hasPhone = Boolean(
         user?.phone?.trim() ||
-          (raw as { contactPhone?: string })?.contactPhone ||
-          (raw as { seller?: { phone?: string } })?.seller?.phone,
+          raw?.contactPhone?.trim(),
       )
       if (!hasPhone) {
         if (!assertOwnerHasPhoneForEdit()) {
@@ -254,21 +253,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           workingHoursOpen: raw.workingHoursOpen ?? null,
           workingHoursClose: raw.workingHoursClose ?? null,
           workingDays: raw.workingDays ?? [],
-          priceFrom:
-            raw.priceFrom != null
-              ? Number(raw.priceFrom)
-              : raw.price != null
-              ? Number(raw.price)
-              : null,
+          priceFrom: raw.priceFrom != null ? Number(raw.priceFrom) : null,
           priceTo: raw.priceTo != null ? Number(raw.priceTo) : null,
           currency: raw.currency ?? 'OMR',
           whatsappEnabled: Boolean(raw.whatsappEnabled),
           website: raw.website ?? '',
           governorateId: raw.governorateId ? Number(raw.governorateId) : null,
           wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
-          governorateNameAr:
-            raw.governorateRef?.nameAr ?? raw.governorate ?? '',
-          wilayaNameAr: raw.wilayaRef?.nameAr ?? raw.city ?? '',
+          governorateNameAr: raw.governorateRef?.nameAr ?? '',
+          wilayaNameAr: raw.wilayaRef?.nameAr ?? '',
           address: raw.address ?? '',
           latitude: raw.latitude ?? null,
           longitude: raw.longitude ?? null,
