@@ -47,9 +47,10 @@ export type DetailTopBarProps =
 /**
  * DetailTopBar
  * Shared fixed navigation bar for detail screens (cars, buses, equipment, operators, parts, services).
- * - Placed in normal layout flow at top of root container (NOT position: absolute).
+ * - Positioned absolutely at top of root container (zIndex: 50) like AnimatedHeroHeader
+ *   so scrolling content flows under the glass surface and reveals authentic glassmorphism.
  * - Safe area top padding derived directly from useSafeAreaInsets().top.
- * - Visual styling matches the compact state of AnimatedHeroHeader on the home page (D-160):
+ * - Visual styling matches the compact state of AnimatedHeroHeader on the home page (D-160 / D-182a11):
  *   * Glassmorphic background: BlurView (intensity 65, tint light) + white wash (0.78) + tint overlay (3%) + 5% architectural green grid pattern
  *   * Circular buttons: 38x38 with radius 19, white 0.85, 1px border, soft shadow, Colors.primary icons (19px)
  *   * Minimum 44x44 touch target preserved via hitSlop 3 on 38px circular controls
@@ -92,6 +93,7 @@ export function DetailTopBar(props: DetailTopBarProps) {
         testID="detail-top-bar"
         variant="surface"
         noBorder
+        intensity={TopBarTokens.blurIntensity}
         support={props.support}
       />
       <View style={s.tintOverlay} pointerEvents="none" testID="detail-top-bar-tint" />
@@ -289,11 +291,15 @@ export function DetailTopBar(props: DetailTopBarProps) {
 
 const s = StyleSheet.create({
   container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
     borderBottomWidth: TopBarTokens.borderBottomWidth,
     borderBottomColor: TopBarTokens.borderBottomColor,
     paddingHorizontal: TopBarTokens.rowPaddingHorizontal,
     paddingBottom: TopBarTokens.bottomPad,
-    zIndex: 10,
     overflow: 'hidden',
     ...TopBarTokens.shadow,
   },

@@ -17,6 +17,12 @@ export const TopBarTokens = {
   rowGap: 6,
   topPadOffset: 6,
   bottomPad: 6,
+  /**
+   * Detail top bar fixed body height (excluding insets.top):
+   * topPadOffset (6) + rowHeight (44) + bottomPad (6) = 56.
+   * Total bar height in absolute overlay mode = insets.top + detailTopBarBodyHeight.
+   */
+  detailTopBarBodyHeight: 56,
 
   // Glass Background Layers
   blurIntensity: 65,

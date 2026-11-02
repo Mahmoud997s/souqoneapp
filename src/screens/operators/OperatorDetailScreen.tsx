@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
@@ -208,22 +209,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   return (
     <View style={s.container} testID="operator-detail-screen">
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
-
-      {/* Fixed Top Bar in normal layout flow */}
-      <DetailTopBar
-        onBack={() => router.back()}
-        onShare={handleShare}
-        canFavorite={false}
-      />
-
-      {/* Pinned Stale Data Banner directly below top bar */}
-      {isRefetchError && (
-        <StaleDataBanner
-          onRetry={refetch}
-          isRefetching={refreshing}
-        />
-      )}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <Animated.ScrollView
         testID="operator-detail-scroll-view"
@@ -235,16 +221,26 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
+            progressViewOffset={insets.top + TopBarTokens.detailTopBarBodyHeight}
           />
         }
         contentContainerStyle={[
           s.scrollContent,
           {
+            paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
             paddingBottom: insets.bottom + 90,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Pinned Stale Data Banner inside scroll content below top bar */}
+        {isRefetchError && (
+          <StaleDataBanner
+            onRetry={refetch}
+            isRefetching={refreshing}
+          />
+        )}
+
         {/* Pending Deletion Banner (Owner only) */}
         {isOwner && vm.pendingDeletion && (
           <OperatorPendingDeletionBanner
@@ -343,6 +339,13 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         initialIndex={0}
         onClose={() => setActiveCertificateImage(null)}
         category="operators"
+      />
+
+      {/* Floating Glassmorphic Top Bar (Overlay) */}
+      <DetailTopBar
+        onBack={() => router.back()}
+        onShare={handleShare}
+        canFavorite={false}
       />
     </View>
   )

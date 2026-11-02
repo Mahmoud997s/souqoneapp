@@ -14,12 +14,14 @@ import Animated, {
   useAnimatedStyle,
   FadeInDown,
 } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, router as globalRouter } from 'expo-router'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
@@ -106,6 +108,7 @@ const OWNER_ACTIONS: OwnerAction[] = [
  * Provides full parity with Cars, Buses, and Equipment screens.
  */
 export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
+  const insets = useSafeAreaInsets()
   const router = typeof useRouter === 'function' ? useRouter() : globalRouter
   let queryClient: QueryClient | null = null
   try {
@@ -380,31 +383,9 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
     <View style={s.rootContainer} testID="service-detail-screen">
       <StatusBar
         barStyle="dark-content"
-        backgroundColor={Colors.white}
+        backgroundColor="transparent"
         translucent
       />
-
-      {/* Fixed Glassmorphic Top Bar */}
-      <DetailTopBar
-        onBack={goBackSafely}
-        onShare={handleShare}
-        isFavorite={favoriteToggle.isFavorite}
-        favoriteBusy={favoriteToggle.isBusy}
-        canFavorite={!isOwner}
-        onToggleFavorite={favoriteToggle.toggle}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={handleSearchSubmit}
-        placeholder="ابحث في تفاصيل الخدمة..."
-      />
-
-      {/* Pinned Stale Data Banner directly below top bar */}
-      {isRefetchError && (
-        <StaleDataBanner
-          onRetry={refetch}
-          isRefetching={refreshing}
-        />
-      )}
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
@@ -416,14 +397,26 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
+            progressViewOffset={insets.top + TopBarTokens.detailTopBarBodyHeight}
           />
         }
         contentContainerStyle={[
           s.scrollContent,
-          { paddingBottom: hasBottomBar ? 90 : 40 },
+          {
+            paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
+            paddingBottom: hasBottomBar ? 90 : 40,
+          },
         ]}
         testID="service-detail-scroll-view"
       >
+        {/* Pinned Stale Data Banner inside scroll content below top bar */}
+        {isRefetchError && (
+          <StaleDataBanner
+            onRetry={refetch}
+            isRefetching={refreshing}
+          />
+        )}
+
         {/* 1. Image Gallery */}
         <Animated.View style={heroParallaxStyle}>
           <ImageGallery
@@ -577,6 +570,20 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         initialIndex={galleryIndex}
         onClose={() => setIsViewerOpen(false)}
         category="services"
+      />
+
+      {/* Floating Glassmorphic Top Bar (Overlay) */}
+      <DetailTopBar
+        onBack={goBackSafely}
+        onShare={handleShare}
+        isFavorite={favoriteToggle.isFavorite}
+        favoriteBusy={favoriteToggle.isBusy}
+        canFavorite={!isOwner}
+        onToggleFavorite={favoriteToggle.toggle}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل الخدمة..."
       />
     </View>
   )

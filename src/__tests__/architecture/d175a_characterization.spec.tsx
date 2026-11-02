@@ -49,7 +49,7 @@ describe('D-175a Pre-Change Characterization Tests (Geometry & Behavior Baseline
       expect(rootStyle.paddingBottom).toBe(6)
       expect(rootStyle.paddingTop).toBe(44) // resolved from insets.top
       expect(rootStyle.overflow).toBe('hidden')
-      expect(rootStyle.zIndex).toBe(10)
+      expect(rootStyle.zIndex).toBe(50) // D-182a11 parity with AnimatedHeroHeader stickyHeader (zIndex 50)
     })
 
     it('(b) back button is circular 38x38 with radius 19, hitSlop 3, and primary icon 19', async () => {
