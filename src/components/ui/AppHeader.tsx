@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Typography } from '../../constants/typography'
 import { Gradients } from '../../constants/gradients'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
 
 interface AppHeaderProps {
   title?: string
@@ -24,6 +25,7 @@ interface AppHeaderProps {
   showBack?: boolean
   variant?: 'default' | 'jobs'
   theme?: 'dark' | 'light'
+  glassBackground?: boolean
 }
 
 export function AppHeader({
@@ -38,6 +40,7 @@ export function AppHeader({
   showBack,
   variant = 'default',
   theme = 'dark',
+  glassBackground = false,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets()
   const isLight = theme === 'light'
@@ -47,7 +50,7 @@ export function AppHeader({
       style={[
         s.header, 
         { paddingTop: insets.top },
-        isLight && { 
+        isLight && !glassBackground && {
           backgroundColor: Colors.white,
           borderBottomWidth: 1,
           borderBottomColor: '#F1F5F9',
@@ -55,12 +58,13 @@ export function AppHeader({
         }
       ]}
     >
+      {glassBackground && <TopBarGlassSurface testID="browse-header" kind="background" />}
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />
-      {!isLight && (
+      {!isLight && !glassBackground && (
         <>
           <LinearGradient
             colors={Gradients.hero as any}

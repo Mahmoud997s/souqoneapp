@@ -4,7 +4,7 @@ import { TextInput, TouchableOpacity, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BrowseHeader } from './BrowseHeader'
 import { AppHeader } from './AppHeader'
-import { Colors } from '../../constants/colors'
+import { TopBarTokens } from '../../constants/topBarTokens'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -16,6 +16,7 @@ jest.mock('expo-router', () => ({
     push: jest.fn(),
   },
 }))
+jest.mock('./TopBarGlassSurface', () => ({ TopBarGlassSurface: 'TopBarGlassSurface' }))
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -31,7 +32,7 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
     onSubmitSearch: jest.fn(),
   }
 
-  test('defaults to theme="light" and passes theme="light" to AppHeader', () => {
+  test('opts into the liquid glass header while preserving the light theme', () => {
     let renderer: any
     act(() => {
       renderer = TestRenderer.create(<BrowseHeader {...defaultProps} />)
@@ -39,6 +40,7 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
 
     const appHeader = renderer.root.findByType(AppHeader)
     expect(appHeader.props.theme).toBe('light')
+    expect(appHeader.props.glassBackground).toBe(true)
   })
 
   test('renders light search input styling and placeholder', () => {
@@ -51,12 +53,8 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
 
     const input = renderer.root.findByType(TextInput)
     expect(input.props.value).toBe('تويوتا')
-    expect(input.props.placeholderTextColor).toBe(Colors.placeholder)
-    expect(input.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ color: Colors.text }),
-      ])
-    )
+    expect(input.props.placeholderTextColor).toBe(TopBarTokens.searchPlaceholderColor)
+    expect(input.props.style).toMatchObject({ color: TopBarTokens.searchTextColor })
   })
 
   test('renders filter badge with count when activeFiltersCount > 0', () => {
@@ -107,7 +105,7 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
     expect(onSearchChange).toHaveBeenCalledWith('')
   })
 
-  test('records the current baseline: browse search and filter controls have no testIDs', () => {
+  test('exposes stable IDs and RTL input props for browse controls', () => {
     let renderer: TestRenderer.ReactTestRenderer
     act(() => {
       renderer = TestRenderer.create(
@@ -115,12 +113,15 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
       )
     })
 
-    const controls = [
-      ...renderer!.root.findAllByType(TextInput),
-      ...renderer!.root.findAllByType(TouchableOpacity),
-    ]
-    expect(controls.length).toBe(4)
-    expect(controls.every((control) => control.props.testID === undefined)).toBe(true)
+    expect(renderer!.root.findByProps({ testID: 'browse-header-back' })).toBeDefined()
+    expect(renderer!.root.findByProps({ testID: 'browse-header-filter' })).toBeDefined()
+    expect(renderer!.root.findByProps({ testID: 'browse-header-search-input' }).props).toMatchObject({
+      textAlign: 'left',
+    })
+    expect(renderer!.root.findByProps({ testID: 'browse-header-search-input' }).props.style).toMatchObject({
+      writingDirection: 'rtl',
+    })
+    expect(renderer!.root.findByProps({ testID: 'browse-header-search-clear' })).toBeDefined()
   })
 
   test('triggers onFilterPress when filter icon button is clicked', () => {
@@ -152,5 +153,6 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
 
     const appHeader = renderer.root.findByType(AppHeader)
     expect(appHeader.props.theme).toBe('dark')
+    expect(appHeader.props.glassBackground).toBe(true)
   })
 })

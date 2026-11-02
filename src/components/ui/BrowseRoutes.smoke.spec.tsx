@@ -14,6 +14,7 @@ jest.mock('./AppHeader', () => ({
     <>{centerSlot}{rightSlot}</>
   ),
 }))
+jest.mock('./TopBarGlassSurface', () => ({ TopBarGlassSurface: 'TopBarGlassSurface' }))
 
 const routes = [
   '../../../app/cars/browse.tsx',
@@ -28,6 +29,7 @@ describe('browse route header smoke coverage', () => {
   test.each(routes)('%s wires and renders the shared BrowseHeader', (routePath) => {
     const source = fs.readFileSync(path.join(__dirname, routePath), 'utf8')
     expect(source).toContain('<BrowseHeader')
+    expect(source.indexOf('<BrowseHeader')).toBeLessThan(source.indexOf('<CollapsibleSubHeader'))
 
     let renderer: TestRenderer.ReactTestRenderer
     act(() => {

@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { AppHeader } from './AppHeader';
-import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
-import { Radius } from '../../constants/radius';
+import { TopBarTokens } from '../../constants/topBarTokens';
+import { TopBarGlassSurface } from './TopBarGlassSurface';
 
 export interface BrowseHeaderProps {
   searchQuery: string;
@@ -25,38 +25,56 @@ export function BrowseHeader({
   onSubmitSearch,
   theme = 'light',
 }: BrowseHeaderProps) {
-  const isLight = theme === 'light';
-
   return (
     <AppHeader
       theme={theme}
-      showBack
+      glassBackground
+      leftSlot={
+        <TouchableOpacity
+          testID="browse-header-back"
+          accessibilityRole="button"
+          accessibilityLabel="رجوع"
+          style={s.iconBtn}
+          onPress={() => router.back()}
+          hitSlop={TopBarTokens.buttonHitSlop}
+          activeOpacity={0.7}
+        >
+          <TopBarGlassSurface testID="browse-header-back" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} />
+          <Ionicons name="arrow-forward-outline" size={TopBarTokens.buttonIconSize} color={TopBarTokens.buttonIconColor} />
+        </TouchableOpacity>
+      }
       centerSlot={
-        <View style={[s.compactSearch, isLight && s.compactSearchLight]}>
+        <View testID="browse-header-search" style={s.compactSearch}>
+          <TopBarGlassSurface testID="browse-header-search" kind="ice-control" borderRadius={TopBarTokens.searchRadius} />
           <Ionicons
             name="search"
-            size={16}
-            color={isLight ? Colors.placeholder : 'rgba(255,255,255,0.7)'}
+            size={TopBarTokens.searchIconSize}
+            color={TopBarTokens.searchIconColor}
           />
           <TextInput
-            style={[s.compactInput, isLight && s.compactInputLight]}
+            testID="browse-header-search-input"
+            accessibilityLabel={searchPlaceholder}
+            style={s.compactInput}
             placeholder={searchPlaceholder}
-            placeholderTextColor={isLight ? Colors.placeholder : 'rgba(255,255,255,0.7)'}
+            placeholderTextColor={TopBarTokens.searchPlaceholderColor}
             value={searchQuery}
             onChangeText={onSearchChange}
             onSubmitEditing={onSubmitSearch}
             returnKeyType="search"
-            textAlign="right"
+            textAlign="left"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
+              testID="browse-header-search-clear"
+              accessibilityRole="button"
+              accessibilityLabel="مسح البحث"
               onPress={() => onSearchChange('')}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={TopBarTokens.buttonHitSlop}
             >
               <Ionicons
                 name="close-circle"
-                size={16}
-                color={isLight ? Colors.placeholder : 'rgba(255,255,255,0.7)'}
+                size={TopBarTokens.clearIconSize}
+                color={TopBarTokens.clearIconColor}
               />
             </TouchableOpacity>
           )}
@@ -64,17 +82,22 @@ export function BrowseHeader({
       }
       rightSlot={
         <TouchableOpacity
-          style={[s.iconBtn, isLight && s.iconBtnLight]}
+          testID="browse-header-filter"
+          accessibilityRole="button"
+          accessibilityLabel="تصفية النتائج"
+          style={s.iconBtn}
           onPress={onFilterPress}
           activeOpacity={0.7}
+          hitSlop={TopBarTokens.buttonHitSlop}
         >
+          <TopBarGlassSurface testID="browse-header-filter" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} />
           <Ionicons
             name="options-outline"
-            size={18}
-            color={isLight ? Colors.text : Colors.white}
+            size={TopBarTokens.buttonIconSize}
+            color={TopBarTokens.buttonIconColor}
           />
           {activeFiltersCount > 0 && (
-            <View style={[s.filterBadge, isLight && s.filterBadgeLight]}>
+            <View testID="browse-header-filter-badge" style={s.filterBadge}>
               <Text style={s.filterBadgeText}>{activeFiltersCount}</Text>
             </View>
           )}
@@ -86,45 +109,33 @@ export function BrowseHeader({
 
 const s = StyleSheet.create({
   compactSearch: {
+    position: 'relative',
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    height: 36,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.space3,
-    marginHorizontal: Spacing.space2,
-  },
-  compactSearchLight: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
+    gap: TopBarTokens.searchGap,
+    height: TopBarTokens.searchHeight,
+    borderRadius: TopBarTokens.searchRadius,
+    paddingHorizontal: TopBarTokens.searchPaddingHorizontal,
+    marginHorizontal: TopBarTokens.rowGap,
+    overflow: 'hidden',
   },
   compactInput: {
     flex: 1,
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.white,
-    textAlign: 'right',
+    fontFamily: TopBarTokens.searchFontFamily,
+    fontSize: TopBarTokens.searchFontSize,
+    lineHeight: TopBarTokens.searchLineHeight,
+    color: TopBarTokens.searchTextColor,
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
-  compactInputLight: {
-    color: Colors.text,
-  },
   iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    position: 'relative',
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    borderRadius: TopBarTokens.buttonRadius,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconBtnLight: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
   filterBadge: {
     position: 'absolute',
@@ -133,18 +144,15 @@ const s = StyleSheet.create({
     width: 15,
     height: 15,
     borderRadius: 7.5,
-    backgroundColor: Colors.accent || '#e67e22',
+    backgroundColor: TopBarTokens.buttonIconColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterBadgeLight: {
-    backgroundColor: Colors.primary,
-  },
   filterBadgeText: {
-    fontFamily: 'Almarai_700Bold',
+    fontFamily: TopBarTokens.titleFontFamily,
     fontSize: 9,
     lineHeight: 12,
-    color: Colors.white,
+    color: TopBarTokens.iceGlass,
     textAlign: 'center',
   },
 });
