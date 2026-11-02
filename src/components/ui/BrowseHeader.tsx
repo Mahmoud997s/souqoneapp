@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { AppHeader } from './AppHeader';
 import { TopBarTokens } from '../../constants/topBarTokens';
+import { RTLTextInput } from '../../constants/rtl';
 import { TopBarGlassSurface } from './TopBarGlassSurface';
 
 export interface BrowseHeaderProps {
@@ -54,14 +55,14 @@ export function BrowseHeader({
           <TextInput
             testID="browse-header-search-input"
             accessibilityLabel={searchPlaceholder}
-            style={s.compactInput}
+            style={[s.compactInput, RTLTextInput]}
             placeholder={searchPlaceholder}
             placeholderTextColor={TopBarTokens.searchPlaceholderColor}
             value={searchQuery}
             onChangeText={onSearchChange}
             onSubmitEditing={onSubmitSearch}
             returnKeyType="search"
-            textAlign="left"
+            {...RTLTextInput}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
@@ -126,8 +127,6 @@ const s = StyleSheet.create({
     fontSize: TopBarTokens.searchFontSize,
     lineHeight: TopBarTokens.searchLineHeight,
     color: TopBarTokens.searchTextColor,
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   iconBtn: {
     position: 'relative',

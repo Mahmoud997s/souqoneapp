@@ -1,6 +1,6 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
-import { TextInput, TouchableOpacity, Text } from 'react-native'
+import { TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BrowseHeader } from './BrowseHeader'
 import { AppHeader } from './AppHeader'
@@ -54,7 +54,7 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
     const input = renderer.root.findByType(TextInput)
     expect(input.props.value).toBe('تويوتا')
     expect(input.props.placeholderTextColor).toBe(TopBarTokens.searchPlaceholderColor)
-    expect(input.props.style).toMatchObject({ color: TopBarTokens.searchTextColor })
+    expect(StyleSheet.flatten(input.props.style)).toMatchObject({ color: TopBarTokens.searchTextColor })
   })
 
   test('renders filter badge with count when activeFiltersCount > 0', () => {
@@ -115,10 +115,10 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
 
     expect(renderer!.root.findByProps({ testID: 'browse-header-back' })).toBeDefined()
     expect(renderer!.root.findByProps({ testID: 'browse-header-filter' })).toBeDefined()
-    expect(renderer!.root.findByProps({ testID: 'browse-header-search-input' }).props).toMatchObject({
-      textAlign: 'left',
-    })
-    expect(renderer!.root.findByProps({ testID: 'browse-header-search-input' }).props.style).toMatchObject({
+    const input = renderer!.root.findByProps({ testID: 'browse-header-search-input' })
+    expect(input.props).toMatchObject({ textAlign: 'right', writingDirection: 'rtl' })
+    expect(StyleSheet.flatten(input.props.style)).toMatchObject({
+      textAlign: 'right',
       writingDirection: 'rtl',
     })
     expect(renderer!.root.findByProps({ testID: 'browse-header-search-clear' })).toBeDefined()
