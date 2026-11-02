@@ -1,7 +1,9 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
-import { View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AppHeader } from './AppHeader'
+import { Colors } from '../../constants/colors'
+import { TopBarTokens } from '../../constants/topBarTokens'
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -18,30 +20,102 @@ jest.mock('react-native-svg', () => ({
   Rect: 'Rect',
 }))
 jest.mock('./TopBarGlassSurface', () => ({
-  TopBarGlassSurface: ({ testID }: { testID: string }) => <>{testID}</>,
+  TopBarGlassSurface: 'TopBarGlassSurface',
 }))
 
-describe('AppHeader glass opt-in', () => {
-  test('keeps the existing light header style for callers without the opt-in', () => {
-    let renderer: TestRenderer.ReactTestRenderer
-    act(() => {
-      renderer = TestRenderer.create(<AppHeader theme="light" title="Profile" />)
-    })
+function renderHeader(element: React.ReactElement) {
+  let renderer: TestRenderer.ReactTestRenderer
+  act(() => {
+    renderer = TestRenderer.create(element)
+  })
+  return renderer!
+}
 
-    const header = renderer!.root.findByType(View)
-    const style = header.props.style.flat(Infinity)
-    expect(style).toEqual(expect.arrayContaining([
-      expect.objectContaining({ backgroundColor: expect.any(String), borderBottomWidth: 1 }),
-    ]))
-    expect(renderer!.root.findAll((node) => node.props.testID === 'browse-header-layers')).toHaveLength(0)
+describe('AppHeader Home glass default', () => {
+  test('uses the glass background by default in the dark theme without a back button', () => {
+    const renderer = renderHeader(<AppHeader title="الرئيسية" />)
+
+    expect(renderer.root.findAllByProps({ testID: 'browse-header' })).toHaveLength(1)
+    expect(renderer.root.findAllByType(TouchableOpacity)).toHaveLength(0)
+    expect(renderer.root.findByType(Text).props.style).toContainEqual(
+      expect.objectContaining({ color: Colors.text }),
+    )
   })
 
-  test('renders glass only when explicitly requested', () => {
-    let renderer: TestRenderer.ReactTestRenderer
-    act(() => {
-      renderer = TestRenderer.create(<AppHeader theme="light" glassBackground />)
-    })
+  test('uses a real ice-glass back control and readable title in the dark theme', () => {
+    const renderer = renderHeader(<AppHeader title="إضافة إعلان" showBack />)
+    const backButton = renderer.root.findByType(TouchableOpacity)
+    const style = StyleSheet.flatten(backButton.props.style)
 
-    expect(renderer!.root.findAll((node) => node.children.includes('browse-header'))).toHaveLength(1)
+    expect(renderer.root.findAllByProps({ testID: 'app-header-back-glass' })).toHaveLength(1)
+    expect(style).toMatchObject({
+      width: TopBarTokens.buttonSize,
+      height: TopBarTokens.buttonSize,
+      borderRadius: TopBarTokens.buttonRadius,
+      backgroundColor: TopBarTokens.iceGlass,
+    })
+    expect(renderer.root.findByType(Text).props.style).toContainEqual(
+      expect.objectContaining({ color: Colors.text }),
+    )
+  })
+
+  test('keeps the light theme glass and preserves back and right-slot controls', () => {
+    const renderer = renderHeader(
+      <AppHeader
+        theme="light"
+        title="الإشعارات"
+        showBack
+        rightSlot={<View testID="notification-mark-all-read" />}
+      />,
+    )
+
+    expect(renderer.root.findAllByProps({ testID: 'browse-header' })).toHaveLength(1)
+    expect(renderer.root.findAllByProps({ testID: 'app-header-back-glass' })).toHaveLength(1)
+    expect(renderer.root.findAllByProps({ testID: 'notification-mark-all-read' })).toHaveLength(1)
+  })
+
+  test('uses an ice-glass right icon button in the dark theme', () => {
+    const renderer = renderHeader(
+      <AppHeader title="التقييمات والمراجعات" rightIcon="share-outline" />,
+    )
+    const button = renderer.root.findByType(TouchableOpacity)
+    const style = StyleSheet.flatten(button.props.style)
+
+    expect(renderer.root.findAllByProps({ testID: 'app-header-right-glass' })).toHaveLength(1)
+    expect(style).toMatchObject({
+      width: TopBarTokens.buttonSize,
+      height: TopBarTokens.buttonSize,
+      borderRadius: TopBarTokens.buttonRadius,
+      backgroundColor: TopBarTokens.iceGlass,
+    })
+  })
+
+  test('keeps an explicit legacy escape hatch', () => {
+    const renderer = renderHeader(
+      <AppHeader title="Legacy" showBack glassBackground={false} />,
+    )
+
+    expect(renderer.root.findAllByType('TopBarGlassSurface')).toHaveLength(0)
+    expect(renderer.root.findAllByType('LinearGradient')).toHaveLength(1)
+  })
+
+  test('smoke renders the post, notifications, subscription, and reviews route props', () => {
+    const routeHeaders = [
+      <AppHeader key="post" title="إضافة إعلان" showBack />,
+      <AppHeader
+        key="notifications"
+        title="الإشعارات"
+        showBack
+        rightSlot={<View testID="notifications-action" />}
+      />,
+      <AppHeader key="subscription" title="SouqOne" showBack />,
+      <AppHeader key="reviews" title="التقييمات والمراجعات" showBack />,
+    ]
+
+    for (const header of routeHeaders) {
+      const renderer = renderHeader(header)
+      expect(renderer.root.findAllByProps({ testID: 'browse-header' })).toHaveLength(1)
+      expect(renderer.root.findAllByProps({ testID: 'app-header-back-glass' })).toHaveLength(1)
+    }
   })
 })
