@@ -50,7 +50,7 @@ export function GlassNavBar({
   actions = [],
   hideBottomBorder = false,
   isTransparent = false,
-  appearance = 'default',
+  appearance = 'home',
   support,
   testID = 'glass-nav-bar',
 }: GlassNavBarProps) {
@@ -100,7 +100,14 @@ export function GlassNavBar({
         </TouchableOpacity>
 
         {/* Title Badge (flex:1) */}
-        <View style={s.navTitleBadge}>
+        <View style={[s.navTitleBadge, isHomeAppearance && s.navTitleBadgeHome]}>
+          {isHomeAppearance && (
+            <TopBarGlassSurface
+              testID={testID + '-title-glass'}
+              kind="ice-control"
+              borderRadius={NAV_BUTTON_RADIUS}
+            />
+          )}
           <Text style={s.navTitle} numberOfLines={1}>{title}</Text>
         </View>
 
@@ -255,6 +262,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...softShadow,
+  },
+  navTitleBadgeHome: {
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
   },
   navTitle: {
     fontFamily: 'Almarai_800ExtraBold',

@@ -137,6 +137,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
           title="الرجوع"
           paddingTop={44}
           onBackPress={jest.fn()}
+          appearance="default"
         />
       )
 
@@ -156,6 +157,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
           title="إضافة بطاقة مهنية"
           paddingTop={44}
           onBackPress={jest.fn()}
+          appearance="default"
         />
       )
 
@@ -295,7 +297,11 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
       expect(saveBtn.props.disabled).toBe(true)
 
       const style = StyleSheet.flatten(saveBtn.props.style)
-      expect(style.opacity).toBe(0.6)
+      const dimmedContent = saveBtn.findAllByType(View).find((view) => StyleSheet.flatten(view.props.style)?.opacity === 0.6)
+      const actionSurface = tree!.root.findByProps({ testID: 'glass-nav-bar-action-0-glass-layers' })
+      expect(style.opacity).toBeUndefined()
+      expect(dimmedContent).toBeDefined()
+      assertNoOpacityInAncestry(actionSurface, 'glass-nav-bar')
     })
   })
 
@@ -308,6 +314,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
           onBackPress={jest.fn()}
           // Note: 'as any' is intentionally used on MockGlassView fixture to satisfy GlassSupport type in unit test environment without expo-glass-effect native module
           support={{ kind: 'liquid', GlassView: MockGlassView as any }}
+          appearance="default"
         />
       )
 
@@ -325,6 +332,7 @@ describe('D-175d Characterization Tests: GlassNavBar Geometry & Props API', () =
           paddingTop={44}
           onBackPress={jest.fn()}
           support={{ kind: 'blur' }}
+          appearance="default"
         />
       )
 
