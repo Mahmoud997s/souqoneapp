@@ -1,5 +1,5 @@
 import { useService } from '../../../hooks/useServices'
-import type { Service } from '../../../types/listing.types'
+import type { ServiceDetailResponse } from '../../../types/serviceDetailResponse.types'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { mapServiceDetailViewModel } from '../mappers/serviceDetailViewModel'
 import { getDetailErrorKind, DetailErrorKind } from '../../../utils/listing-detail/getDetailErrorKind'
@@ -14,7 +14,7 @@ export type ServiceDetailState =
 export interface UseServiceDetailResult {
   state: ServiceDetailState
   vm?: ServiceDetailViewModel
-  raw?: Service
+  raw?: ServiceDetailResponse
   error: unknown | null
   errorKind: DetailErrorKind
   isRefetchError: boolean
@@ -36,14 +36,14 @@ export function useServiceDetail(
 
   let state: ServiceDetailState = 'loading'
   let vm: ServiceDetailViewModel | undefined
-  let raw: Service | undefined
+  let raw: ServiceDetailResponse | undefined
 
   if (!id) {
     state = 'error'
   } else if (query.data) {
     state = 'ready'
-    raw = query.data as Service
-    vm = mapServiceDetailViewModel(query.data as Service, {
+    raw = query.data
+    vm = mapServiceDetailViewModel(query.data, {
       now: options?.now,
     })
   } else if (query.isLoading) {
@@ -62,7 +62,7 @@ export function useServiceDetail(
     state,
     vm,
     raw,
-    error: (query.error as unknown) ?? null,
+    error: query.error ?? null,
     errorKind,
     isRefetchError,
     refetch: typeof query.refetch === 'function' ? query.refetch : async () => query.data,

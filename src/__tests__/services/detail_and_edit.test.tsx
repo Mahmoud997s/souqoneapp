@@ -7,10 +7,12 @@ import { useAuthStore } from '../../store/authStore'
 import { servicesApi } from '../../api/services'
 import { dialogService } from '../../store/dialogStore'
 import { router } from 'expo-router'
+import type { ServiceDetailResponse } from '../../types/serviceDetailResponse.types'
 
-const mockServiceData = {
+const mockServiceData: ServiceDetailResponse = {
   id: 'srv-999',
   title: 'كراج الفخامة لصيانة وبرمجة السيارات',
+  slug: 'fakhama-service',
   description: 'صيانة محركات وجيربوكس مع ضمان سنة كاملة وفحص كمبيوتر متقدم',
   serviceType: 'MAINTENANCE',
   providerType: 'WORKSHOP',
@@ -23,26 +25,42 @@ const mockServiceData = {
   priceFrom: 25,
   priceTo: 150,
   currency: 'OMR',
-  contactPhone: '96891234567',
-  whatsapp: '96891234567',
+  contactPhone: 'test-contact',
+  whatsapp: null,
   website: 'https://alfakhama.om',
+  status: 'ACTIVE',
+  hiddenByOwnerStatus: false,
+  viewCount: 24,
+  userId: 'user-owner-123',
   governorateId: 1,
   wilayaId: 101,
-  governorateRef: { nameAr: 'مسقط' },
-  wilayaRef: { nameAr: 'السيب' },
+  governorateRef: { id: 1, nameAr: 'مسقط', nameEn: 'Muscat', isActive: true },
+  wilayaRef: {
+    id: 101,
+    nameAr: 'السيب',
+    nameEn: 'Seeb',
+    isActive: true,
+    governorateId: 1,
+  },
   address: 'المعبيلة الصناعية - شارع 10',
   latitude: 23.588,
   longitude: 58.3829,
+  version: 1,
+  deletedAt: null,
+  createdAt: '2026-10-20T00:00:00.000Z',
+  updatedAt: '2026-10-20T00:00:00.000Z',
   images: [
-    { id: 'img-1', url: 'https://cdn.souqone.app/srv1.jpg' },
-    { id: 'img-2', url: 'https://cdn.souqone.app/srv2.jpg' },
+    { id: 'img-1', url: 'https://cdn.souqone.app/srv1.jpg', isPrimary: true, order: 0 },
+    { id: 'img-2', url: 'https://cdn.souqone.app/srv2.jpg', isPrimary: false, order: 1 },
   ],
-  seller: {
+  user: {
     id: 'user-owner-123',
     username: 'fakhama_auto',
     displayName: 'كراج الفخامة',
-    phone: '96891234567',
+    avatarUrl: null,
     isVerified: true,
+    governorate: 'مسقط',
+    createdAt: '2024-03-01T00:00:00.000Z',
   },
 }
 

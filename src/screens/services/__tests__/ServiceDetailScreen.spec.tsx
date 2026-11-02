@@ -6,7 +6,7 @@ import { dialogService } from '../../../store/dialogStore'
 import { servicesApi } from '../../../api/services'
 import { useServiceWizardStore } from '../../../store/serviceWizardStore'
 import * as queryKeys from '../hooks/serviceQueryKeys'
-import type { Service } from '../../../types/listing.types'
+import type { ServiceDetailResponse } from '../../../types/serviceDetailResponse.types'
 
 jest.setTimeout(25000)
 
@@ -107,7 +107,7 @@ jest.mock('react-native/Libraries/Share/Share', () => ({
 let mockServiceDetailResult: {
   state: 'loading' | 'ready' | 'notFound' | 'error'
   vm: ServiceDetailViewModel | null
-  raw: Service | null
+  raw: ServiceDetailResponse | null
   refetch: jest.Mock
   error: unknown
   errorKind?: any
@@ -185,11 +185,12 @@ function makeSampleVm(
   }
 }
 
-function makeSampleRaw(overrides?: Partial<Service>): Service {
+function makeSampleRaw(
+  overrides?: Partial<ServiceDetailResponse>,
+): ServiceDetailResponse {
   return {
     id: 'srv-101',
     title: 'كراج النخبة لصيانة وتعديل السيارات',
-    serviceName: 'كراج النخبة لصيانة وتعديل السيارات',
     description: 'نقدم خدمات صيانة متكاملة لجميع أنواع السيارات باستخدام أحدث الأجهزة',
     serviceType: 'MAINTENANCE',
     providerType: 'WORKSHOP',
@@ -204,8 +205,16 @@ function makeSampleRaw(overrides?: Partial<Service>): Service {
     currency: 'OMR',
     whatsappEnabled: true,
     website: 'https://elite-garage.om',
-    governorate: 'مسقط',
-    city: 'السيب',
+    governorateId: 1,
+    governorateRef: { id: 1, nameAr: 'مسقط', nameEn: 'Muscat', isActive: true },
+    wilayaId: 16,
+    wilayaRef: {
+      id: 16,
+      nameAr: 'السيب',
+      nameEn: 'Seeb',
+      isActive: true,
+      governorateId: 1,
+    },
     address: 'شارع 12 مبنى 45',
     latitude: 23.588,
     longitude: 58.3829,

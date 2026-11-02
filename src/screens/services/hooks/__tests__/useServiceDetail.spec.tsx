@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useServiceDetail } from '../useServiceDetail'
 import { servicesApi } from '../../../../api/services'
-import type { Service } from '../../../../types/listing.types'
+import type { ServiceDetailResponse } from '../../../../types/serviceDetailResponse.types'
 
 jest.mock('../../../../api/services', () => ({
   servicesApi: {
@@ -31,7 +31,7 @@ function createWrapper() {
 }
 
 describe('useServiceDetail', () => {
-  const mockServiceData: Service = {
+  const mockServiceData: ServiceDetailResponse = {
     id: 'srv-1',
     title: 'تلميع ونانو سيراميك',
     serviceType: 'CLEANING',
@@ -39,8 +39,14 @@ describe('useServiceDetail', () => {
     description: 'غسيل وتلميع عالي الجودة',
     priceFrom: 10,
     priceTo: 30,
-    governorate: 'مسقط',
-    city: 'السيب',
+    governorateRef: { id: 1, nameAr: 'مسقط', nameEn: 'Muscat', isActive: true },
+    wilayaRef: {
+      id: 16,
+      nameAr: 'السيب',
+      nameEn: 'Seeb',
+      isActive: true,
+      governorateId: 1,
+    },
     images: [],
     createdAt: '2026-10-20T00:00:00.000Z',
   }

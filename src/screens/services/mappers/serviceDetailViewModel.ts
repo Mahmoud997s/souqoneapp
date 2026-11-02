@@ -1,4 +1,4 @@
-import type { Service } from '../../../types/listing.types'
+import type { ServiceDetailResponse } from '../../../types/serviceDetailResponse.types'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../../constants/services'
 import {
@@ -14,27 +14,25 @@ export interface MapServiceDetailOptions {
 }
 
 /**
- * Maps a raw Service listing object from backend API into a clean, strongly-typed
+ * Maps the backend service detail payload into a clean, strongly-typed
  * ServiceDetailViewModel suitable for presentational components.
  */
 export function mapServiceDetailViewModel(
-  raw: Service,
+  raw: ServiceDetailResponse,
   _options?: MapServiceDetailOptions
 ): ServiceDetailViewModel {
-  const rawRecord = raw as unknown as Record<string, unknown>
-
   // 1. Basic Identifiers & Status
-  const id = raw.id || String(rawRecord.id ?? '')
-  const version = typeof rawRecord.version === 'number' ? rawRecord.version : 1
-  const status = typeof rawRecord.status === 'string' ? rawRecord.status : 'ACTIVE'
-  const title = (raw.title || raw.serviceName || 'خدمة سيارات').trim()
+  const id = raw.id || ''
+  const version = raw.version ?? 1
+  const status = raw.status ?? 'ACTIVE'
+  const title = (raw.title || 'خدمة سيارات').trim()
 
   // 2. Service & Provider Types
   const serviceType = raw.serviceType || 'OTHER_SERVICE'
   const serviceTypeMatch = SERVICE_TYPES.find((t) => t.id === serviceType)
   const serviceTypeLabel = serviceTypeMatch ? serviceTypeMatch.label : serviceType
 
-  const providerType = raw.providerType
+  const providerType = raw.providerType ?? undefined
   const providerTypeMatch = PROVIDER_TYPES.find((p) => p.id === providerType)
   const providerTypeLabel = providerTypeMatch ? providerTypeMatch.label : providerType
 
@@ -55,9 +53,8 @@ export function mapServiceDetailViewModel(
   const description = (raw.description || '').trim()
 
   // 6. Pricing
-  const rawCurrency =
-    typeof rawRecord.currency === 'string' ? rawRecord.currency : 'OMR'
-  const price = formatServicePrice(raw.priceFrom, raw.priceTo, raw.price, rawCurrency)
+  const rawCurrency = raw.currency ?? 'OMR'
+  const price = formatServicePrice(raw.priceFrom, raw.priceTo, undefined, rawCurrency)
 
   // 7. Schedule (Working days & hours)
   const workingDaysResult = formatWorkingDays(raw.workingDays)
@@ -80,35 +77,14 @@ export function mapServiceDetailViewModel(
   }
 
   // 8. Images
-  const rawImages: unknown[] = Array.isArray(raw.images)
-    ? raw.images
-    : Array.isArray(rawRecord.images)
-    ? (rawRecord.images as unknown[])
-    : typeof rawRecord.imageUrl === 'string'
-    ? [rawRecord.imageUrl]
-    : typeof rawRecord.image === 'string'
-    ? [rawRecord.image]
-    : []
-
-  const images: string[] = rawImages
-    .map((img) =>
-      typeof img === 'string'
-        ? img
-        : (img as { url?: string; uri?: string } | undefined)?.url ||
-          (img as { url?: string; uri?: string } | undefined)?.uri
-    )
+  const images = (raw.images ?? [])
+    .map((image) => image.url)
     .filter((url): url is string => typeof url === 'string' && url.trim().length > 0)
 
   // 9. Location & Coordinates
-  const govName =
-    raw.governorateRef?.nameAr ||
-    (typeof rawRecord.governorate === 'string' ? rawRecord.governorate : '') ||
-    ''
-  const cityName =
-    raw.wilayaRef?.nameAr ||
-    (typeof rawRecord.city === 'string' ? rawRecord.city : '') ||
-    ''
-  const locationParts = [govName, cityName].filter(Boolean)
+  const govName = raw.governorateRef?.nameAr || ''
+  const wilayaName = raw.wilayaRef?.nameAr || ''
+  const locationParts = [govName, wilayaName].filter(Boolean)
   const fullLocationText =
     locationParts.length > 0 ? locationParts.join(' - ') : 'عُمان'
 
@@ -117,18 +93,8 @@ export function mapServiceDetailViewModel(
       ? raw.address.trim()
       : undefined
 
-  const lat =
-    typeof raw.latitude === 'number'
-      ? raw.latitude
-      : typeof rawRecord.latitude === 'number'
-      ? rawRecord.latitude
-      : undefined
-  const lng =
-    typeof raw.longitude === 'number'
-      ? raw.longitude
-      : typeof rawRecord.longitude === 'number'
-      ? rawRecord.longitude
-      : undefined
+  const lat = typeof raw.latitude === 'number' ? raw.latitude : undefined
+  const lng = typeof raw.longitude === 'number' ? raw.longitude : undefined
 
   const hasCoordinates = Boolean(
     lat !== undefined && lng !== undefined && (lat !== 0 || lng !== 0)
@@ -143,39 +109,29 @@ export function mapServiceDetailViewModel(
   }
 
   // 10. Website
-  const website = sanitizeWebsiteUrl(raw.website)
+  const website = sanitizeWebsiteUrl(raw.website ?? undefined)
 
   // 11. Seller Information
-  const rawSeller = (raw.user || rawRecord.seller || rawRecord.user || {}) as Record<
-    string,
-    unknown
-  >
-  const sellerId =
-    typeof rawSeller.id === 'string'
-      ? rawSeller.id
-      : typeof rawRecord.sellerId === 'string'
-      ? rawRecord.sellerId
-      : typeof rawRecord.userId === 'string'
-      ? rawRecord.userId
-      : ''
+  const rawSeller = raw.user
+  const sellerId = rawSeller?.id ?? raw.userId ?? ''
 
   const sellerName =
-    typeof rawSeller.displayName === 'string' && rawSeller.displayName.trim()
+    typeof rawSeller?.displayName === 'string' && rawSeller.displayName.trim()
       ? rawSeller.displayName.trim()
-      : typeof rawSeller.username === 'string' && rawSeller.username.trim()
+      : typeof rawSeller?.username === 'string' && rawSeller.username.trim()
       ? rawSeller.username.trim()
       : providerName || 'مقدم الخدمة'
 
   const sellerUsername =
-    typeof rawSeller.username === 'string' ? rawSeller.username : ''
+    typeof rawSeller?.username === 'string' ? rawSeller.username : ''
 
   const sellerAvatar =
-    typeof rawSeller.avatarUrl === 'string' ? rawSeller.avatarUrl : undefined
+    typeof rawSeller?.avatarUrl === 'string' ? rawSeller.avatarUrl : undefined
 
-  const isSellerVerified = Boolean(rawSeller.isVerified)
+  const isSellerVerified = Boolean(rawSeller?.isVerified)
 
   let memberSinceLabel = 'عضو منذ فترة'
-  if (typeof rawSeller.createdAt === 'string') {
+  if (typeof rawSeller?.createdAt === 'string') {
     try {
       const d = new Date(rawSeller.createdAt)
       if (!isNaN(d.getTime())) {
@@ -187,7 +143,7 @@ export function mapServiceDetailViewModel(
   }
 
   const sellerGov =
-    typeof rawSeller.governorate === 'string' ? rawSeller.governorate : undefined
+    typeof rawSeller?.governorate === 'string' ? rawSeller.governorate : undefined
 
   const seller = {
     id: sellerId,
@@ -200,7 +156,7 @@ export function mapServiceDetailViewModel(
   }
 
   // 12. Miscellaneous Meta
-  const whatsappEnabled = Boolean(raw.whatsappEnabled ?? rawRecord.whatsappEnabled)
+  const whatsappEnabled = Boolean(raw.whatsappEnabled)
 
   let postedAtLabel = 'حديثاً'
   if (typeof raw.createdAt === 'string') {
@@ -211,12 +167,7 @@ export function mapServiceDetailViewModel(
     }
   }
 
-  const viewCount =
-    typeof rawRecord.viewsCount === 'number'
-      ? rawRecord.viewsCount
-      : typeof rawRecord.viewCount === 'number'
-      ? rawRecord.viewCount
-      : 0
+  const viewCount = raw.viewCount ?? 0
 
   return {
     id,
