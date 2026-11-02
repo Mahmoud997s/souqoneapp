@@ -125,7 +125,16 @@ export default function RootLayout() {
         <NavVisibilityProvider>
           <BottomSheetModalProvider>
             <GlobalSocketHandler />
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen
+                name="(modals)"
+                options={{
+                  presentation: 'transparentModal',
+                  animation: 'slide_from_bottom',
+                  gestureEnabled: true,
+                }}
+              />
+            </Stack>
             <GlobalDialog />
             <GlobalToast />
           </BottomSheetModalProvider>
