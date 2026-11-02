@@ -25,7 +25,6 @@ jest.mock('react-native-safe-area-context', () => ({
 
 jest.mock('../store/postStore', () => {
   const store = jest.fn(() => ({ set: mockStoreSet }))
-  store.getState = jest.fn()
   return { usePostStore: store }
 })
 
