@@ -279,6 +279,9 @@ describe('ServiceDetailScreen', () => {
       expect(screen.getByText('كراج النخبة لصيانة وتعديل السيارات')).toBeTruthy()
       expect(screen.getByText('15 - 45 ر.ع.')).toBeTruthy()
       expect(screen.getByText('صيانة وإصلاح')).toBeTruthy()
+      expect(
+        screen.getByText('مسقط، السيب، المعبيلة الصناعية - شارع 12 مبنى 45'),
+      ).toBeTruthy()
 
       // Specializations
       expect(screen.getByText('صيانة ميكانيكية')).toBeTruthy()
