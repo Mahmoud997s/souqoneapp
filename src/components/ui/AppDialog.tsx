@@ -77,18 +77,20 @@ export function AppDialog({
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const opacAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(SH)).current;
-
+  const activeAnimation = useRef<Animated.CompositeAnimation | null>(null);
   useEffect(() => {
+    activeAnimation.current?.stop();
+    let animation: Animated.CompositeAnimation;
     if (visible) {
       if (isOptions) {
-        Animated.spring(slideAnim, {
+        animation = Animated.spring(slideAnim, {
           toValue: 0,
           damping: 22,
           stiffness: 220,
           useNativeDriver: true,
-        }).start();
+        });
       } else {
-        Animated.parallel([
+        animation = Animated.parallel([
           Animated.spring(scaleAnim, {
             toValue: 1,
             damping: 20,
@@ -100,22 +102,28 @@ export function AppDialog({
             duration: 160,
             useNativeDriver: true,
           }),
-        ]).start();
+        ]);
       }
     } else {
       if (isOptions) {
-        Animated.timing(slideAnim, {
+        animation = Animated.timing(slideAnim, {
           toValue: SH,
           duration: 220,
           useNativeDriver: true,
-        }).start();
+        });
       } else {
-        Animated.parallel([
+        animation = Animated.parallel([
           Animated.timing(scaleAnim, { toValue: 0.92, duration: 140, useNativeDriver: true }),
           Animated.timing(opacAnim,  { toValue: 0,    duration: 140, useNativeDriver: true }),
-        ]).start();
+        ]);
       }
     }
+    activeAnimation.current = animation;
+    animation.start();
+    return () => {
+      animation.stop();
+      if (activeAnimation.current === animation) activeAnimation.current = null;
+    };
   }, [visible]);
 
   if (!visible) return null;

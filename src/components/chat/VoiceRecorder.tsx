@@ -27,16 +27,19 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
   }, [])
 
   useEffect(() => {
+    let animation: Animated.CompositeAnimation | null = null
     if (recorderState.isRecording) {
-      Animated.loop(
+      animation = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.5, duration: 500, useNativeDriver: true }),
           Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
         ])
-      ).start()
+      )
+      animation.start()
     } else {
       pulseAnim.stopAnimation()
     }
+    return () => animation?.stop()
   }, [recorderState.isRecording])
 
   async function startRecording() {
