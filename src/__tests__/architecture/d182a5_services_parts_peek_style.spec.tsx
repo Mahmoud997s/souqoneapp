@@ -445,7 +445,7 @@ describe('D-182a5 — Home Services & Parts Sections in Cars Peek Style & Size',
   })
 
   describe('2. HomeScreen Integration: Cars, Services, and Parts Peek Sections & Skeleton Parity', () => {
-    it('renders Cars, Services, and Parts sections in peek mode (80% width, 6pt gap, 20pt leading inset, dots, depth, 133pt image, compact 115pt body) while Buses and Equipment stay at 60% non-peek', async () => {
+    it('renders Cars, Services, and Parts sections in peek mode (80% width, 6pt gap, 20pt leading inset, dots, depth, 133pt image, compact 115pt body)', async () => {
       const { getAllByTestId } = await render(
         <QueryClientProvider client={queryClient}>
           <HomeScreen />
@@ -456,7 +456,7 @@ describe('D-182a5 — Home Services & Parts Sections in Cars Peek Style & Size',
       const peekStep = peekWidth + CARS_PEEK_GAP
 
       // 5 CategorySections -> 5 HorizontalScrollCards in order:
-      // [0] Cars (peek=true), [1] Services (peek=true), [2] Parts (peek=true), [3] Buses (peek=false), [4] Equipment (peek=false)
+      // [0] Cars (peek=true), [1] Services (peek=true), [2] Parts (peek=true), [3] Buses (peek=true in D-182a6), [4] Equipment (peek=true in D-182a6)
       const slot0Nodes = getAllByTestId('card-slot-0')
       const slot1Nodes = getAllByTestId('card-slot-1')
       expect(slot0Nodes).toHaveLength(5)
@@ -471,19 +471,9 @@ describe('D-182a5 — Home Services & Parts Sections in Cars Peek Style & Size',
         expect(slot1.left).toBe(Spacing.space5 + peekStep)
       }
 
-      // Buses [3] and Equipment [4] remain non-peek (60% CARD_WIDTH, Spacing.space3 gap):
-      for (const nonPeekSectionIdx of [3, 4]) {
-        const slot0 = StyleSheet.flatten(slot0Nodes[nonPeekSectionIdx].props.style)
-        const slot1 = StyleSheet.flatten(slot1Nodes[nonPeekSectionIdx].props.style)
-        expect(slot0.width).toBe(CARD_WIDTH)
-        expect(slot0.left).toBe(Spacing.space5)
-        expect(slot1.width).toBe(CARD_WIDTH)
-        expect(slot1.left).toBe(Spacing.space5 + CARD_WIDTH + Spacing.space3)
-      }
-
-      // Depth wrappers exist only on the 3 peek sections (Cars, Services, Parts):
+      // Depth wrappers exist on the peek sections (all 5 sections after D-182a6):
       const depthSlot0Nodes = getAllByTestId('card-slot-0-depth')
-      expect(depthSlot0Nodes).toHaveLength(3)
+      expect(depthSlot0Nodes).toHaveLength(5)
 
       // Verify rendered cards inside HomeScreen:
       // Each of the 5 sections renders 2 items = 10 listing-card-root and 10 listing-card-details nodes.
@@ -502,16 +492,6 @@ describe('D-182a5 — Home Services & Parts Sections in Cars Peek Style & Size',
         expect(dims.imageContainerHeight).toBe(CARS_PEEK_IMAGE_HEIGHT)
         expect(dims.staticBodyHeight).toBe(115)
         expect(dims.totalStaticHeight).toBe(250)
-      }
-
-      // Buses and Equipment cards in HomeScreen remain standard non-peek height (140 image + 121 body + 2 borders = 263):
-      for (const cardIdx of [6, 7, 8, 9]) {
-        const dims = measureRenderedPeekCard(
-          cardRoots[cardIdx] as never,
-          cardDetails[cardIdx] as never
-        )
-        expect(dims.imageContainerHeight).toBe(CardSystem.aspectRatioHeight)
-        expect(dims.staticBodyHeight).toBe(121)
       }
     })
 
@@ -569,13 +549,6 @@ describe('D-182a5 — Home Services & Parts Sections in Cars Peek Style & Size',
         const bodyFlat = StyleSheet.flatten(skeletonBodies[skelIdx].props.style)
         expect(bodyFlat.paddingTop).toBe(7)
         expect(bodyFlat.paddingBottom).toBe(5)
-      }
-
-      // Buses (9..11) and Equipment (12..14) skeletons remain non-compact:
-      for (const skelIdx of [9, 10, 11, 12, 13, 14]) {
-        const bodyFlat = StyleSheet.flatten(skeletonBodies[skelIdx].props.style)
-        expect(bodyFlat.paddingTop).toBe(8)
-        expect(bodyFlat.paddingBottom).toBe(6)
       }
     })
   })

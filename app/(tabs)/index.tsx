@@ -324,6 +324,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="حافلات ونقل ركاب"
           subTitle="حافلات للبيع وللإيجار بمختلف السعات"
           icon="bus-side"
@@ -332,10 +333,13 @@ export default function HomeScreen() {
           data={buses}
           isLoading={loadingBuses}
           routeBase="buses"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <BusCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -344,6 +348,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="معدات ومشغلون"
           subTitle="معدات ثقيلة وخفيفة ومشغلون معتمدون"
           icon="excavator"
@@ -352,10 +357,13 @@ export default function HomeScreen() {
           data={equipment}
           isLoading={loadingEquipment}
           routeBase="equipment"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <EquipCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
