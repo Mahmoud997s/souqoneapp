@@ -28,6 +28,7 @@ export function SellerCard({ seller, onPressProfile, support }: SellerCardProps)
   const sellerName = seller.name.trim()
   const accessibilityDetails = [
     sellerName,
+    seller.isVerified ? 'موثق' : undefined,
     seller.accountType?.trim(),
     seller.memberSinceLabel?.trim(),
   ].filter(Boolean)

@@ -60,7 +60,7 @@ describe('SellerCard RTL & Rendering', () => {
     const touchable = renderer!.root.findByType(TouchableOpacity)
     expect(touchable.props.accessibilityRole).toBe('button')
     expect(touchable.props.accessibilityLabel).toBe(
-      'ملف البائع أحمد البلوشي، معرض معتمد، عضو منذ مايو 2022'
+      'ملف البائع أحمد البلوشي، موثق، معرض معتمد، عضو منذ مايو 2022'
     )
   })
 
@@ -69,7 +69,7 @@ describe('SellerCard RTL & Rendering', () => {
     act(() => {
       renderer = TestRenderer.create(
         <SellerCard
-          seller={{ ...mockSeller, name: '', memberSinceLabel: '', accountType: undefined }}
+          seller={{ ...mockSeller, name: '', memberSinceLabel: '', accountType: undefined, isVerified: false }}
           onPressProfile={jest.fn()}
         />
       )
@@ -85,7 +85,7 @@ describe('SellerCard RTL & Rendering', () => {
     act(() => {
       renderer = TestRenderer.create(
         <SellerCard
-          seller={{ ...mockSeller, accountType: '  ', memberSinceLabel: '  ' }}
+          seller={{ ...mockSeller, accountType: '  ', memberSinceLabel: '  ', isVerified: false }}
           onPressProfile={jest.fn()}
         />
       )
