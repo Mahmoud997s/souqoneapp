@@ -39,6 +39,7 @@ import { GlassSurface } from '../../src/components/navigation/glassSupport'
 import { TopBarTokens } from '../../src/constants/topBarTokens'
 import { CATEGORY_ICONS, type CategoryVertical } from '../../src/constants/categoryIcons'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
+import { HomeAddListingBanner } from '../../src/components/home'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
 import { useServices } from '../../src/hooks/useServices'
@@ -424,6 +425,8 @@ export default function HomeScreen() {
             />
           )}
         />
+
+        <HomeAddListingBanner onPress={handlePost} />
 
         {/* Need Help / Support Button */}
         <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space2, marginBottom: Spacing.space6 }} />
