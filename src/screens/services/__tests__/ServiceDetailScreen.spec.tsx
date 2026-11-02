@@ -1,5 +1,6 @@
 import React from 'react'
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
+import { render, screen, fireEvent, act, cleanup, waitFor } from '@testing-library/react-native'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceDetailScreen } from '../ServiceDetailScreen'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
 import { dialogService } from '../../../store/dialogStore'
@@ -14,6 +15,8 @@ jest.setTimeout(25000)
 
 const mockRouterPush = jest.fn()
 const mockRouterBack = jest.fn()
+let mockUseActualQueryClient = false
+let mockUseActualServiceDetail = false
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -27,10 +30,12 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query')
   return {
     ...actual,
-    useQueryClient: () => ({
-      invalidateQueries: jest.fn(),
-      removeQueries: jest.fn(),
-    }),
+    useQueryClient: () => mockUseActualQueryClient
+      ? actual.useQueryClient()
+      : {
+          invalidateQueries: jest.fn(),
+          removeQueries: jest.fn(),
+        },
   }
 })
 
@@ -58,6 +63,7 @@ jest.mock('../../../store/dialogStore', () => ({
 
 jest.mock('../../../api/services', () => ({
   servicesApi: {
+    getById: jest.fn(),
     remove: jest.fn().mockResolvedValue({ success: true }),
   },
 }))
@@ -122,7 +128,13 @@ let mockServiceDetailResult: {
 }
 
 jest.mock('../hooks/useServiceDetail', () => ({
-  useServiceDetail: () => mockServiceDetailResult,
+  useServiceDetail: (...args: unknown[]) => {
+    if (mockUseActualServiceDetail) {
+      const actual = jest.requireActual('../hooks/useServiceDetail')
+      return actual.useServiceDetail(...args)
+    }
+    return mockServiceDetailResult
+  },
 }))
 
 // ── FIXTURE BUILDER ─────────────────────────────────────────────────────────
@@ -252,6 +264,8 @@ describe('ServiceDetailScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockUseActualQueryClient = false
+    mockUseActualServiceDetail = false
     mockCurrentUser = null
     mockServiceDetailResult = {
       state: 'ready',
@@ -261,6 +275,28 @@ describe('ServiceDetailScreen', () => {
       error: null,
       isRefetchError: false,
     }
+  })
+
+  it('renders location from the real response through the detail hook', async () => {
+    mockUseActualQueryClient = true
+    mockUseActualServiceDetail = true
+    jest.mocked(servicesApi.getById).mockResolvedValue({
+      data: makeSampleRaw({ latitude: undefined, longitude: undefined }),
+    } as Awaited<ReturnType<typeof servicesApi.getById>>)
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceDetailScreen id="srv-101" />
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('مسقط - السيب - شارع 12 مبنى 45')).toBeTruthy()
+    })
+    queryClient.clear()
   })
 
   describe('Visitor View', () => {
