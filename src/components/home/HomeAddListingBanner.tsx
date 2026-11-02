@@ -28,7 +28,7 @@ export function HomeAddListingBanner({ onPress, testID = 'home-add-listing-banne
         />
         <View pointerEvents="none" style={styles.glassTint} />
         <View style={styles.content}>
-          <Text testID={`${testID}-title`} style={styles.title} numberOfLines={HOME_BOTTOM_TOKENS.titleLines}>عندك حاجة للبيع أو الإيجار؟</Text>
+          <Text testID={`${testID}-title`} style={styles.title} numberOfLines={HOME_BOTTOM_TOKENS.titleLines}>هل لديك ما تريد بيعه أو تأجيره؟</Text>
           <Text testID={`${testID}-subtitle`} style={styles.subtitle}>انشر إعلانك في أي قسم من الأقسام الخمسة</Text>
           <View testID={`${testID}-categories`} style={styles.categories}>
             {HOME_LISTING_CATEGORIES.map((category) => (

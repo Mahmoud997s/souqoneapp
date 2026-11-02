@@ -1,33 +1,33 @@
 import React from 'react'
 import { fireEvent, render } from '@testing-library/react-native'
-import { Dimensions } from 'react-native'
 import { CATEGORY_ICONS } from '../../constants/categoryIcons'
 import { HomeAddListingBanner } from './HomeAddListingBanner'
-import { HomeHowItWorks } from './HomeHowItWorks'
-import { HOME_LISTING_CATEGORIES, getHomeHowItWorksWidth } from './homeBottomContent'
+import { HOME_BOTTOM_TOKENS, HOME_LISTING_CATEGORIES } from './homeBottomContent'
 
 describe('Home bottom content', () => {
-  it('sizes the centered how-it-works block to 80% of the viewport', async () => {
-    expect(getHomeHowItWorksWidth(400)).toBe(320)
-    expect(getHomeHowItWorksWidth(375)).toBe(300)
-    const { getByTestId } = await render(<HomeHowItWorks />)
-    const blockStyle = getByTestId('home-how-it-works').props.style
-    expect(blockStyle[0].alignSelf).toBe('center')
-    expect(blockStyle[1].width).toBe(getHomeHowItWorksWidth())
-  })
-
-  it('shows the five expected 3D category images and labels', async () => {
+  it('shows the five expected 3D category images and labels with wrapping enabled', async () => {
     const { getByTestId, getByText, queryByTestId } = await render(<HomeAddListingBanner onPress={jest.fn()} />)
 
     expect(HOME_LISTING_CATEGORIES).toHaveLength(5)
     for (const category of HOME_LISTING_CATEGORIES) {
       expect(getByTestId(`home-add-listing-banner-image-${category.id}`).props.source).toEqual([CATEGORY_ICONS[category.id]])
-      expect(getByText(category.title)).toBeTruthy()
+      const label = getByText(category.title)
+      expect(label).toBeTruthy()
+      // Category labels must allow wrapping (>= 2 lines) so they do not truncate on narrow screens / larger text
+      expect(label.props.numberOfLines).toBeGreaterThanOrEqual(2)
     }
     expect(
       queryByTestId('home-add-listing-banner-glass-blur') ||
         queryByTestId('home-add-listing-banner-glass-liquid')
     ).toBeTruthy()
+  })
+
+  it('renders formal Arabic title and subtitle on the listing banner', async () => {
+    const { getByTestId } = await render(<HomeAddListingBanner onPress={jest.fn()} />)
+
+    const titleElement = getByTestId('home-add-listing-banner-title')
+    expect(titleElement.props.children).toBe('هل لديك ما تريد بيعه أو تأجيره؟')
+    expect(titleElement.props.children).not.toContain('عندك حاجة')
   })
 
   it('routes the primary action through the existing Home add handler', async () => {
@@ -39,7 +39,7 @@ describe('Home bottom content', () => {
     expect(onPress).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps the 80% width calculation tied to the current screen width', () => {
-    expect(getHomeHowItWorksWidth()).toBe(Math.round(Dimensions.get('window').width * 0.8))
+  it('has categoryLabelLines set to at least 2 in HOME_BOTTOM_TOKENS', () => {
+    expect(HOME_BOTTOM_TOKENS.categoryLabelLines).toBeGreaterThanOrEqual(2)
   })
 })

@@ -11,15 +11,23 @@ describe('Home bottom content characterization', () => {
     expect(homeSource).toContain("router.push('/(modals)/post-category'")
   })
 
-  it('keeps the support button as the last content block', () => {
-    const howItWorksIndex = homeSource.indexOf('<HomeHowItWorks')
+  it('renders banner then support, and does NOT render or import HomeHowItWorks', () => {
+    expect(homeSource).not.toContain('HomeHowItWorks')
+    expect(homeSource).not.toContain('<HomeHowItWorks')
+
     const addBannerIndex = homeSource.indexOf('<HomeAddListingBanner')
     const supportIndex = homeSource.indexOf('<SupportHelpButton style=')
     const scrollCloseIndex = homeSource.indexOf('</Animated.ScrollView>', supportIndex)
-    expect(howItWorksIndex).toBeGreaterThan(-1)
-    expect(addBannerIndex).toBeGreaterThan(howItWorksIndex)
-    expect(supportIndex).toBeGreaterThan(-1)
+
+    expect(addBannerIndex).toBeGreaterThan(-1)
     expect(supportIndex).toBeGreaterThan(addBannerIndex)
+
+    const betweenBannerAndSupport = homeSource
+      .slice(addBannerIndex, supportIndex)
+      .replace(/<HomeAddListingBanner[^>]*\/>/, '')
+      .trim()
+    expect(betweenBannerAndSupport).toBe('')
+
     const trailingContent = homeSource
       .slice(supportIndex, scrollCloseIndex)
       .replace(/<SupportHelpButton[^>]*\/>/, '')

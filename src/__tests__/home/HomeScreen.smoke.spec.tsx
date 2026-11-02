@@ -199,5 +199,9 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
     expect(getAllByText('حافلات')).toHaveLength(2)
     expect(getAllByText('معدات')).toHaveLength(2)
     expect(getByText('تصفح الكل')).toBeTruthy()
+
+    // 5. Home bottom listing banner is rendered, HowItWorks is NOT rendered
+    expect(queryByTestId('home-how-it-works')).toBeNull()
+    expect(getByTestId('home-add-listing-banner')).toBeTruthy()
   })
 })
