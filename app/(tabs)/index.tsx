@@ -92,8 +92,10 @@ export const SECTION_ICON_MAP: Record<string, CategoryVertical> = {
 }
 
 export const SECTION_ICON_BOX_SIZE = 32
-export const SECTION_ICON_3D_SIZE = 30
-export const SECTION_ICON_3D_POP_OUT_TOP = -10
+export const SECTION_ICON_3D_SIZE = 26
+export const SEE_ALL_PADDING_HORIZONTAL = 10
+export const SEE_ALL_PADDING_VERTICAL = 4
+export const SEE_ALL_GAP = 4
 
 export function CategorySection({
   title,
@@ -418,7 +420,6 @@ const s = StyleSheet.create({
   // Section
   section: {
     marginBottom: 28,
-    overflow: 'visible',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -426,31 +427,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.space4,
     marginBottom: 12,
-    overflow: 'visible',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flex: 1,
-    overflow: 'visible',
   },
   sectionIconWrap: { 
     width: SECTION_ICON_BOX_SIZE,
     height: SECTION_ICON_BOX_SIZE,
     borderRadius: 10,
     backgroundColor: TopBarTokens.iceGlass,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'visible',
   },
   sectionIcon3D: {
-    position: 'absolute',
     width: SECTION_ICON_3D_SIZE,
     height: SECTION_ICON_3D_SIZE,
-    top: SECTION_ICON_3D_POP_OUT_TOP,
   },
   titleCol: {
     flex: 1,
@@ -475,13 +471,16 @@ const s = StyleSheet.create({
   seeAllBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4, 
-    paddingVertical: 4,
-    paddingHorizontal: 11, 
+    justifyContent: 'center',
+    gap: SEE_ALL_GAP,
+    paddingVertical: SEE_ALL_PADDING_VERTICAL,
+    paddingHorizontal: SEE_ALL_PADDING_HORIZONTAL,
+    paddingStart: SEE_ALL_PADDING_HORIZONTAL,
+    paddingEnd: SEE_ALL_PADDING_HORIZONTAL,
     backgroundColor: TopBarTokens.iceGlass, 
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
   },
   seeAll: {
     fontFamily: 'Almarai_700Bold',
