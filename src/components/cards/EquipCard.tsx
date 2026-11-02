@@ -22,6 +22,8 @@ export interface EquipCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  imageHeight?: number
+  compactBody?: boolean
   liquidGlass?: boolean
   glassSupport?: GlassSupport
 }
@@ -36,6 +38,8 @@ export const EquipCard = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  imageHeight,
+  compactBody = false,
   liquidGlass,
   glassSupport,
 }: EquipCardProps) => {
@@ -235,6 +239,8 @@ export const EquipCard = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       favoriteType="EQUIPMENT_LISTING"
