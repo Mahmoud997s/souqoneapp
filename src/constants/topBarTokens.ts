@@ -49,10 +49,14 @@ export const TopBarTokens = {
     },
   }),
 
+  // Ice Glass Unified Control Fill (D-182a2: derived from expanded Home header composite rgb(249,252,254) = #F9FCFE)
+  iceGlass: '#F9FCFE',
+  searchPillFill: '#F9FCFE',
+
   // Circular Action Buttons (38x38)
   buttonSize: 38,
   buttonRadius: 19,
-  buttonBg: 'rgba(255, 255, 255, 0.85)',
+  buttonBg: '#F9FCFE',
   buttonBorderColor: Colors.border,
   buttonBorderWidth: 1,
   buttonIconSize: 19,
@@ -69,7 +73,7 @@ export const TopBarTokens = {
   // Compact Search Bar (38h)
   searchHeight: 38,
   searchRadius: Radius.pill,
-  searchBg: 'rgba(238, 242, 245, 0.95)',
+  searchBg: '#F9FCFE', // Retires #EEF2F5; unified with iceGlass (#F9FCFE)
   searchBorderColor: Colors.border,
   searchBorderWidth: 1,
   searchPaddingHorizontal: 10,
