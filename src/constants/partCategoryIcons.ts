@@ -4,6 +4,7 @@ export type PartCategoryIconId =
   | 'ENGINE'
   | 'BODY'
   | 'ELECTRICAL'
+  | 'SUSPENSION'
   | 'BRAKES'
   | 'INTERIOR'
   | 'TIRES'
@@ -16,6 +17,7 @@ export const PART_CATEGORY_ICONS: Record<PartCategoryIconId, ImageSourcePropType
   ENGINE: require('../../assets/images/categories/parts/part-engine.png'),
   BODY: require('../../assets/images/categories/parts/part-body.png'),
   ELECTRICAL: require('../../assets/images/categories/parts/part-electrical.png'),
+  SUSPENSION: require('../../assets/images/categories/parts/part-suspension.png'),
   BRAKES: require('../../assets/images/categories/cat-parts.png'),
   INTERIOR: require('../../assets/images/categories/parts/part-interior.png'),
   TIRES: require('../../assets/images/categories/parts/part-tires.png'),

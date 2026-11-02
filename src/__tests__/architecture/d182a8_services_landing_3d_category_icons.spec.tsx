@@ -126,9 +126,10 @@ describe('D-182a8 — Services Landing 3D Category Icons, Order, Option B 39.5pt
       ])
     })
 
-    it('renders all 9 service category tabs as 3D image icons at 39.5x39.5 inside 36x36 transparent catIconBox', async () => {
-      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(CATEGORY_ICON_SIZE)
-      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(39.5)
+    it('renders all 9 service category tabs as 3D image icons at 47.4x47.4 (39.5 * 1.2) inside 36x36 transparent catIconBox', async () => {
+      expect(CATEGORY_ICON_SIZE).toBe(39.5)
+      expect(CATEGORY_IMAGE_ICON_SIZE).toBeCloseTo(39.5 * 1.2, 5)
+      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(47.4)
 
       const { getByTestId, getAllByText } = await render(
         <ServicesCategoriesGrid />
@@ -168,8 +169,8 @@ describe('D-182a8 — Services Landing 3D Category Icons, Order, Option B 39.5pt
           string,
           unknown
         >
-        expect(imgStyle.width).toBe(39.5)
-        expect(imgStyle.height).toBe(39.5)
+        expect(imgStyle.width).toBe(47.4)
+        expect(imgStyle.height).toBe(47.4)
       }
     })
 
@@ -198,7 +199,7 @@ describe('D-182a8 — Services Landing 3D Category Icons, Order, Option B 39.5pt
   })
 
   describe('2. Other Grids Untouched: Cars, Buses & Equipment Stay on Vector Icons; Parts & Home Grids Preserved', () => {
-    it('keeps Cars, Buses, and Equipment on vector icons and preserves Parts (10 3D + SUSPENSION vector) and Home (7 3D)', async () => {
+    it('keeps Cars, Buses, and Equipment on vector icons and preserves Parts (all 11 3D icons) and Home (7 3D)', async () => {
       const { queryAllByTestId, getByTestId } = await render(
         <View>
           <CategoriesGrid />
@@ -209,17 +210,17 @@ describe('D-182a8 — Services Landing 3D Category Icons, Order, Option B 39.5pt
         </View>
       )
 
-      // Only Parts' 10 image icons should match category-tile-image-<id> (Cars, Buses, Equipment have 0)
+      // Only Parts' 11 image icons should match category-tile-image-<id> (Cars, Buses, Equipment have 0)
       const glassImageNodes = queryAllByTestId(/^category-tile-image-/)
-      expect(glassImageNodes).toHaveLength(10)
+      expect(glassImageNodes).toHaveLength(11)
 
-      // Parts SUSPENSION still uses paleMint vector icon box
+      // Parts SUSPENSION now also uses transparent 3D icon box (M.PNG)
       const suspBox = getByTestId('category-icon-box-SUSPENSION')
       const suspBoxStyle = StyleSheet.flatten(suspBox.props.style) as Record<
         string,
         unknown
       >
-      expect(suspBoxStyle.backgroundColor).toBe(Colors.paleMint)
+      expect(suspBoxStyle.backgroundColor).toBe('transparent')
 
       // HomeCategoriesGrid still renders its 7 tiles
       const homeImages = queryAllByTestId('category-tile-image')

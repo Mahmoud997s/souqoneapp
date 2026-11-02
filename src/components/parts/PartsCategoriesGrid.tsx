@@ -1,7 +1,6 @@
 import React from 'react'
 import type { ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Colors } from '../../constants/colors'
 import { PART_CATEGORY_ICONS } from '../../constants/partCategoryIcons'
 import {
   GlassCategoriesGrid,
@@ -21,7 +20,7 @@ export const PARTS_LANDING_CATEGORIES: PartsLandingCategoryItem[] = [
   { id: 'ENGINE', label: 'المحرك', icon: PART_CATEGORY_ICONS.ENGINE, iconType: 'image' },
   { id: 'BODY', label: 'الهيكل', icon: PART_CATEGORY_ICONS.BODY, iconType: 'image' },
   { id: 'ELECTRICAL', label: 'الكهرباء', icon: PART_CATEGORY_ICONS.ELECTRICAL, iconType: 'image' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: PART_CATEGORY_ICONS.SUSPENSION, iconType: 'image' },
   { id: 'BRAKES', label: 'الفرامل', icon: PART_CATEGORY_ICONS.BRAKES, iconType: 'image' },
   { id: 'INTERIOR', label: 'الداخلية', icon: PART_CATEGORY_ICONS.INTERIOR, iconType: 'image' },
   { id: 'TIRES', label: 'الإطارات', icon: PART_CATEGORY_ICONS.TIRES, iconType: 'image' },
