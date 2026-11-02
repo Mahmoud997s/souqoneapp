@@ -54,21 +54,41 @@ describe('PostCategoryModal behavior', () => {
     jest.clearAllMocks()
   })
 
-  it('uses a transparent modal presentation only for the post-category sheet', () => {
+  it('presents the modal group transparently and keeps sibling modals opaque', () => {
+    const rootLayout = readFileSync(resolve(__dirname, '../../app/_layout.tsx'), 'utf8')
     const layout = readFileSync(resolve(__dirname, '../../app/(modals)/_layout.tsx'), 'utf8')
     const sheetStyles = readFileSync(
       resolve(__dirname, '../components/post/PostCategorySheet.styles.ts'),
       'utf8',
     )
+    const filtersScreen = readFileSync(resolve(__dirname, '../../app/(modals)/filters.tsx'), 'utf8')
+    const imageViewerScreen = readFileSync(
+      resolve(__dirname, '../../app/(modals)/image-viewer.tsx'),
+      'utf8',
+    )
+    const presentingOptions = rootLayout.match(
+      /name="\(modals\)"\s+options=\{\{([\s\S]*?)\}\}/,
+    )?.[1]
     const postCategoryOptions = layout.match(
       /name="post-category"\s+options=\{\{([\s\S]*?)\}\}/,
     )?.[1]
+    const filtersOptions = layout.match(/name="filters"\s+options=\{\{([\s\S]*?)\}\}/)?.[1]
+    const imageViewerOptions = layout.match(
+      /name="image-viewer"\s+options=\{\{([\s\S]*?)\}\}/,
+    )?.[1]
+    const opaqueBlack = `${String.fromCharCode(35)}000`
 
-    expect(postCategoryOptions).toContain("presentation: 'transparentModal'")
-    expect(postCategoryOptions).toContain("animation: 'slide_from_bottom'")
+    expect(presentingOptions).toContain("presentation: 'transparentModal'")
+    expect(presentingOptions).toContain("animation: 'slide_from_bottom'")
+    expect(presentingOptions).toContain('gestureEnabled: true')
     expect(postCategoryOptions).toContain("backgroundColor: 'transparent'")
     expect(postCategoryOptions).toContain('headerShown: false')
     expect(postCategoryOptions).toContain('gestureEnabled: true')
+    expect(filtersOptions).toContain("presentation: 'modal'")
+    expect(filtersOptions).toContain('backgroundColor: Colors.surface')
+    expect(filtersScreen).toMatch(/container:\s*\{[\s\S]*?backgroundColor:\s*Colors\.surface/)
+    expect(imageViewerOptions).toContain("presentation: 'fullScreenModal'")
+    expect(imageViewerScreen).toContain(`backgroundColor: '${opaqueBlack}'`)
     expect(sheetStyles).toMatch(/container:\s*\{[\s\S]*?backgroundColor:\s*'transparent'/)
   })
 

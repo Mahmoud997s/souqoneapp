@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router'
+import { Colors } from '../../src/constants/colors'
 
 export default function ModalsLayout() {
   return (
@@ -6,8 +7,6 @@ export default function ModalsLayout() {
       <Stack.Screen
         name="post-category"
         options={{
-          presentation: 'transparentModal',
-          animation: 'slide_from_bottom',
           contentStyle: { backgroundColor: 'transparent' },
           headerShown: false,
           gestureEnabled: true,
@@ -17,6 +16,7 @@ export default function ModalsLayout() {
         name="filters"
         options={{
           presentation: 'modal',
+          contentStyle: { backgroundColor: Colors.surface },
           headerShown: false,
           gestureEnabled: true,
         }}
