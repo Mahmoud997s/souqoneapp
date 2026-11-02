@@ -30,7 +30,8 @@ import {
   type GlassSupport,
 } from '../navigation/glassSupport'
 
-export const CATEGORY_IMAGE_ICON_SIZE = 39.5
+export const CATEGORY_IMAGE_ICON_SIZE = 39.5 * 1.2
+export const CATEGORY_IMAGE_ICON_OFFSET_Y = -2
 
 export interface GlassCategoryTabItem {
   id: string
@@ -338,6 +339,7 @@ const s = StyleSheet.create({
   catIconImage: {
     width: CATEGORY_IMAGE_ICON_SIZE,
     height: CATEGORY_IMAGE_ICON_SIZE,
+    transform: [{ translateY: CATEGORY_IMAGE_ICON_OFFSET_Y }],
   },
   catLabel: {
     fontFamily: 'Almarai_700Bold',

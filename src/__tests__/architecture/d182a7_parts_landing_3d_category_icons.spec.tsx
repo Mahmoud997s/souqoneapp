@@ -9,6 +9,7 @@ import {
 } from '../../components/parts/PartsCategoriesGrid'
 import {
   CATEGORY_IMAGE_ICON_SIZE,
+  CATEGORY_IMAGE_ICON_OFFSET_Y,
 } from '../../components/ui/GlassCategoriesGrid'
 import {
   PART_CATEGORY_ICONS,
@@ -46,7 +47,7 @@ jest.mock('expo-image', () => ({
   },
 }))
 
-describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Sizing & Vector Preservation', () => {
+describe('D-182a7 + D-182a7b — Parts Landing 3D Category Icons (All 11 Items Incl. SUSPENSION M.PNG), +20% Size (47.4pt) & Vector Preservation', () => {
   jest.setTimeout(30000)
 
   beforeEach(() => {
@@ -58,6 +59,7 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
       'ENGINE',
       'BODY',
       'ELECTRICAL',
+      'SUSPENSION',
       'BRAKES',
       'INTERIOR',
       'TIRES',
@@ -67,7 +69,7 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
       'all',
     ]
 
-    it('maps all 10 3D-icon part category IDs to non-null image assets with BRAKES=cat-parts and all=cat-browse', () => {
+    it('maps all 11 part category IDs (including SUSPENSION) to non-null image assets with BRAKES=cat-parts and all=cat-browse', () => {
       for (const id of expectedImageIds) {
         expect(PART_CATEGORY_ICONS[id]).toBeDefined()
         expect(PART_CATEGORY_ICONS[id]).not.toBeNull()
@@ -79,11 +81,12 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
       // all (عرض الكل) reuses the existing cat-browse.png asset
       expect(PART_CATEGORY_ICONS.all).toBe(CATEGORY_ICONS.browse)
 
-      // All 8 new cropped 384x384 PNG files exist on disk in assets/images/categories/parts/
+      // All 9 new cropped 384x384 PNG files exist on disk in assets/images/categories/parts/
       const expectedFiles = [
         'part-engine.png',
         'part-body.png',
         'part-electrical.png',
+        'part-suspension.png',
         'part-accessories.png',
         'part-interior.png',
         'part-tires.png',
@@ -131,11 +134,14 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
       ])
     })
 
-    it('renders 10 3D image icons at 39.5x39.5 inside 36x36 transparent catIconBox and keeps SUSPENSION as the only vector icon', async () => {
-      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(CATEGORY_ICON_SIZE)
-      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(39.5)
+    it('renders all 11 3D image icons at 47.4x47.4 (39.5 * 1.2) with translateY -2 inside unchanged 36x36 transparent catIconBox and 82pt tab inside 96pt track without clipping', async () => {
+      // Home's CATEGORY_ICON_SIZE remains 39.5 while landing grids' CATEGORY_IMAGE_ICON_SIZE is 39.5 * 1.2 = 47.4
+      expect(CATEGORY_ICON_SIZE).toBe(39.5)
+      expect(CATEGORY_IMAGE_ICON_SIZE).toBeCloseTo(39.5 * 1.2, 5)
+      expect(CATEGORY_IMAGE_ICON_SIZE).toBe(47.4)
+      expect(CATEGORY_IMAGE_ICON_OFFSET_Y).toBe(-2)
 
-      const { getByTestId, queryByTestId, getAllByText } = await render(
+      const { getByTestId, getAllByText } = await render(
         <PartsCategoriesGrid />
       )
 
@@ -154,37 +160,71 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
         'عرض الكل',
       ])
 
-      // Verify all 10 3D-icon tabs render expo-image with 39.5x39.5, contentFit="contain", no tintColor, inside 36x36 transparent box:
+      // Verify all 11 3D-icon tabs render expo-image at 47.4x47.4 inside 36x36 transparent box and never exceed tab rect:
       for (const id of expectedImageIds) {
+        const tile = getByTestId(`category-tile-${id}`)
+        const tileStyle = StyleSheet.flatten(tile.props.style) as Record<
+          string,
+          unknown
+        >
+        const paddingVertical = Number(tileStyle.paddingVertical) // 10
+        const borderWidth = Number(tileStyle.borderWidth) // 1
+        expect(paddingVertical).toBe(10)
+        expect(borderWidth).toBe(1)
+
         const iconBox = getByTestId(`category-icon-box-${id}`)
-        const boxStyle = StyleSheet.flatten(iconBox.props.style) as Record<string, unknown>
-        expect(boxStyle.width).toBe(36)
-        expect(boxStyle.height).toBe(36)
-        expect(boxStyle.marginBottom).toBe(6)
+        const boxStyle = StyleSheet.flatten(iconBox.props.style) as Record<
+          string,
+          unknown
+        >
+        const boxWidth = Number(boxStyle.width) // 36
+        const boxHeight = Number(boxStyle.height) // 36
+        const marginBottom = Number(boxStyle.marginBottom) // 6
+        expect(boxWidth).toBe(36)
+        expect(boxHeight).toBe(36)
+        expect(marginBottom).toBe(6)
         expect(boxStyle.backgroundColor).toBe('transparent')
         expect(boxStyle.overflow).toBeUndefined()
+
+        // Tab height calculation: 2*borderWidth(2) + 2*paddingVertical(20) + boxHeight(36) + marginBottom(6) + label(18) = 82pt (inside 96pt track)
+        const labelHeight = 18 // lineHeight 16 + paddingTop 2
+        const computedTabHeight =
+          2 * borderWidth +
+          2 * paddingVertical +
+          boxHeight +
+          marginBottom +
+          labelHeight
+        expect(computedTabHeight).toBe(82)
 
         const img = getByTestId(`category-tile-image-${id}`)
         expect(img.props.source).toBe(PART_CATEGORY_ICONS[id])
         expect(img.props.contentFit).toBe('contain')
         expect(img.props.tintColor).toBeUndefined()
 
-        const imgStyle = StyleSheet.flatten(img.props.style) as Record<string, unknown>
-        expect(imgStyle.width).toBe(39.5)
-        expect(imgStyle.height).toBe(39.5)
-      }
+        const imgStyle = StyleSheet.flatten(img.props.style) as Record<
+          string,
+          unknown
+        >
+        expect(imgStyle.width).toBe(47.4)
+        expect(imgStyle.height).toBe(47.4)
+        expect(imgStyle.transform).toEqual([
+          { translateY: CATEGORY_IMAGE_ICON_OFFSET_Y },
+        ])
 
-      // Verify SUSPENSION stays on its vector icon (MaterialCommunityIcons 'car-esp') inside 36x36 paleMint box:
-      expect(queryByTestId('category-tile-image-SUSPENSION')).toBeNull()
-      const suspBox = getByTestId('category-icon-box-SUSPENSION')
-      const suspBoxStyle = StyleSheet.flatten(suspBox.props.style) as Record<string, unknown>
-      expect(suspBoxStyle.width).toBe(36)
-      expect(suspBoxStyle.height).toBe(36)
-      expect(suspBoxStyle.marginBottom).toBe(6)
-      expect(suspBoxStyle.backgroundColor).toBe(Colors.paleMint)
+        // Prove the 47.4x47.4 image never exceeds the 88x82 tab inner rect:
+        const overflowPerSide = (CATEGORY_IMAGE_ICON_SIZE - boxHeight) / 2 // 5.7pt
+        const topBufferFromInnerBorder =
+          paddingVertical - overflowPerSide + CATEGORY_IMAGE_ICON_OFFSET_Y // 10 - 5.7 - 2 = 2.3pt
+        const bottomGapToLabelBox =
+          marginBottom - overflowPerSide - CATEGORY_IMAGE_ICON_OFFSET_Y // 6 - 5.7 + 2 = 2.3pt
+        expect(topBufferFromInnerBorder).toBeCloseTo(2.3, 5)
+        expect(bottomGapToLabelBox).toBeCloseTo(2.3, 5)
+        expect(topBufferFromInnerBorder).toBeGreaterThan(0)
+        expect(bottomGapToLabelBox).toBeGreaterThan(0)
+      }
     })
 
-    it('navigates to /parts/browse?category=<ID> for all 10 category tabs (including ACCESSORIES) and /parts/browse for all', async () => {
+    it('navigates to /parts/browse?category=<ID> for all 10 category tabs (including ACCESSORIES and SUSPENSION) and /parts/browse for all', async () => {
       const { getByText } = await render(<PartsCategoriesGrid />)
 
       await act(async () => {
@@ -204,8 +244,8 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
     })
   })
 
-  describe('2. Other Grids Untouched: Cars, Buses, Equipment & Services Stay on Vector Icons and Home Grid Unchanged', () => {
-    it('keeps Cars, Buses, Equipment, and Services grids on vector icons with paleMint icon boxes and zero image icons', async () => {
+  describe('2. Other Grids Untouched: Cars, Buses, Equipment & Services Stay on Vector Icons (on PR #85 branch) and Home Grid Unchanged at 39.5pt', () => {
+    it('keeps Cars, Buses, Equipment, and Services grids on vector icons and HomeCategoriesGrid at 39.5x39.5', async () => {
       const { queryAllByTestId, getByTestId } = await render(
         <View>
           <CategoriesGrid />
@@ -216,13 +256,14 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
         </View>
       )
 
-      // Zero GlassCategoriesGrid image icons rendered across Cars, Buses, Equipment, and Services:
       const glassImageNodes = queryAllByTestId(/^category-tile-image-/)
       expect(glassImageNodes).toHaveLength(0)
 
-      // Services MAINTENANCE still uses paleMint icon box:
       const maintBox = getByTestId('category-icon-box-MAINTENANCE')
-      const maintBoxStyle = StyleSheet.flatten(maintBox.props.style) as Record<string, unknown>
+      const maintBoxStyle = StyleSheet.flatten(maintBox.props.style) as Record<
+        string,
+        unknown
+      >
       expect(maintBoxStyle.backgroundColor).toBe(Colors.paleMint)
       expect(maintBoxStyle.width).toBe(36)
       expect(maintBoxStyle.height).toBe(36)
@@ -230,6 +271,11 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
       // HomeCategoriesGrid still renders its 7 tiles with 39.5x39.5 icons:
       const homeImages = queryAllByTestId('category-tile-image')
       expect(homeImages).toHaveLength(7)
+      const homeImgStyle = StyleSheet.flatten(
+        homeImages[0].props.style
+      ) as Record<string, unknown>
+      expect(homeImgStyle.width).toBe(39.5)
+      expect(homeImgStyle.height).toBe(39.5)
     })
   })
 })
