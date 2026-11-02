@@ -7,7 +7,9 @@ import {
   Dimensions,
   StyleProp,
   ViewStyle,
+  type ImageSourcePropType,
 } from 'react-native'
+import { Image } from 'expo-image'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, {
@@ -28,11 +30,13 @@ import {
   type GlassSupport,
 } from '../navigation/glassSupport'
 
+export const CATEGORY_IMAGE_ICON_SIZE = 39.5
+
 export interface GlassCategoryTabItem {
   id: string
   label: string
-  icon: string | any
-  iconType?: 'ion' | 'material'
+  icon: string | ImageSourcePropType
+  iconType?: 'ion' | 'material' | 'image'
   iconColor?: string
   iconBg?: string
   onPress: () => void
@@ -137,11 +141,23 @@ export function GlassCategoriesGrid({
   })
 
   const renderIcon = (item: GlassCategoryTabItem, size: number) => {
+    if (item.iconType === 'image') {
+      return (
+        <Image
+          testID={`category-tile-image-${item.id}`}
+          source={item.icon as ImageSourcePropType}
+          style={s.catIconImage}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          accessibilityIgnoresInvertColors
+        />
+      )
+    }
     const iconColor = item.iconColor || Colors.primary
     if (item.iconType === 'material') {
       return (
         <MaterialCommunityIcons
-          name={item.icon}
+          name={item.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
           size={size}
           color={iconColor}
         />
@@ -149,7 +165,7 @@ export function GlassCategoriesGrid({
     }
     return (
       <Ionicons
-        name={item.icon}
+        name={item.icon as React.ComponentProps<typeof Ionicons>['name']}
         size={size}
         color={iconColor}
       />
@@ -198,9 +214,15 @@ export function GlassCategoriesGrid({
                         support={glass}
                       />
                       <View
+                        testID={`category-icon-box-${item.id}`}
                         style={[
                           s.catIconBox,
-                          { backgroundColor: item.iconBg || Colors.paleMint },
+                          {
+                            backgroundColor:
+                              item.iconType === 'image'
+                                ? 'transparent'
+                                : item.iconBg || Colors.paleMint,
+                          },
                         ]}
                       >
                         {renderIcon(item, 20)}
@@ -242,10 +264,16 @@ export function GlassCategoriesGrid({
               support={glass}
             />
             <View
+              testID={`category-icon-box-${item.id}`}
               style={[
                 s.catIconBox,
                 isCompact && s.catIconBoxCompact,
-                { backgroundColor: item.iconBg || Colors.paleMint },
+                {
+                  backgroundColor:
+                    item.iconType === 'image'
+                      ? 'transparent'
+                      : item.iconBg || Colors.paleMint,
+                },
               ]}
             >
               {renderIcon(item, isCompact ? 17 : 20)}
@@ -306,6 +334,10 @@ const s = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginBottom: 4,
+  },
+  catIconImage: {
+    width: CATEGORY_IMAGE_ICON_SIZE,
+    height: CATEGORY_IMAGE_ICON_SIZE,
   },
   catLabel: {
     fontFamily: 'Almarai_700Bold',

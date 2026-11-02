@@ -145,7 +145,7 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
   })
 
   describe('4. Parts Landing PartsCategoriesGrid', () => {
-    it('renders 10 parts categories in exact sequence', async () => {
+    it('renders 11 parts categories in exact sequence', async () => {
       const { getAllByText } = await render(<PartsCategoriesGrid />)
 
       const arabicLabels = getAllByText(/[\u0600-\u06FF]/).map((node) => node.props.children)
@@ -159,6 +159,7 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
         'الإطارات',
         'البطاريات',
         'الزيوت',
+        'إكسسوارات',
         'عرض الكل',
       ])
     })
@@ -220,7 +221,13 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=OILS')
 
-      // 10. عرض الكل
+      // 10. إكسسوارات
+      await act(async () => {
+        fireEvent.press(getByText('إكسسوارات'))
+      })
+      expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=ACCESSORIES')
+
+      // 11. عرض الكل
       await act(async () => {
         fireEvent.press(getByText('عرض الكل'))
       })

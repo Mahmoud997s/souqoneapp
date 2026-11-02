@@ -1,22 +1,34 @@
 import React from 'react'
+import type { ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
+import { PART_CATEGORY_ICONS } from '../../constants/partCategoryIcons'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
 } from '../ui/GlassCategoriesGrid'
 
-const CATEGORIES = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'all', label: 'عرض الكل', icon: 'view-grid', color: Colors.primary, bg: Colors.paleMint },
+interface PartsLandingCategoryItem {
+  id: string
+  label: string
+  icon: string | ImageSourcePropType
+  iconType: 'image' | 'material'
+  color?: string
+  bg?: string
+}
+
+export const PARTS_LANDING_CATEGORIES: PartsLandingCategoryItem[] = [
+  { id: 'ENGINE', label: 'المحرك', icon: PART_CATEGORY_ICONS.ENGINE, iconType: 'image' },
+  { id: 'BODY', label: 'الهيكل', icon: PART_CATEGORY_ICONS.BODY, iconType: 'image' },
+  { id: 'ELECTRICAL', label: 'الكهرباء', icon: PART_CATEGORY_ICONS.ELECTRICAL, iconType: 'image' },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BRAKES', label: 'الفرامل', icon: PART_CATEGORY_ICONS.BRAKES, iconType: 'image' },
+  { id: 'INTERIOR', label: 'الداخلية', icon: PART_CATEGORY_ICONS.INTERIOR, iconType: 'image' },
+  { id: 'TIRES', label: 'الإطارات', icon: PART_CATEGORY_ICONS.TIRES, iconType: 'image' },
+  { id: 'BATTERIES', label: 'البطاريات', icon: PART_CATEGORY_ICONS.BATTERIES, iconType: 'image' },
+  { id: 'OILS', label: 'الزيوت', icon: PART_CATEGORY_ICONS.OILS, iconType: 'image' },
+  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: PART_CATEGORY_ICONS.ACCESSORIES, iconType: 'image' },
+  { id: 'all', label: 'عرض الكل', icon: PART_CATEGORY_ICONS.all, iconType: 'image' },
 ]
 
 export const PartsCategoriesGrid = () => {
@@ -24,17 +36,17 @@ export const PartsCategoriesGrid = () => {
 
   const handlePress = (id: string) => {
     if (id === 'all') {
-      router.push('/parts/browse' as any)
+      router.push('/parts/browse' as never)
     } else {
-      router.push(`/parts/browse?category=${id}` as any)
+      router.push(`/parts/browse?category=${id}` as never)
     }
   }
 
-  const tabs: GlassCategoryTabItem[] = CATEGORIES.map((cat) => ({
+  const tabs: GlassCategoryTabItem[] = PARTS_LANDING_CATEGORIES.map((cat) => ({
     id: cat.id,
     label: cat.label,
     icon: cat.icon,
-    iconType: 'material',
+    iconType: cat.iconType,
     iconColor: cat.color,
     iconBg: cat.bg,
     onPress: () => handlePress(cat.id),
