@@ -319,6 +319,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="خدمات السيارات"
           subTitle="صيانة وفحص وورش متخصصة"
           icon="car-wrench"
@@ -327,10 +328,14 @@ export default function HomeScreen() {
           data={services}
           isLoading={loadingServices}
           routeBase="services"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <ServiceCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
+              maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
             />
@@ -338,6 +343,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="قطع الغيار"
           subTitle="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
           icon="car-cog"
@@ -346,10 +352,13 @@ export default function HomeScreen() {
           data={parts}
           isLoading={loadingParts}
           routeBase="parts"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <PartCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}

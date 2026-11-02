@@ -33,8 +33,11 @@ export interface ServiceCardProps {
   onPress: () => void
   fullWidth?: boolean
   gridMode?: boolean
+  maxChips?: number
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  imageHeight?: number
+  compactBody?: boolean
   actionMenu?: React.ReactNode
   liquidGlass?: boolean
   glassSupport?: GlassSupport
@@ -45,8 +48,11 @@ export const ServiceCard = ({
   onPress,
   fullWidth = false,
   gridMode = false,
+  maxChips = 3,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  imageHeight,
+  compactBody = false,
   actionMenu,
   liquidGlass,
   glassSupport,
@@ -143,11 +149,14 @@ export const ServiceCard = ({
       placeholderIcon="build"
       pills={pills}
       badges={badges}
+      maxChips={maxChips}
       isSellerVerified={isSellerVerified}
       fullWidth={fullWidth}
       gridMode={gridMode}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       favoriteType="CAR_SERVICE"
