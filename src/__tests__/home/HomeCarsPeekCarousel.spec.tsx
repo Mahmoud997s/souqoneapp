@@ -290,11 +290,11 @@ describe('Home Cars Section — Peek Carousel, Depth & Geometry (D-164 / D-164e)
       expect(skeletonCompactStyle.paddingBottom).toBe(5)
 
       const staticSkeletonCompact = computeStaticSkeletonBodyHeight(skeletonCardStyles, true)
-      expect(staticSkeletonCompact).toBe(104)
+      expect(staticSkeletonCompact).toBe(115)
 
-      // Skeleton body height vs real card compact body difference (reported as debt found but not touched per B6):
+      // Skeleton body height matches real card compact body to the millimetre (D-182a3):
       const skeletonDiff = staticBodyCompact - staticSkeletonCompact
-      expect(skeletonDiff).toBe(11)
+      expect(skeletonDiff).toBe(0)
 
       // 5. Card width & aspect ratio math:
       const cardWidth390 = getPeekCardWidth(390) // 312

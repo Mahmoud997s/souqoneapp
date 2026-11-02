@@ -57,6 +57,9 @@ export const CARS_PEEK_GAP = 6
 export const CARS_PEEK_IMAGE_HEIGHT = 133
 export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
 export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
+export const getPeekLeadingInset = () => Spacing.space5
+export const getPeekLeftRemainder = (screenWidth: number = SW) =>
+  screenWidth - getPeekLeadingInset() - getPeekCardWidth(screenWidth) - CARS_PEEK_GAP
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 export interface SectionProps {
@@ -97,7 +100,7 @@ export function CategorySection({
 
   const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
   const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
-  const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaddingEnd = peek ? getPeekLeadingInset() : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
 
@@ -127,6 +130,8 @@ export function CategorySection({
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
           trackPendingIndex
+          paging={sectionPaging}
+          depthEffect={peek}
           keyExtractor={(item) => `skeleton-${item}`}
           renderItem={() => (
             <SkeletonCard
