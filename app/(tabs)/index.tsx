@@ -37,6 +37,7 @@ import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { GlassSurface } from '../../src/components/navigation/glassSupport'
 import { TopBarTokens } from '../../src/constants/topBarTokens'
+import { CATEGORY_ICONS, type CategoryVertical } from '../../src/constants/categoryIcons'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { useListings } from '../../src/hooks/useListings'
@@ -81,6 +82,19 @@ export interface SectionProps {
   peek?: boolean
 }
 
+export const SECTION_ICON_MAP: Record<string, CategoryVertical> = {
+  cars: 'cars',
+  services: 'services',
+  parts: 'parts',
+  buses: 'buses',
+  equipment: 'equipment',
+  operators: 'operators',
+}
+
+export const SECTION_ICON_BOX_SIZE = 32
+export const SECTION_ICON_3D_SIZE = 30
+export const SECTION_ICON_3D_POP_OUT_TOP = -10
+
 export function CategorySection({
   title,
   subTitle,
@@ -100,20 +114,35 @@ export function CategorySection({
   const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
+  const categoryKey = SECTION_ICON_MAP[routeBase] ?? 'browse'
+  const categoryIconSource = CATEGORY_ICONS[categoryKey]
 
   return (
-    <Animated.View style={s.section} entering={FadeInDown.duration(400)}>
-      <View style={s.sectionHeader}>
-        <View style={s.titleRow}>
-          <View style={s.sectionIconWrap}>
-            <MaterialCommunityIcons name={icon} size={16} color={iconColor || Colors.primary} />
+    <Animated.View style={s.section} entering={FadeInDown.duration(400)} testID={`home-section-${routeBase}`}>
+      <View style={s.sectionHeader} testID={`home-section-header-${routeBase}`}>
+        <View style={s.titleRow} testID={`home-section-title-row-${routeBase}`}>
+          <View style={s.sectionIconWrap} testID={`home-section-icon-box-${routeBase}`}>
+            <Image
+              testID={`home-section-icon-3d-${routeBase}`}
+              source={categoryIconSource}
+              style={s.sectionIcon3D}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              pointerEvents="none"
+              accessibilityIgnoresInvertColors
+            />
           </View>
           <View style={s.titleCol}>
             <Text style={s.sectionTitle}>{title}</Text>
             {subTitle ? <Text style={s.sectionSubTitle}>{subTitle}</Text> : null}
           </View>
         </View>
-        <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push(seeAllRoute as any)} activeOpacity={0.8}>
+        <TouchableOpacity
+          testID={`home-section-see-all-${routeBase}`}
+          style={s.seeAllBtn}
+          onPress={() => router.push(seeAllRoute as Parameters<typeof router.push>[0])}
+          activeOpacity={0.8}
+        >
           <Text style={s.seeAll}>الكل</Text>
           <Ionicons name="chevron-back" size={13} color={Colors.primary} />
         </TouchableOpacity>
@@ -212,7 +241,19 @@ export default function HomeScreen() {
         hideBackButton
         rightElement={
           <View style={s.brandIconBtn} testID="home-brand-icon-btn">
-            <GlassSurface testID="home-brand-icon-btn" borderRadius={TopBarTokens.buttonRadius} />
+            <View
+              pointerEvents="none"
+              testID="home-brand-icon-btn-backing"
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+              ]}
+            />
+            <GlassSurface
+              testID="home-brand-icon-btn"
+              borderRadius={TopBarTokens.buttonRadius}
+              washColor={TopBarTokens.iceGlass}
+            />
             <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
           </View>
         }
@@ -377,6 +418,7 @@ const s = StyleSheet.create({
   // Section
   section: {
     marginBottom: 28,
+    overflow: 'visible',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -384,22 +426,31 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.space4,
     marginBottom: 12,
+    overflow: 'visible',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flex: 1,
+    overflow: 'visible',
   },
   sectionIconWrap: { 
-    width: 32,
-    height: 32,
+    width: SECTION_ICON_BOX_SIZE,
+    height: SECTION_ICON_BOX_SIZE,
     borderRadius: 10,
-    backgroundColor: Colors.inputBg,
+    backgroundColor: TopBarTokens.iceGlass,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
+  },
+  sectionIcon3D: {
+    position: 'absolute',
+    width: SECTION_ICON_3D_SIZE,
+    height: SECTION_ICON_3D_SIZE,
+    top: SECTION_ICON_3D_POP_OUT_TOP,
   },
   titleCol: {
     flex: 1,
@@ -427,7 +478,7 @@ const s = StyleSheet.create({
     gap: 4, 
     paddingVertical: 4,
     paddingHorizontal: 11, 
-    backgroundColor: Colors.paleMint, 
+    backgroundColor: TopBarTokens.iceGlass, 
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.border,

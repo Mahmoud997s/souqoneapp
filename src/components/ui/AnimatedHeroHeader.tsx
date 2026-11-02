@@ -64,9 +64,13 @@ export interface AnimatedHeroHeaderProps {
   };
 }
 
-const SCROLL_THRESHOLD = 5;
-const SCROLL_RANGE = 30;
-const SCROLL_END = SCROLL_THRESHOLD + SCROLL_RANGE; // 35px - Snappy & imperceptible
+export const SCROLL_THRESHOLD = 5;
+export const SCROLL_MID = SCROLL_THRESHOLD + 6; // 11px - Row 2 & Expanded Title finish exiting before Compact Search enters
+export const SCROLL_TRANSITION_END = SCROLL_THRESHOLD + 12; // 17px - Compact Search finishes entering
+export const SCROLL_RANGE = 30;
+export const SCROLL_END = SCROLL_THRESHOLD + SCROLL_RANGE; // 35px - Snappy & imperceptible
+export const ROW2_CLIP_HEIGHT = 64; // paddingTop (8) + searchBar (44) + paddingBottom (12)
+export const COMPACT_HIDDEN_TRANSLATE_Y = TopBarTokens.rowHeight; // 44px (>= 38px centerContainer clip height)
 
 /**
  * LandingHeader (formerly AnimatedHeroHeader)
@@ -129,72 +133,115 @@ export function AnimatedHeroHeader({
   });
 
   const expandedTitleStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { opacity: 1 };
+    if (!scrollY) {
+      return {
+        opacity: 1,
+        transform: [{ translateY: 0 }],
+        pointerEvents: 'auto',
+      };
+    }
     const opacity = interpolate(
       scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 10],
+      [0, SCROLL_THRESHOLD, SCROLL_MID],
       [1, 1, 0],
+      Extrapolation.CLAMP
+    );
+    const translateY = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_MID],
+      [0, 0, -TopBarTokens.searchHeight],
       Extrapolation.CLAMP
     );
     return {
       opacity,
-      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 10 ? 'none' : 'auto',
+      transform: [{ translateY }],
+      pointerEvents: scrollY.value >= SCROLL_MID ? 'none' : 'auto',
     };
   });
 
   const compactSearchStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { opacity: 0 };
-    const opacity = interpolate(
+    if (!scrollY) {
+      return {
+        transform: [{ translateY: COMPACT_HIDDEN_TRANSLATE_Y }],
+        pointerEvents: 'none',
+      };
+    }
+    const translateY = interpolate(
       scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 12],
-      [0, 0, 1],
+      [0, SCROLL_MID, SCROLL_TRANSITION_END],
+      [COMPACT_HIDDEN_TRANSLATE_Y, COMPACT_HIDDEN_TRANSLATE_Y, 0],
       Extrapolation.CLAMP
     );
     return {
-      opacity,
-      pointerEvents: scrollY.value < SCROLL_THRESHOLD + 4 ? 'none' : 'auto',
+      transform: [{ translateY }],
+      pointerEvents: scrollY.value <= SCROLL_MID ? 'none' : 'auto',
     };
   });
 
   const chatBtnAnimStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { opacity: 1, width: 38, marginEnd: 6 };
-    const opacity = interpolate(
-      scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 8],
-      [1, 1, 0],
-      Extrapolation.CLAMP
-    );
+    if (!scrollY) {
+      return {
+        width: TopBarTokens.buttonSize,
+        marginEnd: 6,
+        transform: [{ translateY: 0 }],
+        pointerEvents: 'auto',
+      };
+    }
     const width = interpolate(
       scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 14],
-      [38, 38, 0],
+      [0, SCROLL_THRESHOLD, SCROLL_TRANSITION_END],
+      [TopBarTokens.buttonSize, TopBarTokens.buttonSize, 0],
       Extrapolation.CLAMP
     );
     const marginEnd = interpolate(
       scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 14],
+      [0, SCROLL_THRESHOLD, SCROLL_TRANSITION_END],
       [6, 6, 0],
       Extrapolation.CLAMP
     );
-    return {
-      opacity,
-      width,
-      marginEnd,
-      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 8 ? 'none' : 'auto',
-    };
-  });
-
-  const row2AnimStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { opacity: 1 };
-    const opacity = interpolate(
+    const translateY = interpolate(
       scrollY.value,
-      [0, SCROLL_THRESHOLD, SCROLL_THRESHOLD + 12],
-      [1, 1, 0],
+      [0, SCROLL_THRESHOLD, SCROLL_TRANSITION_END],
+      [0, 0, COMPACT_HIDDEN_TRANSLATE_Y],
       Extrapolation.CLAMP
     );
     return {
-      opacity,
-      pointerEvents: scrollY.value > SCROLL_THRESHOLD + 12 ? 'none' : 'auto',
+      width,
+      marginEnd,
+      transform: [{ translateY }],
+      pointerEvents: scrollY.value >= SCROLL_MID ? 'none' : 'auto',
+    };
+  });
+
+  const row2ClipAnimStyle = useAnimatedStyle(() => {
+    if (!scrollY) {
+      return { height: ROW2_CLIP_HEIGHT };
+    }
+    const height = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_MID],
+      [ROW2_CLIP_HEIGHT, ROW2_CLIP_HEIGHT, 0],
+      Extrapolation.CLAMP
+    );
+    return { height };
+  });
+
+  const row2AnimStyle = useAnimatedStyle(() => {
+    if (!scrollY) {
+      return {
+        transform: [{ translateY: 0 }],
+        pointerEvents: 'auto',
+      };
+    }
+    const translateY = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD, SCROLL_MID],
+      [0, 0, ROW2_CLIP_HEIGHT],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [{ translateY }],
+      pointerEvents: scrollY.value >= SCROLL_MID ? 'none' : 'auto',
     };
   });
 
@@ -236,7 +283,19 @@ export function AnimatedHeroHeader({
               hitSlop={TopBarTokens.buttonHitSlop}
               accessibilityLabel="رجوع"
             >
-              <GlassSurface testID="hero-header-back-btn" borderRadius={TopBarTokens.buttonRadius} />
+              <View
+                pointerEvents="none"
+                testID="hero-header-back-btn-backing"
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                ]}
+              />
+              <GlassSurface
+                testID="hero-header-back-btn"
+                borderRadius={TopBarTokens.buttonRadius}
+                washColor={TopBarTokens.iceGlass}
+              />
               <Ionicons name="arrow-forward-outline" size={19} color={Colors.primary} />
             </TouchableOpacity>
           ) : rightElement ? (
@@ -244,9 +303,12 @@ export function AnimatedHeroHeader({
           ) : null}
 
           {/* 2. Center Container (flex: 1) — Holds Title in expanded state & Search Bar in compact state */}
-          <View style={s.centerContainer}>
+          <View style={s.centerContainer} testID="hero-header-center-clip">
             {/* Expanded Layer: Title & Subtitle */}
-            <Animated.View style={[StyleSheet.absoluteFill, s.titleTextCol, expandedTitleStyle]}>
+            <Animated.View
+              testID="hero-header-expanded-title"
+              style={[StyleSheet.absoluteFill, s.titleTextCol, expandedTitleStyle]}
+            >
               <View style={s.titleRow}>
                 <Text style={s.mainTitle} numberOfLines={1}>
                   {title}
@@ -263,20 +325,47 @@ export function AnimatedHeroHeader({
             </Animated.View>
 
             {/* Compact Layer: Compact Search Bar (Height 38px, matches circular buttons!) */}
-            <Animated.View style={[StyleSheet.absoluteFill, s.compactSearchWrapper, compactSearchStyle]}>
+            <Animated.View
+              testID="hero-header-compact-search-wrapper"
+              style={[StyleSheet.absoluteFill, s.compactSearchWrapper, compactSearchStyle]}
+            >
               <TouchableOpacity
                 testID="hero-header-compact-search"
                 style={s.compactSearchBar}
                 onPress={handleSearchPress}
                 activeOpacity={0.88}
               >
-                <GlassSurface testID="hero-header-compact-search" borderRadius={TopBarTokens.searchRadius} />
+                <View
+                  pointerEvents="none"
+                  testID="hero-header-compact-search-backing"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.searchRadius },
+                  ]}
+                />
+                <GlassSurface
+                  testID="hero-header-compact-search"
+                  borderRadius={TopBarTokens.searchRadius}
+                  washColor={TopBarTokens.iceGlass}
+                />
                 <Ionicons name="search" size={16} color={Colors.primary} style={{ opacity: 0.8 }} />
                 <Text style={s.compactSearchTxt} numberOfLines={1}>
                   {searchPlaceholder}
                 </Text>
                 <View style={s.compactFilterBtn} testID="hero-header-compact-filter-btn">
-                  <GlassSurface testID="hero-header-compact-filter-btn" borderRadius={14} />
+                  <View
+                    pointerEvents="none"
+                    testID="hero-header-compact-filter-btn-backing"
+                    style={[
+                      StyleSheet.absoluteFill,
+                      { backgroundColor: TopBarTokens.iceGlass, borderRadius: 14 },
+                    ]}
+                  />
+                  <GlassSurface
+                    testID="hero-header-compact-filter-btn"
+                    borderRadius={14}
+                    washColor={TopBarTokens.iceGlass}
+                  />
                   <Ionicons name="options-outline" size={14} color={Colors.primary} />
                 </View>
               </TouchableOpacity>
@@ -287,7 +376,10 @@ export function AnimatedHeroHeader({
           <View style={s.leftButtonsGroup}>
             {/* Chat / Messages Button (Replaces Add Listing button in navbar per user instruction) */}
             {!hideChatButton && (
-              <Animated.View style={[s.chatBtnWrapper, chatBtnAnimStyle]}>
+              <Animated.View
+                testID="hero-header-chat-btn-clip"
+                style={[s.chatBtnWrapper, chatBtnAnimStyle]}
+              >
                 <TouchableOpacity
                   testID="hero-header-chat-btn"
                   style={s.circularBtn}
@@ -297,7 +389,19 @@ export function AnimatedHeroHeader({
                   accessibilityRole="button"
                   accessibilityLabel="الرسائل والمحادثات"
                 >
-                  <GlassSurface testID="hero-header-chat-btn" borderRadius={TopBarTokens.buttonRadius} />
+                  <View
+                    pointerEvents="none"
+                    testID="hero-header-chat-btn-backing"
+                    style={[
+                      StyleSheet.absoluteFill,
+                      { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                    ]}
+                  />
+                  <GlassSurface
+                    testID="hero-header-chat-btn"
+                    borderRadius={TopBarTokens.buttonRadius}
+                    washColor={TopBarTokens.iceGlass}
+                  />
                   <Ionicons name={chatIcon || 'chatbubble-ellipses-outline'} size={19} color={Colors.primary} />
                 </TouchableOpacity>
               </Animated.View>
@@ -313,31 +417,69 @@ export function AnimatedHeroHeader({
               accessibilityRole="button"
               accessibilityLabel="الإشعارات"
             >
-              <GlassSurface testID="hero-header-notification-btn" borderRadius={TopBarTokens.buttonRadius} />
+              <View
+                pointerEvents="none"
+                testID="hero-header-notification-btn-backing"
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                ]}
+              />
+              <GlassSurface
+                testID="hero-header-notification-btn"
+                borderRadius={TopBarTokens.buttonRadius}
+                washColor={TopBarTokens.iceGlass}
+              />
               <Ionicons name={headerIcon} size={19} color={Colors.primary} />
               <View style={s.greenDot} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── ROW 2: LARGE SEARCH BAR (Fades out and translates up on scroll) ── */}
-        <Animated.View style={[s.row2, row2AnimStyle]}>
-          <TouchableOpacity
-            testID="hero-header-large-search"
-            style={s.searchBar}
-            onPress={handleSearchPress}
-            activeOpacity={0.88}
-          >
-            <GlassSurface testID="hero-header-large-search" borderRadius={Radius.md} />
-            <Ionicons name="search" size={18} color={Colors.primary} style={{ opacity: 0.8 }} />
-            <Text style={s.searchPlaceholder} numberOfLines={1}>
-              {searchPlaceholder}
-            </Text>
-            <View style={s.filterBtnInner} testID="hero-header-large-filter-btn">
-              <GlassSurface testID="hero-header-large-filter-btn" borderRadius={Radius.sm} />
-              <Ionicons name="options-outline" size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
+        {/* ── ROW 2: LARGE SEARCH BAR (Clipped by row2Clip and translates out by full height on scroll) ── */}
+        <Animated.View style={[s.row2Clip, row2ClipAnimStyle]} testID="hero-header-row2-clip">
+          <Animated.View testID="hero-header-row2" style={[s.row2, row2AnimStyle]}>
+            <TouchableOpacity
+              testID="hero-header-large-search"
+              style={s.searchBar}
+              onPress={handleSearchPress}
+              activeOpacity={0.88}
+            >
+              <View
+                pointerEvents="none"
+                testID="hero-header-large-search-backing"
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: TopBarTokens.iceGlass, borderRadius: Radius.md },
+                ]}
+              />
+              <GlassSurface
+                testID="hero-header-large-search"
+                borderRadius={Radius.md}
+                washColor={TopBarTokens.iceGlass}
+              />
+              <Ionicons name="search" size={18} color={Colors.primary} style={{ opacity: 0.8 }} />
+              <Text style={s.searchPlaceholder} numberOfLines={1}>
+                {searchPlaceholder}
+              </Text>
+              <View style={s.filterBtnInner} testID="hero-header-large-filter-btn">
+                <View
+                  pointerEvents="none"
+                  testID="hero-header-large-filter-btn-backing"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: TopBarTokens.iceGlass, borderRadius: Radius.sm },
+                  ]}
+                />
+                <GlassSurface
+                  testID="hero-header-large-filter-btn"
+                  borderRadius={Radius.sm}
+                  washColor={TopBarTokens.iceGlass}
+                />
+                <Ionicons name="options-outline" size={16} color={Colors.primary} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
 
       </Animated.View>
@@ -382,6 +524,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     marginHorizontal: 0,
+    overflow: 'hidden',
   },
   titleTextCol: {
     justifyContent: 'center',
@@ -473,6 +616,10 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderWidth: 1.5,
     borderColor: Colors.white,
+  },
+  row2Clip: {
+    height: ROW2_CLIP_HEIGHT,
+    overflow: 'hidden',
   },
   row2: {
     paddingHorizontal: Spacing.space4,
