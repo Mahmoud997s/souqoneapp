@@ -25,12 +25,14 @@ describe('Home bottom content characterization', () => {
     const betweenBannerAndSupport = homeSource
       .slice(addBannerIndex, supportIndex)
       .replace(/<HomeAddListingBanner[^>]*\/>/, '')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
       .trim()
     expect(betweenBannerAndSupport).toBe('')
 
     const trailingContent = homeSource
       .slice(supportIndex, scrollCloseIndex)
       .replace(/<SupportHelpButton[^>]*\/>/, '')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
       .trim()
     expect(trailingContent).toBe('')
   })
