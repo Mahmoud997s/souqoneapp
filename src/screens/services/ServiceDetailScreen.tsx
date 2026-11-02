@@ -43,7 +43,7 @@ import { buildShareMessage } from '../../hooks/listing-detail/useShareListing'
 import {
   DetailTopBar,
   LocationCard,
-  StaleDataBanner,
+  DetailStaleBanner,
 } from '../../components/listing-detail'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
@@ -409,14 +409,6 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         ]}
         testID="service-detail-scroll-view"
       >
-        {/* Pinned Stale Data Banner inside scroll content below top bar */}
-        {isRefetchError && (
-          <StaleDataBanner
-            onRetry={refetch}
-            isRefetching={refreshing}
-          />
-        )}
-
         {/* 1. Image Gallery */}
         <Animated.View style={heroParallaxStyle}>
           <ImageGallery
@@ -585,6 +577,14 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         onSearchSubmit={handleSearchSubmit}
         placeholder="ابحث في تفاصيل الخدمة..."
       />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

@@ -79,7 +79,7 @@ import { SimilarListingsGrid } from '../../components/listing-detail/SimilarList
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
-import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
+import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
@@ -346,14 +346,6 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           },
         ]}
       >
-        {/* Pinned Stale Data Banner inside scroll content below top bar */}
-        {isRefetchError && (
-          <StaleDataBanner
-            onRetry={refetch}
-            isRefetching={refreshing}
-          />
-        )}
-
         {/* 1. Image Gallery */}
         <Animated.View style={heroParallaxStyle}>
           <ImageGallery
@@ -595,6 +587,14 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         onSearchSubmit={handleSearchSubmit}
         placeholder="ابحث في تفاصيل السيارة..."
       />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

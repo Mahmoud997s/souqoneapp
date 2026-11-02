@@ -81,7 +81,7 @@ import { DetailStates } from '../../components/listing-detail/DetailStates'
 import {
   DetailTopBar,
   LocationCard,
-  StaleDataBanner,
+  DetailStaleBanner,
 } from '../../components/listing-detail'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
@@ -329,14 +329,6 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         ]}
         testID="equipment-detail-scroll-view"
       >
-        {/* Pinned Stale Data Banner inside scroll content below top bar */}
-        {isRefetchError && (
-          <StaleDataBanner
-            onRetry={refetch}
-            isRefetching={refreshing}
-          />
-        )}
-
         {/* 1. Image Gallery */}
         <Animated.View style={heroParallaxStyle}>
           <ImageGallery
@@ -565,6 +557,14 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         onSearchSubmit={handleSearchSubmit}
         placeholder="ابحث في تفاصيل المعدة..."
       />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

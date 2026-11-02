@@ -58,7 +58,7 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import {
   DetailTopBar,
   LocationCard,
-  StaleDataBanner,
+  DetailStaleBanner,
 } from '../../components/listing-detail'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
@@ -233,14 +233,6 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Pinned Stale Data Banner inside scroll content below top bar */}
-        {isRefetchError && (
-          <StaleDataBanner
-            onRetry={refetch}
-            isRefetching={refreshing}
-          />
-        )}
-
         {/* Pending Deletion Banner (Owner only) */}
         {isOwner && vm.pendingDeletion && (
           <OperatorPendingDeletionBanner
@@ -347,6 +339,14 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         onShare={handleShare}
         canFavorite={false}
       />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }
