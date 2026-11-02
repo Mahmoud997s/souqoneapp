@@ -7,6 +7,9 @@ import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 import { TopBarGlassSurface } from './TopBarGlassSurface'
 import { TopBarTokens } from '../../constants/topBarTokens'
 
+const NAV_BUTTON_SIZE = 38
+const NAV_BUTTON_RADIUS = 12
+
 export interface GlassNavBarAction {
   icon?: React.ComponentProps<typeof Ionicons>['name']
   onPress: () => void
@@ -86,13 +89,13 @@ export function GlassNavBar({
             <TopBarGlassSurface
               testID={`${testID}-back-glass`}
               kind="ice-control"
-              borderRadius={TopBarTokens.buttonRadius}
+              borderRadius={NAV_BUTTON_RADIUS}
             />
           )}
           <Ionicons
             name="arrow-forward-outline"
-            size={isHomeAppearance ? TopBarTokens.buttonIconSize : 18}
-            color={isHomeAppearance ? TopBarTokens.buttonIconColor : TopBarTokens.legacyNavIconColor}
+            size={18}
+            color={TopBarTokens.legacyNavIconColor}
           />
         </TouchableOpacity>
 
@@ -113,10 +116,10 @@ export function GlassNavBar({
               ) : action.icon ? (
                 <Ionicons
                   name={action.icon}
-                  size={isHomeAppearance ? TopBarTokens.buttonIconSize : 17}
+                  size={17}
                   color={
                     action.iconColor ||
-                    (isHomeAppearance ? TopBarTokens.buttonIconColor : TopBarTokens.legacyNavIconColor)
+                    TopBarTokens.legacyNavIconColor
                   }
                 />
               ) : null
@@ -140,7 +143,7 @@ export function GlassNavBar({
                     <TopBarGlassSurface
                       testID={`${testID}-action-${idx}-glass`}
                       kind="ice-control"
-                      borderRadius={TopBarTokens.buttonRadius}
+                      borderRadius={NAV_BUTTON_RADIUS}
                     />
                   )}
                   {isDisabled && isHomeAppearance ? (
@@ -218,9 +221,9 @@ const s = StyleSheet.create({
     gap: 8,
   },
   navBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    borderRadius: NAV_BUTTON_RADIUS,
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.8)',
@@ -229,17 +232,17 @@ const s = StyleSheet.create({
     ...softShadow,
   },
   navBtnHome: {
-    width: TopBarTokens.buttonSize,
-    height: TopBarTokens.buttonSize,
-    borderRadius: TopBarTokens.buttonRadius,
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    borderRadius: NAV_BUTTON_RADIUS,
     backgroundColor: TopBarTokens.iceGlass,
     borderWidth: TopBarTokens.buttonBorderWidth,
     borderColor: TopBarTokens.buttonBorderColor,
     ...TopBarTokens.buttonShadow,
   },
   navBtnPlaceholder: {
-    width: 38,
-    height: 38,
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
   },
   navTitleBadge: {
     flex: 1,

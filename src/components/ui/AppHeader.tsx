@@ -14,6 +14,10 @@ import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { TopBarGlassSurface } from './TopBarGlassSurface'
 import { TopBarTokens } from '../../constants/topBarTokens'
 
+const APP_HEADER_BUTTON_SIZE = 32
+const APP_HEADER_BUTTON_RADIUS = 16
+const APP_HEADER_BUTTON_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 }
+
 interface AppHeaderProps {
   title?: string
   leftIcon?: ComponentProps<typeof Ionicons>['name']
@@ -94,7 +98,7 @@ export function AppHeader({
           <TouchableOpacity
             testID="app-header-back"
             style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
-            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onLeftPress || (() => router.back())}
             activeOpacity={0.7}
           >
@@ -102,19 +106,19 @@ export function AppHeader({
               <TopBarGlassSurface
                 testID="app-header-back-glass"
                 kind="ice-control"
-                borderRadius={TopBarTokens.buttonRadius}
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
               />
             )}
             <Ionicons
               name="arrow-forward-outline"
-              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              size={18}
               color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
             />
           </TouchableOpacity>
         ) : leftIcon ? (
           <TouchableOpacity
             style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
-            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onLeftPress}
             activeOpacity={0.7}
           >
@@ -122,12 +126,12 @@ export function AppHeader({
               <TopBarGlassSurface
                 testID="app-header-left-icon-glass"
                 kind="ice-control"
-                borderRadius={TopBarTokens.buttonRadius}
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
               />
             )}
             <Ionicons
               name={leftIcon}
-              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              size={18}
               color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
             />
           </TouchableOpacity>
@@ -152,7 +156,7 @@ export function AppHeader({
         ) : rightIcon ? (
           <TouchableOpacity
             style={[s.iconBtn, glassBackground && s.iconBtnGlass, isLight && !glassBackground && s.iconBtnLight]}
-            hitSlop={glassBackground ? TopBarTokens.buttonHitSlop : undefined}
+            hitSlop={glassBackground ? APP_HEADER_BUTTON_HIT_SLOP : undefined}
             onPress={onRightPress}
             activeOpacity={0.7}
           >
@@ -160,12 +164,12 @@ export function AppHeader({
               <TopBarGlassSurface
                 testID="app-header-right-glass"
                 kind="ice-control"
-                borderRadius={TopBarTokens.buttonRadius}
+                borderRadius={APP_HEADER_BUTTON_RADIUS}
               />
             )}
             <Ionicons
               name={rightIcon}
-              size={glassBackground ? TopBarTokens.buttonIconSize : 18}
+              size={18}
               color={glassBackground ? TopBarTokens.buttonIconColor : isLight ? Colors.text : Colors.white}
             />
           </TouchableOpacity>
@@ -195,11 +199,11 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
   },
   iconBtn: {
-    width: 32,
-    height: 32,
+    width: APP_HEADER_BUTTON_SIZE,
+    height: APP_HEADER_BUTTON_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: APP_HEADER_BUTTON_RADIUS,
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   title: {
@@ -221,9 +225,6 @@ const s = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.06)',
   },
   iconBtnGlass: {
-    width: TopBarTokens.buttonSize,
-    height: TopBarTokens.buttonSize,
-    borderRadius: TopBarTokens.buttonRadius,
     backgroundColor: TopBarTokens.iceGlass,
     borderWidth: TopBarTokens.buttonBorderWidth,
     borderColor: TopBarTokens.buttonBorderColor,

@@ -1,6 +1,6 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { GlassNavBar } from './GlassNavBar'
 import { TopBarTokens } from '../../constants/topBarTokens'
 import type { GlassNavBarAction } from './GlassNavBar'
@@ -85,15 +85,43 @@ describe('GlassNavBar profile-only Home recipe', () => {
     const iceControls = surfaces.filter((surface) => surface.props.kind === 'ice-control')
     const backButton = renderer.root.findAllByType(TouchableOpacity)[0]
     const backStyle = StyleSheet.flatten(backButton.props.style)
+    const icons = renderer.root.findAll((node) => String(node.type) === 'Ionicons')
+    const actionButtons = renderer.root.findAllByType(TouchableOpacity).slice(1)
 
     expect(surfaces.some((surface) => surface.props.kind === 'background')).toBe(true)
     expect(iceControls).toHaveLength(actions.length + 1)
     expect(backStyle).toMatchObject({
-      width: TopBarTokens.buttonSize,
-      height: TopBarTokens.buttonSize,
-      borderRadius: TopBarTokens.buttonRadius,
+      width: 38,
+      height: 38,
+      borderRadius: 12,
       backgroundColor: TopBarTokens.iceGlass,
     })
     expect(backButton.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
+    expect(icons[0].props).toMatchObject({ size: 18, color: TopBarTokens.legacyNavIconColor })
+    expect(backStyle.borderRadius).toBe(iceControls[0].props.borderRadius)
+    expect(iceControls.every((surface) => surface.props.borderRadius === 12)).toBe(true)
+    expect(actionButtons).toHaveLength(actions.length)
+    expect(
+      actionButtons.every((button) => {
+        const style = StyleSheet.flatten(button.props.style)
+        return style.width === 38 && style.height === 38 && style.borderRadius === 12
+      }),
+    ).toBe(true)
+    expect(icons.slice(1).every((icon) => icon.props.size === 17)).toBe(true)
+  })
+
+  test('keeps the no-action placeholder at its original size', () => {
+    const renderer = renderNavBar({
+      title: 'إعدادات الحساب',
+      paddingTop: 24,
+      onBackPress: jest.fn(),
+      appearance: 'home',
+    })
+    const placeholder = renderer.root.findAllByType(View).find((view) => {
+      const style = StyleSheet.flatten(view.props.style)
+      return style.width === 38 && style.height === 38
+    })
+
+    expect(placeholder).toBeDefined()
   })
 })

@@ -49,12 +49,14 @@ describe('AppHeader Home glass default', () => {
 
     expect(renderer.root.findAllByProps({ testID: 'app-header-back-glass' })).toHaveLength(1)
     expect(style).toMatchObject({
-      width: TopBarTokens.buttonSize,
-      height: TopBarTokens.buttonSize,
-      borderRadius: TopBarTokens.buttonRadius,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       backgroundColor: TopBarTokens.iceGlass,
     })
-    expect(backButton.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
+    expect(backButton.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 6, right: 6 })
+    expect(renderer.root.findByProps({ testID: 'app-header-back-glass' }).props.borderRadius).toBe(16)
+    expect(renderer.root.findAll((node) => String(node.type) === 'Ionicons')[0].props.size).toBe(18)
     expect(renderer.root.findByType(Text).props.style).toContainEqual(
       expect.objectContaining({ color: Colors.text }),
     )
@@ -88,12 +90,14 @@ describe('AppHeader Home glass default', () => {
 
     expect(renderer.root.findAllByProps({ testID: 'app-header-right-glass' })).toHaveLength(1)
     expect(style).toMatchObject({
-      width: TopBarTokens.buttonSize,
-      height: TopBarTokens.buttonSize,
-      borderRadius: TopBarTokens.buttonRadius,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       backgroundColor: TopBarTokens.iceGlass,
     })
-    expect(button.props.hitSlop).toEqual(TopBarTokens.buttonHitSlop)
+    expect(button.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 6, right: 6 })
+    expect(renderer.root.findByProps({ testID: 'app-header-right-glass' }).props.borderRadius).toBe(16)
+    expect(renderer.root.findAll((node) => String(node.type) === 'Ionicons')[0].props.size).toBe(18)
   })
 
   test('keeps an explicit legacy escape hatch', () => {
