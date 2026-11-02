@@ -5,12 +5,18 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { ServiceCard } from './ServiceCard'
-import { ServiceSkeletonCard } from './ServiceSkeletonCard'
+import { SkeletonCard } from '../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../ui/HorizontalScrollCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
+import {
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekLeadingInset,
+} from '../../constants/peekCarousel'
 
-const CARD_WIDTH = Dimensions.get('window').width * 0.6
+const CARD_WIDTH = getPeekCardWidth()
 
 export const ServiceHorizontalList = ({ 
   title, 
@@ -48,12 +54,19 @@ export const ServiceHorizontalList = ({
             key="loading-skeleton"
             data={[1, 2, 3]}
             cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
+            gap={CARS_PEEK_GAP}
+            paddingEnd={getPeekLeadingInset()}
             trackPendingIndex
+            paging
+            depthEffect
             keyExtractor={(item) => String(item)}
             renderItem={() => (
-              <ServiceSkeletonCard style={{ width: CARD_WIDTH, marginBottom: 0 }} />
+              <SkeletonCard
+                fullWidth
+                imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+                compactBody
+                style={{ width: CARD_WIDTH }}
+              />
             )}
           />
         </View>
@@ -63,19 +76,29 @@ export const ServiceHorizontalList = ({
             key="loaded-cards"
             data={data}
             cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
+            gap={CARS_PEEK_GAP}
+            paddingEnd={getPeekLeadingInset()}
             trackPendingIndex
+            paging
+            showDots
+            depthEffect
             keyExtractor={(item, idx) => item.id ?? String(idx)}
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
             renderItem={({ item }) => (
-              <ServiceCard 
-                item={item} 
-                onPress={() => onPressItem(item)} 
-                disableImageSwipe={true}
-              />
+              <View style={{ width: CARD_WIDTH }}>
+                <ServiceCard
+                  item={item}
+                  onPress={() => onPressItem(item)}
+                  fullWidth={true}
+                  imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+                  compactBody={true}
+                  maxChips={4}
+                  disableImageSwipe={true}
+                  titleNumberOfLines={1}
+                />
+              </View>
             )}
           />
         </View>

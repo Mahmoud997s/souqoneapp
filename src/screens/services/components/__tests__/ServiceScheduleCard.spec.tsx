@@ -43,16 +43,16 @@ describe('ServiceScheduleCard', () => {
     expect(screen.getByText('الأربعاء')).toBeTruthy()
   })
 
-  it('renders home service badge when isHomeService is true', async () => {
+  it('strictly omits home service badge (header badge is single source of truth, D-182a)', async () => {
     await render(
       <ServiceScheduleCard schedule={fullSchedule} isHomeService={true} />,
     )
     expect(
-      screen.getByText('خدمة منزلية / متنقلة متاحة عند الطلب'),
-    ).toBeTruthy()
+      screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب'),
+    ).toBeNull()
   })
 
-  it('renders card with only home service badge when hasSchedule is false but isHomeService is true', async () => {
+  it('returns null when hasSchedule is false even if isHomeService is true (D-182a)', async () => {
     const emptySchedule: ServiceScheduleViewModel = {
       hasSchedule: false,
       workingDays: [],
@@ -64,11 +64,7 @@ describe('ServiceScheduleCard', () => {
       <ServiceScheduleCard schedule={emptySchedule} isHomeService={true} />,
     )
 
-    expect(screen.getByTestId('service-schedule-card')).toBeTruthy()
-    expect(
-      screen.getByText('خدمة منزلية / متنقلة متاحة عند الطلب'),
-    ).toBeTruthy()
-    expect(screen.queryByText('أيام العمل:')).toBeNull()
+    expect(screen.queryByTestId('service-schedule-card')).toBeNull()
   })
 
   describe('Card Spacing and Visual Tokens (D-170b)', () => {

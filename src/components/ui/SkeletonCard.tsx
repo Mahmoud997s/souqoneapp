@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   },
   badge: {
     width: 44,
-    height: 18,
+    height: 20,
     borderRadius: CardSystem.radius.badge,
   },
   locationRow: {
@@ -127,8 +127,8 @@ const s = StyleSheet.create({
   },
   locLine: {
     width: 75,
-    height: 11,
-    borderRadius: 5.5,
+    height: 15,
+    borderRadius: 7.5,
   },
   divider: {
     height: 1,
@@ -144,11 +144,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   chip: {
     width: 48,
-    height: 20,
+    height: 22,
     borderRadius: CardSystem.radius.inner,
   },
   footer: {
@@ -163,8 +163,8 @@ const s = StyleSheet.create({
   },
   priceLine: {
     width: 75,
-    height: 18,
-    borderRadius: 9,
+    height: 22,
+    borderRadius: 11,
   },
 })
 

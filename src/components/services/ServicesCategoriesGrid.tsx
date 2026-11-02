@@ -1,21 +1,31 @@
 import React from 'react'
+import type { ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Colors } from '../../constants/colors'
+import { SERVICE_CATEGORY_ICONS } from '../../constants/serviceCategoryIcons'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
 } from '../ui/GlassCategoriesGrid'
 
-const CATEGORIES = [
-  { id: 'MAINTENANCE', label: 'صيانة', icon: 'wrench', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'INSPECTION', label: 'فحص', icon: 'magnify', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: 'spray', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'MODIFICATION', label: 'تعديل', icon: 'tune', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'TOWING', label: 'ونش وإنقاذ', icon: 'tow-truck', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: 'key', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: 'car-shift-pattern', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'all', label: 'عرض الكل', icon: 'view-grid', color: Colors.primary, bg: Colors.paleMint },
+interface ServicesLandingCategoryItem {
+  id: string
+  label: string
+  icon: string | ImageSourcePropType
+  iconType: 'image' | 'material'
+  color?: string
+  bg?: string
+}
+
+export const SERVICES_LANDING_CATEGORIES: ServicesLandingCategoryItem[] = [
+  { id: 'MAINTENANCE', label: 'صيانة', icon: SERVICE_CATEGORY_ICONS.MAINTENANCE, iconType: 'image' },
+  { id: 'CLEANING', label: 'غسيل وتلميع', icon: SERVICE_CATEGORY_ICONS.CLEANING, iconType: 'image' },
+  { id: 'INSPECTION', label: 'فحص', icon: SERVICE_CATEGORY_ICONS.INSPECTION, iconType: 'image' },
+  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: SERVICE_CATEGORY_ICONS.BODYWORK, iconType: 'image' },
+  { id: 'MODIFICATION', label: 'تعديل', icon: SERVICE_CATEGORY_ICONS.MODIFICATION, iconType: 'image' },
+  { id: 'TOWING', label: 'ونش وإنقاذ', icon: SERVICE_CATEGORY_ICONS.TOWING, iconType: 'image' },
+  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: SERVICE_CATEGORY_ICONS.KEYS_LOCKS, iconType: 'image' },
+  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: SERVICE_CATEGORY_ICONS.ACCESSORIES_INSTALL, iconType: 'image' },
+  { id: 'all', label: 'عرض الكل', icon: SERVICE_CATEGORY_ICONS.all, iconType: 'image' },
 ]
 
 export const ServicesCategoriesGrid = () => {
@@ -23,17 +33,17 @@ export const ServicesCategoriesGrid = () => {
 
   const handlePress = (id: string) => {
     if (id === 'all') {
-      router.push('/services/browse' as any)
+      router.push('/services/browse' as never)
     } else {
-      router.push(`/services/browse?serviceType=${id}` as any)
+      router.push(`/services/browse?serviceType=${id}` as never)
     }
   }
 
-  const tabs: GlassCategoryTabItem[] = CATEGORIES.map((cat) => ({
+  const tabs: GlassCategoryTabItem[] = SERVICES_LANDING_CATEGORIES.map((cat) => ({
     id: cat.id,
     label: cat.label,
     icon: cat.icon,
-    iconType: 'material',
+    iconType: cat.iconType,
     iconColor: cat.color,
     iconBg: cat.bg,
     onPress: () => handlePress(cat.id),

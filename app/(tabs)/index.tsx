@@ -51,13 +51,27 @@ import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
+import {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+} from '../../src/constants/peekCarousel'
+export {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+}
+
 const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
-export const CARS_PEEK_WIDTH_RATIO = 0.80
-export const CARS_PEEK_GAP = 6
-export const CARS_PEEK_IMAGE_HEIGHT = 133
-export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
-export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 export interface SectionProps {
@@ -92,8 +106,10 @@ export const SECTION_ICON_MAP: Record<string, CategoryVertical> = {
 }
 
 export const SECTION_ICON_BOX_SIZE = 32
-export const SECTION_ICON_3D_SIZE = 30
-export const SECTION_ICON_3D_POP_OUT_TOP = -10
+export const SECTION_ICON_3D_SIZE = 26
+export const SEE_ALL_PADDING_HORIZONTAL = 10
+export const SEE_ALL_PADDING_VERTICAL = 4
+export const SEE_ALL_GAP = 4
 
 export function CategorySection({
   title,
@@ -111,7 +127,7 @@ export function CategorySection({
 
   const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
   const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
-  const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaddingEnd = peek ? getPeekLeadingInset() : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
   const categoryKey = SECTION_ICON_MAP[routeBase] ?? 'browse'
@@ -156,6 +172,8 @@ export function CategorySection({
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
           trackPendingIndex
+          paging={sectionPaging}
+          depthEffect={peek}
           keyExtractor={(item) => `skeleton-${item}`}
           renderItem={() => (
             <SkeletonCard
@@ -312,6 +330,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="خدمات السيارات"
           subTitle="صيانة وفحص وورش متخصصة"
           icon="car-wrench"
@@ -320,10 +339,14 @@ export default function HomeScreen() {
           data={services}
           isLoading={loadingServices}
           routeBase="services"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <ServiceCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
+              maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
             />
@@ -331,6 +354,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="قطع الغيار"
           subTitle="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
           icon="car-cog"
@@ -339,10 +363,13 @@ export default function HomeScreen() {
           data={parts}
           isLoading={loadingParts}
           routeBase="parts"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <PartCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -351,6 +378,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="حافلات ونقل ركاب"
           subTitle="حافلات للبيع وللإيجار بمختلف السعات"
           icon="bus-side"
@@ -359,10 +387,13 @@ export default function HomeScreen() {
           data={buses}
           isLoading={loadingBuses}
           routeBase="buses"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <BusCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -371,6 +402,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="معدات ومشغلون"
           subTitle="معدات ثقيلة وخفيفة ومشغلون معتمدون"
           icon="excavator"
@@ -379,10 +411,13 @@ export default function HomeScreen() {
           data={equipment}
           isLoading={loadingEquipment}
           routeBase="equipment"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <EquipCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -418,7 +453,6 @@ const s = StyleSheet.create({
   // Section
   section: {
     marginBottom: 28,
-    overflow: 'visible',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -426,31 +460,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.space4,
     marginBottom: 12,
-    overflow: 'visible',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flex: 1,
-    overflow: 'visible',
   },
   sectionIconWrap: { 
     width: SECTION_ICON_BOX_SIZE,
     height: SECTION_ICON_BOX_SIZE,
     borderRadius: 10,
     backgroundColor: TopBarTokens.iceGlass,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'visible',
   },
   sectionIcon3D: {
-    position: 'absolute',
     width: SECTION_ICON_3D_SIZE,
     height: SECTION_ICON_3D_SIZE,
-    top: SECTION_ICON_3D_POP_OUT_TOP,
   },
   titleCol: {
     flex: 1,
@@ -475,13 +504,16 @@ const s = StyleSheet.create({
   seeAllBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4, 
-    paddingVertical: 4,
-    paddingHorizontal: 11, 
+    justifyContent: 'center',
+    gap: SEE_ALL_GAP,
+    paddingVertical: SEE_ALL_PADDING_VERTICAL,
+    paddingHorizontal: SEE_ALL_PADDING_HORIZONTAL,
+    paddingStart: SEE_ALL_PADDING_HORIZONTAL,
+    paddingEnd: SEE_ALL_PADDING_HORIZONTAL,
     backgroundColor: TopBarTokens.iceGlass, 
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
   },
   seeAll: {
     fontFamily: 'Almarai_700Bold',

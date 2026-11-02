@@ -366,14 +366,13 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 2. Header Block */}
+        {/* 2. Header Block (location omitted to avoid duplication with LocationCard) */}
         <Animated.View entering={getEnteringAnimation(1)}>
           <ListingHeaderBlock
             title={vm.title}
             kindLabel="قطعة غيار"
             conditionLabel={vm.conditionLabel}
             price={vm.price}
-            locationText={vm.location.fullLocationText}
             postedAtLabel={vm.postedAtLabel}
             statusBadge={statusBadge}
           />

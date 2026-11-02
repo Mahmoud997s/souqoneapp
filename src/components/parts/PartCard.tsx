@@ -24,6 +24,8 @@ export interface PartCardProps {
   actionMenu?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
+  imageHeight?: number
+  compactBody?: boolean
   liquidGlass?: boolean
   glassSupport?: GlassSupport
 }
@@ -61,6 +63,8 @@ export const PartCard: React.FC<PartCardProps> = ({
   actionMenu,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
+  imageHeight,
+  compactBody = false,
   liquidGlass,
   glassSupport,
 }) => {
@@ -290,6 +294,8 @@ export const PartCard: React.FC<PartCardProps> = ({
       actionMenu={actionMenu}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       favoriteType="SPARE_PART"
