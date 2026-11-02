@@ -15,7 +15,7 @@ export interface ListingHeaderBlockProps {
   kindLabel: string
   conditionLabel?: string
   price: PriceView
-  locationText: string
+  locationText?: string
   postedAtLabel: string
   statusBadge?: {
     label: string
@@ -123,16 +123,20 @@ export function ListingHeaderBlock({
 
       {/* ── Metadata Row: Location & Date ───────────────────────── */}
       <View style={s.metadataRow}>
-        {/* Location */}
-        <View style={s.metaItem}>
-          <View style={s.metaIconWrap}>
-            <Ionicons name="location" size={13} color={Colors.primary} />
-          </View>
-          <Text style={s.metaText}>{locationText}</Text>
-        </View>
+        {/* Location (optional: omitted for verticals showing dedicated LocationCard) */}
+        {locationText && locationText.trim().length > 0 ? (
+          <>
+            <View style={s.metaItem}>
+              <View style={s.metaIconWrap}>
+                <Ionicons name="location" size={13} color={Colors.primary} />
+              </View>
+              <Text style={s.metaText}>{locationText}</Text>
+            </View>
 
-        {/* Dot divider */}
-        <View style={s.metaDot} />
+            {/* Dot divider */}
+            <View style={s.metaDot} />
+          </>
+        ) : null}
 
         {/* Posted time */}
         <View style={s.metaItem}>
