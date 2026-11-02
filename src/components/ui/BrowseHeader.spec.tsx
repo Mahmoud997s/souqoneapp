@@ -1,6 +1,7 @@
 import React from 'react'
 import TestRenderer, { act } from 'react-test-renderer'
 import { TextInput, TouchableOpacity, Text } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { BrowseHeader } from './BrowseHeader'
 import { AppHeader } from './AppHeader'
 import { Colors } from '../../constants/colors'
@@ -69,6 +70,57 @@ describe('BrowseHeader (Light Glassmorphic Default & Theme Support)', () => {
     const texts = renderer.root.findAllByType(Text)
     const badgeText = texts.find((t: any) => t.props.children === 3)
     expect(badgeText).toBeDefined()
+  })
+
+  test('submits the current search through onSubmitSearch', () => {
+    const onSubmitSearch = jest.fn()
+    let renderer: TestRenderer.ReactTestRenderer
+    act(() => {
+      renderer = TestRenderer.create(
+        <BrowseHeader {...defaultProps} searchQuery="تويوتا" onSubmitSearch={onSubmitSearch} />
+      )
+    })
+
+    const input = renderer!.root.findByType(TextInput)
+    act(() => {
+      input.props.onSubmitEditing()
+    })
+
+    expect(onSubmitSearch).toHaveBeenCalledTimes(1)
+  })
+
+  test('clears a non-empty search through the clear control', () => {
+    const onSearchChange = jest.fn()
+    let renderer: TestRenderer.ReactTestRenderer
+    act(() => {
+      renderer = TestRenderer.create(
+        <BrowseHeader {...defaultProps} searchQuery="تويوتا" onSearchChange={onSearchChange} />
+      )
+    })
+
+    const clearButton = renderer!.root
+      .findAllByType(TouchableOpacity)
+      .find((button) => button.findAllByType(Ionicons).some((icon) => icon.props.name === 'close-circle'))
+    expect(clearButton).toBeDefined()
+    act(() => clearButton!.props.onPress())
+
+    expect(onSearchChange).toHaveBeenCalledWith('')
+  })
+
+  test('records the current baseline: browse search and filter controls have no testIDs', () => {
+    let renderer: TestRenderer.ReactTestRenderer
+    act(() => {
+      renderer = TestRenderer.create(
+        <BrowseHeader {...defaultProps} searchQuery="تويوتا" />
+      )
+    })
+
+    const controls = [
+      ...renderer!.root.findAllByType(TextInput),
+      ...renderer!.root.findAllByType(TouchableOpacity),
+    ]
+    expect(controls.length).toBe(4)
+    expect(controls.every((control) => control.props.testID === undefined)).toBe(true)
   })
 
   test('triggers onFilterPress when filter icon button is clicked', () => {
