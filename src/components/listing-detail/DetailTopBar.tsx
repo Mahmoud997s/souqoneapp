@@ -130,6 +130,20 @@ export function DetailTopBar(props: DetailTopBarProps) {
           accessibilityRole="button"
           accessibilityLabel="الرجوع"
         >
+          <View
+            pointerEvents="none"
+            testID="nav-back-button-backing"
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+            ]}
+          />
+          <GlassSurface
+            testID="nav-back-button"
+            borderRadius={TopBarTokens.buttonRadius}
+            washColor={TopBarTokens.iceGlass}
+            support={props.support}
+          />
           <Ionicons
             name="arrow-forward-outline"
             size={TopBarTokens.buttonIconSize}
@@ -140,6 +154,20 @@ export function DetailTopBar(props: DetailTopBarProps) {
         {/* Search Bar or Flexible Spacer */}
         {hasSearch ? (
           <View style={s.searchContainer} testID="nav-search-container">
+            <View
+              pointerEvents="none"
+              testID="nav-search-container-backing"
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.searchRadius },
+              ]}
+            />
+            <GlassSurface
+              testID="nav-search-container"
+              borderRadius={TopBarTokens.searchRadius}
+              washColor={TopBarTokens.iceGlass}
+              support={props.support}
+            />
             <Ionicons
               name="search"
               size={TopBarTokens.searchIconSize}
@@ -194,6 +222,20 @@ export function DetailTopBar(props: DetailTopBarProps) {
                 accessibilityRole="button"
                 accessibilityLabel="مشاركة"
               >
+                <View
+                  pointerEvents="none"
+                  testID="btn-detail-share-backing"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                  ]}
+                />
+                <GlassSurface
+                  testID="btn-detail-share"
+                  borderRadius={TopBarTokens.buttonRadius}
+                  washColor={TopBarTokens.iceGlass}
+                  support={props.support}
+                />
                 <Ionicons
                   name="share-social-outline"
                   size={TopBarTokens.buttonIconSize}
@@ -213,6 +255,20 @@ export function DetailTopBar(props: DetailTopBarProps) {
                 accessibilityRole="button"
                 accessibilityLabel={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
               >
+                <View
+                  pointerEvents="none"
+                  testID="nav-favorite-button-backing"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                  ]}
+                />
+                <GlassSurface
+                  testID="nav-favorite-button"
+                  borderRadius={TopBarTokens.buttonRadius}
+                  washColor={TopBarTokens.iceGlass}
+                  support={props.support}
+                />
                 {favoriteBusy ? (
                   <ActivityIndicator size="small" color={TopBarTokens.buttonIconColor} />
                 ) : (
@@ -265,6 +321,7 @@ const s = StyleSheet.create({
     height: TopBarTokens.buttonSize,
     borderRadius: TopBarTokens.buttonRadius,
     backgroundColor: TopBarTokens.buttonBg,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: TopBarTokens.buttonBorderWidth,
@@ -286,6 +343,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: TopBarTokens.searchBg,
     borderRadius: TopBarTokens.searchRadius,
+    overflow: 'hidden',
     paddingHorizontal: TopBarTokens.searchPaddingHorizontal,
     borderWidth: TopBarTokens.searchBorderWidth,
     borderColor: TopBarTokens.searchBorderColor,

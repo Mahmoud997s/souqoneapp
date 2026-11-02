@@ -61,7 +61,7 @@ describe('D-175a Pre-Change Characterization Tests (Geometry & Behavior Baseline
       expect(backStyle.width).toBe(38)
       expect(backStyle.height).toBe(38)
       expect(backStyle.borderRadius).toBe(19)
-      expect(backStyle.backgroundColor).toBe('rgba(255, 255, 255, 0.85)')
+      expect(backStyle.backgroundColor).toBe(TopBarTokens.buttonBg)
       expect(backStyle.borderColor).toBe(Colors.border)
       expect(backStyle.borderWidth).toBe(1)
       expect(backBtn.props.hitSlop).toEqual({ top: 3, bottom: 3, left: 3, right: 3 })
@@ -86,7 +86,7 @@ describe('D-175a Pre-Change Characterization Tests (Geometry & Behavior Baseline
 
       expect(containerStyle.height).toBe(38)
       expect(containerStyle.borderRadius).toBe(Radius.pill)
-      expect(containerStyle.backgroundColor).toBe('rgba(238, 242, 245, 0.95)')
+      expect(containerStyle.backgroundColor).toBe(TopBarTokens.searchBg)
       expect(containerStyle.borderColor).toBe(Colors.border)
       expect(containerStyle.borderWidth).toBe(1)
       expect(containerStyle.paddingHorizontal).toBe(10)
@@ -182,7 +182,7 @@ describe('D-175a Pre-Change Characterization Tests (Geometry & Behavior Baseline
 
       expect(containerStyle.height).toBe(38)
       expect(containerStyle.borderRadius).toBe(Radius.pill)
-      expect(containerStyle.backgroundColor).toBe('rgba(238, 242, 245, 0.95)')
+      expect(containerStyle.backgroundColor).toBe(TopBarTokens.searchBg)
       expect(containerStyle.borderColor).toBe(Colors.border)
       expect(containerStyle.borderWidth).toBe(1)
       expect(containerStyle.paddingHorizontal).toBe(10)

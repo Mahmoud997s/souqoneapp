@@ -305,14 +305,14 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
     })
 
     it('(j) DetailTopBar & SearchHeaderBar preserve TopBarTokens.whiteWashBg (0.78)', async () => {
-      const { getByTestId } = await render(
+      const { getByTestId, getAllByTestId } = await render(
         <DetailTopBar
           onBack={jest.fn()}
           support={fallbackSupport}
         />
       )
 
-      const blurView = getByTestId('mock-blur-view')
+      const blurView = getAllByTestId('mock-blur-view')[0]
       expect(blurView.props.intensity).toBe(TopBarTokens.blurIntensity) // 65
 
       const washOverlay = getByTestId('detail-top-bar-wash-overlay')
