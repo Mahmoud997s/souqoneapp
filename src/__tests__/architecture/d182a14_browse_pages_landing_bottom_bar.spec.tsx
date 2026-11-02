@@ -160,5 +160,27 @@ describe('D-182a14: Browse pages department bottom bar parity with landing', () 
       const { result: homeResult } = await renderHook(() => useServicesBottomBar())
       expect(homeResult.current.activeTab).toBe('home')
     })
+
+    it('proves all 5 landings always default to home even with search query params or unknown child routes', async () => {
+      mockPathname = '/cars?filter=used'
+      const { result: carsResult } = await renderHook(() => useCarsBottomBar())
+      expect(carsResult.current.activeTab).toBe('home')
+
+      mockPathname = '/buses?type=school'
+      const { result: busesResult } = await renderHook(() => useBusesBottomBar())
+      expect(busesResult.current.activeTab).toBe('home')
+
+      mockPathname = '/equipment?category=heavy'
+      const { result: eqResult } = await renderHook(() => useEquipmentBottomBar())
+      expect(eqResult.current.activeTab).toBe('home')
+
+      mockPathname = '/parts?make=Toyota'
+      const { result: partsResult } = await renderHook(() => usePartsBottomBar())
+      expect(partsResult.current.activeTab).toBe('home')
+
+      mockPathname = '/services?gov=muscat'
+      const { result: srvResult } = await renderHook(() => useServicesBottomBar())
+      expect(srvResult.current.activeTab).toBe('home')
+    })
   })
 })

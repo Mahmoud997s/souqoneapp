@@ -50,7 +50,7 @@ export function useDepartmentBottomBar({
   scrollAware = true,
 }: DepartmentBottomBarConfig) {
   const router = useRouter();
-  const pathname = typeof usePathname === 'function' ? usePathname() : undefined;
+  const pathname = usePathname();
   const { isLoggedIn } = useAuthStore();
   const { set } = usePostStore();
 
@@ -70,20 +70,13 @@ export function useDepartmentBottomBar({
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
 
-  const safeFocusEffect = typeof useFocusEffect === 'function' ? useFocusEffect : useEffect;
-
-  // Sync activeTab whenever the department screen comes into focus or route changes
-  safeFocusEffect(
+  // Sync activeTab whenever the department screen comes into focus
+  useFocusEffect(
     useCallback(() => {
       const initial = getInitialTab();
       setActiveTab((prev) => (prev !== initial ? initial : prev));
     }, [getInitialTab])
   );
-
-  useEffect(() => {
-    const initial = getInitialTab();
-    setActiveTab((prev) => (prev !== initial ? initial : prev));
-  }, [getInitialTab]);
 
   const tabs: BottomBarTabItem[] = useMemo(() => {
     if (customTabs && customTabs.length > 0) {
