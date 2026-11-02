@@ -59,7 +59,9 @@ describe('SellerCard RTL & Rendering', () => {
 
     const touchable = renderer!.root.findByType(TouchableOpacity)
     expect(touchable.props.accessibilityRole).toBe('button')
-    expect(touchable.props.accessibilityLabel).toBe('ملف البائع أحمد البلوشي')
+    expect(touchable.props.accessibilityLabel).toBe(
+      'ملف البائع أحمد البلوشي، معرض معتمد، عضو منذ مايو 2022'
+    )
   })
 
   test('profile control uses a generic Arabic label when seller name is blank', () => {
@@ -67,7 +69,7 @@ describe('SellerCard RTL & Rendering', () => {
     act(() => {
       renderer = TestRenderer.create(
         <SellerCard
-          seller={{ ...mockSeller, name: '' }}
+          seller={{ ...mockSeller, name: '', memberSinceLabel: '', accountType: undefined }}
           onPressProfile={jest.fn()}
         />
       )
@@ -76,6 +78,21 @@ describe('SellerCard RTL & Rendering', () => {
     const touchable = renderer!.root.findByType(TouchableOpacity)
     expect(touchable.props.accessibilityRole).toBe('button')
     expect(touchable.props.accessibilityLabel).toBe('ملف البائع')
+  })
+
+  test('profile control omits blank seller details from its Arabic label', () => {
+    let renderer: ReactTestRenderer | undefined = undefined
+    act(() => {
+      renderer = TestRenderer.create(
+        <SellerCard
+          seller={{ ...mockSeller, accountType: '  ', memberSinceLabel: '  ' }}
+          onPressProfile={jest.fn()}
+        />
+      )
+    })
+
+    const touchable = renderer!.root.findByType(TouchableOpacity)
+    expect(touchable.props.accessibilityLabel).toBe('ملف البائع أحمد البلوشي')
   })
 
   test('membershipText has writingDirection rtl and textAlign left', () => {

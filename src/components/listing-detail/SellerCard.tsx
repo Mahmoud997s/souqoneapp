@@ -26,6 +26,11 @@ export interface SellerCardProps {
  */
 export function SellerCard({ seller, onPressProfile, support }: SellerCardProps) {
   const sellerName = seller.name.trim()
+  const accessibilityDetails = [
+    sellerName,
+    seller.accountType?.trim(),
+    seller.memberSinceLabel?.trim(),
+  ].filter(Boolean)
 
   return (
     <TouchableOpacity
@@ -33,7 +38,11 @@ export function SellerCard({ seller, onPressProfile, support }: SellerCardProps)
       activeOpacity={0.75}
       testID="seller-card-touchable"
       accessibilityRole="button"
-      accessibilityLabel={sellerName ? `ملف البائع ${sellerName}` : 'ملف البائع'}
+      accessibilityLabel={
+        accessibilityDetails.length > 0
+          ? `ملف البائع ${accessibilityDetails.join('، ')}`
+          : 'ملف البائع'
+      }
       style={s.wrapper}
     >
       <View style={s.card} testID="seller-card-container">
