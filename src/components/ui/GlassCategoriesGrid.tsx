@@ -7,13 +7,15 @@ import {
   Dimensions,
   StyleProp,
   ViewStyle,
+  type ImageSourcePropType,
 } from 'react-native'
+import { Image } from 'expo-image'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withDecay,
   cancelAnimation,
 } from 'react-native-reanimated'
 import { Colors } from '../../constants/colors'
@@ -28,11 +30,14 @@ import {
   type GlassSupport,
 } from '../navigation/glassSupport'
 
+export const CATEGORY_IMAGE_ICON_SIZE = 39.5 * 1.2
+export const CATEGORY_IMAGE_ICON_OFFSET_Y = -2
+
 export interface GlassCategoryTabItem {
   id: string
   label: string
-  icon: string | any
-  iconType?: 'ion' | 'material'
+  icon: string | ImageSourcePropType
+  iconType?: 'ion' | 'material' | 'image'
   iconColor?: string
   iconBg?: string
   onPress: () => void
@@ -51,6 +56,31 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const DEFAULT_TAB_WIDTH = 88
 const TAB_GAP = 8
 const PADDING_END = Spacing.space5 // 16px
+
+export function clampCategoryScrollOffset(
+  startX: number,
+  translationX: number,
+  directionMultiplier: number,
+  maxScroll: number
+): number {
+  'worklet'
+  if (maxScroll <= 0) return 0
+  const rawX = startX + translationX * directionMultiplier
+  return Math.max(0, Math.min(maxScroll, rawX))
+}
+
+export function buildCategoryScrollDecayConfig(
+  velocityX: number,
+  directionMultiplier: number,
+  maxScroll: number
+): { velocity: number; clamp: [number, number] } {
+  'worklet'
+  const clampedMax = Math.max(0, maxScroll)
+  return {
+    velocity: velocityX * directionMultiplier,
+    clamp: [0, clampedMax],
+  }
+}
 
 export function GlassCategoriesGrid({
   items,
@@ -88,47 +118,24 @@ export function GlassCategoriesGrid({
       })
       .onUpdate((event) => {
         if (maxScroll <= 0) return
-        const dx = event.translationX * directionMultiplier
-        const rawX = startX.value + dx
-
-        if (rawX < 0) {
-          translateX.value = rawX * 0.25
-        } else if (rawX > maxScroll) {
-          const over = rawX - maxScroll
-          translateX.value = maxScroll + over * 0.25
-        } else {
-          translateX.value = rawX
-        }
+        translateX.value = clampCategoryScrollOffset(
+          startX.value,
+          event.translationX,
+          directionMultiplier,
+          maxScroll
+        )
       })
       .onEnd((event) => {
         if (maxScroll <= 0) return
-        const vx = event.velocityX * directionMultiplier
-        const currentX = translateX.value
-
-        if (currentX < 0) {
-          translateX.value = withSpring(0, { damping: 22, stiffness: 200 })
-          return
-        }
-        if (currentX > maxScroll) {
-          translateX.value = withSpring(maxScroll, { damping: 22, stiffness: 200 })
-          return
-        }
-
-        // Momentum projection based on velocity flick
-        const projectedX = currentX + vx * 0.25
-        const clampedProjectedX = Math.max(0, Math.min(maxScroll, projectedX))
-
-        // Snap to nearest tab step for clean alignment, bounded by [0, maxScroll]
-        const nearestStep = Math.round(clampedProjectedX / step) * step
-        const finalTarget = Math.max(0, Math.min(maxScroll, nearestStep))
-
-        translateX.value = withSpring(finalTarget, {
-          damping: 24,
-          stiffness: 180,
-          velocity: Math.abs(vx) > 150 ? vx * 0.5 : 0,
-        })
+        translateX.value = withDecay(
+          buildCategoryScrollDecayConfig(
+            event.velocityX,
+            directionMultiplier,
+            maxScroll
+          )
+        )
       })
-  }, [directionMultiplier, maxScroll, step])
+  }, [directionMultiplier, maxScroll])
 
   const animatedTrackStyle = useAnimatedStyle(() => {
     return {
@@ -137,11 +144,23 @@ export function GlassCategoriesGrid({
   })
 
   const renderIcon = (item: GlassCategoryTabItem, size: number) => {
+    if (item.iconType === 'image') {
+      return (
+        <Image
+          testID={`category-tile-image-${item.id}`}
+          source={item.icon as ImageSourcePropType}
+          style={s.catIconImage}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          accessibilityIgnoresInvertColors
+        />
+      )
+    }
     const iconColor = item.iconColor || Colors.primary
     if (item.iconType === 'material') {
       return (
         <MaterialCommunityIcons
-          name={item.icon}
+          name={item.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
           size={size}
           color={iconColor}
         />
@@ -149,7 +168,7 @@ export function GlassCategoriesGrid({
     }
     return (
       <Ionicons
-        name={item.icon}
+        name={item.icon as React.ComponentProps<typeof Ionicons>['name']}
         size={size}
         color={iconColor}
       />
@@ -198,9 +217,15 @@ export function GlassCategoriesGrid({
                         support={glass}
                       />
                       <View
+                        testID={`category-icon-box-${item.id}`}
                         style={[
                           s.catIconBox,
-                          { backgroundColor: item.iconBg || Colors.paleMint },
+                          {
+                            backgroundColor:
+                              item.iconType === 'image'
+                                ? 'transparent'
+                                : item.iconBg || Colors.paleMint,
+                          },
                         ]}
                       >
                         {renderIcon(item, 20)}
@@ -242,10 +267,16 @@ export function GlassCategoriesGrid({
               support={glass}
             />
             <View
+              testID={`category-icon-box-${item.id}`}
               style={[
                 s.catIconBox,
                 isCompact && s.catIconBoxCompact,
-                { backgroundColor: item.iconBg || Colors.paleMint },
+                {
+                  backgroundColor:
+                    item.iconType === 'image'
+                      ? 'transparent'
+                      : item.iconBg || Colors.paleMint,
+                },
               ]}
             >
               {renderIcon(item, isCompact ? 17 : 20)}
@@ -306,6 +337,11 @@ const s = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginBottom: 4,
+  },
+  catIconImage: {
+    width: CATEGORY_IMAGE_ICON_SIZE,
+    height: CATEGORY_IMAGE_ICON_SIZE,
+    transform: [{ translateY: CATEGORY_IMAGE_ICON_OFFSET_Y }],
   },
   catLabel: {
     fontFamily: 'Almarai_700Bold',

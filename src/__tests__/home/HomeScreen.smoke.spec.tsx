@@ -157,6 +157,7 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
 
     // 0. Home navbar glass buttons (brand, chat, notifications, large search)
     expect(getByTestId('home-brand-icon-btn')).toBeTruthy()
+    expect(getByTestId('home-brand-icon-btn-backing')).toBeTruthy()
     expect(
       queryByTestId('home-brand-icon-btn-glass-liquid') ||
         queryByTestId('home-brand-icon-btn-glass-blur')

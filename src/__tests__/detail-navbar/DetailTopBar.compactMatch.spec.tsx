@@ -160,7 +160,7 @@ describe('D-160: DetailTopBar Compact State Parity with AnimatedHeroHeader', () 
 
     const liquidSurface = screen.getByTestId('detail-top-bar-glass-liquid')
     expect(liquidSurface).toBeTruthy()
-    expect(screen.getByTestId('mock-glass-view')).toBeTruthy()
+    expect(screen.getAllByTestId('mock-glass-view').length).toBeGreaterThanOrEqual(1)
     assertNoOpacityInAncestry(liquidSurface, 'detail-top-bar')
   })
 
@@ -184,7 +184,7 @@ describe('D-160: DetailTopBar Compact State Parity with AnimatedHeroHeader', () 
     expect(blurSurface).toBeTruthy()
 
     // 1. BlurView recipe
-    const blurView = screen.getByTestId('mock-blur-view')
+    const blurView = screen.getAllByTestId('mock-blur-view')[0]
     expect(blurView).toBeTruthy()
     expect(blurView.props.intensity).toBe(TopBarTokens.blurIntensity)
     expect(blurView.props.tint).toBe(TopBarTokens.blurTint)
