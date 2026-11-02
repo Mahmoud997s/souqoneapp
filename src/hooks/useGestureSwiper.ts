@@ -93,6 +93,7 @@ export function useGestureSwiper({
   const translateX = useSharedValue(initialIndex * step)
   const startX = useSharedValue(initialIndex * step)
   const currentIndex = useSharedValue(initialIndex)
+  const lastPublishedIndex = useSharedValue(initialIndex)
 
   const handleSnapComplete = useCallback(
     (newIndex: number) => {
@@ -100,6 +101,13 @@ export function useGestureSwiper({
       onActiveIndexChange?.(newIndex)
     },
     [onActiveIndexChange]
+  )
+
+  const handleLiveIndexChange = useCallback(
+    (liveIndex: number) => {
+      setActiveIndex(liveIndex)
+    },
+    []
   )
 
   const panGesture = useMemo(() => {
@@ -126,9 +134,19 @@ export function useGestureSwiper({
         } else {
           translateX.value = rawX
         }
+
+        // Live dot update: derive nearest integer index while dragging
+        const clampedPos = Math.max(0, Math.min(maxTranslateX, rawX))
+        const nearestIndex = Math.round(clampedPos / step)
+        if (nearestIndex !== lastPublishedIndex.value) {
+          lastPublishedIndex.value = nearestIndex
+          runOnJS(handleLiveIndexChange)(nearestIndex)
+        }
       })
       .onEnd((event) => {
         if (count <= 1 || step <= 0) {
+          lastPublishedIndex.value = 0
+          runOnJS(handleLiveIndexChange)(0)
           translateX.value = withSpring(0, { damping: 26, stiffness: 150 })
           return
         }
@@ -196,6 +214,12 @@ export function useGestureSwiper({
         // Clamp to valid range [0, count - 1]
         targetIndex = Math.max(0, Math.min(count - 1, targetIndex))
 
+        // Live dot update: publish target index immediately at onEnd
+        if (targetIndex !== lastPublishedIndex.value) {
+          lastPublishedIndex.value = targetIndex
+          runOnJS(handleLiveIndexChange)(targetIndex)
+        }
+
         const targetX = targetIndex * step
         // Let opted-in car lists continue from the target of an interrupted snap.
         if (trackPendingIndex) {
@@ -213,6 +237,7 @@ export function useGestureSwiper({
           (finished) => {
             if (finished) {
               currentIndex.value = targetIndex
+              lastPublishedIndex.value = targetIndex
               runOnJS(handleSnapComplete)(targetIndex)
             }
           }
