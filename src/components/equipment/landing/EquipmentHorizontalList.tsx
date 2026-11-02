@@ -16,8 +16,14 @@ import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
+import {
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekLeadingInset,
+} from '../../../constants/peekCarousel'
 
-const CARD_WIDTH = Dimensions.get('window').width * 0.6
+const CARD_WIDTH = getPeekCardWidth()
 
 interface Props {
   title: string
@@ -57,12 +63,19 @@ export function EquipmentHorizontalList({
             key="loading-skeleton"
             data={[1, 2, 3]}
             cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
+            gap={CARS_PEEK_GAP}
+            paddingEnd={getPeekLeadingInset()}
             trackPendingIndex
+            paging
+            depthEffect
             keyExtractor={(item) => String(item)}
             renderItem={() => (
-              <SkeletonCard style={{ width: CARD_WIDTH }} />
+              <SkeletonCard
+                fullWidth
+                imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+                compactBody
+                style={{ width: CARD_WIDTH }}
+              />
             )}
           />
         </View>
@@ -72,20 +85,29 @@ export function EquipmentHorizontalList({
             key="loaded-cards"
             data={data}
             cardWidth={CARD_WIDTH}
-            gap={Spacing.space3}
-            paddingEnd={Spacing.space5}
+            gap={CARS_PEEK_GAP}
+            paddingEnd={getPeekLeadingInset()}
             trackPendingIndex
+            paging
+            showDots
+            depthEffect
             keyExtractor={(item) => item.id}
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
             renderItem={({ item }) => (
-              <EquipCard
-                item={item as any}
-                onPress={() => onPressItem(item)}
-                maxChips={3}
-                disableImageSwipe={true}
-              />
+              <View style={{ width: CARD_WIDTH }}>
+                <EquipCard
+                  item={item}
+                  onPress={() => onPressItem(item)}
+                  fullWidth={true}
+                  imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+                  compactBody={true}
+                  maxChips={4}
+                  disableImageSwipe={true}
+                  titleNumberOfLines={1}
+                />
+              </View>
             )}
           />
         </View>

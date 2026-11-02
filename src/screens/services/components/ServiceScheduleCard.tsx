@@ -19,9 +19,8 @@ export interface ServiceScheduleCardProps {
  */
 export function ServiceScheduleCard({
   schedule,
-  isHomeService,
 }: ServiceScheduleCardProps) {
-  if (!schedule.hasSchedule && !isHomeService) {
+  if (!schedule.hasSchedule) {
     return null
   }
 
@@ -64,16 +63,6 @@ export function ServiceScheduleCard({
           <Ionicons name="alarm-outline" size={15} color={Colors.primary} />
           <Text style={s.hoursLabel}>ساعات العمل:</Text>
           <Text style={s.hoursVal}>{schedule.workingHoursLabel}</Text>
-        </View>
-      )}
-
-      {/* Home / Mobile Service Badge */}
-      {Boolean(isHomeService) && (
-        <View style={s.homeServiceBadge}>
-          <Ionicons name="home-outline" size={16} color={Colors.success} />
-          <Text style={s.homeServiceText}>
-            خدمة منزلية / متنقلة متاحة عند الطلب
-          </Text>
         </View>
       )}
     </View>
@@ -185,25 +174,6 @@ const s = StyleSheet.create({
     lineHeight: 18,
     fontFamily: 'Almarai_700Bold',
     color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  homeServiceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.space2,
-    backgroundColor: Colors.paleMint,
-    paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space2,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-  },
-  homeServiceText: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontFamily: 'Almarai_700Bold',
-    color: Colors.success,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

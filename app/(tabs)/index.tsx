@@ -51,13 +51,27 @@ import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
+import {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+} from '../../src/constants/peekCarousel'
+export {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+}
+
 const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
-export const CARS_PEEK_WIDTH_RATIO = 0.80
-export const CARS_PEEK_GAP = 6
-export const CARS_PEEK_IMAGE_HEIGHT = 133
-export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
-export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 export interface SectionProps {
@@ -113,7 +127,7 @@ export function CategorySection({
 
   const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
   const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
-  const sectionPaddingEnd = peek ? getPeekSideInset(SW) : Spacing.space5
+  const sectionPaddingEnd = peek ? getPeekLeadingInset() : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
   const categoryKey = SECTION_ICON_MAP[routeBase] ?? 'browse'
@@ -158,6 +172,8 @@ export function CategorySection({
           gap={sectionGap}
           paddingEnd={sectionPaddingEnd}
           trackPendingIndex
+          paging={sectionPaging}
+          depthEffect={peek}
           keyExtractor={(item) => `skeleton-${item}`}
           renderItem={() => (
             <SkeletonCard
@@ -314,6 +330,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="خدمات السيارات"
           subTitle="صيانة وفحص وورش متخصصة"
           icon="car-wrench"
@@ -322,10 +339,14 @@ export default function HomeScreen() {
           data={services}
           isLoading={loadingServices}
           routeBase="services"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <ServiceCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
+              maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
             />
@@ -333,6 +354,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="قطع الغيار"
           subTitle="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
           icon="car-cog"
@@ -341,10 +363,13 @@ export default function HomeScreen() {
           data={parts}
           isLoading={loadingParts}
           routeBase="parts"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <PartCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -353,6 +378,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="حافلات ونقل ركاب"
           subTitle="حافلات للبيع وللإيجار بمختلف السعات"
           icon="bus-side"
@@ -361,10 +387,13 @@ export default function HomeScreen() {
           data={buses}
           isLoading={loadingBuses}
           routeBase="buses"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <BusCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
@@ -373,6 +402,7 @@ export default function HomeScreen() {
         />
 
         <CategorySection
+          peek={true}
           title="معدات ومشغلون"
           subTitle="معدات ثقيلة وخفيفة ومشغلون معتمدون"
           icon="excavator"
@@ -381,10 +411,13 @@ export default function HomeScreen() {
           data={equipment}
           isLoading={loadingEquipment}
           routeBase="equipment"
-          CustomCard={({ item, onPress }) => (
+          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
             <EquipCard
               item={item as any}
               onPress={onPress}
+              fullWidth={fullWidth ?? true}
+              imageHeight={imageHeight}
+              compactBody={compactBody}
               maxChips={4}
               disableImageSwipe={true}
               titleNumberOfLines={1}
