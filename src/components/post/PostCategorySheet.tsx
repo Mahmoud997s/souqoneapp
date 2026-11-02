@@ -74,8 +74,17 @@ export function PostCategorySheet({
       </View>
 
       <ScrollView
+        testID="post-category-list"
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          {
+            paddingBottom:
+              PostCategoryTokens.cancelHeight +
+              PostCategoryTokens.cancelTopPadding +
+              Math.max(bottomInset, Spacing.space4),
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {rows.map((row, rowIndex) => {

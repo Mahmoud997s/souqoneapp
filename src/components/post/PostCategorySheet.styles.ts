@@ -64,7 +64,6 @@ export const PostCategorySheetStyles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: PostCategoryTokens.horizontalPadding,
-    paddingBottom: PostCategoryTokens.cancelHeight + PostCategoryTokens.cancelTopPadding + Spacing.space4,
     gap: PostCategoryTokens.rowGap,
   },
   row: {

@@ -6,7 +6,9 @@ export default function ModalsLayout() {
       <Stack.Screen
         name="post-category"
         options={{
-          presentation: 'modal',
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent' },
           headerShown: false,
           gestureEnabled: true,
         }}

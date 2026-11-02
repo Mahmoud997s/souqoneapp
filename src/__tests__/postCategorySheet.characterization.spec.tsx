@@ -1,4 +1,6 @@
 import React from 'react'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import {
@@ -50,6 +52,24 @@ describe('PostCategoryModal behavior', () => {
   afterEach(() => {
     cleanup()
     jest.clearAllMocks()
+  })
+
+  it('uses a transparent modal presentation only for the post-category sheet', () => {
+    const layout = readFileSync(resolve(__dirname, '../../app/(modals)/_layout.tsx'), 'utf8')
+    const sheetStyles = readFileSync(
+      resolve(__dirname, '../components/post/PostCategorySheet.styles.ts'),
+      'utf8',
+    )
+    const postCategoryOptions = layout.match(
+      /name="post-category"\s+options=\{\{([\s\S]*?)\}\}/,
+    )?.[1]
+
+    expect(postCategoryOptions).toContain("presentation: 'transparentModal'")
+    expect(postCategoryOptions).toContain("animation: 'slide_from_bottom'")
+    expect(postCategoryOptions).toContain("backgroundColor: 'transparent'")
+    expect(postCategoryOptions).toContain('headerShown: false')
+    expect(postCategoryOptions).toContain('gestureEnabled: true')
+    expect(sheetStyles).toMatch(/container:\s*\{[\s\S]*?backgroundColor:\s*'transparent'/)
   })
 
   it.each(categoryHandlers)(

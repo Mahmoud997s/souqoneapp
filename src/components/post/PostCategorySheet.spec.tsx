@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { cleanup, render, screen } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
+import { Spacing } from '../../constants/spacing'
 import { POST_CATEGORIES } from '../../constants/postCategories'
 import { PostCategorySheet } from './PostCategorySheet'
 import { PostCategoryTokens } from './postCategoryTokens'
@@ -72,6 +73,26 @@ describe('PostCategorySheet visual contract', () => {
     expect(StyleSheet.flatten(partsRow.props.style).justifyContent).toBe('center')
     expect(StyleSheet.flatten(partsCard.props.style).width).toBe(
       StyleSheet.flatten(firstCard.props.style).width,
+    )
+  })
+
+  it('reserves the cancel bar and safe-area inset below the category list', async () => {
+    const bottomInset = 48
+    const rendered = await render(
+      <PostCategorySheet
+        categories={POST_CATEGORIES}
+        topInset={24}
+        bottomInset={bottomInset}
+        onSelectCategory={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    )
+
+    const list = screen.getByTestId('post-category-list')
+    expect(StyleSheet.flatten(list.props.contentContainerStyle).paddingBottom).toBe(
+      PostCategoryTokens.cancelHeight +
+        PostCategoryTokens.cancelTopPadding +
+        Math.max(bottomInset, Spacing.space4),
     )
   })
 
