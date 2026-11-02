@@ -3,9 +3,14 @@ import { StyleSheet, View } from 'react-native'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import type { GlassViewProps } from 'expo-glass-effect'
 import type { SharedValue } from 'react-native-reanimated'
-import { ContactActions } from '../../components/listing-detail/ContactActions'
+import {
+  ContactActions,
+  CONTACT_ACTIONS_BAR_HEIGHT,
+  CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y,
+} from '../../components/listing-detail/ContactActions'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import { Spacing } from '../../constants/spacing'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
 
 // Mock react-native-safe-area-context
@@ -116,7 +121,7 @@ describe('ContactActions Glass Conversion Specification', () => {
     assertNoOpacityInAncestry(blurSurface)
   })
 
-  it('3. Inline variant buttons have height 42, radius md, and correct colors', async () => {
+  it('3. Inline variant buttons meet the 44pt touch target, radius md, and correct colors', async () => {
     const { getByTestId } = await render(
       <ContactActions
         variant="inline"
@@ -130,20 +135,49 @@ describe('ContactActions Glass Conversion Specification', () => {
 
     const callBtn = getByTestId('btn-contact-call')
     const callStyle = StyleSheet.flatten(callBtn.props.style)
-    expect(callStyle.height).toBe(42)
+    expect(callStyle.height).toBe(Spacing.touch)
+    expect(callStyle.height).toBeGreaterThanOrEqual(44)
     expect(callStyle.borderRadius).toBe(Radius.md)
     expect(callStyle.backgroundColor).toBe(Colors.primary)
 
     const waBtn = getByTestId('btn-contact-whatsapp')
     const waStyle = StyleSheet.flatten(waBtn.props.style)
-    expect(waStyle.height).toBe(42)
+    expect(waStyle.height).toBe(Spacing.touch)
+    expect(waStyle.height).toBeGreaterThanOrEqual(44)
     expect(waStyle.borderRadius).toBe(Radius.md)
 
     const chatBtn = getByTestId('btn-contact-chat')
     const chatStyle = StyleSheet.flatten(chatBtn.props.style)
-    expect(chatStyle.height).toBe(42)
+    expect(chatStyle.height).toBe(Spacing.touch)
+    expect(chatStyle.height).toBeGreaterThanOrEqual(44)
     expect(chatStyle.borderRadius).toBe(Radius.md)
   })
+
+  it.each(['inline', 'sticky'] as const)(
+    'renders all shared contact actions in the %s variant',
+    async (variant) => {
+      const { getByTestId } = await render(
+        <ContactActions
+          variant={variant}
+          availability={{ mode: 'full' }}
+          busy={false}
+          onCall={jest.fn()}
+          onWhatsApp={jest.fn()}
+          onChat={jest.fn()}
+          scrollY={variant === 'sticky' ? ({ value: 400 } as unknown as SharedValue<number>) : undefined}
+        />
+      )
+
+      expect(getByTestId('btn-contact-call')).toBeTruthy()
+      expect(getByTestId('btn-contact-whatsapp')).toBeTruthy()
+      expect(getByTestId('btn-contact-chat')).toBeTruthy()
+      if (variant === 'sticky') {
+        expect(StyleSheet.flatten(getByTestId('btn-contact-call').props.style).height).toBe(42)
+        expect(CONTACT_ACTIONS_BAR_HEIGHT).toBe(64.4)
+        expect(CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y).toBeGreaterThanOrEqual(64.4 + 34)
+      }
+    }
+  )
 
   it('4. Availability mode chatOnly renders only chat', async () => {
     const { getByTestId, queryByTestId } = await render(
@@ -156,8 +190,31 @@ describe('ContactActions Glass Conversion Specification', () => {
         onChat={jest.fn()}
       />
     )
-    expect(getByTestId('btn-contact-chat')).toBeTruthy()
+    const chatButton = getByTestId('btn-contact-chat')
+    expect(chatButton).toBeTruthy()
+    expect(StyleSheet.flatten(chatButton.props.style).height).toBe(Spacing.touch)
+    expect(StyleSheet.flatten(chatButton.props.style).height).toBeGreaterThanOrEqual(44)
     expect(queryByTestId('btn-contact-call')).toBeNull()
+    expect(queryByTestId('btn-contact-whatsapp')).toBeNull()
+  })
+
+  it('renders 44pt call and chat controls for the noWhatsapp inline mode', async () => {
+    const { getByTestId, queryByTestId } = await render(
+      <ContactActions
+        variant="inline"
+        availability={{ mode: 'noWhatsapp' }}
+        busy={false}
+        onCall={jest.fn()}
+        onWhatsApp={jest.fn()}
+        onChat={jest.fn()}
+      />
+    )
+
+    for (const testID of ['btn-contact-call', 'btn-contact-chat']) {
+      const button = getByTestId(testID)
+      expect(StyleSheet.flatten(button.props.style).height).toBe(Spacing.touch)
+      expect(StyleSheet.flatten(button.props.style).height).toBeGreaterThanOrEqual(44)
+    }
     expect(queryByTestId('btn-contact-whatsapp')).toBeNull()
   })
 

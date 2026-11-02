@@ -92,7 +92,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
   })
 
   describe('2. ContactActions baseline geometry & handlers', () => {
-    it('(a) inline variant buttons have height 42, radius md, and brand colors', async () => {
+    it('(a) inline variant buttons have height 44, radius md, and brand colors', async () => {
       const onCall = jest.fn()
       const onWhatsApp = jest.fn()
       const onChat = jest.fn()
@@ -110,19 +110,19 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
 
       const callBtn = screen.getByTestId('btn-contact-call')
       const callStyle = StyleSheet.flatten(callBtn.props.style)
-      expect(callStyle.height).toBe(42)
+      expect(callStyle.height).toBe(44)
       expect(callStyle.borderRadius).toBe(Radius.md) // 8
       expect(callStyle.backgroundColor).toBe(Colors.primary)
 
       const waBtn = screen.getByTestId('btn-contact-whatsapp')
       const waStyle = StyleSheet.flatten(waBtn.props.style)
-      expect(waStyle.height).toBe(42)
+      expect(waStyle.height).toBe(44)
       expect(waStyle.borderRadius).toBe(Radius.md)
       expect(waStyle.backgroundColor).toBe('#25D366')
 
       const chatBtn = screen.getByTestId('btn-contact-chat')
       const chatStyle = StyleSheet.flatten(chatBtn.props.style)
-      expect(chatStyle.height).toBe(42)
+      expect(chatStyle.height).toBe(44)
       expect(chatStyle.borderRadius).toBe(Radius.md)
     })
 

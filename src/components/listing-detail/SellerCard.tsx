@@ -25,11 +25,15 @@ export interface SellerCardProps {
  * membership label, account type badge, and chevron.
  */
 export function SellerCard({ seller, onPressProfile, support }: SellerCardProps) {
+  const sellerName = seller.name.trim()
+
   return (
     <TouchableOpacity
       onPress={() => onPressProfile(seller.id)}
       activeOpacity={0.75}
       testID="seller-card-touchable"
+      accessibilityRole="button"
+      accessibilityLabel={sellerName ? `ملف البائع ${sellerName}` : 'ملف البائع'}
       style={s.wrapper}
     >
       <View style={s.card} testID="seller-card-container">

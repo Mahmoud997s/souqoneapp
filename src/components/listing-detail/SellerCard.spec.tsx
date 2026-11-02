@@ -1,5 +1,5 @@
 import React from 'react'
-import TestRenderer, { act } from 'react-test-renderer'
+import TestRenderer, { act, type ReactTestRenderer } from 'react-test-renderer'
 import { Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { SellerCard } from './SellerCard'
 import { Colors } from '../../constants/colors'
@@ -47,6 +47,35 @@ describe('SellerCard RTL & Rendering', () => {
     expect(textContents).toContain('أحمد البلوشي')
     expect(textContents).toContain('عضو منذ مايو 2022')
     expect(textContents).toContain('معرض معتمد')
+  })
+
+  test('profile control exposes button role and a seller-specific Arabic label', () => {
+    let renderer: ReactTestRenderer | undefined = undefined
+    act(() => {
+      renderer = TestRenderer.create(
+        <SellerCard seller={mockSeller} onPressProfile={jest.fn()} />
+      )
+    })
+
+    const touchable = renderer!.root.findByType(TouchableOpacity)
+    expect(touchable.props.accessibilityRole).toBe('button')
+    expect(touchable.props.accessibilityLabel).toBe('ملف البائع أحمد البلوشي')
+  })
+
+  test('profile control uses a generic Arabic label when seller name is blank', () => {
+    let renderer: ReactTestRenderer | undefined = undefined
+    act(() => {
+      renderer = TestRenderer.create(
+        <SellerCard
+          seller={{ ...mockSeller, name: '' }}
+          onPressProfile={jest.fn()}
+        />
+      )
+    })
+
+    const touchable = renderer!.root.findByType(TouchableOpacity)
+    expect(touchable.props.accessibilityRole).toBe('button')
+    expect(touchable.props.accessibilityLabel).toBe('ملف البائع')
   })
 
   test('membershipText has writingDirection rtl and textAlign left', () => {
