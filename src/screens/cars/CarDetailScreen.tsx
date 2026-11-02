@@ -25,6 +25,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
@@ -78,7 +79,7 @@ import { SimilarListingsGrid } from '../../components/listing-detail/SimilarList
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
-import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
+import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
@@ -320,29 +321,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
 
   return (
     <View style={s.rootContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
-
-      {/* Fixed Top Bar in normal layout flow */}
-      <DetailTopBar
-        onBack={goBackSafely}
-        isFavorite={favoriteToggle.isFavorite}
-        favoriteBusy={favoriteToggle.isBusy}
-        canFavorite={!isOwner}
-        onToggleFavorite={favoriteToggle.toggle}
-        onShare={shareListing.share}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={handleSearchSubmit}
-        placeholder="ابحث في تفاصيل السيارة..."
-      />
-
-      {/* Pinned Stale Data Banner directly below top bar */}
-      {isRefetchError && (
-        <StaleDataBanner
-          onRetry={refetch}
-          isRefetching={refreshing}
-        />
-      )}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
@@ -355,11 +334,13 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
+            progressViewOffset={insets.top + TopBarTokens.detailTopBarBodyHeight}
           />
         }
         contentContainerStyle={[
           s.scrollContent,
           {
+            paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
             paddingBottom:
               (!isOwner && contactAvailability.mode !== 'hidden') || isOwner ? 90 : 40,
           },
@@ -592,6 +573,28 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         onClose={() => setIsViewerOpen(false)}
         category="cars"
       />
+
+      {/* Floating Glassmorphic Top Bar (Overlay) */}
+      <DetailTopBar
+        onBack={goBackSafely}
+        isFavorite={favoriteToggle.isFavorite}
+        favoriteBusy={favoriteToggle.isBusy}
+        canFavorite={!isOwner}
+        onToggleFavorite={favoriteToggle.toggle}
+        onShare={shareListing.share}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل السيارة..."
+      />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

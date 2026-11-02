@@ -24,6 +24,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
@@ -80,7 +81,7 @@ import { DetailStates } from '../../components/listing-detail/DetailStates'
 import {
   DetailTopBar,
   LocationCard,
-  StaleDataBanner,
+  DetailStaleBanner,
 } from '../../components/listing-detail'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 
@@ -304,29 +305,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
 
   return (
     <View style={s.rootContainer} testID="equipment-detail-screen">
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
-
-      {/* Fixed Top Bar in normal layout flow */}
-      <DetailTopBar
-        onBack={goBackSafely}
-        onShare={shareListing.share}
-        isFavorite={favoriteToggle.isFavorite}
-        favoriteBusy={favoriteToggle.isBusy}
-        canFavorite={!isOwner}
-        onToggleFavorite={favoriteToggle.toggle}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={handleSearchSubmit}
-        placeholder="ابحث في تفاصيل المعدة..."
-      />
-
-      {/* Pinned Stale Data Banner directly below top bar */}
-      {isRefetchError && (
-        <StaleDataBanner
-          onRetry={refetch}
-          isRefetching={refreshing}
-        />
-      )}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
@@ -338,11 +317,15 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
+            progressViewOffset={insets.top + TopBarTokens.detailTopBarBodyHeight}
           />
         }
         contentContainerStyle={[
           s.scrollContent,
-          { paddingBottom: hasBottomBar ? 90 : 40 },
+          {
+            paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
+            paddingBottom: hasBottomBar ? 90 : 40,
+          },
         ]}
         testID="equipment-detail-scroll-view"
       >
@@ -560,6 +543,28 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         onClose={() => setIsViewerOpen(false)}
         category="equipment"
       />
+
+      {/* Floating Glassmorphic Top Bar (Overlay) */}
+      <DetailTopBar
+        onBack={goBackSafely}
+        onShare={shareListing.share}
+        isFavorite={favoriteToggle.isFavorite}
+        favoriteBusy={favoriteToggle.isBusy}
+        canFavorite={!isOwner}
+        onToggleFavorite={favoriteToggle.toggle}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل المعدة..."
+      />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

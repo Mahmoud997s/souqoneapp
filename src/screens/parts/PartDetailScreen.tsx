@@ -15,11 +15,13 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, router as expoRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
@@ -49,7 +51,7 @@ import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates } from '../../components/listing-detail/DetailStates'
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
-import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
+import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 import {
   ContactActions,
@@ -124,6 +126,7 @@ export interface PartDetailScreenProps {
  * Cars, Buses, and Equipment.
  */
 export function PartDetailScreen({ id }: PartDetailScreenProps) {
+  const insets = useSafeAreaInsets()
   const router = typeof useRouter === 'function' ? useRouter() : expoRouter
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
@@ -309,29 +312,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
 
   return (
     <View style={s.rootContainer} testID="part-detail-screen">
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} translucent />
-
-      {/* Fixed Top Bar */}
-      <DetailTopBar
-        onBack={goBackSafely}
-        onShare={shareListing.share}
-        isFavorite={favoriteToggle.isFavorite}
-        favoriteBusy={favoriteToggle.isBusy}
-        canFavorite={!isOwner}
-        onToggleFavorite={favoriteToggle.toggle}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={handleSearchSubmit}
-        placeholder="ابحث في تفاصيل القطعة..."
-      />
-
-      {/* Pinned Stale Data Banner directly below top bar */}
-      {isRefetchError && (
-        <StaleDataBanner
-          onRetry={refetch}
-          isRefetching={refreshing}
-        />
-      )}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Main Content ScrollView */}
       <Animated.ScrollView
@@ -343,11 +324,15 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
+            progressViewOffset={insets.top + TopBarTokens.detailTopBarBodyHeight}
           />
         }
         contentContainerStyle={[
           s.scrollContent,
-          { paddingBottom: hasBottomBar ? 90 : 40 },
+          {
+            paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
+            paddingBottom: hasBottomBar ? 90 : 40,
+          },
         ]}
         testID="part-detail-scroll-view"
       >
@@ -476,6 +461,28 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
         onClose={() => setIsViewerOpen(false)}
         category="parts"
       />
+
+      {/* Floating Glassmorphic Top Bar (Overlay) */}
+      <DetailTopBar
+        onBack={goBackSafely}
+        onShare={shareListing.share}
+        isFavorite={favoriteToggle.isFavorite}
+        favoriteBusy={favoriteToggle.isBusy}
+        canFavorite={!isOwner}
+        onToggleFavorite={favoriteToggle.toggle}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        placeholder="ابحث في تفاصيل القطعة..."
+      />
+
+      {/* Pinned Stale Data Banner directly below overlaid top bar */}
+      {isRefetchError ? (
+        <DetailStaleBanner
+          onRetry={refetch}
+          isRefetching={refreshing}
+        />
+      ) : null}
     </View>
   )
 }

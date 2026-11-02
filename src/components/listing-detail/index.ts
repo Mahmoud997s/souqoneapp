@@ -16,6 +16,9 @@ export type { DetailSkeletonProps } from './DetailSkeleton'
 export { StaleDataBanner } from './StaleDataBanner'
 export type { StaleDataBannerProps } from './StaleDataBanner'
 
+export { DetailStaleBanner } from './DetailStaleBanner'
+export type { DetailStaleBannerProps } from './DetailStaleBanner'
+
 export { ImageGallery, GALLERY_CATEGORY_ICONS } from './ImageGallery'
 export type { ImageGalleryProps, GalleryCategory } from './ImageGallery'
 

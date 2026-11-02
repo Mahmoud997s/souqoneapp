@@ -8,13 +8,16 @@ jest.mock('react-native-safe-area-context', () => ({
 }))
 
 describe('DetailTopBar', () => {
-  it('renders in normal layout flow and strictly not position: absolute (teeth verified)', async () => {
+  it('renders as absolute overlay matching AnimatedHeroHeader with zIndex 50 (D-182a11 teeth verified)', async () => {
     await render(<DetailTopBar onBack={jest.fn()} />)
 
     const bar = screen.getByTestId('detail-top-bar')
     const flatStyle = StyleSheet.flatten(bar.props.style)
-    expect(flatStyle.position).not.toBe('absolute')
-    expect(flatStyle.position ?? 'relative').toBe('relative')
+    expect(flatStyle.position).toBe('absolute')
+    expect(flatStyle.top).toBe(0)
+    expect(flatStyle.left).toBe(0)
+    expect(flatStyle.right).toBe(0)
+    expect(flatStyle.zIndex).toBe(50)
   })
 
   it('applies top padding strictly from useSafeAreaInsets().top (teeth verified)', async () => {

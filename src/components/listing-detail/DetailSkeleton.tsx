@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 import { View, StyleSheet, Animated, ScrollView } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { TopBarTokens } from '../../constants/topBarTokens'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import { DetailTopBar } from './DetailTopBar'
 
@@ -29,6 +31,7 @@ export function DetailSkeleton({
   testID = 'detail-skeleton',
   fallbackReducedMotion,
 }: DetailSkeletonProps) {
+  const insets = useSafeAreaInsets()
   const isReducedMotion = useAppReducedMotion(
     fallbackReducedMotion !== undefined ? () => fallbackReducedMotion : undefined
   )
@@ -60,13 +63,13 @@ export function DetailSkeleton({
 
   return (
     <View style={s.container} testID={testID}>
-      {/* Top Bar with back action */}
-      {onBack && <DetailTopBar onBack={onBack} testID="detail-skeleton-top-bar" />}
-
       {/* Main Skeleton Content */}
       <ScrollView
         style={s.scroll}
-        contentContainerStyle={s.scrollContent}
+        contentContainerStyle={[
+          s.scrollContent,
+          onBack ? { paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight } : null,
+        ]}
         showsVerticalScrollIndicator={false}
         scrollEnabled={false}
       >
@@ -113,6 +116,9 @@ export function DetailSkeleton({
         <View style={[s.bottomButton, s.placeholder]} />
         <View style={[s.bottomButton, s.placeholder]} />
       </View>
+
+      {/* Top Bar with back action (Overlay) */}
+      {onBack && <DetailTopBar onBack={onBack} testID="detail-skeleton-top-bar" />}
     </View>
   )
 }
