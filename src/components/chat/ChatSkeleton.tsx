@@ -6,13 +6,15 @@ export function ChatSkeleton() {
   const anim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(anim, { toValue: 1, duration: 900, useNativeDriver: false }),
         Animated.timing(anim, { toValue: 0, duration: 900, useNativeDriver: false }),
       ])
-    ).start()
-  }, [])
+    )
+    animation.start()
+    return () => animation.stop()
+  }, [anim])
 
   const bgOwn = anim.interpolate({ inputRange: [0, 1], outputRange: ['#E0F2FE', '#BAE6FD'] }) // Light blue shades
   const bgOther = anim.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface, Colors.border] })
