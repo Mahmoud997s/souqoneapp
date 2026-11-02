@@ -367,25 +367,28 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
     })
   })
 
-  // ── 3. SERVICES: View Count Single-Source Specification (D-182a decision 3) ──
-  describe('Services View Count Single-Source Specification (D-182a decision 3)', () => {
-    it('shows viewCount in header for visitor (owner bar hidden)', async () => {
+  // ── 3. SERVICES: View Count Single-Source Specification (D-182a1 correction) ──
+  describe('Services View Count Single-Source Specification (D-182a1)', () => {
+    it('shows viewCount exactly ONCE in header for a VISITOR (sticky owner bar is not rendered)', async () => {
       mockCurrentUser = { id: 'visitor-user-1' } // visitor
       await render(<ServiceDetailScreen id="srv-101" />)
 
-      expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
+      const viewMatches = screen.getAllByText('1,540 مشاهدة')
+      expect(viewMatches.length).toBe(1)
       expect(screen.queryByTestId('owner-manage-bar')).toBeNull()
     })
 
-    it('strictly hides viewCount from header when viewer is owner (showViewCount=false)', async () => {
+    it('shows viewCount exactly ONCE in header for the OWNER while sticky OwnerManageBar is rendered without viewCount', async () => {
       mockCurrentUser = { id: 'seller-user-99' } // same as seller.id -> owner
       await render(<ServiceDetailScreen id="srv-101" />)
 
-      // Header strictly omits view count for owner
-      expect(screen.queryByText('1,540 مشاهدة')).toBeNull()
+      // Header renders view count exactly once for the owner, and sticky OwnerManageBar does not duplicate it
+      const viewMatches = screen.getAllByText('1,540 مشاهدة')
+      expect(viewMatches.length).toBe(1)
+      expect(screen.getAllByText(/مشاهدة/).length).toBe(1)
     })
 
-    it('ServicePriceHeader: renders view count by default (showViewCount=true)', async () => {
+    it('ServicePriceHeader: always renders viewCount without a showViewCount prop', async () => {
       await render(
         <ServicePriceHeader
           title="كراج النخبة"
@@ -398,21 +401,19 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
       expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
     })
 
-    it('ServicePriceHeader: strictly hides view count when showViewCount=false', async () => {
-      await render(
-        <ServicePriceHeader
-          title="كراج النخبة"
-          price={{ amountLabel: '15 ر.ع.', isRange: false }}
-          serviceTypeLabel="صيانة"
-          postedAtLabel="منذ يومين"
+    it('OwnerManageBar (sticky): never renders view count, while (inline) renders view count in stats header', async () => {
+      const { unmount } = await render(
+        <OwnerManageBar
+          variant="sticky"
           viewCount={1540}
-          showViewCount={false}
+          busy={false}
+          actions={sampleOwnerActions}
+          onAction={jest.fn()}
         />,
       )
-      expect(screen.queryByText('1,540 مشاهدة')).toBeNull()
-    })
+      expect(screen.queryByText(/مشاهدة/)).toBeNull()
+      unmount()
 
-    it('OwnerManageBar (inline): preserves view count rendering in stats header', async () => {
       await render(
         <OwnerManageBar
           variant="inline"
