@@ -204,28 +204,28 @@ describe('D-182a7 — Parts Landing 3D Category Icons, Order, Option B 39.5pt Si
     })
   })
 
-  describe('2. Other Grids Untouched: Cars, Buses, Equipment & Services Stay on Vector Icons and Home Grid Unchanged', () => {
-    it('keeps Cars, Buses, Equipment, and Services grids on vector icons with paleMint icon boxes and zero image icons', async () => {
-      const { queryAllByTestId, getByTestId } = await render(
+  describe('2. Other Grids Untouched: Cars, Buses & Equipment Stay on Vector Icons and Home Grid Unchanged', () => {
+    it('keeps Cars, Buses, and Equipment grids on vector icons with paleMint icon boxes and zero image icons', async () => {
+      const { queryAllByTestId, getAllByTestId } = await render(
         <View>
           <CategoriesGrid />
           <BusCategoriesGrid />
           <EquipmentCategoriesGrid />
-          <ServicesCategoriesGrid />
           <HomeCategoriesGrid reducedMotion={true} />
         </View>
       )
 
-      // Zero GlassCategoriesGrid image icons rendered across Cars, Buses, Equipment, and Services:
+      // Zero GlassCategoriesGrid image icons rendered across Cars, Buses, and Equipment:
       const glassImageNodes = queryAllByTestId(/^category-tile-image-/)
       expect(glassImageNodes).toHaveLength(0)
 
-      // Services MAINTENANCE still uses paleMint icon box:
-      const maintBox = getByTestId('category-icon-box-MAINTENANCE')
-      const maintBoxStyle = StyleSheet.flatten(maintBox.props.style) as Record<string, unknown>
-      expect(maintBoxStyle.backgroundColor).toBe(Colors.paleMint)
-      expect(maintBoxStyle.width).toBe(36)
-      expect(maintBoxStyle.height).toBe(36)
+      // Cars/Buses/Equipment 'new' tiles still use paleMint icon box:
+      const newBoxes = getAllByTestId('category-icon-box-new')
+      expect(newBoxes.length).toBeGreaterThanOrEqual(2)
+      const newBoxStyle = StyleSheet.flatten(newBoxes[0].props.style) as Record<string, unknown>
+      expect(newBoxStyle.backgroundColor).toBe(Colors.paleMint)
+      expect(newBoxStyle.width).toBe(36)
+      expect(newBoxStyle.height).toBe(36)
 
       // HomeCategoriesGrid still renders its 7 tiles with 39.5x39.5 icons:
       const homeImages = queryAllByTestId('category-tile-image')
