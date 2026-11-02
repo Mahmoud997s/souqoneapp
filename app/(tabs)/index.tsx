@@ -50,16 +50,27 @@ import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
+import {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+} from '../../src/constants/peekCarousel'
+export {
+  CARS_PEEK_WIDTH_RATIO,
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  getPeekCardWidth,
+  getPeekSideInset,
+  getPeekLeadingInset,
+  getPeekLeftRemainder,
+}
+
 const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
-export const CARS_PEEK_WIDTH_RATIO = 0.80
-export const CARS_PEEK_GAP = 6
-export const CARS_PEEK_IMAGE_HEIGHT = 133
-export const getPeekCardWidth = (screenWidth: number = SW) => Math.round(screenWidth * CARS_PEEK_WIDTH_RATIO)
-export const getPeekSideInset = (screenWidth: number = SW) => Math.round((screenWidth - getPeekCardWidth(screenWidth)) / 2)
-export const getPeekLeadingInset = () => Spacing.space5
-export const getPeekLeftRemainder = (screenWidth: number = SW) =>
-  screenWidth - getPeekLeadingInset() - getPeekCardWidth(screenWidth) - CARS_PEEK_GAP
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
 export interface SectionProps {
