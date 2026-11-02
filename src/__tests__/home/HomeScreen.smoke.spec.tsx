@@ -149,7 +149,7 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
   })
 
   it('mounts full HomeScreen and renders all 5 CategorySection headers and the first car card', async () => {
-    const { getByText, getByTestId, queryByTestId } = await render(
+    const { getByText, getAllByText, getByTestId, queryByTestId } = await render(
       <QueryClientProvider client={queryClient}>
         <HomeScreen />
       </QueryClientProvider>
@@ -192,11 +192,11 @@ describe('HomeScreen Smoke Test — CategorySections & Layout (D-164c)', () => {
     expect(getByText('حفار كاتربيلر 320 بحالة ممتازة')).toBeTruthy()
 
     // 4. Category tiles in grid
-    expect(getByText('سيارات')).toBeTruthy()
-    expect(getByText('خدمات')).toBeTruthy()
-    expect(getByText('قطع غيار')).toBeTruthy()
-    expect(getByText('حافلات')).toBeTruthy()
-    expect(getByText('معدات')).toBeTruthy()
+    expect(getAllByText('سيارات')).toHaveLength(2)
+    expect(getAllByText('خدمات')).toHaveLength(2)
+    expect(getAllByText('قطع غيار')).toHaveLength(2)
+    expect(getAllByText('حافلات')).toHaveLength(2)
+    expect(getAllByText('معدات')).toHaveLength(2)
     expect(getByText('تصفح الكل')).toBeTruthy()
   })
 })

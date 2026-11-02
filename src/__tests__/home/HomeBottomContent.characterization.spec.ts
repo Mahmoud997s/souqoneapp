@@ -8,13 +8,18 @@ const homeSource = fs.readFileSync(
 
 describe('Home bottom content characterization', () => {
   it('keeps the existing post-category destination in the Home add handler', () => {
-    expect(homeSource).toContain("router.push('/(modals)/post-category' as any)")
+    expect(homeSource).toContain("router.push('/(modals)/post-category'")
   })
 
   it('keeps the support button as the last content block', () => {
+    const howItWorksIndex = homeSource.indexOf('<HomeHowItWorks')
+    const addBannerIndex = homeSource.indexOf('<HomeAddListingBanner')
     const supportIndex = homeSource.indexOf('<SupportHelpButton style=')
     const scrollCloseIndex = homeSource.indexOf('</Animated.ScrollView>', supportIndex)
+    expect(howItWorksIndex).toBeGreaterThan(-1)
+    expect(addBannerIndex).toBeGreaterThan(howItWorksIndex)
     expect(supportIndex).toBeGreaterThan(-1)
+    expect(supportIndex).toBeGreaterThan(addBannerIndex)
     const trailingContent = homeSource
       .slice(supportIndex, scrollCloseIndex)
       .replace(/<SupportHelpButton[^>]*\/>/, '')
