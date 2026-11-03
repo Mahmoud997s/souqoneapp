@@ -31,39 +31,41 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
           const isActive = qf.isActive;
           
           return (
-            <TouchableOpacity
+            <View
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel={qf.label}
-              accessibilityState={{ selected: Boolean(isActive) }}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              onPress={() => onFilterPress(qf.id)}
             >
-              {!isActive && qf.icon && (
-                <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
-              )}
-              <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
-                {qf.label}
-              </Text>
-              {isActive ? (
+              <TouchableOpacity
+                style={s.chipPressableArea}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={qf.label}
+                accessibilityState={{ selected: Boolean(isActive) }}
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                onPress={() => onFilterPress(qf.id)}
+              >
+                {!isActive && qf.icon && (
+                  <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
+                )}
+                <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
+                  {qf.label}
+                </Text>
+                {!isActive && (
+                  <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
+                )}
+              </TouchableOpacity>
+              {isActive && (
                 <TouchableOpacity
                   hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                   accessibilityRole="button"
                   accessibilityLabel="إزالة الفلتر"
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    onClearFilter(qf.id);
-                  }}
+                  onPress={() => onClearFilter(qf.id)}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="close-circle" size={12.5} color={Colors.white} />
                 </TouchableOpacity>
-              ) : (
-                <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
               )}
-            </TouchableOpacity>
+            </View>
           );
         })}
       </PhysicalHorizontalTrack>
@@ -103,6 +105,11 @@ const s = StyleSheet.create({
         elevation: 1 
       },
     }),
+  },
+  chipPressableArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   quickFilterChipActive: {
     backgroundColor: Colors.primary,
