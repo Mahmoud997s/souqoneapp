@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Platform,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
@@ -34,9 +35,19 @@ import { ServiceCard } from '../../src/components/services/ServiceCard';
 import { ServiceSkeletonCard } from '../../src/components/services/ServiceSkeletonCard';
 import { ServicesVisualFilters } from '../../src/components/services/ServicesVisualFilters';
 import { ServicesFilterBottomSheet } from '../../src/components/services/ServicesFilterBottomSheet';
-import { ServicesFilterState } from '../../src/types/filters.types';
 import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { UnifiedCardItem } from '../../src/types/unified-card.types';
+
+// Pure Filter Helpers & Contract
+import {
+  ServicesFilterState,
+  parseServicesFiltersFromParams,
+  mergeServicesRouteParams,
+  clearServicesQuickFilter,
+  buildServicesQueryParams,
+  countServicesActiveFilters,
+} from '../../src/utils/browse-filters/servicesBrowseFilters';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -48,33 +59,6 @@ const PROVIDER_TABS: TabItem[] = [
   { id: 'INDIVIDUAL', label: 'فنيين مستقلين' },
   { id: 'MOBILE', label: 'خدمة متنقلة' },
 ];
-
-function parseServicesFiltersFromParams(params: {
-  q?: string;
-  serviceType?: string;
-  providerType?: string;
-  governorate?: string;
-  governorateId?: string;
-  wilayaId?: string;
-  isHomeService?: string;
-}): ServicesFilterState {
-  const initial: ServicesFilterState = {};
-  if (params.serviceType) initial.serviceType = params.serviceType;
-  if (params.providerType) {
-    initial.providerType = params.providerType === 'CENTER' ? 'WORKSHOP' : params.providerType;
-  }
-  if (params.governorate) initial.governorate = params.governorate;
-  if (params.governorateId) {
-    const parsed = parseInt(String(params.governorateId), 10);
-    if (!isNaN(parsed) && parsed > 0) initial.governorateId = parsed;
-  }
-  if (params.wilayaId) {
-    const parsed = parseInt(String(params.wilayaId), 10);
-    if (!isNaN(parsed) && parsed > 0) initial.wilayaId = parsed;
-  }
-  if (params.isHomeService === 'true') initial.isHomeService = true;
-  return initial;
-}
 
 export default function ServicesBrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -98,15 +82,16 @@ export default function ServicesBrowseScreen() {
     parseServicesFiltersFromParams(searchParams)
   );
 
+  const flatListRef = useRef<FlatList<UnifiedCardItem>>(null);
+
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<
-    'serviceType' | 'specialization' | 'providerType' | 'city' | 'sort' | null
+    'serviceType' | 'specialization' | 'providerType' | 'city' | null
   >(null);
 
-  // Sync state whenever navigation params change (prevents stale filters when navigating)
+  // Sync state whenever navigation params change (G-07: MERGE incoming route params)
   useEffect(() => {
-    const nextFilters = parseServicesFiltersFromParams(searchParams);
-    setFilters(nextFilters);
+    setFilters((prev) => mergeServicesRouteParams(prev, searchParams));
     if (searchParams.q !== undefined) {
       setSearchQuery(searchParams.q);
     }
@@ -120,40 +105,18 @@ export default function ServicesBrowseScreen() {
     searchParams.isHomeService,
   ]);
 
+  // G-06: Scroll list to top when filters change
+  useEffect(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [filters, debouncedSearch]);
+
   const handleAddService = useCallback(() => {
     navigateToServiceForm();
   }, []);
 
-  // Combine query parameters for API call
+  // Combine query parameters for API call via pure module
   const queryParams = useMemo(() => {
-    const params: Record<string, any> = {
-      limit: 30,
-    };
-
-    if (debouncedSearch.trim()) {
-      params.search = debouncedSearch.trim();
-    }
-
-    if (filters.serviceType) params.serviceType = filters.serviceType;
-    if (filters.providerType) params.providerType = filters.providerType;
-    if (filters.governorateId) params.governorateId = filters.governorateId;
-    if (filters.wilayaId) params.wilayaId = filters.wilayaId;
-    if (filters.isHomeService) params.isHomeService = true;
-    if (filters.isOpenNow) params.isOpenNow = true;
-    if (filters.specializations && filters.specializations.length > 0) {
-      params.specializations = filters.specializations;
-    }
-    if (filters.sortBy) {
-      params.sortBy = filters.sortBy;
-      params.sortOrder = filters.sortOrder || 'desc';
-    }
-    if (filters.latitude && filters.longitude) {
-      params.latitude = filters.latitude;
-      params.longitude = filters.longitude;
-      if (filters.radiusKm) params.radiusKm = filters.radiusKm;
-    }
-
-    return params;
+    return buildServicesQueryParams(filters, debouncedSearch, 30);
   }, [debouncedSearch, filters]);
 
   // Fetch infinite services
@@ -173,13 +136,9 @@ export default function ServicesBrowseScreen() {
     [infiniteData]
   );
 
-  // Active filters count calculation
+  // Active filters count calculation via pure module
   const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    Object.entries(filters).forEach(([_, val]) => {
-      if (val !== undefined && val !== '' && val !== false) count++;
-    });
-    return count;
+    return countServicesActiveFilters(filters);
   }, [filters]);
 
   // Current selected tab for ListingTabs
@@ -255,18 +214,6 @@ export default function ServicesBrowseScreen() {
       isActive: !!filters.providerType,
     });
 
-    // Sort
-    let sortLabel = 'الترتيب';
-    if (filters.sortBy === 'rating') sortLabel = 'الأعلى تقييماً';
-    else if (filters.sortBy === 'views') sortLabel = 'الأكثر طلباً';
-    else if (filters.sortBy) sortLabel = 'الأحدث أولاً';
-    items.push({
-      id: 'sort',
-      label: sortLabel,
-      icon: 'swap-vertical-outline' as any,
-      isActive: !!filters.sortBy,
-    });
-
     // Open Now (Toggle)
     items.push({
       id: 'isOpenNow',
@@ -313,25 +260,7 @@ export default function ServicesBrowseScreen() {
   }, []);
 
   const handleClearQuickFilter = useCallback((filterId: string) => {
-    setFilters((prev) => {
-      const next = { ...prev };
-      if (filterId === 'serviceType') delete next.serviceType;
-      if (filterId === 'providerType') delete next.providerType;
-      if (filterId === 'specialization' || filterId === 'specializations') delete next.specializations;
-      if (filterId === 'isOpenNow') delete next.isOpenNow;
-      if (filterId === 'isHomeService') delete next.isHomeService;
-      if (filterId === 'sort') {
-        delete next.sortBy;
-        delete next.sortOrder;
-      }
-      if (filterId === 'city' || filterId === 'gov') {
-        delete next.governorateId;
-        delete next.wilayaId;
-        delete next.governorate;
-        delete next.city;
-      }
-      return next;
-    });
+    setFilters((prev) => clearServicesQuickFilter(prev, filterId));
   }, []);
 
   const handleVisualFilterSelect = (
@@ -407,9 +336,10 @@ export default function ServicesBrowseScreen() {
 
       {/* Main Content List */}
       <Animated.FlatList
-        data={isLoading ? Array(6).fill({}) : listings}
-        keyExtractor={(item: any, index: number) => item.id || `skeleton-${index}`}
-        renderItem={({ item }: { item: any; index: number }) => {
+        ref={flatListRef}
+        data={isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings}
+        keyExtractor={(item, index) => item.id || `skeleton-${index}`}
+        renderItem={({ item }) => {
           if (isLoading) {
             return (
               <View style={styles.cardWrapper}>
@@ -422,7 +352,7 @@ export default function ServicesBrowseScreen() {
               <ServiceCard
                 item={item}
                 fullWidth
-                onPress={() => router.push(`/services/${item.id}` as any)}
+                onPress={() => router.push({ pathname: '/services/[id]', params: { id: item.id } })}
               />
             </View>
           );

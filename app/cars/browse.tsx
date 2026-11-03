@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -52,86 +52,25 @@ import { FilterBottomSheet } from '../../src/components/filters/FilterBottomShee
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { Listing } from '../../src/types/listing.types';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
 
-interface FilterState {
-  listingType?: string;
-  governorate?: string;
-  city?: string;
-  governorateId?: number;
-  wilayaId?: number;
-  priceMin?: string;
-  priceMax?: string;
-  bodyType?: string;
-  transmission?: string;
-  condition?: string;
-  fuelType?: string;
-  yearMin?: string;
-  yearMax?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  makeId?: string;
-  make?: string;
-  modelId?: string;
-  model?: string;
-  isPremium?: boolean;
-  trim?: string;
-}
-
-function parseFiltersFromParams(params: {
-  type?: string;
-  condition?: string;
-  featured?: string;
-  isPremium?: string;
-  make?: string;
-  brandId?: string;
-}): FilterState {
-  const initialFilters: FilterState = {};
-  const t = params.type?.toLowerCase();
-
-  if (t === 'used') {
-    initialFilters.condition = 'USED';
-  } else if (t === 'new') {
-    initialFilters.condition = 'NEW';
-  } else if (t === 'wanted') {
-    initialFilters.listingType = 'WANTED';
-  } else if (t === 'rental' || t === 'rent') {
-    initialFilters.listingType = 'RENTAL';
-  } else if (t === 'sale') {
-    initialFilters.listingType = 'SALE';
-  }
-
-  if (params.condition) {
-    initialFilters.condition = params.condition.toUpperCase();
-  }
-
-  if (params.featured === 'true' || params.isPremium === 'true') {
-    initialFilters.isPremium = true;
-  }
-
-  if (params.make) {
-    initialFilters.make = params.make;
-  }
-
-  if (params.brandId) {
-    initialFilters.makeId = params.brandId;
-  }
-
-  return initialFilters;
-}
-
-export function decodeSearchParam(search?: string): string {
-  if (!search) return '';
-  try {
-    return decodeURIComponent(search).trim();
-  } catch {
-    return search.trim();
-  }
-}
+// Pure Filter Helpers & Contract
+import {
+  CarsFilterState as FilterState,
+  decodeSearchParam,
+  parseCarsFiltersFromParams,
+  mergeCarsRouteParams,
+  clearCarsMake,
+  clearCarsQuickFilter,
+  applyCarsQuickFilter,
+  buildCarsQueryParams,
+  countCarsActiveFilters,
+} from '../../src/utils/browse-filters/carsBrowseFilters';
 
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -150,21 +89,19 @@ export default function CarsBrowseScreen() {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(() => decodeSearchParam(searchParams.search));
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>(
-    () => searchParams.brandId
-  );
-  const [selectedBrandName, setSelectedBrandName] = useState<string | undefined>(
-    () => searchParams.make
-  );
 
-  const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams));
+  const [filters, setFilters] = useState<FilterState>(() => parseCarsFiltersFromParams(searchParams));
 
-  // Sync state whenever navigation params change (prevents stale filters when navigating)
+  // G-05: Single state owner - derive selectedBrandId and selectedBrandName from filters
+  const selectedBrandId = filters.makeId;
+  const selectedBrandName = typeof filters.make === 'string' ? filters.make : undefined;
+
+  // G-06: FlatList ref to scroll to top when filters change
+  const flatListRef = useRef<FlatList<Listing>>(null);
+
+  // Sync state whenever navigation params change (G-07: MERGE incoming route params into existing state)
   useEffect(() => {
-    const nextFilters = parseFiltersFromParams(searchParams);
-    setFilters(nextFilters);
-    setSelectedBrandId(searchParams.brandId);
-    setSelectedBrandName(searchParams.make);
+    setFilters(prev => mergeCarsRouteParams(prev, searchParams));
     if (searchParams.search !== undefined) {
       setSearchQuery(decodeSearchParam(searchParams.search));
     }
@@ -178,6 +115,11 @@ export default function CarsBrowseScreen() {
     searchParams.search,
   ]);
 
+  // G-06: Scroll list to top when filters or search change
+  useEffect(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [filters, debouncedSearchQuery]);
+
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   
   // Dropdown Modal State
@@ -188,61 +130,18 @@ export default function CarsBrowseScreen() {
     navigateToCarForm();
   };
 
-  // Combine query parameters
+  // Combine query parameters via pure module
   const queryParams = useMemo(() => {
-    const params: Record<string, any> = {
-      limit: 30,
-    };
-
-    if (debouncedSearchQuery.trim()) {
-      params.search = debouncedSearchQuery;
-    }
-
-    // BrandCarousel selection takes priority
-    if (selectedBrandName) {
-      params.make = selectedBrandName;
-    }
-
-    // Internal/UI-only keys not sent to API
-    const skipKeys = new Set(['makeId', 'modelId', 'priceId', 'governorate', 'city']);
-
-    // Apply all custom filters
-    Object.entries(filters).forEach(([key, val]) => {
-      if (skipKeys.has(key)) return;
-      if (val !== undefined && val !== '') {
-        if (key === 'priceMin' || key === 'priceMax' || key === 'yearMin' || key === 'yearMax') {
-          const parsed = parseFloat(val as string);
-          if (!isNaN(parsed)) {
-            params[key] = parsed;
-          }
-        } else if (key === 'governorateId' || key === 'wilayaId') {
-          const parsed = parseInt(String(val), 10);
-          if (!isNaN(parsed) && parsed > 0) {
-            params[key] = parsed;
-          }
-        } else {
-          params[key] = val;
-        }
-      }
-    });
-
-    return params;
+    return buildCarsQueryParams(filters, debouncedSearchQuery, selectedBrandName, 30);
   }, [debouncedSearchQuery, selectedBrandName, filters]);
 
   // Fetch Listings
   const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteCarListings(queryParams);
   const listings = useMemo(() => infiniteData?.pages.flatMap(page => page.items) ?? [], [infiniteData]);
 
-  // Active filters count
+  // Active filters count via pure module
   const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (selectedBrandId || filters.makeId || filters.make) count++;
-    const skipKeys = new Set(['makeId', 'make', 'modelId']);
-    Object.entries(filters).forEach(([key, val]) => {
-      if (skipKeys.has(key)) return;
-      if (val !== undefined && val !== '') count++;
-    });
-    return count;
+    return countCarsActiveFilters(filters, selectedBrandId);
   }, [selectedBrandId, filters]);
 
   const quickFilterItems: QuickFilterItem[] = DROPDOWN_FILTERS.map(qf => {
@@ -284,14 +183,7 @@ export default function CarsBrowseScreen() {
   });
 
   const handleClearQuickFilter = (id: string) => {
-    const newFilters = { ...filters };
-    if (id === 'make') { delete newFilters.make; delete newFilters.makeId; }
-    if (id === 'city') { delete newFilters.city; delete newFilters.wilayaId; delete newFilters.governorateId; delete newFilters.governorate; }
-    if (id === 'year') { delete newFilters.yearMin; delete newFilters.yearMax; }
-    if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; }
-    if (id === 'type') { delete newFilters.bodyType; }
-    if (id === 'sort') { delete newFilters.sortBy; delete newFilters.sortOrder; }
-    setFilters(newFilters);
+    setFilters(prev => clearCarsQuickFilter(prev, id));
   };
 
   const handleSelectFilter = (
@@ -302,105 +194,14 @@ export default function CarsBrowseScreen() {
     max?: number,
     extraId?: number
   ) => {
-    if (type === 'make') {
-      if (!valueId || valueId === selectedBrandId) {
-        setSelectedBrandId(undefined);
-        setSelectedBrandName(undefined);
-        setFilters(prev => {
-          const next = { ...prev };
-          delete next.makeId;
-          delete next.make;
-          delete next.modelId;
-          delete next.model;
-          delete next.trim;
-          return next;
-        });
-        return;
-      }
-      setSelectedBrandId(valueId);
-      setSelectedBrandName(valueName);
-      setFilters(prev => {
-        const next = { ...prev };
-        next.makeId = valueId;
-        next.make = valueName;
-        // reset model if make changes
-        if (valueId !== prev.makeId) {
-          delete next.modelId;
-          delete next.model;
-          delete next.trim;
-        }
-        return next;
-      });
-    } else if (type === 'model') {
-      if (!valueId || valueId === filters.modelId) {
-        setFilters(prev => {
-          const next = { ...prev };
-          delete next.modelId;
-          delete next.model;
-          return next;
-        });
-        return;
-      }
-      setFilters(prev => ({ ...prev, modelId: valueId, model: valueName }));
-    } else if (type === 'city') {
-      if (!valueId || valueId === String(filters.wilayaId)) {
-        setFilters(prev => {
-          const next = { ...prev };
-          delete next.wilayaId;
-          delete next.governorateId;
-          delete next.city;
-          delete next.governorate;
-          return next;
-        });
-        return;
-      }
-      setFilters(prev => ({ ...prev, wilayaId: Number(valueId), governorateId: extraId, city: valueName }));
-    } else if (type === 'price') {
-      if (!valueId || valueId === (filters as any).priceId) {
-        setFilters(prev => {
-          const next = { ...prev };
-          delete next.priceMin;
-          delete next.priceMax;
-          delete (next as any).priceId;
-          return next;
-        });
-        return;
-      }
-      setFilters(prev => ({
-        ...prev,
-        priceMin: min !== undefined ? min.toString() : undefined,
-        priceMax: max !== undefined ? max.toString() : undefined,
-        priceId: valueId,
-      }));
-    } else if (type === 'type') {
-      const upper = valueId.toUpperCase();
-      if (!valueId || upper === filters.bodyType) {
-        setFilters(prev => {
-          const next = { ...prev };
-          delete next.bodyType;
-          return next;
-        });
-        return;
-      }
-      setFilters(prev => ({ ...prev, bodyType: upper }));
-    }
+    setFilters(prev => applyCarsQuickFilter(prev, type, valueId, valueName, min, max, extraId));
   };
-
-  // Keep Carousel synced if user changes brand from FilterSheet
-  useEffect(() => {
-    if (filters.makeId !== selectedBrandId) {
-      setSelectedBrandId(filters.makeId);
-      setSelectedBrandName(filters.make);
-    }
-  }, [filters.makeId, filters.make]);
 
   const handleApplyFilters = (appliedFilters: FilterState) => {
     setFilters(appliedFilters);
   };
 
   const handleClearAll = () => {
-    setSelectedBrandId(undefined);
-    setSelectedBrandName(undefined);
     setFilters({});
     setSearchQuery('');
   };
@@ -442,6 +243,7 @@ export default function CarsBrowseScreen() {
       </CollapsibleSubHeader>
 
       <Animated.FlatList
+        ref={flatListRef}
         key="list-1-column"
         data={listings ?? []}
         keyExtractor={(item) => item.id}
