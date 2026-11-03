@@ -45,6 +45,7 @@ import {
   buildPartsQueryParams,
   clearPartsFilter,
   mergePartsRouteParams,
+  parsePartsInitialFilters,
 } from '../../src/utils/browse-filters/partsBrowseFilters';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -103,35 +104,20 @@ export default function PartsBrowseScreen() {
   const [selectedListingTab, setSelectedListingTab] = useState<string>('ALL');
 
   const [filters, setFilters] = useState<PartsFilterState>(() => {
-    const initial: PartsFilterState = {};
-    if (searchParams.category) initial.category = searchParams.category;
-    if (searchParams.condition) initial.condition = searchParams.condition;
-    if (searchParams.isOriginal === 'true') initial.isOriginal = true;
-    if (searchParams.isOriginal === 'false') initial.isOriginal = false;
-    if (searchParams.isScrap === 'true') initial.isScrap = true;
-    if (searchParams.make) initial.make = searchParams.make;
-    if (searchParams.city) initial.city = searchParams.city;
-    if (searchParams.governorateId) {
-      const g = Number(searchParams.governorateId);
-      if (!isNaN(g)) initial.governorateId = g;
-    }
-    if (searchParams.wilayaId) {
-      const w = Number(searchParams.wilayaId);
-      if (!isNaN(w)) initial.wilayaId = w;
-    }
-    if (searchParams.priceMin) initial.priceMin = searchParams.priceMin;
-    if (searchParams.priceMax) initial.priceMax = searchParams.priceMax;
-    if (searchParams.partNumber) initial.partNumber = searchParams.partNumber;
-    return initial;
+    return parsePartsInitialFilters(searchParams as Record<string, string | undefined>);
   });
 
   // G-07: Merge incoming route params into existing filter state without wiping selections
   useEffect(() => {
     setFilters((prev) => mergePartsRouteParams(prev, searchParams as Record<string, string | undefined>));
+  }, [searchParams.category, searchParams.condition, searchParams.isOriginal, searchParams.isScrap, searchParams.make, searchParams.city, searchParams.governorateId, searchParams.wilayaId, searchParams.priceMin, searchParams.priceMax, searchParams.partNumber]);
+
+  // Sync search query parameter independently to prevent resetting user typing on filter changes
+  useEffect(() => {
     if (searchParams.q !== undefined) {
       setSearchQuery(searchParams.q);
     }
-  }, [searchParams.category, searchParams.condition, searchParams.isOriginal, searchParams.isScrap, searchParams.make, searchParams.city, searchParams.governorateId, searchParams.wilayaId, searchParams.priceMin, searchParams.priceMax, searchParams.partNumber, searchParams.q]);
+  }, [searchParams.q]);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const handleAddPart = () => {

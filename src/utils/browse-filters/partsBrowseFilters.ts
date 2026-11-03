@@ -117,6 +117,14 @@ export function clearPartsFilter(filters: PartsFilterState, id: string): PartsFi
   return next;
 }
 
+function parseLocationId(value: string | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return undefined;
+  const n = Number(trimmed);
+  return n > 0 ? n : undefined;
+}
+
 /**
  * Parses initial filter state from route params.
  */
@@ -126,19 +134,16 @@ export function parsePartsInitialFilters(
   const initial: PartsFilterState = {};
 
   if (params.category) initial.category = params.category;
+  if (params.condition) initial.condition = params.condition;
   if (params.isOriginal === 'false') initial.isOriginal = false;
   else if (params.isOriginal === 'true') initial.isOriginal = true;
   if (params.isScrap === 'true') initial.isScrap = true;
   if (params.make) initial.make = params.make;
   if (params.city) initial.city = params.city;
-  if (params.governorateId) {
-    const g = Number(params.governorateId);
-    if (!isNaN(g)) initial.governorateId = g;
-  }
-  if (params.wilayaId) {
-    const w = Number(params.wilayaId);
-    if (!isNaN(w)) initial.wilayaId = w;
-  }
+  const g = parseLocationId(params.governorateId);
+  if (g !== undefined) initial.governorateId = g;
+  const w = parseLocationId(params.wilayaId);
+  if (w !== undefined) initial.wilayaId = w;
   if (params.priceMin) initial.priceMin = params.priceMin;
   if (params.priceMax) initial.priceMax = params.priceMax;
   if (params.partNumber) initial.partNumber = params.partNumber;
@@ -155,15 +160,14 @@ export function mergePartsRouteParams(
 ): PartsFilterState {
   const next = { ...prev };
   if (params.category !== undefined) next.category = params.category || undefined;
+  if (params.condition !== undefined) next.condition = params.condition || undefined;
   if (params.make !== undefined) next.make = params.make || undefined;
   if (params.city !== undefined) next.city = params.city || undefined;
   if (params.governorateId !== undefined) {
-    const g = Number(params.governorateId);
-    next.governorateId = isNaN(g) ? undefined : g;
+    next.governorateId = parseLocationId(params.governorateId);
   }
   if (params.wilayaId !== undefined) {
-    const w = Number(params.wilayaId);
-    next.wilayaId = isNaN(w) ? undefined : w;
+    next.wilayaId = parseLocationId(params.wilayaId);
   }
   if (params.isOriginal !== undefined) {
     next.isOriginal = params.isOriginal === 'true' ? true : params.isOriginal === 'false' ? false : undefined;

@@ -178,7 +178,7 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
   });
 
   describe('Route Param Parsing and Merging', () => {
-    it('parses initial filters from URL params', () => {
+    it('parses initial filters from URL params with strict positive integer location IDs', () => {
       const initial = parsePartsInitialFilters({
         category: 'TRANSMISSION',
         isOriginal: 'true',
@@ -186,6 +186,8 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
         make: 'Toyota',
         priceMin: '100',
         priceMax: '500',
+        governorateId: ' 3 ',
+        wilayaId: '102',
       });
 
       expect(initial.category).toBe('TRANSMISSION');
@@ -194,6 +196,24 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(initial.make).toBe('Toyota');
       expect(initial.priceMin).toBe('100');
       expect(initial.priceMax).toBe('500');
+      expect(initial.governorateId).toBe(3);
+      expect(initial.wilayaId).toBe(102);
+    });
+
+    it('rejects invalid or non-positive location IDs in initial and merged filters', () => {
+      const invalidInitial = parsePartsInitialFilters({
+        governorateId: '0',
+        wilayaId: '-5',
+      });
+      expect(invalidInitial.governorateId).toBeUndefined();
+      expect(invalidInitial.wilayaId).toBeUndefined();
+
+      const invalidMerged = mergePartsRouteParams({}, {
+        governorateId: '1.5',
+        wilayaId: '  ',
+      });
+      expect(invalidMerged.governorateId).toBeUndefined();
+      expect(invalidMerged.wilayaId).toBeUndefined();
     });
 
     it('merges route params into existing filter state without wiping selections (G-07)', () => {
