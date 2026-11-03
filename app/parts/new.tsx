@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
-import { LinearGradient } from 'expo-linear-gradient'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -346,17 +345,6 @@ export default function NewPartListingScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* Ambient glass backdrop */}
-        <LinearGradient
-          colors={['#EAF2FF', '#F3EEFF', '#FFF6EE']}
-          locations={[0, 0.55, 1]}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
-        <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
-
         <GlassNavBar
           title={formData.editMode ? 'تعديل إعلان القطعة' : 'إضافة قطعة غيار'}
           paddingTop={insets.top}
@@ -511,27 +499,7 @@ export default function NewPartListingScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F3EEFF',
-  },
-  orb: {
-    position: 'absolute',
-    borderRadius: 9999,
-  },
-  orbPrimary: {
-    width: 260,
-    height: 260,
-    top: -80,
-    left: -70,
-    backgroundColor: Colors.primary,
-    opacity: 0.08,
-  },
-  orbAccent: {
-    width: 220,
-    height: 220,
-    bottom: 80,
-    right: -60,
-    backgroundColor: Colors.accent,
-    opacity: 0.1,
+    backgroundColor: Colors.homeBg,
   },
   scrollView: {
     flex: 1,
@@ -544,18 +512,18 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F0FDF9',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: Colors.border,
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 8,
     marginBottom: Spacing.space3,
     ...Platform.select({
       ios: {
-        shadowColor: '#059669',
+        shadowColor: Colors.primaryDark,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.04,
         shadowRadius: 6,
       },
       android: { elevation: 1 },
@@ -570,7 +538,7 @@ const s = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -578,7 +546,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#065F46',
+    color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

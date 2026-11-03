@@ -4,7 +4,6 @@ import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { GlassSurface } from '../navigation/glassSupport'
 import Svg, { Circle } from 'react-native-svg'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -52,17 +51,6 @@ export function DraftResumeScreen({
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
-      {/* ── Ambient glass backdrop ── */}
-      <LinearGradient
-        colors={['#EAF2FF', '#F3EEFF', '#FFF6EE']}
-        locations={[0, 0.55, 1]}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={[styles.orb, styles.orbPrimary]} pointerEvents="none" />
-      <View style={[styles.orb, styles.orbAccent]} pointerEvents="none" />
 
       {/* ── Top Header ── */}
       <GlassNavBar
@@ -205,29 +193,7 @@ export function DraftResumeScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3EEFF',
-  },
-
-  /* Ambient orbs */
-  orb: {
-    position: 'absolute',
-    borderRadius: 9999,
-  },
-  orbPrimary: {
-    width: 260,
-    height: 260,
-    top: -80,
-    left: -70,
-    backgroundColor: Colors.primary,
-    opacity: 0.08,
-  },
-  orbAccent: {
-    width: 220,
-    height: 220,
-    bottom: 80,
-    right: -60,
-    backgroundColor: Colors.accent,
-    opacity: 0.1,
+    backgroundColor: Colors.homeBg,
   },
 
   /* Scroll Content */
