@@ -295,10 +295,14 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(res.category).toBe('ENGINE');
     });
 
-    it('applies make selection with extra brandName', () => {
+    it('applies make selection with extra brandName and clears on all', () => {
       const res = applyPartsFilter({}, 'make', 'toyota', { brandName: 'تويوتا' });
       expect(res.makeId).toBe('toyota');
       expect(res.make).toBe('تويوتا');
+
+      const cleared = applyPartsFilter(res, 'make', 'all');
+      expect(cleared.makeId).toBeUndefined();
+      expect(cleared.make).toBeUndefined();
     });
 
     it('applies condition selection', () => {

@@ -253,8 +253,13 @@ export function applyPartsFilter(
   if (dropdown === 'category') {
     next.category = optionId;
   } else if (dropdown === 'make') {
-    next.makeId = optionId;
-    next.make = extra?.brandName || optionId;
+    if (optionId === 'all') {
+      delete next.makeId;
+      delete next.make;
+    } else {
+      next.makeId = optionId;
+      next.make = extra?.brandName || optionId;
+    }
   } else if (dropdown === 'condition') {
     next.condition = optionId;
   } else if (dropdown === 'city') {
