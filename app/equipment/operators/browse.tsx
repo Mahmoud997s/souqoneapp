@@ -393,13 +393,6 @@ const s = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.space4,
   },
-  resultsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.space2,
-    paddingHorizontal: 2,
-  },
   skeletonWrap: {
     gap: 8,
   },

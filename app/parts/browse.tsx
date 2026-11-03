@@ -1,15 +1,13 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
   FlatList,
   Platform,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
@@ -589,63 +587,5 @@ const s = StyleSheet.create({
   },
   fullCard: {
     width: '100%',
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: Spacing.space4,
-  },
-  errorTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: Colors.error,
-    marginBottom: Spacing.space3,
-    textAlign: 'center',
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-  },
-  retryTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.white,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: Spacing.space4,
-  },
-  emptyTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    color: Colors.text,
-    marginTop: Spacing.space3,
-    marginBottom: Spacing.space1,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 18,
-    maxWidth: 280,
-  },
-  clearAllBtn: {
-    marginTop: Spacing.space3,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-  },
-  clearAllBtnText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.white,
   },
 });

@@ -288,7 +288,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
           <Ionicons
             name={tab.icon}
             size={14}
-            color={isActive ? activeColor : '#64748b'}
+            color={isActive ? activeColor : FilterGlassTokens.tab.inactiveTextColor}
             style={s.tabIcon}
           />
         )}

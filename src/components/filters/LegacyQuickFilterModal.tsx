@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { FilterGlassSurface } from '../ui/FilterGlassSurface';
 import { quickFilterModalStyles } from './quickFilterModalStyles';

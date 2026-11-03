@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
   Platform,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

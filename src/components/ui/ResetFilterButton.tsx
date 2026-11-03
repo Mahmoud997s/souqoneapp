@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 
 interface ResetFilterButtonProps {
   onPress: () => void;
@@ -17,34 +17,47 @@ export function ResetFilterButton({
   textStyle 
 }: ResetFilterButtonProps) {
   return (
-    <TouchableOpacity 
-      style={[s.btn, style]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-      <Text style={[s.text, textStyle]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
+    <View style={[s.btnContainer, style]}>
+      <TouchableOpacity 
+        style={s.btnInner}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <Ionicons
+          name="trash-outline"
+          size={12.5}
+          color={FilterGlassTokens.resultsBar.clearIconColor}
+        />
+        <Text style={[s.text, textStyle]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  btn: {
+  btnContainer: {
+    minHeight: 28,
+    borderRadius: FilterGlassTokens.resultsBar.clearRadius,
+    backgroundColor: FilterGlassTokens.resultsBar.clearBg,
+    borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
+    borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
+    ...FilterGlassTokens.resultsBar.clearShadow,
+    overflow: 'hidden',
+  },
+  btnInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 3.5,
+    paddingVertical: 4.5,
     paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
   },
   text: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, 
-    lineHeight: 16, 
-    color: Colors.error, 
+    fontFamily: FilterGlassTokens.resultsBar.fontFamily, 
+    fontSize: FilterGlassTokens.resultsBar.fontSize, 
+    lineHeight: FilterGlassTokens.resultsBar.lineHeight, 
+    color: FilterGlassTokens.resultsBar.clearTextColor, 
     textAlign: 'left', 
     writingDirection: 'rtl',
     includeFontPadding: false,
