@@ -290,3 +290,28 @@ export function applyPartsFilter(
   return next;
 }
 
+export interface NormalizedPartBrand {
+  id: string;
+  label: string;
+  value: string;
+}
+
+/**
+ * Normalizes raw brands (from API useBrands or POPULAR_PART_MAKES fallback)
+ * into a single unified shape { id, label, value }.
+ * Preserves master's exact previous behavior: prefers nameAr when present, then name, then label.
+ */
+export function normalizePartBrands(
+  rawBrands: Array<{ id?: string | number; name?: string; nameAr?: string | null; label?: string }>
+): NormalizedPartBrand[] {
+  return rawBrands.map((b) => {
+    const id = String(b.id || b.name || b.label || '');
+    const text = (b.nameAr && b.nameAr.trim()) || (b.name && b.name.trim()) || (b.label && b.label.trim()) || id;
+    return {
+      id,
+      label: text,
+      value: text,
+    };
+  });
+}
+

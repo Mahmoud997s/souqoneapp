@@ -163,7 +163,9 @@ export default function CarsBrowseScreen() {
     } else if (qf.id === 'type') {
       isActive = !!filters.bodyType;
       if (isActive) {
-        const foundType = CAR_TYPES.find(t => t.id === filters.bodyType);
+        const foundType = CAR_TYPES.find(
+          (t) => t.id.toUpperCase() === (typeof filters.bodyType === 'string' ? filters.bodyType.toUpperCase() : filters.bodyType)
+        );
         displayLabel = foundType ? foundType.name : (filters.bodyType as string);
       }
     } else if (qf.id === 'sort') {

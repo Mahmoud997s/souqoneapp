@@ -8,6 +8,7 @@ import { GovernorateRef } from '../../types/location.types';
 import { PRICE_RANGES, SORT_OPTIONS, YEARS, CAR_TYPES } from '../../constants/browseFilters';
 import { BUS_TYPES } from '../../constants/buses';
 import { SERVICE_TYPES, PROVIDER_TYPES, COMMON_SPECIALIZATIONS } from '../../constants/services';
+import { applyCarsQuickFilter, CarsFilterState } from '../../utils/browse-filters/carsBrowseFilters';
 
 const BUS_CAPACITIES = [
   { id: '10', value: 10, label: '+ 10 مقاعد' },
@@ -124,12 +125,12 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
     }
   };
 
-  const currentFilters = (filters || {}) as { [key: string]: string | number | boolean | undefined | null };
+  const currentFilters = (filters || {}) as Partial<CarsFilterState> & { [key: string]: string | number | boolean | undefined | null | string[] };
 
-  const applyUpdate = (patch: { [key: string]: string | number | boolean | undefined | null }) => {
+  const applyUpdate = (patch: { [key: string]: string | number | boolean | undefined | null | string[] }) => {
     const next = { ...currentFilters, ...patch };
     if (typeof setFilters === 'function') {
-      (setFilters as (f: unknown) => void)(next);
+      (setFilters as (f: TFilters) => void)(next as TFilters);
     }
     onClose();
   };
@@ -164,10 +165,32 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
                   <TouchableOpacity
                     style={styles.modalOptionRow}
                     onPress={() => {
-                      applyUpdate({
-                        makeId: item.id,
-                        make: item.name || (item.id ? String(item.id) : undefined),
-                      });
+                      if (!isBus && !isService) {
+                        const isSameMake = String(item.id) === String(currentFilters.makeId);
+                        if (isSameMake) {
+                          applyUpdate({
+                            makeId: item.id,
+                            make: item.name || (item.id ? String(item.id) : undefined),
+                          });
+                        } else {
+                          const brandName = item.name || (item.id ? String(item.id) : undefined);
+                          const updated = applyCarsQuickFilter(
+                            currentFilters as CarsFilterState,
+                            'make',
+                            String(item.id),
+                            brandName
+                          );
+                          if (typeof setFilters === 'function') {
+                            (setFilters as (f: TFilters) => void)(updated as TFilters);
+                          }
+                          onClose();
+                        }
+                      } else {
+                        applyUpdate({
+                          makeId: item.id,
+                          make: item.name || (item.id ? String(item.id) : undefined),
+                        });
+                      }
                     }}
                   >
                     <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
@@ -256,19 +279,24 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
               data={CAR_TYPES}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalOptionRow}
-                  onPress={() => {
-                    applyUpdate({ bodyType: item.id });
-                  }}
-                >
-                  <Text style={[styles.modalOptionTxt, currentFilters.bodyType === item.id && styles.modalOptionTxtActive]}>
-                    {item.name}
-                  </Text>
-                  {currentFilters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const upperId = item.id.toUpperCase();
+                const currentUpper = typeof currentFilters.bodyType === 'string' ? currentFilters.bodyType.toUpperCase() : undefined;
+                const isSelected = currentUpper === upperId;
+                return (
+                  <TouchableOpacity
+                    style={styles.modalOptionRow}
+                    onPress={() => {
+                      applyUpdate({ bodyType: upperId });
+                    }}
+                  >
+                    <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
+                      {item.name}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                );
+              }}
             />
           )}
 
@@ -298,19 +326,29 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
               data={BUS_CAPACITIES}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalOptionRow}
-                  onPress={() => {
-                    applyUpdate({ capacity: item.value });
-                  }}
-                >
-                  <Text style={[styles.modalOptionTxt, currentFilters.capacity === item.value && styles.modalOptionTxtActive]}>
-                    {item.label}
-                  </Text>
-                  {currentFilters.capacity === item.value && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const isSelected =
+                  currentFilters.capacity === item.value ||
+                  currentFilters.minCapacity === item.value ||
+                  currentFilters.capacityMin === item.value;
+                return (
+                  <TouchableOpacity
+                    style={styles.modalOptionRow}
+                    onPress={() => {
+                      applyUpdate({
+                        capacity: item.value,
+                        minCapacity: item.value,
+                        capacityMin: item.value,
+                      });
+                    }}
+                  >
+                    <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                );
+              }}
             />
           )}
 
@@ -340,19 +378,30 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
               data={SERVICE_SPECIALIZATIONS_LIST}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalOptionRow}
-                  onPress={() => {
-                    applyUpdate({ specialization: item.id });
-                  }}
-                >
-                  <Text style={[styles.modalOptionTxt, currentFilters.specialization === item.id && styles.modalOptionTxtActive]}>
-                    {item.label}
-                  </Text>
-                  {currentFilters.specialization === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const currentSpecs = Array.isArray(currentFilters.specializations)
+                  ? (currentFilters.specializations as string[])
+                  : [];
+                const isSelected =
+                  currentFilters.specialization === item.id ||
+                  currentSpecs.includes(item.id);
+                return (
+                  <TouchableOpacity
+                    style={styles.modalOptionRow}
+                    onPress={() => {
+                      applyUpdate({
+                        specialization: item.id,
+                        specializations: [item.id],
+                      });
+                    }}
+                  >
+                    <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
+                      {item.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                );
+              }}
             />
           )}
 

@@ -48,6 +48,8 @@ import {
   mergePartsRouteParams,
   parsePartsInitialFilters,
   applyPartsFilter,
+  normalizePartBrands,
+  NormalizedPartBrand,
   PartsDropdownKind,
   ApplyPartsFilterExtra,
 } from '../../src/utils/browse-filters/partsBrowseFilters';
@@ -142,8 +144,8 @@ export default function PartsBrowseScreen() {
   const [activeDropdown, setActiveDropdown] = useState<PartsDropdownKind | null>(null);
   const { data: brands } = useBrands();
 
-  const availableBrands = useMemo(() => {
-    return brands && brands.length > 0 ? brands : POPULAR_PART_MAKES;
+  const availableBrands: NormalizedPartBrand[] = useMemo(() => {
+    return normalizePartBrands(brands && brands.length > 0 ? brands : POPULAR_PART_MAKES);
   }, [brands]);
 
   const activeDropdownData = useMemo(() => {
@@ -159,15 +161,7 @@ export default function PartsBrowseScreen() {
       case 'make':
         return {
           title: 'اختر الماركة المتوافقة',
-          options: availableBrands.map((b) => {
-            const brandId = String(b.id || ('name' in b ? b.name : b.label));
-            const brandLabel =
-              ('nameAr' in b && b.nameAr) ||
-              ('name' in b && b.name) ||
-              ('label' in b && b.label) ||
-              brandId;
-            return { id: brandId, label: brandLabel };
-          }),
+          options: availableBrands.map((b) => ({ id: b.id, label: b.label })),
           selectedId: filters.makeId || filters.make,
         };
       case 'condition':
@@ -557,16 +551,9 @@ export default function PartsBrowseScreen() {
           if (activeDropdown) {
             const extra: ApplyPartsFilterExtra = {};
             if (activeDropdown === 'make') {
-              const foundBrand = availableBrands.find((b) => {
-                const bId = String(b.id || ('name' in b ? b.name : b.label));
-                return bId === id;
-              });
+              const foundBrand = availableBrands.find((b) => b.id === id);
               if (foundBrand) {
-                extra.brandName =
-                  ('name' in foundBrand && foundBrand.name) ||
-                  ('nameAr' in foundBrand && foundBrand.nameAr) ||
-                  ('label' in foundBrand && foundBrand.label) ||
-                  String(foundBrand.id);
+                extra.brandName = foundBrand.value;
               }
             } else if (activeDropdown === 'city') {
               const foundGov = governorates.find((g) => String(g.id) === id);
