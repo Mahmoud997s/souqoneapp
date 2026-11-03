@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ListingTabs, TabItem } from '../ListingTabs';
+import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 
 describe('ListingTabs - Characterization & Parity Tests', () => {
   const sampleTabs: TabItem[] = [
@@ -74,5 +75,49 @@ describe('ListingTabs - Characterization & Parity Tests', () => {
 
     fireEvent.press(getByText('للبيع'));
     expect(onChangeTab).toHaveBeenCalledWith('sale');
+  });
+
+  it('applies FilterGlassTokens.tab styles to track and active tab pill', async () => {
+    const { getByText } = await render(
+      <ListingTabs
+        tabs={sampleTabs}
+        activeTabId="sale"
+        onChangeTab={jest.fn()}
+      />
+    );
+
+    const activeText = getByText('للبيع');
+    const inactiveText = getByText('الكل');
+
+    // Text colors
+    expect(activeText.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ color: FilterGlassTokens.tab.activeTextColor }),
+      ])
+    );
+    expect(inactiveText.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ color: FilterGlassTokens.tab.inactiveTextColor }),
+      ])
+    );
+
+    // Active pill background
+    const activeTabTouchable = activeText.parent;
+    expect(activeTabTouchable?.props.style).toEqual(
+      expect.objectContaining({
+        backgroundColor: FilterGlassTokens.tab.activeBg,
+      })
+    );
+
+    // Track container background and borders
+    const trackContainer = activeTabTouchable?.parent;
+    expect(trackContainer?.props.style).toEqual(
+      expect.objectContaining({
+        backgroundColor: FilterGlassTokens.tab.trackBg,
+        borderColor: FilterGlassTokens.tab.trackBorderColor,
+        borderWidth: FilterGlassTokens.tab.trackBorderWidth,
+        borderRadius: FilterGlassTokens.tab.trackRadius,
+      })
+    );
   });
 });

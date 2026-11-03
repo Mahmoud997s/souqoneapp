@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 
 export interface TabItem {
   id: string;
@@ -51,10 +52,10 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space4,
     marginTop: Spacing.space2,
     marginBottom: 2,
-    backgroundColor: Colors.paleMint,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: FilterGlassTokens.tab.trackBg,
+    borderRadius: FilterGlassTokens.tab.trackRadius,
+    borderWidth: FilterGlassTokens.tab.trackBorderWidth,
+    borderColor: FilterGlassTokens.tab.trackBorderColor,
     padding: 3,
   },
   typeTab: {
@@ -63,25 +64,23 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 6,
     borderRadius: 6,
-    backgroundColor: 'transparent',
+    backgroundColor: FilterGlassTokens.tab.inactiveBg,
   },
   typeTabActive: {
-    backgroundColor: Colors.white,
-    ...Platform.select({
-      ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 1.5 }, shadowOpacity: 0.12, shadowRadius: 3 },
-      android: { elevation: 2 },
-    })
+    backgroundColor: FilterGlassTokens.tab.activeBg,
+    borderColor: FilterGlassTokens.tab.activeBorderColor,
+    ...FilterGlassTokens.tab.activeShadow,
   },
   typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 11.5,
-    lineHeight: 15.5,
-    color: Colors.textMuted,
+    fontFamily: FilterGlassTokens.tab.inactiveFontFamily, 
+    fontSize: FilterGlassTokens.tab.fontSize,
+    lineHeight: FilterGlassTokens.tab.lineHeight,
+    color: FilterGlassTokens.tab.inactiveTextColor,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   typeTabTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
+    color: FilterGlassTokens.tab.activeTextColor,
+    fontFamily: FilterGlassTokens.tab.activeFontFamily,
   }
 });
