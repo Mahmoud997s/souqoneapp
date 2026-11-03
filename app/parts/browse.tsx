@@ -59,7 +59,6 @@ import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/Unifi
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
-import { Radius } from '../../src/constants/radius';
 import {
   PART_CATEGORIES,
   PART_CONDITIONS,

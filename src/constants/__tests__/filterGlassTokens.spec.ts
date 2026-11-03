@@ -1,4 +1,4 @@
-import { FilterGlassTokens, MODAL_BACKDROP_OVERLAY } from '../filterGlassTokens';
+import { FilterGlassTokens, MODAL_BACKDROP_OVERLAY, BOTTOM_SHEET_BACKDROP_OVERLAY } from '../filterGlassTokens';
 import { TopBarTokens } from '../topBarTokens';
 import { Colors } from '../colors';
 
@@ -49,7 +49,9 @@ describe('FilterGlassTokens', () => {
     expect(FilterGlassTokens.sheet.optionFontSize).toBe(15);
     expect(FilterGlassTokens.sheet.optionLineHeight).toBe(21);
     expect(FilterGlassTokens.sheet.overlayBg).toBe('rgba(0,0,0,0.5)');
+    expect(FilterGlassTokens.sheet.bottomSheetOverlayBg).toBe('rgba(0,0,0,0.4)');
     expect(MODAL_BACKDROP_OVERLAY).toBe('rgba(0,0,0,0.5)');
+    expect(BOTTOM_SHEET_BACKDROP_OVERLAY).toBe('rgba(0,0,0,0.4)');
   });
 
   it('preserves semantic state colors across active and selected items', () => {

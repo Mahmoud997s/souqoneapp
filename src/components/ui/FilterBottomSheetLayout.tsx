@@ -76,7 +76,10 @@ export function FilterBottomSheetLayout({
 
   const content = (
     <View style={[s.sheet, Platform.OS === 'android' && isKeyboardVisible ? { paddingBottom: keyboardHeight } : {}]}>
-      <FilterGlassSurface testID="filter-sheet-glass" borderRadius={24} />
+      <FilterGlassSurface
+        testID="filter-sheet-glass"
+        style={s.sheetGlassLayer}
+      />
       <View style={s.dragHandle} />
 
       {/* Header */}
@@ -149,7 +152,7 @@ export function FilterBottomSheetLayout({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: FilterGlassTokens.sheet.overlayBg,
+    backgroundColor: FilterGlassTokens.sheet.bottomSheetOverlayBg,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -164,7 +167,12 @@ const s = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 20,
-    overflow: 'hidden',
+  },
+  sheetGlassLayer: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   dragHandle: {
     width: 40,

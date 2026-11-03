@@ -4,7 +4,6 @@ import {
   StyleSheet,
   RefreshControl,
   TextInput,
-  Platform,
   ActivityIndicator,
   ScrollView,
   Modal,
@@ -55,7 +54,6 @@ import { Listing } from '../../src/types/listing.types';
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
-import { Radius } from '../../src/constants/radius';
 
 // Pure Filter Helpers & Contract
 import {

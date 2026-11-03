@@ -1,9 +1,10 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native'
+import { View, Text, StyleSheet, ViewStyle } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Spacing } from '../../constants/spacing'
 import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 import { FilterGlassSurface } from './FilterGlassSurface'
+import { ResetFilterButton } from './ResetFilterButton'
 
 export interface BrowseResultsBarProps {
   resultsCount: number
@@ -29,27 +30,10 @@ export function BrowseResultsBar({
   return (
     <View style={[s.container, containerStyle]}>
       {activeFiltersCount > 0 ? (
-        <View style={s.clearBtn}>
-          <FilterGlassSurface
-            testID="browse-results-clear-glass"
-            borderRadius={FilterGlassTokens.resultsBar.clearRadius}
-          />
-          <TouchableOpacity
-            style={s.clearBtnInner}
-            onPress={onClearAll}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="مسح الفلاتر"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={12.5}
-              color={FilterGlassTokens.resultsBar.clearIconColor}
-            />
-            <Text style={s.clearTxt}>مسح الفلاتر</Text>
-          </TouchableOpacity>
-        </View>
+        <ResetFilterButton
+          onPress={onClearAll}
+          testID="browse-results-clear"
+        />
       ) : (
         <View />
       )}
@@ -84,30 +68,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  clearBtn: {
-    minHeight: 28,
-    borderRadius: FilterGlassTokens.resultsBar.clearRadius,
-    backgroundColor: FilterGlassTokens.resultsBar.clearBg,
-    borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
-    borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
-    ...FilterGlassTokens.resultsBar.clearShadow,
-  },
-  clearBtnInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 4.5,
-    paddingHorizontal: 9,
-    minHeight: 28,
-  },
-  clearTxt: {
-    fontFamily: FilterGlassTokens.resultsBar.fontFamily,
-    fontSize: FilterGlassTokens.resultsBar.fontSize,
-    lineHeight: FilterGlassTokens.resultsBar.lineHeight,
-    color: FilterGlassTokens.resultsBar.clearTextColor,
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   countBadge: {
     flexDirection: 'row',

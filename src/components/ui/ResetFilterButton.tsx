@@ -2,33 +2,43 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
-interface ResetFilterButtonProps {
+export interface ResetFilterButtonProps {
   onPress: () => void;
   label?: string;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  testID?: string;
 }
 
 export function ResetFilterButton({ 
   onPress, 
   label = 'مسح الفلاتر', 
   style, 
-  textStyle 
+  textStyle,
+  testID = 'reset-filter-button',
 }: ResetFilterButtonProps) {
   return (
-    <View style={[s.btnContainer, style]}>
+    <View style={style ? [s.btnContainer, style] : s.btnContainer} testID={testID}>
+      <FilterGlassSurface
+        testID={`${testID}-glass`}
+        borderRadius={FilterGlassTokens.resultsBar.clearRadius}
+      />
       <TouchableOpacity 
         style={s.btnInner}
         onPress={onPress}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Ionicons
           name="trash-outline"
           size={12.5}
           color={FilterGlassTokens.resultsBar.clearIconColor}
         />
-        <Text style={[s.text, textStyle]}>
+        <Text style={textStyle ? [s.text, textStyle] : s.text}>
           {label}
         </Text>
       </TouchableOpacity>
@@ -44,7 +54,6 @@ const s = StyleSheet.create({
     borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
     borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
     ...FilterGlassTokens.resultsBar.clearShadow,
-    overflow: 'hidden',
   },
   btnInner: {
     flexDirection: 'row',

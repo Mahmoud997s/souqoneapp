@@ -9,6 +9,12 @@ import { TopBarTokens } from './topBarTokens';
 export const MODAL_BACKDROP_OVERLAY = 'rgba(0,0,0,0.5)' as const;
 
 /**
+ * Master bottom sheet backdrop overlay color ('rgba(0,0,0,0.4)').
+ * Preserved verbatim from master 7353e69 FilterBottomSheetLayout.tsx:148 per M-038 Item 4.
+ */
+export const BOTTOM_SHEET_BACKDROP_OVERLAY = 'rgba(0,0,0,0.4)' as const;
+
+/**
  * FilterGlassTokens
  * Single source of truth for liquid ice-glass filter component styling
  * across browse & search screens, matching the compact navigation bar (TopBarTokens).
@@ -122,6 +128,7 @@ export const FilterGlassTokens = {
   // QuickFilterModal sheet tokens
   sheet: {
     overlayBg: MODAL_BACKDROP_OVERLAY,
+    bottomSheetOverlayBg: BOTTOM_SHEET_BACKDROP_OVERLAY,
     cardBg: TopBarTokens.iceGlass,
     // master 7353e69 QuickFilterModal.tsx modalContent has no border (borderWidth: 0) to avoid 1pt inner layout shift per M-036
     cardBorderColor: 'transparent',

@@ -1,9 +1,11 @@
 import React from 'react';
+import { StyleProp, ViewStyle } from 'react-native';
 import { TopBarGlassSurface } from './TopBarGlassSurface';
 
 export interface FilterGlassSurfaceProps {
   testID?: string;
   borderRadius?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -15,12 +17,14 @@ export interface FilterGlassSurfaceProps {
 export function FilterGlassSurface({
   testID = 'filter-glass-surface',
   borderRadius,
+  style,
 }: FilterGlassSurfaceProps) {
   return (
     <TopBarGlassSurface
       testID={testID}
       kind="ice-control"
       borderRadius={borderRadius}
+      style={style}
     />
   );
 }
