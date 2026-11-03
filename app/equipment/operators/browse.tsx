@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -7,10 +7,11 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  FlatList,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import Animated from 'react-native-reanimated'
 
 import { Colors } from '../../../src/constants/colors'
@@ -41,58 +42,45 @@ import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
 import { EquipmentBottomBar } from '../../../src/components/equipment/EquipmentBottomBar'
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../../src/components/navigation/UnifiedBottomBar'
+import {
+  buildOperatorQueryParams,
+  refineOperatorsClientSide,
+  clearOperatorFilter,
+  mergeOperatorRouteParams,
+} from '../../../src/utils/browse-filters/operatorsBrowseFilters'
+import { UnifiedCardItem } from '../../../src/types/unified-card.types'
 
-/**
- * Builds backend query parameters for operator listings.
- * Maps dailyRateMin/Max to minDailyRate/maxDailyRate and
- * minExperience/maxExperience to minExperienceYears/maxExperienceYears.
- */
-export function buildOperatorQueryParams(
-  searchQuery: string,
-  filters: OperatorFilterState
-): Record<string, unknown> {
-  const p: Record<string, unknown> = {}
-  if (searchQuery.trim()) p.search = searchQuery.trim()
-  if (filters.operatorType && filters.operatorType !== 'all') p.operatorType = filters.operatorType
-  if (filters.governorateId) p.governorateId = filters.governorateId
-  if (filters.wilayaId) p.wilayaId = filters.wilayaId
-  if (filters.dailyRateMin !== undefined) p.minDailyRate = filters.dailyRateMin
-  if (filters.dailyRateMax !== undefined) p.maxDailyRate = filters.dailyRateMax
-  if (filters.minExperience !== undefined) p.minExperienceYears = filters.minExperience
-  if (filters.maxExperience !== undefined) p.maxExperienceYears = filters.maxExperience
-  if (filters.sortBy) {
-    if (filters.sortBy === 'dailyRate_asc') {
-      p.sortBy = 'dailyRate'
-      p.sortOrder = 'asc'
-    } else if (filters.sortBy === 'dailyRate_desc') {
-      p.sortBy = 'dailyRate'
-      p.sortOrder = 'desc'
-    } else if (filters.sortBy === 'experienceYears' || filters.sortBy === 'experienceYears_desc') {
-      p.sortBy = 'experienceYears'
-      p.sortOrder = 'desc'
-    } else if (filters.sortBy === 'newest' || filters.sortBy === 'createdAt_desc') {
-      p.sortBy = 'createdAt'
-      p.sortOrder = 'desc'
-    } else {
-      p.sortBy = filters.sortBy
-    }
-  }
-  return p
-}
+export { buildOperatorQueryParams } from '../../../src/utils/browse-filters/operatorsBrowseFilters'
 
 export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
   const { scrollHandler } = useScrollAwareNav()
   const { navigateToAddOperator } = useOperatorNavigation()
+  const listRef = useRef<FlatList<UnifiedCardItem>>(null)
+  const searchParams = useLocalSearchParams<{
+    operatorType?: string;
+    governorateId?: string;
+    wilayaId?: string;
+  }>()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<OperatorFilterState>({})
   const [isFilterVisible, setIsFilterVisible] = useState(false)
 
-  // API Query (Passes all server-supported filters directly)
+  // G-07: Merge incoming route params into existing filter state without wiping selections
+  useEffect(() => {
+    setFilters((prev) => mergeOperatorRouteParams(prev, searchParams as Record<string, string | undefined>))
+  }, [searchParams.operatorType, searchParams.governorateId, searchParams.wilayaId])
+
+  // API Query (Passes all server-supported filters directly via pure module)
   const queryParams = useMemo(() => {
     return buildOperatorQueryParams(searchQuery, filters)
   }, [searchQuery, filters])
+
+  // G-06: Scroll to top on filter / query change
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false })
+  }, [queryParams])
 
   const { data, isLoading, isError, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useOperatorsInfinite(queryParams)
@@ -111,30 +99,8 @@ export default function BrowseOperatorsScreen() {
 
   // Client-side instant filter refinement for specialized operator attributes (not yet supported on server)
   const operators = useMemo(() => {
-    return rawOperators.filter((cardItem) => {
-      const op = ((cardItem as any).raw || cardItem) as OperatorListing
-
-      // 1. Equipment Type Filter
-      if (filters.equipmentType) {
-        const types = (op.equipmentTypes || []) as string[]
-        if (!types.includes(filters.equipmentType)) return false
-      }
-
-      // 2. Negotiable Price Filter
-      if (filters.isPriceNegotiable && !op.isPriceNegotiable && !op.isNegotiable) {
-        return false
-      }
-
-      // 3. Certification Filter
-      if (filters.certification) {
-        const certs = (op.certifications || []) as string[]
-        const hasCert = certs.some((c) => c.toLowerCase().includes(filters.certification!.toLowerCase()))
-        if (!hasCert) return false
-      }
-
-      return true
-    })
-  }, [rawOperators, filters.equipmentType, filters.isPriceNegotiable, filters.certification])
+    return refineOperatorsClientSide(rawOperators, filters)
+  }, [rawOperators, filters])
 
   const activeFiltersCount = useMemo(() => {
     let count = 0
@@ -251,33 +217,7 @@ export default function BrowseOperatorsScreen() {
   }, [filters])
 
   const handleClearQuickFilter = (id: string) => {
-    setFilters((prev) => {
-      const next = { ...prev }
-      if (id === 'category') delete next.equipmentType
-      if (id === 'city') {
-        delete next.governorateId
-        delete next.wilayaId
-      }
-      if (id === 'experience') {
-        delete next.experienceLevel
-        delete next.minExperience
-        delete next.maxExperience
-      }
-      if (id === 'rate') {
-        delete next.dailyRateMin
-        delete next.dailyRateMax
-      }
-      if (id === 'certification') {
-        delete next.certification
-      }
-      if (id === 'negotiable') {
-        delete next.isPriceNegotiable
-      }
-      if (id === 'sort') {
-        delete next.sortBy
-      }
-      return next
-    })
+    setFilters((prev) => clearOperatorFilter(prev, id))
   }
 
   return (
@@ -319,6 +259,7 @@ export default function BrowseOperatorsScreen() {
 
       {/* ═══════════════ 3. MAIN LIST ═══════════════ */}
       <Animated.FlatList
+        ref={listRef}
         data={operators}
         keyExtractor={(item) => item.id}
         onScroll={scrollHandler}

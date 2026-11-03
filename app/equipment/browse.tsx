@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,11 @@ import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 import { EQUIPMENT_CONDITIONS } from '../../src/constants/equipment';
+import {
+  buildEquipmentQueryParams,
+  clearEquipmentFilter,
+  mergeEquipmentRouteParams,
+} from '../../src/utils/browse-filters/equipmentBrowseFilters';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -40,6 +45,7 @@ import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBott
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { UnifiedCardItem } from '../../src/types/unified-card.types';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
 
 // Constants
@@ -116,8 +122,9 @@ export default function EquipmentBrowseScreen() {
   }));
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
-  const searchParams = useLocalSearchParams<{ type?: string }>();
+  const searchParams = useLocalSearchParams<{ type?: string; equipmentType?: string }>();
 
+  const listRef = useRef<FlatList<UnifiedCardItem>>(null);
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -142,6 +149,11 @@ export default function EquipmentBrowseScreen() {
     
     return initialFilters;
   });
+
+  // G-07: Merge incoming route params into existing filter state without wiping selections
+  useEffect(() => {
+    setFilters((prev) => mergeEquipmentRouteParams(prev, searchParams as Record<string, string | undefined>));
+  }, [searchParams.type, searchParams.equipmentType]);
   
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -151,50 +163,15 @@ export default function EquipmentBrowseScreen() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Combine query parameters - maps ONLY backend QueryEquipmentListingsDto fields
+  // Combine query parameters - maps ONLY backend QueryEquipmentListingsDto fields using pure module
   const queryParams = useMemo(() => {
-    const params: Record<string, any> = {
-      limit: 30,
-    };
-
-    if (debouncedSearch.trim()) {
-      params.search = debouncedSearch;
-    }
-
-    if (filters.equipmentType) params.equipmentType = filters.equipmentType;
-    if (filters.listingType) params.listingType = filters.listingType;
-    if (filters.governorateId) params.governorateId = filters.governorateId;
-    if (filters.wilayaId) params.wilayaId = filters.wilayaId;
-    if (filters.condition) params.condition = filters.condition;
-    if (filters.make) params.make = filters.make;
-    if (filters.sortBy) params.sortBy = filters.sortBy;
-
-    if (filters.priceMin) {
-      const p = parseFloat(filters.priceMin);
-      if (!isNaN(p)) params.minPrice = p;
-    }
-    if (filters.priceMax) {
-      const p = parseFloat(filters.priceMax);
-      if (!isNaN(p)) params.maxPrice = p;
-    }
-
-    if (filters.yearMin) {
-      const y = parseInt(filters.yearMin, 10);
-      if (!isNaN(y)) params.yearMin = y;
-    }
-    if (filters.yearMax) {
-      const y = parseInt(filters.yearMax, 10);
-      if (!isNaN(y)) params.yearMax = y;
-    }
-
-    // Backend accepts hoursUsedMax (no hoursMin in QueryEquipmentListingsDto)
-    if (filters.hoursMax) {
-      const h = parseInt(filters.hoursMax, 10);
-      if (!isNaN(h)) params.hoursUsedMax = h;
-    }
-
-    return params;
+    return buildEquipmentQueryParams(filters, debouncedSearch);
   }, [debouncedSearch, filters]);
+
+  // G-06: Scroll to top on filter / query change
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [queryParams]);
 
   // Fetch Listings
   const { data: listings, isLoading, isError, refetch } = useEquipment(queryParams);
@@ -262,19 +239,7 @@ export default function EquipmentBrowseScreen() {
   });
 
   const handleClearQuickFilter = (id: string) => {
-    const newFilters = { ...filters };
-    if (id === 'governorate') {
-      delete newFilters.governorateId;
-      delete (newFilters as any).governorate;
-      delete (newFilters as any).wilayaId;
-      delete newFilters.city;
-    }
-    if (id === 'category') { delete newFilters.equipmentType; delete newFilters.categoryId; }
-    if (id === 'condition') { delete newFilters.condition; delete newFilters.conditionId; }
-    if (id === 'price') { delete newFilters.priceMin; delete newFilters.priceMax; delete newFilters.priceId; }
-    if (id === 'year') { delete (newFilters as any).yearMin; delete (newFilters as any).yearMax; delete (newFilters as any).yearId; }
-    if (id === 'hours') { delete (newFilters as any).hoursMin; delete (newFilters as any).hoursMax; delete (newFilters as any).hoursId; }
-    setFilters(newFilters);
+    setFilters((prev) => clearEquipmentFilter(prev, id));
   };
 
   const handleSelectVisualFilter = (
@@ -384,6 +349,7 @@ export default function EquipmentBrowseScreen() {
         </View>
       ) : (
         <Animated.FlatList
+          ref={listRef}
           data={listings || []}
           keyExtractor={(item) => (item as any).id}
           contentContainerStyle={[

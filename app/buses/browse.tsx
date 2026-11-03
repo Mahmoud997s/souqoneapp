@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -15,6 +16,12 @@ import { useDebounce } from '../../src/hooks/useDebounce';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
+import {
+  buildBusesQueryParams,
+  clearBusesFilter,
+  mergeBusesRouteParams,
+  BusBrowseFilters,
+} from '../../src/utils/browse-filters/busesBrowseFilters';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -35,6 +42,7 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { Listing } from '../../src/types/listing.types';
 
 const DROPDOWN_FILTERS = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
@@ -54,6 +62,7 @@ const SORT_OPTIONS = [
 export default function BusesBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
+  const listRef = useRef<FlatList<Listing>>(null);
   const searchParams = useLocalSearchParams<{
     type?: string;
     featured?: string;
@@ -72,14 +81,6 @@ export default function BusesBrowseScreen() {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
-
-  type BusBrowseFilters = BusFilters & {
-    governorateId?: number;
-    wilayaId?: number;
-    city?: string;
-    priceId?: string;
-    isPremium?: boolean | string;
-  };
 
   const [filters, setFilters] = useState<BusBrowseFilters>(() => {
     const initialFilters: BusBrowseFilters = {};
@@ -101,56 +102,23 @@ export default function BusesBrowseScreen() {
     return initialFilters;
   });
 
+  // G-07: Merge incoming route params into existing filter state without wiping selections
+  useEffect(() => {
+    setFilters((prev) => mergeBusesRouteParams(prev, searchParams as Record<string, string | undefined>));
+  }, [searchParams.busListingType, searchParams.type, searchParams.condition, searchParams.featured, searchParams.isPremium]);
+
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  // Combine query filters for API
+  // Combine query filters for API using pure module
   const queryFilters = useMemo(() => {
-    const params: Record<string, any> = {};
-
-    // 1. Search text
-    if (debouncedSearch.trim()) {
-      params.search = debouncedSearch.trim();
-    }
-
-    // 2. Vertical & core classifications
-    if (filters.busListingType) params.busListingType = filters.busListingType;
-    if (filters.busType) params.busType = filters.busType;
-    if (filters.make) params.make = filters.make;
-    if (filters.governorateId) params.governorateId = String(filters.governorateId);
-    if (filters.wilayaId) params.wilayaId = String(filters.wilayaId);
-
-    // 3. Pricing
-    const minPrice = filters.minPrice || filters.priceMin;
-    if (minPrice) params.minPrice = String(minPrice);
-    const maxPrice = filters.maxPrice || filters.priceMax;
-    if (maxPrice) params.maxPrice = String(maxPrice);
-
-    // 4. Passenger capacity
-    const minCap = filters.minCapacity || filters.capacityMin;
-    if (minCap) params.minCapacity = String(minCap);
-    const maxCap = filters.maxCapacity || filters.capacityMax;
-    if (maxCap) params.maxCapacity = String(maxCap);
-
-    // 5. Technical specs (condition, transmission, fuel, year)
-    if (filters.condition) params.condition = filters.condition;
-    if (filters.transmission) params.transmission = filters.transmission;
-    if (filters.fuelType) params.fuelType = filters.fuelType;
-    if (filters.yearMin) params.yearMin = String(filters.yearMin);
-    if (filters.yearMax) params.yearMax = String(filters.yearMax);
-
-    // 6. Sorting
-    if (filters.sort && filters.sort !== 'newest') {
-      params.sort = filters.sort;
-    }
-
-    // 7. Premium flag if any
-    if ((filters as any).isPremium) {
-      params.isPremium = 'true';
-    }
-
-    return params;
+    return buildBusesQueryParams(filters, debouncedSearch);
   }, [debouncedSearch, filters]);
+
+  // G-06: Scroll to top on filter / query change
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [queryFilters]);
 
   const {
     data,
@@ -223,19 +191,7 @@ export default function BusesBrowseScreen() {
   });
 
   const handleClearQuickFilter = (id: string) => {
-    const newFilters = { ...filters };
-    if (id === 'governorate') {
-      delete newFilters.governorateId;
-      delete newFilters.city;
-    }
-    if (id === 'make') delete newFilters.make;
-    if (id === 'capacity') {
-      delete newFilters.capacityMin;
-      delete newFilters.minCapacity;
-    }
-    if (id === 'busType') delete newFilters.busType;
-    if (id === 'sort') newFilters.sort = 'newest';
-    setFilters(newFilters);
+    setFilters((prev) => clearBusesFilter(prev, id));
   };
 
   const handleSelectFilter = (
@@ -356,6 +312,7 @@ export default function BusesBrowseScreen() {
 
       {/* ── LISTINGS LIST ── */}
       <Animated.FlatList
+        ref={listRef}
         key="list-1-column"
         data={listings ?? []}
         keyExtractor={(item: any) => item.id}
