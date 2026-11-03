@@ -27,7 +27,7 @@ export const FilterGlassTokens = {
     borderWidth: 1,
     borderRadius: 20,
     shadow: TopBarTokens.buttonShadow,
-    textColor: Colors.textMuted,
+    textColor: Colors.text,
     iconColor: Colors.textMuted,
     activeBg: Colors.primary,
     activeBorderColor: Colors.primary,

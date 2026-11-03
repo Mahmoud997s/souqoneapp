@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 
 export interface QuickFilterItem {
@@ -48,13 +49,13 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                 onPress={() => onFilterPress(qf.id)}
               >
                 {!isActive && qf.icon && (
-                  <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
+                  <Ionicons name={qf.icon} size={12.5} color={FilterGlassTokens.chip.iconColor} />
                 )}
                 <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
                   {qf.label}
                 </Text>
                 {!isActive && (
-                  <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
+                  <Ionicons name="chevron-down" size={11} color={FilterGlassTokens.chip.iconColor} />
                 )}
               </TouchableOpacity>
               {isActive && (
@@ -69,7 +70,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                   onPress={() => onClearFilter(qf.id)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="close-circle" size={12.5} color={Colors.white} />
+                  <Ionicons name="close-circle" size={12.5} color={FilterGlassTokens.chip.activeIconColor} />
                 </TouchableOpacity>
               )}
             </View>
@@ -94,21 +95,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Platform.select({
-      ios: { 
-        shadowColor: Colors.primaryDark, 
-        shadowOffset: { width: 0, height: 1 }, 
-        shadowOpacity: 0.05, 
-        shadowRadius: 2 
-      },
-      android: { 
-        elevation: 1 
-      },
-    }),
+    borderRadius: FilterGlassTokens.chip.borderRadius,
+    backgroundColor: FilterGlassTokens.chip.bg,
+    borderWidth: FilterGlassTokens.chip.borderWidth,
+    borderColor: FilterGlassTokens.chip.borderColor,
+    ...FilterGlassTokens.chip.shadow,
   },
   // Active chip geometry arithmetic (pixel-identical to master 26f4325):
   // Master active chip:
@@ -142,8 +133,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   quickFilterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: FilterGlassTokens.chip.activeBg,
+    borderColor: FilterGlassTokens.chip.activeBorderColor,
     ...Platform.select({
       ios: { 
         shadowColor: Colors.primary, 
@@ -157,15 +148,15 @@ const s = StyleSheet.create({
     }),
   },
   quickFilterTxt: {
-    fontFamily: 'Almarai_700Bold',  
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.text,
+    fontFamily: FilterGlassTokens.chip.fontFamily,  
+    fontSize: FilterGlassTokens.chip.fontSize,
+    lineHeight: FilterGlassTokens.chip.lineHeight,
+    color: FilterGlassTokens.chip.textColor,
     textAlign: 'left',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   quickFilterTxtActive: {
-    color: Colors.white,
+    color: FilterGlassTokens.chip.activeTextColor,
   },
 });

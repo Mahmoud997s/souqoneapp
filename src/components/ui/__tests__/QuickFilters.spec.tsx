@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilters, QuickFilterItem } from '../QuickFilters';
+import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -114,5 +115,48 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     fireEvent.press(clearBtn);
     expect(onClearFilter).toHaveBeenCalledWith('f2');
     expect(onFilterPress).not.toHaveBeenCalled();
+  });
+
+  it('applies ice glass tokens to inactive chips and primary tokens to active chips without overflow hidden', async () => {
+    const { getByLabelText, getByText } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={jest.fn()}
+        onClearFilter={jest.fn()}
+      />
+    );
+
+    // Inactive chip parent container
+    const inactiveText = getByText('الماركة');
+    const inactivePressable = getByLabelText('الماركة');
+    const inactiveChipContainer = inactivePressable.parent;
+    expect(inactiveChipContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.chip.bg,
+          borderColor: FilterGlassTokens.chip.borderColor,
+          borderWidth: FilterGlassTokens.chip.borderWidth,
+          borderRadius: FilterGlassTokens.chip.borderRadius,
+        }),
+      ])
+    );
+    // iOS shadow preservation: overflow must NOT be hidden
+    expect(inactiveChipContainer?.props.style).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ overflow: 'hidden' }),
+      ])
+    );
+
+    // Active chip parent container
+    const activePressable = getByLabelText('مسقط');
+    const activeChipContainer = activePressable.parent;
+    expect(activeChipContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.chip.activeBg,
+          borderColor: FilterGlassTokens.chip.activeBorderColor,
+        }),
+      ])
+    );
   });
 });
