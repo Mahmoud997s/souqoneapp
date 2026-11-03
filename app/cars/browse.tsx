@@ -52,6 +52,7 @@ import { FilterBottomSheet } from '../../src/components/filters/FilterBottomShee
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { Listing } from '../../src/types/listing.types';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -96,7 +97,7 @@ export default function CarsBrowseScreen() {
   const selectedBrandName = typeof filters.make === 'string' ? filters.make : undefined;
 
   // G-06: FlatList ref to scroll to top when filters change
-  const flatListRef = useRef<FlatList<any>>(null);
+  const flatListRef = useRef<FlatList<Listing>>(null);
 
   // Sync state whenever navigation params change (G-07: MERGE incoming route params into existing state)
   useEffect(() => {

@@ -6,27 +6,46 @@ export interface CarsFilterState extends FilterState {
 }
 
 export interface CarsRouteParams {
-  type?: string;
-  condition?: string;
-  featured?: string;
-  isPremium?: string;
-  make?: string;
-  brandId?: string;
-  search?: string;
+  type?: string | string[];
+  condition?: string | string[];
+  featured?: string | string[];
+  isPremium?: string | string[];
+  make?: string | string[];
+  brandId?: string | string[];
+  search?: string | string[];
+  [key: string]: unknown;
 }
 
-export function decodeSearchParam(search?: string): string {
-  if (!search) return '';
+/**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+export function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+export function decodeSearchParam(search?: unknown): string {
+  const str = toSingleString(search);
+  if (!str) return '';
   try {
-    return decodeURIComponent(search).trim();
+    return decodeURIComponent(str).trim();
   } catch {
-    return search.trim();
+    return str.trim();
   }
 }
 
 export function parseCarsFiltersFromParams(params: CarsRouteParams): CarsFilterState {
   const initialFilters: CarsFilterState = {};
-  const t = params.type?.toLowerCase();
+  const t = toSingleString(params.type)?.toLowerCase();
 
   if (t === 'used') {
     initialFilters.condition = 'USED';
@@ -40,20 +59,25 @@ export function parseCarsFiltersFromParams(params: CarsRouteParams): CarsFilterS
     initialFilters.listingType = 'SALE';
   }
 
-  if (params.condition) {
-    initialFilters.condition = params.condition.toUpperCase();
+  const cond = toSingleString(params.condition);
+  if (cond) {
+    initialFilters.condition = cond.toUpperCase();
   }
 
-  if (params.featured === 'true' || params.isPremium === 'true') {
+  const featured = toSingleString(params.featured);
+  const isPremium = toSingleString(params.isPremium);
+  if (featured === 'true' || isPremium === 'true') {
     initialFilters.isPremium = true;
   }
 
-  if (params.make) {
-    initialFilters.make = params.make;
+  const make = toSingleString(params.make);
+  if (make) {
+    initialFilters.make = make;
   }
 
-  if (params.brandId) {
-    initialFilters.makeId = params.brandId;
+  const brandId = toSingleString(params.brandId);
+  if (brandId) {
+    initialFilters.makeId = brandId;
   }
 
   return initialFilters;

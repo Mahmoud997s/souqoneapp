@@ -53,6 +53,23 @@ describe('Services Browse Filter Logic & Contract', () => {
     expect(merged.isHomeService).toBe(true);
   });
 
+  it('guards against array route params from Expo Router (takes first string and parses location id)', () => {
+    const filters = parseServicesFiltersFromParams({
+      serviceType: ['MAINTENANCE', 'CLEANING'],
+      providerType: ['CENTER', 'INDIVIDUAL'],
+      governorate: ['مسقط', 'ظفار'],
+      governorateId: ['1', '2'],
+      wilayaId: ['10', '20'],
+      isHomeService: ['true', 'false'],
+    });
+    expect(filters.serviceType).toBe('MAINTENANCE');
+    expect(filters.providerType).toBe('WORKSHOP');
+    expect(filters.governorate).toBe('مسقط');
+    expect(filters.governorateId).toBe(1);
+    expect(filters.wilayaId).toBe(10);
+    expect(filters.isHomeService).toBe(true);
+  });
+
   it('clears individual filters without affecting others', () => {
     let state: ServicesFilterState = {
       serviceType: 'CLEANING',
@@ -88,8 +105,8 @@ describe('Services Browse Filter Logic & Contract', () => {
         sortOrder: 'desc',
       };
       const query = buildServicesQueryParams(stateWithSort, '');
-      expect((query as any).sortBy).toBeUndefined();
-      expect((query as any).sortOrder).toBeUndefined();
+      expect('sortBy' in query).toBe(false);
+      expect('sortOrder' in query).toBe(false);
     });
 
     it('emits ONLY keys present in the ServicesQuery allow-list', () => {
@@ -119,10 +136,10 @@ describe('Services Browse Filter Logic & Contract', () => {
 
       expect(query.search).toBe('غسيل');
       expect(query.limit).toBe(10);
-      expect((query as any).city).toBeUndefined();
-      expect((query as any).governorate).toBeUndefined();
-      expect((query as any).sortBy).toBeUndefined();
-      expect((query as any).sortOrder).toBeUndefined();
+      expect('city' in query).toBe(false);
+      expect('governorate' in query).toBe(false);
+      expect('sortBy' in query).toBe(false);
+      expect('sortOrder' in query).toBe(false);
     });
   });
 });

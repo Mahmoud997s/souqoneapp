@@ -47,6 +47,20 @@ describe('Cars Browse Filter Logic & Contract', () => {
     expect(filters).toEqual({ listingType: 'WANTED' });
   });
 
+  it('guards against array route params from Expo Router (takes first string)', () => {
+    const filters = parseCarsFiltersFromParams({
+      type: ['used', 'new'],
+      condition: ['USED', 'NEW'],
+      make: ['Toyota', 'Honda'],
+      brandId: ['b-1', 'b-2'],
+      featured: ['true', 'false'],
+    });
+    expect(filters.condition).toBe('USED');
+    expect(filters.make).toBe('Toyota');
+    expect(filters.makeId).toBe('b-1');
+    expect(filters.isPremium).toBe(true);
+  });
+
   it('merges incoming route params without blowing away existing filter state (G-07)', () => {
     const existing = {
       priceMin: '5000',
@@ -170,11 +184,11 @@ describe('Cars Browse Filter Logic & Contract', () => {
 
       expect(query.search).toBe('لكزس');
       expect(query.limit).toBe(20);
-      expect((query as any).makeId).toBeUndefined();
-      expect((query as any).modelId).toBeUndefined();
-      expect((query as any).priceId).toBeUndefined();
-      expect((query as any).city).toBeUndefined();
-      expect((query as any).governorate).toBeUndefined();
+      expect('makeId' in query).toBe(false);
+      expect('modelId' in query).toBe(false);
+      expect('priceId' in query).toBe(false);
+      expect('city' in query).toBe(false);
+      expect('governorate' in query).toBe(false);
     });
   });
 });

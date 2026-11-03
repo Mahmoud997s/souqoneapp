@@ -37,6 +37,7 @@ import { ServicesVisualFilters } from '../../src/components/services/ServicesVis
 import { ServicesFilterBottomSheet } from '../../src/components/services/ServicesFilterBottomSheet';
 import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { UnifiedCardItem } from '../../src/types/unified-card.types';
 
 // Pure Filter Helpers & Contract
 import {
@@ -81,7 +82,7 @@ export default function ServicesBrowseScreen() {
     parseServicesFiltersFromParams(searchParams)
   );
 
-  const flatListRef = useRef<FlatList<any>>(null);
+  const flatListRef = useRef<FlatList<UnifiedCardItem>>(null);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<
@@ -336,9 +337,9 @@ export default function ServicesBrowseScreen() {
       {/* Main Content List */}
       <Animated.FlatList
         ref={flatListRef}
-        data={isLoading ? Array(6).fill({}) : listings}
-        keyExtractor={(item: any, index: number) => item.id || `skeleton-${index}`}
-        renderItem={({ item }: { item: any; index: number }) => {
+        data={isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings}
+        keyExtractor={(item, index) => item.id || `skeleton-${index}`}
+        renderItem={({ item }) => {
           if (isLoading) {
             return (
               <View style={styles.cardWrapper}>
@@ -351,7 +352,7 @@ export default function ServicesBrowseScreen() {
               <ServiceCard
                 item={item}
                 fullWidth
-                onPress={() => router.push(`/services/${item.id}` as any)}
+                onPress={() => router.push({ pathname: '/services/[id]', params: { id: item.id } })}
               />
             </View>
           );

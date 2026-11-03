@@ -3,32 +3,64 @@ import { ServicesFilterState } from '../../types/filters.types';
 
 export type { ServicesFilterState };
 
+/**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+export function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+export function parseLocationId(val: unknown): number | undefined {
+  const str = toSingleString(val);
+  if (!str) return undefined;
+  const num = parseInt(str, 10);
+  return Number.isInteger(num) && num > 0 ? num : undefined;
+}
+
 export interface ServicesRouteParams {
-  q?: string;
-  serviceType?: string;
-  providerType?: string;
-  governorate?: string;
-  governorateId?: string;
-  wilayaId?: string;
-  isHomeService?: string;
+  q?: string | string[];
+  serviceType?: string | string[];
+  providerType?: string | string[];
+  governorate?: string | string[];
+  governorateId?: string | string[];
+  wilayaId?: string | string[];
+  isHomeService?: string | string[];
+  [key: string]: unknown;
 }
 
 export function parseServicesFiltersFromParams(params: ServicesRouteParams): ServicesFilterState {
   const initial: ServicesFilterState = {};
-  if (params.serviceType) initial.serviceType = params.serviceType;
-  if (params.providerType) {
-    initial.providerType = params.providerType === 'CENTER' ? 'WORKSHOP' : params.providerType;
+  
+  const serviceType = toSingleString(params.serviceType);
+  if (serviceType) initial.serviceType = serviceType;
+
+  const providerType = toSingleString(params.providerType);
+  if (providerType) {
+    initial.providerType = providerType === 'CENTER' ? 'WORKSHOP' : providerType;
   }
-  if (params.governorate) initial.governorate = params.governorate;
-  if (params.governorateId) {
-    const parsed = parseInt(String(params.governorateId), 10);
-    if (!isNaN(parsed) && parsed > 0) initial.governorateId = parsed;
-  }
-  if (params.wilayaId) {
-    const parsed = parseInt(String(params.wilayaId), 10);
-    if (!isNaN(parsed) && parsed > 0) initial.wilayaId = parsed;
-  }
-  if (params.isHomeService === 'true') initial.isHomeService = true;
+
+  const governorate = toSingleString(params.governorate);
+  if (governorate) initial.governorate = governorate;
+
+  const govId = parseLocationId(params.governorateId);
+  if (govId !== undefined) initial.governorateId = govId;
+
+  const wilayaId = parseLocationId(params.wilayaId);
+  if (wilayaId !== undefined) initial.wilayaId = wilayaId;
+
+  const isHome = toSingleString(params.isHomeService);
+  if (isHome === 'true') initial.isHomeService = true;
+
   return initial;
 }
 
