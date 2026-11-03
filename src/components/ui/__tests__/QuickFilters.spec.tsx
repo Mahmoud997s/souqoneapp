@@ -100,9 +100,14 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     expect(activeChip.props.accessibilityRole).toBe('button');
     expect(clearBtn.props.accessibilityRole).toBe('button');
 
-    // Chip pressable area covers padding
+    // Chip pressable area covers padding and maintains exact pixel parity with master
     expect(activeChip.props.style).toEqual(
-      expect.objectContaining({ paddingVertical: 6, paddingStart: 10 })
+      expect.objectContaining({ paddingVertical: 6, paddingStart: 10, paddingEnd: 5 })
+    );
+
+    // Clear control has paddingStart: 0, paddingEnd: 10
+    expect(clearBtn.props.style).toEqual(
+      expect.objectContaining({ paddingVertical: 6, paddingStart: 0, paddingEnd: 10 })
     );
 
     // Press clear control: onClearFilter is called, onFilterPress is NOT triggered
