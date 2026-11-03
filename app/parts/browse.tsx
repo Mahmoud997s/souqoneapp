@@ -54,7 +54,6 @@ import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/Unifi
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Radius } from '../../src/constants/radius';
-import { GOVERNORATE_OPTIONS } from '../../src/constants/filters';
 import {
   PART_CATEGORIES,
   PART_CONDITIONS,
@@ -96,7 +95,18 @@ export default function PartsBrowseScreen() {
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
 
   useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+    let isMounted = true;
+    locationsApi
+      .getGovernorates()
+      .then((data) => {
+        if (isMounted) setGovernorates(data);
+      })
+      .catch(() => {
+        if (isMounted) setGovernorates([]);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Search & Filter State
