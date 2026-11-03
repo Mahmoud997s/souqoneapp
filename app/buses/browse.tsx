@@ -31,7 +31,7 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { BusCard } from '../../src/components/buses/BusCard';
 import { BusesVisualFilters } from '../../src/components/buses/BusesVisualFilters';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
-import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';

@@ -3,6 +3,8 @@ import {
   clearPartsFilter,
   parsePartsInitialFilters,
   mergePartsRouteParams,
+  applyPartsFilter,
+  normalizePartBrands,
   PartsFilterState,
 } from '../partsBrowseFilters';
 import { PARTS_QUERY_ALLOW_LIST } from '../../../types/contracts/partsQuery';
@@ -285,6 +287,99 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       const withWilaya = mergePartsRouteParams(existing, { governorateId: '2', wilayaId: '201' });
       expect(withWilaya.governorateId).toBe(2);
       expect(withWilaya.wilayaId).toBe(201);
+    });
+  });
+
+  describe('applyPartsFilter', () => {
+    it('applies category selection', () => {
+      const res = applyPartsFilter({}, 'category', 'ENGINE');
+      expect(res.category).toBe('ENGINE');
+    });
+
+    it('applies make selection with extra brandName and clears on all', () => {
+      const res = applyPartsFilter({}, 'make', 'toyota', { brandName: 'تويوتا' });
+      expect(res.makeId).toBe('toyota');
+      expect(res.make).toBe('تويوتا');
+
+      const cleared = applyPartsFilter(res, 'make', 'all');
+      expect(cleared.makeId).toBeUndefined();
+      expect(cleared.make).toBeUndefined();
+    });
+
+    it('applies condition selection', () => {
+      const res = applyPartsFilter({}, 'condition', 'NEW');
+      expect(res.condition).toBe('NEW');
+    });
+
+    it('applies city selection and clears wilayaId', () => {
+      const initial: PartsFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+        city: 'قديم',
+        governorate: 'قديم',
+      };
+      const res = applyPartsFilter(initial, 'city', '2', { governorateName: 'ظفار' });
+      expect(res.governorateId).toBe(2);
+      expect(res.governorate).toBe('ظفار');
+      expect(res.city).toBe('ظفار');
+      expect(res.wilayaId).toBeUndefined();
+    });
+
+    it('applies price range selection', () => {
+      const res = applyPartsFilter({}, 'price', 'p1');
+      expect(res.priceId).toBe('p1');
+      expect(res.priceMin).toBe('0');
+      expect(res.priceMax).toBe('20');
+    });
+
+    it('applies sort selection', () => {
+      const res = applyPartsFilter({}, 'sort', 'price_asc');
+      expect(res.sortBy).toBe('price');
+      expect(res.sortOrder).toBe('ASC');
+    });
+  });
+
+  describe('normalizePartBrands (M-018 & CodeRabbit)', () => {
+    it('normalizes API brands prioritizing Arabic name then English name', () => {
+      const apiBrands = [
+        { id: 1, name: 'Toyota', nameAr: 'تويوتا' },
+        { id: 2, name: 'Nissan', nameAr: null },
+      ];
+      const normalized = normalizePartBrands(apiBrands);
+      expect(normalized).toEqual([
+        { id: '1', label: 'تويوتا', value: 'تويوتا' },
+        { id: '2', label: 'Nissan', value: 'Nissan' },
+      ]);
+    });
+
+    it('normalizes POPULAR_PART_MAKES fallback displaying Arabic label instead of raw ID', () => {
+      const fallbackMakes = [
+        { id: 'all', label: 'متوافق مع الجميع' },
+        { id: 'toyota', label: 'تويوتا' },
+        { id: 'nissan', label: 'نيسان' },
+      ];
+      const normalized = normalizePartBrands(fallbackMakes);
+      expect(normalized).toEqual([
+        { id: 'all', label: 'متوافق مع الجميع', value: 'متوافق مع الجميع' },
+        { id: 'toyota', label: 'تويوتا', value: 'تويوتا' },
+        { id: 'nissan', label: 'نيسان', value: 'نيسان' },
+      ]);
+      expect(normalized[1].label).not.toBe('toyota');
+      expect(normalized[1].label).toBe('تويوتا');
+    });
+
+    it('make query value matches master 8cb6f9a exact behavior (preferring nameAr, then name, then label)', () => {
+      const itemWithAll = { id: 10, name: 'Honda', nameAr: 'هوندا', label: 'هوندا ليبل' };
+      const res = normalizePartBrands([itemWithAll]);
+      expect(res[0].value).toBe('هوندا');
+
+      const itemWithoutAr = { id: 11, name: 'Subaru', nameAr: null, label: 'سوبارو' };
+      const res2 = normalizePartBrands([itemWithoutAr]);
+      expect(res2[0].value).toBe('Subaru');
+
+      const itemWithLabelOnly = { id: 'ford', label: 'فورد' };
+      const res3 = normalizePartBrands([itemWithLabelOnly]);
+      expect(res3[0].value).toBe('فورد');
     });
   });
 });

@@ -3,6 +3,7 @@ import {
   clearEquipmentFilter,
   parseEquipmentInitialFilters,
   mergeEquipmentRouteParams,
+  applyEquipmentFilter,
   EquipmentFilterState,
 } from '../equipmentBrowseFilters';
 import { EQUIPMENT_QUERY_ALLOW_LIST } from '../../../types/contracts/equipmentQuery';
@@ -202,6 +203,70 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
       const withWilaya = mergeEquipmentRouteParams(existing, { governorateId: '2', wilayaId: '201' });
       expect(withWilaya.governorateId).toBe(2);
       expect(withWilaya.wilayaId).toBe(201);
+    });
+  });
+
+  describe('applyEquipmentFilter', () => {
+    it('applies category selection', () => {
+      const res = applyEquipmentFilter({}, 'category', 'EXCAVATOR');
+      expect(res.equipmentType).toBe('EXCAVATOR');
+      expect(res.categoryId).toBe('EXCAVATOR');
+    });
+
+    it('applies condition selection', () => {
+      const res = applyEquipmentFilter({}, 'condition', 'USED');
+      expect(res.condition).toBe('USED');
+      expect(res.conditionId).toBe('USED');
+    });
+
+    it('applies price range and clears on all', () => {
+      const res = applyEquipmentFilter({}, 'price', 'p1');
+      expect(res.priceId).toBe('p1');
+      expect(res.priceMin).toBe('0');
+      expect(res.priceMax).toBe('50');
+
+      const cleared = applyEquipmentFilter(res, 'price', 'all');
+      expect(cleared.priceId).toBeUndefined();
+      expect(cleared.priceMin).toBeUndefined();
+      expect(cleared.priceMax).toBeUndefined();
+    });
+
+    it('applies year range and clears on all', () => {
+      const res = applyEquipmentFilter({}, 'year', 'y1');
+      expect(res.yearId).toBe('y1');
+      expect(res.yearMin).toBe('2022');
+      expect(res.yearMax).toBe('2024');
+
+      const cleared = applyEquipmentFilter(res, 'year', 'all');
+      expect(cleared.yearId).toBeUndefined();
+      expect(cleared.yearMin).toBeUndefined();
+      expect(cleared.yearMax).toBeUndefined();
+    });
+
+    it('applies hours range and clears on all', () => {
+      const res = applyEquipmentFilter({}, 'hours', 'h1');
+      expect(res.hoursId).toBe('h1');
+      expect(res.hoursMin).toBe('0');
+      expect(res.hoursMax).toBe('1000');
+
+      const cleared = applyEquipmentFilter(res, 'hours', 'all');
+      expect(cleared.hoursId).toBeUndefined();
+      expect(cleared.hoursMin).toBeUndefined();
+      expect(cleared.hoursMax).toBeUndefined();
+    });
+
+    it('applies governorate selection and clears wilayaId, city, governorate', () => {
+      const initial: EquipmentFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+        city: 'قديم',
+        governorate: 'قديم',
+      };
+      const res = applyEquipmentFilter(initial, 'governorate', '2');
+      expect(res.governorateId).toBe(2);
+      expect(res.wilayaId).toBeUndefined();
+      expect(res.city).toBeUndefined();
+      expect(res.governorate).toBeUndefined();
     });
   });
 });

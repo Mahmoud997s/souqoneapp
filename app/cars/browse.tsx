@@ -35,7 +35,7 @@ import {
   LISTING_TYPES,
   CAR_TYPES,
 } from '../../src/constants/browseFilters';
-import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
@@ -163,7 +163,9 @@ export default function CarsBrowseScreen() {
     } else if (qf.id === 'type') {
       isActive = !!filters.bodyType;
       if (isActive) {
-        const foundType = CAR_TYPES.find(t => t.id === filters.bodyType);
+        const foundType = CAR_TYPES.find(
+          (t) => t.id.toUpperCase() === (typeof filters.bodyType === 'string' ? filters.bodyType.toUpperCase() : filters.bodyType)
+        );
         displayLabel = foundType ? foundType.name : (filters.bodyType as string);
       }
     } else if (qf.id === 'sort') {

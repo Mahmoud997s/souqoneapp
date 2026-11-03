@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Modal,
   FlatList,
   Platform,
 } from 'react-native';
@@ -41,12 +40,18 @@ import { PartCard } from '../../src/components/parts/PartCard';
 import { PartSkeletonCard } from '../../src/components/parts/PartSkeletonCard';
 import { PartsVisualFilters } from '../../src/components/parts/PartsVisualFilters';
 import { PartsFilterBottomSheet } from '../../src/components/parts/PartsFilterBottomSheet';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
 import { PartsFilterState } from '../../src/types/filters.types';
 import {
   buildPartsQueryParams,
   clearPartsFilter,
   mergePartsRouteParams,
   parsePartsInitialFilters,
+  applyPartsFilter,
+  normalizePartBrands,
+  NormalizedPartBrand,
+  PartsDropdownKind,
+  ApplyPartsFilterExtra,
 } from '../../src/utils/browse-filters/partsBrowseFilters';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -136,8 +141,63 @@ export default function PartsBrowseScreen() {
   };
 
   // Dropdown Modal State
-  const [activeDropdown, setActiveDropdown] = useState<'category' | 'make' | 'condition' | 'price' | 'city' | 'sort' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<PartsDropdownKind | null>(null);
   const { data: brands } = useBrands();
+
+  const availableBrands: NormalizedPartBrand[] = useMemo(() => {
+    return normalizePartBrands(brands && brands.length > 0 ? brands : POPULAR_PART_MAKES);
+  }, [brands]);
+
+  const activeDropdownData = useMemo(() => {
+    if (!activeDropdown) return null;
+
+    switch (activeDropdown) {
+      case 'category':
+        return {
+          title: 'اختر القسم',
+          options: PART_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+          selectedId: filters.category,
+        };
+      case 'make':
+        return {
+          title: 'اختر الماركة المتوافقة',
+          options: availableBrands.map((b) => ({ id: b.id, label: b.label })),
+          selectedId: filters.makeId || filters.make,
+        };
+      case 'condition':
+        return {
+          title: 'حالة القطعة',
+          options: PART_CONDITIONS.map((c) => ({ id: c.id, label: c.label })),
+          selectedId: filters.condition,
+        };
+      case 'city':
+        return {
+          title: 'اختر المدينة',
+          options: governorates.map((g) => ({
+            id: String(g.id),
+            label: g.nameAr,
+          })),
+          selectedId: filters.governorateId ? String(filters.governorateId) : undefined,
+        };
+      case 'price':
+        return {
+          title: 'نطاق السعر',
+          options: PARTS_PRICE_RANGES.map((p) => ({ id: p.id, label: p.label })),
+          selectedId: filters.priceId,
+        };
+      case 'sort':
+        return {
+          title: 'ترتيب النتائج',
+          options: PARTS_SORT_OPTIONS.map((s) => ({ id: s.id, label: s.label })),
+          selectedId:
+            PARTS_SORT_OPTIONS.find(
+              (s) => s.sortBy === filters.sortBy && s.sortOrder === filters.sortOrder
+            )?.id || undefined,
+        };
+      default:
+        return null;
+    }
+  }, [activeDropdown, availableBrands, governorates, filters]);
 
   // Synchronize listing tabs with filter state
   const handleTabChange = (tabId: string) => {
@@ -374,7 +434,7 @@ export default function PartsBrowseScreen() {
         />
         <QuickFilters
           filters={quickFilterItems}
-          onFilterPress={(id) => setActiveDropdown(id as any)}
+          onFilterPress={(id) => setActiveDropdown(id as PartsDropdownKind)}
           onClearFilter={handleClearQuickFilter}
         />
       </CollapsibleSubHeader>
@@ -482,242 +542,31 @@ export default function PartsBrowseScreen() {
       />
 
       {/* Quick Dropdown Modal */}
-      <Modal
-        visible={!!activeDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActiveDropdown(null)}
-      >
-        <TouchableOpacity
-          style={s.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setActiveDropdown(null)}
-        >
-          <View style={s.modalContent}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>
-                {activeDropdown === 'category'
-                  ? 'اختر القسم'
-                  : activeDropdown === 'make'
-                  ? 'اختر الماركة المتوافقة'
-                  : activeDropdown === 'condition'
-                  ? 'حالة القطعة'
-                  : activeDropdown === 'city'
-                  ? 'اختر المدينة'
-                  : activeDropdown === 'sort'
-                  ? 'ترتيب النتائج'
-                  : 'نطاق السعر'}
-              </Text>
-              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Category Options */}
-            {activeDropdown === 'category' && (
-              <FlatList
-                data={PART_CATEGORIES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters((prev: PartsFilterState) => ({ ...prev, category: item.id }));
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        s.modalOptionTxt,
-                        filters.category === item.id && s.modalOptionTxtActive,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    {filters.category === item.id && (
-                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {/* Make Options */}
-            {activeDropdown === 'make' && (
-              <FlatList
-                data={brands && brands.length > 0 ? brands : POPULAR_PART_MAKES}
-                keyExtractor={(item: any) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }: any) => {
-                  const name = item.nameAr || item.name || item.label;
-                  const isSelected = filters.make === name || filters.makeId === item.id;
-                  return (
-                    <TouchableOpacity
-                      style={s.modalOptionRow}
-                      onPress={() => {
-                        setFilters((prev: PartsFilterState) => ({ ...prev, makeId: item.id, make: name }));
-                        setActiveDropdown(null);
-                      }}
-                    >
-                      <Text
-                        style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}
-                      >
-                        {name}
-                      </Text>
-                      {isSelected && (
-                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            )}
-
-            {/* Condition Options */}
-            {activeDropdown === 'condition' && (
-              <FlatList
-                data={PART_CONDITIONS}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters((prev: PartsFilterState) => ({ ...prev, condition: item.id }));
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        s.modalOptionTxt,
-                        filters.condition === item.id && s.modalOptionTxtActive,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    {filters.condition === item.id && (
-                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {/* City Options - F-01: Uses numeric IDs from locationsApi */}
-            {activeDropdown === 'city' && (
-              <FlatList
-                data={governorates}
-                keyExtractor={(item) => String(item.id)}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => {
-                  const isSelected =
-                    filters.governorateId === item.id ||
-                    filters.governorate === item.nameAr ||
-                    filters.city === item.nameAr;
-                  return (
-                    <TouchableOpacity
-                      style={s.modalOptionRow}
-                      onPress={() => {
-                        setFilters((prev: PartsFilterState) => ({
-                          ...prev,
-                          governorateId: item.id,
-                          governorate: item.nameAr,
-                          city: item.nameAr,
-                          wilayaId: undefined,
-                        }));
-                        setActiveDropdown(null);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          s.modalOptionTxt,
-                          isSelected && s.modalOptionTxtActive,
-                        ]}
-                      >
-                        {item.nameAr}
-                      </Text>
-                      {isSelected && (
-                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            )}
-
-            {/* Price Options */}
-            {activeDropdown === 'price' && (
-              <FlatList
-                data={PARTS_PRICE_RANGES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters((prev: PartsFilterState) => ({
-                        ...prev,
-                        priceMin: item.min.toString(),
-                        priceMax: item.max ? item.max.toString() : '999999',
-                        priceId: item.id,
-                      }));
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        s.modalOptionTxt,
-                        filters.priceId === item.id && s.modalOptionTxtActive,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    {filters.priceId === item.id && (
-                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {/* Sort Options */}
-            {activeDropdown === 'sort' && (
-              <FlatList
-                data={PARTS_SORT_OPTIONS}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => {
-                  const isSelected =
-                    filters.sortBy === item.sortBy && filters.sortOrder === item.sortOrder;
-                  return (
-                    <TouchableOpacity
-                      style={s.modalOptionRow}
-                      onPress={() => {
-                        setFilters((prev: PartsFilterState) => ({
-                          ...prev,
-                          sortBy: item.sortBy,
-                          sortOrder: item.sortOrder,
-                        }));
-                        setActiveDropdown(null);
-                      }}
-                    >
-                      <Text
-                        style={[s.modalOptionTxt, isSelected && s.modalOptionTxtActive]}
-                      >
-                        {item.label}
-                      </Text>
-                      {isSelected && (
-                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <QuickFilterModal
+        visible={activeDropdown !== null}
+        title={activeDropdownData?.title || ''}
+        options={activeDropdownData?.options || []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(id) => {
+          if (activeDropdown) {
+            const extra: ApplyPartsFilterExtra = {};
+            if (activeDropdown === 'make') {
+              const foundBrand = availableBrands.find((b) => b.id === id);
+              if (foundBrand) {
+                extra.brandName = foundBrand.value;
+              }
+            } else if (activeDropdown === 'city') {
+              const foundGov = governorates.find((g) => String(g.id) === id);
+              if (foundGov) {
+                extra.governorateName = foundGov.nameAr;
+              }
+            }
+            setFilters((prev) => applyPartsFilter(prev, activeDropdown, id, extra));
+          }
+        }}
+        onClose={() => setActiveDropdown(null)}
+        accentColor={Colors.primary}
+      />
 
       <PartsBottomBar />
     </View>
@@ -849,66 +698,4 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: Colors.white,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.space4,
-  },
-  modalContent: {
-    width: '90%',
-    maxHeight: '70%',
-    backgroundColor: Colors.white,
-    borderRadius: 10,
-    padding: Spacing.space3,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
-        shadowRadius: 6,
-      },
-      android: { elevation: 4 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: Spacing.space2,
-    marginBottom: Spacing.space2,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 14,
-    lineHeight: 18,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 9,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f8fafc',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalOptionTxtActive: {
-    fontFamily: 'Almarai_700Bold',
-    color: Colors.primary,
-  },
-
 });

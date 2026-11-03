@@ -8,7 +8,6 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
-  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +29,11 @@ import {
   buildEquipmentQueryParams,
   clearEquipmentFilter,
   mergeEquipmentRouteParams,
+  applyEquipmentFilter,
+  EquipmentDropdownKind,
+  EQUIPMENT_PRICE_RANGES,
+  EQUIPMENT_YEAR_RANGES,
+  EQUIPMENT_HOURS_RANGES,
 } from '../../src/utils/browse-filters/equipmentBrowseFilters';
 
 // Components
@@ -40,6 +44,7 @@ import { QuickFilters } from '../../src/components/ui/QuickFilters';
 import { EquipmentVisualFilters } from '../../src/components/equipment/EquipmentVisualFilters';
 import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -82,44 +87,15 @@ const CONDITIONS = EQUIPMENT_CONDITIONS.map((c) => ({
   name: c.label,
 }));
 
-const PRICE_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'p1', label: 'أقل من 50 ر.ع', min: '0', max: '50' },
-  { id: 'p2', label: '50 - 100 ر.ع', min: '50', max: '100' },
-  { id: 'p3', label: '100 - 500 ر.ع', min: '100', max: '500' },
-  { id: 'p4', label: '500 - 1,000 ر.ع', min: '500', max: '1000' },
-  { id: 'p5', label: '1,000 - 5,000 ر.ع', min: '1000', max: '5000' },
-  { id: 'p6', label: '5,000 - 10,000 ر.ع', min: '5000', max: '10000' },
-  { id: 'p7', label: 'أكثر من 10,000 ر.ع', min: '10000', max: '9999999' },
-];
-
-const YEAR_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'y1', label: '2022 - 2024', min: '2022', max: '2024' },
-  { id: 'y2', label: '2019 - 2021', min: '2019', max: '2021' },
-  { id: 'y3', label: '2015 - 2018', min: '2015', max: '2018' },
-  { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
-];
-
-const HOURS_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'h1', label: 'أقل من 1,000 ساعة', min: '0', max: '1000' },
-  { id: 'h2', label: '1,000 - 3,000 ساعة', min: '1000', max: '3000' },
-  { id: 'h3', label: '3,000 - 5,000 ساعة', min: '3000', max: '5000' },
-  { id: 'h4', label: 'أكثر من 5,000 ساعة', min: '5000', max: '999999' },
-];
+const PRICE_RANGES = EQUIPMENT_PRICE_RANGES;
+const YEAR_RANGES = EQUIPMENT_YEAR_RANGES;
+const HOURS_RANGES = EQUIPMENT_HOURS_RANGES;
 
 export default function EquipmentBrowseScreen() {
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
   useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+    locationsApi.getGovernorates().then(setGovernorates).catch(() => setGovernorates([]));
   }, []);
-  
-  const governorateOptions = governorates.map(g => ({
-    id: g.id,
-    labelAr: g.nameAr,
-    value: g.nameAr
-  }));
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
   const searchParams = useLocalSearchParams<{ type?: string; equipmentType?: string }>();
@@ -156,7 +132,56 @@ export default function EquipmentBrowseScreen() {
   }, [searchParams.type, searchParams.equipmentType]);
   
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<EquipmentDropdownKind | null>(null);
+
+  const activeDropdownData = useMemo(() => {
+    if (!activeDropdown) return null;
+
+    switch (activeDropdown) {
+      case 'governorate':
+        return {
+          title: 'المدينة',
+          options: governorates.map((item) => ({
+            // Ensures governorateId: item.id is used for location filters
+            id: String(item.id),
+            label: item.nameAr,
+          })),
+          selectedId: filters.governorateId ? String(filters.governorateId) : undefined,
+        };
+      case 'category':
+        return {
+          title: 'نوع المعدة',
+          options: CATEGORIES_ARRAY.map((c) => ({ id: c.id, label: c.name })),
+          selectedId: filters.equipmentType || filters.categoryId,
+        };
+      case 'condition':
+        return {
+          title: 'حالة المعدة',
+          options: CONDITIONS.map((c) => ({ id: c.id, label: c.name })),
+          selectedId: filters.condition || filters.conditionId,
+        };
+      case 'price':
+        return {
+          title: 'السعر',
+          options: PRICE_RANGES.map((p) => ({ id: p.id, label: p.label })),
+          selectedId: filters.priceId || (!filters.priceMax ? 'all' : undefined),
+        };
+      case 'year':
+        return {
+          title: 'سنة الصنع',
+          options: YEAR_RANGES.map((y) => ({ id: y.id, label: y.label })),
+          selectedId: filters.yearId || (!filters.yearMax ? 'all' : undefined),
+        };
+      case 'hours':
+        return {
+          title: 'ساعات العمل',
+          options: HOURS_RANGES.map((h) => ({ id: h.id, label: h.label })),
+          selectedId: filters.hoursId || (!filters.hoursMax ? 'all' : undefined),
+        };
+      default:
+        return null;
+    }
+  }, [activeDropdown, governorates, filters]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -322,7 +347,7 @@ export default function EquipmentBrowseScreen() {
         />
         <QuickFilters
           filters={quickFilterItems}
-          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onFilterPress={(id) => setActiveDropdown(id as EquipmentDropdownKind)}
           onClearFilter={handleClearQuickFilter}
         />
       </CollapsibleSubHeader>
@@ -430,192 +455,19 @@ export default function EquipmentBrowseScreen() {
         />
       )}
 
-      {/* DROPDOWNS */}
-      <Modal
-        visible={!!activeDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActiveDropdown(null)}
-      >
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setActiveDropdown(null)}>
-          <View style={s.modalContent}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>
-                {activeDropdown === 'governorate' ? 'المدينة' :
-                 activeDropdown === 'category' ? 'نوع المعدة' :
-                 activeDropdown === 'condition' ? 'حالة المعدة' : 
-                 activeDropdown === 'price' ? 'السعر' : 
-                 activeDropdown === 'year' ? 'سنة الصنع' : 
-                 activeDropdown === 'hours' ? 'ساعات العمل' : ''}
-              </Text>
-              <TouchableOpacity onPress={() => setActiveDropdown(null)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {activeDropdown === 'governorate' && (
-              <FlatList
-                data={governorateOptions}
-                keyExtractor={(item) => item.id.toString()}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({
-                        ...filters,
-                        governorateId: item.id,
-                        wilayaId: undefined,
-                        city: undefined,
-                      });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.governorateId === item.id && s.modalOptionTxtActive]}>
-                      {item.labelAr}
-                    </Text>
-                    {filters.governorateId === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'category' && (
-              <FlatList
-                data={CATEGORIES_ARRAY}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, equipmentType: item.id, categoryId: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.equipmentType === item.id && s.modalOptionTxtActive]}>
-                      {item.name}
-                    </Text>
-                    {filters.equipmentType === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'condition' && (
-              <FlatList
-                data={CONDITIONS}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters({ ...filters, condition: item.id, conditionId: item.id });
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, filters.condition === item.id && s.modalOptionTxtActive]}>
-                      {item.name}
-                    </Text>
-                    {filters.condition === item.id && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'price' && (
-              <FlatList
-                data={PRICE_RANGES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      if (item.id === 'all') {
-                        const newFilters = { ...filters };
-                        delete newFilters.priceMin;
-                        delete newFilters.priceMax;
-                        delete newFilters.priceId;
-                        setFilters(newFilters);
-                      } else {
-                        setFilters({ ...filters, priceMin: item.min, priceMax: item.max, priceId: item.id });
-                      }
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, (filters.priceMax === item.max || (!filters.priceMax && item.id === 'all')) && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {(filters.priceMax === item.max || (!filters.priceMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'year' && (
-              <FlatList
-                data={YEAR_RANGES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      if (item.id === 'all') {
-                        const newFilters = { ...filters };
-                        delete (newFilters as any).yearMin;
-                        delete (newFilters as any).yearMax;
-                        delete (newFilters as any).yearId;
-                        setFilters(newFilters);
-                      } else {
-                        setFilters({ ...filters, yearMin: item.min, yearMax: item.max, yearId: item.id } as any);
-                      }
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, ((filters as any).yearMax === item.max || (!(filters as any).yearMax && item.id === 'all')) && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {((filters as any).yearMax === item.max || (!(filters as any).yearMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-
-            {activeDropdown === 'hours' && (
-              <FlatList
-                data={HOURS_RANGES}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      if (item.id === 'all') {
-                        const newFilters = { ...filters };
-                        delete (newFilters as any).hoursMin;
-                        delete (newFilters as any).hoursMax;
-                        delete (newFilters as any).hoursId;
-                        setFilters(newFilters);
-                      } else {
-                        setFilters({ ...filters, hoursMin: item.min, hoursMax: item.max, hoursId: item.id } as any);
-                      }
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text style={[s.modalOptionTxt, ((filters as any).hoursMax === item.max || (!(filters as any).hoursMax && item.id === 'all')) && s.modalOptionTxtActive]}>
-                      {item.label}
-                    </Text>
-                    {((filters as any).hoursMax === item.max || (!(filters as any).hoursMax && item.id === 'all')) && <Ionicons name="checkmark" size={20} color={Colors.equipmentPrimary} />}
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <QuickFilterModal
+        visible={activeDropdown !== null}
+        title={activeDropdownData?.title || ''}
+        options={activeDropdownData?.options || []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(id) => {
+          if (activeDropdown) {
+            setFilters((prev) => applyEquipmentFilter(prev, activeDropdown, id));
+          }
+        }}
+        onClose={() => setActiveDropdown(null)}
+        accentColor={Colors.equipmentPrimary}
+      />
 
       {/* Filter Bottom Sheet */}
       <EquipmentFilterBottomSheet
@@ -690,52 +542,5 @@ const s = StyleSheet.create({
   retryBtnTxt: {
     fontFamily: 'Almarai_700Bold', 
     fontSize: 15, color: '#fff',
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    maxHeight: '65%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space4,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 16, color: Colors.text,
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: Colors.text2,
-  },
-  modalOptionTxtActive: {
-    color: Colors.equipmentPrimary,
   },
 });
