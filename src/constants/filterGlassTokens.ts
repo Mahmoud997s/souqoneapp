@@ -70,6 +70,8 @@ export const FilterGlassTokens = {
     viewAllBg: Colors.surfaceAlt,
     viewAllIconBg: Colors.paleMint,
     viewAllTextColor: Colors.primary,
+    iconTileBg: '#F0F5FF',
+    emptyErrorIconBg: '#FEF2F2',
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,

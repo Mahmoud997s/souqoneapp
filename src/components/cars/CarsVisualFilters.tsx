@@ -13,6 +13,7 @@ import { CarBrand, CarModelItem } from '../../api/cars';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -111,8 +112,8 @@ export function CarsVisualFilters({
     if (!loadingModels && (!models || models.length === 0)) {
       return (
         <View style={s.inlineEmptyBox}>
-          <View style={[s.inlineEmptyIcon, { backgroundColor: '#fef2f2' }]}>
-            <Ionicons name="alert-circle-outline" size={20} color="#ef4444" />
+          <View style={[s.inlineEmptyIcon, { backgroundColor: FilterGlassTokens.card.emptyErrorIconBg }]}>
+            <Ionicons name="alert-circle-outline" size={20} color={Colors.error} />
           </View>
           <View style={s.inlineEmptyTextContainer}>
             <Text style={s.inlineEmptyTitle}>لا توجد موديلات</Text>
@@ -174,7 +175,7 @@ export function CarsVisualFilters({
             label: item.nameAr || item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name="car-sport-outline" size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -200,7 +201,7 @@ export function CarsVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={isSelected ? 'location' : 'location-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -226,7 +227,7 @@ export function CarsVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={isSelected ? 'wallet' : 'wallet-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -252,7 +253,7 @@ export function CarsVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={item.icon || 'car-sport-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -296,19 +297,19 @@ const s = StyleSheet.create({
   inlineEmptyBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: FilterGlassTokens.iceGlassBg,
     borderRadius: 12,
     padding: 12,
     marginHorizontal: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: FilterGlassTokens.borderColor,
     gap: 12,
   },
   inlineEmptyIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#eff6ff',
+    backgroundColor: FilterGlassTokens.card.iconTileBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,7 +319,7 @@ const s = StyleSheet.create({
   inlineEmptyTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    color: '#334155',
+    color: Colors.text,
     writingDirection: 'rtl',
     marginBottom: 4,
     textAlign: 'left',
@@ -326,7 +327,7 @@ const s = StyleSheet.create({
   inlineEmptySub: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
-    color: '#64748b',
+    color: Colors.textMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
     lineHeight: 14,
@@ -334,12 +335,12 @@ const s = StyleSheet.create({
   inlineEmptyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: Colors.border,
     gap: 4,
   },
   inlineEmptyBtnText: {

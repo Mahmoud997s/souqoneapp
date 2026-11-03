@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -213,7 +214,7 @@ const s = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 5,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: FilterGlassTokens.card.iconTileBg,
     alignItems: 'center',
     justifyContent: 'center',
   },

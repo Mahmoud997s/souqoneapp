@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { SERVICE_TYPES, PROVIDER_TYPES, ServiceTypeOption } from '../../constants/services';
 import {
   VisualFiltersBase,
@@ -82,7 +83,7 @@ export function ServicesVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={(item.icon as keyof typeof Ionicons.glyphMap) || 'build-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -108,7 +109,7 @@ export function ServicesVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={item.icon || 'sparkles-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -134,7 +135,7 @@ export function ServicesVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={isSelected ? 'location' : 'location-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -160,7 +161,7 @@ export function ServicesVisualFilters({
             label: item.name || item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={item.icon || 'business-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
