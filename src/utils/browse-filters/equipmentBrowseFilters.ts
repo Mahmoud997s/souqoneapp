@@ -130,13 +130,43 @@ export function clearEquipmentFilter(
 }
 
 /**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Safely parses a positive integer ID from a route parameter.
+ * Rule: Accepts single positive whole numbers; for repeated parameters (arrays),
+ * evaluates the first element; invalid formats return undefined.
+ */
+function toPositiveInteger(val: unknown): number | undefined {
+  const str = toSingleString(val);
+  if (!str || !/^\d+$/.test(str)) return undefined;
+  const num = Number(str);
+  return num > 0 ? num : undefined;
+}
+
+/**
  * Parses initial filter state from route params.
  */
 export function parseEquipmentInitialFilters(
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): EquipmentFilterState {
   const initial: EquipmentFilterState = {};
-  const t = params.type?.toLowerCase();
+  const rawType = toSingleString(params.type);
+  const t = rawType?.toLowerCase();
 
   if (t === 'used') {
     initial.condition = 'USED';
@@ -152,10 +182,17 @@ export function parseEquipmentInitialFilters(
     initial.listingType = 'EQUIPMENT_SALE';
   }
 
-  if (params.equipmentType) {
-    initial.equipmentType = params.equipmentType;
-    initial.categoryId = params.equipmentType;
+  const eqType = toSingleString(params.equipmentType);
+  if (eqType) {
+    initial.equipmentType = eqType;
+    initial.categoryId = eqType;
   }
+
+  const govId = toPositiveInteger(params.governorateId);
+  if (govId !== undefined) initial.governorateId = govId;
+
+  const wilId = toPositiveInteger(params.wilayaId);
+  if (wilId !== undefined) initial.wilayaId = wilId;
 
   return initial;
 }
@@ -165,10 +202,11 @@ export function parseEquipmentInitialFilters(
  */
 export function mergeEquipmentRouteParams(
   prev: EquipmentFilterState,
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): EquipmentFilterState {
   const next = { ...prev };
-  const t = params.type?.toLowerCase();
+  const rawType = toSingleString(params.type);
+  const t = rawType?.toLowerCase();
 
   if (t === 'used') {
     next.condition = 'USED';
@@ -185,8 +223,15 @@ export function mergeEquipmentRouteParams(
   }
 
   if (params.equipmentType !== undefined) {
-    next.equipmentType = params.equipmentType || undefined;
-    next.categoryId = params.equipmentType || undefined;
+    const eqType = toSingleString(params.equipmentType);
+    next.equipmentType = eqType;
+    next.categoryId = eqType;
+  }
+  if (params.governorateId !== undefined) {
+    next.governorateId = toPositiveInteger(params.governorateId);
+  }
+  if (params.wilayaId !== undefined) {
+    next.wilayaId = toPositiveInteger(params.wilayaId);
   }
 
   return next;

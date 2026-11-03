@@ -76,13 +76,13 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
 
       // 2. Legacy string code 'OM_MUS' from GOVERNORATE_OPTIONS must NEVER be emitted
       // because backend QueryPartsDto enforces @IsNumberString() which throws 400
-      const invalidLegacy: PartsFilterState = {
-        governorateId: 'OM_MUS' as any,
+      const invalidLegacy = {
+        governorateId: 'OM_MUS',
         city: 'مسقط',
-      };
+      } as unknown as PartsFilterState;
       const invalidParams = buildPartsQueryParams(invalidLegacy);
       expect(invalidParams.governorateId).toBeUndefined();
-      expect((invalidParams as any).city).toBeUndefined();
+      expect('city' in invalidParams).toBe(false);
     });
   });
 
@@ -170,10 +170,10 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       });
 
       // Confirm UI-only fields are never in query params
-      expect((params as any).makeId).toBeUndefined();
-      expect((params as any).priceId).toBeUndefined();
-      expect((params as any).city).toBeUndefined();
-      expect((params as any).governorate).toBeUndefined();
+      expect('makeId' in params).toBe(false);
+      expect('priceId' in params).toBe(false);
+      expect('city' in params).toBe(false);
+      expect('governorate' in params).toBe(false);
     });
   });
 
@@ -208,13 +208,20 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(invalidInitial.governorateId).toBeUndefined();
       expect(invalidInitial.wilayaId).toBeUndefined();
 
-      // Repeated query params from Expo Router come as string[]
+      // Repeated query params from Expo Router come as string[] (rule: takes first valid element)
       const repeatedParamInitial = parsePartsInitialFilters({
         governorateId: ['1', '2'] as unknown as string,
         wilayaId: ['101', '102'] as unknown as string,
       });
-      expect(repeatedParamInitial.governorateId).toBeUndefined();
-      expect(repeatedParamInitial.wilayaId).toBeUndefined();
+      expect(repeatedParamInitial.governorateId).toBe(1);
+      expect(repeatedParamInitial.wilayaId).toBe(101);
+
+      const invalidArray = parsePartsInitialFilters({
+        governorateId: ['OM_MUS', '2'] as unknown as string,
+        wilayaId: ['invalid', '102'] as unknown as string,
+      });
+      expect(invalidArray.governorateId).toBeUndefined();
+      expect(invalidArray.wilayaId).toBeUndefined();
 
       const invalidMerged = mergePartsRouteParams({}, {
         governorateId: '1.5',

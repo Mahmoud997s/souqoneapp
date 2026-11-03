@@ -70,7 +70,7 @@ export function buildOperatorQueryParams(
 /**
  * In-memory client-side refinement for attributes not yet accepted by the server DTO.
  */
-export function refineOperatorsClientSide<T extends { raw?: any } | Record<string, any>>(
+export function refineOperatorsClientSide<T extends { raw?: unknown } | Record<string, unknown>>(
   items: T[],
   filters: OperatorFilterState
 ): T[] {
@@ -146,23 +146,51 @@ export function clearOperatorFilter(
 }
 
 /**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Safely parses a positive integer ID from a route parameter.
+ * Rule: Accepts single positive whole numbers; for repeated parameters (arrays),
+ * evaluates the first element; invalid formats return undefined.
+ */
+function toPositiveInteger(val: unknown): number | undefined {
+  const str = toSingleString(val);
+  if (!str || !/^\d+$/.test(str)) return undefined;
+  const num = Number(str);
+  return num > 0 ? num : undefined;
+}
+
+/**
  * Merges updated route params into existing operator filters (G-07).
  */
 export function mergeOperatorRouteParams(
   prev: OperatorFilterState,
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): OperatorFilterState {
   const next = { ...prev };
-  if (params.operatorType && params.operatorType !== 'all') {
-    next.operatorType = params.operatorType;
+  const opType = toSingleString(params.operatorType);
+  if (opType && opType !== 'all') {
+    next.operatorType = opType;
   }
-  if (params.governorateId) {
-    const g = Number(params.governorateId);
-    if (!isNaN(g)) next.governorateId = g;
+  if (params.governorateId !== undefined) {
+    next.governorateId = toPositiveInteger(params.governorateId);
   }
-  if (params.wilayaId) {
-    const w = Number(params.wilayaId);
-    if (!isNaN(w)) next.wilayaId = w;
+  if (params.wilayaId !== undefined) {
+    next.wilayaId = toPositiveInteger(params.wilayaId);
   }
   return next;
 }

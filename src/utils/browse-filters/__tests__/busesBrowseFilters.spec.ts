@@ -61,8 +61,8 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
 
     it('maps technical specs (condition, transmission, fuelType, year)', () => {
       const filters: BusBrowseFilters = {
-        condition: 'USED' as any,
-        transmission: 'MANUAL' as any,
+        condition: 'USED',
+        transmission: 'MANUAL',
         fuelType: 'DIESEL',
         yearMin: '2018',
         yearMax: '2023',
@@ -127,8 +127,8 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
         maxPrice: '15000',
         minCapacity: 14,
         maxCapacity: 20,
-        condition: 'LIKE_NEW' as any,
-        transmission: 'AUTOMATIC' as any,
+        condition: 'LIKE_NEW',
+        transmission: 'AUTOMATIC',
         fuelType: 'PETROL',
         yearMin: '2020',
         yearMax: '2024',
@@ -143,9 +143,9 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
         expect(allowSet.has(key)).toBe(true);
       });
 
-      expect((params as any).city).toBeUndefined();
-      expect((params as any).priceId).toBeUndefined();
-      expect((params as any).capacityId).toBeUndefined();
+      expect('city' in params).toBe(false);
+      expect('priceId' in params).toBe(false);
+      expect('capacityId' in params).toBe(false);
     });
   });
 
@@ -159,6 +159,24 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
       expect(parsed.busListingType).toBe('BUS_RENT');
       expect(parsed.condition).toBe('USED');
       expect(parsed.isPremium).toBe(true);
+    });
+
+    it('safely handles repeated parameters (string[]) from Expo Router', () => {
+      const parsed = parseBusesInitialFilters({
+        type: ['rent', 'sale'] as unknown as string,
+        condition: ['USED', 'NEW'] as unknown as string,
+        governorateId: ['2', '3'] as unknown as string,
+      });
+      expect(parsed.busListingType).toBe('BUS_RENT');
+      expect(parsed.condition).toBe('USED');
+      expect(parsed.governorateId).toBe(2);
+
+      const merged = mergeBusesRouteParams({}, {
+        busListingType: ['BUS_SALE', 'BUS_RENT'] as unknown as string,
+        wilayaId: ['105', '106'] as unknown as string,
+      });
+      expect(merged.busListingType).toBe('BUS_SALE');
+      expect(merged.wilayaId).toBe(105);
     });
 
     it('merges route params into existing state without wiping selections (G-07)', () => {

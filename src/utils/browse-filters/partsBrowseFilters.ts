@@ -117,36 +117,76 @@ export function clearPartsFilter(filters: PartsFilterState, id: string): PartsFi
   return next;
 }
 
-function parseLocationId(value: unknown): number | undefined {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  if (!/^\d+$/.test(trimmed)) return undefined;
-  const n = Number(trimmed);
-  return n > 0 ? n : undefined;
+/**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Safely parses a positive integer ID from a route parameter.
+ * Rule: Accepts single positive whole numbers; for repeated parameters (arrays),
+ * evaluates the first element; invalid formats return undefined.
+ */
+function toPositiveInteger(val: unknown): number | undefined {
+  const str = toSingleString(val);
+  if (!str || !/^\d+$/.test(str)) return undefined;
+  const num = Number(str);
+  return num > 0 ? num : undefined;
 }
 
 /**
  * Parses initial filter state from route params.
  */
 export function parsePartsInitialFilters(
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): PartsFilterState {
   const initial: PartsFilterState = {};
 
-  if (params.category) initial.category = params.category;
-  if (params.condition) initial.condition = params.condition;
-  if (params.isOriginal === 'false') initial.isOriginal = false;
-  else if (params.isOriginal === 'true') initial.isOriginal = true;
-  if (params.isScrap === 'true') initial.isScrap = true;
-  if (params.make) initial.make = params.make;
-  if (params.city) initial.city = params.city;
-  const g = parseLocationId(params.governorateId);
+  const category = toSingleString(params.category);
+  if (category) initial.category = category;
+
+  const condition = toSingleString(params.condition);
+  if (condition) initial.condition = condition;
+
+  const isOrig = toSingleString(params.isOriginal);
+  if (isOrig === 'false') initial.isOriginal = false;
+  else if (isOrig === 'true') initial.isOriginal = true;
+
+  const isScrap = toSingleString(params.isScrap);
+  if (isScrap === 'true') initial.isScrap = true;
+
+  const make = toSingleString(params.make);
+  if (make) initial.make = make;
+
+  const city = toSingleString(params.city);
+  if (city) initial.city = city;
+
+  const g = toPositiveInteger(params.governorateId);
   if (g !== undefined) initial.governorateId = g;
-  const w = parseLocationId(params.wilayaId);
+
+  const w = toPositiveInteger(params.wilayaId);
   if (w !== undefined) initial.wilayaId = w;
-  if (params.priceMin) initial.priceMin = params.priceMin;
-  if (params.priceMax) initial.priceMax = params.priceMax;
-  if (params.partNumber) initial.partNumber = params.partNumber;
+
+  const pMin = toSingleString(params.priceMin);
+  if (pMin) initial.priceMin = pMin;
+
+  const pMax = toSingleString(params.priceMax);
+  if (pMax) initial.priceMax = pMax;
+
+  const pNum = toSingleString(params.partNumber);
+  if (pNum) initial.partNumber = pNum;
 
   return initial;
 }
@@ -156,24 +196,34 @@ export function parsePartsInitialFilters(
  */
 export function mergePartsRouteParams(
   prev: PartsFilterState,
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): PartsFilterState {
   const next = { ...prev };
-  if (params.category !== undefined) next.category = params.category || undefined;
-  if (params.condition !== undefined) next.condition = params.condition || undefined;
-  if (params.make !== undefined) next.make = params.make || undefined;
-  if (params.city !== undefined) next.city = params.city || undefined;
+
+  if (params.category !== undefined) {
+    next.category = toSingleString(params.category);
+  }
+  if (params.condition !== undefined) {
+    next.condition = toSingleString(params.condition);
+  }
+  if (params.make !== undefined) {
+    next.make = toSingleString(params.make);
+  }
+  if (params.city !== undefined) {
+    next.city = toSingleString(params.city);
+  }
   if (params.governorateId !== undefined) {
-    next.governorateId = parseLocationId(params.governorateId);
+    next.governorateId = toPositiveInteger(params.governorateId);
   }
   if (params.wilayaId !== undefined) {
-    next.wilayaId = parseLocationId(params.wilayaId);
+    next.wilayaId = toPositiveInteger(params.wilayaId);
   }
   if (params.isOriginal !== undefined) {
-    next.isOriginal = params.isOriginal === 'true' ? true : params.isOriginal === 'false' ? false : undefined;
+    const isOrig = toSingleString(params.isOriginal);
+    next.isOriginal = isOrig === 'true' ? true : isOrig === 'false' ? false : undefined;
   }
   if (params.isScrap !== undefined) {
-    next.isScrap = params.isScrap === 'true';
+    next.isScrap = toSingleString(params.isScrap) === 'true';
   }
   return next;
 }

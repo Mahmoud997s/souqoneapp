@@ -64,7 +64,7 @@ describe('Operators Browse Pure Filters & Contract (D-185)', () => {
 
       expect(params.minDailyRate).toBe(30);
       OPERATORS_CLIENT_ONLY_KEYS.forEach((key) => {
-        expect((params as any)[key]).toBeUndefined();
+        expect(key in params).toBe(false);
       });
     });
   });
@@ -173,6 +173,17 @@ describe('Operators Browse Pure Filters & Contract (D-185)', () => {
       expect(merged.dailyRateMax).toBe(100);
       expect(merged.operatorType).toBe('TECHNICIAN');
       expect(merged.governorateId).toBe(1);
+    });
+
+    it('safely handles repeated parameters (string[]) from Expo Router', () => {
+      const merged = mergeOperatorRouteParams({}, {
+        operatorType: ['DRIVER', 'TECHNICIAN'] as unknown as string,
+        governorateId: ['2', '3'] as unknown as string,
+        wilayaId: ['103', '104'] as unknown as string,
+      });
+      expect(merged.operatorType).toBe('DRIVER');
+      expect(merged.governorateId).toBe(2);
+      expect(merged.wilayaId).toBe(103);
     });
   });
 });

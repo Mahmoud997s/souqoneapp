@@ -52,9 +52,9 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
       };
       const params = buildEquipmentQueryParams(filters);
       expect(params.hoursUsedMax).toBe(3000);
-      expect((params as any).hoursMin).toBeUndefined();
-      expect((params as any).hoursMax).toBeUndefined();
-      expect((params as any).hoursId).toBeUndefined();
+      expect('hoursMin' in params).toBe(false);
+      expect('hoursMax' in params).toBe(false);
+      expect('hoursId' in params).toBe(false);
     });
   });
 
@@ -131,9 +131,9 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
         expect(allowSet.has(key)).toBe(true);
       });
 
-      expect((params as any).hoursMin).toBeUndefined();
-      expect((params as any).priceId).toBeUndefined();
-      expect((params as any).city).toBeUndefined();
+      expect('hoursMin' in params).toBe(false);
+      expect('priceId' in params).toBe(false);
+      expect('city' in params).toBe(false);
     });
   });
 
@@ -145,6 +145,26 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
       });
       expect(initial.listingType).toBe('EQUIPMENT_RENT');
       expect(initial.equipmentType).toBe('FORKLIFT');
+    });
+
+    it('safely handles repeated parameters (string[]) from Expo Router', () => {
+      const initial = parseEquipmentInitialFilters({
+        type: ['rental', 'sale'] as unknown as string,
+        equipmentType: ['FORKLIFT', 'CRANE'] as unknown as string,
+        governorateId: ['4', '5'] as unknown as string,
+      });
+      expect(initial.listingType).toBe('EQUIPMENT_RENT');
+      expect(initial.equipmentType).toBe('FORKLIFT');
+      expect(initial.governorateId).toBe(4);
+
+      const merged = mergeEquipmentRouteParams({}, {
+        type: ['used', 'new'] as unknown as string,
+        equipmentType: ['LOADER', 'DOZER'] as unknown as string,
+        wilayaId: ['108', '109'] as unknown as string,
+      });
+      expect(merged.condition).toBe('USED');
+      expect(merged.equipmentType).toBe('LOADER');
+      expect(merged.wilayaId).toBe(108);
     });
 
     it('merges route params into existing filter state without wiping selections (G-07)', () => {

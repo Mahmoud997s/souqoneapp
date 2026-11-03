@@ -107,29 +107,70 @@ export function clearBusesFilter(filters: BusBrowseFilters, id: string): BusBrow
 }
 
 /**
+ * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
+ * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
+ * takes the first non-empty string element; otherwise returns undefined.
+ */
+function toSingleString(val: unknown): string | undefined {
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+    const trimmed = val[0].trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Safely parses a positive integer ID from a route parameter.
+ * Rule: Accepts single positive whole numbers; for repeated parameters (arrays),
+ * evaluates the first element; invalid formats return undefined.
+ */
+function toPositiveInteger(val: unknown): number | undefined {
+  const str = toSingleString(val);
+  if (!str || !/^\d+$/.test(str)) return undefined;
+  const num = Number(str);
+  return num > 0 ? num : undefined;
+}
+
+/**
  * Parses initial filter state from route params.
  */
 export function parseBusesInitialFilters(
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): BusBrowseFilters {
   const initial: BusBrowseFilters = {};
 
-  if (params.busListingType) {
-    initial.busListingType = params.busListingType;
-  } else if (params.type) {
-    const t = params.type.toUpperCase();
+  const busListingType = toSingleString(params.busListingType);
+  const type = toSingleString(params.type);
+  if (busListingType) {
+    initial.busListingType = busListingType;
+  } else if (type) {
+    const t = type.toUpperCase();
     if (t === 'RENT' || t === 'RENTAL') initial.busListingType = 'BUS_RENT';
     else if (t === 'SALE') initial.busListingType = 'BUS_SALE';
     else if (t === 'CONTRACT') initial.busListingType = 'BUS_SALE_WITH_CONTRACT';
     else initial.busListingType = t;
   }
 
-  if (params.condition) {
-    initial.condition = params.condition;
+  const condition = toSingleString(params.condition);
+  if (condition) {
+    initial.condition = condition;
   }
-  if (params.featured === 'true' || params.isPremium === 'true') {
+
+  const featured = toSingleString(params.featured);
+  const isPremium = toSingleString(params.isPremium);
+  if (featured === 'true' || isPremium === 'true') {
     initial.isPremium = true;
   }
+
+  const govId = toPositiveInteger(params.governorateId);
+  if (govId !== undefined) initial.governorateId = govId;
+
+  const wilId = toPositiveInteger(params.wilayaId);
+  if (wilId !== undefined) initial.wilayaId = wilId;
 
   return initial;
 }
@@ -139,24 +180,34 @@ export function parseBusesInitialFilters(
  */
 export function mergeBusesRouteParams(
   prev: BusBrowseFilters,
-  params: Record<string, string | undefined>
+  params: Record<string, unknown>
 ): BusBrowseFilters {
   const next = { ...prev };
 
-  if (params.busListingType) {
-    next.busListingType = params.busListingType;
-  } else if (params.type) {
-    const t = params.type.toUpperCase();
+  const busListingType = toSingleString(params.busListingType);
+  const type = toSingleString(params.type);
+  if (busListingType) {
+    next.busListingType = busListingType;
+  } else if (type) {
+    const t = type.toUpperCase();
     if (t === 'RENT' || t === 'RENTAL') next.busListingType = 'BUS_RENT';
     else if (t === 'SALE') next.busListingType = 'BUS_SALE';
     else if (t === 'CONTRACT') next.busListingType = 'BUS_SALE_WITH_CONTRACT';
   }
 
   if (params.condition !== undefined) {
-    next.condition = params.condition || undefined;
+    next.condition = toSingleString(params.condition);
   }
   if (params.featured !== undefined || params.isPremium !== undefined) {
-    next.isPremium = params.featured === 'true' || params.isPremium === 'true';
+    const featured = toSingleString(params.featured);
+    const isPremium = toSingleString(params.isPremium);
+    next.isPremium = featured === 'true' || isPremium === 'true';
+  }
+  if (params.governorateId !== undefined) {
+    next.governorateId = toPositiveInteger(params.governorateId);
+  }
+  if (params.wilayaId !== undefined) {
+    next.wilayaId = toPositiveInteger(params.wilayaId);
   }
 
   return next;
