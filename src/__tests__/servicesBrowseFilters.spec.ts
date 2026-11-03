@@ -4,6 +4,7 @@ import {
   clearServicesQuickFilter,
   buildServicesQueryParams,
   countServicesActiveFilters,
+  ServicesFilterState,
 } from '../utils/browse-filters/servicesBrowseFilters';
 import { SERVICES_QUERY_ALLOWED_KEYS } from '../types/contracts/servicesQuery';
 
@@ -53,7 +54,7 @@ describe('Services Browse Filter Logic & Contract', () => {
   });
 
   it('clears individual filters without affecting others', () => {
-    let state = {
+    let state: ServicesFilterState = {
       serviceType: 'CLEANING',
       providerType: 'WORKSHOP',
       city: 'مسقط',

@@ -1,27 +1,8 @@
 import { CarsQuery } from '../../types/contracts/carsQuery';
+import { FilterState } from '../../types/filters.types';
 
-export interface CarsFilterState {
-  make?: string;
-  makeId?: string;
-  model?: string;
-  modelId?: string;
-  trim?: string;
-  condition?: string;
-  listingType?: string;
-  isPremium?: boolean;
-  yearMin?: number | string;
-  yearMax?: number | string;
-  priceMin?: number | string;
-  priceMax?: number | string;
+export interface CarsFilterState extends FilterState {
   priceId?: string;
-  bodyType?: string;
-  governorateId?: number | string;
-  wilayaId?: number | string;
-  governorate?: string;
-  city?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  [key: string]: unknown;
 }
 
 export interface CarsRouteParams {

@@ -149,8 +149,8 @@ describe('Cars Browse Filter Logic & Contract', () => {
         priceId: 'p-1', // Internal: should NOT be emitted
         priceMin: '5000',
         priceMax: '15000',
-        yearMin: 2020,
-        yearMax: 2024,
+        yearMin: '2020',
+        yearMax: '2024',
         bodyType: 'SEDAN',
         governorateId: 1,
         wilayaId: 10,

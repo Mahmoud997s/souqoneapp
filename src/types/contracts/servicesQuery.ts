@@ -18,9 +18,10 @@ export interface ServicesQuery {
   longitude?: number;
   radiusKm?: number;
   userId?: string;
+  [key: string]: unknown;
 }
 
-export const SERVICES_QUERY_ALLOWED_KEYS: readonly (keyof ServicesQuery)[] = [
+export const SERVICES_QUERY_ALLOWED_KEYS: readonly string[] = [
   'limit',
   'page',
   'search',

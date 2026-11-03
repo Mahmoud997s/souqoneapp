@@ -27,9 +27,10 @@ export interface CarsQuery {
   sortOrder?: string;
   sellerId?: string;
   isPremium?: boolean;
+  [key: string]: unknown;
 }
 
-export const CARS_QUERY_ALLOWED_KEYS: readonly (keyof CarsQuery)[] = [
+export const CARS_QUERY_ALLOWED_KEYS: readonly string[] = [
   'limit',
   'page',
   'search',

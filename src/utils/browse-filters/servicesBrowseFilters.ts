@@ -1,20 +1,7 @@
 import { ServicesQuery } from '../../types/contracts/servicesQuery';
+import { ServicesFilterState } from '../../types/filters.types';
 
-export interface ServicesFilterState {
-  serviceType?: string;
-  providerType?: string;
-  governorate?: string;
-  governorateId?: number | string;
-  wilayaId?: number | string;
-  isHomeService?: boolean;
-  isOpenNow?: boolean;
-  specializations?: string[];
-  city?: string;
-  latitude?: number;
-  longitude?: number;
-  radiusKm?: number;
-  [key: string]: unknown;
-}
+export type { ServicesFilterState };
 
 export interface ServicesRouteParams {
   q?: string;
