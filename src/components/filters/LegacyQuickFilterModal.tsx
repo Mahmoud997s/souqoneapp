@@ -170,8 +170,8 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
               renderItem={({ item }) => {
                 const isSelected =
                   (currentFilters.makeId != null && item.id != null && String(currentFilters.makeId) === String(item.id)) ||
-                  currentFilters.make === item.name ||
-                  (item.id != null && currentFilters.make === String(item.id));
+                  (currentFilters.make != null && item.name != null && currentFilters.make === item.name) ||
+                  (currentFilters.make != null && item.id != null && currentFilters.make === String(item.id));
                 return (
                   <TouchableOpacity
                     style={styles.modalOptionRow}

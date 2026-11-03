@@ -27,17 +27,21 @@ export interface VisualFilterItemConfig {
   onPress: () => void;
 }
 
-export interface VisualFilterItem<T = object> {
-  id: string;
+export interface VisualFilterItemLike {
+  id: string | number;
   label?: string;
   name?: string;
   nameAr?: string | null;
   isSelected?: boolean;
   onPress?: () => void;
+}
+
+export interface VisualFilterItem<T = object> extends VisualFilterItemLike {
+  id: string;
   payload?: T;
 }
 
-export interface VisualFilterTab<TTabId extends string = string, TItem = VisualFilterItem> {
+export interface VisualFilterTab<TTabId extends string = string, TItem extends VisualFilterItemLike = VisualFilterItemLike> {
   id: TTabId;
   label: string;
   icon?: keyof typeof Ionicons.glyphMap;
@@ -161,25 +165,23 @@ export function VisualFiltersBase<TTabId extends string = string>({
         contentContainerStyle={s.scrollContainer}
       >
         {columns.map((col, colIdx) => {
-          const firstItem = col[0] as VisualFilterItem | undefined;
+          const firstItem = col[0];
           const colKey = firstItem?.id != null ? String(firstItem.id) : `col-${colIdx}`;
 
           return (
             <View key={colKey} style={rows === 2 ? s.column : undefined}>
               {col.map((item) => {
                 if (currentTab.renderItem) {
-                  const itemWithSel = item as VisualFilterItem | undefined;
-                  const isSel = Boolean(itemWithSel?.isSelected);
-                  return currentTab.renderItem(item, isSel);
+                  return currentTab.renderItem(item, Boolean(item.isSelected));
                 }
 
                 const config: VisualFilterItemConfig = currentTab.getItemProps
                   ? currentTab.getItemProps(item)
                   : {
-                      id: (item as VisualFilterItem).id,
-                      label: (item as VisualFilterItem).label || (item as VisualFilterItem).name || (item as VisualFilterItem).id,
-                      isSelected: Boolean((item as VisualFilterItem).isSelected),
-                      onPress: (item as VisualFilterItem).onPress || (() => {}),
+                      id: String(item.id),
+                      label: item.label || item.name || String(item.id),
+                      isSelected: Boolean(item.isSelected),
+                      onPress: item.onPress || (() => {}),
                     };
 
                 return (
@@ -189,6 +191,8 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     accessibilityRole="button"
                     accessibilityLabel={config.label}
                     accessibilityState={{ selected: Boolean(config.isSelected) }}
+                    // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
+                    // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={[
                       s.itemCard,
@@ -221,6 +225,8 @@ export function VisualFiltersBase<TTabId extends string = string>({
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
+              // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
+              // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
               <View style={s.viewAllIconBox}>
@@ -247,6 +253,8 @@ export function VisualFiltersBase<TTabId extends string = string>({
         accessibilityRole="tab"
         accessibilityLabel={tab.label}
         accessibilityState={{ selected: isActive }}
+        // Effective tab target: visible height is 27.5pt (paddingVertical 6*2 + lineHeight 15.5).
+        // hitSlop 9 top/bottom is bounded by parent segmentedWrapper (minHeight ~34pt), giving effective height ~34pt.
         hitSlop={{ top: 9, bottom: 9, left: 4, right: 4 }}
         style={[
           s.segmentTab,

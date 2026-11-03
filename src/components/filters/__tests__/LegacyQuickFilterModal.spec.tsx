@@ -308,4 +308,36 @@ describe('LegacyQuickFilterModal - Characterization Tests (Existing Behaviour)',
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('Numeric brand ID normalization (M-025 & CodeRabbit)', () => {
+    it('shows checkmark when bus brand has numeric ID and stored makeId is string (normalized comparison)', async () => {
+      const brands = [
+        { id: 42, label: 'سكانيا', nameAr: 'سكانيا', name: 'Scania' },
+        { id: 43, label: 'مان', nameAr: 'مان', name: 'MAN' },
+      ];
+      const currentFilters = {
+        makeId: '42',
+        make: 'OtherBrand',
+      };
+
+      const { getByText, toJSON } = await render(
+        <LegacyQuickFilterModal
+          visible={true}
+          activeDropdown="make"
+          onClose={jest.fn()}
+          filters={currentFilters}
+          setFilters={jest.fn()}
+          brands={brands}
+          isBus={true}
+        />
+      );
+
+      await waitFor(() => {
+        expect(getByText('سكانيا')).toBeTruthy();
+      });
+
+      const jsonStr = JSON.stringify(toJSON());
+      expect(jsonStr).toContain('"name":"checkmark"');
+    });
+  });
 });

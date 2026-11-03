@@ -36,11 +36,14 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
             >
               <TouchableOpacity
-                style={s.chipPressableArea}
+                style={[s.chipPressableArea, !isActive && s.chipPressableAreaInactive]}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel={qf.label}
                 accessibilityState={{ selected: Boolean(isActive) }}
+                // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
+                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt, paddingVertical 2pt),
+                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged per M-023/M-025).
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                 onPress={() => onFilterPress(qf.id)}
               >
@@ -56,6 +59,10 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               </TouchableOpacity>
               {isActive && (
                 <TouchableOpacity
+                  style={s.clearButton}
+                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 8 (visible ~29x22pt).
+                  // hitSlop 16 is bounded by the chip container (29pt height), giving effective touch target of ~29x24pt.
+                  // VoiceOver accesses this directly as a sibling button without parent nesting clipping.
                   hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                   accessibilityRole="button"
                   accessibilityLabel="إزالة الفلتر"
@@ -87,13 +94,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 5,
+    overflow: 'hidden',
     ...Platform.select({
       ios: { 
         shadowColor: Colors.primaryDark, 
@@ -109,7 +114,20 @@ const s = StyleSheet.create({
   chipPressableArea: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 6,
+    paddingStart: 10,
+    paddingEnd: 4,
     gap: 5,
+  },
+  chipPressableAreaInactive: {
+    paddingEnd: 10,
+  },
+  clearButton: {
+    paddingVertical: 6,
+    paddingEnd: 8,
+    paddingStart: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quickFilterChipActive: {
     backgroundColor: Colors.primary,

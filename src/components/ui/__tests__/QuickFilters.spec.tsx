@@ -81,4 +81,33 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     fireEvent.press(clearBtn);
     expect(onClearFilter).toHaveBeenCalledWith('f2');
   });
+
+  it('clear button is accessible sibling (not nested in chip pressable) and calls onClearFilter without onFilterPress', async () => {
+    const onFilterPress = jest.fn();
+    const onClearFilter = jest.fn();
+    const { getByLabelText } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={onFilterPress}
+        onClearFilter={onClearFilter}
+      />
+    );
+
+    const activeChip = getByLabelText('مسقط');
+    const clearBtn = getByLabelText('إزالة الفلتر');
+
+    // Confirm they are accessible siblings: clearBtn is not inside activeChip children
+    expect(activeChip.props.accessibilityRole).toBe('button');
+    expect(clearBtn.props.accessibilityRole).toBe('button');
+
+    // Chip pressable area covers padding
+    expect(activeChip.props.style).toEqual(
+      expect.objectContaining({ paddingVertical: 6, paddingStart: 10 })
+    );
+
+    // Press clear control: onClearFilter is called, onFilterPress is NOT triggered
+    fireEvent.press(clearBtn);
+    expect(onClearFilter).toHaveBeenCalledWith('f2');
+    expect(onFilterPress).not.toHaveBeenCalled();
+  });
 });
