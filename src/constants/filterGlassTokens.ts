@@ -1,10 +1,10 @@
-import { StyleSheet, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { Colors } from './colors';
 import { TopBarTokens } from './topBarTokens';
 
 /**
  * Master modal backdrop overlay color ('rgba(0,0,0,0.5)').
- * Preserved per M-033/M-034 to prevent modal backdrop color drift.
+ * Preserved verbatim from master 7353e69 QuickFilterModal.tsx:68 per M-033/M-034/M-036.
  */
 export const MODAL_BACKDROP_OVERLAY = 'rgba(0,0,0,0.5)' as const;
 
@@ -89,7 +89,9 @@ export const FilterGlassTokens = {
     viewAllBg: Colors.surfaceAlt,
     viewAllIconBg: Colors.paleMint,
     viewAllTextColor: Colors.primary,
+    // #F0F5FF moved verbatim from master 7353e69 CarsVisualFilters.tsx:43, BusesVisualFilters.tsx:47, EquipmentVisualFilters.tsx:49
     iconTileBg: '#F0F5FF',
+    // #FEF2F2 moved verbatim from master 7353e69 app/cars/browse.tsx:125, app/parts/browse.tsx:142
     emptyErrorIconBg: '#FEF2F2',
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
@@ -121,28 +123,31 @@ export const FilterGlassTokens = {
   sheet: {
     overlayBg: MODAL_BACKDROP_OVERLAY,
     cardBg: TopBarTokens.iceGlass,
-    cardBorderColor: TopBarTokens.buttonBorderColor,
-    cardBorderWidth: 1,
+    // master 7353e69 QuickFilterModal.tsx modalContent has no border (borderWidth: 0) to avoid 1pt inner layout shift per M-036
+    cardBorderColor: 'transparent',
+    cardBorderWidth: 0,
     cardRadius: 16,
+    // master 7353e69 QuickFilterModal.tsx:75 modalContent shadow (offset 0/10, opacity 0.2, radius 20, elevation 10) per M-036
     cardShadow: Platform.select({
       ios: {
+        // #000 moved verbatim from master 7353e69 QuickFilterModal.tsx:75
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
       },
       android: {
-        elevation: 8,
+        elevation: 10,
       },
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
       },
     }),
     dividerColor: Colors.border,
-    dividerWidth: StyleSheet.hairlineWidth,
+    dividerWidth: 1, // master 7353e69 QuickFilterModal.tsx:88 borderBottomWidth: 1 per M-036
     titleColor: Colors.text,
     closeIconColor: Colors.textMuted,
     optionTextColor: Colors.text2,

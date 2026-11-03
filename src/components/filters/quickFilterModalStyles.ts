@@ -6,6 +6,7 @@ import { FilterGlassTokens } from '../../constants/filterGlassTokens';
  * quickFilterModalStyles
  * Shared glassmorphic stylesheet for QuickFilterModal and LegacyQuickFilterModal
  * extracted per task D-189 to eliminate style duplication and guarantee visual equality.
+ * Preserves master 7353e69 QuickFilterModal.tsx modalContent geometry (no border) and shadow per M-036.
  */
 export const quickFilterModalStyles = StyleSheet.create({
   modalOverlay: {
@@ -19,8 +20,6 @@ export const quickFilterModalStyles = StyleSheet.create({
     maxHeight: '65%',
     backgroundColor: FilterGlassTokens.sheet.cardBg,
     borderRadius: FilterGlassTokens.sheet.cardRadius,
-    borderWidth: FilterGlassTokens.sheet.cardBorderWidth,
-    borderColor: FilterGlassTokens.sheet.cardBorderColor,
     padding: Spacing.space4,
     ...FilterGlassTokens.sheet.cardShadow,
   },

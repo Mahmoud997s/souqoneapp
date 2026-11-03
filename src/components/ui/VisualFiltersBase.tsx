@@ -187,20 +187,13 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     };
 
                 return (
-                  <TouchableOpacity
+                  <View
                     key={config.id}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={config.label}
-                    accessibilityState={{ selected: Boolean(config.isSelected) }}
-                    // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
-                    // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
-                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={[
                       s.itemCard,
-                      config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
+                      config.isSelected && s.itemCardSelected,
+                      config.isSelected && { borderColor: activeColor },
                     ]}
-                    onPress={config.onPress}
                   >
                     {!config.isSelected && (
                       <FilterGlassSurface
@@ -208,17 +201,29 @@ export function VisualFiltersBase<TTabId extends string = string>({
                         borderRadius={FilterGlassTokens.card.borderRadius}
                       />
                     )}
-                    {config.icon}
-                    <Text
-                      style={[
-                        s.itemLabel,
-                        config.isSelected && [s.itemLabelSelected, { color: activeColor }],
-                      ]}
-                      numberOfLines={1}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={config.label}
+                      accessibilityState={{ selected: Boolean(config.isSelected) }}
+                      // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
+                      // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                      style={s.itemCardInner}
+                      onPress={config.onPress}
                     >
-                      {config.label}
-                    </Text>
-                  </TouchableOpacity>
+                      {config.icon}
+                      <Text
+                        style={[
+                          s.itemLabel,
+                          config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {config.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>
@@ -227,27 +232,31 @@ export function VisualFiltersBase<TTabId extends string = string>({
 
         {onViewAll && currentTab && !currentTab.hideViewAll && (
           <View style={rows === 2 ? s.column : undefined}>
-            <TouchableOpacity
+            <View
               style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
-              onPress={() => onViewAll(currentTab.id)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
-              // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
-              // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
               <FilterGlassSurface
                 testID="visual-filter-view-all-glass"
                 borderRadius={FilterGlassTokens.card.borderRadius}
               />
-              <View style={s.viewAllIconBox}>
-                <Ionicons name="apps-outline" size={15} color={activeColor} />
-              </View>
-              <Text style={[s.viewAllText, { color: activeColor }]}>
-                {currentTab.viewAllLabel || 'عرض الكل'}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={s.viewAllInner}
+                onPress={() => onViewAll(currentTab.id)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
+                // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
+                // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              >
+                <View style={s.viewAllIconBox}>
+                  <Ionicons name="apps-outline" size={15} color={activeColor} />
+                </View>
+                <Text style={[s.viewAllText, { color: activeColor }]}>
+                  {currentTab.viewAllLabel || 'عرض الكل'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </PhysicalHorizontalTrack>
@@ -436,16 +445,18 @@ const s = StyleSheet.create({
     gap: 6,
   },
   itemCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: FilterGlassTokens.card.bg,
     borderRadius: FilterGlassTokens.card.borderRadius,
-    paddingHorizontal: 9,
-    paddingVertical: 5.5,
     borderWidth: FilterGlassTokens.card.borderWidth,
     borderColor: FilterGlassTokens.card.borderColor,
     ...FilterGlassTokens.card.shadow,
     minWidth: 95,
+  },
+  itemCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 5.5,
     gap: 6,
   },
   itemCardSelected: {
@@ -467,8 +478,16 @@ const s = StyleSheet.create({
     backgroundColor: FilterGlassTokens.card.viewAllBg,
     borderColor: FilterGlassTokens.card.borderColor,
     borderStyle: 'dashed',
-    justifyContent: 'center',
     minWidth: 75,
+  },
+  viewAllInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 5.5,
+    gap: 6,
+    height: '100%',
   },
   viewAllIconBox: {
     width: 22,

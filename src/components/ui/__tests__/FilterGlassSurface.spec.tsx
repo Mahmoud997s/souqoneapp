@@ -1,10 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import TestRenderer, { act } from 'react-test-renderer';
 import { FilterGlassSurface } from '../FilterGlassSurface';
 import { TopBarTokens } from '../../../constants/topBarTokens';
+import { VisualFiltersBase } from '../VisualFiltersBase';
+import { BrowseResultsBar } from '../BrowseResultsBar';
 
 jest.mock('../../navigation/glassSupport', () => ({ GlassSurface: 'GlassSurface' }));
+jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 
 describe('FilterGlassSurface', () => {
   it('renders ice-control backing and GlassSurface with correct tokens and borderRadius', () => {
@@ -59,6 +62,64 @@ describe('FilterGlassSurface', () => {
         ])
       );
       ancestor = ancestor.parent;
+    }
+  });
+
+  it('asserts no FilterGlassSurface has a TouchableOpacity ancestor in VisualFiltersBase (cards, view-all)', () => {
+    let renderer: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <VisualFiltersBase
+          tabs={[
+            {
+              id: 'all',
+              label: 'الكل',
+              items: [
+                { id: '1', label: 'عنصر 1', isSelected: false },
+                { id: '2', label: 'عنصر 2', isSelected: false },
+              ],
+            },
+          ]}
+          defaultTab="all"
+          onViewAll={jest.fn()}
+        />
+      );
+    });
+
+    const surfaces = renderer!.root.findAllByType(FilterGlassSurface);
+    expect(surfaces.length).toBeGreaterThan(0);
+
+    for (const surface of surfaces) {
+      let ancestor = surface.parent;
+      while (ancestor) {
+        expect(ancestor.type).not.toBe(TouchableOpacity);
+        ancestor = ancestor.parent;
+      }
+    }
+  });
+
+  it('asserts no FilterGlassSurface has a TouchableOpacity ancestor in BrowseResultsBar (clear button)', () => {
+    let renderer: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <BrowseResultsBar
+          resultsCount={10}
+          entityName="سيارة"
+          activeFiltersCount={2}
+          onClearAll={jest.fn()}
+        />
+      );
+    });
+
+    const surfaces = renderer!.root.findAllByType(FilterGlassSurface);
+    expect(surfaces.length).toBe(2); // count chip + clear button
+
+    for (const surface of surfaces) {
+      let ancestor = surface.parent;
+      while (ancestor) {
+        expect(ancestor.type).not.toBe(TouchableOpacity);
+        ancestor = ancestor.parent;
+      }
     }
   });
 });

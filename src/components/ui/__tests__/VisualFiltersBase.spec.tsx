@@ -160,21 +160,27 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     );
 
     const unselectedItem = getByLabelText('عنصر 1');
-    expect(unselectedItem.props.style).toEqual(
-      expect.objectContaining({
-        backgroundColor: FilterGlassTokens.card.bg,
-        borderColor: FilterGlassTokens.card.borderColor,
-        borderWidth: FilterGlassTokens.card.borderWidth,
-        borderRadius: FilterGlassTokens.card.borderRadius,
-      })
+    const unselectedContainer = unselectedItem.parent;
+    expect(unselectedContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.card.bg,
+          borderColor: FilterGlassTokens.card.borderColor,
+          borderWidth: FilterGlassTokens.card.borderWidth,
+          borderRadius: FilterGlassTokens.card.borderRadius,
+        }),
+      ])
     );
 
     const selectedItem = getByLabelText('عنصر 2');
-    expect(selectedItem.props.style).toEqual(
-      expect.objectContaining({
-        backgroundColor: FilterGlassTokens.card.selectedBg,
-        borderColor: FilterGlassTokens.card.selectedBorderColor,
-      })
+    const selectedContainer = selectedItem.parent;
+    expect(selectedContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.card.selectedBg,
+          borderColor: FilterGlassTokens.card.selectedBorderColor,
+        }),
+      ])
     );
   });
 });

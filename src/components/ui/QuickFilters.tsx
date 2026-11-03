@@ -49,7 +49,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                 accessibilityRole="button"
                 accessibilityLabel={qf.label}
                 accessibilityState={{ selected: Boolean(isActive) }}
-                // Effective touch height: visible height is 28pt (paddingVertical 5.5*2 + lineHeight 15 + border 2).
+                // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
                 // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt),
                 // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged).
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
@@ -68,8 +68,8 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               {isActive && (
                 <TouchableOpacity
                   style={s.clearButton}
-                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~28x22.5pt).
-                  // hitSlop 16 is bounded by the chip container (28pt height), giving effective touch target of ~28x24pt.
+                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~29x22.5pt).
+                  // hitSlop 16 is bounded by the chip container (29pt height), giving effective touch target of ~29x24pt.
                   // VoiceOver accesses this directly as a sibling button without parent nesting clipping.
                   hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                   accessibilityRole="button"

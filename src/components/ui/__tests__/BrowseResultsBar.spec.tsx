@@ -93,7 +93,8 @@ describe('BrowseResultsBar - Characterization & Parity Tests', () => {
     );
 
     const clearBtn = getByLabelText('مسح الفلاتر');
-    expect(clearBtn.props.style).toEqual(
+    const clearBtnContainer = clearBtn.parent;
+    expect(clearBtnContainer?.props.style).toEqual(
       expect.objectContaining({
         backgroundColor: FilterGlassTokens.resultsBar.clearBg,
         borderColor: FilterGlassTokens.resultsBar.clearBorderColor,

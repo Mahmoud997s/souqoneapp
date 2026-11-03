@@ -40,8 +40,10 @@ describe('FilterGlassTokens', () => {
     expect(FilterGlassTokens.resultsBar.fontSize).toBe(11);
     expect(FilterGlassTokens.resultsBar.lineHeight).toBe(15);
 
-    // QuickFilterModal sheet
+    // QuickFilterModal sheet strictly matching master 7353e69 QuickFilterModal.tsx
     expect(FilterGlassTokens.sheet.cardRadius).toBe(16);
+    expect(FilterGlassTokens.sheet.cardBorderWidth).toBe(0); // master has no border per M-036
+    expect(FilterGlassTokens.sheet.dividerWidth).toBe(1); // master borderBottomWidth: 1 per M-036
     expect(FilterGlassTokens.sheet.titleFontSize).toBe(16);
     expect(FilterGlassTokens.sheet.titleLineHeight).toBe(22);
     expect(FilterGlassTokens.sheet.optionFontSize).toBe(15);
