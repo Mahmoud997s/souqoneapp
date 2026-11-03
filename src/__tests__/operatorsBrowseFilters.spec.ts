@@ -1,4 +1,4 @@
-import { buildOperatorQueryParams } from '../../app/equipment/operators/browse';
+import { buildOperatorQueryParams } from '../utils/browse-filters/operatorsBrowseFilters';
 import { OperatorFilterState } from '../types/filters.types';
 
 describe('Operators Browse Server-Side Filters (D-136 PR-2)', () => {

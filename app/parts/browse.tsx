@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,8 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useBrands } from '../../src/hooks/useCars';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { navigateToPartForm } from '../../src/components/ui/DraftResumePrompt';
+import { locationsApi } from '../../src/api/locations';
+import { GovernorateRef } from '../../src/types/location.types';
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -39,6 +41,11 @@ import { PartSkeletonCard } from '../../src/components/parts/PartSkeletonCard';
 import { PartsVisualFilters } from '../../src/components/parts/PartsVisualFilters';
 import { PartsFilterBottomSheet } from '../../src/components/parts/PartsFilterBottomSheet';
 import { PartsFilterState } from '../../src/types/filters.types';
+import {
+  buildPartsQueryParams,
+  clearPartsFilter,
+  mergePartsRouteParams,
+} from '../../src/utils/browse-filters/partsBrowseFilters';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
@@ -77,10 +84,19 @@ export default function PartsBrowseScreen() {
     isScrap?: string;
     make?: string;
     city?: string;
+    governorateId?: string;
+    wilayaId?: string;
     priceMin?: string;
     priceMax?: string;
     partNumber?: string;
   }>();
+
+  const listRef = useRef<any>(null);
+  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
+
+  useEffect(() => {
+    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+  }, []);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(searchParams.q || '');
@@ -95,11 +111,27 @@ export default function PartsBrowseScreen() {
     if (searchParams.isScrap === 'true') initial.isScrap = true;
     if (searchParams.make) initial.make = searchParams.make;
     if (searchParams.city) initial.city = searchParams.city;
+    if (searchParams.governorateId) {
+      const g = Number(searchParams.governorateId);
+      if (!isNaN(g)) initial.governorateId = g;
+    }
+    if (searchParams.wilayaId) {
+      const w = Number(searchParams.wilayaId);
+      if (!isNaN(w)) initial.wilayaId = w;
+    }
     if (searchParams.priceMin) initial.priceMin = searchParams.priceMin;
     if (searchParams.priceMax) initial.priceMax = searchParams.priceMax;
     if (searchParams.partNumber) initial.partNumber = searchParams.partNumber;
     return initial;
   });
+
+  // G-07: Merge incoming route params into existing filter state without wiping selections
+  useEffect(() => {
+    setFilters((prev) => mergePartsRouteParams(prev, searchParams as Record<string, string | undefined>));
+    if (searchParams.q !== undefined) {
+      setSearchQuery(searchParams.q);
+    }
+  }, [searchParams.category, searchParams.condition, searchParams.isOriginal, searchParams.isScrap, searchParams.make, searchParams.city, searchParams.governorateId, searchParams.wilayaId, searchParams.priceMin, searchParams.priceMax, searchParams.partNumber, searchParams.q]);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const handleAddPart = () => {
@@ -135,73 +167,15 @@ export default function PartsBrowseScreen() {
   // Debounce search query to prevent lag and excessive API requests
   const debouncedSearch = useDebounce(searchQuery, 400);
 
-  // Combine query parameters for API call
+  // Combine query parameters for API call using pure module
   const queryParams = useMemo(() => {
-    const params: Record<string, any> = {
-      limit: 30,
-    };
-
-    if (debouncedSearch.trim()) {
-      params.search = debouncedSearch.trim();
-    }
-
-    if (filters.category) {
-      params.partCategory = filters.category;
-    }
-
-    if (filters.make) {
-      params.make = filters.make;
-    }
-
-    if (filters.condition) {
-      params.condition = filters.condition;
-    }
-
-    if (filters.isOriginal !== undefined) {
-      params.isOriginal = filters.isOriginal;
-    }
-
-    if (filters.isScrap) {
-      params.isScrap = true;
-    }
-
-    if (filters.governorateId) {
-      params.governorateId = String(filters.governorateId);
-    }
-
-    if (filters.wilayaId) {
-      params.wilayaId = String(filters.wilayaId);
-    }
-
-    if (filters.hasWarranty !== undefined) {
-      params.hasWarranty = filters.hasWarranty;
-    }
-
-    if (filters.compatibleVehicleType) {
-      params.compatibleVehicleType = filters.compatibleVehicleType;
-    }
-
-    if (filters.partNumber) {
-      params.partNumber = filters.partNumber;
-    }
-
-    if (filters.priceMin) {
-      const pMin = parseFloat(filters.priceMin);
-      if (!isNaN(pMin)) params.minPrice = String(pMin);
-    }
-
-    if (filters.priceMax) {
-      const pMax = parseFloat(filters.priceMax);
-      if (!isNaN(pMax)) params.maxPrice = String(pMax);
-    }
-
-    if (filters.sortBy) {
-      params.sortBy = filters.sortBy;
-      params.sortOrder = filters.sortOrder || 'DESC';
-    }
-
-    return params;
+    return buildPartsQueryParams(filters, debouncedSearch);
   }, [debouncedSearch, filters]);
+
+  // G-06: Scroll to top on filter / query change
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [queryParams]);
 
   // Fetch infinite parts
   const {
@@ -258,8 +232,8 @@ export default function PartsBrowseScreen() {
         displayLabel = found ? found.label : (filters.priceMax ? `حتى ${filters.priceMax} ر.ع` : 'السعر');
       }
     } else if (qf.id === 'city') {
-      isActive = !!filters.city;
-      if (isActive) displayLabel = filters.city as string;
+      isActive = !!filters.city || !!filters.governorate || !!filters.governorateId;
+      if (isActive) displayLabel = (filters.governorate || filters.city) as string;
     } else if (qf.id === 'sort') {
       isActive = !!filters.sortBy;
       if (isActive) {
@@ -279,29 +253,7 @@ export default function PartsBrowseScreen() {
   });
 
   const handleClearQuickFilter = useCallback((id: string) => {
-    setFilters((prev: PartsFilterState) => {
-      const newFilters = { ...prev };
-      if (id === 'category') delete newFilters.category;
-      if (id === 'make') {
-        delete newFilters.make;
-        delete newFilters.makeId;
-      }
-      if (id === 'condition') delete newFilters.condition;
-      if (id === 'price') {
-        delete newFilters.priceMin;
-        delete newFilters.priceMax;
-        delete newFilters.priceId;
-      }
-      if (id === 'city') {
-        delete newFilters.city;
-        delete newFilters.governorate;
-      }
-      if (id === 'sort') {
-        delete newFilters.sortBy;
-        delete newFilters.sortOrder;
-      }
-      return newFilters;
-    });
+    setFilters((prev: PartsFilterState) => clearPartsFilter(prev, id));
   }, []);
 
   const handleSelectVisualFilter = useCallback((
@@ -432,6 +384,7 @@ export default function PartsBrowseScreen() {
 
       {/* Main Animated List */}
       <Animated.FlatList
+        ref={listRef}
         key="parts-browse-list"
         data={listings}
         keyExtractor={(item, index) => (item as any)?.id || String(index)}
@@ -654,33 +607,45 @@ export default function PartsBrowseScreen() {
               />
             )}
 
-            {/* City Options */}
+            {/* City Options - F-01: Uses numeric IDs from locationsApi */}
             {activeDropdown === 'city' && (
               <FlatList
-                data={GOVERNORATE_OPTIONS}
-                keyExtractor={(item) => item.value}
+                data={governorates}
+                keyExtractor={(item) => String(item.id)}
                 showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={s.modalOptionRow}
-                    onPress={() => {
-                      setFilters((prev: PartsFilterState) => ({ ...prev, city: item.labelAr }));
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        s.modalOptionTxt,
-                        filters.city === item.labelAr && s.modalOptionTxtActive,
-                      ]}
+                renderItem={({ item }) => {
+                  const isSelected =
+                    filters.governorateId === item.id ||
+                    filters.governorate === item.nameAr ||
+                    filters.city === item.nameAr;
+                  return (
+                    <TouchableOpacity
+                      style={s.modalOptionRow}
+                      onPress={() => {
+                        setFilters((prev: PartsFilterState) => ({
+                          ...prev,
+                          governorateId: item.id,
+                          governorate: item.nameAr,
+                          city: item.nameAr,
+                          wilayaId: undefined,
+                        }));
+                        setActiveDropdown(null);
+                      }}
                     >
-                      {item.labelAr}
-                    </Text>
-                    {filters.city === item.labelAr && (
-                      <Ionicons name="checkmark" size={20} color={Colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
+                      <Text
+                        style={[
+                          s.modalOptionTxt,
+                          isSelected && s.modalOptionTxtActive,
+                        ]}
+                      >
+                        {item.nameAr}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
               />
             )}
 
