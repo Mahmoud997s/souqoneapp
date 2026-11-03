@@ -53,10 +53,10 @@ describe('Services Browse Filter Logic & Contract', () => {
     expect(merged.isHomeService).toBe(true);
   });
 
-  it('guards against array route params from Expo Router (takes first string and parses location id)', () => {
+  it('guards against array route params from Expo Router (takes first non-empty string and parses location id)', () => {
     const filters = parseServicesFiltersFromParams({
-      serviceType: ['MAINTENANCE', 'CLEANING'],
-      providerType: ['CENTER', 'INDIVIDUAL'],
+      serviceType: ['', 'MAINTENANCE', 'CLEANING'],
+      providerType: ['  ', 'CENTER', 'INDIVIDUAL'],
       governorate: ['مسقط', 'ظفار'],
       governorateId: ['1', '2'],
       wilayaId: ['10', '20'],

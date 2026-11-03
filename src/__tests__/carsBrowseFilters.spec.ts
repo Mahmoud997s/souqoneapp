@@ -47,12 +47,12 @@ describe('Cars Browse Filter Logic & Contract', () => {
     expect(filters).toEqual({ listingType: 'WANTED' });
   });
 
-  it('guards against array route params from Expo Router (takes first string)', () => {
+  it('guards against array route params from Expo Router (takes first non-empty string)', () => {
     const filters = parseCarsFiltersFromParams({
-      type: ['used', 'new'],
-      condition: ['USED', 'NEW'],
-      make: ['Toyota', 'Honda'],
-      brandId: ['b-1', 'b-2'],
+      type: ['', 'used', 'new'],
+      condition: ['  ', 'USED', 'NEW'],
+      make: ['', 'Toyota', 'Honda'],
+      brandId: ['', 'b-1', 'b-2'],
       featured: ['true', 'false'],
     });
     expect(filters.condition).toBe('USED');

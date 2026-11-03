@@ -1,5 +1,6 @@
 import { CarsQuery } from '../../types/contracts/carsQuery';
 import { FilterState } from '../../types/filters.types';
+import { toSingleString } from './routeParams';
 
 export interface CarsFilterState extends FilterState {
   priceId?: string;
@@ -14,23 +15,6 @@ export interface CarsRouteParams {
   brandId?: string | string[];
   search?: string | string[];
   [key: string]: unknown;
-}
-
-/**
- * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
- * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
- * takes the first non-empty string element; otherwise returns undefined.
- */
-export function toSingleString(val: unknown): string | undefined {
-  if (typeof val === 'string') {
-    const trimmed = val.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
-    const trimmed = val[0].trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  return undefined;
 }
 
 export function decodeSearchParam(search?: unknown): string {
