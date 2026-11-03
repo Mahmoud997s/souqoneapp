@@ -149,7 +149,7 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
 
     it('safely handles repeated parameters (string[]) from Expo Router', () => {
       const initial = parseEquipmentInitialFilters({
-        type: ['rental', 'sale'] as unknown as string,
+        type: ['', '  ', 'rental', 'sale'] as unknown as string,
         equipmentType: ['FORKLIFT', 'CRANE'] as unknown as string,
         governorateId: ['4', '5'] as unknown as string,
       });
@@ -157,8 +157,13 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
       expect(initial.equipmentType).toBe('FORKLIFT');
       expect(initial.governorateId).toBe(4);
 
+      const emptyFirstGov = parseEquipmentInitialFilters({
+        governorateId: ['', '4'] as unknown as string,
+      });
+      expect(emptyFirstGov.governorateId).toBeUndefined();
+
       const merged = mergeEquipmentRouteParams({}, {
-        type: ['used', 'new'] as unknown as string,
+        type: ['', 'used', 'new'] as unknown as string,
         equipmentType: ['LOADER', 'DOZER'] as unknown as string,
         wilayaId: ['108', '109'] as unknown as string,
       });
@@ -178,6 +183,25 @@ describe('Equipment Browse Pure Filters & Contract (D-185)', () => {
       expect(merged.priceMin).toBe('500');
       expect(merged.priceMax).toBe('2000');
       expect(merged.listingType).toBe('EQUIPMENT_SALE');
+    });
+
+    it('clears retained wilayaId when route updates governorateId without an explicit wilayaId', () => {
+      const existing: EquipmentFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+      };
+
+      const changed = mergeEquipmentRouteParams(existing, { governorateId: '2' });
+      expect(changed.governorateId).toBe(2);
+      expect(changed.wilayaId).toBeUndefined();
+
+      const same = mergeEquipmentRouteParams(existing, { governorateId: '1' });
+      expect(same.governorateId).toBe(1);
+      expect(same.wilayaId).toBe(101);
+
+      const withWilaya = mergeEquipmentRouteParams(existing, { governorateId: '2', wilayaId: '201' });
+      expect(withWilaya.governorateId).toBe(2);
+      expect(withWilaya.wilayaId).toBe(201);
     });
   });
 });

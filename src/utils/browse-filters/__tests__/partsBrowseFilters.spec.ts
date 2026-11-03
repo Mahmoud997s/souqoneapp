@@ -216,6 +216,12 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(repeatedParamInitial.governorateId).toBe(1);
       expect(repeatedParamInitial.wilayaId).toBe(101);
 
+      // toPositiveInteger evaluates the first element only
+      const emptyFirstParam = parsePartsInitialFilters({
+        governorateId: ['', '2'] as unknown as string,
+      });
+      expect(emptyFirstParam.governorateId).toBeUndefined();
+
       const invalidArray = parsePartsInitialFilters({
         governorateId: ['OM_MUS', '2'] as unknown as string,
         wilayaId: ['invalid', '102'] as unknown as string,
@@ -231,6 +237,15 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(invalidMerged.wilayaId).toBeUndefined();
     });
 
+    it('selects first non-empty string for repeated string parameters', () => {
+      const initial = parsePartsInitialFilters({
+        category: ['', '  ', 'TRANSMISSION', 'BRAKES'] as unknown as string,
+        make: ['Toyota', 'Honda'] as unknown as string,
+      });
+      expect(initial.category).toBe('TRANSMISSION');
+      expect(initial.make).toBe('Toyota');
+    });
+
     it('merges route params into existing filter state without wiping selections (G-07)', () => {
       const existing: PartsFilterState = {
         category: 'FILTERS',
@@ -239,12 +254,37 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
         governorateId: 1,
       };
 
-      const merged = mergePartsRouteParams(existing, { make: 'Toyota' });
+      const merged = mergePartsRouteParams(existing, {
+        make: 'Toyota',
+        priceMin: '25',
+        priceMax: '150',
+        partNumber: 'OEM-991',
+      });
       expect(merged.category).toBe('FILTERS');
-      expect(merged.priceMin).toBe('10');
-      expect(merged.priceMax).toBe('40');
+      expect(merged.priceMin).toBe('25');
+      expect(merged.priceMax).toBe('150');
+      expect(merged.partNumber).toBe('OEM-991');
       expect(merged.governorateId).toBe(1);
       expect(merged.make).toBe('Toyota');
+    });
+
+    it('clears retained wilayaId when route updates governorateId without an explicit wilayaId', () => {
+      const existing: PartsFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+      };
+
+      const changed = mergePartsRouteParams(existing, { governorateId: '2' });
+      expect(changed.governorateId).toBe(2);
+      expect(changed.wilayaId).toBeUndefined();
+
+      const same = mergePartsRouteParams(existing, { governorateId: '1' });
+      expect(same.governorateId).toBe(1);
+      expect(same.wilayaId).toBe(101);
+
+      const withWilaya = mergePartsRouteParams(existing, { governorateId: '2', wilayaId: '201' });
+      expect(withWilaya.governorateId).toBe(2);
+      expect(withWilaya.wilayaId).toBe(201);
     });
   });
 });

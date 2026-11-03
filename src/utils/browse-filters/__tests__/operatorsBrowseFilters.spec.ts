@@ -177,13 +177,37 @@ describe('Operators Browse Pure Filters & Contract (D-185)', () => {
 
     it('safely handles repeated parameters (string[]) from Expo Router', () => {
       const merged = mergeOperatorRouteParams({}, {
-        operatorType: ['DRIVER', 'TECHNICIAN'] as unknown as string,
+        operatorType: ['', '  ', 'DRIVER', 'TECHNICIAN'] as unknown as string,
         governorateId: ['2', '3'] as unknown as string,
         wilayaId: ['103', '104'] as unknown as string,
       });
       expect(merged.operatorType).toBe('DRIVER');
       expect(merged.governorateId).toBe(2);
       expect(merged.wilayaId).toBe(103);
+
+      const emptyFirstGov = mergeOperatorRouteParams({}, {
+        governorateId: ['', '2'] as unknown as string,
+      });
+      expect(emptyFirstGov.governorateId).toBeUndefined();
+    });
+
+    it('clears retained wilayaId when route updates governorateId without an explicit wilayaId', () => {
+      const existing: OperatorFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+      };
+
+      const changed = mergeOperatorRouteParams(existing, { governorateId: '2' });
+      expect(changed.governorateId).toBe(2);
+      expect(changed.wilayaId).toBeUndefined();
+
+      const same = mergeOperatorRouteParams(existing, { governorateId: '1' });
+      expect(same.governorateId).toBe(1);
+      expect(same.wilayaId).toBe(101);
+
+      const withWilaya = mergeOperatorRouteParams(existing, { governorateId: '2', wilayaId: '201' });
+      expect(withWilaya.governorateId).toBe(2);
+      expect(withWilaya.wilayaId).toBe(201);
     });
   });
 });

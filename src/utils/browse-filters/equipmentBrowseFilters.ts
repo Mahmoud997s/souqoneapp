@@ -139,9 +139,12 @@ function toSingleString(val: unknown): string | undefined {
     const trimmed = val.trim();
     return trimmed.length > 0 ? trimmed : undefined;
   }
-  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
-    const trimmed = val[0].trim();
-    return trimmed.length > 0 ? trimmed : undefined;
+  if (Array.isArray(val)) {
+    for (const item of val) {
+      if (typeof item !== 'string') continue;
+      const trimmed = item.trim();
+      if (trimmed.length > 0) return trimmed;
+    }
   }
   return undefined;
 }
@@ -152,7 +155,8 @@ function toSingleString(val: unknown): string | undefined {
  * evaluates the first element; invalid formats return undefined.
  */
 function toPositiveInteger(val: unknown): number | undefined {
-  const str = toSingleString(val);
+  const first = Array.isArray(val) ? val[0] : val;
+  const str = toSingleString(first);
   if (!str || !/^\d+$/.test(str)) return undefined;
   const num = Number(str);
   return num > 0 ? num : undefined;
@@ -228,7 +232,15 @@ export function mergeEquipmentRouteParams(
     next.categoryId = eqType;
   }
   if (params.governorateId !== undefined) {
-    next.governorateId = toPositiveInteger(params.governorateId);
+    const governorateId = toPositiveInteger(params.governorateId);
+    if (
+      governorateId !== undefined &&
+      governorateId !== prev.governorateId &&
+      params.wilayaId === undefined
+    ) {
+      next.wilayaId = undefined;
+    }
+    next.governorateId = governorateId;
   }
   if (params.wilayaId !== undefined) {
     next.wilayaId = toPositiveInteger(params.wilayaId);

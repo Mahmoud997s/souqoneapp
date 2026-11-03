@@ -163,7 +163,7 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
 
     it('safely handles repeated parameters (string[]) from Expo Router', () => {
       const parsed = parseBusesInitialFilters({
-        type: ['rent', 'sale'] as unknown as string,
+        type: ['', '  ', 'rent', 'sale'] as unknown as string,
         condition: ['USED', 'NEW'] as unknown as string,
         governorateId: ['2', '3'] as unknown as string,
       });
@@ -171,8 +171,13 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
       expect(parsed.condition).toBe('USED');
       expect(parsed.governorateId).toBe(2);
 
+      const emptyFirstGov = parseBusesInitialFilters({
+        governorateId: ['', '2'] as unknown as string,
+      });
+      expect(emptyFirstGov.governorateId).toBeUndefined();
+
       const merged = mergeBusesRouteParams({}, {
-        busListingType: ['BUS_SALE', 'BUS_RENT'] as unknown as string,
+        busListingType: ['', 'BUS_SALE', 'BUS_RENT'] as unknown as string,
         wilayaId: ['105', '106'] as unknown as string,
       });
       expect(merged.busListingType).toBe('BUS_SALE');
@@ -190,6 +195,25 @@ describe('Buses Browse Pure Filters & Contract (D-185)', () => {
       expect(merged.governorateId).toBe(1);
       expect(merged.capacityMin).toBe(20);
       expect(merged.condition).toBe('NEW');
+    });
+
+    it('clears retained wilayaId when route updates governorateId without an explicit wilayaId', () => {
+      const existing: BusBrowseFilters = {
+        governorateId: 1,
+        wilayaId: 101,
+      };
+
+      const changed = mergeBusesRouteParams(existing, { governorateId: '2' });
+      expect(changed.governorateId).toBe(2);
+      expect(changed.wilayaId).toBeUndefined();
+
+      const same = mergeBusesRouteParams(existing, { governorateId: '1' });
+      expect(same.governorateId).toBe(1);
+      expect(same.wilayaId).toBe(101);
+
+      const withWilaya = mergeBusesRouteParams(existing, { governorateId: '2', wilayaId: '201' });
+      expect(withWilaya.governorateId).toBe(2);
+      expect(withWilaya.wilayaId).toBe(201);
     });
   });
 });
