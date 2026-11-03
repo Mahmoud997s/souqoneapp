@@ -1,28 +1,60 @@
-import { FilterGlassTokens } from '../filterGlassTokens';
+import { FilterGlassTokens, MODAL_BACKDROP_OVERLAY } from '../filterGlassTokens';
 import { TopBarTokens } from '../topBarTokens';
 import { Colors } from '../colors';
 
-describe('FilterGlassTokens - Parity & Consistency with TopBarTokens', () => {
-  it('derives ice glass background and border from TopBarTokens', () => {
+describe('FilterGlassTokens', () => {
+  it('correctly maps all shared tokens to TopBarTokens and Colors', () => {
     expect(FilterGlassTokens.iceGlassBg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.iceGlassBg).toBe('#F9FCFE');
     expect(FilterGlassTokens.borderColor).toBe(TopBarTokens.buttonBorderColor);
     expect(FilterGlassTokens.borderWidth).toBe(TopBarTokens.buttonBorderWidth);
+    expect(FilterGlassTokens.shadow).toEqual(TopBarTokens.buttonShadow);
+    expect(FilterGlassTokens.blurIntensity).toBe(TopBarTokens.blurIntensity);
+    expect(FilterGlassTokens.washColor).toBe(TopBarTokens.iceGlass);
   });
 
-  it('provides matching ice glass background across all filter surfaces', () => {
-    expect(FilterGlassTokens.chip.bg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.tab.trackBg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.card.bg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.resultsBar.countBg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.resultsBar.clearBg).toBe(TopBarTokens.iceGlass);
-    expect(FilterGlassTokens.sheet.cardBg).toBe(TopBarTokens.iceGlass);
+  it('guarantees geometry parity with master 7353e69 (no size/radius drift)', () => {
+    // QuickFilters chip typography & radius strictly equal to master 7353e69
+    expect(FilterGlassTokens.chip.borderRadius).toBe(20);
+    expect(FilterGlassTokens.chip.borderWidth).toBe(1);
+    expect(FilterGlassTokens.chip.fontFamily).toBe('Almarai_700Bold');
+    expect(FilterGlassTokens.chip.fontSize).toBe(11); // per M-034
+    expect(FilterGlassTokens.chip.lineHeight).toBe(15); // per M-034
+
+    // ListingTabs segmented track & tab typography equal to master 7353e69
+    expect(FilterGlassTokens.tab.trackRadius).toBe(8);
+    expect(FilterGlassTokens.tab.trackBorderWidth).toBe(1);
+    expect(FilterGlassTokens.tab.fontSize).toBe(11.5);
+    expect(FilterGlassTokens.tab.lineHeight).toBe(15.5);
+    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.white);
+    expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.primary);
+
+    // VisualFiltersBase item cards equal to master 7353e69
+    expect(FilterGlassTokens.card.borderRadius).toBe(8);
+    expect(FilterGlassTokens.card.borderWidth).toBe(1);
+    expect(FilterGlassTokens.card.fontSize).toBe(11);
+    expect(FilterGlassTokens.card.lineHeight).toBe(15);
+
+    // BrowseResultsBar count & clear pills
+    expect(FilterGlassTokens.resultsBar.countRadius).toBe(6);
+    expect(FilterGlassTokens.resultsBar.clearRadius).toBe(6);
+    expect(FilterGlassTokens.resultsBar.fontSize).toBe(11);
+    expect(FilterGlassTokens.resultsBar.lineHeight).toBe(15);
+
+    // QuickFilterModal sheet
+    expect(FilterGlassTokens.sheet.cardRadius).toBe(16);
+    expect(FilterGlassTokens.sheet.titleFontSize).toBe(16);
+    expect(FilterGlassTokens.sheet.titleLineHeight).toBe(22);
+    expect(FilterGlassTokens.sheet.optionFontSize).toBe(15);
+    expect(FilterGlassTokens.sheet.optionLineHeight).toBe(21);
+    expect(FilterGlassTokens.sheet.overlayBg).toBe('rgba(0,0,0,0.5)');
+    expect(MODAL_BACKDROP_OVERLAY).toBe('rgba(0,0,0,0.5)');
   });
 
-  it('results bar count and clear chips have identical borders and shadows with destructive clear styling', () => {
-    expect(FilterGlassTokens.resultsBar.countBorderColor).toBe(FilterGlassTokens.resultsBar.clearBorderColor);
-    expect(FilterGlassTokens.resultsBar.countRadius).toBe(FilterGlassTokens.resultsBar.clearRadius);
+  it('preserves semantic state colors across active and selected items', () => {
+    expect(FilterGlassTokens.chip.activeBg).toBe(Colors.primary);
+    expect(FilterGlassTokens.chip.activeTextColor).toBe(Colors.white);
+    expect(FilterGlassTokens.card.selectedBg).toBe(Colors.paleMint);
+    expect(FilterGlassTokens.card.selectedTextColor).toBe(Colors.primary);
     expect(FilterGlassTokens.resultsBar.clearTextColor).toBe(Colors.error);
-    expect(FilterGlassTokens.resultsBar.clearIconColor).toBe(Colors.error);
   });
 });

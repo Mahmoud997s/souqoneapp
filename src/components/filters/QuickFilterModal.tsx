@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from '../ui/FilterGlassSurface';
 import { quickFilterModalStyles } from './quickFilterModalStyles';
 
 export interface QuickFilterOption {
@@ -48,6 +49,10 @@ export function QuickFilterModal({
           style={styles.modalContent}
           onStartShouldSetResponder={() => true}
         >
+          <FilterGlassSurface
+            testID="quick-filter-modal-glass"
+            borderRadius={FilterGlassTokens.sheet.cardRadius}
+          />
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity
@@ -55,7 +60,7 @@ export function QuickFilterModal({
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               testID="quick-filter-modal-close"
             >
-              <Ionicons name="close" size={24} color={Colors.textMuted} />
+              <Ionicons name="close" size={24} color={FilterGlassTokens.sheet.closeIconColor} />
             </TouchableOpacity>
           </View>
 

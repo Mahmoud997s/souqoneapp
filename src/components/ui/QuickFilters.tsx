@@ -5,6 +5,7 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
 export interface QuickFilterItem {
   id: string;
@@ -36,15 +37,21 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
             >
+              {!isActive && (
+                <FilterGlassSurface
+                  testID={`quick-filter-glass-${qf.id}`}
+                  borderRadius={FilterGlassTokens.chip.borderRadius}
+                />
+              )}
               <TouchableOpacity
                 style={[s.chipPressableArea, !isActive && s.chipPressableAreaInactive]}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel={qf.label}
                 accessibilityState={{ selected: Boolean(isActive) }}
-                // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
-                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt, paddingVertical 2pt),
-                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged per M-023/M-025).
+                // Effective touch height: visible height is 28pt (paddingVertical 5.5*2 + lineHeight 15 + border 2).
+                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt),
+                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged).
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                 onPress={() => onFilterPress(qf.id)}
               >
@@ -61,8 +68,8 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               {isActive && (
                 <TouchableOpacity
                   style={s.clearButton}
-                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~29x22.5pt).
-                  // hitSlop 16 is bounded by the chip container (29pt height), giving effective touch target of ~29x24pt.
+                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~28x22.5pt).
+                  // hitSlop 16 is bounded by the chip container (28pt height), giving effective touch target of ~28x24pt.
                   // VoiceOver accesses this directly as a sibling button without parent nesting clipping.
                   hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                   accessibilityRole="button"
@@ -101,19 +108,6 @@ const s = StyleSheet.create({
     borderColor: FilterGlassTokens.chip.borderColor,
     ...FilterGlassTokens.chip.shadow,
   },
-  // Active chip geometry arithmetic (pixel-identical to master 26f4325):
-  // Master active chip:
-  //   quickFilterChip: paddingHorizontal: 10, paddingVertical: 6, gap: 5
-  //   Visible width = 10 [paddingStart] + text + 5 [gap] + 12.5 [icon] + 10 [paddingEnd] = text + 37.5pt.
-  // Refactored accessible sibling chip:
-  //   chipPressableArea: paddingVertical: 6, paddingStart: 10, paddingEnd: 5
-  //   clearButton: paddingVertical: 6, paddingStart: 0, paddingEnd: 10
-  //   Visible width = 10 [pressable start] + text + 5 [pressable end] + 0 [clear start] + 12.5 [icon] + 10 [clear end] = text + 37.5pt.
-  //   Distance between text and icon = 5 + 0 = 5pt (identical to master's gap: 5).
-  //   Leading padding = 10pt (identical to master's paddingHorizontal: 10).
-  //   Trailing padding = 10pt (identical to master's paddingHorizontal: 10).
-  // iOS Shadow parity:
-  //   quickFilterChip retains shadow without overflow: 'hidden' to prevent iOS shadow clipping.
   chipPressableArea: {
     flexDirection: 'row',
     alignItems: 'center',

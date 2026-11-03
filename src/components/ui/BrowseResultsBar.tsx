@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { FilterGlassTokens } from '../../constants/filterGlassTokens'
+import { FilterGlassSurface } from './FilterGlassSurface'
 
 export interface BrowseResultsBarProps {
   resultsCount: number
@@ -37,6 +38,10 @@ export function BrowseResultsBar({
           accessibilityLabel="مسح الفلاتر"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
+          <FilterGlassSurface
+            testID="browse-results-clear-glass"
+            borderRadius={FilterGlassTokens.resultsBar.clearRadius}
+          />
           <Ionicons
             name="trash-outline"
             size={12.5}
@@ -49,6 +54,10 @@ export function BrowseResultsBar({
       )}
 
       <View style={s.countBadge}>
+        <FilterGlassSurface
+          testID="browse-results-count-glass"
+          borderRadius={FilterGlassTokens.resultsBar.countRadius}
+        />
         {customIcon ? (
           customIcon
         ) : (

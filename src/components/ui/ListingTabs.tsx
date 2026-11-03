@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
 export interface TabItem {
   id: string;
@@ -21,6 +21,10 @@ export function ListingTabs({ tabs, activeTabId, onChangeTab, onClearTab }: List
   
   return (
     <View style={s.listingTypeTabs}>
+      <FilterGlassSurface
+        testID="listing-tabs-track-glass"
+        borderRadius={FilterGlassTokens.tab.trackRadius}
+      />
       {tabs.map((type) => {
         const isActive = activeTabId === type.id;
         return (
@@ -68,7 +72,6 @@ const s = StyleSheet.create({
   },
   typeTabActive: {
     backgroundColor: FilterGlassTokens.tab.activeBg,
-    borderColor: FilterGlassTokens.tab.activeBorderColor,
     ...FilterGlassTokens.tab.activeShadow,
   },
   typeTabTxt: {

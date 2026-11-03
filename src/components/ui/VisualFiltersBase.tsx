@@ -15,6 +15,7 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -201,6 +202,12 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     ]}
                     onPress={config.onPress}
                   >
+                    {!config.isSelected && (
+                      <FilterGlassSurface
+                        testID={`visual-filter-item-glass-${config.id}`}
+                        borderRadius={FilterGlassTokens.card.borderRadius}
+                      />
+                    )}
                     {config.icon}
                     <Text
                       style={[
@@ -230,6 +237,10 @@ export function VisualFiltersBase<TTabId extends string = string>({
               // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
+              <FilterGlassSurface
+                testID="visual-filter-view-all-glass"
+                borderRadius={FilterGlassTokens.card.borderRadius}
+              />
               <View style={s.viewAllIconBox}>
                 <Ionicons name="apps-outline" size={15} color={activeColor} />
               </View>
@@ -295,6 +306,10 @@ export function VisualFiltersBase<TTabId extends string = string>({
         testID="visual-filters-segmented-wrapper"
         style={[s.segmentedWrapper, segmentedWrapperStyle]}
       >
+        <FilterGlassSurface
+          testID="visual-filters-track-glass"
+          borderRadius={FilterGlassTokens.tab.trackRadius}
+        />
         {isFixedTabs ? (
           <View style={s.fixedSegmentedContainer}>
             {tabs.map(renderTabItem)}
@@ -387,7 +402,6 @@ const s = StyleSheet.create({
   },
   segmentTabActive: {
     backgroundColor: FilterGlassTokens.tab.activeBg,
-    borderColor: FilterGlassTokens.tab.activeBorderColor,
     ...FilterGlassTokens.tab.activeShadow,
   },
   tabIcon: {

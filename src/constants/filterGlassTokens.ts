@@ -1,8 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Colors } from './colors';
-import { Spacing } from './spacing';
-import { Radius } from './radius';
 import { TopBarTokens } from './topBarTokens';
+
+/**
+ * Master modal backdrop overlay color ('rgba(0,0,0,0.5)').
+ * Preserved per M-033/M-034 to prevent modal backdrop color drift.
+ */
+export const MODAL_BACKDROP_OVERLAY = 'rgba(0,0,0,0.5)' as const;
 
 /**
  * FilterGlassTokens
@@ -34,8 +38,8 @@ export const FilterGlassTokens = {
     activeTextColor: Colors.white,
     activeIconColor: Colors.white,
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 15.5,
+    fontSize: 11, // Restored to master 7353e69 value per M-034 (was 11.5)
+    lineHeight: 15, // Restored to master 7353e69 value per M-034 (was 15.5)
   },
 
   // ListingTabs & VisualFilters segmented tabs tokens
@@ -48,10 +52,25 @@ export const FilterGlassTokens = {
     inactiveTextColor: Colors.textMuted,
     inactiveFontFamily: 'Almarai_700Bold',
     activeBg: Colors.white,
-    activeBorderColor: TopBarTokens.buttonBorderColor,
     activeTextColor: Colors.primary,
     activeFontFamily: 'Almarai_800ExtraBold',
-    activeShadow: TopBarTokens.buttonShadow,
+    activeShadow: Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.12,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+      default: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.12,
+        shadowRadius: 3,
+      },
+    }),
     fontSize: 11.5,
     lineHeight: 15.5,
   },
@@ -100,12 +119,28 @@ export const FilterGlassTokens = {
 
   // QuickFilterModal sheet tokens
   sheet: {
-    overlayBg: 'rgba(15, 23, 42, 0.45)',
+    overlayBg: MODAL_BACKDROP_OVERLAY,
     cardBg: TopBarTokens.iceGlass,
     cardBorderColor: TopBarTokens.buttonBorderColor,
     cardBorderWidth: 1,
     cardRadius: 16,
-    cardShadow: TopBarTokens.shadow,
+    cardShadow: Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+    }),
     dividerColor: Colors.border,
     dividerWidth: StyleSheet.hairlineWidth,
     titleColor: Colors.text,

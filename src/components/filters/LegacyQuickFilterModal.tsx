@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } f
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from '../ui/FilterGlassSurface';
 import { quickFilterModalStyles } from './quickFilterModalStyles';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef } from '../../types/location.types';
@@ -156,6 +158,10 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
     >
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <View style={styles.modalContent}>
+          <FilterGlassSurface
+            testID="legacy-quick-filter-modal-glass"
+            borderRadius={FilterGlassTokens.sheet.cardRadius}
+          />
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{getTitle()}</Text>
             <TouchableOpacity onPress={onClose}>
