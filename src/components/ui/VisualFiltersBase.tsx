@@ -21,7 +21,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export interface VisualFilterItemConfig {
   id: string;
-  label?: string;
+  label: string;
   icon?: React.ReactNode;
   isSelected?: boolean;
   onPress: () => void;
@@ -32,18 +32,8 @@ export interface VisualFilterItem<T = object> {
   label?: string;
   name?: string;
   nameAr?: string | null;
-  slug?: string;
-  en?: string;
-  icon?: keyof typeof Ionicons.glyphMap | string;
   isSelected?: boolean;
   onPress?: () => void;
-  min?: number;
-  max?: number | null;
-  extraId?: number;
-  year?: number;
-  value?: number | string;
-  color?: string;
-  bg?: string;
   payload?: T;
 }
 
@@ -57,6 +47,13 @@ export interface VisualFilterTab<TTabId extends string = string, TItem = VisualF
   emptyState?: React.ReactNode;
   hideViewAll?: boolean;
   viewAllLabel?: string;
+  /**
+   * Method signature syntax (bivariance) is required here by TypeScript design specification:
+   * under strictFunctionTypes: true, function property syntax forces parameter contravariance,
+   * which prohibits storing tabs with heterogeneous domain item types (e.g. BusManufacturer,
+   * CarBrand, EquipmentCategoryItem) in a single tabs array without resorting to `any`.
+   * Method signatures enable bivariance, preserving strict type safety within each adapter.
+   */
   getItemProps?(item: TItem): VisualFilterItemConfig;
   renderItem?(item: TItem, isSelected: boolean): React.ReactNode;
 }
@@ -164,32 +161,25 @@ export function VisualFiltersBase<TTabId extends string = string>({
         contentContainerStyle={s.scrollContainer}
       >
         {columns.map((col, colIdx) => {
-          const firstItem = col[0];
-          const colKey = (firstItem && typeof firstItem === 'object' && 'id' in firstItem && firstItem.id != null)
-            ? String(firstItem.id)
-            : `col-${colIdx}`;
+          const firstItem = col[0] as VisualFilterItem | undefined;
+          const colKey = firstItem?.id != null ? String(firstItem.id) : `col-${colIdx}`;
 
           return (
             <View key={colKey} style={rows === 2 ? s.column : undefined}>
               {col.map((item) => {
                 if (currentTab.renderItem) {
-                  const isSel = Boolean(item && typeof item === 'object' && 'isSelected' in item && item.isSelected);
+                  const itemWithSel = item as VisualFilterItem | undefined;
+                  const isSel = Boolean(itemWithSel?.isSelected);
                   return currentTab.renderItem(item, isSel);
                 }
 
                 const config: VisualFilterItemConfig = currentTab.getItemProps
                   ? currentTab.getItemProps(item)
                   : {
-                      id: (item && typeof item === 'object' && 'id' in item && item.id != null) ? String(item.id) : String(item),
-                      label: (item && typeof item === 'object' && 'label' in item && item.label != null)
-                        ? String(item.label)
-                        : (item && typeof item === 'object' && 'name' in item && item.name != null)
-                        ? String(item.name)
-                        : String(item),
-                      isSelected: Boolean(item && typeof item === 'object' && 'isSelected' in item && item.isSelected),
-                      onPress: (item && typeof item === 'object' && 'onPress' in item && typeof item.onPress === 'function')
-                        ? (item.onPress as () => void)
-                        : () => {},
+                      id: (item as VisualFilterItem).id,
+                      label: (item as VisualFilterItem).label || (item as VisualFilterItem).name || (item as VisualFilterItem).id,
+                      isSelected: Boolean((item as VisualFilterItem).isSelected),
+                      onPress: (item as VisualFilterItem).onPress || (() => {}),
                     };
 
                 return (
@@ -199,7 +189,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     accessibilityRole="button"
                     accessibilityLabel={config.label}
                     accessibilityState={{ selected: Boolean(config.isSelected) }}
-                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={[
                       s.itemCard,
                       config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
@@ -231,7 +221,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
-              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
               <View style={s.viewAllIconBox}>
                 <Ionicons name="apps-outline" size={15} color={activeColor} />
@@ -257,7 +247,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
         accessibilityRole="tab"
         accessibilityLabel={tab.label}
         accessibilityState={{ selected: isActive }}
-        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+        hitSlop={{ top: 9, bottom: 9, left: 4, right: 4 }}
         style={[
           s.segmentTab,
           isFixedTabs && s.fixedSegmentTab,

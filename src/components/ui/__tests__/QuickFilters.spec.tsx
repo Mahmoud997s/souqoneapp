@@ -56,12 +56,12 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     const inactiveChip = getByLabelText('الماركة');
     expect(inactiveChip.props.accessibilityRole).toBe('button');
     expect(inactiveChip.props.accessibilityState).toEqual({ selected: false });
-    expect(inactiveChip.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 4, right: 4 });
+    expect(inactiveChip.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
 
     const activeChip = getByLabelText('مسقط');
     expect(activeChip.props.accessibilityRole).toBe('button');
     expect(activeChip.props.accessibilityState).toEqual({ selected: true });
-    expect(activeChip.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 4, right: 4 });
+    expect(activeChip.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
   });
 
   it('provides dedicated clear button with role button, label, and enlarged hitSlop >= 44pt touch area', async () => {
@@ -76,7 +76,7 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
 
     const clearBtn = getByLabelText('إزالة الفلتر');
     expect(clearBtn.props.accessibilityRole).toBe('button');
-    expect(clearBtn.props.hitSlop).toEqual({ top: 12, bottom: 12, left: 12, right: 12 });
+    expect(clearBtn.props.hitSlop).toEqual({ top: 16, bottom: 16, left: 16, right: 16 });
 
     fireEvent.press(clearBtn);
     expect(onClearFilter).toHaveBeenCalledWith('f2');

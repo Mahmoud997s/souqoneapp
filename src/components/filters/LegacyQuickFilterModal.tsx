@@ -134,9 +134,9 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
 
   const currentFilters = (filters || {}) as TFilters & LegacyFiltersRecord;
 
-  const applyFilters = (next: TFilters) => {
+  const applyFilters = (next: TFilters | CarsFilterState) => {
     if (typeof setFilters === 'function') {
-      setFilters(next);
+      setFilters(next as TFilters);
     }
     onClose();
   };
@@ -191,12 +191,7 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
                             String(item.id),
                             brandName
                           );
-                          const nextFilters: TFilters = Object.assign({}, currentFilters, updated, {
-                            modelId: undefined,
-                            model: undefined,
-                            trim: undefined,
-                          });
-                          applyFilters(nextFilters);
+                          applyFilters(updated);
                         }
                       } else {
                         applyUpdate({

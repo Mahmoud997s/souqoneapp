@@ -119,12 +119,12 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     const activeTab = getByLabelText('التبويب الأول');
     expect(activeTab.props.accessibilityRole).toBe('tab');
     expect(activeTab.props.accessibilityState).toEqual({ selected: true });
-    expect(activeTab.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+    expect(activeTab.props.hitSlop).toEqual({ top: 9, bottom: 9, left: 4, right: 4 });
 
     const inactiveTab = getByLabelText('التبويب الثاني');
     expect(inactiveTab.props.accessibilityRole).toBe('tab');
     expect(inactiveTab.props.accessibilityState).toEqual({ selected: false });
-    expect(inactiveTab.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+    expect(inactiveTab.props.hitSlop).toEqual({ top: 9, bottom: 9, left: 4, right: 4 });
   });
 
   it('exposes accessibility role, label, state, and hitSlop on item cards', async () => {
@@ -135,12 +135,12 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     const unselectedItem = getByLabelText('عنصر 1');
     expect(unselectedItem.props.accessibilityRole).toBe('button');
     expect(unselectedItem.props.accessibilityState).toEqual({ selected: false });
-    expect(unselectedItem.props.hitSlop).toEqual({ top: 4, bottom: 4, left: 4, right: 4 });
+    expect(unselectedItem.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
 
     const selectedItem = getByLabelText('عنصر 2');
     expect(selectedItem.props.accessibilityRole).toBe('button');
     expect(selectedItem.props.accessibilityState).toEqual({ selected: true });
-    expect(selectedItem.props.hitSlop).toEqual({ top: 4, bottom: 4, left: 4, right: 4 });
+    expect(selectedItem.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
   });
 
   it('exposes accessibility role, label, and hitSlop on View All button', async () => {
@@ -150,6 +150,6 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
 
     const viewAll = getByLabelText('عرض الكل');
     expect(viewAll.props.accessibilityRole).toBe('button');
-    expect(viewAll.props.hitSlop).toEqual({ top: 4, bottom: 4, left: 4, right: 4 });
+    expect(viewAll.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
   });
 });
