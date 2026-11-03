@@ -37,7 +37,6 @@ import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { GlassSurface } from '../../src/components/navigation/glassSupport'
 import { TopBarTokens } from '../../src/constants/topBarTokens'
-import { CATEGORY_ICONS, type CategoryVertical } from '../../src/constants/categoryIcons'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { HomeAddListingBanner } from '../../src/components/home'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
@@ -97,17 +96,7 @@ export interface SectionProps {
   peek?: boolean
 }
 
-export const SECTION_ICON_MAP: Record<string, CategoryVertical> = {
-  cars: 'cars',
-  services: 'services',
-  parts: 'parts',
-  buses: 'buses',
-  equipment: 'equipment',
-  operators: 'operators',
-}
-
 export const SECTION_ICON_BOX_SIZE = 32
-export const SECTION_ICON_3D_SIZE = 26
 export const SEE_ALL_PADDING_HORIZONTAL = 10
 export const SEE_ALL_PADDING_VERTICAL = 4
 export const SEE_ALL_GAP = 4
@@ -131,22 +120,17 @@ export function CategorySection({
   const sectionPaddingEnd = peek ? getPeekLeadingInset() : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
-  const categoryKey = SECTION_ICON_MAP[routeBase] ?? 'browse'
-  const categoryIconSource = CATEGORY_ICONS[categoryKey]
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)} testID={`home-section-${routeBase}`}>
       <View style={s.sectionHeader} testID={`home-section-header-${routeBase}`}>
         <View style={s.titleRow} testID={`home-section-title-row-${routeBase}`}>
           <View style={s.sectionIconWrap} testID={`home-section-icon-box-${routeBase}`}>
-            <Image
-              testID={`home-section-icon-3d-${routeBase}`}
-              source={categoryIconSource}
-              style={s.sectionIcon3D}
-              contentFit="contain"
-              cachePolicy="memory-disk"
-              pointerEvents="none"
-              accessibilityIgnoresInvertColors
+            <MaterialCommunityIcons
+              testID={`home-section-icon-${routeBase}`}
+              name={icon}
+              size={16}
+              color={iconColor || Colors.primary}
             />
           </View>
           <View style={s.titleCol}>
@@ -479,10 +463,6 @@ const s = StyleSheet.create({
     borderColor: TopBarTokens.buttonBorderColor,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sectionIcon3D: {
-    width: SECTION_ICON_3D_SIZE,
-    height: SECTION_ICON_3D_SIZE,
   },
   titleCol: {
     flex: 1,

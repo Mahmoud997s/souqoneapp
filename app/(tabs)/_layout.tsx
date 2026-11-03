@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, {
   useSharedValue,
@@ -24,7 +25,6 @@ import { Shadows } from '../../src/constants/shadows'
 import { Typography } from '../../src/constants/typography'
 import { BottomBarTokens } from '../../src/constants/bottomBarTokens'
 import { GlassBottomBarShell } from '../../src/components/navigation/GlassBottomBarShell'
-import { AddListingButton } from '../../src/components/navigation/AddListingButton'
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const T = {
@@ -36,11 +36,14 @@ const T = {
   white:      Colors.white,
   border:     Colors.border,
   barBg:      Colors.white,
+  fabBg:      Colors.primary,
+  fabIcon:    Colors.white,
   badgeBg:    Colors.accent,
   badgeBorder:Colors.white,
 } as const
 
 const BAR_H      = BottomBarTokens.expandedHeight
+const FAB_SIZE   = 38
 const ICON_SIZE  = 20
 const FONT_ACT   = Typography.labelMd.fontFamily
 const FONT_INACT = Typography.caption.fontFamily
@@ -144,6 +147,39 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
   )
 }
 
+// ─── FAB (Center Post Button) ─────────────────────────────────────────────────
+function FABItem({ onPress }: { onPress: () => void }) {
+  const scale = useSharedValue(1)
+
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
+
+  const handlePress = useCallback(() => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    } catch {}
+    scale.value = withSpring(0.85, { damping: 8, stiffness: 300 }, () => {
+      scale.value = withSpring(1, { damping: 12, stiffness: 250 })
+    })
+    onPress()
+  }, [onPress, scale])
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={s.fabItem}
+      accessibilityRole="button"
+      accessibilityLabel="إضافة إعلان"
+      testID="tab-post-fab"
+    >
+      <Animated.View style={[s.fabCircle, fabAnimStyle]}>
+        <Ionicons name="add" size={22} color={T.fabIcon} />
+      </Animated.View>
+    </Pressable>
+  )
+}
+
 // ─── Custom Tab Bar ───────────────────────────────────────────────────────────
 export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
   const insets = useSafeAreaInsets()
@@ -192,15 +228,7 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
           const focused = state.index === index
 
           if (route.name === 'post') {
-            return (
-              <View key={route.key} style={s.fabItem}>
-                <AddListingButton
-                  onPress={handlePost}
-                  accessibilityLabel="إضافة إعلان"
-                  testID="tab-post-fab"
-                />
-              </View>
-            )
+            return <FABItem key={route.key} onPress={handlePost} />
           }
 
           const onPress = () => {
@@ -334,6 +362,19 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: BAR_H,
+  },
+
+  fabCircle: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    backgroundColor: T.fabBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: Shadows.floating,
+      android: { elevation: 8 },
+    }),
   },
 
   // ── Collapsed Circle Badge ──

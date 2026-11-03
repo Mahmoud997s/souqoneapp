@@ -6,7 +6,6 @@ import path from 'path'
 import { ActionBanner } from '../components/ui/ActionBanner'
 import { SectionFooterAction } from '../components/ui/SectionFooterAction'
 import { CATEGORY_ICONS } from '../constants/categoryIcons'
-import { CATEGORY_ICONS as EXPORTED_HOME_ICONS } from '../components/home/HomeCategoriesGrid'
 
 jest.mock('expo-image', () => ({
   Image: (props: any) => {
@@ -136,15 +135,13 @@ describe('D-157: ActionBanner & SectionFooterAction 3D Category Icons', () => {
     })
   })
 
-  describe('3. CATEGORY_ICONS Integrity and Re-export', () => {
-    it('re-exports CATEGORY_ICONS from HomeCategoriesGrid with full backward compatibility', () => {
-      expect(EXPORTED_HOME_ICONS).toBe(CATEGORY_ICONS)
+  describe('3. CATEGORY_ICONS Integrity for Bottom Action Banners', () => {
+    it('defines CATEGORY_ICONS with the 5 banner verticals', () => {
       expect(CATEGORY_ICONS.cars).toBeDefined()
       expect(CATEGORY_ICONS.buses).toBeDefined()
       expect(CATEGORY_ICONS.equipment).toBeDefined()
       expect(CATEGORY_ICONS.parts).toBeDefined()
       expect(CATEGORY_ICONS.services).toBeDefined()
-      expect(CATEGORY_ICONS.browse).toBeDefined()
     })
   })
 

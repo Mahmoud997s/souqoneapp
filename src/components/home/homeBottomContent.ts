@@ -1,27 +1,26 @@
-import { type ImageSourcePropType } from 'react-native'
-import { CATEGORY_ICONS, type CategoryVertical } from '../../constants/categoryIcons'
+import { type MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 
 export interface HomeListingCategory {
-  id: Extract<CategoryVertical, 'cars' | 'buses' | 'equipment' | 'services' | 'parts'>
+  id: 'cars' | 'buses' | 'equipment' | 'services' | 'parts'
   title: string
-  image: ImageSourcePropType
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
 }
 
 export const HOME_LISTING_CATEGORIES: readonly HomeListingCategory[] = [
-  { id: 'cars', title: 'سيارات', image: CATEGORY_ICONS.cars },
-  { id: 'buses', title: 'حافلات', image: CATEGORY_ICONS.buses },
-  { id: 'equipment', title: 'معدات', image: CATEGORY_ICONS.equipment },
-  { id: 'services', title: 'خدمات', image: CATEGORY_ICONS.services },
-  { id: 'parts', title: 'قطع غيار', image: CATEGORY_ICONS.parts },
+  { id: 'cars', title: 'سيارات', icon: 'car-sports' },
+  { id: 'buses', title: 'حافلات', icon: 'bus-side' },
+  { id: 'equipment', title: 'معدات', icon: 'excavator' },
+  { id: 'services', title: 'خدمات', icon: 'car-wrench' },
+  { id: 'parts', title: 'قطع غيار', icon: 'car-cog' },
 ]
 
 export const HOME_BOTTOM_TOKENS = {
   cardRadius: Radius.lg,
   glassWashColor: Colors.paleMint,
   glassWashOpacity: 0.18,
-  categoryImageSize: 36,
+  categoryIconSize: 21,
   categoryLabelLines: 2,
   titleLines: 2,
   bannerTitleFontSize: 15,

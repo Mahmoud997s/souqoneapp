@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
-import { Image } from 'expo-image'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -73,14 +73,14 @@ export function PostCategoryCard({ category, index, onPress }: PostCategoryCardP
           entering={entering}
           style={styles.content}
         >
-          <Image
-            testID={`post-category-icon-${category.id}`}
-            source={category.icon}
-            style={styles.icon}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-            accessibilityIgnoresInvertColors
-          />
+          <View style={styles.iconBox} testID={`post-category-icon-box-${category.id}`}>
+            <MaterialCommunityIcons
+              testID={`post-category-icon-${category.id}`}
+              name={category.icon}
+              size={32}
+              color={Colors.primary}
+            />
+          </View>
           <Text style={styles.title} numberOfLines={2}>
             {category.title}
           </Text>
@@ -122,9 +122,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  icon: {
-    width: PostCategoryTokens.iconSize,
-    height: PostCategoryTokens.iconSize,
+  iconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: Colors.inputBg,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: PostCategoryTokens.cardIconGap,
   },
   title: {

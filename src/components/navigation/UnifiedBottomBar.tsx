@@ -12,10 +12,11 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
+import { Gradients } from '../../constants/gradients';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
-import { AddListingButton } from './AddListingButton';
 import { useTabDragSelect } from '../../hooks/useTabDragSelect';
 
 export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
@@ -201,6 +202,57 @@ function TabItem({
   );
 }
 
+function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: boolean }) {
+  const pressScale = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (isHovered) {
+      pressScale.value = withSpring(1.08, { damping: 10, stiffness: 300 });
+    } else {
+      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
+    }
+  }, [isHovered, pressScale]);
+
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
+
+  const handlePress = useCallback(() => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {}
+    pressScale.value = withSpring(0.85, { damping: 9, stiffness: 350 }, () => {
+      pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
+    });
+    onPress();
+  }, [onPress, pressScale]);
+
+  return (
+    <View style={s.fabItem}>
+      <Pressable
+        onPress={handlePress}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel="إضافة إعلان جديد"
+        testID="section-bottom-bar-add-button"
+      >
+        <View style={s.fabCenterWrapper}>
+          <Animated.View style={[s.fabSquircleWrap, fabAnimStyle]}>
+            <LinearGradient
+              colors={Gradients.hero}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.fabSquircle}
+            >
+              <Ionicons name="add" size={20} color={Colors.white} />
+            </LinearGradient>
+          </Animated.View>
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
 export function UnifiedBottomBar({
   tabs,
   activeTab,
@@ -259,14 +311,11 @@ export function UnifiedBottomBar({
       {tabs.map((tab) => {
         if (tab.isPost) {
           return (
-            <View key={tab.id} style={s.fabItem}>
-              <AddListingButton
-                onPress={onPostPress}
-                isHovered={effectiveActiveTab === tab.id}
-                accessibilityLabel="إضافة إعلان جديد"
-                testID="section-bottom-bar-add-button"
-              />
-            </View>
+            <FABItem
+              key={tab.id}
+              onPress={onPostPress}
+              isHovered={effectiveActiveTab === tab.id}
+            />
           );
         }
 
@@ -375,5 +424,35 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: UNIFIED_BOTTOM_BAR_HEIGHT,
+  },
+  fabCenterWrapper: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  fabSquircleWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: { elevation: 4 },
+    }),
+  },
+  fabSquircle: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
