@@ -1,51 +1,13 @@
-describe('Services Browse Filter Logic', () => {
-  function parseServicesFiltersFromParams(params: {
-    q?: string;
-    serviceType?: string;
-    providerType?: string;
-    governorate?: string;
-    governorateId?: string;
-    wilayaId?: string;
-    isHomeService?: string;
-  }) {
-    const initial: Record<string, any> = {};
-    if (params.serviceType) initial.serviceType = params.serviceType;
-    if (params.providerType) {
-      initial.providerType = params.providerType === 'CENTER' ? 'WORKSHOP' : params.providerType;
-    }
-    if (params.governorate) initial.governorate = params.governorate;
-    if (params.governorateId) {
-      const parsed = parseInt(String(params.governorateId), 10);
-      if (!isNaN(parsed) && parsed > 0) initial.governorateId = parsed;
-    }
-    if (params.wilayaId) {
-      const parsed = parseInt(String(params.wilayaId), 10);
-      if (!isNaN(parsed) && parsed > 0) initial.wilayaId = parsed;
-    }
-    if (params.isHomeService === 'true') initial.isHomeService = true;
-    return initial;
-  }
+import {
+  parseServicesFiltersFromParams,
+  mergeServicesRouteParams,
+  clearServicesQuickFilter,
+  buildServicesQueryParams,
+  countServicesActiveFilters,
+} from '../utils/browse-filters/servicesBrowseFilters';
+import { SERVICES_QUERY_ALLOWED_KEYS } from '../types/contracts/servicesQuery';
 
-  function clearQuickFilter(filters: Record<string, any>, filterId: string) {
-    const next = { ...filters };
-    if (filterId === 'serviceType') delete next.serviceType;
-    if (filterId === 'providerType') delete next.providerType;
-    if (filterId === 'specialization' || filterId === 'specializations') delete next.specializations;
-    if (filterId === 'isOpenNow') delete next.isOpenNow;
-    if (filterId === 'isHomeService') delete next.isHomeService;
-    if (filterId === 'sort') {
-      delete next.sortBy;
-      delete next.sortOrder;
-    }
-    if (filterId === 'city' || filterId === 'gov') {
-      delete next.governorateId;
-      delete next.wilayaId;
-      delete next.governorate;
-      delete next.city;
-    }
-    return next;
-  }
-
+describe('Services Browse Filter Logic & Contract', () => {
   it('defaults to 0 filters when no query params are provided', () => {
     const filters = parseServicesFiltersFromParams({});
     expect(filters).toEqual({});
@@ -77,34 +39,89 @@ describe('Services Browse Filter Logic', () => {
     expect(filters.isHomeService).toBe(true);
   });
 
+  it('merges incoming route params without blowing away existing filter state (G-07)', () => {
+    const existing = {
+      serviceType: 'CLEANING',
+      governorateId: 1,
+    };
+    const incoming = { providerType: 'WORKSHOP', isHomeService: 'true' };
+    const merged = mergeServicesRouteParams(existing, incoming);
+    expect(merged.serviceType).toBe('CLEANING');
+    expect(merged.governorateId).toBe(1);
+    expect(merged.providerType).toBe('WORKSHOP');
+    expect(merged.isHomeService).toBe(true);
+  });
+
   it('clears individual filters without affecting others', () => {
-    let state: Record<string, any> = {
+    let state = {
       serviceType: 'CLEANING',
       providerType: 'WORKSHOP',
       city: 'مسقط',
       governorateId: 1,
       wilayaId: 101,
       isOpenNow: true,
-      sortBy: 'rating',
       specializations: ['نانو سيراميك'],
     };
 
-    state = clearQuickFilter(state, 'serviceType');
+    state = clearServicesQuickFilter(state, 'serviceType');
     expect(state.serviceType).toBeUndefined();
     expect(state.providerType).toBe('WORKSHOP');
     expect(state.city).toBe('مسقط');
 
-    state = clearQuickFilter(state, 'city');
+    state = clearServicesQuickFilter(state, 'city');
     expect(state.city).toBeUndefined();
     expect(state.governorateId).toBeUndefined();
     expect(state.wilayaId).toBeUndefined();
     expect(state.isOpenNow).toBe(true);
 
-    state = clearQuickFilter(state, 'sort');
-    expect(state.sortBy).toBeUndefined();
-
-    state = clearQuickFilter(state, 'specialization');
+    state = clearServicesQuickFilter(state, 'specialization');
     expect(state.specializations).toBeUndefined();
     expect(state.providerType).toBe('WORKSHOP');
+  });
+
+  describe('F-02: Services Sort Removal & Backend DTO Parity', () => {
+    it('buildServicesQueryParams NEVER emits sortBy or sortOrder', () => {
+      const stateWithSort = {
+        serviceType: 'MAINTENANCE',
+        sortBy: 'rating',
+        sortOrder: 'desc',
+      };
+      const query = buildServicesQueryParams(stateWithSort, '');
+      expect((query as any).sortBy).toBeUndefined();
+      expect((query as any).sortOrder).toBeUndefined();
+    });
+
+    it('emits ONLY keys present in the ServicesQuery allow-list', () => {
+      const complexState = {
+        serviceType: 'CLEANING',
+        providerType: 'WORKSHOP',
+        governorateId: 1,
+        wilayaId: 5,
+        isHomeService: true,
+        isOpenNow: true,
+        specializations: ['تلميع ساطع'],
+        latitude: 23.588,
+        longitude: 58.3829,
+        radiusKm: 15,
+        city: 'الخوير', // Internal UI key: should NOT be emitted
+        governorate: 'مسقط', // Internal UI key: should NOT be emitted
+        sortBy: 'views', // Should NOT be emitted
+      };
+
+      const query = buildServicesQueryParams(complexState, 'غسيل', 10);
+      const emittedKeys = Object.keys(query);
+
+      const allowedSet = new Set<string>(SERVICES_QUERY_ALLOWED_KEYS);
+      emittedKeys.forEach((key) => {
+        expect(allowedSet.has(key)).toBe(true);
+      });
+
+      expect(query.search).toBe('غسيل');
+      expect(query.limit).toBe(10);
+      expect((query as any).city).toBeUndefined();
+      expect((query as any).governorate).toBeUndefined();
+      expect((query as any).sortBy).toBeUndefined();
+      expect((query as any).sortOrder).toBeUndefined();
+    });
   });
 });
