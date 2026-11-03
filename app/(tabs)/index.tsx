@@ -436,7 +436,7 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FB' },
+  root: { flex: 1, backgroundColor: Colors.homeBg },
 
   // Header & Brand Icon
   brandIconBtn: {
