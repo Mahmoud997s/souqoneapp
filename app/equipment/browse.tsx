@@ -45,6 +45,7 @@ import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBott
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { UnifiedCardItem } from '../../src/types/unified-card.types';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
 
 // Constants
@@ -123,7 +124,7 @@ export default function EquipmentBrowseScreen() {
   const { scrollHandler } = useScrollAwareNav();
   const searchParams = useLocalSearchParams<{ type?: string; equipmentType?: string }>();
 
-  const listRef = useRef<any>(null);
+  const listRef = useRef<FlatList<UnifiedCardItem>>(null);
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');

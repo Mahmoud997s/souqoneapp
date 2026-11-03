@@ -4,6 +4,7 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -41,6 +42,7 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { Listing } from '../../src/types/listing.types';
 
 const DROPDOWN_FILTERS = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
@@ -60,7 +62,7 @@ const SORT_OPTIONS = [
 export default function BusesBrowseScreen() {
   const insets = useSafeAreaInsets();
   const { scrollHandler } = useScrollAwareNav();
-  const listRef = useRef<any>(null);
+  const listRef = useRef<FlatList<Listing>>(null);
   const searchParams = useLocalSearchParams<{
     type?: string;
     featured?: string;

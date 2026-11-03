@@ -34,6 +34,7 @@ import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHead
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { UnifiedCardItem } from '../../src/types/unified-card.types';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
@@ -91,7 +92,7 @@ export default function PartsBrowseScreen() {
     partNumber?: string;
   }>();
 
-  const listRef = useRef<any>(null);
+  const listRef = useRef<FlatList<UnifiedCardItem>>(null);
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
 
   useEffect(() => {

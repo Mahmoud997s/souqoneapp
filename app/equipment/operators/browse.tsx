@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  FlatList,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -47,6 +48,7 @@ import {
   clearOperatorFilter,
   mergeOperatorRouteParams,
 } from '../../../src/utils/browse-filters/operatorsBrowseFilters'
+import { UnifiedCardItem } from '../../../src/types/unified-card.types'
 
 export { buildOperatorQueryParams } from '../../../src/utils/browse-filters/operatorsBrowseFilters'
 
@@ -54,7 +56,7 @@ export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
   const { scrollHandler } = useScrollAwareNav()
   const { navigateToAddOperator } = useOperatorNavigation()
-  const listRef = useRef<any>(null)
+  const listRef = useRef<FlatList<UnifiedCardItem>>(null)
   const searchParams = useLocalSearchParams<{
     operatorType?: string;
     governorateId?: string;
