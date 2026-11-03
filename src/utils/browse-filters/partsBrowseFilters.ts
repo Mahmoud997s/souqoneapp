@@ -117,8 +117,8 @@ export function clearPartsFilter(filters: PartsFilterState, id: string): PartsFi
   return next;
 }
 
-function parseLocationId(value: string | undefined): number | undefined {
-  if (value === undefined) return undefined;
+function parseLocationId(value: unknown): number | undefined {
+  if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   if (!/^\d+$/.test(trimmed)) return undefined;
   const n = Number(trimmed);

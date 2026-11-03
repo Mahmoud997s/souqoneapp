@@ -200,13 +200,21 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       expect(initial.wilayaId).toBe(102);
     });
 
-    it('rejects invalid or non-positive location IDs in initial and merged filters', () => {
+    it('rejects invalid, repeated-array, or non-positive location IDs in initial and merged filters', () => {
       const invalidInitial = parsePartsInitialFilters({
         governorateId: '0',
         wilayaId: '-5',
       });
       expect(invalidInitial.governorateId).toBeUndefined();
       expect(invalidInitial.wilayaId).toBeUndefined();
+
+      // Repeated query params from Expo Router come as string[]
+      const repeatedParamInitial = parsePartsInitialFilters({
+        governorateId: ['1', '2'] as unknown as string,
+        wilayaId: ['101', '102'] as unknown as string,
+      });
+      expect(repeatedParamInitial.governorateId).toBeUndefined();
+      expect(repeatedParamInitial.wilayaId).toBeUndefined();
 
       const invalidMerged = mergePartsRouteParams({}, {
         governorateId: '1.5',
