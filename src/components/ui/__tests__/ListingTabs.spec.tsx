@@ -17,7 +17,7 @@ describe('ListingTabs - Characterization & Parity Tests', () => {
     expect(toJSON1()).toBeNull();
 
     const { toJSON: toJSON2 } = await render(
-      <ListingTabs tabs={undefined as any} onChangeTab={jest.fn()} />
+      <ListingTabs tabs={undefined!} onChangeTab={jest.fn()} />
     );
     expect(toJSON2()).toBeNull();
   });

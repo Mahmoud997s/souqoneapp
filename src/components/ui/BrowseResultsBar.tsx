@@ -8,7 +8,7 @@ import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 export interface BrowseResultsBarProps {
   resultsCount: number
   entityName: string
-  iconName?: keyof typeof Ionicons.glyphMap | string
+  iconName?: keyof typeof Ionicons.glyphMap
   customIcon?: React.ReactNode
   activeFiltersCount: number
   onClearAll: () => void
@@ -51,7 +51,7 @@ export function BrowseResultsBar({
           customIcon
         ) : (
           <Ionicons
-            name={iconName as any}
+            name={iconName}
             size={14}
             color={FilterGlassTokens.resultsBar.countIconColor}
           />
