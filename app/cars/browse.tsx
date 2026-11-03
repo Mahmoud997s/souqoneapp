@@ -38,6 +38,7 @@ import {
 import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { navigateToCarForm } from '../../src/components/ui/DraftResumePrompt';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
@@ -301,27 +302,13 @@ export default function CarsBrowseScreen() {
               onViewAll={(tabId) => setIsFilterVisible(true)}
             />
             {listings && listings.length > 0 && (
-              <View style={{ paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                {activeFiltersCount > 0 ? (
-                  <TouchableOpacity 
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3.5, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#FEF2F2' }}
-                    onPress={handleClearAll}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: Colors.error, textAlign: 'left', writingDirection: 'rtl' }}>
-                      مسح الفلاتر
-                    </Text>
-                  </TouchableOpacity>
-                ) : <View />}
-
-                <View style={s.resultsCountBadge}>
-                  <Ionicons name="car-sport-outline" size={14} color="#64748b" />
-                  <Text style={s.resultsCountTxt}>
-                    {listings.length} سيارة متاحة
-                  </Text>
-                </View>
-              </View>
+              <BrowseResultsBar
+                resultsCount={listings.length}
+                entityName="سيارة"
+                iconName="car-sport-outline"
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
+              />
             )}
           </View>
         }
@@ -462,10 +449,6 @@ const s = StyleSheet.create({
   },
 
   loader: { margin: 20 },
-  resultsCountWrapper: { paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
-  resultsCountBadge: { backgroundColor: '#f8fafc', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#f1f5f9' },
-  resultsCountTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
-
   listHeader: {
     marginBottom: Spacing.space2,
   },

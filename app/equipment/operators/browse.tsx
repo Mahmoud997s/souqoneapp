@@ -26,6 +26,8 @@ import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
 import { SectionFooterAction } from '../../../src/components/ui/SectionFooterAction'
 import { CATEGORY_ICONS } from '../../../src/constants/categoryIcons'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
+import { BrowseResultsBar } from '../../../src/components/ui/BrowseResultsBar'
+import { FilterGlassTokens } from '../../../src/constants/filterGlassTokens'
 import { ListingTabs } from '../../../src/components/ui/ListingTabs'
 import { QuickFilters, QuickFilterItem } from '../../../src/components/ui/QuickFilters'
 import { CollapsibleSubHeader } from '../../../src/components/ui/CollapsibleSubHeader'
@@ -294,27 +296,19 @@ export default function BrowseOperatorsScreen() {
             />
 
             {/* Results Count Meta & Clear Filters Row */}
-            <View style={s.resultsRow}>
-              {(activeFiltersCount > 0 || searchQuery.length > 0) ? (
-                <TouchableOpacity
-                  onPress={handleClearAll}
-                  style={s.clearFiltersBtn}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-                  <Text style={s.clearFiltersTxt}>
-                    مسح الفلاتر
-                  </Text>
-                </TouchableOpacity>
-              ) : <View />}
-
-              <View style={s.resultsCountBadge}>
-                <MaterialCommunityIcons name="hard-hat" size={13} color="#64748B" />
-                <Text style={s.resultsCountTxt}>
-                  {isLoading ? 'جاري البحث...' : `${operators.length} مشغل متاح`}
-                </Text>
-              </View>
-            </View>
+            <BrowseResultsBar
+              resultsCount={operators.length}
+              entityName="مشغل"
+              customIcon={
+                <MaterialCommunityIcons
+                  name="hard-hat"
+                  size={14}
+                  color={FilterGlassTokens.resultsBar.countIconColor}
+                />
+              }
+              activeFiltersCount={activeFiltersCount > 0 || searchQuery.length > 0 ? 1 : 0}
+              onClearAll={handleClearAll}
+            />
 
             {/* Skeleton Loading State */}
             {isLoading && (
@@ -404,44 +398,6 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: Spacing.space2,
     paddingHorizontal: 2,
-  },
-  clearFiltersBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: Radius.sm,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-  },
-  clearFiltersTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.error,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  resultsCountBadge: {
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  resultsCountTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748B',
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   skeletonWrap: {
     gap: 8,

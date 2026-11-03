@@ -28,6 +28,8 @@ import { GovernorateRef } from '../../src/types/location.types';
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
+import { FilterGlassTokens } from '../../src/constants/filterGlassTokens';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
@@ -478,27 +480,19 @@ export default function PartsBrowseScreen() {
             />
 
             {listings && listings.length > 0 && (
-              <View style={s.resultsCountBar}>
-                {activeFiltersCount > 0 ? (
-                  <TouchableOpacity 
-                    style={s.clearFiltersBtn} 
-                    onPress={handleClearAll}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-                    <Text style={s.clearFiltersText}>مسح الفلاتر</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View />
-                )}
-
-                <View style={s.countBadge}>
-                  <MaterialCommunityIcons name="car-cog" size={14} color="#64748b" />
-                  <Text style={s.countBadgeText}>
-                    {listings.length} قطعة غيار متاحة
-                  </Text>
-                </View>
-              </View>
+              <BrowseResultsBar
+                resultsCount={listings.length}
+                entityName="قطعة غيار"
+                customIcon={
+                  <MaterialCommunityIcons
+                    name="car-cog"
+                    size={14}
+                    color={FilterGlassTokens.resultsBar.countIconColor}
+                  />
+                }
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
+              />
             )}
           </View>
         }
@@ -583,50 +577,6 @@ const s = StyleSheet.create({
   },
   listHeader: {
     marginBottom: Spacing.space2,
-  },
-  resultsCountBar: {
-    paddingHorizontal: Spacing.space4,
-    marginTop: Spacing.space2,
-    marginBottom: Spacing.space1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  clearFiltersBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 3.5,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
-  },
-  clearFiltersText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.error,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  countBadge: {
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  countBadgeText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748b',
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   cardWrapper: {
     paddingHorizontal: Spacing.space4,

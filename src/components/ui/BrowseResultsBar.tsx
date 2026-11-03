@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 
 export interface BrowseResultsBarProps {
   resultsCount: number
   entityName: string
-  iconName?: string
+  iconName?: keyof typeof Ionicons.glyphMap | string
+  customIcon?: React.ReactNode
   activeFiltersCount: number
   onClearAll: () => void
   containerStyle?: ViewStyle
@@ -17,6 +19,7 @@ export function BrowseResultsBar({
   resultsCount,
   entityName,
   iconName = 'car-sport-outline',
+  customIcon,
   activeFiltersCount,
   onClearAll,
   containerStyle,
@@ -28,8 +31,15 @@ export function BrowseResultsBar({
           style={s.clearBtn}
           onPress={onClearAll}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="مسح الفلاتر"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
+          <Ionicons
+            name="trash-outline"
+            size={12.5}
+            color={FilterGlassTokens.resultsBar.clearIconColor}
+          />
           <Text style={s.clearTxt}>مسح الفلاتر</Text>
         </TouchableOpacity>
       ) : (
@@ -37,7 +47,15 @@ export function BrowseResultsBar({
       )}
 
       <View style={s.countBadge}>
-        <Ionicons name={iconName as any} size={14} color="#64748b" />
+        {customIcon ? (
+          customIcon
+        ) : (
+          <Ionicons
+            name={iconName as any}
+            size={14}
+            color={FilterGlassTokens.resultsBar.countIconColor}
+          />
+        )}
         <Text style={s.countTxt}>
           {resultsCount} {entityName} متاحة
         </Text>
@@ -59,35 +77,41 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 3.5,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
+    paddingVertical: 4.5,
+    paddingHorizontal: 9,
+    minHeight: 28,
+    borderRadius: FilterGlassTokens.resultsBar.clearRadius,
+    backgroundColor: FilterGlassTokens.resultsBar.clearBg,
+    borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
+    borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
+    ...FilterGlassTokens.resultsBar.clearShadow,
   },
   clearTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.error,
+    fontFamily: FilterGlassTokens.resultsBar.fontFamily,
+    fontSize: FilterGlassTokens.resultsBar.fontSize,
+    lineHeight: FilterGlassTokens.resultsBar.lineHeight,
+    color: FilterGlassTokens.resultsBar.clearTextColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   countBadge: {
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    minHeight: 28,
+    borderRadius: FilterGlassTokens.resultsBar.countRadius,
+    backgroundColor: FilterGlassTokens.resultsBar.countBg,
+    borderWidth: FilterGlassTokens.resultsBar.countBorderWidth,
+    borderColor: FilterGlassTokens.resultsBar.countBorderColor,
+    ...FilterGlassTokens.resultsBar.countShadow,
   },
   countTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748b',
+    fontFamily: FilterGlassTokens.resultsBar.fontFamily,
+    fontSize: FilterGlassTokens.resultsBar.fontSize,
+    lineHeight: FilterGlassTokens.resultsBar.lineHeight,
+    color: FilterGlassTokens.resultsBar.countTextColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

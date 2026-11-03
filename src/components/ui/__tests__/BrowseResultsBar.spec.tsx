@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { BrowseResultsBar } from '../BrowseResultsBar';
+import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -49,5 +50,49 @@ describe('BrowseResultsBar - Characterization & Parity Tests', () => {
 
     fireEvent.press(clearBtn);
     expect(onClearAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies FilterGlassTokens.resultsBar tokens to count chip and clear button', async () => {
+    const { getByText, getByLabelText } = await render(
+      <BrowseResultsBar
+        resultsCount={3}
+        entityName="قطعة"
+        activeFiltersCount={2}
+        onClearAll={jest.fn()}
+      />
+    );
+
+    const countText = getByText('3 قطعة متاحة');
+    const countBadge = countText.parent;
+    expect(countBadge?.props.style).toEqual(
+      expect.objectContaining({
+        backgroundColor: FilterGlassTokens.resultsBar.countBg,
+        borderColor: FilterGlassTokens.resultsBar.countBorderColor,
+        borderWidth: FilterGlassTokens.resultsBar.countBorderWidth,
+        borderRadius: FilterGlassTokens.resultsBar.countRadius,
+      })
+    );
+    expect(countText.props.style).toEqual(
+      expect.objectContaining({
+        color: FilterGlassTokens.resultsBar.countTextColor,
+      })
+    );
+
+    const clearBtn = getByLabelText('مسح الفلاتر');
+    expect(clearBtn.props.style).toEqual(
+      expect.objectContaining({
+        backgroundColor: FilterGlassTokens.resultsBar.clearBg,
+        borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
+        borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
+        borderRadius: FilterGlassTokens.resultsBar.clearRadius,
+      })
+    );
+
+    const clearText = getByText('مسح الفلاتر');
+    expect(clearText.props.style).toEqual(
+      expect.objectContaining({
+        color: FilterGlassTokens.resultsBar.clearTextColor,
+      })
+    );
   });
 });
