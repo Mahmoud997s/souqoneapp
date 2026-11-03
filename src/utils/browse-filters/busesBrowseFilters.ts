@@ -1,5 +1,6 @@
 import { BusesQueryContract } from '../../types/contracts/busesQuery';
 import { BusFilters } from '../../components/filters/BusFilterBottomSheet';
+import { toSingleString } from './routeParams';
 
 export type BusBrowseFilters = BusFilters & {
   governorateId?: number | string;
@@ -106,25 +107,6 @@ export function clearBusesFilter(filters: BusBrowseFilters, id: string): BusBrow
   return next;
 }
 
-/**
- * Safely extracts a single string from a route parameter that may be string, string[], or undefined.
- * Rule: Returns a trimmed string if a string is provided; if an array is received from Expo Router,
- * takes the first non-empty string element; otherwise returns undefined.
- */
-function toSingleString(val: unknown): string | undefined {
-  if (typeof val === 'string') {
-    const trimmed = val.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  if (Array.isArray(val)) {
-    for (const item of val) {
-      if (typeof item !== 'string') continue;
-      const trimmed = item.trim();
-      if (trimmed.length > 0) return trimmed;
-    }
-  }
-  return undefined;
-}
 
 /**
  * Safely parses a positive integer ID from a route parameter.
