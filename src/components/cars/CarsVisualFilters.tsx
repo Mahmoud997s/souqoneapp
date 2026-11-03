@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBrands, useCarModels } from '../../hooks/useCars';
+import { CarBrand, CarModelItem } from '../../api/cars';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
@@ -30,7 +31,7 @@ const TOP_CITIES = [
   { id: '39', extraId: 7, name: 'الرستاق' },
 ];
 
-const CAR_TYPES = [
+const CAR_TYPES: { id: string; name: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'sedan', name: 'سيدان', icon: 'car-outline' },
   { id: 'suv', name: 'دفع رباعي', icon: 'car-sport-outline' },
   { id: 'hatchback', name: 'هاتشباك', icon: 'car-outline' },
@@ -123,15 +124,15 @@ export function CarsVisualFilters({
     return null;
   }, [selectedBrandId, loadingModels, models]);
 
-  const tabs: VisualFilterTab<'brands' | 'models' | 'cities' | 'prices' | 'types'>[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
         id: 'brands',
         label: 'أفضل الماركات',
-        icon: 'ribbon-outline',
+        icon: 'ribbon-outline' as const,
         items: brands || [],
         isLoading: loadingBrands,
-        getItemProps: (item) => {
+        getItemProps: (item: CarBrand) => {
           const isSelected = selectedBrandId === item.id;
           const logo = getBrandLogo(item.slug || item.id);
           return {
@@ -162,11 +163,11 @@ export function CarsVisualFilters({
       {
         id: 'models',
         label: 'أفضل الموديلات',
-        icon: 'car-sport-outline',
+        icon: 'car-sport-outline' as const,
         items: models || [],
         isLoading: loadingModels,
         emptyState: modelsEmptyState,
-        getItemProps: (item) => {
+        getItemProps: (item: CarModelItem) => {
           const isSelected = selectedModelId === item.id;
           return {
             id: item.id,
@@ -190,9 +191,9 @@ export function CarsVisualFilters({
       {
         id: 'cities',
         label: 'أهم المدن',
-        icon: 'location-outline',
+        icon: 'location-outline' as const,
         items: TOP_CITIES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof TOP_CITIES[number]) => {
           const isSelected = selectedCity === item.name;
           return {
             id: item.id,
@@ -216,9 +217,9 @@ export function CarsVisualFilters({
       {
         id: 'prices',
         label: 'نطاقات الأسعار',
-        icon: 'wallet-outline',
+        icon: 'wallet-outline' as const,
         items: PRICE_RANGES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof PRICE_RANGES[number]) => {
           const isSelected = selectedPriceId === item.id;
           return {
             id: item.id,
@@ -242,9 +243,9 @@ export function CarsVisualFilters({
       {
         id: 'types',
         label: 'الهيكل',
-        icon: 'options-outline',
+        icon: 'options-outline' as const,
         items: CAR_TYPES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof CAR_TYPES[number]) => {
           const isSelected = selectedTypeId?.toUpperCase() === item.id?.toUpperCase();
           return {
             id: item.id,
@@ -285,7 +286,7 @@ export function CarsVisualFilters({
     <VisualFiltersBase
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
       onViewAll={onViewAll}
     />
   );

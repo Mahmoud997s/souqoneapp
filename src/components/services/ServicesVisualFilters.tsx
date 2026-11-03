@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { SERVICE_TYPES, PROVIDER_TYPES } from '../../constants/services';
+import { SERVICE_TYPES, PROVIDER_TYPES, ServiceTypeOption } from '../../constants/services';
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -21,7 +21,7 @@ const TOP_CITIES = [
   { id: '39', extraId: 7, name: 'الرستاق' },
 ];
 
-const FEATURED_SPECIALIZATIONS = [
+const FEATURED_SPECIALIZATIONS: { id: string; name: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'تغيير زيت وفلاتر', name: 'تغيير زيت وفلاتر', icon: 'color-fill-outline' },
   { id: 'إصلاح تكييف', name: 'إصلاح تكييف', icon: 'snow-outline' },
   { id: 'كهرباء سيارات', name: 'كهرباء سيارات', icon: 'flash-outline' },
@@ -38,8 +38,8 @@ const FEATURED_SPECIALIZATIONS = [
   { id: 'حماية PPF', name: 'حماية PPF', icon: 'shield-checkmark-outline' },
 ];
 
-const ENHANCED_PROVIDER_TYPES = PROVIDER_TYPES.map((p) => {
-  let icon = 'business-outline';
+const ENHANCED_PROVIDER_TYPES: { id: string; name: string; icon: keyof typeof Ionicons.glyphMap; label: string }[] = PROVIDER_TYPES.map((p) => {
+  let icon: keyof typeof Ionicons.glyphMap = 'business-outline';
   if (p.id === 'INDIVIDUAL') icon = 'person-outline';
   if (p.id === 'MOBILE') icon = 'car-outline';
   if (p.id === 'COMPANY') icon = 'ribbon-outline';
@@ -68,14 +68,14 @@ export function ServicesVisualFilters({
   selectedCity,
   selectedProviderType,
 }: ServicesVisualFiltersProps) {
-  const tabs: VisualFilterTab<'types' | 'specializations' | 'cities' | 'providers'>[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
         id: 'types',
         label: 'أنواع الخدمات',
-        icon: 'construct-outline',
+        icon: 'construct-outline' as const,
         items: SERVICE_TYPES,
-        getItemProps: (item) => {
+        getItemProps: (item: ServiceTypeOption) => {
           const isSelected = selectedServiceType === item.id;
           return {
             id: item.id,
@@ -83,7 +83,7 @@ export function ServicesVisualFilters({
             isSelected,
             icon: (
               <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
-                <Ionicons name={item.icon || 'build-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
+                <Ionicons name={(item.icon as keyof typeof Ionicons.glyphMap) || 'build-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
             onPress: () => {
@@ -99,9 +99,9 @@ export function ServicesVisualFilters({
       {
         id: 'specializations',
         label: 'أشهر التخصصات',
-        icon: 'sparkles-outline',
+        icon: 'sparkles-outline' as const,
         items: FEATURED_SPECIALIZATIONS,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof FEATURED_SPECIALIZATIONS[number]) => {
           const isSelected = selectedSpecialization === item.id || selectedSpecialization === item.name;
           return {
             id: item.id,
@@ -125,9 +125,9 @@ export function ServicesVisualFilters({
       {
         id: 'cities',
         label: 'أهم المدن',
-        icon: 'location-outline',
+        icon: 'location-outline' as const,
         items: TOP_CITIES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof TOP_CITIES[number]) => {
           const isSelected = selectedCity === item.name;
           return {
             id: item.id,
@@ -151,9 +151,9 @@ export function ServicesVisualFilters({
       {
         id: 'providers',
         label: 'نوع المزود',
-        icon: 'business-outline',
+        icon: 'business-outline' as const,
         items: ENHANCED_PROVIDER_TYPES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof ENHANCED_PROVIDER_TYPES[number]) => {
           const isSelected = selectedProviderType === item.id;
           return {
             id: item.id,

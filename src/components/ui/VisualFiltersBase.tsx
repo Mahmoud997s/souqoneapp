@@ -27,22 +27,43 @@ export interface VisualFilterItemConfig {
   onPress: () => void;
 }
 
-export interface VisualFilterTab<TTabId extends string = string> {
+export interface VisualFilterItemLike {
+  id: string | number;
+  label?: string;
+  name?: string;
+  nameAr?: string | null;
+  isSelected?: boolean;
+  onPress?: () => void;
+}
+
+export interface VisualFilterItem<T = object> extends VisualFilterItemLike {
+  id: string;
+  payload?: T;
+}
+
+export interface VisualFilterTab<TTabId extends string = string, TItem extends VisualFilterItemLike = VisualFilterItemLike> {
   id: TTabId;
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap | string;
-  items?: any[];
+  icon?: keyof typeof Ionicons.glyphMap;
+  items?: readonly TItem[];
   rows?: 1 | 2;
   isLoading?: boolean;
   emptyState?: React.ReactNode;
   hideViewAll?: boolean;
   viewAllLabel?: string;
-  getItemProps?: (item: any) => VisualFilterItemConfig;
-  renderItem?: (item: any, isSelected: boolean) => React.ReactNode;
+  /**
+   * Method signature syntax (bivariance) is required here by TypeScript design specification:
+   * under strictFunctionTypes: true, function property syntax forces parameter contravariance,
+   * which prohibits storing tabs with heterogeneous domain item types (e.g. BusManufacturer,
+   * CarBrand, EquipmentCategoryItem) in a single tabs array without resorting to `any`.
+   * Method signatures enable bivariance, preserving strict type safety within each adapter.
+   */
+  getItemProps?(item: TItem): VisualFilterItemConfig;
+  renderItem?(item: TItem, isSelected: boolean): React.ReactNode;
 }
 
 export interface VisualFiltersBaseProps<TTabId extends string = string> {
-  tabs: VisualFilterTab<TTabId>[];
+  tabs: readonly VisualFilterTab<TTabId>[];
   activeTab?: TTabId;
   defaultTab?: TTabId;
   activeColor?: string;
@@ -143,54 +164,70 @@ export function VisualFiltersBase<TTabId extends string = string>({
         minHeight={rows === 1 ? 42 : 86}
         contentContainerStyle={s.scrollContainer}
       >
-        {columns.map((col, colIdx) => (
-          <View key={colIdx} style={rows === 2 ? s.column : undefined}>
-            {col.map((item: any) => {
-              if (currentTab.renderItem) {
-                return currentTab.renderItem(item, Boolean(item.isSelected));
-              }
+        {columns.map((col, colIdx) => {
+          const firstItem = col[0];
+          const colKey = firstItem?.id != null ? String(firstItem.id) : `col-${colIdx}`;
 
-              const config: VisualFilterItemConfig = currentTab.getItemProps
-                ? currentTab.getItemProps(item)
-                : {
-                    id: item.id || String(item),
-                    label: item.label || item.name || String(item),
-                    isSelected: Boolean(item.isSelected),
-                    onPress: item.onPress || (() => {}),
-                  };
+          return (
+            <View key={colKey} style={rows === 2 ? s.column : undefined}>
+              {col.map((item) => {
+                if (currentTab.renderItem) {
+                  return currentTab.renderItem(item, Boolean(item.isSelected));
+                }
 
-              return (
-                <TouchableOpacity
-                  key={config.id}
-                  activeOpacity={0.7}
-                  style={[
-                    s.itemCard,
-                    config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
-                  ]}
-                  onPress={config.onPress}
-                >
-                  {config.icon}
-                  <Text
+                const config: VisualFilterItemConfig = currentTab.getItemProps
+                  ? currentTab.getItemProps(item)
+                  : {
+                      id: String(item.id),
+                      label: item.label || item.name || String(item.id),
+                      isSelected: Boolean(item.isSelected),
+                      onPress: item.onPress || (() => {}),
+                    };
+
+                return (
+                  <TouchableOpacity
+                    key={config.id}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={config.label}
+                    accessibilityState={{ selected: Boolean(config.isSelected) }}
+                    // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
+                    // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={[
-                      s.itemLabel,
-                      config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                      s.itemCard,
+                      config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
                     ]}
-                    numberOfLines={1}
+                    onPress={config.onPress}
                   >
-                    {config.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
+                    {config.icon}
+                    <Text
+                      style={[
+                        s.itemLabel,
+                        config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {config.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          );
+        })}
 
-        {onViewAll && !currentTab.hideViewAll && (
+        {onViewAll && currentTab && !currentTab.hideViewAll && (
           <View style={rows === 2 ? s.column : undefined}>
             <TouchableOpacity
               style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
               onPress={() => onViewAll(currentTab.id)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
+              // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
+              // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
               <View style={s.viewAllIconBox}>
                 <Ionicons name="apps-outline" size={15} color={activeColor} />
@@ -213,6 +250,12 @@ export function VisualFiltersBase<TTabId extends string = string>({
       <TouchableOpacity
         key={tab.id}
         activeOpacity={0.8}
+        accessibilityRole="tab"
+        accessibilityLabel={tab.label}
+        accessibilityState={{ selected: isActive }}
+        // Effective tab target: visible height is 27.5pt (paddingVertical 6*2 + lineHeight 15.5).
+        // hitSlop 9 top/bottom is bounded by parent segmentedWrapper (minHeight ~34pt), giving effective height ~34pt.
+        hitSlop={{ top: 9, bottom: 9, left: 4, right: 4 }}
         style={[
           s.segmentTab,
           isFixedTabs && s.fixedSegmentTab,
@@ -222,7 +265,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
       >
         {tab.icon && (
           <Ionicons
-            name={tab.icon as any}
+            name={tab.icon}
             size={14}
             color={isActive ? activeColor : '#64748b'}
             style={s.tabIcon}

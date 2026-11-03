@@ -31,33 +31,48 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
           const isActive = qf.isActive;
           
           return (
-            <TouchableOpacity
+            <View
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
-              activeOpacity={0.8}
-              onPress={() => onFilterPress(qf.id)}
             >
-              {!isActive && qf.icon && (
-                <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
-              )}
-              <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
-                {qf.label}
-              </Text>
-              {isActive ? (
+              <TouchableOpacity
+                style={[s.chipPressableArea, !isActive && s.chipPressableAreaInactive]}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={qf.label}
+                accessibilityState={{ selected: Boolean(isActive) }}
+                // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
+                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt, paddingVertical 2pt),
+                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged per M-023/M-025).
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                onPress={() => onFilterPress(qf.id)}
+              >
+                {!isActive && qf.icon && (
+                  <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
+                )}
+                <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
+                  {qf.label}
+                </Text>
+                {!isActive && (
+                  <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
+                )}
+              </TouchableOpacity>
+              {isActive && (
                 <TouchableOpacity
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    onClearFilter(qf.id);
-                  }}
+                  style={s.clearButton}
+                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~29x22.5pt).
+                  // hitSlop 16 is bounded by the chip container (29pt height), giving effective touch target of ~29x24pt.
+                  // VoiceOver accesses this directly as a sibling button without parent nesting clipping.
+                  hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="إزالة الفلتر"
+                  onPress={() => onClearFilter(qf.id)}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="close-circle" size={12.5} color={Colors.white} />
                 </TouchableOpacity>
-              ) : (
-                <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
               )}
-            </TouchableOpacity>
+            </View>
           );
         })}
       </PhysicalHorizontalTrack>
@@ -79,13 +94,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 5,
     ...Platform.select({
       ios: { 
         shadowColor: Colors.primaryDark, 
@@ -97,6 +109,37 @@ const s = StyleSheet.create({
         elevation: 1 
       },
     }),
+  },
+  // Active chip geometry arithmetic (pixel-identical to master 26f4325):
+  // Master active chip:
+  //   quickFilterChip: paddingHorizontal: 10, paddingVertical: 6, gap: 5
+  //   Visible width = 10 [paddingStart] + text + 5 [gap] + 12.5 [icon] + 10 [paddingEnd] = text + 37.5pt.
+  // Refactored accessible sibling chip:
+  //   chipPressableArea: paddingVertical: 6, paddingStart: 10, paddingEnd: 5
+  //   clearButton: paddingVertical: 6, paddingStart: 0, paddingEnd: 10
+  //   Visible width = 10 [pressable start] + text + 5 [pressable end] + 0 [clear start] + 12.5 [icon] + 10 [clear end] = text + 37.5pt.
+  //   Distance between text and icon = 5 + 0 = 5pt (identical to master's gap: 5).
+  //   Leading padding = 10pt (identical to master's paddingHorizontal: 10).
+  //   Trailing padding = 10pt (identical to master's paddingHorizontal: 10).
+  // iOS Shadow parity:
+  //   quickFilterChip retains shadow without overflow: 'hidden' to prevent iOS shadow clipping.
+  chipPressableArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingStart: 10,
+    paddingEnd: 5,
+    gap: 5,
+  },
+  chipPressableAreaInactive: {
+    paddingEnd: 10,
+  },
+  clearButton: {
+    paddingVertical: 6,
+    paddingEnd: 10,
+    paddingStart: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quickFilterChipActive: {
     backgroundColor: Colors.primary,

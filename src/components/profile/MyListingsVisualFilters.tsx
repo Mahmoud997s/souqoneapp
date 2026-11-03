@@ -137,7 +137,7 @@ export function MyListingsVisualFilters({
   onSelectSubFilter,
   isTransparent = false,
 }: MyListingsVisualFiltersProps) {
-  const tabs: VisualFilterTab[] = useMemo(
+  const tabs: VisualFilterTab<string>[] = useMemo(
     () =>
       MAIN_CATEGORY_TABS.map((cat) => ({
         id: cat.id,

@@ -10,7 +10,13 @@ import {
 } from '../ui/VisualFiltersBase';
 
 // ─── 1. EQUIPMENT CATEGORIES DATA ───
-export const EQUIPMENT_CATEGORIES_DATA = [
+export interface EquipmentCategoryItem {
+  id: string;
+  label: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+}
+
+export const EQUIPMENT_CATEGORIES_DATA: EquipmentCategoryItem[] = [
   { id: 'EXCAVATOR', label: 'حفار', icon: 'excavator' },
   { id: 'LOADER', label: 'شيول / لودر', icon: 'tractor' },
   { id: 'BULLDOZER', label: 'بلدوزر / جرافة', icon: 'bulldozer' },
@@ -64,7 +70,13 @@ const PRICE_RANGES = [
 ];
 
 // ─── 5. CONDITIONS (4 items -> 1 row) ───
-const CONDITIONS = [
+export interface EquipmentConditionItem {
+  id: string;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+const CONDITIONS: EquipmentConditionItem[] = [
   { id: 'NEW', name: 'جديدة (أصفار)', icon: 'sparkles-outline' },
   { id: 'LIKE_NEW', name: 'شبه جديدة', icon: 'ribbon-outline' },
   { id: 'USED', name: 'مستعملة بحالة جيدة', icon: 'construct-outline' },
@@ -97,15 +109,15 @@ export function EquipmentVisualFilters({
   selectedPriceId,
   selectedConditionId,
 }: EquipmentVisualFiltersProps) {
-  const tabs: VisualFilterTab<'categories' | 'makes' | 'cities' | 'prices' | 'conditions'>[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
         id: 'categories',
         label: 'أقسام المعدات',
-        icon: 'construct-outline',
+        icon: 'construct-outline' as const,
         items: EQUIPMENT_CATEGORIES_DATA,
-        rows: 2, // 15 items >= 10 -> 2 rows
-        getItemProps: (item) => {
+        rows: 2 as const, // 15 items >= 10 -> 2 rows
+        getItemProps: (item: EquipmentCategoryItem) => {
           const isSelected = selectedCategoryId?.toUpperCase() === item.id.toUpperCase();
           return {
             id: item.id,
@@ -119,7 +131,7 @@ export function EquipmentVisualFilters({
                 ]}
               >
                 <MaterialCommunityIcons
-                  name={item.icon as any}
+                  name={item.icon}
                   size={14}
                   color={isSelected ? Colors.white : Colors.primary}
                 />
@@ -136,12 +148,12 @@ export function EquipmentVisualFilters({
         },
       },
       {
-        id: 'makes',
+        id: 'makes' as const,
         label: 'أشهر الماركات',
-        icon: 'ribbon-outline',
+        icon: 'ribbon-outline' as const,
         items: EQUIPMENT_POPULAR_MAKES,
-        rows: 1, // 8 items < 10 -> 1 row
-        getItemProps: (item) => {
+        rows: 1 as const, // 8 items < 10 -> 1 row
+        getItemProps: (item: typeof EQUIPMENT_POPULAR_MAKES[number]) => {
           const isSelected =
             selectedMake?.toLowerCase() === item.name.toLowerCase() ||
             selectedMake?.toLowerCase() === item.id.toLowerCase() ||
@@ -188,12 +200,12 @@ export function EquipmentVisualFilters({
         },
       },
       {
-        id: 'cities',
+        id: 'cities' as const,
         label: 'أهم المدن',
-        icon: 'location-outline',
+        icon: 'location-outline' as const,
         items: TOP_CITIES,
-        rows: 1, // 8 items < 10 -> 1 row
-        getItemProps: (item) => {
+        rows: 1 as const, // 8 items < 10 -> 1 row
+        getItemProps: (item: typeof TOP_CITIES[number]) => {
           const isSelected = selectedCity === item.name || selectedCity === item.id;
           return {
             id: item.id,
@@ -224,12 +236,12 @@ export function EquipmentVisualFilters({
         },
       },
       {
-        id: 'prices',
+        id: 'prices' as const,
         label: 'الأسعار',
-        icon: 'wallet-outline',
+        icon: 'wallet-outline' as const,
         items: PRICE_RANGES,
-        rows: 1, // 7 items < 10 -> 1 row
-        getItemProps: (item) => {
+        rows: 1 as const, // 7 items < 10 -> 1 row
+        getItemProps: (item: typeof PRICE_RANGES[number]) => {
           const isSelected = selectedPriceId === item.id;
           return {
             id: item.id,
@@ -260,12 +272,12 @@ export function EquipmentVisualFilters({
         },
       },
       {
-        id: 'conditions',
+        id: 'conditions' as const,
         label: 'الحالة',
-        icon: 'shield-checkmark-outline',
+        icon: 'shield-checkmark-outline' as const,
         items: CONDITIONS,
-        rows: 1, // 4 items < 10 -> 1 row
-        getItemProps: (item) => {
+        rows: 1 as const, // 4 items < 10 -> 1 row
+        getItemProps: (item: EquipmentConditionItem) => {
           const isSelected = selectedConditionId === item.id;
           return {
             id: item.id,
@@ -279,7 +291,7 @@ export function EquipmentVisualFilters({
                 ]}
               >
                 <Ionicons
-                  name={item.icon as any}
+                  name={item.icon}
                   size={14}
                   color={isSelected ? Colors.white : Colors.primary}
                 />
