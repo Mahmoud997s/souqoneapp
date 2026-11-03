@@ -13,7 +13,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -185,32 +187,43 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     };
 
                 return (
-                  <TouchableOpacity
+                  <View
                     key={config.id}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={config.label}
-                    accessibilityState={{ selected: Boolean(config.isSelected) }}
-                    // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
-                    // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
-                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={[
                       s.itemCard,
-                      config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
+                      config.isSelected && s.itemCardSelected,
+                      config.isSelected && { borderColor: activeColor },
                     ]}
-                    onPress={config.onPress}
                   >
-                    {config.icon}
-                    <Text
-                      style={[
-                        s.itemLabel,
-                        config.isSelected && [s.itemLabelSelected, { color: activeColor }],
-                      ]}
-                      numberOfLines={1}
+                    {!config.isSelected && (
+                      <FilterGlassSurface
+                        testID={`visual-filter-item-glass-${config.id}`}
+                        borderRadius={FilterGlassTokens.card.borderRadius}
+                      />
+                    )}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={config.label}
+                      accessibilityState={{ selected: Boolean(config.isSelected) }}
+                      // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
+                      // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                      style={s.itemCardInner}
+                      onPress={config.onPress}
                     >
-                      {config.label}
-                    </Text>
-                  </TouchableOpacity>
+                      {config.icon}
+                      <Text
+                        style={[
+                          s.itemLabel,
+                          config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {config.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>
@@ -219,23 +232,31 @@ export function VisualFiltersBase<TTabId extends string = string>({
 
         {onViewAll && currentTab && !currentTab.hideViewAll && (
           <View style={rows === 2 ? s.column : undefined}>
-            <TouchableOpacity
+            <View
               style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
-              onPress={() => onViewAll(currentTab.id)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
-              // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
-              // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <View style={s.viewAllIconBox}>
-                <Ionicons name="apps-outline" size={15} color={activeColor} />
-              </View>
-              <Text style={[s.viewAllText, { color: activeColor }]}>
-                {currentTab.viewAllLabel || 'عرض الكل'}
-              </Text>
-            </TouchableOpacity>
+              <FilterGlassSurface
+                testID="visual-filter-view-all-glass"
+                borderRadius={FilterGlassTokens.card.borderRadius}
+              />
+              <TouchableOpacity
+                style={s.viewAllInner}
+                onPress={() => onViewAll(currentTab.id)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
+                // Effective viewAll target: visible height is 35pt (double-row) or 38pt (single-row).
+                // hitSlop 8 top/bottom reaches 51pt to 54pt within PhysicalHorizontalTrack bounds.
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              >
+                <View style={s.viewAllIconBox}>
+                  <Ionicons name="apps-outline" size={15} color={activeColor} />
+                </View>
+                <Text style={[s.viewAllText, { color: activeColor }]}>
+                  {currentTab.viewAllLabel || 'عرض الكل'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </PhysicalHorizontalTrack>
@@ -267,7 +288,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
           <Ionicons
             name={tab.icon}
             size={14}
-            color={isActive ? activeColor : '#64748b'}
+            color={isActive ? activeColor : FilterGlassTokens.tab.inactiveTextColor}
             style={s.tabIcon}
           />
         )}
@@ -294,6 +315,10 @@ export function VisualFiltersBase<TTabId extends string = string>({
         testID="visual-filters-segmented-wrapper"
         style={[s.segmentedWrapper, segmentedWrapperStyle]}
       >
+        <FilterGlassSurface
+          testID="visual-filters-track-glass"
+          borderRadius={FilterGlassTokens.tab.trackRadius}
+        />
         {isFixedTabs ? (
           <View style={s.fixedSegmentedContainer}>
             {tabs.map(renderTabItem)}
@@ -347,17 +372,17 @@ const s = StyleSheet.create({
   container: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: FilterGlassTokens.borderColor,
     paddingBottom: Spacing.space2,
   },
   segmentedWrapper: {
     marginHorizontal: Spacing.space4,
     marginBottom: Spacing.space2,
     marginTop: Spacing.space2,
-    backgroundColor: Colors.paleMint,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: FilterGlassTokens.tab.trackBg,
+    borderRadius: FilterGlassTokens.tab.trackRadius,
+    borderWidth: FilterGlassTokens.tab.trackBorderWidth,
+    borderColor: FilterGlassTokens.tab.trackBorderColor,
     padding: 3,
   },
   segmentedContainer: {
@@ -385,33 +410,23 @@ const s = StyleSheet.create({
     paddingHorizontal: 4,
   },
   segmentTabActive: {
-    backgroundColor: '#ffffff',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 1.5 },
-        shadowOpacity: 0.12,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    backgroundColor: FilterGlassTokens.tab.activeBg,
+    ...FilterGlassTokens.tab.activeShadow,
   },
   tabIcon: {
     marginEnd: 2,
   },
   segmentTabText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 15.5,
-    color: Colors.textMuted,
+    fontFamily: FilterGlassTokens.tab.inactiveFontFamily,
+    fontSize: FilterGlassTokens.tab.fontSize,
+    lineHeight: FilterGlassTokens.tab.lineHeight,
+    color: FilterGlassTokens.tab.inactiveTextColor,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   segmentTabTextActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
+    color: FilterGlassTokens.tab.activeTextColor,
+    fontFamily: FilterGlassTokens.tab.activeFontFamily,
   },
   contentArea: {
     paddingTop: Spacing.space2,
@@ -430,57 +445,69 @@ const s = StyleSheet.create({
     gap: 6,
   },
   itemCard: {
+    backgroundColor: FilterGlassTokens.card.bg,
+    borderRadius: FilterGlassTokens.card.borderRadius,
+    borderWidth: FilterGlassTokens.card.borderWidth,
+    borderColor: FilterGlassTokens.card.borderColor,
+    ...FilterGlassTokens.card.shadow,
+    minWidth: 95,
+  },
+  itemCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
     paddingHorizontal: 9,
     paddingVertical: 5.5,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minWidth: 95,
     gap: 6,
   },
   itemCardSelected: {
-    backgroundColor: Colors.paleMint,
-    borderColor: Colors.primary,
+    backgroundColor: FilterGlassTokens.card.selectedBg,
+    borderColor: FilterGlassTokens.card.selectedBorderColor,
   },
   itemLabel: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.text,
+    fontFamily: FilterGlassTokens.card.fontFamily,
+    fontSize: FilterGlassTokens.card.fontSize,
+    lineHeight: FilterGlassTokens.card.lineHeight,
+    color: FilterGlassTokens.card.textColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   itemLabelSelected: {
-    color: Colors.primary,
+    color: FilterGlassTokens.card.selectedTextColor,
   },
   viewAllCard: {
-    backgroundColor: Colors.surfaceAlt,
+    backgroundColor: FilterGlassTokens.card.viewAllBg,
+    borderColor: FilterGlassTokens.card.borderColor,
     borderStyle: 'dashed',
-    justifyContent: 'center',
     minWidth: 75,
+  },
+  viewAllInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 5.5,
+    gap: 6,
+    height: '100%',
   },
   viewAllIconBox: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: Colors.paleMint,
+    backgroundColor: FilterGlassTokens.card.viewAllIconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewAllText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.primary,
+    fontFamily: FilterGlassTokens.card.fontFamily,
+    fontSize: FilterGlassTokens.card.fontSize,
+    lineHeight: FilterGlassTokens.card.lineHeight,
+    color: FilterGlassTokens.card.viewAllTextColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   skeletonPill: {
-    backgroundColor: '#f1f5f9',
-    borderColor: 'transparent',
+    backgroundColor: Colors.surfaceAlt,
+    borderColor: FilterGlassTokens.card.borderColor,
     minWidth: 95,
   },
 });

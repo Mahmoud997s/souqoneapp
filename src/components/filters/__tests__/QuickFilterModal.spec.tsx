@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilterModal, QuickFilterOption } from '../QuickFilterModal';
+import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -111,5 +112,37 @@ describe('QuickFilterModal - Pure Controlled Component', () => {
 
     fireEvent.press(getByTestId('quick-filter-modal-overlay'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies FilterGlassTokens.sheet styles to modal card, title, and option text', async () => {
+    const { getByText } = await render(
+      <QuickFilterModal
+        visible={true}
+        title="تصفية زجاجية"
+        options={sampleOptions}
+        onSelect={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    const titleText = getByText('تصفية زجاجية');
+    expect(titleText.props.style).toEqual(
+      expect.objectContaining({
+        color: FilterGlassTokens.sheet.titleColor,
+        fontFamily: FilterGlassTokens.sheet.titleFontFamily,
+        fontSize: FilterGlassTokens.sheet.titleFontSize,
+      })
+    );
+
+    const optionText = getByText('الخيار الأول');
+    expect(optionText.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          color: FilterGlassTokens.sheet.optionTextColor,
+          fontFamily: FilterGlassTokens.sheet.optionFontFamily,
+          fontSize: FilterGlassTokens.sheet.optionFontSize,
+        }),
+      ])
+    );
   });
 });

@@ -15,6 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { TopBarTokens } from '../../constants/topBarTokens';
+import { FilterGlassSurface } from './FilterGlassSurface';
 import { ResetFilterButton } from './ResetFilterButton';
 
 interface FilterBottomSheetLayoutProps {
@@ -73,6 +76,10 @@ export function FilterBottomSheetLayout({
 
   const content = (
     <View style={[s.sheet, Platform.OS === 'android' && isKeyboardVisible ? { paddingBottom: keyboardHeight } : {}]}>
+      <FilterGlassSurface
+        testID="filter-sheet-glass"
+        style={s.sheetGlassLayer}
+      />
       <View style={s.dragHandle} />
 
       {/* Header */}
@@ -145,14 +152,15 @@ export function FilterBottomSheetLayout({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: FilterGlassTokens.sheet.bottomSheetOverlayBg,
     justifyContent: 'flex-end',
   },
   sheet: {
     height: '75%',
-    backgroundColor: Colors.white,
+    backgroundColor: FilterGlassTokens.sheet.cardBg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderWidth: 0,
     paddingTop: Spacing.space3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
@@ -160,10 +168,16 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 20,
   },
+  sheetGlassLayer: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.border,
     borderRadius: Radius.pill,
     alignSelf: 'center',
     marginBottom: 8,
@@ -175,7 +189,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.border,
   },
   glassCircle: {
     width: 36,
@@ -183,9 +197,10 @@ const s = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: FilterGlassTokens.iceGlassBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: FilterGlassTokens.borderColor,
+    ...TopBarTokens.buttonShadow,
   },
   title: {
     fontFamily: 'Almarai_800ExtraBold',

@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from '../ui/FilterGlassSurface';
+import { quickFilterModalStyles } from './quickFilterModalStyles';
 
 export interface QuickFilterOption {
   id: string;
@@ -47,6 +49,10 @@ export function QuickFilterModal({
           style={styles.modalContent}
           onStartShouldSetResponder={() => true}
         >
+          <FilterGlassSurface
+            testID="quick-filter-modal-glass"
+            borderRadius={FilterGlassTokens.sheet.cardRadius}
+          />
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity
@@ -54,7 +60,7 @@ export function QuickFilterModal({
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               testID="quick-filter-modal-close"
             >
-              <Ionicons name="close" size={24} color={Colors.textMuted} />
+              <Ionicons name="close" size={24} color={FilterGlassTokens.sheet.closeIconColor} />
             </TouchableOpacity>
           </View>
 
@@ -95,55 +101,4 @@ export function QuickFilterModal({
   );
 }
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    maxHeight: '65%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space4,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 22,
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    lineHeight: 21,
-    color: Colors.text2,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-});
+const styles = quickFilterModalStyles;

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { getBrandLogo } from '../../constants/brandLogos';
 import {
   VisualFiltersBase,
@@ -127,7 +128,7 @@ export function EquipmentVisualFilters({
               <View
                 style={[
                   visualFiltersStyles.iconBox,
-                  { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' },
+                  { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg },
                 ]}
               >
                 <MaterialCommunityIcons
@@ -171,7 +172,7 @@ export function EquipmentVisualFilters({
                   <View
                     style={[
                       visualFiltersStyles.iconBox,
-                      { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' },
+                      { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg },
                     ]}
                   >
                     <Text
@@ -215,7 +216,7 @@ export function EquipmentVisualFilters({
               <View
                 style={[
                   visualFiltersStyles.iconBox,
-                  { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' },
+                  { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg },
                 ]}
               >
                 <Ionicons
@@ -251,7 +252,7 @@ export function EquipmentVisualFilters({
               <View
                 style={[
                   visualFiltersStyles.iconBox,
-                  { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' },
+                  { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg },
                 ]}
               >
                 <Ionicons
@@ -287,7 +288,7 @@ export function EquipmentVisualFilters({
               <View
                 style={[
                   visualFiltersStyles.iconBox,
-                  { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' },
+                  { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg },
                 ]}
               >
                 <Ionicons

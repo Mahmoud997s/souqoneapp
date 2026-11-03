@@ -38,6 +38,7 @@ import {
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { QuickFilters } from '../../src/components/ui/QuickFilters';
@@ -402,22 +403,13 @@ export default function EquipmentBrowseScreen() {
                 onViewAll={() => setIsFilterVisible(true)}
               />
 
-              <View style={{ paddingBottom: Spacing.space3, paddingHorizontal: Spacing.space4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.space2 }}>
-                {activeFiltersCount > 0 ? (
-                  <TouchableOpacity onPress={handleClearAll}>
-                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 13, color: Colors.error }}>
-                      مسح الفلاتر
-                    </Text>
-                  </TouchableOpacity>
-                ) : <View />}
-
-                <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#f1f5f9' }}>
-                  <Ionicons name="construct-outline" size={14} color="#64748b" />
-                  <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#64748b' }}>
-                    {listings?.length || 0} معدة متوفرة
-                  </Text>
-                </View>
-              </View>
+              <BrowseResultsBar
+                resultsCount={listings?.length || 0}
+                entityName="معدة"
+                iconName="construct-outline"
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
+              />
             </View>
           }
           ListFooterComponent={() => (

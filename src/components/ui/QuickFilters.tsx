@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
 export interface QuickFilterItem {
   id: string;
@@ -35,6 +37,12 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
             >
+              {!isActive && (
+                <FilterGlassSurface
+                  testID={`quick-filter-glass-${qf.id}`}
+                  borderRadius={FilterGlassTokens.chip.borderRadius}
+                />
+              )}
               <TouchableOpacity
                 style={[s.chipPressableArea, !isActive && s.chipPressableAreaInactive]}
                 activeOpacity={0.8}
@@ -42,19 +50,19 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                 accessibilityLabel={qf.label}
                 accessibilityState={{ selected: Boolean(isActive) }}
                 // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
-                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt, paddingVertical 2pt),
-                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged per M-023/M-025).
+                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt),
+                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged).
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                 onPress={() => onFilterPress(qf.id)}
               >
                 {!isActive && qf.icon && (
-                  <Ionicons name={qf.icon} size={12.5} color={Colors.textMuted} />
+                  <Ionicons name={qf.icon} size={12.5} color={FilterGlassTokens.chip.iconColor} />
                 )}
                 <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
                   {qf.label}
                 </Text>
                 {!isActive && (
-                  <Ionicons name="chevron-down" size={11} color={Colors.textMuted} />
+                  <Ionicons name="chevron-down" size={11} color={FilterGlassTokens.chip.iconColor} />
                 )}
               </TouchableOpacity>
               {isActive && (
@@ -69,7 +77,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                   onPress={() => onClearFilter(qf.id)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="close-circle" size={12.5} color={Colors.white} />
+                  <Ionicons name="close-circle" size={12.5} color={FilterGlassTokens.chip.activeIconColor} />
                 </TouchableOpacity>
               )}
             </View>
@@ -94,35 +102,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Platform.select({
-      ios: { 
-        shadowColor: Colors.primaryDark, 
-        shadowOffset: { width: 0, height: 1 }, 
-        shadowOpacity: 0.05, 
-        shadowRadius: 2 
-      },
-      android: { 
-        elevation: 1 
-      },
-    }),
+    borderRadius: FilterGlassTokens.chip.borderRadius,
+    backgroundColor: FilterGlassTokens.chip.bg,
+    borderWidth: FilterGlassTokens.chip.borderWidth,
+    borderColor: FilterGlassTokens.chip.borderColor,
+    ...FilterGlassTokens.chip.shadow,
   },
-  // Active chip geometry arithmetic (pixel-identical to master 26f4325):
-  // Master active chip:
-  //   quickFilterChip: paddingHorizontal: 10, paddingVertical: 6, gap: 5
-  //   Visible width = 10 [paddingStart] + text + 5 [gap] + 12.5 [icon] + 10 [paddingEnd] = text + 37.5pt.
-  // Refactored accessible sibling chip:
-  //   chipPressableArea: paddingVertical: 6, paddingStart: 10, paddingEnd: 5
-  //   clearButton: paddingVertical: 6, paddingStart: 0, paddingEnd: 10
-  //   Visible width = 10 [pressable start] + text + 5 [pressable end] + 0 [clear start] + 12.5 [icon] + 10 [clear end] = text + 37.5pt.
-  //   Distance between text and icon = 5 + 0 = 5pt (identical to master's gap: 5).
-  //   Leading padding = 10pt (identical to master's paddingHorizontal: 10).
-  //   Trailing padding = 10pt (identical to master's paddingHorizontal: 10).
-  // iOS Shadow parity:
-  //   quickFilterChip retains shadow without overflow: 'hidden' to prevent iOS shadow clipping.
   chipPressableArea: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,8 +127,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   quickFilterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: FilterGlassTokens.chip.activeBg,
+    borderColor: FilterGlassTokens.chip.activeBorderColor,
     ...Platform.select({
       ios: { 
         shadowColor: Colors.primary, 
@@ -157,15 +142,15 @@ const s = StyleSheet.create({
     }),
   },
   quickFilterTxt: {
-    fontFamily: 'Almarai_700Bold',  
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.text,
+    fontFamily: FilterGlassTokens.chip.fontFamily,  
+    fontSize: FilterGlassTokens.chip.fontSize,
+    lineHeight: FilterGlassTokens.chip.lineHeight,
+    color: FilterGlassTokens.chip.textColor,
     textAlign: 'left',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   quickFilterTxtActive: {
-    color: Colors.white,
+    color: FilterGlassTokens.chip.activeTextColor,
   },
 });

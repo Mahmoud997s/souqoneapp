@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
   Platform,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +19,7 @@ import { navigateToServiceForm } from '../../src/components/ui/DraftResumePrompt
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { ListingTabs, TabItem } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
@@ -394,27 +392,13 @@ export default function ServicesBrowseScreen() {
             />
 
             {!isLoading && listings && listings.length > 0 && (
-              <View style={styles.resultsRow}>
-                {activeFiltersCount > 0 ? (
-                  <TouchableOpacity
-                    style={styles.clearFiltersBtn}
-                    onPress={handleClearAll}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-                    <Text style={styles.clearFiltersText}>مسح الفلاتر</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View />
-                )}
-
-                <View style={styles.resultsCountBadge}>
-                  <Ionicons name="construct-outline" size={14} color="#64748b" />
-                  <Text style={styles.resultsCountTxt}>
-                    {listings.length} خدمة متاحة
-                  </Text>
-                </View>
-              </View>
+              <BrowseResultsBar
+                resultsCount={listings.length}
+                entityName="خدمة"
+                iconName="construct-outline"
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
+              />
             )}
           </View>
         }
@@ -486,50 +470,6 @@ const styles = StyleSheet.create({
   },
   listHeader: {
     marginBottom: Spacing.space2,
-  },
-  resultsRow: {
-    paddingHorizontal: Spacing.space4,
-    marginTop: Spacing.space2,
-    marginBottom: Spacing.space1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  clearFiltersBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 3.5,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
-  },
-  clearFiltersText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.error,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  resultsCountBadge: {
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  resultsCountTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748b',
-    textAlign: 'left',
-    writingDirection: 'rtl',
   },
   cardWrapper: {
     paddingHorizontal: Spacing.space4,

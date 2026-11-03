@@ -5,6 +5,7 @@ import { useBusManufacturers } from '../../hooks/useBuses';
 import { BusManufacturer } from '../../types/bus.types';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { Colors } from '../../constants/colors';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { BUS_TYPES } from '../../constants/buses';
 import {
   VisualFiltersBase,
@@ -116,7 +117,7 @@ export function BusesVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name="bus-outline" size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -142,7 +143,7 @@ export function BusesVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name="people-outline" size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -168,7 +169,7 @@ export function BusesVisualFilters({
             label: item.name,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={isSelected ? 'location' : 'location-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),
@@ -194,7 +195,7 @@ export function BusesVisualFilters({
             label: item.label,
             isSelected,
             icon: (
-              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
+              <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : FilterGlassTokens.card.iconTileBg }]}>
                 <Ionicons name={isSelected ? 'wallet' : 'wallet-outline'} size={14} color={isSelected ? Colors.white : Colors.primary} />
               </View>
             ),

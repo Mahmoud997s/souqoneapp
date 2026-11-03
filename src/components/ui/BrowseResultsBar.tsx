@@ -1,45 +1,59 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native'
+import { View, Text, StyleSheet, ViewStyle } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { FilterGlassTokens } from '../../constants/filterGlassTokens'
+import { FilterGlassSurface } from './FilterGlassSurface'
+import { ResetFilterButton } from './ResetFilterButton'
 
 export interface BrowseResultsBarProps {
   resultsCount: number
   entityName: string
-  iconName?: string
+  iconName?: keyof typeof Ionicons.glyphMap
+  customIcon?: React.ReactNode
   activeFiltersCount: number
   onClearAll: () => void
   containerStyle?: ViewStyle
+  availabilitySuffix?: string
 }
 
 export function BrowseResultsBar({
   resultsCount,
   entityName,
   iconName = 'car-sport-outline',
+  customIcon,
   activeFiltersCount,
   onClearAll,
   containerStyle,
+  availabilitySuffix = 'متاحة',
 }: BrowseResultsBarProps) {
   return (
     <View style={[s.container, containerStyle]}>
       {activeFiltersCount > 0 ? (
-        <TouchableOpacity
-          style={s.clearBtn}
+        <ResetFilterButton
           onPress={onClearAll}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-          <Text style={s.clearTxt}>مسح الفلاتر</Text>
-        </TouchableOpacity>
+          testID="browse-results-clear"
+        />
       ) : (
         <View />
       )}
 
       <View style={s.countBadge}>
-        <Ionicons name={iconName as any} size={14} color="#64748b" />
+        <FilterGlassSurface
+          testID="browse-results-count-glass"
+          borderRadius={FilterGlassTokens.resultsBar.countRadius}
+        />
+        {customIcon ? (
+          customIcon
+        ) : (
+          <Ionicons
+            name={iconName}
+            size={14}
+            color={FilterGlassTokens.resultsBar.countIconColor}
+          />
+        )}
         <Text style={s.countTxt}>
-          {resultsCount} {entityName} متاحة
+          {resultsCount} {entityName} {availabilitySuffix}
         </Text>
       </View>
     </View>
@@ -55,39 +69,24 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  clearBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 3.5,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
-  },
-  clearTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.error,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
   countBadge: {
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    minHeight: 28,
+    borderRadius: FilterGlassTokens.resultsBar.countRadius,
+    backgroundColor: FilterGlassTokens.resultsBar.countBg,
+    borderWidth: FilterGlassTokens.resultsBar.countBorderWidth,
+    borderColor: FilterGlassTokens.resultsBar.countBorderColor,
+    ...FilterGlassTokens.resultsBar.countShadow,
   },
   countTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748b',
+    fontFamily: FilterGlassTokens.resultsBar.fontFamily,
+    fontSize: FilterGlassTokens.resultsBar.fontSize,
+    lineHeight: FilterGlassTokens.resultsBar.lineHeight,
+    color: FilterGlassTokens.resultsBar.countTextColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

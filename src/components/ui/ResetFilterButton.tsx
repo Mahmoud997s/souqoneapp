@@ -1,50 +1,72 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassSurface } from './FilterGlassSurface';
 
-interface ResetFilterButtonProps {
+export interface ResetFilterButtonProps {
   onPress: () => void;
   label?: string;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  testID?: string;
 }
 
 export function ResetFilterButton({ 
   onPress, 
   label = 'مسح الفلاتر', 
   style, 
-  textStyle 
+  textStyle,
+  testID = 'reset-filter-button',
 }: ResetFilterButtonProps) {
   return (
-    <TouchableOpacity 
-      style={[s.btn, style]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-      <Text style={[s.text, textStyle]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
+    <View style={style ? [s.btnContainer, style] : s.btnContainer} testID={testID}>
+      <FilterGlassSurface
+        testID={`${testID}-glass`}
+        borderRadius={FilterGlassTokens.resultsBar.clearRadius}
+      />
+      <TouchableOpacity 
+        style={s.btnInner}
+        onPress={onPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons
+          name="trash-outline"
+          size={12.5}
+          color={FilterGlassTokens.resultsBar.clearIconColor}
+        />
+        <Text style={textStyle ? [s.text, textStyle] : s.text}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  btn: {
+  btnContainer: {
+    minHeight: 28,
+    borderRadius: FilterGlassTokens.resultsBar.clearRadius,
+    backgroundColor: FilterGlassTokens.resultsBar.clearBg,
+    borderWidth: FilterGlassTokens.resultsBar.clearBorderWidth,
+    borderColor: FilterGlassTokens.resultsBar.clearBorderColor,
+    ...FilterGlassTokens.resultsBar.clearShadow,
+  },
+  btnInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 3.5,
+    paddingVertical: 4.5,
     paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: '#FEF2F2',
   },
   text: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 11, 
-    lineHeight: 16, 
-    color: Colors.error, 
+    fontFamily: FilterGlassTokens.resultsBar.fontFamily, 
+    fontSize: FilterGlassTokens.resultsBar.fontSize, 
+    lineHeight: FilterGlassTokens.resultsBar.lineHeight, 
+    color: FilterGlassTokens.resultsBar.clearTextColor, 
     textAlign: 'left', 
     writingDirection: 'rtl',
     includeFontPadding: false,

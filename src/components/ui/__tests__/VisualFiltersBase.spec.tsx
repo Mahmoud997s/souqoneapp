@@ -6,6 +6,7 @@ import {
   VisualFilterTab,
   isSegmentedTabsFixed,
 } from '../VisualFiltersBase';
+import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -151,5 +152,35 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     const viewAll = getByLabelText('عرض الكل');
     expect(viewAll.props.accessibilityRole).toBe('button');
     expect(viewAll.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+  });
+
+  it('applies FilterGlassTokens.card styles to item cards and track', async () => {
+    const { getByLabelText } = await render(
+      <VisualFiltersBase tabs={dummyTabs} defaultTab="tab1" />
+    );
+
+    const unselectedItem = getByLabelText('عنصر 1');
+    const unselectedContainer = unselectedItem.parent;
+    expect(unselectedContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.card.bg,
+          borderColor: FilterGlassTokens.card.borderColor,
+          borderWidth: FilterGlassTokens.card.borderWidth,
+          borderRadius: FilterGlassTokens.card.borderRadius,
+        }),
+      ])
+    );
+
+    const selectedItem = getByLabelText('عنصر 2');
+    const selectedContainer = selectedItem.parent;
+    expect(selectedContainer?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: FilterGlassTokens.card.selectedBg,
+          borderColor: FilterGlassTokens.card.selectedBorderColor,
+        }),
+      ])
+    );
   });
 });

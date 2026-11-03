@@ -1,18 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   TextInput,
-  Platform,
   ActivityIndicator,
   ScrollView,
   Modal,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, {
@@ -38,6 +34,7 @@ import {
 import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
+import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
 import { navigateToCarForm } from '../../src/components/ui/DraftResumePrompt';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
@@ -57,7 +54,6 @@ import { Listing } from '../../src/types/listing.types';
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
-import { Radius } from '../../src/constants/radius';
 
 // Pure Filter Helpers & Contract
 import {
@@ -301,27 +297,13 @@ export default function CarsBrowseScreen() {
               onViewAll={(tabId) => setIsFilterVisible(true)}
             />
             {listings && listings.length > 0 && (
-              <View style={{ paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                {activeFiltersCount > 0 ? (
-                  <TouchableOpacity 
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3.5, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#FEF2F2' }}
-                    onPress={handleClearAll}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={12.5} color={Colors.error} />
-                    <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: Colors.error, textAlign: 'left', writingDirection: 'rtl' }}>
-                      مسح الفلاتر
-                    </Text>
-                  </TouchableOpacity>
-                ) : <View />}
-
-                <View style={s.resultsCountBadge}>
-                  <Ionicons name="car-sport-outline" size={14} color="#64748b" />
-                  <Text style={s.resultsCountTxt}>
-                    {listings.length} سيارة متاحة
-                  </Text>
-                </View>
-              </View>
+              <BrowseResultsBar
+                resultsCount={listings.length}
+                entityName="سيارة"
+                iconName="car-sport-outline"
+                activeFiltersCount={activeFiltersCount}
+                onClearAll={handleClearAll}
+              />
             )}
           </View>
         }
@@ -367,183 +349,15 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  compactSearch: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2,
-    backgroundColor: 'rgba(255,255,255,0.15)', height: 40, borderRadius: 20,
-    paddingHorizontal: Spacing.space3, marginHorizontal: Spacing.space3
-  },
-  compactInput: {
-    flex: 1, fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.white, textAlign: 'right'
-  },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadge: {
-    position: 'absolute', top: -2, right: -2,
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: Colors.accent || '#e67e22', alignItems: 'center', justifyContent: 'center'
-  },
-  filterBadgeText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 10,
-    color: Colors.white,
-  },
-  listingTypeTabs: {
-    flexDirection: 'row',
-    marginHorizontal: Spacing.space4,
-    marginTop: Spacing.space3,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 3,
-  },
-  typeTab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-  },
-  typeTabActive: {
-    backgroundColor: Colors.primary,
-  },
-  typeTabTxt: {
-    fontFamily: 'Almarai_700Bold', fontSize: 13,
-    color: '#64748B',
-  },
-  typeTabTxtActive: {
-    color: Colors.white,
-  },
-  quickFiltersContainer: {
-    marginTop: Spacing.space2,
-    marginBottom: Spacing.space1,
-  },
-  quickFiltersContent: {
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: 8,
-    gap: Spacing.space2,
-  },
-  quickFilterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 100,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 6,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-      android: { elevation: 2 },
-    }),
-  },
-  squareChip: {
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  quickFilterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
-      android: { elevation: 4 },
-    }),
-  },
-  quickFilterTxt: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.text,
-  },
-  quickFilterTxtActive: {
-    color: Colors.white,
-  },
   listContent: {
     paddingBottom: Spacing.space6,
   },
-
   loader: { margin: 20 },
-  resultsCountWrapper: { paddingHorizontal: Spacing.space4, marginTop: Spacing.space2, marginBottom: Spacing.space1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
-  resultsCountBadge: { backgroundColor: '#f8fafc', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#f1f5f9' },
-  resultsCountTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, lineHeight: 15, color: '#64748b', textAlign: 'left', writingDirection: 'rtl' },
-
   listHeader: {
     marginBottom: Spacing.space2,
-  },
-  resultsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.space4,
-    marginTop: Spacing.space1,
-    marginBottom: Spacing.space2,
-  },
-  resultsCount: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 15,
-    color: Colors.text,
-  },
-  clearAllText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 13,
-    color: Colors.primary,
   },
   cardWrapper: {
     paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space4,
   },
-  skeletonGrid: {
-    padding: Spacing.space4,
-    gap: Spacing.space4,
-  },
-  fullCard: {
-    marginBottom: Spacing.space2,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-  },
-  errorTxt: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.error || '#d9534f',
-    marginBottom: Spacing.space3,
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: Spacing.space2,
-    borderRadius: Radius.lg,
-  },
-  retryTxt: {
-    fontFamily: 'Almarai_700Bold',  color: Colors.white,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: Spacing.space5,
-  },
-  emptyTitle: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 18,
-    color: Colors.text,
-    marginTop: Spacing.space3,
-    marginBottom: Spacing.space2,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontFamily: 'Almarai_400Regular',  fontSize: 14,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: Spacing.space4,
-  },
-  clearAllBtn: {
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: Spacing.space2,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  clearAllBtnText: {
-    fontFamily: 'Almarai_700Bold',  fontSize: 14,
-    color: Colors.primary,
-  },
-
 });
