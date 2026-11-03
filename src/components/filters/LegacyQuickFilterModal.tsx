@@ -45,33 +45,11 @@ const SERVICE_SPECIALIZATIONS_LIST = Array.from(
 export interface LegacyFilterBrandItem {
   id?: string | number;
   name?: string;
-  nameAr?: string;
+  nameAr?: string | null;
+  label?: string;
 }
 
-export interface LegacyFilterState {
-  makeId?: string | number;
-  make?: string;
-  city?: string;
-  governorate?: string;
-  governorateId?: number | string;
-  wilayaId?: number | string;
-  yearMin?: string;
-  yearMax?: string;
-  priceMin?: string;
-  priceMax?: string;
-  bodyType?: string;
-  busType?: string;
-  capacity?: number;
-  sort?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  serviceType?: string;
-  specialization?: string;
-  providerType?: string;
-  [key: string]: string | number | boolean | undefined;
-}
-
-export interface LegacyQuickFilterModalProps {
+export interface LegacyQuickFilterModalProps<TFilters = unknown> {
   visible: boolean;
   activeDropdown:
     | 'make'
@@ -89,14 +67,14 @@ export interface LegacyQuickFilterModalProps {
     | string
     | null;
   onClose: () => void;
-  filters: LegacyFilterState;
-  setFilters: (filters: LegacyFilterState) => void;
+  filters: TFilters;
+  setFilters: React.Dispatch<React.SetStateAction<TFilters>> | ((filters: TFilters) => void);
   brands?: LegacyFilterBrandItem[];
   isBus?: boolean;
   isService?: boolean;
 }
 
-export function LegacyQuickFilterModal({
+export function LegacyQuickFilterModal<TFilters = unknown>({
   visible,
   activeDropdown,
   onClose,
@@ -105,7 +83,7 @@ export function LegacyQuickFilterModal({
   brands = [],
   isBus = false,
   isService = false,
-}: LegacyQuickFilterModalProps) {
+}: LegacyQuickFilterModalProps<TFilters>) {
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
 
   useEffect(() => {
@@ -146,6 +124,16 @@ export function LegacyQuickFilterModal({
     }
   };
 
+  const currentFilters = (filters || {}) as { [key: string]: string | number | boolean | undefined | null };
+
+  const applyUpdate = (patch: { [key: string]: string | number | boolean | undefined | null }) => {
+    const next = { ...currentFilters, ...patch };
+    if (typeof setFilters === 'function') {
+      (setFilters as (f: unknown) => void)(next);
+    }
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
@@ -165,27 +153,25 @@ export function LegacyQuickFilterModal({
           {activeDropdown === 'make' && (
             <FlatList
               data={brands || []}
-              keyExtractor={(item) => String(item.id || item.name)}
+              keyExtractor={(item) => String(item.id || item.name || item.label)}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const isSelected =
-                  filters.makeId === item.id ||
-                  filters.make === item.name ||
-                  filters.make === item.id;
+                  currentFilters.makeId === item.id ||
+                  currentFilters.make === item.name ||
+                  currentFilters.make === item.id;
                 return (
                   <TouchableOpacity
                     style={styles.modalOptionRow}
                     onPress={() => {
-                      setFilters({
-                        ...filters,
+                      applyUpdate({
                         makeId: item.id,
                         make: item.name || (item.id ? String(item.id) : undefined),
                       });
-                      onClose();
                     }}
                   >
                     <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
-                      {item.nameAr || item.name || String(item.id)}
+                      {item.nameAr || item.name || item.label || String(item.id)}
                     </Text>
                     {isSelected && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                   </TouchableOpacity>
@@ -200,19 +186,17 @@ export function LegacyQuickFilterModal({
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
-                const isSelected = filters.governorateId === item.id || filters.city === item.nameAr;
+                const isSelected = currentFilters.governorateId === item.id || currentFilters.city === item.nameAr;
                 return (
                   <TouchableOpacity
                     style={styles.modalOptionRow}
                     onPress={() => {
-                      setFilters({
-                        ...filters,
+                      applyUpdate({
                         governorateId: item.id,
                         governorate: item.nameAr,
                         city: item.nameAr,
                         wilayaId: undefined,
                       });
-                      onClose();
                     }}
                   >
                     <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
@@ -234,14 +218,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, yearMin: item.toString(), yearMax: item.toString() });
-                    onClose();
+                    applyUpdate({ yearMin: item.toString(), yearMax: item.toString() });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.yearMin === item.toString() && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.yearMin === item.toString() && styles.modalOptionTxtActive]}>
                     {item}
                   </Text>
-                  {filters.yearMin === item.toString() && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.yearMin === item.toString() && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -256,14 +239,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, priceMin: item.min.toString(), priceMax: item.max ? item.max.toString() : '9999999' });
-                    onClose();
+                    applyUpdate({ priceMin: item.min.toString(), priceMax: item.max ? item.max.toString() : '9999999' });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.priceMax === (item.max ? item.max.toString() : '9999999') && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.priceMax === (item.max ? item.max.toString() : '9999999') && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.priceMax === (item.max ? item.max.toString() : '9999999') && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.priceMax === (item.max ? item.max.toString() : '9999999') && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -278,14 +260,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, bodyType: item.id });
-                    onClose();
+                    applyUpdate({ bodyType: item.id });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.bodyType === item.id && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.bodyType === item.id && styles.modalOptionTxtActive]}>
                     {item.name}
                   </Text>
-                  {filters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.bodyType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -300,14 +281,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, busType: item.id });
-                    onClose();
+                    applyUpdate({ busType: item.id });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.busType === item.id && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.busType === item.id && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.busType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.busType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -322,14 +302,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, capacity: item.value });
-                    onClose();
+                    applyUpdate({ capacity: item.value });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.capacity === item.value && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.capacity === item.value && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.capacity === item.value && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.capacity === item.value && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -344,14 +323,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, serviceType: item.id });
-                    onClose();
+                    applyUpdate({ serviceType: item.id });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.serviceType === item.id && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.serviceType === item.id && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.serviceType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.serviceType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -366,14 +344,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, specialization: item.id });
-                    onClose();
+                    applyUpdate({ specialization: item.id });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.specialization === item.id && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.specialization === item.id && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.specialization === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.specialization === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -388,14 +365,13 @@ export function LegacyQuickFilterModal({
                 <TouchableOpacity
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    setFilters({ ...filters, providerType: item.id });
-                    onClose();
+                    applyUpdate({ providerType: item.id });
                   }}
                 >
-                  <Text style={[styles.modalOptionTxt, filters.providerType === item.id && styles.modalOptionTxtActive]}>
+                  <Text style={[styles.modalOptionTxt, currentFilters.providerType === item.id && styles.modalOptionTxtActive]}>
                     {item.label}
                   </Text>
-                  {filters.providerType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                  {currentFilters.providerType === item.id && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -409,18 +385,17 @@ export function LegacyQuickFilterModal({
               renderItem={({ item }) => {
                 const sortItem = item as SortOptionItem;
                 const isSelected = isBus
-                  ? filters.sort === item.id || (!filters.sort && item.id === 'newest')
-                  : filters.sortBy === sortItem.sortBy && filters.sortOrder === sortItem.sortOrder;
+                  ? currentFilters.sort === item.id || (!currentFilters.sort && item.id === 'newest')
+                  : currentFilters.sortBy === sortItem.sortBy && currentFilters.sortOrder === sortItem.sortOrder;
                 return (
                   <TouchableOpacity
                     style={styles.modalOptionRow}
                     onPress={() => {
                       if (isBus) {
-                        setFilters({ ...filters, sort: item.id });
+                        applyUpdate({ sort: item.id });
                       } else {
-                        setFilters({ ...filters, sortBy: sortItem.sortBy, sortOrder: sortItem.sortOrder });
+                        applyUpdate({ sortBy: sortItem.sortBy, sortOrder: sortItem.sortOrder });
                       }
-                      onClose();
                     }}
                   >
                     <Text style={[styles.modalOptionTxt, isSelected && styles.modalOptionTxtActive]}>
