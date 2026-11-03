@@ -35,7 +35,7 @@ import {
   LISTING_TYPES,
   CAR_TYPES,
 } from '../../src/constants/browseFilters';
-import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';

@@ -3,6 +3,7 @@ import {
   clearPartsFilter,
   parsePartsInitialFilters,
   mergePartsRouteParams,
+  applyPartsFilter,
   PartsFilterState,
 } from '../partsBrowseFilters';
 import { PARTS_QUERY_ALLOW_LIST } from '../../../types/contracts/partsQuery';
@@ -285,6 +286,51 @@ describe('Parts Browse Pure Filters & Contract (D-185)', () => {
       const withWilaya = mergePartsRouteParams(existing, { governorateId: '2', wilayaId: '201' });
       expect(withWilaya.governorateId).toBe(2);
       expect(withWilaya.wilayaId).toBe(201);
+    });
+  });
+
+  describe('applyPartsFilter', () => {
+    it('applies category selection', () => {
+      const res = applyPartsFilter({}, 'category', 'ENGINE');
+      expect(res.category).toBe('ENGINE');
+    });
+
+    it('applies make selection with extra brandName', () => {
+      const res = applyPartsFilter({}, 'make', 'toyota', { brandName: 'تويوتا' });
+      expect(res.makeId).toBe('toyota');
+      expect(res.make).toBe('تويوتا');
+    });
+
+    it('applies condition selection', () => {
+      const res = applyPartsFilter({}, 'condition', 'NEW');
+      expect(res.condition).toBe('NEW');
+    });
+
+    it('applies city selection and clears wilayaId', () => {
+      const initial: PartsFilterState = {
+        governorateId: 1,
+        wilayaId: 101,
+        city: 'قديم',
+        governorate: 'قديم',
+      };
+      const res = applyPartsFilter(initial, 'city', '2', { governorateName: 'ظفار' });
+      expect(res.governorateId).toBe(2);
+      expect(res.governorate).toBe('ظفار');
+      expect(res.city).toBe('ظفار');
+      expect(res.wilayaId).toBeUndefined();
+    });
+
+    it('applies price range selection', () => {
+      const res = applyPartsFilter({}, 'price', 'p1');
+      expect(res.priceId).toBe('p1');
+      expect(res.priceMin).toBe('0');
+      expect(res.priceMax).toBe('20');
+    });
+
+    it('applies sort selection', () => {
+      const res = applyPartsFilter({}, 'sort', 'price_asc');
+      expect(res.sortBy).toBe('price');
+      expect(res.sortOrder).toBe('ASC');
     });
   });
 });

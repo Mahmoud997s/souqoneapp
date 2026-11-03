@@ -1,5 +1,6 @@
 import { PartsQueryContract } from '../../types/contracts/partsQuery';
 import { PartsFilterState } from '../../types/filters.types';
+import { PARTS_PRICE_RANGES, PARTS_SORT_OPTIONS } from '../../constants/parts';
 import { toSingleString } from './routeParams';
 
 export { PartsFilterState };
@@ -230,3 +231,57 @@ export function mergePartsRouteParams(
   }
   return next;
 }
+
+export type PartsDropdownKind = 'category' | 'make' | 'condition' | 'city' | 'price' | 'sort';
+
+export interface ApplyPartsFilterExtra {
+  brandName?: string;
+  governorateName?: string;
+}
+
+/**
+ * Pure state reducer applying a parts quick filter selection.
+ */
+export function applyPartsFilter(
+  filters: PartsFilterState,
+  dropdown: PartsDropdownKind,
+  optionId: string,
+  extra?: ApplyPartsFilterExtra
+): PartsFilterState {
+  const next: PartsFilterState = { ...filters };
+
+  if (dropdown === 'category') {
+    next.category = optionId;
+  } else if (dropdown === 'make') {
+    next.makeId = optionId;
+    next.make = extra?.brandName || optionId;
+  } else if (dropdown === 'condition') {
+    next.condition = optionId;
+  } else if (dropdown === 'city') {
+    const govId = Number(optionId);
+    if (!isNaN(govId) && govId > 0) {
+      next.governorateId = govId;
+      if (extra?.governorateName) {
+        next.governorate = extra.governorateName;
+        next.city = extra.governorateName;
+      }
+      delete next.wilayaId;
+    }
+  } else if (dropdown === 'price') {
+    const range = PARTS_PRICE_RANGES.find((p) => p.id === optionId);
+    if (range) {
+      next.priceId = optionId;
+      next.priceMin = String(range.min);
+      next.priceMax = range.max ? String(range.max) : '999999';
+    }
+  } else if (dropdown === 'sort') {
+    const opt = PARTS_SORT_OPTIONS.find((s) => s.id === optionId);
+    if (opt) {
+      next.sortBy = opt.sortBy;
+      next.sortOrder = opt.sortOrder;
+    }
+  }
+
+  return next;
+}
+

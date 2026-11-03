@@ -47,6 +47,9 @@ import {
   clearPartsFilter,
   mergePartsRouteParams,
   parsePartsInitialFilters,
+  applyPartsFilter,
+  PartsDropdownKind,
+  ApplyPartsFilterExtra,
 } from '../../src/utils/browse-filters/partsBrowseFilters';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
@@ -136,8 +139,66 @@ export default function PartsBrowseScreen() {
   };
 
   // Dropdown Modal State
-  const [activeDropdown, setActiveDropdown] = useState<'category' | 'make' | 'condition' | 'price' | 'city' | 'sort' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<PartsDropdownKind | null>(null);
   const { data: brands } = useBrands();
+
+  const availableBrands = useMemo(() => {
+    return brands && brands.length > 0 ? brands : POPULAR_PART_MAKES;
+  }, [brands]);
+
+  const activeDropdownData = useMemo(() => {
+    if (!activeDropdown) return null;
+
+    switch (activeDropdown) {
+      case 'category':
+        return {
+          title: 'اختر القسم',
+          options: PART_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+          selectedId: filters.category,
+        };
+      case 'make':
+        return {
+          title: 'اختر الماركة المتوافقة',
+          options: availableBrands.map((b) => ({
+            id: String(b.id || b.name),
+            label: b.nameAr || b.name || String(b.id),
+          })),
+          selectedId: filters.makeId || filters.make,
+        };
+      case 'condition':
+        return {
+          title: 'حالة القطعة',
+          options: PART_CONDITIONS.map((c) => ({ id: c.id, label: c.label })),
+          selectedId: filters.condition,
+        };
+      case 'city':
+        return {
+          title: 'اختر المدينة',
+          options: governorates.map((g) => ({
+            id: String(g.id),
+            label: g.nameAr,
+          })),
+          selectedId: filters.governorateId ? String(filters.governorateId) : undefined,
+        };
+      case 'price':
+        return {
+          title: 'نطاق السعر',
+          options: PARTS_PRICE_RANGES.map((p) => ({ id: p.id, label: p.label })),
+          selectedId: filters.priceId,
+        };
+      case 'sort':
+        return {
+          title: 'ترتيب النتائج',
+          options: PARTS_SORT_OPTIONS.map((s) => ({ id: s.id, label: s.label })),
+          selectedId:
+            PARTS_SORT_OPTIONS.find(
+              (s) => s.sortBy === filters.sortBy && s.sortOrder === filters.sortOrder
+            )?.id || undefined,
+        };
+      default:
+        return null;
+    }
+  }, [activeDropdown, availableBrands, governorates, filters]);
 
   // Synchronize listing tabs with filter state
   const handleTabChange = (tabId: string) => {
@@ -374,7 +435,7 @@ export default function PartsBrowseScreen() {
         />
         <QuickFilters
           filters={quickFilterItems}
-          onFilterPress={(id) => setActiveDropdown(id as any)}
+          onFilterPress={(id) => setActiveDropdown(id as PartsDropdownKind)}
           onClearFilter={handleClearQuickFilter}
         />
       </CollapsibleSubHeader>
@@ -483,18 +544,32 @@ export default function PartsBrowseScreen() {
 
       {/* Quick Dropdown Modal */}
       <QuickFilterModal
-        visible={!!activeDropdown}
-        activeDropdown={activeDropdown}
+        visible={activeDropdown !== null}
+        title={activeDropdownData?.title || ''}
+        options={activeDropdownData?.options || []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(id) => {
+          if (activeDropdown) {
+            const extra: ApplyPartsFilterExtra = {};
+            if (activeDropdown === 'make') {
+              const foundBrand = availableBrands.find(
+                (b) => String(b.id || b.name) === id
+              );
+              if (foundBrand) {
+                extra.brandName =
+                  foundBrand.name || foundBrand.nameAr || String(foundBrand.id);
+              }
+            } else if (activeDropdown === 'city') {
+              const foundGov = governorates.find((g) => String(g.id) === id);
+              if (foundGov) {
+                extra.governorateName = foundGov.nameAr;
+              }
+            }
+            setFilters((prev) => applyPartsFilter(prev, activeDropdown, id, extra));
+          }
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        brands={brands && brands.length > 0 ? brands : POPULAR_PART_MAKES}
-        governorates={governorates}
-        isPart={true}
-        categories={PART_CATEGORIES}
-        conditions={PART_CONDITIONS}
-        priceRanges={PARTS_PRICE_RANGES}
-        sortOptions={PARTS_SORT_OPTIONS}
+        accentColor={Colors.primary}
       />
 
       <PartsBottomBar />

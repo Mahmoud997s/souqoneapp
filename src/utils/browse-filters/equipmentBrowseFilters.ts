@@ -230,3 +230,107 @@ export function mergeEquipmentRouteParams(
 
   return next;
 }
+
+export type EquipmentDropdownKind =
+  | 'category'
+  | 'condition'
+  | 'price'
+  | 'year'
+  | 'hours'
+  | 'governorate';
+
+export const EQUIPMENT_PRICE_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'p1', label: 'أقل من 50 ر.ع', min: '0', max: '50' },
+  { id: 'p2', label: '50 - 100 ر.ع', min: '50', max: '100' },
+  { id: 'p3', label: '100 - 500 ر.ع', min: '100', max: '500' },
+  { id: 'p4', label: '500 - 1,000 ر.ع', min: '500', max: '1000' },
+  { id: 'p5', label: '1,000 - 5,000 ر.ع', min: '1000', max: '5000' },
+  { id: 'p6', label: '5,000 - 10,000 ر.ع', min: '5000', max: '10000' },
+  { id: 'p7', label: 'أكثر من 10,000 ر.ع', min: '10000', max: '9999999' },
+];
+
+export const EQUIPMENT_YEAR_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'y1', label: '2022 - 2024', min: '2022', max: '2024' },
+  { id: 'y2', label: '2019 - 2021', min: '2019', max: '2021' },
+  { id: 'y3', label: '2015 - 2018', min: '2015', max: '2018' },
+  { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
+];
+
+export const EQUIPMENT_HOURS_RANGES = [
+  { id: 'all', label: 'الكل', min: '', max: '' },
+  { id: 'h1', label: 'أقل من 1,000 ساعة', min: '0', max: '1000' },
+  { id: 'h2', label: '1,000 - 3,000 ساعة', min: '1000', max: '3000' },
+  { id: 'h3', label: '3,000 - 5,000 ساعة', min: '3000', max: '5000' },
+  { id: 'h4', label: 'أكثر من 5,000 ساعة', min: '5000', max: '999999' },
+];
+
+/**
+ * Pure state reducer applying an equipment quick filter selection.
+ */
+export function applyEquipmentFilter(
+  filters: EquipmentFilterState,
+  dropdown: EquipmentDropdownKind,
+  optionId: string
+): EquipmentFilterState {
+  const next: EquipmentFilterState = { ...filters };
+
+  if (dropdown === 'category') {
+    next.equipmentType = optionId;
+    next.categoryId = optionId;
+  } else if (dropdown === 'condition') {
+    next.condition = optionId;
+    next.conditionId = optionId;
+  } else if (dropdown === 'price') {
+    if (optionId === 'all') {
+      delete next.priceMin;
+      delete next.priceMax;
+      delete next.priceId;
+    } else {
+      const range = EQUIPMENT_PRICE_RANGES.find((r) => r.id === optionId);
+      if (range) {
+        next.priceId = optionId;
+        next.priceMin = range.min;
+        next.priceMax = range.max;
+      }
+    }
+  } else if (dropdown === 'year') {
+    if (optionId === 'all') {
+      delete next.yearMin;
+      delete next.yearMax;
+      delete next.yearId;
+    } else {
+      const range = EQUIPMENT_YEAR_RANGES.find((r) => r.id === optionId);
+      if (range) {
+        next.yearId = optionId;
+        next.yearMin = range.min;
+        next.yearMax = range.max;
+      }
+    }
+  } else if (dropdown === 'hours') {
+    if (optionId === 'all') {
+      delete next.hoursMin;
+      delete next.hoursMax;
+      delete next.hoursId;
+    } else {
+      const range = EQUIPMENT_HOURS_RANGES.find((r) => r.id === optionId);
+      if (range) {
+        next.hoursId = optionId;
+        next.hoursMin = range.min;
+        next.hoursMax = range.max;
+      }
+    }
+  } else if (dropdown === 'governorate') {
+    const govId = Number(optionId);
+    if (!isNaN(govId) && govId > 0) {
+      next.governorateId = govId;
+      delete next.wilayaId;
+      delete next.city;
+      delete next.governorate;
+    }
+  }
+
+  return next;
+}
+

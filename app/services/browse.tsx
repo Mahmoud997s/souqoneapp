@@ -25,7 +25,7 @@ import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { ListingTabs, TabItem } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
-import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';

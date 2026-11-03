@@ -29,6 +29,11 @@ import {
   buildEquipmentQueryParams,
   clearEquipmentFilter,
   mergeEquipmentRouteParams,
+  applyEquipmentFilter,
+  EquipmentDropdownKind,
+  EQUIPMENT_PRICE_RANGES,
+  EQUIPMENT_YEAR_RANGES,
+  EQUIPMENT_HOURS_RANGES,
 } from '../../src/utils/browse-filters/equipmentBrowseFilters';
 
 // Components
@@ -82,32 +87,9 @@ const CONDITIONS = EQUIPMENT_CONDITIONS.map((c) => ({
   name: c.label,
 }));
 
-const PRICE_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'p1', label: 'أقل من 50 ر.ع', min: '0', max: '50' },
-  { id: 'p2', label: '50 - 100 ر.ع', min: '50', max: '100' },
-  { id: 'p3', label: '100 - 500 ر.ع', min: '100', max: '500' },
-  { id: 'p4', label: '500 - 1,000 ر.ع', min: '500', max: '1000' },
-  { id: 'p5', label: '1,000 - 5,000 ر.ع', min: '1000', max: '5000' },
-  { id: 'p6', label: '5,000 - 10,000 ر.ع', min: '5000', max: '10000' },
-  { id: 'p7', label: 'أكثر من 10,000 ر.ع', min: '10000', max: '9999999' },
-];
-
-const YEAR_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'y1', label: '2022 - 2024', min: '2022', max: '2024' },
-  { id: 'y2', label: '2019 - 2021', min: '2019', max: '2021' },
-  { id: 'y3', label: '2015 - 2018', min: '2015', max: '2018' },
-  { id: 'y4', label: 'أقدم من 2015', min: '1900', max: '2014' },
-];
-
-const HOURS_RANGES = [
-  { id: 'all', label: 'الكل', min: '', max: '' },
-  { id: 'h1', label: 'أقل من 1,000 ساعة', min: '0', max: '1000' },
-  { id: 'h2', label: '1,000 - 3,000 ساعة', min: '1000', max: '3000' },
-  { id: 'h3', label: '3,000 - 5,000 ساعة', min: '3000', max: '5000' },
-  { id: 'h4', label: 'أكثر من 5,000 ساعة', min: '5000', max: '999999' },
-];
+const PRICE_RANGES = EQUIPMENT_PRICE_RANGES;
+const YEAR_RANGES = EQUIPMENT_YEAR_RANGES;
+const HOURS_RANGES = EQUIPMENT_HOURS_RANGES;
 
 export default function EquipmentBrowseScreen() {
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
@@ -150,7 +132,56 @@ export default function EquipmentBrowseScreen() {
   }, [searchParams.type, searchParams.equipmentType]);
   
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<EquipmentDropdownKind | null>(null);
+
+  const activeDropdownData = useMemo(() => {
+    if (!activeDropdown) return null;
+
+    switch (activeDropdown) {
+      case 'governorate':
+        return {
+          title: 'المدينة',
+          options: governorates.map((item) => ({
+            // Ensures governorateId: item.id is used for location filters
+            id: String(item.id),
+            label: item.nameAr,
+          })),
+          selectedId: filters.governorateId ? String(filters.governorateId) : undefined,
+        };
+      case 'category':
+        return {
+          title: 'نوع المعدة',
+          options: CATEGORIES_ARRAY.map((c) => ({ id: c.id, label: c.name })),
+          selectedId: filters.equipmentType || filters.categoryId,
+        };
+      case 'condition':
+        return {
+          title: 'حالة المعدة',
+          options: CONDITIONS.map((c) => ({ id: c.id, label: c.name })),
+          selectedId: filters.condition || filters.conditionId,
+        };
+      case 'price':
+        return {
+          title: 'السعر',
+          options: PRICE_RANGES.map((p) => ({ id: p.id, label: p.label })),
+          selectedId: filters.priceId || (!filters.priceMax ? 'all' : undefined),
+        };
+      case 'year':
+        return {
+          title: 'سنة الصنع',
+          options: YEAR_RANGES.map((y) => ({ id: y.id, label: y.label })),
+          selectedId: filters.yearId || (!filters.yearMax ? 'all' : undefined),
+        };
+      case 'hours':
+        return {
+          title: 'ساعات العمل',
+          options: HOURS_RANGES.map((h) => ({ id: h.id, label: h.label })),
+          selectedId: filters.hoursId || (!filters.hoursMax ? 'all' : undefined),
+        };
+      default:
+        return null;
+    }
+  }, [activeDropdown, governorates, filters]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -316,7 +347,7 @@ export default function EquipmentBrowseScreen() {
         />
         <QuickFilters
           filters={quickFilterItems}
-          onFilterPress={(id) => setActiveDropdown(id as string)}
+          onFilterPress={(id) => setActiveDropdown(id as EquipmentDropdownKind)}
           onClearFilter={handleClearQuickFilter}
         />
       </CollapsibleSubHeader>
@@ -424,20 +455,17 @@ export default function EquipmentBrowseScreen() {
         />
       )}
 
-      {/* DROPDOWNS: governorateId: item.id */}
       <QuickFilterModal
-        visible={!!activeDropdown}
-        activeDropdown={activeDropdown}
+        visible={activeDropdown !== null}
+        title={activeDropdownData?.title || ''}
+        options={activeDropdownData?.options || []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(id) => {
+          if (activeDropdown) {
+            setFilters((prev) => applyEquipmentFilter(prev, activeDropdown, id));
+          }
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        governorates={governorates}
-        isEquipment={true}
-        categories={CATEGORIES_ARRAY}
-        conditions={CONDITIONS}
-        priceRanges={PRICE_RANGES}
-        yearRanges={YEAR_RANGES}
-        hoursRanges={HOURS_RANGES}
         accentColor={Colors.equipmentPrimary}
       />
 
