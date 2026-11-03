@@ -473,8 +473,8 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   skeletonPill: {
-    backgroundColor: FilterGlassTokens.card.bg,
-    borderColor: 'transparent',
+    backgroundColor: Colors.surfaceAlt,
+    borderColor: FilterGlassTokens.card.borderColor,
     minWidth: 95,
   },
 });

@@ -299,6 +299,7 @@ export default function BrowseOperatorsScreen() {
             <BrowseResultsBar
               resultsCount={operators.length}
               entityName="مشغل"
+              availabilitySuffix="متاح"
               customIcon={
                 <MaterialCommunityIcons
                   name="hard-hat"

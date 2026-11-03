@@ -13,6 +13,7 @@ export interface BrowseResultsBarProps {
   activeFiltersCount: number
   onClearAll: () => void
   containerStyle?: ViewStyle
+  availabilitySuffix?: string
 }
 
 export function BrowseResultsBar({
@@ -23,6 +24,7 @@ export function BrowseResultsBar({
   activeFiltersCount,
   onClearAll,
   containerStyle,
+  availabilitySuffix = 'متاحة',
 }: BrowseResultsBarProps) {
   return (
     <View style={[s.container, containerStyle]}>
@@ -57,7 +59,7 @@ export function BrowseResultsBar({
           />
         )}
         <Text style={s.countTxt}>
-          {resultsCount} {entityName} متاحة
+          {resultsCount} {entityName} {availabilitySuffix}
         </Text>
       </View>
     </View>

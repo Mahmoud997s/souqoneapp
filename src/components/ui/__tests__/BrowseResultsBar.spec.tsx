@@ -21,6 +21,20 @@ describe('BrowseResultsBar - Characterization & Parity Tests', () => {
     expect(getByText('14 سيارة متاحة')).toBeTruthy();
   });
 
+  it('supports custom availabilitySuffix (e.g. متاح for masculine operators)', async () => {
+    const { getByText } = await render(
+      <BrowseResultsBar
+        resultsCount={7}
+        entityName="مشغل"
+        availabilitySuffix="متاح"
+        activeFiltersCount={0}
+        onClearAll={jest.fn()}
+      />
+    );
+
+    expect(getByText('7 مشغل متاح')).toBeTruthy();
+  });
+
   it('does not render clear filters button when activeFiltersCount is 0', async () => {
     const { queryByText } = await render(
       <BrowseResultsBar
