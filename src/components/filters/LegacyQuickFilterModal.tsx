@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Platform } f
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
+import { quickFilterModalStyles } from './quickFilterModalStyles';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef } from '../../types/location.types';
 import { PRICE_RANGES, SORT_OPTIONS, YEARS, CAR_TYPES } from '../../constants/browseFilters';
@@ -471,56 +472,4 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
 
 export const QuickFilterModal = LegacyQuickFilterModal;
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    maxHeight: '65%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: Spacing.space4,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.space3,
-    paddingBottom: Spacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 22,
-    color: Colors.text,
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  modalOptionTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    lineHeight: 21,
-    color: Colors.text2,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  modalOptionTxtActive: {
-    color: Colors.primary,
-  },
-});
+const styles = quickFilterModalStyles;
