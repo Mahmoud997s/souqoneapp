@@ -96,6 +96,10 @@ jest.mock('expo-router', () => ({
     push: jest.fn(),
     back: jest.fn(),
   }),
+  usePathname: () => '/equipment/browse',
+  useFocusEffect: (cb: () => void) => {
+    require('react').useEffect(cb, [cb])
+  },
 }))
 
 jest.mock('react-native-safe-area-context', () => ({

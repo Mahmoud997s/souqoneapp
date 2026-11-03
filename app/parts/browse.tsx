@@ -39,6 +39,8 @@ import { PartSkeletonCard } from '../../src/components/parts/PartSkeletonCard';
 import { PartsVisualFilters } from '../../src/components/parts/PartsVisualFilters';
 import { PartsFilterBottomSheet } from '../../src/components/parts/PartsFilterBottomSheet';
 import { PartsFilterState } from '../../src/types/filters.types';
+import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -435,7 +437,10 @@ export default function PartsBrowseScreen() {
         keyExtractor={(item, index) => (item as any)?.id || String(index)}
         contentContainerStyle={[
           s.listContent,
-          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
+          {
+            paddingTop: Spacing.space2,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -751,6 +756,8 @@ export default function PartsBrowseScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <PartsBottomBar />
     </View>
   );
 }

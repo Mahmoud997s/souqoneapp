@@ -36,6 +36,8 @@ import { EquipmentVisualFilters } from '../../src/components/equipment/Equipment
 import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
+import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
@@ -388,7 +390,7 @@ export default function EquipmentBrowseScreen() {
             s.listContent,
             {
               paddingTop: Spacing.space2,
-              paddingBottom: Math.max(insets.bottom, 16) + 8,
+              paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
             },
           ]}
           onScroll={scrollHandler}
@@ -657,6 +659,7 @@ export default function EquipmentBrowseScreen() {
         onApplyFilters={handleApplyFilters}
       />
 
+      <EquipmentBottomBar />
     </View>
   );
 }

@@ -54,13 +54,28 @@ export function useDepartmentBottomBar({
   const { isLoggedIn } = useAuthStore();
   const { set } = usePostStore();
 
-  const [activeTab, setActiveTab] = useState('home');
+  // Derive default active tab from current route if matched in customTabs, else fallback to 'home'
+  const getInitialTab = useCallback(() => {
+    if (customTabs && pathname) {
+      const cleanPath = pathname.split('?')[0].replace(/\/+$/, '');
+      const match = customTabs.find((t) => {
+        if (!t.route) return false;
+        const tabPath = t.route.split('?')[0].replace(/\/+$/, '');
+        return tabPath === cleanPath;
+      });
+      if (match) return match.id;
+    }
+    return 'home';
+  }, [customTabs, pathname]);
 
-  // Always reset activeTab to 'home' whenever the department screen comes into focus
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  // Sync activeTab whenever the department screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      setActiveTab('home');
-    }, [])
+      const initial = getInitialTab();
+      setActiveTab((prev) => (prev !== initial ? initial : prev));
+    }, [getInitialTab])
   );
 
   const tabs: BottomBarTabItem[] = useMemo(() => {

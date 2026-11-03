@@ -50,6 +50,8 @@ import { CarCard } from '../../src/components/cars/CarCard';
 import { CarsVisualFilters } from '../../src/components/cars/CarsVisualFilters';
 import { FilterBottomSheet } from '../../src/components/filters/FilterBottomSheet';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
+import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -445,7 +447,10 @@ export default function CarsBrowseScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           s.listContent,
-          { paddingTop: Spacing.space2, paddingBottom: Math.max(insets.bottom, 16) + 8 },
+          {
+            paddingTop: Spacing.space2,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
@@ -547,6 +552,8 @@ export default function CarsBrowseScreen() {
         setFilters={setFilters}
         brands={brands || []}
       />
+
+      <CarsBottomBar />
     </View>
   );
 }

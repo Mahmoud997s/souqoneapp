@@ -35,6 +35,8 @@ import { ServiceSkeletonCard } from '../../src/components/services/ServiceSkelet
 import { ServicesVisualFilters } from '../../src/components/services/ServicesVisualFilters';
 import { ServicesFilterBottomSheet } from '../../src/components/services/ServicesFilterBottomSheet';
 import { ServicesFilterState } from '../../src/types/filters.types';
+import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
+import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -429,7 +431,7 @@ export default function ServicesBrowseScreen() {
           styles.listContent,
           {
             paddingTop: Spacing.space2,
-            paddingBottom: Math.max(insets.bottom, 16) + 8,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -538,6 +540,8 @@ export default function ServicesBrowseScreen() {
         onApplyFilters={setFilters}
         resultsCount={infiniteData?.pages[0]?.rawItems?.length}
       />
+
+      <ServicesBottomBar />
     </View>
   );
 }
