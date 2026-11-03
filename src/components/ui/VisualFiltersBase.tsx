@@ -21,28 +21,48 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export interface VisualFilterItemConfig {
   id: string;
-  label: string;
+  label?: string;
   icon?: React.ReactNode;
   isSelected?: boolean;
   onPress: () => void;
 }
 
-export interface VisualFilterTab<TTabId extends string = string> {
+export interface VisualFilterItem<T = object> {
+  id: string;
+  label?: string;
+  name?: string;
+  nameAr?: string | null;
+  slug?: string;
+  en?: string;
+  icon?: keyof typeof Ionicons.glyphMap | string;
+  isSelected?: boolean;
+  onPress?: () => void;
+  min?: number;
+  max?: number | null;
+  extraId?: number;
+  year?: number;
+  value?: number | string;
+  color?: string;
+  bg?: string;
+  payload?: T;
+}
+
+export interface VisualFilterTab<TTabId extends string = string, TItem = VisualFilterItem> {
   id: TTabId;
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap | string;
-  items?: any[];
+  icon?: keyof typeof Ionicons.glyphMap;
+  items?: readonly TItem[];
   rows?: 1 | 2;
   isLoading?: boolean;
   emptyState?: React.ReactNode;
   hideViewAll?: boolean;
   viewAllLabel?: string;
-  getItemProps?: (item: any) => VisualFilterItemConfig;
-  renderItem?: (item: any, isSelected: boolean) => React.ReactNode;
+  getItemProps?(item: TItem): VisualFilterItemConfig;
+  renderItem?(item: TItem, isSelected: boolean): React.ReactNode;
 }
 
 export interface VisualFiltersBaseProps<TTabId extends string = string> {
-  tabs: VisualFilterTab<TTabId>[];
+  tabs: readonly VisualFilterTab<TTabId>[];
   activeTab?: TTabId;
   defaultTab?: TTabId;
   activeColor?: string;
@@ -143,54 +163,75 @@ export function VisualFiltersBase<TTabId extends string = string>({
         minHeight={rows === 1 ? 42 : 86}
         contentContainerStyle={s.scrollContainer}
       >
-        {columns.map((col, colIdx) => (
-          <View key={colIdx} style={rows === 2 ? s.column : undefined}>
-            {col.map((item: any) => {
-              if (currentTab.renderItem) {
-                return currentTab.renderItem(item, Boolean(item.isSelected));
-              }
+        {columns.map((col, colIdx) => {
+          const firstItem = col[0];
+          const colKey = (firstItem && typeof firstItem === 'object' && 'id' in firstItem && firstItem.id != null)
+            ? String(firstItem.id)
+            : `col-${colIdx}`;
 
-              const config: VisualFilterItemConfig = currentTab.getItemProps
-                ? currentTab.getItemProps(item)
-                : {
-                    id: item.id || String(item),
-                    label: item.label || item.name || String(item),
-                    isSelected: Boolean(item.isSelected),
-                    onPress: item.onPress || (() => {}),
-                  };
+          return (
+            <View key={colKey} style={rows === 2 ? s.column : undefined}>
+              {col.map((item) => {
+                if (currentTab.renderItem) {
+                  const isSel = Boolean(item && typeof item === 'object' && 'isSelected' in item && item.isSelected);
+                  return currentTab.renderItem(item, isSel);
+                }
 
-              return (
-                <TouchableOpacity
-                  key={config.id}
-                  activeOpacity={0.7}
-                  style={[
-                    s.itemCard,
-                    config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
-                  ]}
-                  onPress={config.onPress}
-                >
-                  {config.icon}
-                  <Text
+                const config: VisualFilterItemConfig = currentTab.getItemProps
+                  ? currentTab.getItemProps(item)
+                  : {
+                      id: (item && typeof item === 'object' && 'id' in item && item.id != null) ? String(item.id) : String(item),
+                      label: (item && typeof item === 'object' && 'label' in item && item.label != null)
+                        ? String(item.label)
+                        : (item && typeof item === 'object' && 'name' in item && item.name != null)
+                        ? String(item.name)
+                        : String(item),
+                      isSelected: Boolean(item && typeof item === 'object' && 'isSelected' in item && item.isSelected),
+                      onPress: (item && typeof item === 'object' && 'onPress' in item && typeof item.onPress === 'function')
+                        ? (item.onPress as () => void)
+                        : () => {},
+                    };
+
+                return (
+                  <TouchableOpacity
+                    key={config.id}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={config.label}
+                    accessibilityState={{ selected: Boolean(config.isSelected) }}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                     style={[
-                      s.itemLabel,
-                      config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                      s.itemCard,
+                      config.isSelected && [s.itemCardSelected, { borderColor: activeColor }],
                     ]}
-                    numberOfLines={1}
+                    onPress={config.onPress}
                   >
-                    {config.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
+                    {config.icon}
+                    <Text
+                      style={[
+                        s.itemLabel,
+                        config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {config.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          );
+        })}
 
-        {onViewAll && !currentTab.hideViewAll && (
+        {onViewAll && currentTab && !currentTab.hideViewAll && (
           <View style={rows === 2 ? s.column : undefined}>
             <TouchableOpacity
               style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
               onPress={() => onViewAll(currentTab.id)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={currentTab.viewAllLabel || 'عرض الكل'}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
             >
               <View style={s.viewAllIconBox}>
                 <Ionicons name="apps-outline" size={15} color={activeColor} />
@@ -213,6 +254,10 @@ export function VisualFiltersBase<TTabId extends string = string>({
       <TouchableOpacity
         key={tab.id}
         activeOpacity={0.8}
+        accessibilityRole="tab"
+        accessibilityLabel={tab.label}
+        accessibilityState={{ selected: isActive }}
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         style={[
           s.segmentTab,
           isFixedTabs && s.fixedSegmentTab,
@@ -222,7 +267,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
       >
         {tab.icon && (
           <Ionicons
-            name={tab.icon as any}
+            name={tab.icon}
             size={14}
             color={isActive ? activeColor : '#64748b'}
             style={s.tabIcon}

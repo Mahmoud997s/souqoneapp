@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBusManufacturers } from '../../hooks/useBuses';
+import { BusManufacturer } from '../../types/bus.types';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { Colors } from '../../constants/colors';
 import { BUS_TYPES } from '../../constants/buses';
@@ -69,15 +70,15 @@ export function BusesVisualFilters({
 }: BusesVisualFiltersProps) {
   const { data: manufacturers, isLoading: loadingManufacturers } = useBusManufacturers();
 
-  const tabs: VisualFilterTab<'brands' | 'types' | 'capacities' | 'cities' | 'prices'>[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
         id: 'brands',
         label: 'أفضل الماركات',
-        icon: 'ribbon-outline',
+        icon: 'ribbon-outline' as const,
         items: manufacturers || [],
         isLoading: loadingManufacturers,
-        getItemProps: (item) => {
+        getItemProps: (item: BusManufacturer) => {
           const isSelected = selectedBrandId === item.name || selectedBrandId === item.id;
           const logo = getBrandLogo(item.name?.toLowerCase());
           return {
@@ -106,13 +107,13 @@ export function BusesVisualFilters({
       {
         id: 'types',
         label: 'فئة الحافلة',
-        icon: 'bus-outline',
+        icon: 'bus-outline' as const,
         items: BUS_TYPES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof BUS_TYPES[number]) => {
           const isSelected = selectedTypeId?.toUpperCase() === item.id?.toUpperCase();
           return {
             id: item.id,
-            label: item.label || item.name,
+            label: item.label,
             isSelected,
             icon: (
               <View style={[visualFiltersStyles.iconBox, { backgroundColor: isSelected ? Colors.primary : '#F0F5FF' }]}>
@@ -132,9 +133,9 @@ export function BusesVisualFilters({
       {
         id: 'capacities',
         label: 'سعة الركاب',
-        icon: 'people-outline',
+        icon: 'people-outline' as const,
         items: CAPACITIES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof CAPACITIES[number]) => {
           const isSelected = selectedCapacity === item.value;
           return {
             id: item.id,
@@ -158,9 +159,9 @@ export function BusesVisualFilters({
       {
         id: 'cities',
         label: 'أهم المدن',
-        icon: 'location-outline',
+        icon: 'location-outline' as const,
         items: TOP_CITIES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof TOP_CITIES[number]) => {
           const isSelected = selectedCity === item.name;
           return {
             id: item.id,
@@ -184,9 +185,9 @@ export function BusesVisualFilters({
       {
         id: 'prices',
         label: 'نطاقات الأسعار',
-        icon: 'wallet-outline',
+        icon: 'wallet-outline' as const,
         items: PRICE_RANGES,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof PRICE_RANGES[number]) => {
           const isSelected = selectedPriceId === item.id;
           return {
             id: item.id,

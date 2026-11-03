@@ -19,7 +19,7 @@ const BUS_CAPACITIES = [
   { id: '50', value: 50, label: '+ 50 مقعد' },
 ];
 
-const BUS_SORT_OPTIONS = [
+const BUS_SORT_OPTIONS: SortOptionItem[] = [
   { id: 'newest', label: 'الأحدث أولاً' },
   { id: 'popular', label: 'الأكثر شيوعاً' },
   { id: 'price_asc', label: 'السعر: الأقل للأعلى' },
@@ -50,7 +50,14 @@ export interface LegacyFilterBrandItem {
   label?: string;
 }
 
-export interface LegacyQuickFilterModalProps<TFilters = unknown> {
+export type LegacyFilterValue = string | number | boolean | undefined | null | string[];
+
+export interface LegacyFiltersRecord extends CarsFilterState {
+  specializations?: string[];
+  [key: string]: LegacyFilterValue;
+}
+
+export interface LegacyQuickFilterModalProps<TFilters extends object = { [key: string]: LegacyFilterValue }> {
   visible: boolean;
   activeDropdown:
     | 'make'
@@ -75,7 +82,7 @@ export interface LegacyQuickFilterModalProps<TFilters = unknown> {
   isService?: boolean;
 }
 
-export function LegacyQuickFilterModal<TFilters = unknown>({
+export function LegacyQuickFilterModal<TFilters extends object = { [key: string]: LegacyFilterValue }>({
   visible,
   activeDropdown,
   onClose,
@@ -125,14 +132,18 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
     }
   };
 
-  const currentFilters = (filters || {}) as Partial<CarsFilterState> & { [key: string]: string | number | boolean | undefined | null | string[] };
+  const currentFilters = (filters || {}) as TFilters & LegacyFiltersRecord;
 
-  const applyUpdate = (patch: { [key: string]: string | number | boolean | undefined | null | string[] }) => {
-    const next = { ...currentFilters, ...patch };
+  const applyFilters = (next: TFilters) => {
     if (typeof setFilters === 'function') {
-      (setFilters as (f: TFilters) => void)(next as TFilters);
+      setFilters(next);
     }
     onClose();
+  };
+
+  const applyUpdate = (patch: Partial<CarsFilterState> | Partial<LegacyFiltersRecord>) => {
+    const next: TFilters = Object.assign({}, currentFilters, patch);
+    applyFilters(next);
   };
 
   return (
@@ -169,25 +180,27 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
                         const isSameMake = String(item.id) === String(currentFilters.makeId);
                         if (isSameMake) {
                           applyUpdate({
-                            makeId: item.id,
+                            makeId: item.id ? String(item.id) : undefined,
                             make: item.name || (item.id ? String(item.id) : undefined),
                           });
                         } else {
                           const brandName = item.name || (item.id ? String(item.id) : undefined);
                           const updated = applyCarsQuickFilter(
-                            currentFilters as CarsFilterState,
+                            currentFilters,
                             'make',
                             String(item.id),
                             brandName
                           );
-                          if (typeof setFilters === 'function') {
-                            (setFilters as (f: TFilters) => void)(updated as TFilters);
-                          }
-                          onClose();
+                          const nextFilters: TFilters = Object.assign({}, currentFilters, updated, {
+                            modelId: undefined,
+                            model: undefined,
+                            trim: undefined,
+                          });
+                          applyFilters(nextFilters);
                         }
                       } else {
                         applyUpdate({
-                          makeId: item.id,
+                          makeId: item.id ? String(item.id) : undefined,
                           make: item.name || (item.id ? String(item.id) : undefined),
                         });
                       }
@@ -380,7 +393,7 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const currentSpecs = Array.isArray(currentFilters.specializations)
-                  ? (currentFilters.specializations as string[])
+                  ? currentFilters.specializations
                   : [];
                 const isSelected =
                   currentFilters.specialization === item.id ||
@@ -427,15 +440,14 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
           )}
 
           {activeDropdown === 'sort' && (
-            <FlatList
+            <FlatList<SortOptionItem>
               data={isBus ? BUS_SORT_OPTIONS : isService ? SERVICE_SORT_OPTIONS : SORT_OPTIONS}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
-                const sortItem = item as SortOptionItem;
                 const isSelected = isBus
                   ? currentFilters.sort === item.id || (!currentFilters.sort && item.id === 'newest')
-                  : currentFilters.sortBy === sortItem.sortBy && currentFilters.sortOrder === sortItem.sortOrder;
+                  : currentFilters.sortBy === item.sortBy && currentFilters.sortOrder === item.sortOrder;
                 return (
                   <TouchableOpacity
                     style={styles.modalOptionRow}
@@ -443,7 +455,7 @@ export function LegacyQuickFilterModal<TFilters = unknown>({
                       if (isBus) {
                         applyUpdate({ sort: item.id });
                       } else {
-                        applyUpdate({ sortBy: sortItem.sortBy, sortOrder: sortItem.sortOrder });
+                        applyUpdate({ sortBy: item.sortBy, sortOrder: item.sortOrder });
                       }
                     }}
                   >

@@ -60,4 +60,31 @@ describe('MyListingsVisualFilters - Characterization Tests (Existing Behaviour)'
     fireEvent.press(getByText('حافلات'));
     expect(onSelectCategory).toHaveBeenCalledWith('buses');
   });
+
+  it('exposes accessibility roles, labels, and states on category tabs and sub-filters', async () => {
+    const { getByLabelText } = await render(
+      <MyListingsVisualFilters
+        activeCategory="cars"
+        activeSubFilter="SALE"
+        onSelectCategory={jest.fn()}
+        onSelectSubFilter={jest.fn()}
+      />
+    );
+
+    const activeTab = getByLabelText('سيارات');
+    expect(activeTab.props.accessibilityRole).toBe('tab');
+    expect(activeTab.props.accessibilityState).toEqual({ selected: true });
+
+    const inactiveTab = getByLabelText('الكل');
+    expect(inactiveTab.props.accessibilityRole).toBe('tab');
+    expect(inactiveTab.props.accessibilityState).toEqual({ selected: false });
+
+    const selectedChip = getByLabelText('للبيع');
+    expect(selectedChip.props.accessibilityRole).toBe('button');
+    expect(selectedChip.props.accessibilityState).toEqual({ selected: true });
+
+    const unselectedChip = getByLabelText('تأجير سيارات');
+    expect(unselectedChip.props.accessibilityRole).toBe('button');
+    expect(unselectedChip.props.accessibilityState).toEqual({ selected: false });
+  });
 });

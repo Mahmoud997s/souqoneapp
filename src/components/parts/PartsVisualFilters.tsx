@@ -10,7 +10,15 @@ import {
 } from '../ui/VisualFiltersBase';
 
 // ─── STATIC DATA ───
-const CATEGORIES_DATA = [
+export interface PartCategoryItem {
+  id: string;
+  label: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  color: string;
+  bg: string;
+}
+
+const CATEGORIES_DATA: PartCategoryItem[] = [
   { id: 'ENGINE', label: 'المحرك', icon: 'engine', color: '#ea580c', bg: '#ffedd5' },
   { id: 'BODY', label: 'الهيكل', icon: 'car-side', color: '#2563eb', bg: '#dbeafe' },
   { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', color: '#eab308', bg: '#fef9c3' },
@@ -55,14 +63,14 @@ export function PartsVisualFilters({
   selectedCategory,
   selectedMake,
 }: PartsVisualFiltersProps) {
-  const tabs: VisualFilterTab<'categories' | 'makes'>[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
         id: 'categories',
         label: 'الأقسام الرئيسية',
-        icon: 'grid-outline',
+        icon: 'grid-outline' as const,
         items: CATEGORIES_DATA,
-        getItemProps: (item) => {
+        getItemProps: (item: PartCategoryItem) => {
           const isSelected = selectedCategory?.toUpperCase() === item.id.toUpperCase();
           return {
             id: item.id,
@@ -76,7 +84,7 @@ export function PartsVisualFilters({
                 ]}
               >
                 <MaterialCommunityIcons
-                  name={item.icon as any}
+                  name={item.icon}
                   size={16}
                   color={isSelected ? Colors.white : item.color}
                 />
@@ -95,9 +103,9 @@ export function PartsVisualFilters({
       {
         id: 'makes',
         label: 'الماركات المتوافقة',
-        icon: 'car-sport-outline',
+        icon: 'car-sport-outline' as const,
         items: POPULAR_MAKES_DATA,
-        getItemProps: (item) => {
+        getItemProps: (item: typeof POPULAR_MAKES_DATA[number]) => {
           const isSelected =
             selectedMake?.toLowerCase() === item.name.toLowerCase() ||
             selectedMake?.toLowerCase() === item.id.toLowerCase();

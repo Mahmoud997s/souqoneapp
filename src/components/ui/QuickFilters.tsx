@@ -35,6 +35,10 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={qf.label}
+              accessibilityState={{ selected: Boolean(isActive) }}
+              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
               onPress={() => onFilterPress(qf.id)}
             >
               {!isActive && qf.icon && (
@@ -45,7 +49,9 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
               </Text>
               {isActive ? (
                 <TouchableOpacity
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="إزالة الفلتر"
                   onPress={(e) => {
                     e.stopPropagation();
                     onClearFilter(qf.id);

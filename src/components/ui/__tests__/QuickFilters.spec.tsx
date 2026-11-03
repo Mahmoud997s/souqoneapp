@@ -6,7 +6,7 @@ jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
 }));
 
-describe('QuickFilters - Characterization Tests (Existing Behaviour)', () => {
+describe('QuickFilters - Characterization & Accessibility Tests', () => {
   const dummyFilters: QuickFilterItem[] = [
     { id: 'f1', label: 'الماركة', icon: 'car-outline', isActive: false },
     { id: 'f2', label: 'مسقط', isActive: true },
@@ -42,5 +42,43 @@ describe('QuickFilters - Characterization Tests (Existing Behaviour)', () => {
     );
     fireEvent.press(getByText('الماركة'));
     expect(onFilterPress).toHaveBeenCalledWith('f1');
+  });
+
+  it('exposes accessibility role, label, and selected state on chips', async () => {
+    const { getByLabelText } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={jest.fn()}
+        onClearFilter={jest.fn()}
+      />
+    );
+
+    const inactiveChip = getByLabelText('الماركة');
+    expect(inactiveChip.props.accessibilityRole).toBe('button');
+    expect(inactiveChip.props.accessibilityState).toEqual({ selected: false });
+    expect(inactiveChip.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 4, right: 4 });
+
+    const activeChip = getByLabelText('مسقط');
+    expect(activeChip.props.accessibilityRole).toBe('button');
+    expect(activeChip.props.accessibilityState).toEqual({ selected: true });
+    expect(activeChip.props.hitSlop).toEqual({ top: 6, bottom: 6, left: 4, right: 4 });
+  });
+
+  it('provides dedicated clear button with role button, label, and enlarged hitSlop >= 44pt touch area', async () => {
+    const onClearFilter = jest.fn();
+    const { getByLabelText } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={jest.fn()}
+        onClearFilter={onClearFilter}
+      />
+    );
+
+    const clearBtn = getByLabelText('إزالة الفلتر');
+    expect(clearBtn.props.accessibilityRole).toBe('button');
+    expect(clearBtn.props.hitSlop).toEqual({ top: 12, bottom: 12, left: 12, right: 12 });
+
+    fireEvent.press(clearBtn);
+    expect(onClearFilter).toHaveBeenCalledWith('f2');
   });
 });
