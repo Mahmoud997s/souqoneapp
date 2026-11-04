@@ -340,7 +340,7 @@ describe('OperatorCard', () => {
       const browsePath = path.resolve(__dirname, '../../../app/equipment/operators/browse.tsx')
       const browseSource = fs.readFileSync(browsePath, 'utf8')
       expect(browseSource).toMatch(
-        /renderItem=\{\(\{\s*item\s*\}\)\s*=>\s*\(\s*<OperatorCard[\s\S]*?\/>\s*\)\}/
+        /(?:renderItem=\{\(\{\s*item\s*\}\)\s*=>\s*\(\s*<OperatorCard[\s\S]*?\/>\s*\)\}|const\s+renderItem\s*=\s*useCallback\(\s*\(\{\s*item\s*\}[^)]*\)\s*=>\s*\(\s*<OperatorCard[\s\S]*?\/>\s*\))/
       )
 
       const { getByTestId } = await render(

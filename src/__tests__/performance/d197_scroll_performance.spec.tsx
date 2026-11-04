@@ -100,7 +100,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
   describe('Item 3: List virtualization props on glass-bearing card lists', () => {
     it('defines tuned virtualization values minimizing mounted glass rows without removeClippedSubviews', () => {
       expect(BROWSE_LIST_VIRTUALIZATION_PROPS).toEqual({
-        initialNumToRender: 4,
+        initialNumToRender: 5,
         maxToRenderPerBatch: 4,
         windowSize: 5,
         updateCellsBatchingPeriod: 50,
@@ -128,7 +128,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       )
 
       const flatList = getByTestId('my-listings-category-flat-list')
-      expect(flatList.props.initialNumToRender).toBe(4)
+      expect(flatList.props.initialNumToRender).toBe(5)
       expect(flatList.props.maxToRenderPerBatch).toBe(4)
       expect(flatList.props.windowSize).toBe(5)
       expect(flatList.props.updateCellsBatchingPeriod).toBe(50)

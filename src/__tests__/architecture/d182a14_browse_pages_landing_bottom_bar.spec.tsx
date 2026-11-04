@@ -97,7 +97,7 @@ describe('D-182a14: Browse pages department bottom bar parity with landing', () 
       })
 
       it(`renders <${expectedBar} /> at the screen root`, () => {
-        expect(source).toContain(`<${expectedBar} />`)
+        expect(source).toMatch(new RegExp(`<${expectedBar}(\\s+[^>]*?)?\\s*/>`, 'm'))
       })
 
       it('allocates bottom padding >= UNIFIED_BOTTOM_BAR_HEIGHT in list content', () => {

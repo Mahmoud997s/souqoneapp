@@ -13,7 +13,7 @@
  *   and can cause 1-frame transparent flashes when re-attaching native UIVisualEffectView / GlassView subviews.
  */
 export const BROWSE_LIST_VIRTUALIZATION_PROPS = {
-  initialNumToRender: 4,
+  initialNumToRender: 5,
   maxToRenderPerBatch: 4,
   windowSize: 5,
   updateCellsBatchingPeriod: 50,
