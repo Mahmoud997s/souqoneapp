@@ -175,6 +175,7 @@ export function areListingCardBasePropsEqual(
     prev.onFavorite === next.onFavorite &&
     prev.liquidGlass === next.liquidGlass &&
     prev.glassSupport === next.glassSupport &&
+    prev.initialCardWidth === next.initialCardWidth &&
     prev.style === next.style &&
     areImageListsEqual(prev.displayImages, next.displayImages) &&
     arePillsEqual(prev.pills, next.pills) &&

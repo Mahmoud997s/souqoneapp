@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Share,
   StyleProp,
   ViewStyle,
+  LayoutChangeEvent,
 } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
@@ -78,7 +79,24 @@ export interface ListingCardBaseProps {
   onFavorite?: (isFav: boolean) => void
   liquidGlass?: boolean
   glassSupport?: GlassSupport
+  initialCardWidth?: number
   style?: StyleProp<ViewStyle>
+}
+
+export function computeInitialCardWidth(
+  fullWidth: boolean = false,
+  initialCardWidth?: number
+): number {
+  if (typeof initialCardWidth === 'number' && initialCardWidth > 0) {
+    return initialCardWidth
+  }
+  const windowWidth = Dimensions.get('window').width || 390
+  if (fullWidth) {
+    // Browse lists use paddingHorizontal: Spacing.space4 (16 * 2 = 32px) + card 1px border on each side (2px)
+    return Math.max(0, windowWidth - 34)
+  }
+  // Horizontal carousel cards use width: Dimensions.get('window').width * 0.6 + 1px border on each side (2px)
+  return Math.max(0, Math.round(windowWidth * 0.6) - 2)
 }
 
 const ListingCardBaseComponent = ({
@@ -111,6 +129,7 @@ const ListingCardBaseComponent = ({
   onFavorite,
   liquidGlass = true,
   glassSupport,
+  initialCardWidth,
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
@@ -132,7 +151,16 @@ const ListingCardBaseComponent = ({
     toggleFavorite()
     onFavorite?.(!isFav)
   }
-  const [cardWidth, setCardWidth] = useState(0)
+  const [cardWidth, setCardWidth] = useState(() =>
+    computeInitialCardWidth(fullWidth, initialCardWidth)
+  )
+
+  const handleImageContainerLayout = useCallback((e: LayoutChangeEvent) => {
+    const measuredWidth = e.nativeEvent.layout.width
+    if (measuredWidth > 0) {
+      setCardWidth((prev) => (Math.abs(measuredWidth - prev) > 0.5 ? measuredWidth : prev))
+    }
+  }, [])
 
   const resolvedLocation = location !== undefined ? location : resolveListingLocation(item)
   const rawStatus = status || item?.status || 'ACTIVE'
@@ -188,6 +216,7 @@ const ListingCardBaseComponent = ({
       )}
       {/* ── IMAGE SECTION ── */}
       <View
+        testID="listing-card-image-container"
         style={[
           s.imageContainer,
           imageHeight
@@ -196,7 +225,7 @@ const ListingCardBaseComponent = ({
             ? s.imageContainerFullWidth
             : s.imageContainerAspect,
         ]}
-        onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
+        onLayout={handleImageContainerLayout}
       >
         {displayImages.length > 0 ? (
           <CardImageSwiper

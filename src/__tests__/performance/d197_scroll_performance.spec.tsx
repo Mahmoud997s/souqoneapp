@@ -5,7 +5,7 @@ import { render, cleanup, act, fireEvent, waitFor } from '@testing-library/react
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../constants/listVirtualization'
 import { MyListingsCategoryView } from '../../components/profile/my-listings/MyListingsCategoryView'
-import { ListingCardBase } from '../../components/ui/ListingCardBase'
+import { ListingCardBase, computeInitialCardWidth } from '../../components/ui/ListingCardBase'
 import { CarCard } from '../../components/cars/CarCard'
 import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
@@ -558,6 +558,78 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
 
         // Zero card re-renders because getItemPressHandler(item.id) and glassSupport are referentially stable
         expect(renderSpy.mock.calls.length).toBe(countAfterMount)
+      } finally {
+        ;(ListingCardBase as any).type = OriginalType
+      }
+    })
+  })
+
+  describe('Item 4: Deterministic cardWidth without the double render on mount', () => {
+    it('computes positive initial cardWidth synchronously from window dimensions', () => {
+      const winWidth = Dimensions.get('window').width || 390
+      expect(computeInitialCardWidth(true)).toBe(Math.max(0, winWidth - 34))
+      expect(computeInitialCardWidth(false)).toBe(Math.max(0, Math.round(winWidth * 0.6) - 2))
+      expect(computeInitialCardWidth(true, 412)).toBe(412)
+    })
+
+    it('mounts card-image-swipeable on the first render without waiting for onLayout and skips re-render when onLayout width matches', async () => {
+      const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+      qc.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, new Set())
+
+      const renderSpy = jest.fn()
+      const OriginalType = (ListingCardBase as any).type
+      ;(ListingCardBase as any).type = function SpiedBase(props: any) {
+        renderSpy()
+        return OriginalType(props)
+      }
+
+      try {
+        const multiImageCar = {
+          id: 'car-multi-width',
+          title: 'نيسان باترول 2024',
+          price: 26000,
+          currency: 'OMR' as const,
+          status: 'ACTIVE',
+          listingType: 'SALE',
+          isPriceNegotiable: true,
+          make: 'Nissan',
+          model: 'Patrol',
+          year: 2024,
+          images: [
+            'https://example.com/1.jpg',
+            'https://example.com/2.jpg',
+            'https://example.com/3.jpg',
+          ],
+        }
+
+        const { getByTestId } = await render(
+          <QueryClientProvider client={qc}>
+            <CarCard item={multiImageCar as any} onPress={() => {}} fullWidth />
+          </QueryClientProvider>
+        )
+
+        // Immediately swipeable on first render without firing onLayout
+        expect(getByTestId('card-image-swipeable')).toBeTruthy()
+        const rendersAfterMount = renderSpy.mock.calls.length
+        expect(rendersAfterMount).toBe(1)
+
+        // Firing onLayout with the same deterministic width must NOT trigger a second render
+        const expectedWidth = computeInitialCardWidth(true)
+        const imageContainer = getByTestId('listing-card-image-container')
+        await act(async () => {
+          fireEvent(imageContainer, 'layout', {
+            nativeEvent: { layout: { width: expectedWidth, height: 158, x: 0, y: 0 } },
+          })
+        })
+        expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
+
+        // Firing onLayout with a sub-half-pixel difference (0.3px) also skips re-render
+        await act(async () => {
+          fireEvent(imageContainer, 'layout', {
+            nativeEvent: { layout: { width: expectedWidth + 0.3, height: 158, x: 0, y: 0 } },
+          })
+        })
+        expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
       } finally {
         ;(ListingCardBase as any).type = OriginalType
       }
