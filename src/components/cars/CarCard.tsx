@@ -11,6 +11,7 @@ import {
   getCardPriceNegotiable,
   getCardSellerVerified,
 } from '../../utils/cardItemHelpers'
+import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 export interface CarCardProps {
   item: Listing
@@ -28,7 +29,7 @@ export interface CarCardProps {
   glassSupport?: GlassSupport
 }
 
-export const CarCard = ({
+const CarCardComponent = ({
   item,
   onPress,
   fullWidth = false,
@@ -277,3 +278,5 @@ export const CarCard = ({
     />
   )
 }
+
+export const CarCard = React.memo(CarCardComponent, areCardPropsEqual)

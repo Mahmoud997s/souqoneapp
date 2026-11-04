@@ -27,6 +27,7 @@ import { isOwnListing } from '../../utils/isOwnListing'
 import { CardImageSwiper } from './CardImageSwiper'
 import { VerifiedBadge } from './VerifiedBadge'
 import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
+import { areListingCardBasePropsEqual } from '../../utils/cardMemoComparison'
 
 export interface ListingCardPill {
   key: string
@@ -80,7 +81,7 @@ export interface ListingCardBaseProps {
   style?: StyleProp<ViewStyle>
 }
 
-export const ListingCardBase = ({
+const ListingCardBaseComponent = ({
   item,
   title,
   priceLabel,
@@ -522,6 +523,11 @@ export const ListingCardBase = ({
     </View>
   )
 }
+
+export const ListingCardBase = React.memo(
+  ListingCardBaseComponent,
+  areListingCardBasePropsEqual
+)
 
 const s = StyleSheet.create({
   card: {

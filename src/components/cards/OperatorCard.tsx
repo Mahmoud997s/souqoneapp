@@ -14,6 +14,7 @@ import { OperatorCardHeader } from './operator/OperatorCardHeader'
 import { OperatorCardChips } from './operator/OperatorCardChips'
 import { OperatorCardActions } from './operator/OperatorCardActions'
 import { buildOperatorChips } from './operator/buildOperatorChips'
+import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 export interface OperatorCardProps {
   item: any
@@ -28,7 +29,7 @@ export interface OperatorCardProps {
  * Unified operator card component serving all contexts (browse, landing, search, my-listings).
  * Designed following the Impeccable method with strict token-only styling (zero raw hex).
  */
-export function OperatorCard({
+function OperatorCardComponent({
   item,
   onPress,
   maxChips = 3,
@@ -149,6 +150,8 @@ export function OperatorCard({
     </TouchableOpacity>
   )
 }
+
+export const OperatorCard = React.memo(OperatorCardComponent, areCardPropsEqual)
 
 const s = StyleSheet.create({
   card: {

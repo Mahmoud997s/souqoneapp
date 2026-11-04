@@ -11,6 +11,7 @@ import {
   getCardPriceNegotiable,
   getCardSellerVerified,
 } from '../../utils/cardItemHelpers'
+import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 const BUS_TYPE_NAMES: Record<string, string> = {
   MINI_BUS: 'ميني باص',
@@ -36,7 +37,7 @@ export interface BusCardProps {
   glassSupport?: GlassSupport
 }
 
-export const BusCard = ({
+const BusCardComponent = ({
   item,
   onPress,
   fullWidth = false,
@@ -263,3 +264,5 @@ export const BusCard = ({
     />
   )
 }
+
+export const BusCard = React.memo(BusCardComponent, areCardPropsEqual)
