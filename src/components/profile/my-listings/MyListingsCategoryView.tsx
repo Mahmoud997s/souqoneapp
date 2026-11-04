@@ -14,6 +14,7 @@ import { EmptyState } from '../../ui/EmptyState'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { useGlassSupport } from '../../navigation/glassSupport'
 
 export interface MyListingsCategoryViewProps {
   data: MyListingItem[]
@@ -58,6 +59,7 @@ export function MyListingsCategoryView({
   onScroll,
   header,
 }: MyListingsCategoryViewProps) {
+  const glassSupport = useGlassSupport()
   if (isLoading) {
     return (
       <View style={[s.list, { paddingTop: topInset + Spacing.space4 }]} testID="my-listings-category-loading">
@@ -130,6 +132,7 @@ export function MyListingsCategoryView({
             onCancelDeletionRequest={onCancelDeletionRequest}
             isEditSupported={isEditSupported(item.entityType)}
             fullWidth={true}
+            glassSupport={glassSupport}
           />
         </View>
       )}

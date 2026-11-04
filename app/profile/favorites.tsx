@@ -4,6 +4,7 @@ import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { useGlassSupport } from '../../src/components/navigation/glassSupport'
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { Colors } from '../../src/constants/colors'
@@ -33,6 +34,7 @@ export const CATEGORY_FILTERS = FAVORITES_CATEGORY_FILTERS
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets()
+  const glassSupport = useGlassSupport()
   const { scrollHandler } = useScrollAwareNav()
   const params = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
@@ -149,7 +151,7 @@ export default function FavoritesScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <SearchCardDispatcher item={item} />
+            <SearchCardDispatcher item={item} glassSupport={glassSupport} />
           )}
         />
       )}
@@ -158,6 +160,7 @@ export default function FavoritesScreen() {
         title="المفضلة"
         paddingTop={insets.top}
         onBackPress={() => router.back()}
+        support={glassSupport}
         actions={[
           { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
           { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },

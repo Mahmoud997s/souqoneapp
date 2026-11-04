@@ -56,6 +56,7 @@ import {
 } from '../../src/utils/browse-filters/partsBrowseFilters';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 
 // Constants
 import { Colors } from '../../src/constants/colors';
@@ -80,6 +81,7 @@ const DROPDOWN_FILTERS = [
 
 export default function PartsBrowseScreen() {
   const insets = useSafeAreaInsets();
+  const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
 
   const searchParams = useLocalSearchParams<{
@@ -422,6 +424,7 @@ export default function PartsBrowseScreen() {
         searchPlaceholder="ابحث عن قطعة غيار، رقم القطعة، أو الماركة..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(true)}
+        glassSupport={glassSupport}
       />
 
       {/* Collapsible SubHeader with Listing Tabs & Quick Filter Chips */}
@@ -431,11 +434,13 @@ export default function PartsBrowseScreen() {
           activeTabId={selectedListingTab}
           onChangeTab={handleTabChange}
           onClearTab={() => handleTabChange('ALL')}
+          glassSupport={glassSupport}
         />
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as PartsDropdownKind)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -476,6 +481,7 @@ export default function PartsBrowseScreen() {
               selectedMake={filters.make}
               onSelectFilter={handleSelectVisualFilter}
               onViewAll={() => setIsFilterVisible(true)}
+              glassSupport={glassSupport}
             />
 
             {listings && listings.length > 0 && (
@@ -491,6 +497,7 @@ export default function PartsBrowseScreen() {
                 }
                 activeFiltersCount={activeFiltersCount}
                 onClearAll={handleClearAll}
+                glassSupport={glassSupport}
               />
             )}
           </View>
@@ -521,6 +528,7 @@ export default function PartsBrowseScreen() {
               fullWidth
               showChips
               maxChips={5}
+              glassSupport={glassSupport}
             />
           </View>
         )}
@@ -561,7 +569,7 @@ export default function PartsBrowseScreen() {
         accentColor={Colors.primary}
       />
 
-      <PartsBottomBar />
+      <PartsBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

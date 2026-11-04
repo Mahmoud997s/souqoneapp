@@ -9,6 +9,7 @@ import {
   VisualFilterTab,
   visualFiltersStyles,
 } from '../ui/VisualFiltersBase';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 // ─── STATIC DATA ───
 const TOP_CITIES = [
@@ -59,6 +60,7 @@ export interface ServicesVisualFiltersProps {
   selectedSpecialization?: string;
   selectedCity?: string;
   selectedProviderType?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function ServicesVisualFilters({
@@ -68,6 +70,7 @@ export function ServicesVisualFilters({
   selectedSpecialization,
   selectedCity,
   selectedProviderType,
+  glassSupport,
 }: ServicesVisualFiltersProps) {
   const tabs = useMemo(
     () => [
@@ -184,6 +187,7 @@ export function ServicesVisualFilters({
       tabs={tabs}
       defaultTab="types"
       onViewAll={onViewAll}
+      glassSupport={glassSupport}
     />
   );
 }

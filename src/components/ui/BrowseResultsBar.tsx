@@ -5,6 +5,7 @@ import { Spacing } from '../../constants/spacing'
 import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 import { FilterGlassSurface } from './FilterGlassSurface'
 import { ResetFilterButton } from './ResetFilterButton'
+import { type GlassSupport } from '../navigation/glassSupport'
 
 export interface BrowseResultsBarProps {
   resultsCount: number
@@ -15,6 +16,7 @@ export interface BrowseResultsBarProps {
   onClearAll: () => void
   containerStyle?: ViewStyle
   availabilitySuffix?: string
+  glassSupport?: GlassSupport
 }
 
 export function BrowseResultsBar({
@@ -26,6 +28,7 @@ export function BrowseResultsBar({
   onClearAll,
   containerStyle,
   availabilitySuffix = 'متاحة',
+  glassSupport,
 }: BrowseResultsBarProps) {
   return (
     <View style={[s.container, containerStyle]}>
@@ -33,6 +36,7 @@ export function BrowseResultsBar({
         <ResetFilterButton
           onPress={onClearAll}
           testID="browse-results-clear"
+          glassSupport={glassSupport}
         />
       ) : (
         <View />
@@ -42,6 +46,7 @@ export function BrowseResultsBar({
         <FilterGlassSurface
           testID="browse-results-count-glass"
           borderRadius={FilterGlassTokens.resultsBar.countRadius}
+          support={glassSupport}
         />
         {customIcon ? (
           customIcon

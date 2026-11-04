@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import Svg, { Defs, Path, Pattern, Rect } from 'react-native-svg'
-import { GlassSurface } from '../navigation/glassSupport'
+import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 import { TopBarTokens } from '../../constants/topBarTokens'
 
 type TopBarGlassSurfaceProps = {
@@ -9,9 +9,10 @@ type TopBarGlassSurfaceProps = {
   kind: 'background' | 'ice-control'
   borderRadius?: number
   style?: StyleProp<ViewStyle>
+  support?: GlassSupport
 }
 
-export function TopBarGlassSurface({ testID, kind, borderRadius, style }: TopBarGlassSurfaceProps) {
+export function TopBarGlassSurface({ testID, kind, borderRadius, style, support }: TopBarGlassSurfaceProps) {
   const isIceControl = kind === 'ice-control'
 
   return (
@@ -26,7 +27,10 @@ export function TopBarGlassSurface({ testID, kind, borderRadius, style }: TopBar
           testID={`${testID}-backing`}
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: TopBarTokens.iceGlass, borderRadius },
+            {
+              backgroundColor: TopBarTokens.iceGlass,
+              borderRadius,
+            },
             style,
           ]}
         />
@@ -40,6 +44,7 @@ export function TopBarGlassSurface({ testID, kind, borderRadius, style }: TopBar
         borderRadius={borderRadius}
         washColor={isIceControl ? TopBarTokens.iceGlass : undefined}
         style={style}
+        support={support}
       />
 
       {!isIceControl ? (
@@ -49,10 +54,7 @@ export function TopBarGlassSurface({ testID, kind, borderRadius, style }: TopBar
             testID={`${testID}-tint`}
             style={[
               StyleSheet.absoluteFill,
-              {
-                backgroundColor: TopBarTokens.tintOverlayColor,
-                opacity: TopBarTokens.tintOverlayOpacity,
-              },
+              styles.tintOverlay,
             ]}
           />
           <View
@@ -87,6 +89,10 @@ export function TopBarGlassSurface({ testID, kind, borderRadius, style }: TopBar
 }
 
 const styles = StyleSheet.create({
+  tintOverlay: {
+    backgroundColor: TopBarTokens.tintOverlayColor,
+    opacity: TopBarTokens.tintOverlayOpacity,
+  },
   gridContainer: {
     overflow: 'hidden',
   },

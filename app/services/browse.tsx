@@ -36,6 +36,7 @@ import { ServicesVisualFilters } from '../../src/components/services/ServicesVis
 import { ServicesFilterBottomSheet } from '../../src/components/services/ServicesFilterBottomSheet';
 import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
 
 // Pure Filter Helpers & Contract
@@ -61,6 +62,7 @@ const PROVIDER_TABS: TabItem[] = [
 
 export default function ServicesBrowseScreen() {
   const insets = useSafeAreaInsets();
+  const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
 
   const searchParams = useLocalSearchParams<{
@@ -317,6 +319,7 @@ export default function ServicesBrowseScreen() {
         onSearchChange={setSearchQuery}
         onFilterPress={() => setIsFilterVisible(true)}
         activeFiltersCount={activeFiltersCount}
+        glassSupport={glassSupport}
       />
 
       <CollapsibleSubHeader>
@@ -325,11 +328,13 @@ export default function ServicesBrowseScreen() {
           activeTabId={currentTabId}
           onChangeTab={handleChangeTab}
           onClearTab={handleClearTab}
+          glassSupport={glassSupport}
         />
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={handleFilterPress}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -353,6 +358,7 @@ export default function ServicesBrowseScreen() {
                 item={item}
                 fullWidth
                 onPress={() => router.push({ pathname: '/services/[id]', params: { id: item.id } })}
+                glassSupport={glassSupport}
               />
             </View>
           );
@@ -391,6 +397,7 @@ export default function ServicesBrowseScreen() {
               selectedProviderType={filters.providerType}
               onSelectFilter={handleVisualFilterSelect}
               onViewAll={(tabId) => setIsFilterVisible(true)}
+              glassSupport={glassSupport}
             />
 
             {!isLoading && listings && listings.length > 0 && (
@@ -400,6 +407,7 @@ export default function ServicesBrowseScreen() {
                 iconName="construct-outline"
                 activeFiltersCount={activeFiltersCount}
                 onClearAll={handleClearAll}
+                glassSupport={glassSupport}
               />
             )}
           </View>
@@ -457,7 +465,7 @@ export default function ServicesBrowseScreen() {
         resultsCount={infiniteData?.pages[0]?.rawItems?.length}
       />
 
-      <ServicesBottomBar />
+      <ServicesBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

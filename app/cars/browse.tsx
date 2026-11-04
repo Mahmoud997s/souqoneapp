@@ -50,6 +50,7 @@ import { FilterBottomSheet } from '../../src/components/filters/FilterBottomShee
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { CarsBottomBar } from '../../src/components/cars/CarsBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { Listing } from '../../src/types/listing.types';
 
 // Constants
@@ -71,6 +72,7 @@ import {
 
 export default function CarsBrowseScreen() {
   const insets = useSafeAreaInsets();
+  const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
 
   const searchParams = useLocalSearchParams<{
@@ -213,6 +215,7 @@ export default function CarsBrowseScreen() {
         searchPlaceholder="ابحث في سوق السيارات..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(!isFilterVisible)}
+        glassSupport={glassSupport}
       />
 
       <CollapsibleSubHeader>
@@ -233,11 +236,13 @@ export default function CarsBrowseScreen() {
             delete newFilters.listingType;
             setFilters(newFilters);
           }}
+          glassSupport={glassSupport}
         />
         <QuickFilters 
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as any)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -297,6 +302,7 @@ export default function CarsBrowseScreen() {
               selectedTypeId={filters.bodyType}
               onSelectFilter={handleSelectFilter}
               onViewAll={(tabId) => setIsFilterVisible(true)}
+              glassSupport={glassSupport}
             />
             {listings && listings.length > 0 && (
               <BrowseResultsBar
@@ -305,6 +311,7 @@ export default function CarsBrowseScreen() {
                 iconName="car-sport-outline"
                 activeFiltersCount={activeFiltersCount}
                 onClearAll={handleClearAll}
+                glassSupport={glassSupport}
               />
             )}
           </View>
@@ -320,7 +327,13 @@ export default function CarsBrowseScreen() {
         )}
         renderItem={({ item }) => (
           <View style={s.cardWrapper}>
-            <CarCard item={item as any} onPress={() => router.push(`/cars/${item.id}` as any)} fullWidth showChips />
+            <CarCard
+              item={item as any}
+              onPress={() => router.push(`/cars/${item.id}` as any)}
+              fullWidth
+              showChips
+              glassSupport={glassSupport}
+            />
           </View>
         )}
       />
@@ -341,7 +354,7 @@ export default function CarsBrowseScreen() {
         brands={brands || []}
       />
 
-      <CarsBottomBar />
+      <CarsBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

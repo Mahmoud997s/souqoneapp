@@ -8,6 +8,7 @@ import {
   VisualFilterTab,
   visualFiltersStyles,
 } from '../ui/VisualFiltersBase';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 // ─── STATIC DATA ───
 export interface PartCategoryItem {
@@ -55,6 +56,7 @@ export interface PartsVisualFiltersProps {
   onViewAll: (tabId: string) => void;
   selectedCategory?: string;
   selectedMake?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function PartsVisualFilters({
@@ -62,6 +64,7 @@ export function PartsVisualFilters({
   onViewAll,
   selectedCategory,
   selectedMake,
+  glassSupport,
 }: PartsVisualFiltersProps) {
   const tabs = useMemo(
     () => [
@@ -142,6 +145,7 @@ export function PartsVisualFilters({
       tabs={tabs}
       defaultTab="categories"
       onViewAll={onViewAll}
+      glassSupport={glassSupport}
     />
   );
 }

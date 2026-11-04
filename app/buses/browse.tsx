@@ -43,6 +43,7 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { BusesBottomBar } from '../../src/components/buses/BusesBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { Listing } from '../../src/types/listing.types';
 
 const DROPDOWN_FILTERS = [
@@ -62,6 +63,7 @@ const SORT_OPTIONS = [
 
 export default function BusesBrowseScreen() {
   const insets = useSafeAreaInsets();
+  const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
   const listRef = useRef<FlatList<Listing>>(null);
   const searchParams = useLocalSearchParams<{
@@ -283,6 +285,7 @@ export default function BusesBrowseScreen() {
         searchPlaceholder="ابحث في الحافلات..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(true)}
+        glassSupport={glassSupport}
       />
 
       <CollapsibleSubHeader>
@@ -303,11 +306,13 @@ export default function BusesBrowseScreen() {
             delete newFilters.busListingType;
             setFilters(newFilters);
           }}
+          glassSupport={glassSupport}
         />
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as string)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -368,6 +373,7 @@ export default function BusesBrowseScreen() {
               selectedPriceId={filters.priceId}
               onSelectFilter={handleSelectFilter}
               onViewAll={() => setIsFilterVisible(true)}
+              glassSupport={glassSupport}
             />
 
             {listings && listings.length > 0 && (
@@ -377,6 +383,7 @@ export default function BusesBrowseScreen() {
                 iconName="bus-outline"
                 activeFiltersCount={activeFiltersCount}
                 onClearAll={handleClearAll}
+                glassSupport={glassSupport}
               />
             )}
           </View>
@@ -401,6 +408,7 @@ export default function BusesBrowseScreen() {
               onPress={() => router.push(`/buses/${item.id}` as any)}
               fullWidth
               showChips
+              glassSupport={glassSupport}
             />
           </View>
         )}
@@ -423,7 +431,7 @@ export default function BusesBrowseScreen() {
         isBus={true}
       />
 
-      <BusesBottomBar />
+      <BusesBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

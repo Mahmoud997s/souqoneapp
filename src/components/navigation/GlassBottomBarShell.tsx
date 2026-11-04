@@ -21,7 +21,7 @@ import {
   computeBottomBarGeometry,
 } from '../../constants/bottomBarTokens'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
-import { GlassSurface, useGlassSupport } from './glassSupport'
+import { GlassSurface, useGlassSupport, type GlassSupport } from './glassSupport'
 
 /**
  * Hook to detect if the software keyboard is currently visible.
@@ -60,6 +60,7 @@ export interface GlassBottomBarShellProps {
   testID?: string
   /** When false, the bar remains statically expanded and never collapses with scroll. Defaults to true. */
   scrollAware?: boolean
+  support?: GlassSupport
 }
 
 /**
@@ -83,11 +84,13 @@ export function GlassBottomBarShell({
   bottomPad = BottomBarTokens.marginHorizontal,
   testID = 'glass-bottom-bar-shell',
   scrollAware = true,
+  support,
 }: GlassBottomBarShellProps) {
   const isKeyboardVisible = useBottomBarKeyboardHide()
   const systemReducedMotion = useAppReducedMotion()
   const isReducedMotion = reducedMotionProp ?? systemReducedMotion
-  const glass = useGlassSupport()
+  const hookGlass = useGlassSupport(!support)
+  const glass = support ?? hookGlass
 
   const windowDimensions = useWindowDimensions()
   const windowWidth = windowDimensions?.width > 0 ? windowDimensions.width : 390

@@ -50,6 +50,7 @@ import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
@@ -99,6 +100,7 @@ export default function EquipmentBrowseScreen() {
     locationsApi.getGovernorates().then(setGovernorates).catch(() => setGovernorates([]));
   }, []);
   const insets = useSafeAreaInsets();
+  const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
   const searchParams = useLocalSearchParams<{ type?: string; equipmentType?: string }>();
 
@@ -331,6 +333,7 @@ export default function EquipmentBrowseScreen() {
         searchPlaceholder="ابحث عن معدات..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(true)}
+        glassSupport={glassSupport}
       />
 
       <CollapsibleSubHeader>
@@ -346,11 +349,13 @@ export default function EquipmentBrowseScreen() {
                setFilters({ ...filters, listingType: id as string });
             }
           }}
+          glassSupport={glassSupport}
         />
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as EquipmentDropdownKind)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -403,6 +408,7 @@ export default function EquipmentBrowseScreen() {
                 selectedConditionId={filters.condition || filters.conditionId}
                 onSelectFilter={handleSelectVisualFilter}
                 onViewAll={() => setIsFilterVisible(true)}
+                glassSupport={glassSupport}
               />
 
               <BrowseResultsBar
@@ -411,6 +417,7 @@ export default function EquipmentBrowseScreen() {
                 iconName="construct-outline"
                 activeFiltersCount={activeFiltersCount}
                 onClearAll={handleClearAll}
+                glassSupport={glassSupport}
               />
             </View>
           }
@@ -443,6 +450,7 @@ export default function EquipmentBrowseScreen() {
                 fullWidth
                 showChips
                 maxChips={3}
+                glassSupport={glassSupport}
               />
             </View>
           )}
@@ -471,7 +479,7 @@ export default function EquipmentBrowseScreen() {
         onApplyFilters={handleApplyFilters}
       />
 
-      <EquipmentBottomBar />
+      <EquipmentBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

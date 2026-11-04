@@ -21,6 +21,14 @@ import {
   areListingCardBasePropsEqual,
 } from '../../utils/cardMemoComparison'
 import { freezeEnabled } from 'react-native-screens'
+import { AccessibilityInfo } from 'react-native'
+import { useGlassSupport } from '../../components/navigation/glassSupport'
+import { BrowseHeader } from '../../components/ui/BrowseHeader'
+import { ListingTabs } from '../../components/ui/ListingTabs'
+import { QuickFilters } from '../../components/ui/QuickFilters'
+import { VisualFiltersBase } from '../../components/ui/VisualFiltersBase'
+import { BrowseResultsBar } from '../../components/ui/BrowseResultsBar'
+import { UnifiedBottomBar } from '../../components/navigation/UnifiedBottomBar'
 
 let mockActiveFavoriteIds: string[] = []
 jest.mock('../../api/favorites', () => ({
@@ -307,6 +315,155 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
         enableFreeze(true)
       }
       expect(freezeEnabled()).toBe(true)
+    })
+  })
+
+  describe('Item 6 & Item 8: Single glassSupport per browse screen and stable glass style props', () => {
+    it('subscribes to AccessibilityInfo only ONCE across an entire browse screen tree (30+ glass surfaces)', async () => {
+      const isReduceSpy = jest
+        .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
+        .mockResolvedValue(false)
+      const addListenerSpy = jest.spyOn(AccessibilityInfo, 'addEventListener')
+      isReduceSpy.mockClear()
+      addListenerSpy.mockClear()
+
+      const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+      qc.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, new Set())
+
+      const noop = () => {}
+      const sampleCards = [1, 2, 3].map((n) => ({
+        id: `car-glass-${n}`,
+        title: `سيارة ${n}`,
+        price: 10000 + n,
+        currency: 'OMR' as const,
+        status: 'ACTIVE',
+        listingType: 'SALE',
+        isPriceNegotiable: true,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2024,
+        transmission: 'AUTOMATIC',
+        mileage: 15000,
+        images: [`https://example.com/${n}.jpg`],
+      }))
+
+      function MockBrowseScreenWithSharedGlass() {
+        const glassSupport = useGlassSupport()
+        return (
+          <QueryClientProvider client={qc}>
+            <BrowseHeader
+              searchQuery=""
+              onSearchChange={noop}
+              activeFiltersCount={2}
+              onFilterPress={noop}
+              glassSupport={glassSupport}
+            />
+            <ListingTabs
+              tabs={[
+                { id: 'SALE', label: 'للبيع' },
+                { id: 'RENT', label: 'للإيجار' },
+              ]}
+              activeTabId="SALE"
+              onChangeTab={noop}
+              glassSupport={glassSupport}
+            />
+            <QuickFilters
+              filters={[
+                { id: 'make', label: 'الماركة', isActive: false },
+                { id: 'city', label: 'المدينة', isActive: false },
+                { id: 'year', label: 'السنة', isActive: false },
+                { id: 'price', label: 'السعر', isActive: false },
+              ]}
+              onFilterPress={noop}
+              onClearFilter={noop}
+              glassSupport={glassSupport}
+            />
+            <VisualFiltersBase
+              tabs={[
+                {
+                  id: 'brands',
+                  label: 'الماركات',
+                  items: [
+                    { id: 'b1', label: 'تويوتا', isSelected: false, onPress: noop },
+                    { id: 'b2', label: 'نيسان', isSelected: false, onPress: noop },
+                    { id: 'b3', label: 'لكزس', isSelected: false, onPress: noop },
+                  ],
+                },
+              ]}
+              onViewAll={noop}
+              glassSupport={glassSupport}
+            />
+            <BrowseResultsBar
+              resultsCount={3}
+              entityName="سيارة"
+              activeFiltersCount={2}
+              onClearAll={noop}
+              glassSupport={glassSupport}
+            />
+            {sampleCards.map((item) => (
+              <CarCard
+                key={item.id}
+                item={item as any}
+                onPress={noop}
+                fullWidth
+                showChips
+                glassSupport={glassSupport}
+              />
+            ))}
+            <UnifiedBottomBar
+              tabs={[
+                { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline' },
+                { id: 'post', isPost: true },
+                { id: 'browse', label: 'تصفح', icon: 'grid', iconOutline: 'grid-outline' },
+              ]}
+              activeTab="browse"
+              onTabPress={noop}
+              onPostPress={noop}
+              glassSupport={glassSupport}
+            />
+          </QueryClientProvider>
+        )
+      }
+
+      await render(<MockBrowseScreenWithSharedGlass />)
+
+      // Over 30 GlassSurface instances mounted, but AccessibilityInfo is queried & subscribed ONLY ONCE
+      expect(isReduceSpy).toHaveBeenCalledTimes(1)
+      const reduceTransparencyListeners = addListenerSpy.mock.calls.filter(
+        (call) => call[0] === 'reduceTransparencyChanged'
+      )
+      expect(reduceTransparencyListeners).toHaveLength(1)
+    })
+
+    it.each([
+      'app/cars/browse.tsx',
+      'app/buses/browse.tsx',
+      'app/equipment/browse.tsx',
+      'app/equipment/operators/browse.tsx',
+      'app/parts/browse.tsx',
+      'app/services/browse.tsx',
+    ])('calls useGlassSupport() once in %s and passes glassSupport to header, filters, cards, and bottom bar', (relPath) => {
+      const content = fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf8')
+      const hookMatches = content.match(/useGlassSupport\s*\(\s*\)/g) || []
+      expect(hookMatches).toHaveLength(1)
+      expect(content).toContain('glassSupport={glassSupport}')
+    })
+
+    it('hoists static glass wrapper styles into StyleSheet.create in TopBarGlassSurface and ListingCardBase (Item 8)', () => {
+      const topBarContent = fs.readFileSync(
+        path.join(REPO_ROOT, 'src/components/ui/TopBarGlassSurface.tsx'),
+        'utf8'
+      )
+      expect(topBarContent).toContain('styles.tintOverlay')
+
+      const cardBaseContent = fs.readFileSync(
+        path.join(REPO_ROOT, 'src/components/ui/ListingCardBase.tsx'),
+        'utf8'
+      )
+      expect(cardBaseContent).toContain('s.cardFullWidth')
+      expect(cardBaseContent).toContain('s.cardGridMode')
+      expect(cardBaseContent).toContain('s.imageContainerFullWidth')
+      expect(cardBaseContent).toContain('s.imageContainerAspect')
     })
   })
 })

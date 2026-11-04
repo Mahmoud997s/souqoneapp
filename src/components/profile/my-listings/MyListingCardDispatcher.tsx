@@ -8,6 +8,7 @@ import { BusCard } from '../../buses/BusCard'
 import { EquipCard } from '../../cards/EquipCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
+import { type GlassSupport } from '../../navigation/glassSupport'
 
 export interface MyListingCardDispatcherProps {
   item: MyListingItem
@@ -18,6 +19,7 @@ export interface MyListingCardDispatcherProps {
   onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: boolean
   fullWidth?: boolean
+  glassSupport?: GlassSupport
 }
 
 export function MyListingCardDispatcher({
@@ -29,6 +31,7 @@ export function MyListingCardDispatcher({
   onCancelDeletionRequest,
   isEditSupported,
   fullWidth = false,
+  glassSupport,
 }: MyListingCardDispatcherProps) {
   const menu = (
     <MyListingActionButtons
@@ -63,6 +66,7 @@ export function MyListingCardDispatcher({
           maxChips={3}
           actionMenu={menu}
           disableImageSwipe
+          glassSupport={glassSupport}
         />
       )
     case 'bus':
@@ -74,6 +78,7 @@ export function MyListingCardDispatcher({
           showChips
           maxChips={3}
           actionMenu={menu}
+          glassSupport={glassSupport}
         />
       )
     case 'equipment':
@@ -85,6 +90,7 @@ export function MyListingCardDispatcher({
           showChips
           maxChips={3}
           actionMenu={menu}
+          glassSupport={glassSupport}
         />
       )
     case 'part':
@@ -96,6 +102,7 @@ export function MyListingCardDispatcher({
           showChips
           maxChips={3}
           actionMenu={menu}
+          glassSupport={glassSupport}
         />
       )
     case 'service':
@@ -105,6 +112,7 @@ export function MyListingCardDispatcher({
           onPress={() => onView(item)}
           fullWidth={fullWidth}
           actionMenu={menu}
+          glassSupport={glassSupport}
         />
       )
     case 'job':

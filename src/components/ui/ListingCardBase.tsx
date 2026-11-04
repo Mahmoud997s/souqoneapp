@@ -171,8 +171,8 @@ const ListingCardBaseComponent = ({
       style={[
         s.card,
         liquidGlass && s.cardLiquidGlass,
-        fullWidth && { width: '100%' },
-        gridMode && { width: '100%', flex: 1 },
+        fullWidth && s.cardFullWidth,
+        gridMode && s.cardGridMode,
         style,
       ]}
     >
@@ -193,8 +193,8 @@ const ListingCardBaseComponent = ({
           imageHeight
             ? { height: imageHeight, aspectRatio: undefined }
             : fullWidth
-            ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
-            : { height: CardSystem.aspectRatioHeight, aspectRatio: undefined },
+            ? s.imageContainerFullWidth
+            : s.imageContainerAspect,
         ]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
@@ -216,7 +216,7 @@ const ListingCardBaseComponent = ({
               imageHeight
                 ? { height: imageHeight, aspectRatio: undefined }
                 : fullWidth
-                ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+                ? s.imageContainerFullWidth
                 : undefined,
             ]}
           >
@@ -543,11 +543,26 @@ const s = StyleSheet.create({
     backgroundColor: 'transparent',
     borderColor: CardSystem.glass.cardBorderColor,
   },
+  cardFullWidth: {
+    width: '100%',
+  },
+  cardGridMode: {
+    width: '100%',
+    flex: 1,
+  },
   imageContainer: {
     width: '100%',
     position: 'relative',
     backgroundColor: Colors.surfaceAlt,
     overflow: 'hidden',
+  },
+  imageContainerFullWidth: {
+    height: CardSystem.fullWidthHeight,
+    aspectRatio: undefined,
+  },
+  imageContainerAspect: {
+    height: CardSystem.aspectRatioHeight,
+    aspectRatio: undefined,
   },
   imageFill: {
     width: '100%',

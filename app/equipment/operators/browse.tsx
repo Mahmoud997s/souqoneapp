@@ -44,6 +44,7 @@ import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
 import { EquipmentBottomBar } from '../../../src/components/equipment/EquipmentBottomBar'
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../../src/components/navigation/UnifiedBottomBar'
+import { useGlassSupport } from '../../../src/components/navigation/glassSupport'
 import {
   buildOperatorQueryParams,
   refineOperatorsClientSide,
@@ -56,6 +57,7 @@ export { buildOperatorQueryParams } from '../../../src/utils/browse-filters/oper
 
 export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
+  const glassSupport = useGlassSupport()
   const { scrollHandler } = useScrollAwareNav()
   const { navigateToAddOperator } = useOperatorNavigation()
   const listRef = useRef<FlatList<UnifiedCardItem>>(null)
@@ -231,6 +233,7 @@ export default function BrowseOperatorsScreen() {
         searchPlaceholder="ابحث باسم المشغل، التخصص، أو المعدة..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(true)}
+        glassSupport={glassSupport}
       />
 
       {/* ═══════════════ 2. SUB-HEADER: TABS & QUICK FILTERS ═══════════════ */}
@@ -250,12 +253,14 @@ export default function BrowseOperatorsScreen() {
               operatorType: undefined,
             }))
           }
+          glassSupport={glassSupport}
         />
 
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={() => setIsFilterVisible(true)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
@@ -310,6 +315,7 @@ export default function BrowseOperatorsScreen() {
               }
               activeFiltersCount={activeFiltersCount > 0 || searchQuery.length > 0 ? 1 : 0}
               onClearAll={handleClearAll}
+              glassSupport={glassSupport}
             />
 
             {/* Skeleton Loading State */}
@@ -380,7 +386,7 @@ export default function BrowseOperatorsScreen() {
         resultsCount={operators.length}
       />
 
-      <EquipmentBottomBar />
+      <EquipmentBottomBar glassSupport={glassSupport} />
     </View>
   )
 }
