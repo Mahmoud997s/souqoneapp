@@ -1,16 +1,34 @@
 import React from 'react'
 import { fireEvent, render } from '@testing-library/react-native'
-import { CATEGORY_ICONS } from '../../constants/categoryIcons'
 import { HomeAddListingBanner } from './HomeAddListingBanner'
 import { HOME_BOTTOM_TOKENS, HOME_LISTING_CATEGORIES } from './homeBottomContent'
+import { Colors } from '../../constants/colors'
 
-describe('Home bottom content', () => {
-  it('shows the five expected 3D category images and labels with wrapping enabled', async () => {
-    const { getByTestId, getByText, queryByTestId } = await render(<HomeAddListingBanner onPress={jest.fn()} />)
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    Ionicons: (props: any) =>
+      React.createElement(View, { ...props, testID: props.testID || `ionicons-${props.name}` }),
+    MaterialCommunityIcons: (props: any) =>
+      React.createElement(View, { ...props, testID: props.testID || `m-icon-${props.name}` }),
+  }
+})
+
+describe('Home bottom content (D-196)', () => {
+  it('shows the five expected vector category icons and labels with wrapping enabled', async () => {
+    const { getByTestId, getByText, queryByTestId } = await render(
+      <HomeAddListingBanner onPress={jest.fn()} />
+    )
 
     expect(HOME_LISTING_CATEGORIES).toHaveLength(5)
     for (const category of HOME_LISTING_CATEGORIES) {
-      expect(getByTestId(`home-add-listing-banner-image-${category.id}`).props.source).toEqual([CATEGORY_ICONS[category.id]])
+      const icon = getByTestId(`home-add-listing-banner-icon-${category.id}`)
+      expect(icon).toBeTruthy()
+      expect(icon.props.name).toBe(category.icon)
+      expect(icon.props.size).toBe(HOME_BOTTOM_TOKENS.categoryIconSize)
+      expect(icon.props.color).toBe(Colors.primary)
+
       const label = getByText(category.title)
       expect(label).toBeTruthy()
       // Category labels must allow wrapping (>= 2 lines) so they do not truncate on narrow screens / larger text

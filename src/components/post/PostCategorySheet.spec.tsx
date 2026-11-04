@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { cleanup, render, screen } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
 import { Spacing } from '../../constants/spacing'
+import { Colors } from '../../constants/colors'
 import { POST_CATEGORIES } from '../../constants/postCategories'
 import { PostCategorySheet } from './PostCategorySheet'
 import { PostCategoryTokens } from './postCategoryTokens'
@@ -12,6 +13,15 @@ const inlineColorPattern = new RegExp(
   `${String.fromCharCode(35)}[0-9a-f]{3,8}\\b|r${'gba?'}\\(`,
   'i',
 )
+
+jest.mock('@expo/vector-icons', () => {
+  const ReactLib = require('react')
+  const { View: NativeView } = require('react-native')
+  return {
+    MaterialCommunityIcons: (props: Record<string, unknown>) =>
+      ReactLib.createElement(NativeView, { ...props }),
+  }
+})
 
 jest.mock('expo-image', () => {
   const ReactLib = require('react')
@@ -49,8 +59,9 @@ describe('PostCategorySheet visual contract', () => {
       const card = screen.getByLabelText(category.title)
       const icon = screen.getByTestId(`post-category-icon-${category.id}`)
       expect(card.props.accessibilityRole).toBe('button')
-      expect(icon.props.source).toEqual(category.icon)
-      expect(icon.props.contentFit).toBe('contain')
+      expect(icon.props.name).toBe(category.icon)
+      expect(icon.props.size).toBe(32)
+      expect(icon.props.color).toBe(Colors.primary)
       expect(screen.getByTestId(`post-category-glass-${category.id}`)).toBeTruthy()
     }
     expect(PostCategoryTokens.cardMinHeight).toBeGreaterThanOrEqual(44)

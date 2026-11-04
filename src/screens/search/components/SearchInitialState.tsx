@@ -5,14 +5,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ImageSourcePropType,
 } from 'react-native'
-import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
-import { CATEGORY_ICONS } from '../../../constants/categoryIcons'
 import { CategoryFilterType } from '../../../hooks/useSearchLogic'
 
 export const TRENDING_KEYWORDS = [
@@ -27,16 +24,15 @@ export const TRENDING_KEYWORDS = [
 export interface QuickCategoryItem {
   id: CategoryFilterType
   label: string
-  image: ImageSourcePropType
-  icon?: keyof typeof Ionicons.glyphMap
+  icon: keyof typeof Ionicons.glyphMap
 }
 
 export const QUICK_CATEGORIES: QuickCategoryItem[] = [
-  { id: 'cars', label: 'سيارات', image: CATEGORY_ICONS.cars, icon: 'car-sport' },
-  { id: 'parts', label: 'قطع غيار', image: CATEGORY_ICONS.parts, icon: 'construct' },
-  { id: 'buses', label: 'باصات', image: CATEGORY_ICONS.buses, icon: 'bus' },
-  { id: 'equipment', label: 'معدات ثقيلة', image: CATEGORY_ICONS.equipment, icon: 'hardware-chip' },
-  { id: 'services', label: 'خدمات', image: CATEGORY_ICONS.services, icon: 'hammer' },
+  { id: 'cars', label: 'سيارات', icon: 'car-sport' },
+  { id: 'parts', label: 'قطع غيار', icon: 'construct' },
+  { id: 'buses', label: 'باصات', icon: 'bus' },
+  { id: 'equipment', label: 'معدات ثقيلة', icon: 'hardware-chip' },
+  { id: 'services', label: 'خدمات', icon: 'hammer' },
 ]
 
 interface SearchInitialStateProps {
@@ -140,13 +136,12 @@ export const SearchInitialState = React.memo(function SearchInitialState({
               onPress={() => onSelectCategory(cat.id)}
               activeOpacity={0.7}
             >
-              <View style={s.categoryIconBox}>
-                <Image
-                  source={cat.image}
-                  style={s.categoryImage}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                  accessibilityIgnoresInvertColors
+              <View style={s.categoryIconBox} testID={`quick-category-icon-box-${cat.id}`}>
+                <Ionicons
+                  testID={`quick-category-icon-${cat.id}`}
+                  name={cat.icon}
+                  size={22}
+                  color={Colors.primary}
                 />
               </View>
               <Text style={s.categoryLabel}>{cat.label}</Text>
@@ -270,10 +265,6 @@ const s = StyleSheet.create({
     backgroundColor: '#ECFDF5',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  categoryImage: {
-    width: 36,
-    height: 36,
   },
   categoryLabel: {
     fontFamily: 'Almarai_700Bold',

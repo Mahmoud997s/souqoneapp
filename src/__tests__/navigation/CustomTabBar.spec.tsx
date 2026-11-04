@@ -3,7 +3,6 @@ import { View } from 'react-native'
 import { render, fireEvent, cleanup, within, act } from '@testing-library/react-native'
 import { CustomTabBar } from '../../../app/(tabs)/_layout'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
-import { ADD_BUTTON_ASSET } from '../../components/navigation/AddListingButton'
 
 // Mock expo-router
 const mockPush = jest.fn()
@@ -250,7 +249,7 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
     expect(collapsedScope.getByTestId('icon-Ionicons-chatbubble')).toBeTruthy()
   })
 
-  it('Tooth b & d (D-173): main tab bar renders glossy add button image, pressing it triggers post handler and never navigation.navigate, no old icon', async () => {
+  it('Tooth b & d (D-196): main tab bar renders restored vector add button, pressing it triggers post handler and never navigation.navigate, no 3D image', async () => {
     mockNavHidden.value = 0
     mockIsLoggedIn = true
     const props = makeProps({ index: 0 })
@@ -260,16 +259,16 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
     expect(postFab).toBeTruthy()
     expect(postFab.props.accessibilityLabel).toBe('إضافة إعلان')
 
-    const img = getByTestId('tab-post-fab-image')
-    expect(img).toBeTruthy()
-    expect(img.props.source).toBe(ADD_BUTTON_ASSET)
+    // No 3D image rendered
+    expect(queryByTestId('tab-post-fab-image')).toBeNull()
+
+    // Vector add icon is present
+    expect(getByTestId('icon-Ionicons-add')).toBeTruthy()
 
     await act(async () => {
       fireEvent.press(postFab)
     })
     expect(mockPush).toHaveBeenCalledWith('/(modals)/post-category')
     expect(props.navigation.navigate).not.toHaveBeenCalled()
-
-    expect(queryByTestId('icon-Ionicons-add')).toBeNull()
   })
 })

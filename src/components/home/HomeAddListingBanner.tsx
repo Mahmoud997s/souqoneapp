@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
-import { Image } from 'expo-image'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
@@ -33,13 +33,14 @@ export function HomeAddListingBanner({ onPress, testID = 'home-add-listing-banne
           <View testID={`${testID}-categories`} style={styles.categories}>
             {HOME_LISTING_CATEGORIES.map((category) => (
               <View key={category.id} testID={`${testID}-category-${category.id}`} style={styles.category}>
-                <Image
-                  testID={`${testID}-image-${category.id}`}
-                  source={category.image}
-                  style={styles.categoryImage}
-                  contentFit="contain"
-                  accessibilityLabel={category.title}
-                />
+                <View style={styles.categoryIconBox} testID={`${testID}-icon-box-${category.id}`}>
+                  <MaterialCommunityIcons
+                    testID={`${testID}-icon-${category.id}`}
+                    name={category.icon}
+                    size={HOME_BOTTOM_TOKENS.categoryIconSize}
+                    color={Colors.primary}
+                  />
+                </View>
                 <Text style={styles.categoryLabel} numberOfLines={HOME_BOTTOM_TOKENS.categoryLabelLines}>{category.title}</Text>
               </View>
             ))}
@@ -85,7 +86,16 @@ const styles = StyleSheet.create({
   },
   categories: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.space3 },
   category: { flex: 1, alignItems: 'center', minWidth: 0, gap: Spacing.space1 },
-  categoryImage: { width: HOME_BOTTOM_TOKENS.categoryImageSize, height: HOME_BOTTOM_TOKENS.categoryImageSize },
+  categoryIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   categoryLabel: {
     width: '100%', fontFamily: 'Almarai_700Bold',
     fontSize: HOME_BOTTOM_TOKENS.categoryLabelFontSize,

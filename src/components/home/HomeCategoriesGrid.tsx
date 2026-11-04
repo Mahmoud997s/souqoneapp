@@ -6,9 +6,8 @@ import {
   Pressable,
   Dimensions,
   Platform,
-  type ImageSourcePropType,
 } from 'react-native'
-import { Image } from 'expo-image'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import Animated, {
@@ -20,36 +19,30 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
-import type { MaterialCommunityIcons } from '@expo/vector-icons'
-
-import { CATEGORY_ICONS } from '../../constants/categoryIcons'
-export { CATEGORY_ICONS } from '../../constants/categoryIcons'
 
 export interface HomeCategoryItem {
   id: string
   label: string
   route: string
-  image: ImageSourcePropType
-  icon?: keyof typeof MaterialCommunityIcons.glyphMap
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
   isAction?: boolean
 }
 
 export const HOME_CATEGORIES: HomeCategoryItem[] = [
-  { id: 'cars',      label: 'سيارات',    route: '/cars',                     image: CATEGORY_ICONS.cars,      icon: 'car-sports' },
-  { id: 'services',  label: 'خدمات',     route: '/services',                 image: CATEGORY_ICONS.services,  icon: 'car-wrench' },
-  { id: 'parts',     label: 'قطع غيار',  route: '/parts',                    image: CATEGORY_ICONS.parts,     icon: 'car-cog' },
-  { id: 'equipment', label: 'معدات',     route: '/equipment',                image: CATEGORY_ICONS.equipment, icon: 'excavator' },
-  { id: 'buses',     label: 'حافلات',    route: '/buses',                    image: CATEGORY_ICONS.buses,     icon: 'bus-side' },
-  { id: 'operators', label: 'المشغلين',  route: '/equipment/operators/browse', image: CATEGORY_ICONS.operators, icon: 'account-hard-hat' },
-  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/search',            image: CATEGORY_ICONS.browse,    icon: 'grid-large', isAction: true },
+  { id: 'cars',      label: 'سيارات',    route: '/cars',                     icon: 'car-sports' },
+  { id: 'services',  label: 'خدمات',     route: '/services',                 icon: 'car-wrench' },
+  { id: 'parts',     label: 'قطع غيار',  route: '/parts',                    icon: 'car-cog' },
+  { id: 'equipment', label: 'معدات',     route: '/equipment',                icon: 'excavator' },
+  { id: 'buses',     label: 'حافلات',    route: '/buses',                    icon: 'bus-side' },
+  { id: 'operators', label: 'المشغلين',  route: '/equipment/operators/browse', icon: 'account-hard-hat' },
+  { id: 'browse',    label: 'تصفح الكل', route: '/(tabs)/search',            icon: 'grid-large', isAction: true },
 ]
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 export const CATEGORY_GRID_COLUMNS = 4
 export const CATEGORY_GRID_GAP = 6
 export const CATEGORY_GRID_PADDING_H = 16
-// 3D Category icon size: increased by exactly 4% per user directive (38 * 1.04 = 39.52 -> 39.5)
-export const CATEGORY_ICON_SIZE = 39.5
+export const CATEGORY_ICON_SIZE = 21
 
 /**
  * Calculates item width so that 4 tiles with gaps and padding fit on any screen width.
@@ -150,14 +143,15 @@ const CategoryTile = memo(function CategoryTile({
             support={support}
           />
           <View testID={`icon-container-${item.id}`} style={s.iconContainer}>
-            <Animated.View style={[s.iconBox, animatedIconStyle]}>
-              <Image
-                testID="category-tile-image"
-                source={item.image}
-                style={s.iconImage}
-                contentFit="contain"
-                cachePolicy="memory-disk"
-                accessibilityIgnoresInvertColors
+            <Animated.View
+              testID={`category-tile-icon-box-${item.id}`}
+              style={[s.iconBox, item.isAction && s.actionIconBox, animatedIconStyle]}
+            >
+              <MaterialCommunityIcons
+                testID="category-tile-icon"
+                name={item.icon}
+                size={CATEGORY_ICON_SIZE}
+                color={Colors.primary}
               />
             </Animated.View>
           </View>
@@ -282,18 +276,22 @@ const s = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: CATEGORY_ICON_SIZE,
     marginBottom: 3,
   },
   iconBox: {
-    width: CATEGORY_ICON_SIZE,
-    height: CATEGORY_ICON_SIZE,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: Colors.inputBg,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconImage: {
-    width: CATEGORY_ICON_SIZE,
-    height: CATEGORY_ICON_SIZE,
+  actionIconBox: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 156, 181, 0.25)',
   },
   labelBox: {
     height: 18,

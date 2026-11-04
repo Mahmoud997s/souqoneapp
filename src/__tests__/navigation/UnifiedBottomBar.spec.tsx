@@ -7,7 +7,6 @@ import {
   type BottomBarTabItem,
 } from '../../components/navigation/UnifiedBottomBar'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
-import { ADD_BUTTON_ASSET } from '../../components/navigation/AddListingButton'
 import { CarsBottomBar } from '../../components/cars/CarsBottomBar'
 import { BusesBottomBar } from '../../components/buses/BusesBottomBar'
 import { EquipmentBottomBar } from '../../components/equipment/EquipmentBottomBar'
@@ -302,10 +301,11 @@ describe('UnifiedBottomBar (Task D-167 Stage 2 Adoption)', () => {
     expect(addBtn).toBeTruthy()
     expect(addBtn.props.accessibilityLabel).toBe('إضافة إعلان جديد')
 
-    // Image rendered with exact asset module
-    const img = getByTestId('section-bottom-bar-add-button-image')
-    expect(img).toBeTruthy()
-    expect(img.props.source).toBe(ADD_BUTTON_ASSET)
+    // No 3D image rendered
+    expect(queryByTestId('section-bottom-bar-add-button-image')).toBeNull()
+
+    // Vector add icon rendered
+    expect(getByTestId('icon-Ionicons-add')).toBeTruthy()
 
     // Press calls onPostPress once and never onTabPress
     await act(async () => {
@@ -313,8 +313,5 @@ describe('UnifiedBottomBar (Task D-167 Stage 2 Adoption)', () => {
     })
     expect(onPostPressMock).toHaveBeenCalledTimes(1)
     expect(onTabPressMock).not.toHaveBeenCalled()
-
-    // No old gradient squircle or Ionicons add
-    expect(queryByTestId('icon-Ionicons-add')).toBeNull()
   })
 })

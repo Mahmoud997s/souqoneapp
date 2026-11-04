@@ -9,13 +9,10 @@ import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { TopBarTokens } from '../../constants/topBarTokens'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
-import { CATEGORY_ICONS } from '../../constants/categoryIcons'
 import * as HomeModule from '../../../app/(tabs)/index'
 import {
   CategorySection,
-  SECTION_ICON_MAP,
   SECTION_ICON_BOX_SIZE,
-  SECTION_ICON_3D_SIZE,
   SEE_ALL_PADDING_HORIZONTAL,
   SEE_ALL_PADDING_VERTICAL,
   SEE_ALL_GAP,
@@ -396,48 +393,42 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
     })
   })
 
-  describe('4. Home CategorySection Headers: Centered 26px 3D Icon, Symmetric Capsule Padding & Nav-Button Token Equality (D-182a2b)', () => {
+  describe('4. Home CategorySection Headers: Restored MaterialCommunityIcons Vector Icons, Symmetric Capsule Padding & Nav-Button Token Equality (D-196)', () => {
     const sections: Array<{
       routeBase: 'cars' | 'services' | 'parts' | 'buses' | 'equipment'
       title: string
       icon: 'car-sports' | 'car-wrench' | 'car-cog' | 'bus-side' | 'excavator'
-      expectedAsset: unknown
     }> = [
       {
         routeBase: 'cars',
         title: 'أحدث إعلانات السيارات',
         icon: 'car-sports',
-        expectedAsset: CATEGORY_ICONS.cars,
       },
       {
         routeBase: 'services',
         title: 'خدمات السيارات',
         icon: 'car-wrench',
-        expectedAsset: CATEGORY_ICONS.services,
       },
       {
         routeBase: 'parts',
         title: 'قطع الغيار',
         icon: 'car-cog',
-        expectedAsset: CATEGORY_ICONS.parts,
       },
       {
         routeBase: 'buses',
         title: 'حافلات ونقل ركاب',
         icon: 'bus-side',
-        expectedAsset: CATEGORY_ICONS.buses,
       },
       {
         routeBase: 'equipment',
         title: 'معدات ومشغلون',
         icon: 'excavator',
-        expectedAsset: CATEGORY_ICONS.equipment,
       },
     ]
 
     it.each(sections)(
-      'Section "$routeBase" centers 26px 3D icon inside 32x32 box (no pop-out), enforces symmetric capsule inline padding, and matches nav-bar button tokens',
-      async ({ routeBase, title, icon, expectedAsset }) => {
+      'Section "$routeBase" centers MaterialCommunityIcons inside 32x32 box (no 3D image), enforces symmetric capsule inline padding, and matches nav-bar button tokens',
+      async ({ routeBase, title, icon }) => {
         await render(
           <CategorySection
             title={title}
@@ -451,7 +442,7 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
           />
         )
 
-        // 1. 32x32 Icon box uses nav-bar button fill & border tokens and flex centering (no overflow: 'visible' pop-out hack)
+        // 1. 32x32 Icon box uses nav-bar button fill & border tokens and flex centering
         const iconBox = screen.getByTestId(`home-section-icon-box-${routeBase}`)
         const boxStyle = StyleSheet.flatten(iconBox.props.style)
         expect(boxStyle.width).toBe(32)
@@ -465,7 +456,7 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
         expect(boxStyle.justifyContent).toBe('center')
         expect(boxStyle.overflow).toBeUndefined()
 
-        // 2. "الكل" capsule uses nav-bar button fill & border tokens and symmetric inline padding (no hardcoded widths)
+        // 2. "الكل" capsule uses nav-bar button fill & border tokens and symmetric inline padding
         const seeAllBtn = screen.getByTestId(`home-section-see-all-${routeBase}`)
         const seeAllStyle = StyleSheet.flatten(seeAllBtn.props.style)
         expect(seeAllStyle.backgroundColor).toBe(TopBarTokens.iceGlass)
@@ -476,12 +467,12 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
         expect(seeAllStyle.flexDirection).toBe('row')
         expect(seeAllStyle.alignItems).toBe('center')
         expect(seeAllStyle.justifyContent).toBe('center')
-        expect(seeAllStyle.paddingVertical).toBe(SEE_ALL_PADDING_VERTICAL) // 4 (unchanged)
-        expect(seeAllStyle.paddingHorizontal).toBe(SEE_ALL_PADDING_HORIZONTAL) // 10 (not 11)
+        expect(seeAllStyle.paddingVertical).toBe(SEE_ALL_PADDING_VERTICAL)
+        expect(seeAllStyle.paddingHorizontal).toBe(SEE_ALL_PADDING_HORIZONTAL)
         expect(seeAllStyle.paddingStart).toBe(SEE_ALL_PADDING_HORIZONTAL)
         expect(seeAllStyle.paddingEnd).toBe(SEE_ALL_PADDING_HORIZONTAL)
         expect(seeAllStyle.paddingStart).toBe(seeAllStyle.paddingEnd)
-        expect(seeAllStyle.gap).toBe(SEE_ALL_GAP) // 4
+        expect(seeAllStyle.gap).toBe(SEE_ALL_GAP)
         expect(seeAllStyle.width).toBeUndefined()
         expect(seeAllStyle.minWidth).toBeUndefined()
 
@@ -490,20 +481,13 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
         expect(boxStyle.borderColor).toBe(seeAllStyle.borderColor)
         expect(boxStyle.borderWidth).toBe(seeAllStyle.borderWidth)
 
-        // 3. 3D Image replaces MaterialCommunityIcons glyph, is shrunk 13% (30 * 0.87 = 26.1 -> 26), and centered (no absolute/negative top)
-        expect(screen.queryByTestId(`m-icon-${icon}`)).toBeNull()
-        const icon3D = screen.getByTestId(`home-section-icon-3d-${routeBase}`)
-        expect(icon3D.props.source).toBe(expectedAsset)
-        expect(icon3D.props.contentFit).toBe('contain')
-        expect(icon3D.props.pointerEvents).toBe('none')
-
-        const imgStyle = StyleSheet.flatten(icon3D.props.style)
-        expect(imgStyle.position).toBeUndefined()
-        expect(imgStyle.top).toBeUndefined()
-        expect(imgStyle.width).toBe(26)
-        expect(imgStyle.height).toBe(26)
-        expect(imgStyle.width).toBe(Math.round(30 * 0.87))
-        expect(imgStyle.height).toBe(Math.round(30 * 0.87))
+        // 3. MaterialCommunityIcons vector icon is rendered with size 16 and primary color (NO 3D image)
+        const iconVector = screen.getByTestId(`home-section-icon-${routeBase}`)
+        expect(iconVector).toBeTruthy()
+        expect(iconVector.props.name).toBe(icon)
+        expect(iconVector.props.size).toBe(16)
+        expect(iconVector.props.color).toBe(Colors.primary)
+        expect(screen.queryByTestId(`home-section-icon-3d-${routeBase}`)).toBeNull()
 
         // 4. Section ancestors do NOT carry pop-out overflow: 'visible' overrides and keep full opacity
         const sectionRoot = screen.getByTestId(`home-section-${routeBase}`)
@@ -512,32 +496,26 @@ describe('D-182a2: Top Bar Parity, Fixed iceGlass (#F9FCFE) Backing Layer & Home
         expect(StyleSheet.flatten(sectionRoot.props.style).overflow).toBeUndefined()
         expect(StyleSheet.flatten(sectionHeader.props.style).overflow).toBeUndefined()
         expect(StyleSheet.flatten(titleRow.props.style).overflow).toBeUndefined()
-        assertAncestorsHaveFullOpacity(icon3D as unknown as TestNode)
+        assertAncestorsHaveFullOpacity(iconVector as unknown as TestNode)
       }
     )
 
-    it('verifies 13% shrink arithmetic (30 * 0.87 = 26), removed pop-out export, and single token source in app/(tabs)/index.tsx', () => {
+    it('verifies SECTION_ICON_BOX_SIZE=32, removed 3D pop-out exports, and single token source in app/(tabs)/index.tsx', () => {
       expect(SECTION_ICON_BOX_SIZE).toBe(32)
-      expect(SECTION_ICON_3D_SIZE).toBe(26)
-      expect(Math.round(30 * 0.87)).toBe(SECTION_ICON_3D_SIZE)
+      expect('SECTION_ICON_3D_SIZE' in HomeModule).toBe(false)
       expect('SECTION_ICON_3D_POP_OUT_TOP' in HomeModule).toBe(false)
+      expect('SECTION_ICON_MAP' in HomeModule).toBe(false)
       expect(SEE_ALL_PADDING_HORIZONTAL).toBe(10)
       expect(SEE_ALL_PADDING_VERTICAL).toBe(4)
       expect(SEE_ALL_GAP).toBe(4)
-      expect(SECTION_ICON_MAP).toEqual({
-        cars: 'cars',
-        services: 'services',
-        parts: 'parts',
-        buses: 'buses',
-        equipment: 'equipment',
-        operators: 'operators',
-      })
 
       const homeSrc = fs.readFileSync(
         path.resolve(__dirname, '../../../app/(tabs)/index.tsx'),
         'utf8'
       )
       expect(homeSrc).not.toContain('SECTION_ICON_3D_POP_OUT_TOP')
+      expect(homeSrc).not.toContain('SECTION_ICON_3D_SIZE')
+      expect(homeSrc).not.toContain('CATEGORY_ICONS')
       expect(homeSrc).toContain('borderColor: TopBarTokens.buttonBorderColor')
       expect(homeSrc).toContain('borderWidth: TopBarTokens.buttonBorderWidth')
     })

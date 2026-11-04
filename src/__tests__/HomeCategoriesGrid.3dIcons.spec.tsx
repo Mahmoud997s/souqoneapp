@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react'
-import { StyleSheet, View, Platform, type ViewStyle, type TextStyle } from 'react-native'
+import { StyleSheet, View, Platform, type ViewStyle } from 'react-native'
 import { render, fireEvent, act } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import * as Haptics from 'expo-haptics'
@@ -8,7 +8,6 @@ import path from 'path'
 import {
   HomeCategoriesGrid,
   HOME_CATEGORIES,
-  CATEGORY_ICONS,
   CATEGORY_GRID_COLUMNS,
   CATEGORY_GRID_GAP,
   CATEGORY_GRID_PADDING_H,
@@ -23,6 +22,17 @@ import {
 import { Colors } from '../constants/colors'
 import { NOTIFICATIONS_EMPTY_CTA_ROUTE } from '../../app/profile/notifications'
 import * as glassSupportModule from '../components/navigation/glassSupport'
+
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    Ionicons: (props: any) =>
+      React.createElement(View, { ...props, testID: props.testID || `icon-${String(props.name)}` }),
+    MaterialCommunityIcons: (props: any) =>
+      React.createElement(View, { ...props, testID: props.testID || `m-icon-${String(props.name)}` }),
+  }
+})
 
 jest.mock('expo-blur', () => {
   const React = require('react')
@@ -80,61 +90,57 @@ jest.mock('expo-image', () => ({
   Image: (props: Record<string, unknown> & { testID?: string }) => {
     const React = require('react')
     const { View } = require('react-native')
-    return React.createElement(View, { ...props, testID: props.testID || 'category-tile-image' })
+    return React.createElement(View, { ...props, testID: props.testID || 'expo-image-mock' })
   },
 }))
 
-describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () => {
+describe('HomeCategoriesGrid — Vector Category Icons & 4+3 Layout (D-196)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  describe('1. Data, Icons & Configuration Integrity (Req 1, 2, 7)', () => {
+  describe('1. Data, Icons & Configuration Integrity', () => {
     it('Tooth a: HOME_CATEGORIES has exactly 7 items in preserved Arabic RTL order', () => {
       expect(HOME_CATEGORIES).toHaveLength(7)
       const ids = HOME_CATEGORIES.map((cat) => cat.id)
       expect(ids).toEqual(['cars', 'services', 'parts', 'equipment', 'buses', 'operators', 'browse'])
     })
 
-    it('every category tile has a valid non-empty route, label, and image source', () => {
+    it('every category tile has a valid non-empty route, label, and vector icon name', () => {
       HOME_CATEGORIES.forEach((cat) => {
         expect(cat.id).toBeTruthy()
         expect(cat.label.trim().length).toBeGreaterThan(0)
         expect(cat.route.trim().length).toBeGreaterThan(0)
-        expect(cat.image).toBeDefined()
-        expect(cat.image).not.toBeNull()
+        expect(cat.icon).toBeDefined()
+        expect(typeof cat.icon).toBe('string')
+        expect((cat as any).image).toBeUndefined()
       })
     })
 
-    it('CATEGORY_ICONS has entries for all 7 categories including operators', () => {
-      expect(CATEGORY_ICONS.cars).toBeDefined()
-      expect(CATEGORY_ICONS.services).toBeDefined()
-      expect(CATEGORY_ICONS.parts).toBeDefined()
-      expect(CATEGORY_ICONS.equipment).toBeDefined()
-      expect(CATEGORY_ICONS.buses).toBeDefined()
-      expect(CATEGORY_ICONS.operators).toBeDefined()
-      expect(CATEGORY_ICONS.browse).toBeDefined()
-    })
+    it('Tooth f: operator and browse 3D assets do NOT exist and HomeCategoriesGrid does not reference category PNGs', () => {
+      const operatorAsset = path.resolve(__dirname, '../../assets/images/categories/cat-operators.png')
+      const browseAsset = path.resolve(__dirname, '../../assets/images/categories/cat-browse.png')
+      expect(fs.existsSync(operatorAsset)).toBe(false)
+      expect(fs.existsSync(browseAsset)).toBe(false)
 
-    it('Tooth f: asset registered and file exists on disk', () => {
-      expect(CATEGORY_ICONS.operators).toBeDefined()
-      const assetPath = path.resolve(__dirname, '../../assets/images/categories/cat-operators.png')
-      expect(fs.existsSync(assetPath)).toBe(true)
+      const gridSource = fs.readFileSync(path.resolve(__dirname, '../components/home/HomeCategoriesGrid.tsx'), 'utf8')
+      expect(gridSource).not.toContain('assets/images/categories')
+      expect(gridSource).not.toContain('CATEGORY_ICONS')
     })
   })
 
-  describe('2. Layout Geometry & Screen Width Fitting Math (Req 3, 7)', () => {
+  describe('2. Layout Geometry & Screen Width Fitting Math', () => {
     it('exports 4 columns layout constants with tight 6px gap and geometric proportion', () => {
       expect(CATEGORY_GRID_COLUMNS).toBe(4)
       expect(CATEGORY_GRID_GAP).toBe(6)
       expect(CATEGORY_GRID_PADDING_H).toBe(16)
-      expect(CATEGORY_ICON_SIZE).toBe(39.5)
+      expect(CATEGORY_ICON_SIZE).toBe(21)
       expect(CATEGORY_ITEM_WIDTH).toBeGreaterThan(0)
       expect(CATEGORY_ITEM_HEIGHT).toBe(calculateCategoryItemHeight())
       expect(CATEGORY_ITEM_SIZE).toBe(CATEGORY_ITEM_WIDTH)
     })
 
-    it('Tooth d: 10% height reduction & geometric harmony: for widths 360/390/430 the computed height is 10% less than width and 4 tiles plus 3 gaps plus padding fit', () => {
+    it('Tooth d: 10% height reduction & geometric harmony for screen widths', () => {
       ;[360, 390, 430].forEach((w) => {
         const itemWidth = calculateCategoryItemWidth(w)
         const itemHeight = calculateCategoryItemHeight(w)
@@ -159,7 +165,7 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
     })
   })
 
-  describe('3. Two Static Rows (4+3) Rendering & RTL Flow (Req 3, 4)', () => {
+  describe('3. Two Static Rows (4+3) Rendering & RTL Flow', () => {
     it('renders exactly 7 tiles across top row (4) and bottom row (3) with NO ScrollView and NO marquee track', async () => {
       const { getByTestId, queryByTestId, getAllByTestId } = await render(<HomeCategoriesGrid />)
 
@@ -179,11 +185,11 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
       expect(queryByTestId('home-categories-marquee-track')).toBeNull()
       expect(queryByTestId('home-categories-marquee-container')).toBeNull()
 
-      const tileImages = getAllByTestId('category-tile-image')
-      expect(tileImages).toHaveLength(7)
+      const tileIcons = getAllByTestId('category-tile-icon')
+      expect(tileIcons).toHaveLength(7)
     })
 
-    it('Tooth e: the bottom row has 3 items and starts at the right edge (assert row style and order)', async () => {
+    it('Tooth e: the bottom row has 3 items and starts at the right edge', async () => {
       const { getByTestId } = await render(<HomeCategoriesGrid />)
       const bottomRow = getByTestId('home-categories-row-bottom')
       expect(bottomRow).toBeTruthy()
@@ -211,31 +217,28 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
       expect(getByTestId('home-categories-row-bottom')).toBeTruthy()
       expect(queryByTestId('home-categories-scroll')).toBeNull()
       expect(queryByTestId('home-categories-marquee-track')).toBeNull()
-      expect(getAllByTestId('category-tile-image')).toHaveLength(7)
+      expect(getAllByTestId('category-tile-icon')).toHaveLength(7)
     })
   })
 
-  describe('4. Equal Icon Sizing & Middle Aligned Labels (Req 7, 8)', () => {
-    it('Tooth g: equal icon boxes: rendered image style width/height is identical for all 7 tiles and CATEGORY_ICON_SCALES no longer exists', async () => {
+  describe('4. Equal Icon Sizing & Middle Aligned Labels', () => {
+    it('Tooth g: equal icon boxes: rendered vector icons have size 21 and primary color', async () => {
       const { getAllByTestId } = await render(<HomeCategoriesGrid />)
-      const tileImages = getAllByTestId('category-tile-image')
-      expect(tileImages).toHaveLength(7)
+      const tileIcons = getAllByTestId('category-tile-icon')
+      expect(tileIcons).toHaveLength(7)
 
-      tileImages.forEach((image) => {
-        const imageStyle = StyleSheet.flatten(image.props.style)
-        expect(imageStyle.width).toBe(CATEGORY_ICON_SIZE)
-        expect(imageStyle.height).toBe(CATEGORY_ICON_SIZE)
-        expect(imageStyle.transform).toBeUndefined()
+      tileIcons.forEach((icon) => {
+        expect(icon.props.size).toBe(CATEGORY_ICON_SIZE)
+        expect(icon.props.color).toBe(Colors.primary)
       })
 
-      const gridModule = require('../components/home/HomeCategoriesGrid')
-      expect(gridModule.CATEGORY_ICON_SCALES).toBeUndefined()
-
       const sourceCode = fs.readFileSync(path.resolve(__dirname, '../components/home/HomeCategoriesGrid.tsx'), 'utf8')
+      expect(sourceCode).not.toContain('CATEGORY_ICONS')
       expect(sourceCode).not.toContain('CATEGORY_ICON_SCALES')
+      expect(sourceCode).not.toContain('cat-')
     })
 
-    it('Tooth h: labels: all 7 label containers share the same height and vertical centering, and label style has textAlign center (and never right)', async () => {
+    it('Tooth h: labels: all 7 label containers share the same height and vertical centering, and label style has textAlign center', async () => {
       const { getAllByTestId, getByText } = await render(<HomeCategoriesGrid />)
       const labelBoxes = getAllByTestId('category-tile-label-box')
       expect(labelBoxes).toHaveLength(7)
@@ -284,23 +287,21 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
         expect(cardStyle.borderRadius).toBe(14)
         expect(cardStyle.overflow).toBe('hidden')
 
-        const cardChildren = React.Children.toArray((cardView as { props?: { children?: ReactNode } })?.props?.children)
         const glassSurface =
           queryByTestId(`category-tile-${cat.id}-glass-liquid`) ||
           queryByTestId(`category-tile-${cat.id}-glass-blur`)
         expect(glassSurface).toBeTruthy()
 
-        const iconContainer = cardChildren.find((c) => React.isValidElement<{ testID?: string }>(c) && c.props.testID === `icon-container-${cat.id}`) || cardChildren[1]
-        const iconContainerChildren = React.isValidElement<{ children?: ReactNode }>(iconContainer) ? React.Children.toArray(iconContainer.props.children) : []
-        const iconBox = iconContainerChildren[0]
-        const iconBoxStyle = StyleSheet.flatten(React.isValidElement<{ style?: ViewStyle }>(iconBox) ? iconBox.props.style : undefined)
-        expect(iconBoxStyle.width).toBe(CATEGORY_ICON_SIZE)
-        expect(iconBoxStyle.height).toBe(CATEGORY_ICON_SIZE)
+        const iconBox = getByTestId(`category-tile-icon-box-${cat.id}`)
+        expect(iconBox).toBeTruthy()
+        const iconBoxStyle = StyleSheet.flatten(iconBox.props.style)
+        expect(iconBoxStyle.width).toBe(38)
+        expect(iconBoxStyle.height).toBe(38)
       })
     })
   })
 
-  describe('5. Navigation and Route-Existence Guard (Req 1, Tests b, c)', () => {
+  describe('5. Navigation and Route-Existence Guard', () => {
     it('Tooth b: navigates to category routes including operators and triggers haptics on press', async () => {
       const { getByTestId } = await render(<HomeCategoriesGrid />)
 
@@ -332,7 +333,7 @@ describe('HomeCategoriesGrid — 4+3 Square Tiles with Operators (D-172a)', () =
       expect(router.push).toHaveBeenCalledWith('/(tabs)/search')
     })
 
-    it('Tooth c: route-existence guard: every category tile route and notifications CTA target maps to an existing app file', () => {
+    it('Tooth c: route-existence guard: every category tile route maps to an existing app file', () => {
       const appRoot = path.resolve(__dirname, '../../app')
 
       const routesToVerify = [

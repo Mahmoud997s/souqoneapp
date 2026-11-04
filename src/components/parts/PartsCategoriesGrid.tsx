@@ -1,33 +1,32 @@
 import React from 'react'
-import type { ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
-import { PART_CATEGORY_ICONS } from '../../constants/partCategoryIcons'
+import { Colors } from '../../constants/colors'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
 } from '../ui/GlassCategoriesGrid'
 
-interface PartsLandingCategoryItem {
+export interface PartsLandingCategoryItem {
   id: string
   label: string
-  icon: string | ImageSourcePropType
-  iconType: 'image' | 'material'
+  icon: string
+  iconType: 'material'
   color?: string
   bg?: string
 }
 
 export const PARTS_LANDING_CATEGORIES: PartsLandingCategoryItem[] = [
-  { id: 'ENGINE', label: 'المحرك', icon: PART_CATEGORY_ICONS.ENGINE, iconType: 'image' },
-  { id: 'BODY', label: 'الهيكل', icon: PART_CATEGORY_ICONS.BODY, iconType: 'image' },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: PART_CATEGORY_ICONS.ELECTRICAL, iconType: 'image' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: PART_CATEGORY_ICONS.SUSPENSION, iconType: 'image' },
-  { id: 'BRAKES', label: 'الفرامل', icon: PART_CATEGORY_ICONS.BRAKES, iconType: 'image' },
-  { id: 'INTERIOR', label: 'الداخلية', icon: PART_CATEGORY_ICONS.INTERIOR, iconType: 'image' },
-  { id: 'TIRES', label: 'الإطارات', icon: PART_CATEGORY_ICONS.TIRES, iconType: 'image' },
-  { id: 'BATTERIES', label: 'البطاريات', icon: PART_CATEGORY_ICONS.BATTERIES, iconType: 'image' },
-  { id: 'OILS', label: 'الزيوت', icon: PART_CATEGORY_ICONS.OILS, iconType: 'image' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: PART_CATEGORY_ICONS.ACCESSORIES, iconType: 'image' },
-  { id: 'all', label: 'عرض الكل', icon: PART_CATEGORY_ICONS.all, iconType: 'image' },
+  { id: 'ENGINE', label: 'المحرك', icon: 'engine', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BODY', label: 'الهيكل', icon: 'car-side', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'TIRES', label: 'الإطارات', icon: 'tire', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'OILS', label: 'الزيوت', icon: 'oil', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'all', label: 'عرض الكل', icon: 'view-grid', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
 ]
 
 export const PartsCategoriesGrid = () => {

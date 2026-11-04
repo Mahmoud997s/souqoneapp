@@ -1,31 +1,30 @@
 import React from 'react'
-import type { ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
-import { SERVICE_CATEGORY_ICONS } from '../../constants/serviceCategoryIcons'
+import { Colors } from '../../constants/colors'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
 } from '../ui/GlassCategoriesGrid'
 
-interface ServicesLandingCategoryItem {
+export interface ServicesLandingCategoryItem {
   id: string
   label: string
-  icon: string | ImageSourcePropType
-  iconType: 'image' | 'material'
+  icon: string
+  iconType: 'material'
   color?: string
   bg?: string
 }
 
 export const SERVICES_LANDING_CATEGORIES: ServicesLandingCategoryItem[] = [
-  { id: 'MAINTENANCE', label: 'صيانة', icon: SERVICE_CATEGORY_ICONS.MAINTENANCE, iconType: 'image' },
-  { id: 'CLEANING', label: 'غسيل وتلميع', icon: SERVICE_CATEGORY_ICONS.CLEANING, iconType: 'image' },
-  { id: 'INSPECTION', label: 'فحص', icon: SERVICE_CATEGORY_ICONS.INSPECTION, iconType: 'image' },
-  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: SERVICE_CATEGORY_ICONS.BODYWORK, iconType: 'image' },
-  { id: 'MODIFICATION', label: 'تعديل', icon: SERVICE_CATEGORY_ICONS.MODIFICATION, iconType: 'image' },
-  { id: 'TOWING', label: 'ونش وإنقاذ', icon: SERVICE_CATEGORY_ICONS.TOWING, iconType: 'image' },
-  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: SERVICE_CATEGORY_ICONS.KEYS_LOCKS, iconType: 'image' },
-  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: SERVICE_CATEGORY_ICONS.ACCESSORIES_INSTALL, iconType: 'image' },
-  { id: 'all', label: 'عرض الكل', icon: SERVICE_CATEGORY_ICONS.all, iconType: 'image' },
+  { id: 'MAINTENANCE', label: 'صيانة', icon: 'wrench', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'INSPECTION', label: 'فحص', icon: 'magnify', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'BODYWORK', label: 'سمكرة وصبغ', icon: 'spray', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'MODIFICATION', label: 'تعديل', icon: 'tune', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'TOWING', label: 'ونش وإنقاذ', icon: 'tow-truck', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'KEYS_LOCKS', label: 'مفاتيح', icon: 'key', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'ACCESSORIES_INSTALL', label: 'إكسسوارات', icon: 'car-shift-pattern', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  { id: 'all', label: 'عرض الكل', icon: 'view-grid', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
 ]
 
 export const ServicesCategoriesGrid = () => {
