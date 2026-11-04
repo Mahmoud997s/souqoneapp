@@ -1,12 +1,13 @@
 import React from 'react'
 import { View, Text, StyleSheet, I18nManager } from 'react-native'
-import { render, act } from '@testing-library/react-native'
+import { render, act, fireEvent } from '@testing-library/react-native'
 import { Gesture } from 'react-native-gesture-handler'
 import {
   HorizontalScrollCard,
   HORIZONTAL_WINDOW_BUFFER,
   shouldMountHorizontalSlot,
 } from '../../components/ui/HorizontalScrollCard'
+import { CardImageSwiper } from '../../components/ui/CardImageSwiper'
 import { Spacing } from '../../constants/spacing'
 import { physicalRightStyle } from '../../utils/physicalDirection'
 
@@ -137,6 +138,75 @@ describe('D-203 Home + Landing Scroll Safe Fixes', () => {
 
       I18nManager.isRTL = origRTL
       panSpy.mockRestore()
+    })
+  })
+
+  describe('Item 2: CardImageSwiper static path bypasses Gesture.Pan/Tap/Exclusive hooks when disableImageSwipe is true', () => {
+    it('does NOT call Gesture.Pan, Gesture.Tap, or Gesture.Exclusive when disableImageSwipe={true} or count <= 1, while keeping tap and imageCountBadge identical', async () => {
+      const panSpy = jest.spyOn(Gesture, 'Pan')
+      const tapSpy = jest.spyOn(Gesture, 'Tap')
+      const exclusiveSpy = jest.spyOn(Gesture, 'Exclusive')
+      const onPress = jest.fn()
+
+      const { getByTestId, getByText } = await render(
+        <CardImageSwiper
+          images={[
+            'https://cdn.example.com/1.jpg',
+            'https://cdn.example.com/2.jpg',
+            'https://cdn.example.com/3.jpg',
+          ]}
+          imageCount={5}
+          cardWidth={312}
+          imageHeight={133}
+          disableImageSwipe={true}
+          onPress={onPress}
+        />
+      )
+
+      // Zero gesture recognizers created when disableImageSwipe={true}
+      expect(panSpy).not.toHaveBeenCalled()
+      expect(tapSpy).not.toHaveBeenCalled()
+      expect(exclusiveSpy).not.toHaveBeenCalled()
+
+      // Static image container, badge count, and tap handler remain identical
+      const staticCard = getByTestId('card-image-static')
+      expect(staticCard).toBeTruthy()
+      expect(getByText('5')).toBeTruthy()
+
+      fireEvent.press(staticCard)
+      expect(onPress).toHaveBeenCalledTimes(1)
+
+      panSpy.mockRestore()
+      tapSpy.mockRestore()
+      exclusiveSpy.mockRestore()
+    })
+
+    it('creates Gesture.Pan, Gesture.Tap, and Gesture.Exclusive when disableImageSwipe={false} and count > 1', async () => {
+      const panSpy = jest.spyOn(Gesture, 'Pan')
+      const tapSpy = jest.spyOn(Gesture, 'Tap')
+      const exclusiveSpy = jest.spyOn(Gesture, 'Exclusive')
+
+      const { getByTestId } = await render(
+        <CardImageSwiper
+          images={[
+            'https://cdn.example.com/1.jpg',
+            'https://cdn.example.com/2.jpg',
+          ]}
+          cardWidth={312}
+          imageHeight={133}
+          disableImageSwipe={false}
+          onPress={jest.fn()}
+        />
+      )
+
+      expect(getByTestId('card-image-swipeable')).toBeTruthy()
+      expect(panSpy).toHaveBeenCalledTimes(1)
+      expect(tapSpy).toHaveBeenCalledTimes(1)
+      expect(exclusiveSpy).toHaveBeenCalledTimes(1)
+
+      panSpy.mockRestore()
+      tapSpy.mockRestore()
+      exclusiveSpy.mockRestore()
     })
   })
 })

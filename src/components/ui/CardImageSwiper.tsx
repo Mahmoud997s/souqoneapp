@@ -40,37 +40,68 @@ export interface CardImageSwiperProps {
   style?: StyleProp<ViewStyle>
 }
 
-/**
- * CardImageSwiper
- *
- * Zero-RTL-dependent image swiper for listing cards.
- * Replaces native ScrollView horizontal pagingEnabled with Gesture.Pan() and Reanimated.
- *
- * - Direct physical touch tracking: swiping right pulls right, swiping left pulls left.
- * - Paging snap: snaps cleanly to each image page.
- * - Physical pagination dots: aligned to physical right-to-left layout matching the images.
- * - Tap support: taps trigger onPress without conflicting with the swipe gesture.
- */
-export function CardImageSwiper({
+interface StaticCardImageProps {
+  primaryUri?: string
+  count: number
+  disableImageSwipe: boolean
+  containerHeightStyle: ViewStyle
+  onPress?: () => void
+  style?: StyleProp<ViewStyle>
+}
+
+function StaticCardImage({
+  primaryUri,
+  count,
+  disableImageSwipe,
+  containerHeightStyle,
+  onPress,
+  style,
+}: StaticCardImageProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.container, containerHeightStyle, style]}
+      testID={disableImageSwipe ? 'card-image-static' : 'card-image-single'}
+    >
+      <Image
+        source={{ uri: primaryUri }}
+        style={styles.imageFill}
+        contentFit="cover"
+        recyclingKey={primaryUri}
+        cachePolicy="memory-disk"
+        priority="high"
+      />
+      {count > 1 && (
+        <View style={styles.imageCountBadge}>
+          <Ionicons name="images-outline" size={11} color={Colors.white} />
+          <Text style={styles.imageCountText}>{count}</Text>
+        </View>
+      )}
+    </Pressable>
+  )
+}
+
+interface SwipeableCardImagesProps {
+  images: string[]
+  count: number
+  cardWidth: number
+  containerHeightStyle: ViewStyle
+  invertedGesture?: boolean
+  onPress?: () => void
+  onActiveIndexChange?: (index: number) => void
+  style?: StyleProp<ViewStyle>
+}
+
+function SwipeableCardImages({
   images,
-  imageCount,
+  count,
   cardWidth,
-  imageHeight,
-  fullWidth,
-  disableImageSwipe = false,
+  containerHeightStyle,
   invertedGesture,
   onPress,
   onActiveIndexChange,
   style,
-}: CardImageSwiperProps) {
-  const count = imageCount !== undefined ? imageCount : images.length
-
-  const containerHeightStyle = useMemo(() => {
-    if (imageHeight) return { height: imageHeight, aspectRatio: undefined }
-    if (fullWidth) return { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
-    return { height: CardSystem.aspectRatioHeight, aspectRatio: undefined }
-  }, [imageHeight, fullWidth])
-
+}: SwipeableCardImagesProps) {
   const { panGesture, animatedTrackStyle, activeIndex } = useGestureSwiper({
     count,
     step: cardWidth,
@@ -96,33 +127,6 @@ export function CardImageSwiper({
     return Gesture.Exclusive(panGesture, tapGesture)
   }, [panGesture, tapGesture, onPress])
 
-  // Case 1: Swipe disabled, single image, or container width not yet measured
-  if (disableImageSwipe || count <= 1 || cardWidth <= 0) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={[styles.container, containerHeightStyle, style]}
-        testID={disableImageSwipe ? 'card-image-static' : 'card-image-single'}
-      >
-        <Image
-          source={{ uri: images[0] }}
-          style={styles.imageFill}
-          contentFit="cover"
-          recyclingKey={images[0]}
-          cachePolicy="memory-disk"
-          priority="high"
-        />
-        {count > 1 && (
-          <View style={styles.imageCountBadge}>
-            <Ionicons name="images-outline" size={11} color={Colors.white} />
-            <Text style={styles.imageCountText}>{count}</Text>
-          </View>
-        )}
-      </Pressable>
-    )
-  }
-
-  // Case 2: Multi-image swipeable with Gesture.Pan() and Reanimated
   return (
     <GestureDetector gesture={composedGesture}>
       <View style={[styles.container, containerHeightStyle, style]} testID="card-image-swipeable">
@@ -171,6 +175,68 @@ export function CardImageSwiper({
         </View>
       </View>
     </GestureDetector>
+  )
+}
+
+/**
+ * CardImageSwiper
+ *
+ * Zero-RTL-dependent image swiper for listing cards.
+ * Replaces native ScrollView horizontal pagingEnabled with Gesture.Pan() and Reanimated.
+ *
+ * - Direct physical touch tracking: swiping right pulls right, swiping left pulls left.
+ * - Paging snap: snaps cleanly to each image page.
+ * - Physical pagination dots: aligned to physical right-to-left layout matching the images.
+ * - Tap support: taps trigger onPress without conflicting with the swipe gesture.
+ * - Static fast-path: when disableImageSwipe is true (or count <= 1 or cardWidth <= 0),
+ *   renders StaticCardImage without allocating any Gesture.Pan/Tap or Reanimated shared values.
+ */
+export function CardImageSwiper({
+  images,
+  imageCount,
+  cardWidth,
+  imageHeight,
+  fullWidth,
+  disableImageSwipe = false,
+  invertedGesture,
+  onPress,
+  onActiveIndexChange,
+  style,
+}: CardImageSwiperProps) {
+  const count = imageCount !== undefined ? imageCount : images.length
+
+  const containerHeightStyle = useMemo<ViewStyle>(() => {
+    if (imageHeight) return { height: imageHeight, aspectRatio: undefined }
+    if (fullWidth) return { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+    return { height: CardSystem.aspectRatioHeight, aspectRatio: undefined }
+  }, [imageHeight, fullWidth])
+
+  // Case 1: Swipe disabled, single image, or container width not yet measured
+  if (disableImageSwipe || count <= 1 || cardWidth <= 0) {
+    return (
+      <StaticCardImage
+        primaryUri={images[0]}
+        count={count}
+        disableImageSwipe={disableImageSwipe}
+        containerHeightStyle={containerHeightStyle}
+        onPress={onPress}
+        style={style}
+      />
+    )
+  }
+
+  // Case 2: Multi-image swipeable with Gesture.Pan() and Reanimated
+  return (
+    <SwipeableCardImages
+      images={images}
+      count={count}
+      cardWidth={cardWidth}
+      containerHeightStyle={containerHeightStyle}
+      invertedGesture={invertedGesture}
+      onPress={onPress}
+      onActiveIndexChange={onActiveIndexChange}
+      style={style}
+    />
   )
 }
 
