@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -35,7 +35,7 @@ export {
 }
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
-import { GlassSurface } from '../../src/components/navigation/glassSupport'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../../src/components/navigation/glassSupport'
 import { TopBarTokens } from '../../src/constants/topBarTokens'
 import { HomeCategoriesGrid } from '../../src/components/home/HomeCategoriesGrid'
 import { HomeAddListingBanner } from '../../src/components/home'
@@ -74,6 +74,18 @@ const { width: SW } = Dimensions.get('window')
 export const CARD_WIDTH = Math.round(SW * 0.6)
 const IMG_H = CardSystem.aspectRatioHeight // 140px
 
+export interface HomeCustomCardProps {
+  item: any
+  onPress: () => void
+  imageHeight?: number
+  compactBody?: boolean
+  disableImageSwipe?: boolean
+  fullWidth?: boolean
+  maxChips?: number
+  titleNumberOfLines?: number
+  glassSupport?: GlassSupport
+}
+
 export interface SectionProps {
   title: string
   subTitle?: string
@@ -83,17 +95,9 @@ export interface SectionProps {
   data: UnifiedCardItem[] | undefined
   isLoading: boolean
   routeBase: string
-  CustomCard: React.FC<{
-    item: any
-    onPress: () => void
-    imageHeight?: number
-    compactBody?: boolean
-    disableImageSwipe?: boolean
-    fullWidth?: boolean
-    maxChips?: number
-    titleNumberOfLines?: number
-  }>
+  CustomCard: React.ComponentType<HomeCustomCardProps>
   peek?: boolean
+  glassSupport?: GlassSupport
 }
 
 export const SECTION_ICON_BOX_SIZE = 32
@@ -101,7 +105,122 @@ export const SEE_ALL_PADDING_HORIZONTAL = 10
 export const SEE_ALL_PADDING_VERTICAL = 4
 export const SEE_ALL_GAP = 4
 
-export function CategorySection({
+export const HomeCarCard = memo(function HomeCarCard({
+  item,
+  onPress,
+  fullWidth,
+  imageHeight,
+  compactBody,
+  glassSupport,
+}: HomeCustomCardProps) {
+  return (
+    <CarCard
+      item={item as any}
+      onPress={onPress}
+      fullWidth={fullWidth ?? true}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      maxChips={4}
+      disableImageSwipe={true}
+      titleNumberOfLines={1}
+      glassSupport={glassSupport}
+    />
+  )
+})
+
+export const HomeServiceCard = memo(function HomeServiceCard({
+  item,
+  onPress,
+  fullWidth,
+  imageHeight,
+  compactBody,
+  glassSupport,
+}: HomeCustomCardProps) {
+  return (
+    <ServiceCard
+      item={item as any}
+      onPress={onPress}
+      fullWidth={fullWidth ?? true}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      maxChips={4}
+      disableImageSwipe={true}
+      titleNumberOfLines={1}
+      glassSupport={glassSupport}
+    />
+  )
+})
+
+export const HomePartCard = memo(function HomePartCard({
+  item,
+  onPress,
+  fullWidth,
+  imageHeight,
+  compactBody,
+  glassSupport,
+}: HomeCustomCardProps) {
+  return (
+    <PartCard
+      item={item as any}
+      onPress={onPress}
+      fullWidth={fullWidth ?? true}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      maxChips={4}
+      disableImageSwipe={true}
+      titleNumberOfLines={1}
+      glassSupport={glassSupport}
+    />
+  )
+})
+
+export const HomeBusCard = memo(function HomeBusCard({
+  item,
+  onPress,
+  fullWidth,
+  imageHeight,
+  compactBody,
+  glassSupport,
+}: HomeCustomCardProps) {
+  return (
+    <BusCard
+      item={item as any}
+      onPress={onPress}
+      fullWidth={fullWidth ?? true}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      maxChips={4}
+      disableImageSwipe={true}
+      titleNumberOfLines={1}
+      glassSupport={glassSupport}
+    />
+  )
+})
+
+export const HomeEquipCard = memo(function HomeEquipCard({
+  item,
+  onPress,
+  fullWidth,
+  imageHeight,
+  compactBody,
+  glassSupport,
+}: HomeCustomCardProps) {
+  return (
+    <EquipCard
+      item={item as any}
+      onPress={onPress}
+      fullWidth={fullWidth ?? true}
+      imageHeight={imageHeight}
+      compactBody={compactBody}
+      maxChips={4}
+      disableImageSwipe={true}
+      titleNumberOfLines={1}
+      glassSupport={glassSupport}
+    />
+  )
+})
+
+export const CategorySection = memo(function CategorySection({
   title,
   subTitle,
   icon,
@@ -112,14 +231,37 @@ export function CategorySection({
   routeBase,
   CustomCard,
   peek = false,
+  glassSupport,
 }: SectionProps) {
-  if (!isLoading && (!data || data.length === 0)) return null
-
   const sectionCardWidth = peek ? getPeekCardWidth(SW) : CARD_WIDTH
   const sectionGap = peek ? CARS_PEEK_GAP : Spacing.space3
   const sectionPaddingEnd = peek ? getPeekLeadingInset() : Spacing.space5
   const sectionPaging = peek
   const sectionShowDots = peek
+
+  const handleSeeAll = useCallback(() => {
+    router.push(seeAllRoute as Parameters<typeof router.push>[0])
+  }, [seeAllRoute])
+
+  const renderLoadedItem = useCallback(
+    ({ item }: { item: UnifiedCardItem }) => (
+      <View style={{ width: sectionCardWidth }}>
+        <CustomCard
+          item={item}
+          onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
+          disableImageSwipe={true}
+          titleNumberOfLines={1}
+          fullWidth={peek}
+          imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
+          compactBody={peek}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [CustomCard, glassSupport, peek, routeBase, sectionCardWidth]
+  )
+
+  if (!isLoading && (!data || data.length === 0)) return null
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)} testID={`home-section-${routeBase}`}>
@@ -141,7 +283,7 @@ export function CategorySection({
         <TouchableOpacity
           testID={`home-section-see-all-${routeBase}`}
           style={s.seeAllBtn}
-          onPress={() => router.push(seeAllRoute as Parameters<typeof router.push>[0])}
+          onPress={handleSeeAll}
           activeOpacity={0.8}
         >
           <Text style={s.seeAll}>الكل</Text>
@@ -181,31 +323,20 @@ export function CategorySection({
           showDots={sectionShowDots}
           depthEffect={peek}
           keyExtractor={(item) => item.id}
-          onSeeAll={() => router.push(seeAllRoute as any)}
+          onSeeAll={handleSeeAll}
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`تصفح جميع ${title}`}
-          renderItem={({ item }) => (
-            <View style={{ width: sectionCardWidth }}>
-              <CustomCard
-                item={item}
-                onPress={() => router.push(`/${routeBase}/${item.id}` as any)}
-                disableImageSwipe={true}
-                titleNumberOfLines={1}
-                fullWidth={peek}
-                imageHeight={peek ? CARS_PEEK_IMAGE_HEIGHT : undefined}
-                compactBody={peek}
-              />
-            </View>
-          )}
+          renderItem={renderLoadedItem}
         />
       )}
     </Animated.View>
   )
-}
+})
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuthStore()
+  const glassSupport = useGlassSupport()
 
   const { data: listings, isLoading: loadingListings } = useListings({ limit: 8 })
   const { data: services,  isLoading: loadingServices  } = useServices({ limit: 8 })
@@ -217,21 +348,52 @@ export default function HomeScreen() {
   const { navHidden } = useNavVisibility()
 
   // Actions
-  const handlePost = () => {
+  const handlePost = useCallback(() => {
     if (!user) {
       router.push('/(auth)/login' as any)
       return
     }
     router.push('/(modals)/post-category' as any)
-  }
+  }, [user])
 
-  const handleChat = () => {
+  const handleChat = useCallback(() => {
     if (!user) {
       router.push('/(auth)/login')
       return
     }
     router.push('/(tabs)/chat')
-  }
+  }, [user])
+
+  const handleSearch = useCallback(() => {
+    router.push('/(tabs)/search')
+  }, [])
+
+  const handleNotifications = useCallback(() => {
+    router.push('/profile/notifications')
+  }, [])
+
+  const brandRightElement = useMemo(
+    () => (
+      <View style={s.brandIconBtn} testID="home-brand-icon-btn">
+        <View
+          pointerEvents="none"
+          testID="home-brand-icon-btn-backing"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+          ]}
+        />
+        <GlassSurface
+          testID="home-brand-icon-btn"
+          borderRadius={TopBarTokens.buttonRadius}
+          washColor={TopBarTokens.iceGlass}
+          support={glassSupport}
+        />
+        <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
+      </View>
+    ),
+    [glassSupport]
+  )
 
   const userName = user?.displayName || user?.username || 'ضيف'
 
@@ -242,32 +404,16 @@ export default function HomeScreen() {
       <AnimatedHeroHeader
         scrollY={scrollY}
         hideBackButton
-        rightElement={
-          <View style={s.brandIconBtn} testID="home-brand-icon-btn">
-            <View
-              pointerEvents="none"
-              testID="home-brand-icon-btn-backing"
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
-              ]}
-            />
-            <GlassSurface
-              testID="home-brand-icon-btn"
-              borderRadius={TopBarTokens.buttonRadius}
-              washColor={TopBarTokens.iceGlass}
-            />
-            <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
-          </View>
-        }
+        glassSupport={glassSupport}
+        rightElement={brandRightElement}
         title="ســوق ون"
         titleAccent={`أهلاً بك، ${userName} 👋`}
         heroSearchPlaceholder="عن ماذا تبحث اليوم؟ (سيارات، معدات، قطع غيار...)"
-        onHeroSearchPress={() => router.push('/(tabs)/search')}
+        onHeroSearchPress={handleSearch}
         navSearchPlaceholder="عن ماذا تبحث اليوم؟"
-        onNavSearchPress={() => router.push('/(tabs)/search')}
+        onNavSearchPress={handleSearch}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications')}
+        onHeaderIconPress={handleNotifications}
         onChatPress={handleChat}
       />
 
@@ -287,7 +433,7 @@ export default function HomeScreen() {
 
 
         {/* ── OFFICIAL CATEGORIES GRID (Balanced 4x2) ── */}
-        <HomeCategoriesGrid />
+        <HomeCategoriesGrid support={glassSupport} />
 
         {/* ── SECTIONS (Scaled to 60% with Minimal Green Architecture, Cars with Peek Carousel D-164) ── */}
         <CategorySection
@@ -300,18 +446,8 @@ export default function HomeScreen() {
           data={listings}
           isLoading={loadingListings}
           routeBase="cars"
-          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
-            <CarCard
-              item={item as any}
-              onPress={onPress}
-              fullWidth={fullWidth ?? true}
-              imageHeight={imageHeight}
-              compactBody={compactBody}
-              maxChips={4}
-              disableImageSwipe={true}
-              titleNumberOfLines={1}
-            />
-          )}
+          CustomCard={HomeCarCard}
+          glassSupport={glassSupport}
         />
 
         <CategorySection
@@ -324,18 +460,8 @@ export default function HomeScreen() {
           data={services}
           isLoading={loadingServices}
           routeBase="services"
-          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
-            <ServiceCard
-              item={item as any}
-              onPress={onPress}
-              fullWidth={fullWidth ?? true}
-              imageHeight={imageHeight}
-              compactBody={compactBody}
-              maxChips={4}
-              disableImageSwipe={true}
-              titleNumberOfLines={1}
-            />
-          )}
+          CustomCard={HomeServiceCard}
+          glassSupport={glassSupport}
         />
 
         <CategorySection
@@ -348,18 +474,8 @@ export default function HomeScreen() {
           data={parts}
           isLoading={loadingParts}
           routeBase="parts"
-          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
-            <PartCard
-              item={item as any}
-              onPress={onPress}
-              fullWidth={fullWidth ?? true}
-              imageHeight={imageHeight}
-              compactBody={compactBody}
-              maxChips={4}
-              disableImageSwipe={true}
-              titleNumberOfLines={1}
-            />
-          )}
+          CustomCard={HomePartCard}
+          glassSupport={glassSupport}
         />
 
         <CategorySection
@@ -372,18 +488,8 @@ export default function HomeScreen() {
           data={buses}
           isLoading={loadingBuses}
           routeBase="buses"
-          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
-            <BusCard
-              item={item as any}
-              onPress={onPress}
-              fullWidth={fullWidth ?? true}
-              imageHeight={imageHeight}
-              compactBody={compactBody}
-              maxChips={4}
-              disableImageSwipe={true}
-              titleNumberOfLines={1}
-            />
-          )}
+          CustomCard={HomeBusCard}
+          glassSupport={glassSupport}
         />
 
         <CategorySection
@@ -396,21 +502,11 @@ export default function HomeScreen() {
           data={equipment}
           isLoading={loadingEquipment}
           routeBase="equipment"
-          CustomCard={({ item, onPress, fullWidth, imageHeight, compactBody }) => (
-            <EquipCard
-              item={item as any}
-              onPress={onPress}
-              fullWidth={fullWidth ?? true}
-              imageHeight={imageHeight}
-              compactBody={compactBody}
-              maxChips={4}
-              disableImageSwipe={true}
-              titleNumberOfLines={1}
-            />
-          )}
+          CustomCard={HomeEquipCard}
+          glassSupport={glassSupport}
         />
 
-        <HomeAddListingBanner onPress={handlePost} />
+        <HomeAddListingBanner onPress={handlePost} support={glassSupport} />
 
         {/* Need Help / Support Button */}
         <SupportHelpButton style={{ marginHorizontal: Spacing.space5, marginTop: Spacing.space2, marginBottom: Spacing.space6 }} />

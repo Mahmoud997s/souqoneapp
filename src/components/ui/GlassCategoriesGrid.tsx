@@ -90,7 +90,7 @@ export function GlassCategoriesGrid({
   containerStyle,
   support: supportProp,
 }: GlassCategoriesGridProps) {
-  const hookGlass = useGlassSupport()
+  const hookGlass = useGlassSupport(!supportProp)
   const glass = supportProp ?? hookGlass
 
   const isScrollable = scrollable ?? items.length > 5

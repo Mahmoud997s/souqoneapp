@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -6,15 +6,20 @@ import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { CardSystem } from '../../constants/cardSystem'
 import { TopBarTokens } from '../../constants/topBarTokens'
-import { GlassSurface } from '../navigation/glassSupport'
+import { GlassSurface, type GlassSupport } from '../navigation/glassSupport'
 import { HOME_BOTTOM_TOKENS, HOME_LISTING_CATEGORIES } from './homeBottomContent'
 
 export interface HomeAddListingBannerProps {
   onPress: () => void
   testID?: string
+  support?: GlassSupport
 }
 
-export function HomeAddListingBanner({ onPress, testID = 'home-add-listing-banner' }: HomeAddListingBannerProps) {
+export const HomeAddListingBanner = memo(function HomeAddListingBanner({
+  onPress,
+  testID = 'home-add-listing-banner',
+  support,
+}: HomeAddListingBannerProps) {
   return (
     <View testID={testID} style={styles.wrapper}>
       <View style={styles.card}>
@@ -25,6 +30,7 @@ export function HomeAddListingBanner({ onPress, testID = 'home-add-listing-banne
           tint={TopBarTokens.blurTint}
           washColor={HOME_BOTTOM_TOKENS.glassWashColor}
           washOpacity={0}
+          support={support}
         />
         <View pointerEvents="none" style={styles.glassTint} />
         <View style={styles.content}>
@@ -58,7 +64,7 @@ export function HomeAddListingBanner({ onPress, testID = 'home-add-listing-banne
       </View>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   wrapper: { marginHorizontal: Spacing.space5, marginTop: Spacing.space2 },

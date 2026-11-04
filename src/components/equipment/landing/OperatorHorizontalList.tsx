@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
+import { type GlassSupport } from '../../navigation/glassSupport'
 
 export const OPERATOR_SWIPER_WIDTH_RATIO = 0.65
 
@@ -27,9 +28,10 @@ interface Props {
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: any) => void
+  glassSupport?: GlassSupport
 }
 
-export function OperatorHorizontalList({
+export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   title,
   subTitle,
   data,
@@ -37,9 +39,22 @@ export function OperatorHorizontalList({
   emptyText,
   onSeeAll,
   onPressItem,
+  glassSupport,
 }: Props) {
   const { width: windowWidth } = useWindowDimensions()
   const cardWidth = Math.round(windowWidth * OPERATOR_SWIPER_WIDTH_RATIO)
+
+  const renderLoadedItem = useCallback(
+    ({ item }: { item: any }) => (
+      <View style={{ width: cardWidth }} testID="operator-swiper-item-wrapper">
+        <OperatorCard
+          item={item}
+          onPress={() => onPressItem(item)}
+        />
+      </View>
+    ),
+    [cardWidth, onPressItem]
+  )
 
   return (
     <View style={s.container}>
@@ -82,14 +97,7 @@ export function OperatorHorizontalList({
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: cardWidth }} testID="operator-swiper-item-wrapper">
-                <OperatorCard
-                  item={item}
-                  onPress={() => onPressItem(item)}
-                />
-              </View>
-            )}
+            renderItem={renderLoadedItem}
           />
         </View>
       ) : (
@@ -110,7 +118,7 @@ export function OperatorHorizontalList({
       )}
     </View>
   )
-}
+})
 
 const s = StyleSheet.create({
   container: {},

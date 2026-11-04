@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { View, StyleSheet, StatusBar } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -12,6 +12,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt'
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader'
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar'
+import { useGlassSupport } from '../../src/components/navigation/glassSupport'
 
 // Feature Components
 import { EquipmentCategoriesGrid } from '../../src/components/equipment/landing/EquipmentCategoriesGrid'
@@ -67,6 +68,20 @@ export default function EquipmentLandingScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { scrollHandler, scrollY } = useScrollAwareNav()
+  const glassSupport = useGlassSupport()
+
+  const handleAddEquip = useCallback(() => navigateToEquipmentForm('push'), [])
+  const handlePressEquip = useCallback((item: any) => router.push(`/equipment/${item.id}` as any), [router])
+  const handlePressOperator = useCallback((item: any) => router.push(`/equipment/operators/${item.id}` as any), [router])
+  const handleBrowseAll = useCallback(() => router.push('/equipment/browse' as any), [router])
+  const handleSeeAllSale = useCallback(() => router.push('/equipment/browse?type=sale' as any), [router])
+  const handleSeeAllRental = useCallback(() => router.push('/equipment/browse?type=rental' as any), [router])
+  const handleSeeAllOperators = useCallback(() => router.push('/equipment/operators/browse' as any), [router])
+  const handleNotifications = useCallback(() => router.push('/profile/notifications' as any), [router])
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) router.back()
+    else router.push('/')
+  }, [router])
 
   const [loadRest, setLoadRest] = useState(false)
   React.useEffect(() => {
@@ -102,29 +117,27 @@ export default function EquipmentLandingScreen() {
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
+        glassSupport={glassSupport}
         title="ســوق ون للمعدات"
         titleAccent="معدات ثقيلة وخفيفة ومشغلون معتمدون"
         navSearchPlaceholder="ابحث عن معدة أو مشغل..."
-        onNavSearchPress={() => router.push('/equipment/browse' as any)}
+        onNavSearchPress={handleBrowseAll}
         heroSearchPlaceholder="عن أي معدة أو مشغل تبحث؟"
-        onHeroSearchPress={() => router.push('/equipment/browse' as any)}
-        onBackPress={() => {
-          if (router.canGoBack()) router.back()
-          else router.push('/')
-        }}
+        onHeroSearchPress={handleBrowseAll}
+        onBackPress={handleBack}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        onHeaderIconPress={handleNotifications}
         primaryCta={{
           label: 'اعرض معدتك',
           icon: 'add',
-          onPress: () => navigateToEquipmentForm('push'),
+          onPress: handleAddEquip,
           bgColor: 'rgba(255,255,255,0.2)',
           textColor: Colors.white,
         }}
         outlineCta={{
           label: 'تصفح المعدات',
           icon: 'construct-outline',
-          onPress: () => router.push('/equipment/browse' as any),
+          onPress: handleBrowseAll,
         }}
       />
 
@@ -139,7 +152,7 @@ export default function EquipmentLandingScreen() {
         }}
       >
         <View style={s.content}>
-          <EquipmentCategoriesGrid />
+          <EquipmentCategoriesGrid support={glassSupport} />
 
           {/* أحدث المعدات */}
           <EquipmentHorizontalList
@@ -148,8 +161,9 @@ export default function EquipmentLandingScreen() {
             data={latestEquipment}
             isLoading={loadingEq}
             emptyText="لا توجد معدات مضافة حالياً"
-            onSeeAll={() => router.push('/equipment/browse' as any)}
-            onPressItem={(item) => router.push(`/equipment/${item.id}` as any)}
+            onSeeAll={handleBrowseAll}
+            onPressItem={handlePressEquip}
+            glassSupport={glassSupport}
           />
 
           {loadRest && (
@@ -161,8 +175,9 @@ export default function EquipmentLandingScreen() {
                 data={saleEquipment}
                 isLoading={loadingSale}
                 emptyText="لا توجد معدات للبيع حالياً"
-                onSeeAll={() => router.push('/equipment/browse?type=sale' as any)}
-                onPressItem={(item) => router.push(`/equipment/${item.id}` as any)}
+                onSeeAll={handleSeeAllSale}
+                onPressItem={handlePressEquip}
+                glassSupport={glassSupport}
               />
 
               {/* معدات للإيجار */}
@@ -172,8 +187,9 @@ export default function EquipmentLandingScreen() {
                 data={rentEquipment}
                 isLoading={loadingRent}
                 emptyText="لا توجد معدات للإيجار حالياً"
-                onSeeAll={() => router.push('/equipment/browse?type=rental' as any)}
-                onPressItem={(item) => router.push(`/equipment/${item.id}` as any)}
+                onSeeAll={handleSeeAllRental}
+                onPressItem={handlePressEquip}
+                glassSupport={glassSupport}
               />
 
               {/* أمهر المشغلين */}
@@ -183,8 +199,9 @@ export default function EquipmentLandingScreen() {
                 data={operators}
                 isLoading={loadingOp}
                 emptyText="لا يوجد مشغلين مسجلين حالياً"
-                onSeeAll={() => router.push('/equipment/operators/browse' as any)}
-                onPressItem={(item) => router.push(`/equipment/operators/${item.id}` as any)}
+                onSeeAll={handleSeeAllOperators}
+                onPressItem={handlePressOperator}
+                glassSupport={glassSupport}
               />
             </>
           )}
@@ -199,12 +216,12 @@ export default function EquipmentLandingScreen() {
             buttonText="أضف معدتك"
             iconName="construct-outline"
             iconImage={CATEGORY_ICONS.equipment}
-            onPress={() => navigateToEquipmentForm('push')}
+            onPress={handleAddEquip}
           />
         </View>
       </Animated.ScrollView>
 
-      <EquipmentBottomBar />
+      <EquipmentBottomBar glassSupport={glassSupport} />
     </View>
   )
 }

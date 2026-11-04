@@ -1,49 +1,57 @@
-import React from 'react'
+import React, { memo, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
+import { type GlassSupport } from '../navigation/glassSupport'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
 } from '../ui/GlassCategoriesGrid'
 
-export const CategoriesGrid = () => {
+export const CategoriesGrid = memo(function CategoriesGrid({
+  support,
+}: {
+  support?: GlassSupport
+} = {}) {
   const router = useRouter()
 
-  const tabs: GlassCategoryTabItem[] = [
-    {
-      id: 'new',
-      label: 'جديدة',
-      icon: 'sparkles',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=new' as any),
-    },
-    {
-      id: 'used',
-      label: 'مستعملة',
-      icon: 'car-sport',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=used' as any),
-    },
-    {
-      id: 'rental',
-      label: 'تأجير',
-      icon: 'key',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=rental' as any),
-    },
-    {
-      id: 'wanted',
-      label: 'مطلوب',
-      icon: 'megaphone',
-      iconBg: Colors.paleMint,
-      iconColor: Colors.primary,
-      onPress: () => router.push('/cars/browse?type=wanted' as any),
-    },
-  ]
+  const tabs: GlassCategoryTabItem[] = useMemo(
+    () => [
+      {
+        id: 'new',
+        label: 'جديدة',
+        icon: 'sparkles',
+        iconBg: Colors.paleMint,
+        iconColor: Colors.primary,
+        onPress: () => router.push('/cars/browse?type=new' as any),
+      },
+      {
+        id: 'used',
+        label: 'مستعملة',
+        icon: 'car-sport',
+        iconBg: Colors.paleMint,
+        iconColor: Colors.primary,
+        onPress: () => router.push('/cars/browse?type=used' as any),
+      },
+      {
+        id: 'rental',
+        label: 'تأجير',
+        icon: 'key',
+        iconBg: Colors.paleMint,
+        iconColor: Colors.primary,
+        onPress: () => router.push('/cars/browse?type=rental' as any),
+      },
+      {
+        id: 'wanted',
+        label: 'مطلوب',
+        icon: 'megaphone',
+        iconBg: Colors.paleMint,
+        iconColor: Colors.primary,
+        onPress: () => router.push('/cars/browse?type=wanted' as any),
+      },
+    ],
+    [router]
+  )
 
-  return <GlassCategoriesGrid items={tabs} />
-}
+  return <GlassCategoriesGrid items={tabs} support={support} />
+})
 

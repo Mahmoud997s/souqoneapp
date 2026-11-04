@@ -172,7 +172,7 @@ const CategoryTile = memo(function CategoryTile({
   )
 })
 
-export function HomeCategoriesGrid({
+export const HomeCategoriesGrid = memo(function HomeCategoriesGrid({
   reducedMotion: reducedMotionProp,
   support: supportProp,
 }: {
@@ -181,7 +181,7 @@ export function HomeCategoriesGrid({
 } = {}) {
   const hookReducedMotion = useAppReducedMotion()
   const reducedMotion = reducedMotionProp !== undefined ? reducedMotionProp : hookReducedMotion
-  const hookGlass = useGlassSupport()
+  const hookGlass = useGlassSupport(!supportProp)
   const glass = supportProp ?? hookGlass
 
   const handleNavigate = useCallback((route: string) => {
@@ -217,7 +217,7 @@ export function HomeCategoriesGrid({
       </View>
     </View>
   )
-}
+})
 
 const s = StyleSheet.create({
   container: {

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { Colors } from '../../src/constants/colors';
 import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
@@ -23,20 +24,33 @@ export default function PartsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
+  const glassSupport = useGlassSupport();
 
-  const handleAddPart = () => navigateToPartForm();
+  const handleAddPart = useCallback(() => navigateToPartForm(), []);
+  const handlePressPart = useCallback((item: any) => router.push(`/parts/${item.id}` as any), [router]);
+  const handleBrowseAll = useCallback(() => router.push('/parts/browse' as any), [router]);
+  const handleSeeAllOriginal = useCallback(() => router.push('/parts/browse?isOriginal=true' as any), [router]);
+  const handleNotifications = useCallback(() => router.push('/profile/notifications' as any), [router]);
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.push('/');
+  }, [router]);
 
 
   // Fetch Parts Data
   const { data: allParts = [], isLoading: loadingParts } = useParts({ limit: 15 });
   const { data: originalPartsData = [], isLoading: loadingOriginal } = useParts({ isOriginal: true, limit: 10 });
 
-  const featuredParts = allParts.slice(0, 5);
-  const newParts = allParts.slice(5, 15);
+  const featuredParts = useMemo(() => allParts.slice(0, 5), [allParts]);
+  const newParts = useMemo(() => allParts.slice(5, 15), [allParts]);
   // Fallback to client-side filtering if backend doesn't filter by param
-  const originalParts = originalPartsData.length > 0 
-    ? originalPartsData 
-    : allParts.filter(p => p.raw?.isOriginal === true || p.raw?.condition === 'NEW');
+  const originalParts = useMemo(
+    () =>
+      originalPartsData.length > 0
+        ? originalPartsData
+        : allParts.filter(p => p.raw?.isOriginal === true || p.raw?.condition === 'NEW'),
+    [allParts, originalPartsData]
+  );
 
   return (
     <View style={s.root}>
@@ -45,18 +59,16 @@ export default function PartsLandingScreen() {
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
+        glassSupport={glassSupport}
         title="ســوق ون لقطع الغيار"
         titleAccent="قطع أصلية وتجارية وسكراب بأفضل الأسعار"
         navSearchPlaceholder="ابحث عن قطعة غيار..."
-        onNavSearchPress={() => router.push('/parts/browse' as any)}
+        onNavSearchPress={handleBrowseAll}
         heroSearchPlaceholder="عن أي قطعة تبحث؟ (محرك، فحمات، كشاف...)"
-        onHeroSearchPress={() => router.push('/parts/browse' as any)}
-        onBackPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.push('/');
-        }}
+        onHeroSearchPress={handleBrowseAll}
+        onBackPress={handleBack}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        onHeaderIconPress={handleNotifications}
         primaryCta={{
           label: 'أضف قطعة غيار',
           icon: 'add-circle-outline',
@@ -67,7 +79,7 @@ export default function PartsLandingScreen() {
         outlineCta={{
           label: 'تصفح القطع',
           icon: 'search-outline',
-          onPress: () => router.push('/parts/browse' as any),
+          onPress: handleBrowseAll,
         }}
       />
 
@@ -79,7 +91,7 @@ export default function PartsLandingScreen() {
         contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
-          <PartsCategoriesGrid />
+          <PartsCategoriesGrid support={glassSupport} />
 
           <PartHorizontalList
             title="قطع غيار مميزة"
@@ -87,8 +99,9 @@ export default function PartsLandingScreen() {
             data={featuredParts}
             isLoading={loadingParts}
             emptyText="لا توجد قطع غيار مميزة حالياً"
-            onSeeAll={() => router.push('/parts/browse' as any)}
-            onPressItem={(item) => router.push(`/parts/${item.id}` as any)}
+            onSeeAll={handleBrowseAll}
+            onPressItem={handlePressPart}
+            glassSupport={glassSupport}
           />
 
           <PartHorizontalList
@@ -97,8 +110,9 @@ export default function PartsLandingScreen() {
             data={originalParts}
             isLoading={loadingOriginal && loadingParts}
             emptyText="لا توجد قطع غيار أصلية حالياً"
-            onSeeAll={() => router.push('/parts/browse?isOriginal=true' as any)}
-            onPressItem={(item) => router.push(`/parts/${item.id}` as any)}
+            onSeeAll={handleSeeAllOriginal}
+            onPressItem={handlePressPart}
+            glassSupport={glassSupport}
           />
 
           <PartHorizontalList
@@ -107,8 +121,9 @@ export default function PartsLandingScreen() {
             data={newParts}
             isLoading={loadingParts}
             emptyText="لا توجد قطع غيار حديثة"
-            onSeeAll={() => router.push('/parts/browse' as any)}
-            onPressItem={(item) => router.push(`/parts/${item.id}` as any)}
+            onSeeAll={handleBrowseAll}
+            onPressItem={handlePressPart}
+            glassSupport={glassSupport}
           />
 
           <PartsHowItWorks />
@@ -127,7 +142,7 @@ export default function PartsLandingScreen() {
       </Animated.ScrollView>
 
       {/* ═══════════════ FLOATING BOTTOM BAR ═══════════════ */}
-      <PartsBottomBar />
+      <PartsBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

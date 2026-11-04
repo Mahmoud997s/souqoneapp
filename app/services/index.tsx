@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 
@@ -28,10 +29,22 @@ export default function ServicesLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
+  const glassSupport = useGlassSupport();
 
-  const handleAddService = () => {
+  const handleAddService = useCallback(() => {
     navigateToServiceForm();
-  };
+  }, []);
+  const handlePressService = useCallback((item: any) => router.push(`/services/${item.id}` as any), [router]);
+  const handleBrowseAll = useCallback(() => router.push('/services/browse' as any), [router]);
+  const handleSeeAllHome = useCallback(() => router.push('/services/browse?isHomeService=true' as any), [router]);
+  const handleSeeAllMaintenance = useCallback(() => router.push('/services/browse?serviceType=MAINTENANCE' as any), [router]);
+  const handleSeeAllCleaning = useCallback(() => router.push('/services/browse?serviceType=CLEANING' as any), [router]);
+  const handleSeeAllOther = useCallback(() => router.push('/services/browse?serviceType=OTHER_SERVICE' as any), [router]);
+  const handleNotifications = useCallback(() => router.push('/profile/notifications' as any), [router]);
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.push('/');
+  }, [router]);
 
 
   // Data fetching logic
@@ -61,18 +74,16 @@ export default function ServicesLandingScreen() {
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
+        glassSupport={glassSupport}
         title="ســوق ون لخدمات السيارات"
         titleAccent="صيانة، فحص، وغسيل"
         navSearchPlaceholder="ابحث عن خدمة..."
-        onNavSearchPress={() => router.push('/services/browse' as any)}
+        onNavSearchPress={handleBrowseAll}
         heroSearchPlaceholder="عن أي خدمة تبحث؟"
-        onHeroSearchPress={() => router.push('/services/browse' as any)}
-        onBackPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.push('/');
-        }}
+        onHeroSearchPress={handleBrowseAll}
+        onBackPress={handleBack}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        onHeaderIconPress={handleNotifications}
         primaryCta={{
           label: 'أضف خدمة',
           icon: 'add',
@@ -83,7 +94,7 @@ export default function ServicesLandingScreen() {
         outlineCta={{
           label: 'تصفح المراكز',
           icon: 'business-outline',
-          onPress: () => router.push('/services/browse' as any)
+          onPress: handleBrowseAll
         }}
       />
 
@@ -98,7 +109,7 @@ export default function ServicesLandingScreen() {
         }}
       >
         <View style={s.content}>
-          <ServicesCategoriesGrid />
+          <ServicesCategoriesGrid support={glassSupport} />
 
           {isError && !loadingData ? (
             <ActionBanner 
@@ -117,8 +128,9 @@ export default function ServicesLandingScreen() {
                 data={homeServices}
                 isLoading={loadingData}
                 emptyText="لا توجد خدمات متنقلة حالياً"
-                onSeeAll={() => router.push('/services/browse?isHomeService=true' as any)}
-                onPressItem={(item) => router.push(`/services/${item.id}` as any)}
+                onSeeAll={handleSeeAllHome}
+                onPressItem={handlePressService}
+                glassSupport={glassSupport}
               />
 
               {loadRest && (
@@ -129,8 +141,9 @@ export default function ServicesLandingScreen() {
                     data={maintenanceServices}
                     isLoading={loadingMaintenance}
                     emptyText="لا توجد خدمات صيانة حالياً"
-                    onSeeAll={() => router.push('/services/browse?serviceType=MAINTENANCE' as any)}
-                    onPressItem={(item) => router.push(`/services/${item.id}` as any)}
+                    onSeeAll={handleSeeAllMaintenance}
+                    onPressItem={handlePressService}
+                    glassSupport={glassSupport}
                   />
 
                   <ServiceHorizontalList
@@ -139,8 +152,9 @@ export default function ServicesLandingScreen() {
                     data={cleaningServices}
                     isLoading={loadingCleaning}
                     emptyText="لا توجد خدمات غسيل حالياً"
-                    onSeeAll={() => router.push('/services/browse?serviceType=CLEANING' as any)}
-                    onPressItem={(item) => router.push(`/services/${item.id}` as any)}
+                    onSeeAll={handleSeeAllCleaning}
+                    onPressItem={handlePressService}
+                    glassSupport={glassSupport}
                   />
 
                   <ServiceHorizontalList
@@ -149,8 +163,9 @@ export default function ServicesLandingScreen() {
                     data={otherServices}
                     isLoading={loadingOther}
                     emptyText="لا توجد خدمات حالياً"
-                    onSeeAll={() => router.push('/services/browse?serviceType=OTHER_SERVICE' as any)}
-                    onPressItem={(item) => router.push(`/services/${item.id}` as any)}
+                    onSeeAll={handleSeeAllOther}
+                    onPressItem={handlePressService}
+                    glassSupport={glassSupport}
                   />
                 </>
               )}
@@ -172,7 +187,7 @@ export default function ServicesLandingScreen() {
         </View>
       </Animated.ScrollView>
 
-      <ServicesBottomBar />
+      <ServicesBottomBar glassSupport={glassSupport} />
 
     </View>
   );

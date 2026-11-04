@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { GlassSurface } from '../navigation/glassSupport';
+import { GlassSurface, type GlassSupport } from '../navigation/glassSupport';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import Animated, {
@@ -62,6 +62,7 @@ export interface AnimatedHeroHeaderProps {
     onPress: () => void;
     textColor?: string;
   };
+  glassSupport?: GlassSupport;
 }
 
 export const SCROLL_THRESHOLD = 5;
@@ -102,6 +103,7 @@ export function AnimatedHeroHeader({
   onHeaderIconPress,
   headerIconBadgeCount = 0,
   primaryCta,
+  glassSupport,
 }: AnimatedHeroHeaderProps) {
   const insets = useSafeAreaInsets();
   const topPad = insets.top > 0 ? insets.top : 12;
@@ -256,6 +258,7 @@ export function AnimatedHeroHeader({
           variant="surface"
           noBorder
           intensity={65}
+          support={glassSupport}
         />
         <View style={s.tintOverlay} pointerEvents="none" />
 
@@ -295,6 +298,7 @@ export function AnimatedHeroHeader({
                 testID="hero-header-back-btn"
                 borderRadius={TopBarTokens.buttonRadius}
                 washColor={TopBarTokens.iceGlass}
+                support={glassSupport}
               />
               <Ionicons name="arrow-forward-outline" size={19} color={Colors.primary} />
             </TouchableOpacity>
@@ -347,6 +351,7 @@ export function AnimatedHeroHeader({
                   testID="hero-header-compact-search"
                   borderRadius={TopBarTokens.searchRadius}
                   washColor={TopBarTokens.iceGlass}
+                  support={glassSupport}
                 />
                 <Ionicons name="search" size={16} color={Colors.primary} style={{ opacity: 0.8 }} />
                 <Text style={s.compactSearchTxt} numberOfLines={1}>
@@ -365,6 +370,7 @@ export function AnimatedHeroHeader({
                     testID="hero-header-compact-filter-btn"
                     borderRadius={14}
                     washColor={TopBarTokens.iceGlass}
+                    support={glassSupport}
                   />
                   <Ionicons name="options-outline" size={14} color={Colors.primary} />
                 </View>
@@ -401,6 +407,7 @@ export function AnimatedHeroHeader({
                     testID="hero-header-chat-btn"
                     borderRadius={TopBarTokens.buttonRadius}
                     washColor={TopBarTokens.iceGlass}
+                    support={glassSupport}
                   />
                   <Ionicons name={chatIcon || 'chatbubble-ellipses-outline'} size={19} color={Colors.primary} />
                 </TouchableOpacity>
@@ -429,6 +436,7 @@ export function AnimatedHeroHeader({
                 testID="hero-header-notification-btn"
                 borderRadius={TopBarTokens.buttonRadius}
                 washColor={TopBarTokens.iceGlass}
+                support={glassSupport}
               />
               <Ionicons name={headerIcon} size={19} color={Colors.primary} />
               <View style={s.greenDot} />
@@ -457,6 +465,7 @@ export function AnimatedHeroHeader({
                 testID="hero-header-large-search"
                 borderRadius={Radius.md}
                 washColor={TopBarTokens.iceGlass}
+                support={glassSupport}
               />
               <Ionicons name="search" size={18} color={Colors.primary} style={{ opacity: 0.8 }} />
               <Text style={s.searchPlaceholder} numberOfLines={1}>
@@ -475,6 +484,7 @@ export function AnimatedHeroHeader({
                   testID="hero-header-large-filter-btn"
                   borderRadius={Radius.sm}
                   washColor={TopBarTokens.iceGlass}
+                  support={glassSupport}
                 />
                 <Ionicons name="options-outline" size={16} color={Colors.primary} />
               </View>

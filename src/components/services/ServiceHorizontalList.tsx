@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -9,6 +9,7 @@ import { SkeletonCard } from '../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../ui/HorizontalScrollCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
+import { type GlassSupport } from '../navigation/glassSupport'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -18,14 +19,15 @@ import {
 
 const CARD_WIDTH = getPeekCardWidth()
 
-export const ServiceHorizontalList = ({ 
+export const ServiceHorizontalList = memo(function ServiceHorizontalList({ 
   title, 
   subTitle, 
   data, 
   isLoading, 
   emptyText, 
   onSeeAll, 
-  onPressItem 
+  onPressItem,
+  glassSupport,
 }: { 
   title: string, 
   subTitle?: string, 
@@ -33,8 +35,28 @@ export const ServiceHorizontalList = ({
   isLoading: boolean, 
   emptyText: string, 
   onSeeAll: () => void, 
-  onPressItem: (item: any) => void 
-}) => {
+  onPressItem: (item: any) => void,
+  glassSupport?: GlassSupport,
+}) {
+  const renderLoadedItem = useCallback(
+    ({ item }: { item: any }) => (
+      <View style={{ width: CARD_WIDTH }}>
+        <ServiceCard
+          item={item}
+          onPress={() => onPressItem(item)}
+          fullWidth={true}
+          imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+          compactBody={true}
+          maxChips={4}
+          disableImageSwipe={true}
+          titleNumberOfLines={1}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [onPressItem, glassSupport]
+  )
+
   return (
     <View style={s.container}>
       <View style={s.header}>
@@ -86,20 +108,7 @@ export const ServiceHorizontalList = ({
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH }}>
-                <ServiceCard
-                  item={item}
-                  onPress={() => onPressItem(item)}
-                  fullWidth={true}
-                  imageHeight={CARS_PEEK_IMAGE_HEIGHT}
-                  compactBody={true}
-                  maxChips={4}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              </View>
-            )}
+            renderItem={renderLoadedItem}
           />
         </View>
       ) : (
@@ -120,7 +129,7 @@ export const ServiceHorizontalList = ({
       )}
     </View>
   )
-}
+})
 
 const s = StyleSheet.create({
   container: {},

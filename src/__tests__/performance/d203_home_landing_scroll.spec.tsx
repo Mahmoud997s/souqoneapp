@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, I18nManager } from 'react-native'
+import { View, Text, StyleSheet, I18nManager, AccessibilityInfo } from 'react-native'
 import { render, act, fireEvent } from '@testing-library/react-native'
 import { Gesture } from 'react-native-gesture-handler'
 import {
@@ -10,6 +10,25 @@ import {
 import { CardImageSwiper } from '../../components/ui/CardImageSwiper'
 import { Spacing } from '../../constants/spacing'
 import { physicalRightStyle } from '../../utils/physicalDirection'
+import {
+  CategorySection,
+  HomeCarCard,
+  HomeServiceCard,
+  HomePartCard,
+  HomeBusCard,
+  HomeEquipCard,
+} from '../../../app/(tabs)/index'
+import { CarHorizontalList } from '../../components/cars/CarHorizontalList'
+import { BusHorizontalList } from '../../components/buses/landing/BusHorizontalList'
+import { EquipmentHorizontalList } from '../../components/equipment/landing/EquipmentHorizontalList'
+import { OperatorHorizontalList } from '../../components/equipment/landing/OperatorHorizontalList'
+import { PartHorizontalList } from '../../components/parts/PartHorizontalList'
+import { ServiceHorizontalList } from '../../components/services/ServiceHorizontalList'
+import { HomeCategoriesGrid } from '../../components/home/HomeCategoriesGrid'
+import { HomeAddListingBanner } from '../../components/home/HomeAddListingBanner'
+import { GlassCategoriesGrid } from '../../components/ui/GlassCategoriesGrid'
+import { AnimatedHeroHeader } from '../../components/ui/AnimatedHeroHeader'
+import { type GlassSupport } from '../../components/navigation/glassSupport'
 
 describe('D-203 Home + Landing Scroll Safe Fixes', () => {
   describe('Item 1: HorizontalScrollCard windowing while preserving slot geometry', () => {
@@ -207,6 +226,145 @@ describe('D-203 Home + Landing Scroll Safe Fixes', () => {
       panSpy.mockRestore()
       tapSpy.mockRestore()
       exclusiveSpy.mockRestore()
+    })
+  })
+
+  describe('Item 3: Memoized sections/lists, stable Home card components, and single glassSupport per screen', () => {
+    const sharedGlassSupport: GlassSupport = {
+      kind: 'blur',
+    }
+
+    it('wraps CategorySection, Home*Card components, and all 6 landing HorizontalLists in React.memo', () => {
+      const reactMemoSymbol = Symbol.for('react.memo')
+      expect((CategorySection as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeCarCard as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeServiceCard as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomePartCard as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeBusCard as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeEquipCard as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+
+      expect((CarHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((BusHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((EquipmentHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((OperatorHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((PartHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((ServiceHorizontalList as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeCategoriesGrid as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+      expect((HomeAddListingBanner as unknown as { $$typeof?: symbol }).$$typeof).toBe(reactMemoSymbol)
+    })
+
+    it('does NOT subscribe to AccessibilityInfo.addEventListener in HomeCategoriesGrid, GlassCategoriesGrid, AnimatedHeroHeader, or HomeAddListingBanner when shared glassSupport is passed', async () => {
+      const addListenerSpy = jest
+        .spyOn(AccessibilityInfo, 'addEventListener')
+        .mockReturnValue({ remove: jest.fn() } as never)
+      const isReduceSpy = jest
+        .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
+        .mockResolvedValue(false)
+
+      await render(
+        <View>
+          <AnimatedHeroHeader
+            title="ســوق ون"
+            titleAccent="أهلاً بك"
+            hideBackButton
+            glassSupport={sharedGlassSupport}
+          />
+          <HomeCategoriesGrid support={sharedGlassSupport} reducedMotion={false} />
+          <GlassCategoriesGrid
+            items={[
+              {
+                id: 'new',
+                label: 'جديدة',
+                icon: 'sparkles',
+                iconBg: '#E6F4F1',
+                iconColor: '#0A6847',
+                onPress: jest.fn(),
+              },
+            ]}
+            support={sharedGlassSupport}
+          />
+          <HomeAddListingBanner onPress={jest.fn()} support={sharedGlassSupport} />
+        </View>
+      )
+
+      const transparencyListeners = addListenerSpy.mock.calls.filter(
+        (call) => String(call[0]) === 'reduceTransparencyChanged'
+      )
+      expect(transparencyListeners).toHaveLength(0)
+      expect(isReduceSpy).not.toHaveBeenCalled()
+
+      addListenerSpy.mockRestore()
+      isReduceSpy.mockRestore()
+    })
+
+    it('skips CategorySection re-render when props are unchanged, and re-renders card when item reference changes (e.g. status/favorite update)', async () => {
+      const cardRenderSpy = jest.fn(({ item }: { item: { id: string; title: string } }) => (
+        <View testID={`custom-card-${item.id}`}>
+          <Text>{item.title}</Text>
+        </View>
+      ))
+      const MemoCustomCard = React.memo(cardRenderSpy)
+
+      const initialItems = [
+        { id: 'c1', title: 'Car 1' },
+        { id: 'c2', title: 'Car 2' },
+      ]
+
+      const { rerender, getByText } = await render(
+        <CategorySection
+          peek={true}
+          title="أحدث إعلانات السيارات"
+          subTitle="أفضل عروض البيع"
+          icon="car-sports"
+          seeAllRoute="/cars/browse"
+          data={initialItems as never}
+          isLoading={false}
+          routeBase="cars"
+          CustomCard={MemoCustomCard as never}
+          glassSupport={sharedGlassSupport}
+        />
+      )
+
+      expect(cardRenderSpy).toHaveBeenCalledTimes(2)
+      expect(getByText('Car 1')).toBeTruthy()
+
+      // Re-rendering parent with identical props skips CategorySection and CustomCard re-render
+      await rerender(
+        <CategorySection
+          peek={true}
+          title="أحدث إعلانات السيارات"
+          subTitle="أفضل عروض البيع"
+          icon="car-sports"
+          seeAllRoute="/cars/browse"
+          data={initialItems as never}
+          isLoading={false}
+          routeBase="cars"
+          CustomCard={MemoCustomCard as never}
+          glassSupport={sharedGlassSupport}
+        />
+      )
+      expect(cardRenderSpy).toHaveBeenCalledTimes(2)
+
+      // Updating item c1 (e.g. title/status update) re-renders only c1 while c2 stays memoized
+      const updatedItems = [
+        { id: 'c1', title: 'Car 1 Updated' },
+        initialItems[1],
+      ]
+      await rerender(
+        <CategorySection
+          peek={true}
+          title="أحدث إعلانات السيارات"
+          subTitle="أفضل عروض البيع"
+          icon="car-sports"
+          seeAllRoute="/cars/browse"
+          data={updatedItems as never}
+          isLoading={false}
+          routeBase="cars"
+          CustomCard={MemoCustomCard as never}
+          glassSupport={sharedGlassSupport}
+        />
+      )
+      expect(getByText('Car 1 Updated')).toBeTruthy()
     })
   })
 })

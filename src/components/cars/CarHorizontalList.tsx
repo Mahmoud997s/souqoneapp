@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -9,6 +9,7 @@ import { SkeletonCard } from '../ui/SkeletonCard'
 import { CarCard } from './CarCard'
 import { EmptyState } from '../ui/EmptyState'
 import { CardSystem } from '../../constants/cardSystem'
+import { type GlassSupport } from '../navigation/glassSupport'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -25,11 +26,12 @@ interface CarHorizontalListProps {
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: Listing) => void
+  glassSupport?: GlassSupport
 }
 
 const CARD_WIDTH = getPeekCardWidth()
 
-export const CarHorizontalList = ({
+export const CarHorizontalList = memo(function CarHorizontalList({
   title,
   subTitle,
   data,
@@ -37,7 +39,27 @@ export const CarHorizontalList = ({
   emptyText,
   onSeeAll,
   onPressItem,
-}: CarHorizontalListProps) => {
+  glassSupport,
+}: CarHorizontalListProps) {
+  const renderLoadedItem = useCallback(
+    ({ item }: { item: Listing }) => (
+      <View style={{ width: CARD_WIDTH }}>
+        <CarCard
+          item={item}
+          onPress={() => onPressItem(item)}
+          fullWidth={true}
+          imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+          compactBody={true}
+          maxChips={4}
+          disableImageSwipe={true}
+          titleNumberOfLines={1}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [onPressItem, glassSupport]
+  )
+
   return (
     <View style={s.container}>
       <View style={s.sectionHeader}>
@@ -89,20 +111,7 @@ export const CarHorizontalList = ({
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH }}>
-                <CarCard
-                  item={item}
-                  onPress={() => onPressItem(item)}
-                  fullWidth={true}
-                  imageHeight={CARS_PEEK_IMAGE_HEIGHT}
-                  compactBody={true}
-                  maxChips={4}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              </View>
-            )}
+            renderItem={renderLoadedItem}
           />
         </View>
       ) : (
@@ -123,7 +132,7 @@ export const CarHorizontalList = ({
       )}
     </View>
   )
-}
+})
 
 const s = StyleSheet.create({
   container: {},
