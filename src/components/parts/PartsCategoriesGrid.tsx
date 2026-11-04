@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { memo, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
+import { type GlassSupport } from '../navigation/glassSupport'
 import {
   GlassCategoriesGrid,
   GlassCategoryTabItem,
@@ -29,26 +30,32 @@ export const PARTS_LANDING_CATEGORIES: PartsLandingCategoryItem[] = [
   { id: 'all', label: 'عرض الكل', icon: 'view-grid', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
 ]
 
-export const PartsCategoriesGrid = () => {
+export const PartsCategoriesGrid = memo(function PartsCategoriesGrid({
+  support,
+}: {
+  support?: GlassSupport
+} = {}) {
   const router = useRouter()
 
-  const handlePress = (id: string) => {
-    if (id === 'all') {
-      router.push('/parts/browse' as never)
-    } else {
-      router.push(`/parts/browse?category=${id}` as never)
-    }
-  }
+  const tabs: GlassCategoryTabItem[] = useMemo(
+    () =>
+      PARTS_LANDING_CATEGORIES.map((cat) => ({
+        id: cat.id,
+        label: cat.label,
+        icon: cat.icon,
+        iconType: cat.iconType,
+        iconColor: cat.color,
+        iconBg: cat.bg,
+        onPress: () => {
+          if (cat.id === 'all') {
+            router.push('/parts/browse' as never)
+          } else {
+            router.push(`/parts/browse?category=${cat.id}` as never)
+          }
+        },
+      })),
+    [router]
+  )
 
-  const tabs: GlassCategoryTabItem[] = PARTS_LANDING_CATEGORIES.map((cat) => ({
-    id: cat.id,
-    label: cat.label,
-    icon: cat.icon,
-    iconType: cat.iconType,
-    iconColor: cat.color,
-    iconBg: cat.bg,
-    onPress: () => handlePress(cat.id),
-  }))
-
-  return <GlassCategoriesGrid items={tabs} scrollable />
-}
+  return <GlassCategoriesGrid items={tabs} scrollable support={support} />
+})

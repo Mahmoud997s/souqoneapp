@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { Colors } from '../../src/constants/colors';
 import { Gradients } from '../../src/constants/gradients';
 import { Spacing } from '../../src/constants/spacing';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 
 // Feature Components
 import { BusCategoriesGrid } from '../../src/components/buses/landing/BusCategoriesGrid';
@@ -26,6 +27,21 @@ export default function BusesLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
+  const glassSupport = useGlassSupport();
+
+  const handleAddBus = useCallback(() => navigateToBusForm(), []);
+  const handlePressBus = useCallback((item: any) => router.push(`/buses/${item.id}` as any), [router]);
+  const handleBrowseAll = useCallback(() => router.push('/buses/browse' as any), [router]);
+  const handleSeeAllNewest = useCallback(() => router.push('/buses/browse?sort=newest'), [router]);
+  const handleSeeAllPremium = useCallback(() => router.push('/buses/browse?isPremium=true'), [router]);
+  const handleSeeAllSale = useCallback(() => router.push('/buses/browse?busListingType=BUS_SALE'), [router]);
+  const handleSeeAllContract = useCallback(() => router.push('/buses/browse?busListingType=BUS_SALE_WITH_CONTRACT'), [router]);
+  const handleSeeAllRent = useCallback(() => router.push('/buses/browse?busListingType=BUS_RENT'), [router]);
+  const handleNotifications = useCallback(() => router.push('/profile/notifications' as any), [router]);
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.push('/');
+  }, [router]);
 
   const [loadRest, setLoadRest] = useState(false);
   React.useEffect(() => {
@@ -69,29 +85,27 @@ export default function BusesLandingScreen() {
       {/* ── STICKY HEADER ── */}
       <AnimatedHeroHeader
         scrollY={scrollY}
+        glassSupport={glassSupport}
         title="ســوق ون للحافلات"
         titleAccent="حافلات للبيع وللإيجار ونقل الركاب"
         navSearchPlaceholder="ابحث عن حافلة..."
-        onNavSearchPress={() => router.push('/buses/browse' as any)}
+        onNavSearchPress={handleBrowseAll}
         heroSearchPlaceholder="عن أي حافلة تبحث؟"
-        onHeroSearchPress={() => router.push('/buses/browse' as any)}
-        onBackPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.push('/');
-        }}
+        onHeroSearchPress={handleBrowseAll}
+        onBackPress={handleBack}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        onHeaderIconPress={handleNotifications}
         primaryCta={{
           label: 'اعرض حافلتك',
           icon: 'add',
-          onPress: () => navigateToBusForm(),
+          onPress: handleAddBus,
           bgColor: 'rgba(255,255,255,0.2)',
           textColor: Colors.white,
         }}
         outlineCta={{
           label: 'تصفح الحافلات',
           icon: 'bus-outline',
-          onPress: () => router.push('/buses/browse' as any),
+          onPress: handleBrowseAll,
         }}
       />
 
@@ -106,7 +120,7 @@ export default function BusesLandingScreen() {
         }}
       >
         <View style={s.content}>
-          <BusCategoriesGrid />
+          <BusCategoriesGrid support={glassSupport} />
 
           {/* LISTS */}
           {loadRest && (
@@ -117,8 +131,9 @@ export default function BusesLandingScreen() {
                 data={newestBuses}
                 isLoading={loadingNewest}
                 emptyText="لا توجد حافلات مضافة حالياً"
-                onSeeAll={() => router.push('/buses/browse?sort=newest')}
-                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                onSeeAll={handleSeeAllNewest}
+                onPressItem={handlePressBus}
+                glassSupport={glassSupport}
               />
 
               {premiumBuses.length > 0 && (
@@ -128,8 +143,9 @@ export default function BusesLandingScreen() {
                   data={premiumBuses}
                   isLoading={loadingNewest}
                   emptyText="لا توجد حافلات مميزة حالياً"
-                  onSeeAll={() => router.push('/buses/browse?isPremium=true')}
-                  onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                  onSeeAll={handleSeeAllPremium}
+                  onPressItem={handlePressBus}
+                  glassSupport={glassSupport}
                 />
               )}
 
@@ -139,8 +155,9 @@ export default function BusesLandingScreen() {
                 data={saleBuses}
                 isLoading={loadingSale}
                 emptyText="لا توجد حافلات للبيع حالياً"
-                onSeeAll={() => router.push('/buses/browse?busListingType=BUS_SALE')}
-                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                onSeeAll={handleSeeAllSale}
+                onPressItem={handlePressBus}
+                glassSupport={glassSupport}
               />
 
               <BusHorizontalList
@@ -149,8 +166,9 @@ export default function BusesLandingScreen() {
                 data={contractBuses}
                 isLoading={loadingContract}
                 emptyText="لا توجد حافلات للبيع بعقد حالياً"
-                onSeeAll={() => router.push('/buses/browse?busListingType=BUS_SALE_WITH_CONTRACT')}
-                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                onSeeAll={handleSeeAllContract}
+                onPressItem={handlePressBus}
+                glassSupport={glassSupport}
               />
 
               <BusHorizontalList
@@ -159,8 +177,9 @@ export default function BusesLandingScreen() {
                 data={rentBuses}
                 isLoading={loadingRent}
                 emptyText="لا توجد حافلات للإيجار حالياً"
-                onSeeAll={() => router.push('/buses/browse?busListingType=BUS_RENT')}
-                onPressItem={(item) => router.push(`/buses/${item.id}` as any)}
+                onSeeAll={handleSeeAllRent}
+                onPressItem={handlePressBus}
+                glassSupport={glassSupport}
               />
             </>
           )}
@@ -175,12 +194,12 @@ export default function BusesLandingScreen() {
             buttonText="أضف إعلانك"
             iconName="bus-outline"
             iconImage={CATEGORY_ICONS.buses}
-            onPress={() => navigateToBusForm()}
+            onPress={handleAddBus}
           />
         </View>
       </Animated.ScrollView>
 
-      <BusesBottomBar />
+      <BusesBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated from 'react-native-reanimated';
 
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
+import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Gradients } from '../../src/constants/gradients';
@@ -21,14 +22,26 @@ import { usePostStore } from '../../src/store/postStore';
 import { navigateToCarForm, showDraftResumePrompt, hasMeaningfulPostData } from '../../src/components/ui/DraftResumePrompt';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask';
+import { Listing } from '../../src/types/listing.types';
 
 export default function CarsLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { scrollHandler, scrollY } = useScrollAwareNav();
   const { set, reset } = usePostStore();
+  const glassSupport = useGlassSupport();
 
-  const handleAddCar = () => navigateToCarForm();
+  const handleAddCar = useCallback(() => navigateToCarForm(), []);
+  const handlePressCar = useCallback((item: Listing) => router.push(`/cars/${item.id}` as any), [router]);
+  const handleSeeAllSale = useCallback(() => router.push('/cars/browse?type=sale' as any), [router]);
+  const handleSeeAllRent = useCallback(() => router.push('/cars/browse?type=rent' as any), [router]);
+  const handleSeeAllWanted = useCallback(() => router.push('/cars/browse?type=wanted' as any), [router]);
+  const handleBrowseAll = useCallback(() => router.push('/cars/browse' as any), [router]);
+  const handleNotifications = useCallback(() => router.push('/profile/notifications' as any), [router]);
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.push('/');
+  }, [router]);
 
 
   // Data fetching logic
@@ -55,18 +68,16 @@ export default function CarsLandingScreen() {
       {/* ═══════════════ ANIMATED STICKY HEADER ═══════════════ */}
       <AnimatedHeroHeader
         scrollY={scrollY}
+        glassSupport={glassSupport}
         title="ســوق ون للسيارات"
         titleAccent="أفضل عروض وإعلانات السيارات"
         navSearchPlaceholder="ابحث عن سيارة..."
-        onNavSearchPress={() => router.push('/cars/browse' as any)}
+        onNavSearchPress={handleBrowseAll}
         heroSearchPlaceholder="عن أي سيارة تبحث؟"
-        onHeroSearchPress={() => router.push('/cars/browse' as any)}
-        onBackPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.push('/');
-        }}
+        onHeroSearchPress={handleBrowseAll}
+        onBackPress={handleBack}
         headerIcon="notifications-outline"
-        onHeaderIconPress={() => router.push('/profile/notifications' as any)}
+        onHeaderIconPress={handleNotifications}
         primaryCta={{
           label: 'اعرض سيارتك',
           icon: 'add',
@@ -77,7 +88,7 @@ export default function CarsLandingScreen() {
         outlineCta={{
           label: 'تصفح المعارض',
           icon: 'business-outline',
-          onPress: () => router.push('/cars/browse' as any)
+          onPress: handleBrowseAll
         }}
       />
 
@@ -92,7 +103,7 @@ export default function CarsLandingScreen() {
         }}
       >
         <View style={s.content}>
-          <CategoriesGrid />
+          <CategoriesGrid support={glassSupport} />
 
           {loadRest && (
             <>
@@ -102,8 +113,9 @@ export default function CarsLandingScreen() {
                 data={saleCars}
                 isLoading={loadingSale}
                 emptyText="لا توجد سيارات للبيع حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=sale' as any)}
-                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
+                onSeeAll={handleSeeAllSale}
+                onPressItem={handlePressCar}
+                glassSupport={glassSupport}
               />
 
               <CarHorizontalList
@@ -112,8 +124,9 @@ export default function CarsLandingScreen() {
                 data={rentCars}
                 isLoading={loadingRent}
                 emptyText="لا توجد سيارات للإيجار حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=rent' as any)}
-                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
+                onSeeAll={handleSeeAllRent}
+                onPressItem={handlePressCar}
+                glassSupport={glassSupport}
               />
 
               <CarHorizontalList
@@ -122,8 +135,9 @@ export default function CarsLandingScreen() {
                 data={wantedCars}
                 isLoading={loadingWanted}
                 emptyText="لا توجد سيارات مطلوبة حالياً"
-                onSeeAll={() => router.push('/cars/browse?type=wanted' as any)}
-                onPressItem={(item) => router.push(`/cars/${item.id}` as any)}
+                onSeeAll={handleSeeAllWanted}
+                onPressItem={handlePressCar}
+                glassSupport={glassSupport}
               />
             </>
           )}
@@ -143,7 +157,7 @@ export default function CarsLandingScreen() {
         </View>
       </Animated.ScrollView>
 
-      <CarsBottomBar />
+      <CarsBottomBar glassSupport={glassSupport} />
     </View>
   );
 }

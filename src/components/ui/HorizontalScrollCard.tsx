@@ -16,6 +16,23 @@ export const SIDE_SCALE = 0.88
 export const SIDE_TRANSLATE_Y = 14
 export const SIDE_OPACITY = 0.85
 export const SNAP_DURATION = 350
+export const HORIZONTAL_WINDOW_BUFFER = 2
+
+/**
+ * Pure windowing helper for HorizontalScrollCard.
+ * Mounts cards within [activeIndex - buffer, activeIndex + buffer] (with buffer = 2:
+ * the primary visible card `activeIndex`, the peeking second card `activeIndex + 1`,
+ * one full off-screen card `activeIndex + 2` ahead of the peek edge, and two trailing cards
+ * `activeIndex - 1`, `activeIndex - 2` behind) while keeping off-screen slots as lightweight
+ * positional placeholders.
+ */
+export function shouldMountHorizontalSlot(
+  index: number,
+  activeIndex: number,
+  buffer: number = HORIZONTAL_WINDOW_BUFFER
+): boolean {
+  return Math.abs(index - activeIndex) <= buffer
+}
 
 export interface CardDepthStyle {
   scale: number
@@ -276,6 +293,7 @@ export function HorizontalScrollCard<T>({
               // Index 1 is at right: paddingEnd + 1 * (cardWidth + gap)
               // This guarantees Card 0 is on the physical right regardless of I18nManager
               const rightOffset = paddingEnd + index * step
+              const isSlotMounted = shouldMountHorizontalSlot(index, activeIndex)
 
               return (
                 <HorizontalCardSlot
@@ -291,7 +309,7 @@ export function HorizontalScrollCard<T>({
                   reducedMotion={reducedMotion}
                   onLayout={index === 0 ? handleCardLayout : undefined}
                 >
-                  {renderItem({ item, index })}
+                  {isSlotMounted ? renderItem({ item, index }) : null}
                 </HorizontalCardSlot>
               )
             })}
@@ -310,17 +328,19 @@ export function HorizontalScrollCard<T>({
                 depthEffect={depthEffect}
                 reducedMotion={reducedMotion}
               >
-                {renderSeeAllCard ? (
-                  renderSeeAllCard()
-                ) : onSeeAll ? (
-                  <SeeAllHorizontalCard
-                    onPress={onSeeAll}
-                    title={seeAllTitle}
-                    subTitle={seeAllSubtitle}
-                    actionText={seeAllActionText}
-                    cardWidth={cardWidth}
-                    height={cardHeight || (measuredHeight ? measuredHeight - 8 : undefined)}
-                  />
+                {shouldMountHorizontalSlot(data.length, activeIndex) ? (
+                  renderSeeAllCard ? (
+                    renderSeeAllCard()
+                  ) : onSeeAll ? (
+                    <SeeAllHorizontalCard
+                      onPress={onSeeAll}
+                      title={seeAllTitle}
+                      subTitle={seeAllSubtitle}
+                      actionText={seeAllActionText}
+                      cardWidth={cardWidth}
+                      height={cardHeight || (measuredHeight ? measuredHeight - 8 : undefined)}
+                    />
+                  ) : null
                 ) : null}
               </HorizontalCardSlot>
             )}

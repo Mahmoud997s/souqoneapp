@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
+import { type GlassSupport } from '../../navigation/glassSupport'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -33,9 +34,10 @@ interface Props {
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: any) => void
+  glassSupport?: GlassSupport
 }
 
-export function EquipmentHorizontalList({
+export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
   title,
   subTitle,
   data,
@@ -43,7 +45,27 @@ export function EquipmentHorizontalList({
   emptyText,
   onSeeAll,
   onPressItem,
+  glassSupport,
 }: Props) {
+  const renderLoadedItem = useCallback(
+    ({ item }: { item: any }) => (
+      <View style={{ width: CARD_WIDTH }}>
+        <EquipCard
+          item={item}
+          onPress={() => onPressItem(item)}
+          fullWidth={true}
+          imageHeight={CARS_PEEK_IMAGE_HEIGHT}
+          compactBody={true}
+          maxChips={4}
+          disableImageSwipe={true}
+          titleNumberOfLines={1}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [onPressItem, glassSupport]
+  )
+
   return (
     <View style={s.container}>
       <View style={s.sectionHeader}>
@@ -95,20 +117,7 @@ export function EquipmentHorizontalList({
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
-            renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH }}>
-                <EquipCard
-                  item={item}
-                  onPress={() => onPressItem(item)}
-                  fullWidth={true}
-                  imageHeight={CARS_PEEK_IMAGE_HEIGHT}
-                  compactBody={true}
-                  maxChips={4}
-                  disableImageSwipe={true}
-                  titleNumberOfLines={1}
-                />
-              </View>
-            )}
+            renderItem={renderLoadedItem}
           />
         </View>
       ) : (
@@ -129,7 +138,7 @@ export function EquipmentHorizontalList({
       )}
     </View>
   )
-}
+})
 
 const s = StyleSheet.create({
   container: {},
