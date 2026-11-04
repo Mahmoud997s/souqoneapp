@@ -17,6 +17,7 @@ import Animated from 'react-native-reanimated'
 import { Colors } from '../../../src/constants/colors'
 import { Radius } from '../../../src/constants/radius'
 import { Spacing } from '../../../src/constants/spacing'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../../src/constants/listVirtualization'
 import { OperatorCard } from '../../../src/components/cards/OperatorCard'
 import { useOperatorsInfinite, useMyOperators } from '../../../src/hooks/useEquipment'
 import { useAuthStore } from '../../../src/store/authStore'
@@ -261,6 +262,7 @@ export default function BrowseOperatorsScreen() {
       {/* ═══════════════ 3. MAIN LIST ═══════════════ */}
       <Animated.FlatList
         ref={listRef}
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={operators}
         keyExtractor={(item) => item.id}
         onScroll={scrollHandler}

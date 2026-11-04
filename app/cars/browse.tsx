@@ -23,6 +23,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import {
   DROPDOWN_FILTERS,
   SORT_OPTIONS,
@@ -243,6 +244,7 @@ export default function CarsBrowseScreen() {
       <Animated.FlatList
         ref={flatListRef}
         key="list-1-column"
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={listings ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[

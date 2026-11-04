@@ -8,6 +8,7 @@ import Animated from 'react-native-reanimated'
 import { router } from 'expo-router'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../../constants/listVirtualization'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
@@ -71,6 +72,8 @@ export function MyListingsCategoryView({
 
   return (
     <Animated.FlatList
+      testID="my-listings-category-flat-list"
+      {...BROWSE_LIST_VIRTUALIZATION_PROPS}
       onScroll={onScroll}
       scrollEventThrottle={16}
       ListHeaderComponent={header}

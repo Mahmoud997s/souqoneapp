@@ -25,6 +25,7 @@ import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 import { EQUIPMENT_CONDITIONS } from '../../src/constants/equipment';
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import {
   buildEquipmentQueryParams,
   clearEquipmentFilter,
@@ -376,6 +377,7 @@ export default function EquipmentBrowseScreen() {
       ) : (
         <Animated.FlatList
           ref={listRef}
+          {...BROWSE_LIST_VIRTUALIZATION_PROPS}
           data={listings || []}
           keyExtractor={(item) => (item as any).id}
           contentContainerStyle={[

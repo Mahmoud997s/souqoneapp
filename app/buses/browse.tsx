@@ -16,6 +16,7 @@ import { useDebounce } from '../../src/hooks/useDebounce';
 import { locationsApi } from '../../src/api/locations';
 import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import {
   buildBusesQueryParams,
   clearBusesFilter,
@@ -314,6 +315,7 @@ export default function BusesBrowseScreen() {
       <Animated.FlatList
         ref={listRef}
         key="list-1-column"
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={listings ?? []}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={[

@@ -33,6 +33,7 @@ import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHead
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
 
 // Parts Components
@@ -442,6 +443,7 @@ export default function PartsBrowseScreen() {
       <Animated.FlatList
         ref={listRef}
         key="parts-browse-list"
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={listings}
         keyExtractor={(item, index) => (item as any)?.id || String(index)}
         contentContainerStyle={[

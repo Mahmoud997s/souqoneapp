@@ -27,6 +27,7 @@ import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilter
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 
 // Services Components
 import { ServiceCard } from '../../src/components/services/ServiceCard';
@@ -335,6 +336,7 @@ export default function ServicesBrowseScreen() {
       {/* Main Content List */}
       <Animated.FlatList
         ref={flatListRef}
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings}
         keyExtractor={(item, index) => item.id || `skeleton-${index}`}
         renderItem={({ item }) => {

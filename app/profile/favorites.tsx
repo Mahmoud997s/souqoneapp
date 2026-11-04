@@ -9,6 +9,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization'
 import { SearchCardDispatcher } from '../../src/screens/search/components/SearchCardDispatcher'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { EmptyState } from '../../src/components/ui/EmptyState'
@@ -95,6 +96,7 @@ export default function FavoritesScreen() {
       ) : (
         <Animated.FlatList
           testID="favorites-flat-list"
+          {...BROWSE_LIST_VIRTUALIZATION_PROPS}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           data={filteredData}
