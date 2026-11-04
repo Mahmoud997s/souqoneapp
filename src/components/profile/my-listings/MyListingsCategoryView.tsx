@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import {
   View,
   StyleSheet,
@@ -8,11 +8,13 @@ import Animated from 'react-native-reanimated'
 import { router } from 'expo-router'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../../constants/listVirtualization'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { useGlassSupport } from '../../navigation/glassSupport'
 
 export interface MyListingsCategoryViewProps {
   data: MyListingItem[]
@@ -57,6 +59,43 @@ export function MyListingsCategoryView({
   onScroll,
   header,
 }: MyListingsCategoryViewProps) {
+  const glassSupport = useGlassSupport()
+  const keyExtractor = useCallback(
+    (item: MyListingItem) => `${item.entityType}-${item.id}`,
+    []
+  )
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  const renderItem = useCallback(
+    ({ item }: { item: MyListingItem }) => (
+      <View style={s.cardWrapper}>
+        <MyListingCardDispatcher
+          item={item}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
+          onCancelDeletionRequest={onCancelDeletionRequest}
+          isEditSupported={isEditSupported(item.entityType)}
+          fullWidth={true}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [
+      onView,
+      onEdit,
+      onDelete,
+      onStatusChange,
+      onCancelDeletionRequest,
+      isEditSupported,
+      glassSupport,
+    ]
+  )
+
   if (isLoading) {
     return (
       <View style={[s.list, { paddingTop: topInset + Spacing.space4 }]} testID="my-listings-category-loading">
@@ -71,19 +110,17 @@ export function MyListingsCategoryView({
 
   return (
     <Animated.FlatList
+      testID="my-listings-category-flat-list"
+      {...BROWSE_LIST_VIRTUALIZATION_PROPS}
       onScroll={onScroll}
       scrollEventThrottle={16}
       ListHeaderComponent={header}
       data={data}
-      keyExtractor={(item) => `${item.entityType}-${item.id}`}
+      keyExtractor={keyExtractor}
       contentContainerStyle={[s.list, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
       refreshing={isRefreshing}
       onRefresh={onRefresh}
-      onEndReached={() => {
-        if (hasNextPage && !isFetchingNextPage) {
-          fetchNextPage()
-        }
-      }}
+      onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}
       ListFooterComponent={
         isFetchingNextPage ? (
@@ -116,20 +153,7 @@ export function MyListingsCategoryView({
           />
         )
       }
-      renderItem={({ item }) => (
-        <View style={s.cardWrapper}>
-          <MyListingCardDispatcher
-            item={item}
-            onView={onView}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onStatusChange={onStatusChange}
-            onCancelDeletionRequest={onCancelDeletionRequest}
-            isEditSupported={isEditSupported(item.entityType)}
-            fullWidth={true}
-          />
-        </View>
-      )}
+      renderItem={renderItem}
     />
   )
 }

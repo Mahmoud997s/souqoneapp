@@ -1,14 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { useGlassSupport } from '../../src/components/navigation/glassSupport'
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization'
 import { SearchCardDispatcher } from '../../src/screens/search/components/SearchCardDispatcher'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { EmptyState } from '../../src/components/ui/EmptyState'
@@ -32,6 +34,7 @@ export const CATEGORY_FILTERS = FAVORITES_CATEGORY_FILTERS
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets()
+  const glassSupport = useGlassSupport()
   const { scrollHandler } = useScrollAwareNav()
   const params = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
@@ -42,11 +45,23 @@ export default function FavoritesScreen() {
   // since the filter is now IN the list. So contentTopOffset is just navBarHeight.
   const contentTopOffset = navBarHeight + 10
 
-  const filteredData = data?.filter(item => {
-    if (item.category === 'jobs' || item.category === 'transport') return false
-    if (activeTab === 'all') return true
-    return item.category === activeTab
-  }) ?? []
+  const filteredData = useMemo(
+    () =>
+      data?.filter(item => {
+        if (item.category === 'jobs' || item.category === 'transport') return false
+        if (activeTab === 'all') return true
+        return item.category === activeTab
+      }) ?? [],
+    [data, activeTab]
+  )
+
+  const keyExtractor = useCallback((i: (typeof filteredData)[number]) => i.id, [])
+  const renderItem = useCallback(
+    ({ item }: { item: (typeof filteredData)[number] }) => (
+      <SearchCardDispatcher item={item} glassSupport={glassSupport} />
+    ),
+    [glassSupport]
+  )
 
   const hasData = Boolean(data && data.length > 0)
   const isInitialLoading = isLoading && !data
@@ -95,10 +110,11 @@ export default function FavoritesScreen() {
       ) : (
         <Animated.FlatList
           testID="favorites-flat-list"
+          {...BROWSE_LIST_VIRTUALIZATION_PROPS}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           data={filteredData}
-          keyExtractor={i => i.id}
+          keyExtractor={keyExtractor}
           contentContainerStyle={[s.list, { paddingTop: contentTopOffset, paddingBottom: insets.bottom || 20 }]}
           refreshControl={
             <RefreshControl
@@ -146,9 +162,7 @@ export default function FavoritesScreen() {
               </TouchableOpacity>
             </View>
           }
-          renderItem={({ item }) => (
-            <SearchCardDispatcher item={item} />
-          )}
+          renderItem={renderItem}
         />
       )}
       <GlassNavBar
@@ -156,6 +170,7 @@ export default function FavoritesScreen() {
         title="المفضلة"
         paddingTop={insets.top}
         onBackPress={() => router.back()}
+        support={glassSupport}
         actions={[
           { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
           { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },

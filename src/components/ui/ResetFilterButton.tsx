@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextSty
 import { Ionicons } from '@expo/vector-icons';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { FilterGlassSurface } from './FilterGlassSurface';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface ResetFilterButtonProps {
   onPress: () => void;
@@ -10,6 +11,7 @@ export interface ResetFilterButtonProps {
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   testID?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function ResetFilterButton({ 
@@ -18,12 +20,14 @@ export function ResetFilterButton({
   style, 
   textStyle,
   testID = 'reset-filter-button',
+  glassSupport,
 }: ResetFilterButtonProps) {
   return (
     <View style={style ? [s.btnContainer, style] : s.btnContainer} testID={testID}>
       <FilterGlassSurface
         testID={`${testID}-glass`}
         borderRadius={FilterGlassTokens.resultsBar.clearRadius}
+        support={glassSupport}
       />
       <TouchableOpacity 
         style={s.btnInner}

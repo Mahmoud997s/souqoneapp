@@ -13,6 +13,7 @@ import {
   VEHICLE_TYPE_LABELS,
 } from '../../constants/parts'
 import { useBrands } from '../../hooks/useCars'
+import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 export interface PartCardProps {
   item: any
@@ -53,7 +54,7 @@ const CONDITION_MAP: Record<string, string> = {
   FAIR: 'مقبول',
 }
 
-export const PartCard: React.FC<PartCardProps> = ({
+const PartCardComponent: React.FC<PartCardProps> = ({
   item,
   onPress,
   fullWidth = false,
@@ -303,3 +304,5 @@ export const PartCard: React.FC<PartCardProps> = ({
     />
   )
 }
+
+export const PartCard = React.memo(PartCardComponent, areCardPropsEqual)

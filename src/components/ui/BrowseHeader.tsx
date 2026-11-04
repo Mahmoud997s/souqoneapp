@@ -6,6 +6,7 @@ import { AppHeader } from './AppHeader';
 import { TopBarTokens } from '../../constants/topBarTokens';
 import { RTLTextInput } from '../../constants/rtl';
 import { TopBarGlassSurface } from './TopBarGlassSurface';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface BrowseHeaderProps {
   searchQuery: string;
@@ -15,6 +16,7 @@ export interface BrowseHeaderProps {
   onFilterPress: () => void;
   onSubmitSearch?: () => void;
   theme?: 'dark' | 'light';
+  glassSupport?: GlassSupport;
 }
 
 export function BrowseHeader({
@@ -25,11 +27,13 @@ export function BrowseHeader({
   onFilterPress,
   onSubmitSearch,
   theme = 'light',
+  glassSupport,
 }: BrowseHeaderProps) {
   return (
     <AppHeader
       theme={theme}
       glassBackground
+      glassSupport={glassSupport}
       leftSlot={
         <TouchableOpacity
           testID="browse-header-back"
@@ -40,13 +44,13 @@ export function BrowseHeader({
           hitSlop={TopBarTokens.buttonHitSlop}
           activeOpacity={0.7}
         >
-          <TopBarGlassSurface testID="browse-header-back" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} />
+          <TopBarGlassSurface testID="browse-header-back" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} support={glassSupport} />
           <Ionicons name="arrow-forward-outline" size={TopBarTokens.buttonIconSize} color={TopBarTokens.buttonIconColor} />
         </TouchableOpacity>
       }
       centerSlot={
         <View testID="browse-header-search" style={s.compactSearch}>
-          <TopBarGlassSurface testID="browse-header-search" kind="ice-control" borderRadius={TopBarTokens.searchRadius} />
+          <TopBarGlassSurface testID="browse-header-search" kind="ice-control" borderRadius={TopBarTokens.searchRadius} support={glassSupport} />
           <Ionicons
             name="search"
             size={TopBarTokens.searchIconSize}
@@ -91,7 +95,7 @@ export function BrowseHeader({
           activeOpacity={0.7}
           hitSlop={TopBarTokens.buttonHitSlop}
         >
-          <TopBarGlassSurface testID="browse-header-filter" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} />
+          <TopBarGlassSurface testID="browse-header-filter" kind="ice-control" borderRadius={TopBarTokens.buttonRadius} support={glassSupport} />
           <Ionicons
             name="options-outline"
             size={TopBarTokens.buttonIconSize}

@@ -17,6 +17,7 @@ import { Colors } from '../../constants/colors';
 import { Gradients } from '../../constants/gradients';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
+import { type GlassSupport } from './glassSupport';
 import { useTabDragSelect } from '../../hooks/useTabDragSelect';
 
 export const UNIFIED_BOTTOM_BAR_HEIGHT = BottomBarTokens.expandedHeight;
@@ -42,6 +43,7 @@ export interface UnifiedBottomBarProps {
   activeColor?: string;
   activeBgColor?: string;
   scrollAware?: boolean;
+  glassSupport?: GlassSupport;
 }
 
 function DynamicTabIcon({
@@ -261,6 +263,7 @@ export function UnifiedBottomBar({
   activeColor = Colors.primary,
   activeBgColor = BottomBarTokens.activePillBg,
   scrollAware = true,
+  glassSupport,
 }: UnifiedBottomBarProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 12);
@@ -340,6 +343,7 @@ export function UnifiedBottomBar({
       collapsedIcon={collapsedIcon}
       badge={collapsedBadge}
       scrollAware={scrollAware}
+      support={glassSupport}
       testID="unified-bottom-bar"
     >
       {content}

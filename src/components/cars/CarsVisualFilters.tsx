@@ -19,6 +19,7 @@ import {
   VisualFilterTab,
   visualFiltersStyles,
 } from '../ui/VisualFiltersBase';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 // ─── STATIC DATA ───
 const TOP_CITIES = [
@@ -69,6 +70,7 @@ export interface CarsVisualFiltersProps {
   selectedModelId?: string;
   selectedPriceId?: string;
   selectedTypeId?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function CarsVisualFilters({
@@ -79,6 +81,7 @@ export function CarsVisualFilters({
   selectedModelId,
   selectedPriceId,
   selectedTypeId,
+  glassSupport,
 }: CarsVisualFiltersProps) {
   const [activeTab, setActiveTab] = useState<'brands' | 'models' | 'cities' | 'prices' | 'types'>('brands');
   const { data: brands, isLoading: loadingBrands } = useBrands();
@@ -289,6 +292,7 @@ export function CarsVisualFilters({
       activeTab={activeTab}
       onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
       onViewAll={onViewAll}
+      glassSupport={glassSupport}
     />
   );
 }

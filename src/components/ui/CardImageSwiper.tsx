@@ -108,6 +108,9 @@ export function CardImageSwiper({
           source={{ uri: images[0] }}
           style={styles.imageFill}
           contentFit="cover"
+          recyclingKey={images[0]}
+          cachePolicy="memory-disk"
+          priority="high"
         />
         {count > 1 && (
           <View style={styles.imageCountBadge}>
@@ -124,24 +127,33 @@ export function CardImageSwiper({
     <GestureDetector gesture={composedGesture}>
       <View style={[styles.container, containerHeightStyle, style]} testID="card-image-swipeable">
         <Animated.View style={[styles.track, animatedTrackStyle]}>
-          {images.map((img, i) => (
-            <View
-              key={i}
-              style={[
-                styles.imageSlide,
-                {
-                  width: cardWidth,
-                  ...physicalRightStyle(i * cardWidth),
-                },
-              ]}
-            >
-              <Image
-                source={{ uri: img }}
-                style={styles.imageFill}
-                contentFit="cover"
-              />
-            </View>
-          ))}
+          {images.map((img, i) => {
+            const isMountedNeighbour = Math.abs(i - activeIndex) <= 1
+            return (
+              <View
+                key={i}
+                testID={`card-image-slide-${i}`}
+                style={[
+                  styles.imageSlide,
+                  {
+                    width: cardWidth,
+                    ...physicalRightStyle(i * cardWidth),
+                  },
+                ]}
+              >
+                {isMountedNeighbour ? (
+                  <Image
+                    source={{ uri: img }}
+                    style={styles.imageFill}
+                    contentFit="cover"
+                    recyclingKey={img}
+                    cachePolicy="memory-disk"
+                    priority={i === 0 ? 'high' : 'normal'}
+                  />
+                ) : null}
+              </View>
+            )
+          })}
         </Animated.View>
 
         {/* Pagination Dots */}

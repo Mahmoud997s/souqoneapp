@@ -8,6 +8,7 @@ import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
 import { getCardSellerVerified } from '../../utils/cardItemHelpers'
 import { UnifiedCardItem } from '../../types/unified-card.types'
+import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {
   MAINTENANCE: 'صيانة',
@@ -43,7 +44,7 @@ export interface ServiceCardProps {
   glassSupport?: GlassSupport
 }
 
-export const ServiceCard = ({
+const ServiceCardComponent = ({
   item,
   onPress,
   fullWidth = false,
@@ -165,3 +166,5 @@ export const ServiceCard = ({
     />
   )
 }
+
+export const ServiceCard = React.memo(ServiceCardComponent, areCardPropsEqual)

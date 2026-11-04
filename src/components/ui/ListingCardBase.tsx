@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Share,
   StyleProp,
   ViewStyle,
+  LayoutChangeEvent,
 } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
@@ -27,6 +28,7 @@ import { isOwnListing } from '../../utils/isOwnListing'
 import { CardImageSwiper } from './CardImageSwiper'
 import { VerifiedBadge } from './VerifiedBadge'
 import { GlassSurface, useGlassSupport, type GlassSupport } from '../navigation/glassSupport'
+import { areListingCardBasePropsEqual } from '../../utils/cardMemoComparison'
 
 export interface ListingCardPill {
   key: string
@@ -77,10 +79,27 @@ export interface ListingCardBaseProps {
   onFavorite?: (isFav: boolean) => void
   liquidGlass?: boolean
   glassSupport?: GlassSupport
+  initialCardWidth?: number
   style?: StyleProp<ViewStyle>
 }
 
-export const ListingCardBase = ({
+export function computeInitialCardWidth(
+  fullWidth: boolean = false,
+  initialCardWidth?: number
+): number {
+  if (typeof initialCardWidth === 'number' && initialCardWidth > 0) {
+    return initialCardWidth
+  }
+  const windowWidth = Dimensions.get('window').width || 390
+  if (fullWidth) {
+    // Browse lists use paddingHorizontal: Spacing.space4 (16 * 2 = 32px) + card 1px border on each side (2px)
+    return Math.max(0, windowWidth - 34)
+  }
+  // Horizontal carousel cards use width: Dimensions.get('window').width * 0.6 + 1px border on each side (2px)
+  return Math.max(0, Math.round(windowWidth * 0.6) - 2)
+}
+
+const ListingCardBaseComponent = ({
   item,
   title,
   priceLabel,
@@ -110,6 +129,7 @@ export const ListingCardBase = ({
   onFavorite,
   liquidGlass = true,
   glassSupport,
+  initialCardWidth,
   style,
 }: ListingCardBaseProps) => {
   const router = useRouter()
@@ -131,7 +151,16 @@ export const ListingCardBase = ({
     toggleFavorite()
     onFavorite?.(!isFav)
   }
-  const [cardWidth, setCardWidth] = useState(0)
+  const [cardWidth, setCardWidth] = useState(() =>
+    computeInitialCardWidth(fullWidth, initialCardWidth)
+  )
+
+  const handleImageContainerLayout = useCallback((e: LayoutChangeEvent) => {
+    const measuredWidth = e.nativeEvent.layout.width
+    if (measuredWidth > 0) {
+      setCardWidth((prev) => (Math.abs(measuredWidth - prev) > 0.5 ? measuredWidth : prev))
+    }
+  }, [])
 
   const resolvedLocation = location !== undefined ? location : resolveListingLocation(item)
   const rawStatus = status || item?.status || 'ACTIVE'
@@ -170,8 +199,8 @@ export const ListingCardBase = ({
       style={[
         s.card,
         liquidGlass && s.cardLiquidGlass,
-        fullWidth && { width: '100%' },
-        gridMode && { width: '100%', flex: 1 },
+        fullWidth && s.cardFullWidth,
+        gridMode && s.cardGridMode,
         style,
       ]}
     >
@@ -187,15 +216,16 @@ export const ListingCardBase = ({
       )}
       {/* ── IMAGE SECTION ── */}
       <View
+        testID="listing-card-image-container"
         style={[
           s.imageContainer,
           imageHeight
             ? { height: imageHeight, aspectRatio: undefined }
             : fullWidth
-            ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
-            : { height: CardSystem.aspectRatioHeight, aspectRatio: undefined },
+            ? s.imageContainerFullWidth
+            : s.imageContainerAspect,
         ]}
-        onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
+        onLayout={handleImageContainerLayout}
       >
         {displayImages.length > 0 ? (
           <CardImageSwiper
@@ -215,7 +245,7 @@ export const ListingCardBase = ({
               imageHeight
                 ? { height: imageHeight, aspectRatio: undefined }
                 : fullWidth
-                ? { height: CardSystem.fullWidthHeight, aspectRatio: undefined }
+                ? s.imageContainerFullWidth
                 : undefined,
             ]}
           >
@@ -523,6 +553,11 @@ export const ListingCardBase = ({
   )
 }
 
+export const ListingCardBase = React.memo(
+  ListingCardBaseComponent,
+  areListingCardBasePropsEqual
+)
+
 const s = StyleSheet.create({
   card: {
     width: Dimensions.get('window').width * 0.6,
@@ -537,11 +572,26 @@ const s = StyleSheet.create({
     backgroundColor: 'transparent',
     borderColor: CardSystem.glass.cardBorderColor,
   },
+  cardFullWidth: {
+    width: '100%',
+  },
+  cardGridMode: {
+    width: '100%',
+    flex: 1,
+  },
   imageContainer: {
     width: '100%',
     position: 'relative',
     backgroundColor: Colors.surfaceAlt,
     overflow: 'hidden',
+  },
+  imageContainerFullWidth: {
+    height: CardSystem.fullWidthHeight,
+    aspectRatio: undefined,
+  },
+  imageContainerAspect: {
+    height: CardSystem.aspectRatioHeight,
+    aspectRatio: undefined,
   },
   imageFill: {
     width: '100%',

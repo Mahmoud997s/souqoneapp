@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import Animated from 'react-native-reanimated'
 import { Colors } from '../../../src/constants/colors'
 import { Radius } from '../../../src/constants/radius'
 import { Spacing } from '../../../src/constants/spacing'
+import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../../src/constants/listVirtualization'
 import { OperatorCard } from '../../../src/components/cards/OperatorCard'
 import { useOperatorsInfinite, useMyOperators } from '../../../src/hooks/useEquipment'
 import { useAuthStore } from '../../../src/store/authStore'
@@ -43,6 +44,7 @@ import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
 import { EquipmentBottomBar } from '../../../src/components/equipment/EquipmentBottomBar'
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../../src/components/navigation/UnifiedBottomBar'
+import { useGlassSupport } from '../../../src/components/navigation/glassSupport'
 import {
   buildOperatorQueryParams,
   refineOperatorsClientSide,
@@ -55,6 +57,7 @@ export { buildOperatorQueryParams } from '../../../src/utils/browse-filters/oper
 
 export default function BrowseOperatorsScreen() {
   const insets = useSafeAreaInsets()
+  const glassSupport = useGlassSupport()
   const { scrollHandler } = useScrollAwareNav()
   const { navigateToAddOperator } = useOperatorNavigation()
   const listRef = useRef<FlatList<UnifiedCardItem>>(null)
@@ -117,10 +120,10 @@ export default function BrowseOperatorsScreen() {
     return count
   }, [filters])
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setSearchQuery('')
     setFilters({})
-  }
+  }, [])
 
   // Complete Set of Quick Filter Pills (Always visible & interactive)
   const quickFilterItems: QuickFilterItem[] = useMemo(() => {
@@ -217,9 +220,138 @@ export default function BrowseOperatorsScreen() {
     ]
   }, [filters])
 
-  const handleClearQuickFilter = (id: string) => {
+  const handleClearQuickFilter = useCallback((id: string) => {
     setFilters((prev) => clearOperatorFilter(prev, id))
-  }
+  }, [])
+
+  const handleEditOperatorProfile = useCallback((profileId: string) => {
+    router.push({ pathname: '/equipment/operators/edit/[id]', params: { id: profileId } })
+  }, [])
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map())
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id)
+    if (!handler) {
+      handler = () => router.push({ pathname: '/equipment/operators/[id]', params: { id } })
+      itemPressHandlersRef.current.set(id, handler)
+    }
+    return handler
+  }, [])
+
+  const keyExtractor = useCallback((item: UnifiedCardItem) => item.id, [])
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const renderItem = useCallback(
+    ({ item }: { item: UnifiedCardItem }) => (
+      <OperatorCard item={item} onPress={getItemPressHandler(item.id)} />
+    ),
+    [getItemPressHandler]
+  )
+
+  const resultsCustomIcon = useMemo(
+    () => (
+      <MaterialCommunityIcons
+        name="hard-hat"
+        size={14}
+        color={FilterGlassTokens.resultsBar.countIconColor}
+      />
+    ),
+    []
+  )
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <>
+        {/* Modular Smart Banner */}
+        <OperatorSmartBanner
+          myOperatorProfile={myOperatorProfile}
+          onJoinPress={navigateToAddOperator}
+          onEditPress={handleEditOperatorProfile}
+        />
+
+        {/* Results Count Meta & Clear Filters Row */}
+        <BrowseResultsBar
+          resultsCount={operators.length}
+          entityName="مشغل"
+          availabilitySuffix="متاح"
+          customIcon={resultsCustomIcon}
+          activeFiltersCount={activeFiltersCount > 0 || searchQuery.length > 0 ? 1 : 0}
+          onClearAll={handleClearAll}
+          glassSupport={glassSupport}
+        />
+
+        {/* Skeleton Loading State */}
+        {isLoading && (
+          <View style={s.skeletonWrap}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+        )}
+      </>
+    ),
+    [
+      myOperatorProfile,
+      navigateToAddOperator,
+      handleEditOperatorProfile,
+      operators.length,
+      resultsCustomIcon,
+      activeFiltersCount,
+      searchQuery.length,
+      handleClearAll,
+      glassSupport,
+      isLoading,
+    ]
+  )
+
+  const listEmptyComponent = useMemo(
+    () =>
+      !isLoading ? (
+        <View style={s.emptyContainer}>
+          <View style={s.emptyIconWrap}>
+            <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
+          </View>
+          <Text style={s.emptyTitle}>لا توجد نتائج مطابقة</Text>
+          <Text style={s.emptySubtitle}>
+            جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى
+          </Text>
+          {(searchQuery.length > 0 || activeFiltersCount > 0) && (
+            <TouchableOpacity style={s.resetBtn} onPress={handleClearAll} activeOpacity={0.8}>
+              <Ionicons name="refresh" size={14} color={Colors.primary} />
+              <Text style={s.resetBtnTxt}>إعادة تعيين الكل</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : null,
+    [isLoading, searchQuery.length, activeFiltersCount, handleClearAll]
+  )
+
+  const listFooterComponent = useMemo(
+    () => (
+      <>
+        {isFetchingNextPage && (
+          <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 12 }} />
+        )}
+        {!isLoading && (
+          <>
+            <OperatorFAQ />
+            <SectionFooterAction
+              isLanding
+              title="هل أنت مشغل معدات محترف؟"
+              subtitle="سجل بروفايلك المهني الآن وتلق عروض عمل ومشاريع مجزية"
+              buttonText="سجل كمشغل"
+              iconName="construct-outline"
+              onPress={navigateToAddOperator}
+            />
+          </>
+        )}
+      </>
+    ),
+    [isFetchingNextPage, isLoading, navigateToAddOperator]
+  )
 
   return (
     <View style={s.root}>
@@ -230,6 +362,7 @@ export default function BrowseOperatorsScreen() {
         searchPlaceholder="ابحث باسم المشغل، التخصص، أو المعدة..."
         activeFiltersCount={activeFiltersCount}
         onFilterPress={() => setIsFilterVisible(true)}
+        glassSupport={glassSupport}
       />
 
       {/* ═══════════════ 2. SUB-HEADER: TABS & QUICK FILTERS ═══════════════ */}
@@ -249,20 +382,23 @@ export default function BrowseOperatorsScreen() {
               operatorType: undefined,
             }))
           }
+          glassSupport={glassSupport}
         />
 
         <QuickFilters
           filters={quickFilterItems}
           onFilterPress={() => setIsFilterVisible(true)}
           onClearFilter={handleClearQuickFilter}
+          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
       {/* ═══════════════ 3. MAIN LIST ═══════════════ */}
       <Animated.FlatList
         ref={listRef}
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={operators}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={[
@@ -281,90 +417,12 @@ export default function BrowseOperatorsScreen() {
             tintColor={Colors.primary}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={
-          <>
-            {/* Modular Smart Banner */}
-            <OperatorSmartBanner
-              myOperatorProfile={myOperatorProfile}
-              onJoinPress={navigateToAddOperator}
-              onEditPress={(profileId) => router.push(`/equipment/operators/edit/${profileId}` as any)}
-            />
-
-            {/* Results Count Meta & Clear Filters Row */}
-            <BrowseResultsBar
-              resultsCount={operators.length}
-              entityName="مشغل"
-              availabilitySuffix="متاح"
-              customIcon={
-                <MaterialCommunityIcons
-                  name="hard-hat"
-                  size={14}
-                  color={FilterGlassTokens.resultsBar.countIconColor}
-                />
-              }
-              activeFiltersCount={activeFiltersCount > 0 || searchQuery.length > 0 ? 1 : 0}
-              onClearAll={handleClearAll}
-            />
-
-            {/* Skeleton Loading State */}
-            {isLoading && (
-              <View style={s.skeletonWrap}>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-              </View>
-            )}
-          </>
-        }
-        renderItem={({ item }) => (
-          <OperatorCard
-            item={item}
-            onPress={() => router.push(`/equipment/operators/${item.id}` as any)}
-          />
-        )}
-        ListEmptyComponent={
-          !isLoading ? (
-            <View style={s.emptyContainer}>
-              <View style={s.emptyIconWrap}>
-                <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
-              </View>
-              <Text style={s.emptyTitle}>لا توجد نتائج مطابقة</Text>
-              <Text style={s.emptySubtitle}>
-                جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى
-              </Text>
-              {(searchQuery.length > 0 || activeFiltersCount > 0) && (
-                <TouchableOpacity style={s.resetBtn} onPress={handleClearAll} activeOpacity={0.8}>
-                  <Ionicons name="refresh" size={14} color={Colors.primary} />
-                  <Text style={s.resetBtnTxt}>إعادة تعيين الكل</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ) : null
-        }
-        ListFooterComponent={
-          <>
-            {isFetchingNextPage && (
-              <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 12 }} />
-            )}
-            {!isLoading && (
-              <>
-                <OperatorFAQ />
-                <SectionFooterAction
-                  isLanding
-                  title="هل أنت مشغل معدات محترف؟"
-                  subtitle="سجل بروفايلك المهني الآن وتلق عروض عمل ومشاريع مجزية"
-                  buttonText="سجل كمشغل"
-                  iconName="construct-outline"
-                  onPress={navigateToAddOperator}
-                />
-              </>
-            )}
-          </>
-        }
+        ListHeaderComponent={listHeaderComponent}
+        renderItem={renderItem}
+        ListEmptyComponent={listEmptyComponent}
+        ListFooterComponent={listFooterComponent}
       />
 
       {/* ═══════════════ 4. FILTER BOTTOM SHEET (MATCHING CARS) ═══════════════ */}
@@ -378,7 +436,7 @@ export default function BrowseOperatorsScreen() {
         resultsCount={operators.length}
       />
 
-      <EquipmentBottomBar />
+      <EquipmentBottomBar glassSupport={glassSupport} />
     </View>
   )
 }

@@ -6,6 +6,7 @@ import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 import { FilterGlassSurface } from './FilterGlassSurface';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface QuickFilterItem {
   id: string;
@@ -18,9 +19,10 @@ export interface QuickFiltersProps {
   filters: QuickFilterItem[];
   onFilterPress: (id: string) => void;
   onClearFilter: (id: string) => void;
+  glassSupport?: GlassSupport;
 }
 
-export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFiltersProps) {
+export function QuickFilters({ filters, onFilterPress, onClearFilter, glassSupport }: QuickFiltersProps) {
   if (!filters || filters.length === 0) return null;
 
   return (
@@ -41,6 +43,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                 <FilterGlassSurface
                   testID={`quick-filter-glass-${qf.id}`}
                   borderRadius={FilterGlassTokens.chip.borderRadius}
+                  support={glassSupport}
                 />
               )}
               <TouchableOpacity

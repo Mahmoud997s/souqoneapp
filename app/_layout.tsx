@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated'
+import { enableFreeze } from 'react-native-screens'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../src/api/queryClient'
 import { useAuthStore } from '../src/store/authStore'
@@ -29,6 +30,7 @@ import { ChatSyncService } from '../src/services/ChatSyncService'
 export { queryClient }
 
 configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false })
+enableFreeze(true)
 
 SplashScreen.preventAutoHideAsync()
 

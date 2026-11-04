@@ -7,16 +7,19 @@ import { EquipCard } from '../../../components/cards/EquipCard'
 import { PartCard } from '../../../components/parts/PartCard'
 import { ServiceCard } from '../../../components/services/ServiceCard'
 import { OperatorCard } from '../../../components/cards/OperatorCard'
+import { type GlassSupport } from '../../../components/navigation/glassSupport'
 import { getListingDetailRoute } from '../../../utils/navigationHelper'
 
 export const SEARCH_OPERATOR_WIDTH_RATIO = 0.65
 
 interface SearchCardDispatcherProps {
   item: any
+  glassSupport?: GlassSupport
 }
 
 export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
   item,
+  glassSupport,
 }: SearchCardDispatcherProps) {
   const { width: windowWidth } = useWindowDimensions()
 
@@ -64,6 +67,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           fullWidth
           showChips
           maxChips={3}
+          glassSupport={glassSupport}
         />
       )
 
@@ -75,6 +79,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           fullWidth
           showChips
           maxChips={3}
+          glassSupport={glassSupport}
         />
       )
 
@@ -87,6 +92,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           fullWidth
           showChips
           maxChips={3}
+          glassSupport={glassSupport}
         />
       )
 
@@ -97,6 +103,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           item={normalizedItem}
           onPress={handlePress}
           fullWidth
+          glassSupport={glassSupport}
         />
       )
 
@@ -132,6 +139,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
           fullWidth
           showChips
           maxChips={3}
+          glassSupport={glassSupport}
         />
       )
   }

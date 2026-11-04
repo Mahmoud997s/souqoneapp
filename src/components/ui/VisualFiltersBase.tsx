@@ -16,6 +16,7 @@ import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 import { FilterGlassSurface } from './FilterGlassSurface';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -76,6 +77,7 @@ export interface VisualFiltersBaseProps<TTabId extends string = string> {
   segmentedWrapperStyle?: StyleProp<ViewStyle>;
   contentAreaStyle?: StyleProp<ViewStyle>;
   isTransparent?: boolean;
+  glassSupport?: GlassSupport;
 }
 
 /**
@@ -98,6 +100,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
   segmentedWrapperStyle,
   contentAreaStyle,
   isTransparent = false,
+  glassSupport,
 }: VisualFiltersBaseProps<TTabId>) {
   const [internalActiveTab, setInternalActiveTab] = useState<TTabId>(
     defaultTab || tabs[0]?.id
@@ -199,6 +202,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
                       <FilterGlassSurface
                         testID={`visual-filter-item-glass-${config.id}`}
                         borderRadius={FilterGlassTokens.card.borderRadius}
+                        support={glassSupport}
                       />
                     )}
                     <TouchableOpacity
@@ -238,6 +242,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
               <FilterGlassSurface
                 testID="visual-filter-view-all-glass"
                 borderRadius={FilterGlassTokens.card.borderRadius}
+                support={glassSupport}
               />
               <TouchableOpacity
                 style={s.viewAllInner}
@@ -318,6 +323,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
         <FilterGlassSurface
           testID="visual-filters-track-glass"
           borderRadius={FilterGlassTokens.tab.trackRadius}
+          support={glassSupport}
         />
         {isFixedTabs ? (
           <View style={s.fixedSegmentedContainer}>

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { FilterGlassSurface } from './FilterGlassSurface';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface TabItem {
   id: string;
@@ -14,9 +15,10 @@ export interface ListingTabsProps {
   activeTabId?: string;
   onChangeTab: (id: string) => void;
   onClearTab?: () => void;
+  glassSupport?: GlassSupport;
 }
 
-export function ListingTabs({ tabs, activeTabId, onChangeTab, onClearTab }: ListingTabsProps) {
+export function ListingTabs({ tabs, activeTabId, onChangeTab, onClearTab, glassSupport }: ListingTabsProps) {
   if (!tabs || tabs.length === 0) return null;
   
   return (
@@ -24,6 +26,7 @@ export function ListingTabs({ tabs, activeTabId, onChangeTab, onClearTab }: List
       <FilterGlassSurface
         testID="listing-tabs-track-glass"
         borderRadius={FilterGlassTokens.tab.trackRadius}
+        support={glassSupport}
       />
       {tabs.map((type) => {
         const isActive = activeTabId === type.id;

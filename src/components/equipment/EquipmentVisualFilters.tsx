@@ -9,6 +9,7 @@ import {
   VisualFilterTab,
   visualFiltersStyles,
 } from '../ui/VisualFiltersBase';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 // ─── 1. EQUIPMENT CATEGORIES DATA ───
 export interface EquipmentCategoryItem {
@@ -99,6 +100,7 @@ export interface EquipmentVisualFiltersProps {
   selectedCity?: string;
   selectedPriceId?: string;
   selectedConditionId?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function EquipmentVisualFilters({
@@ -109,6 +111,7 @@ export function EquipmentVisualFilters({
   selectedCity,
   selectedPriceId,
   selectedConditionId,
+  glassSupport,
 }: EquipmentVisualFiltersProps) {
   const tabs = useMemo(
     () => [
@@ -317,6 +320,7 @@ export function EquipmentVisualFilters({
       tabs={tabs}
       defaultTab="categories"
       onViewAll={onViewAll}
+      glassSupport={glassSupport}
     />
   );
 }

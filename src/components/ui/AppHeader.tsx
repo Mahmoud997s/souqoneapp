@@ -13,6 +13,7 @@ import { Gradients } from '../../constants/gradients'
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg'
 import { TopBarGlassSurface } from './TopBarGlassSurface'
 import { TopBarTokens } from '../../constants/topBarTokens'
+import { type GlassSupport } from '../navigation/glassSupport'
 
 const APP_HEADER_BUTTON_SIZE = 32
 const APP_HEADER_BUTTON_RADIUS = 16
@@ -31,6 +32,7 @@ interface AppHeaderProps {
   variant?: 'default' | 'jobs'
   theme?: 'dark' | 'light'
   glassBackground?: boolean
+  glassSupport?: GlassSupport
 }
 
 export function AppHeader({
@@ -46,6 +48,7 @@ export function AppHeader({
   variant = 'default',
   theme = 'dark',
   glassBackground = true,
+  glassSupport,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets()
   const isLight = theme === 'light'
@@ -63,7 +66,7 @@ export function AppHeader({
         }
       ]}
     >
-      {glassBackground && <TopBarGlassSurface testID="browse-header" kind="background" />}
+      {glassBackground && <TopBarGlassSurface testID="browse-header" kind="background" support={glassSupport} />}
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
@@ -107,6 +110,7 @@ export function AppHeader({
                 testID="app-header-back-glass"
                 kind="ice-control"
                 borderRadius={APP_HEADER_BUTTON_RADIUS}
+                support={glassSupport}
               />
             )}
             <Ionicons
@@ -127,6 +131,7 @@ export function AppHeader({
                 testID="app-header-left-icon-glass"
                 kind="ice-control"
                 borderRadius={APP_HEADER_BUTTON_RADIUS}
+                support={glassSupport}
               />
             )}
             <Ionicons
@@ -165,6 +170,7 @@ export function AppHeader({
                 testID="app-header-right-glass"
                 kind="ice-control"
                 borderRadius={APP_HEADER_BUTTON_RADIUS}
+                support={glassSupport}
               />
             )}
             <Ionicons

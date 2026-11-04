@@ -12,6 +12,7 @@ import {
   VisualFilterTab,
   visualFiltersStyles,
 } from '../ui/VisualFiltersBase';
+import { type GlassSupport } from '../navigation/glassSupport';
 
 // ─── STATIC DATA ───
 const TOP_CITIES = [
@@ -58,6 +59,7 @@ export interface BusesVisualFiltersProps {
   selectedTypeId?: string;
   selectedCapacity?: number;
   selectedPriceId?: string;
+  glassSupport?: GlassSupport;
 }
 
 export function BusesVisualFilters({
@@ -68,6 +70,7 @@ export function BusesVisualFilters({
   selectedTypeId,
   selectedCapacity,
   selectedPriceId,
+  glassSupport,
 }: BusesVisualFiltersProps) {
   const { data: manufacturers, isLoading: loadingManufacturers } = useBusManufacturers();
 
@@ -227,6 +230,7 @@ export function BusesVisualFilters({
       tabs={tabs}
       defaultTab="brands"
       onViewAll={onViewAll}
+      glassSupport={glassSupport}
     />
   );
 }

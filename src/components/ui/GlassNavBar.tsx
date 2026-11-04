@@ -59,7 +59,7 @@ export function GlassNavBar({
     <>
       {!isTransparent && (
         isHomeAppearance ? (
-          <TopBarGlassSurface testID={`${testID}-background`} kind="background" />
+          <TopBarGlassSurface testID={`${testID}-background`} kind="background" support={support} />
         ) : (
           <>
             <GlassSurface
@@ -90,6 +90,7 @@ export function GlassNavBar({
               testID={`${testID}-back-glass`}
               kind="ice-control"
               borderRadius={NAV_BUTTON_RADIUS}
+              support={support}
             />
           )}
           <Ionicons
@@ -106,6 +107,7 @@ export function GlassNavBar({
               testID={testID + '-title-glass'}
               kind="ice-control"
               borderRadius={NAV_BUTTON_RADIUS}
+              support={support}
             />
           )}
           <Text style={s.navTitle} numberOfLines={1}>{title}</Text>
@@ -151,6 +153,7 @@ export function GlassNavBar({
                       testID={`${testID}-action-${idx}-glass`}
                       kind="ice-control"
                       borderRadius={NAV_BUTTON_RADIUS}
+                      support={support}
                     />
                   )}
                   {isDisabled && isHomeAppearance ? (

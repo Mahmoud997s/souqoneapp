@@ -1,8 +1,9 @@
 import React from 'react';
 import { UnifiedBottomBar } from '../navigation/UnifiedBottomBar';
+import { type GlassSupport } from '../navigation/glassSupport';
 import { useEquipmentBottomBar } from '../../hooks/useDepartmentBottomBar';
 
-export const EquipmentBottomBar = () => {
+export const EquipmentBottomBar = ({ glassSupport }: { glassSupport?: GlassSupport }) => {
   const {
     tabs,
     activeTab,
@@ -22,6 +23,7 @@ export const EquipmentBottomBar = () => {
       activeColor={activeColor}
       activeBgColor={activeBgColor}
       scrollAware={scrollAware}
+      glassSupport={glassSupport}
     />
   );
 };
