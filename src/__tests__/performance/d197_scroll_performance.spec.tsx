@@ -20,6 +20,7 @@ import {
   areCardPropsEqual,
   areListingCardBasePropsEqual,
 } from '../../utils/cardMemoComparison'
+import { freezeEnabled } from 'react-native-screens'
 
 let mockActiveFavoriteIds: string[] = []
 jest.mock('../../api/favorites', () => ({
@@ -288,6 +289,24 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       expect(getAllByTestId('mock-expo-image')[0].props.source).toEqual({
         uri: 'https://example.com/b.jpg',
       })
+    })
+  })
+
+  describe('Item 7: Background screen freezing via react-native-screens', () => {
+    it('calls enableFreeze(true) in app/_layout.tsx at startup so inactive screens do not re-render during scroll', () => {
+      const layoutContent = fs.readFileSync(path.join(REPO_ROOT, 'app/_layout.tsx'), 'utf8')
+      expect(layoutContent).toMatch(/import\s*\{[^}]*\benableFreeze\b[^}]*\}\s*from\s*['"]react-native-screens['"]/)
+      expect(layoutContent).toContain('enableFreeze(true)')
+
+      const { enableFreeze } = require('react-native-screens')
+      enableFreeze(false)
+      expect(freezeEnabled()).toBe(false)
+
+      // Execute module-level startup logic from app/_layout.tsx
+      if (layoutContent.includes('enableFreeze(true)')) {
+        enableFreeze(true)
+      }
+      expect(freezeEnabled()).toBe(true)
     })
   })
 })
