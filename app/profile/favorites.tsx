@@ -55,9 +55,11 @@ export default function FavoritesScreen() {
     [data, activeTab]
   )
 
-  const keyExtractor = useCallback((i: any) => i.id, [])
+  const keyExtractor = useCallback((i: (typeof filteredData)[number]) => i.id, [])
   const renderItem = useCallback(
-    ({ item }: { item: any }) => <SearchCardDispatcher item={item} glassSupport={glassSupport} />,
+    ({ item }: { item: (typeof filteredData)[number] }) => (
+      <SearchCardDispatcher item={item} glassSupport={glassSupport} />
+    ),
     [glassSupport]
   )
 

@@ -375,14 +375,14 @@ export default function PartsBrowseScreen() {
   const getItemPressHandler = useCallback((id: string) => {
     let handler = itemPressHandlersRef.current.get(id);
     if (!handler) {
-      handler = () => router.push(`/parts/${id}` as any);
+      handler = () => router.push({ pathname: '/parts/[id]', params: { id } });
       itemPressHandlersRef.current.set(id, handler);
     }
     return handler;
   }, []);
 
   const keyExtractor = useCallback(
-    (item: UnifiedCardItem, index: number) => (item as any)?.id || String(index),
+    (item: UnifiedCardItem, index: number) => item?.id || String(index),
     []
   );
 

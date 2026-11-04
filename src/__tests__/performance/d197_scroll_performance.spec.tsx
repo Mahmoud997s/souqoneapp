@@ -5,7 +5,14 @@ import { render, cleanup, act, fireEvent, waitFor } from '@testing-library/react
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../constants/listVirtualization'
 import { MyListingsCategoryView } from '../../components/profile/my-listings/MyListingsCategoryView'
-import { ListingCardBase, computeInitialCardWidth } from '../../components/ui/ListingCardBase'
+import {
+  ListingCardBase,
+  computeInitialCardWidth,
+  type ListingCardBaseProps,
+} from '../../components/ui/ListingCardBase'
+import { CardImageSwiper } from '../../components/ui/CardImageSwiper'
+import * as gestureSwiperHook from '../../hooks/useGestureSwiper'
+import type { Listing } from '../../types/listing.types'
 import { CarCard } from '../../components/cars/CarCard'
 import { BusCard } from '../../components/buses/BusCard'
 import { EquipCard } from '../../components/cards/EquipCard'
@@ -179,7 +186,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
 
       const { rerender } = await render(
         <QueryClientProvider client={qc}>
-          <CarCard item={baseItem as any} onPress={onPress} fullWidth />
+          <CarCard item={baseItem as unknown as Listing} onPress={onPress} fullWidth />
         </QueryClientProvider>
       )
 
@@ -188,7 +195,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       // Re-render parent with exact same props -> CarCard must skip re-render
       await rerender(
         <QueryClientProvider client={qc}>
-          <CarCard item={baseItem as any} onPress={onPress} fullWidth />
+          <CarCard item={baseItem as unknown as Listing} onPress={onPress} fullWidth />
         </QueryClientProvider>
       )
       expect(renderSpy).toHaveBeenCalledTimes(1)
@@ -197,7 +204,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       await rerender(
         <QueryClientProvider client={qc}>
           <CarCard
-            item={{ ...baseItem, images: ['https://example.com/1.jpg'] } as any}
+            item={{ ...baseItem, images: ['https://example.com/1.jpg'] } as unknown as Listing}
             onPress={onPress}
             fullWidth
           />
@@ -225,7 +232,12 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
 
       const { rerender, getByTestId, queryAllByText, getAllByText, getAllByTestId } = await render(
         <QueryClientProvider client={qc}>
-          <CarCard item={baseItem as any} onPress={onPress} fullWidth disableImageSwipe />
+          <CarCard
+            item={baseItem as unknown as Listing}
+            onPress={onPress}
+            fullWidth
+            disableImageSwipe
+          />
         </QueryClientProvider>
       )
 
@@ -250,7 +262,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       await rerender(
         <QueryClientProvider client={qc}>
           <CarCard
-            item={{ ...baseItem, isFavorite: true } as any}
+            item={{ ...baseItem, isFavorite: true } as unknown as Listing}
             onPress={onPress}
             fullWidth
             disableImageSwipe
@@ -264,7 +276,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       await rerender(
         <QueryClientProvider client={qc}>
           <CarCard
-            item={{ ...baseItem, isFavorite: true, status: 'SOLD' } as any}
+            item={{ ...baseItem, isFavorite: true, status: 'SOLD' } as unknown as Listing}
             onPress={onPress}
             fullWidth
             disableImageSwipe
@@ -285,7 +297,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
                 isFavorite: true,
                 status: 'SOLD',
                 images: ['https://example.com/b.jpg'],
-              } as any
+              } as unknown as Listing
             }
             onPress={onPress}
             fullWidth
@@ -403,7 +415,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
             {sampleCards.map((item) => (
               <CarCard
                 key={item.id}
-                item={item as any}
+                item={item as unknown as Listing}
                 onPress={noop}
                 fullWidth
                 showChips
@@ -430,7 +442,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       // Over 30 GlassSurface instances mounted, but AccessibilityInfo is queried & subscribed ONLY ONCE
       expect(isReduceSpy).toHaveBeenCalledTimes(1)
       const reduceTransparencyListeners = addListenerSpy.mock.calls.filter(
-        (call) => call[0] === 'reduceTransparencyChanged'
+        (call) => String(call[0]) === 'reduceTransparencyChanged'
       )
       expect(reduceTransparencyListeners).toHaveLength(1)
     })
@@ -494,8 +506,11 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       qc.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, new Set())
 
       const renderSpy = jest.fn()
-      const OriginalType = (ListingCardBase as any).type
-      ;(ListingCardBase as any).type = function SpiedBase(props: any) {
+      const MemoHolder = ListingCardBase as unknown as {
+        type: (props: ListingCardBaseProps) => React.ReactElement | null
+      }
+      const OriginalType = MemoHolder.type
+      MemoHolder.type = function SpiedBase(props: ListingCardBaseProps) {
         renderSpy(props.item?.id)
         return OriginalType(props)
       }
@@ -535,7 +550,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
                 {items.map((item) => (
                   <CarCard
                     key={item.id}
-                    item={item as any}
+                    item={item as unknown as Listing}
                     onPress={getItemPressHandler(item.id)}
                     fullWidth
                     showChips
@@ -559,7 +574,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
         // Zero card re-renders because getItemPressHandler(item.id) and glassSupport are referentially stable
         expect(renderSpy.mock.calls.length).toBe(countAfterMount)
       } finally {
-        ;(ListingCardBase as any).type = OriginalType
+        MemoHolder.type = OriginalType
       }
     })
   })
@@ -577,8 +592,11 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       qc.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, new Set())
 
       const renderSpy = jest.fn()
-      const OriginalType = (ListingCardBase as any).type
-      ;(ListingCardBase as any).type = function SpiedBase(props: any) {
+      const MemoHolder = ListingCardBase as unknown as {
+        type: (props: ListingCardBaseProps) => React.ReactElement | null
+      }
+      const OriginalType = MemoHolder.type
+      MemoHolder.type = function SpiedBase(props: ListingCardBaseProps) {
         renderSpy()
         return OriginalType(props)
       }
@@ -604,7 +622,7 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
 
         const { getByTestId } = await render(
           <QueryClientProvider client={qc}>
-            <CarCard item={multiImageCar as any} onPress={() => {}} fullWidth />
+            <CarCard item={multiImageCar as unknown as Listing} onPress={() => {}} fullWidth />
           </QueryClientProvider>
         )
 
@@ -631,7 +649,72 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
         })
         expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
       } finally {
-        ;(ListingCardBase as any).type = OriginalType
+        MemoHolder.type = OriginalType
+      }
+    })
+  })
+
+  describe('Item 5: CardImageSwiper active±1 neighbour windowing and expo-image cache/priority props', () => {
+    const sixImages = [
+      'https://example.com/1.jpg',
+      'https://example.com/2.jpg',
+      'https://example.com/3.jpg',
+      'https://example.com/4.jpg',
+      'https://example.com/5.jpg',
+      'https://example.com/6.jpg',
+    ]
+
+    it('mounts only 2 Image components ([0, 1]) at activeIndex=0 for a 6-image card while keeping all 6 slides and dots, with recyclingKey + cachePolicy + priority', async () => {
+      const { getAllByTestId, getByTestId } = await render(
+        <CardImageSwiper images={sixImages} cardWidth={356} fullWidth />
+      )
+
+      // All 6 slide frames exist so track width and paging offsets are unchanged
+      for (let i = 0; i < 6; i += 1) {
+        expect(getByTestId(`card-image-slide-${i}`)).toBeTruthy()
+      }
+
+      // All 6 pagination dots exist
+      const dotsContainer = getByTestId('card-image-swiper-dots')
+      expect(dotsContainer.props.children).toHaveLength(6)
+
+      // Only activeIndex (0) and activeIndex + 1 (1) mount actual <Image> decoders
+      const mountedImages = getAllByTestId('mock-expo-image')
+      expect(mountedImages).toHaveLength(2)
+      expect(mountedImages[0].props.source).toEqual({ uri: sixImages[0] })
+      expect(mountedImages[0].props.recyclingKey).toBe(sixImages[0])
+      expect(mountedImages[0].props.cachePolicy).toBe('memory-disk')
+      expect(mountedImages[0].props.priority).toBe('high')
+
+      expect(mountedImages[1].props.source).toEqual({ uri: sixImages[1] })
+      expect(mountedImages[1].props.recyclingKey).toBe(sixImages[1])
+      expect(mountedImages[1].props.cachePolicy).toBe('memory-disk')
+      expect(mountedImages[1].props.priority).toBe('normal')
+    })
+
+    it('mounts exactly 3 Image components ([1, 2, 3]) when swiped to activeIndex=2 on a 6-image card', async () => {
+      const realUseGestureSwiper = gestureSwiperHook.useGestureSwiper
+      const swiperSpy = jest
+        .spyOn(gestureSwiperHook, 'useGestureSwiper')
+        .mockImplementation((opts) => {
+          const res = realUseGestureSwiper(opts)
+          return { ...res, activeIndex: 2 }
+        })
+
+      try {
+        const { getAllByTestId } = await render(
+          <CardImageSwiper images={sixImages} cardWidth={356} fullWidth />
+        )
+
+        const mountedImages = getAllByTestId('mock-expo-image')
+        expect(mountedImages).toHaveLength(3)
+        expect(mountedImages.map((node) => node.props.source.uri)).toEqual([
+          sixImages[1],
+          sixImages[2],
+          sixImages[3],
+        ])
+      } finally {
+        swiperSpy.mockRestore()
       }
     })
   })

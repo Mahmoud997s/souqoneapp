@@ -288,13 +288,13 @@ export default function BusesBrowseScreen() {
   const getItemPressHandler = useCallback((id: string) => {
     let handler = itemPressHandlersRef.current.get(id);
     if (!handler) {
-      handler = () => router.push(`/buses/${id}` as any);
+      handler = () => router.push(`/buses/${id}`);
       itemPressHandlersRef.current.set(id, handler);
     }
     return handler;
   }, []);
 
-  const keyExtractor = useCallback((item: any) => item.id, []);
+  const keyExtractor = useCallback((item: { id: string }) => item.id, []);
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -303,10 +303,10 @@ export default function BusesBrowseScreen() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
-    ({ item }: any) => (
+    ({ item }: { item: (typeof listings)[number] }) => (
       <View style={s.cardWrapper}>
         <BusCard
-          item={item}
+          item={item as unknown as Listing}
           onPress={getItemPressHandler(item.id)}
           fullWidth
           showChips

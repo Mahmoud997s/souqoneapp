@@ -215,7 +215,7 @@ export default function CarsBrowseScreen() {
   const getItemPressHandler = useCallback((id: string) => {
     let handler = itemPressHandlersRef.current.get(id);
     if (!handler) {
-      handler = () => router.push(`/cars/${id}` as any);
+      handler = () => router.push(`/cars/${id}`);
       itemPressHandlersRef.current.set(id, handler);
     }
     return handler;
@@ -233,7 +233,7 @@ export default function CarsBrowseScreen() {
     ({ item }: { item: Listing }) => (
       <View style={s.cardWrapper}>
         <CarCard
-          item={item as any}
+          item={item}
           onPress={getItemPressHandler(item.id)}
           fullWidth
           showChips
@@ -244,6 +244,8 @@ export default function CarsBrowseScreen() {
     [getItemPressHandler, glassSupport]
   );
 
+  const selectedPriceId = (filters as FilterState & { priceId?: string }).priceId;
+
   const listHeaderComponent = useMemo(
     () => (
       <View style={s.listHeader}>
@@ -251,7 +253,7 @@ export default function CarsBrowseScreen() {
           selectedBrandId={selectedBrandId}
           selectedCity={filters.city}
           selectedModelId={filters.modelId}
-          selectedPriceId={(filters as any).priceId}
+          selectedPriceId={selectedPriceId}
           selectedTypeId={filters.bodyType}
           onSelectFilter={handleSelectFilter}
           onViewAll={handleViewAllVisualFilters}
@@ -273,7 +275,7 @@ export default function CarsBrowseScreen() {
       selectedBrandId,
       filters.city,
       filters.modelId,
-      (filters as any).priceId,
+      selectedPriceId,
       filters.bodyType,
       handleSelectFilter,
       handleViewAllVisualFilters,

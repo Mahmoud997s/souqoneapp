@@ -225,14 +225,14 @@ export default function BrowseOperatorsScreen() {
   }, [])
 
   const handleEditOperatorProfile = useCallback((profileId: string) => {
-    router.push(`/equipment/operators/edit/${profileId}` as any)
+    router.push({ pathname: '/equipment/operators/edit/[id]', params: { id: profileId } })
   }, [])
 
   const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map())
   const getItemPressHandler = useCallback((id: string) => {
     let handler = itemPressHandlersRef.current.get(id)
     if (!handler) {
-      handler = () => router.push(`/equipment/operators/${id}` as any)
+      handler = () => router.push({ pathname: '/equipment/operators/[id]', params: { id } })
       itemPressHandlersRef.current.set(id, handler)
     }
     return handler

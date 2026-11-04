@@ -54,6 +54,7 @@ import { useGlassSupport } from '../../src/components/navigation/glassSupport';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
+import { Listing } from '../../src/types/listing.types';
 import { navigateToEquipmentForm } from '../../src/components/ui/DraftResumePrompt';
 
 // Constants
@@ -338,19 +339,19 @@ export default function EquipmentBrowseScreen() {
   const getItemPressHandler = useCallback((id: string) => {
     let handler = itemPressHandlersRef.current.get(id);
     if (!handler) {
-      handler = () => router.push(`/equipment/${id}` as any);
+      handler = () => router.push(`/equipment/${id}`);
       itemPressHandlersRef.current.set(id, handler);
     }
     return handler;
   }, []);
 
-  const keyExtractor = useCallback((item: UnifiedCardItem) => (item as any).id, []);
+  const keyExtractor = useCallback((item: UnifiedCardItem) => item.id, []);
 
   const renderItem = useCallback(
     ({ item }: { item: UnifiedCardItem }) => (
       <View style={s.cardWrapper}>
         <EquipCard
-          item={item as any}
+          item={item as unknown as Listing}
           onPress={getItemPressHandler(item.id)}
           fullWidth
           showChips
