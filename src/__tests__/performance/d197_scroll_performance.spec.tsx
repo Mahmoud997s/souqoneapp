@@ -21,7 +21,7 @@ import {
   areListingCardBasePropsEqual,
 } from '../../utils/cardMemoComparison'
 import { freezeEnabled } from 'react-native-screens'
-import { AccessibilityInfo } from 'react-native'
+import { AccessibilityInfo, View, Dimensions } from 'react-native'
 import { useGlassSupport } from '../../components/navigation/glassSupport'
 import { BrowseHeader } from '../../components/ui/BrowseHeader'
 import { ListingTabs } from '../../components/ui/ListingTabs'
@@ -464,6 +464,103 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
       expect(cardBaseContent).toContain('s.cardGridMode')
       expect(cardBaseContent).toContain('s.imageContainerFullWidth')
       expect(cardBaseContent).toContain('s.imageContainerAspect')
+    })
+  })
+
+  describe('Item 2: Stable list props and per-item onPress callbacks in browse screens', () => {
+    it.each([
+      'app/cars/browse.tsx',
+      'app/buses/browse.tsx',
+      'app/equipment/browse.tsx',
+      'app/equipment/operators/browse.tsx',
+      'app/parts/browse.tsx',
+      'app/services/browse.tsx',
+    ])(
+      'passes memoized keyExtractor, renderItem, ListHeaderComponent, ListFooterComponent, ListEmptyComponent, and stable per-item onPress in %s',
+      (relPath) => {
+        const content = fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf8')
+        expect(content).toContain('keyExtractor={keyExtractor}')
+        expect(content).toContain('renderItem={renderItem}')
+        expect(content).toContain('ListHeaderComponent={listHeaderComponent}')
+        expect(content).toContain('ListFooterComponent={listFooterComponent}')
+        expect(content).toContain('ListEmptyComponent={listEmptyComponent}')
+        expect(content).toContain('itemPressHandlersRef')
+        expect(content).toContain('getItemPressHandler(item.id)')
+      }
+    )
+
+    it('keeps per-item onPress references identical across parent state updates so memoized cards do not re-render', async () => {
+      const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+      qc.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, new Set())
+
+      const renderSpy = jest.fn()
+      const OriginalType = (ListingCardBase as any).type
+      ;(ListingCardBase as any).type = function SpiedBase(props: any) {
+        renderSpy(props.item?.id)
+        return OriginalType(props)
+      }
+
+      try {
+        const items = [1, 2, 3].map((n) => ({
+          id: `stable-item-${n}`,
+          title: `إعلان ${n}`,
+          price: 9000 + n,
+          currency: 'OMR' as const,
+          status: 'ACTIVE',
+          listingType: 'SALE',
+          isPriceNegotiable: false,
+          make: 'Toyota',
+          model: 'Corolla',
+          year: 2023,
+          images: [`https://example.com/${n}.jpg`],
+        }))
+
+        const pressedIds: string[] = []
+
+        function BrowseListHarness({ parentFilterModalOpen }: { parentFilterModalOpen: boolean }) {
+          const glassSupport = useGlassSupport()
+          const itemPressHandlersRef = React.useRef<Map<string, () => void>>(new Map())
+          const getItemPressHandler = React.useCallback((id: string) => {
+            let fn = itemPressHandlersRef.current.get(id)
+            if (!fn) {
+              fn = () => pressedIds.push(id)
+              itemPressHandlersRef.current.set(id, fn)
+            }
+            return fn
+          }, [])
+
+          return (
+            <QueryClientProvider client={qc}>
+              <View testID={parentFilterModalOpen ? 'modal-open' : 'modal-closed'}>
+                {items.map((item) => (
+                  <CarCard
+                    key={item.id}
+                    item={item as any}
+                    onPress={getItemPressHandler(item.id)}
+                    fullWidth
+                    showChips
+                    disableImageSwipe
+                    glassSupport={glassSupport}
+                  />
+                ))}
+              </View>
+            </QueryClientProvider>
+          )
+        }
+
+        const { rerender } = await render(<BrowseListHarness parentFilterModalOpen={false} />)
+        const countAfterMount = renderSpy.mock.calls.length
+        expect(countAfterMount).toBeGreaterThanOrEqual(3)
+
+        // Parent state changes (e.g. opening/closing filter modal or typing in header)
+        await rerender(<BrowseListHarness parentFilterModalOpen={true} />)
+        await rerender(<BrowseListHarness parentFilterModalOpen={false} />)
+
+        // Zero card re-renders because getItemPressHandler(item.id) and glassSupport are referentially stable
+        expect(renderSpy.mock.calls.length).toBe(countAfterMount)
+      } finally {
+        ;(ListingCardBase as any).type = OriginalType
+      }
     })
   })
 })

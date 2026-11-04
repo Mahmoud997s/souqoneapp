@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -125,9 +125,9 @@ export default function CarsBrowseScreen() {
   const [activeDropdown, setActiveDropdown] = useState<'make' | 'city' | 'year' | 'price' | 'type' | 'sort' | null>(null);
   const { data: brands } = useBrands();
 
-  const handleAddCar = () => {
+  const handleAddCar = useCallback(() => {
     navigateToCarForm();
-  };
+  }, []);
 
   // Combine query parameters via pure module
   const queryParams = useMemo(() => {
@@ -183,11 +183,11 @@ export default function CarsBrowseScreen() {
     };
   });
 
-  const handleClearQuickFilter = (id: string) => {
+  const handleClearQuickFilter = useCallback((id: string) => {
     setFilters(prev => clearCarsQuickFilter(prev, id));
-  };
+  }, []);
 
-  const handleSelectFilter = (
+  const handleSelectFilter = useCallback((
     type: 'make' | 'model' | 'city' | 'price' | 'type',
     valueId: string,
     valueName?: string,
@@ -196,16 +196,127 @@ export default function CarsBrowseScreen() {
     extraId?: number
   ) => {
     setFilters(prev => applyCarsQuickFilter(prev, type, valueId, valueName, min, max, extraId));
-  };
+  }, []);
 
-  const handleApplyFilters = (appliedFilters: FilterState) => {
+  const handleApplyFilters = useCallback((appliedFilters: FilterState) => {
     setFilters(appliedFilters);
-  };
+  }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setFilters({});
     setSearchQuery('');
-  };
+  }, []);
+
+  const handleViewAllVisualFilters = useCallback(() => {
+    setIsFilterVisible(true);
+  }, []);
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map());
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id);
+    if (!handler) {
+      handler = () => router.push(`/cars/${id}` as any);
+      itemPressHandlersRef.current.set(id, handler);
+    }
+    return handler;
+  }, []);
+
+  const keyExtractor = useCallback((item: Listing) => item.id, []);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Listing }) => (
+      <View style={s.cardWrapper}>
+        <CarCard
+          item={item as any}
+          onPress={getItemPressHandler(item.id)}
+          fullWidth
+          showChips
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [getItemPressHandler, glassSupport]
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <View style={s.listHeader}>
+        <CarsVisualFilters
+          selectedBrandId={selectedBrandId}
+          selectedCity={filters.city}
+          selectedModelId={filters.modelId}
+          selectedPriceId={(filters as any).priceId}
+          selectedTypeId={filters.bodyType}
+          onSelectFilter={handleSelectFilter}
+          onViewAll={handleViewAllVisualFilters}
+          glassSupport={glassSupport}
+        />
+        {listings && listings.length > 0 && (
+          <BrowseResultsBar
+            resultsCount={listings.length}
+            entityName="سيارة"
+            iconName="car-sport-outline"
+            activeFiltersCount={activeFiltersCount}
+            onClearAll={handleClearAll}
+            glassSupport={glassSupport}
+          />
+        )}
+      </View>
+    ),
+    [
+      selectedBrandId,
+      filters.city,
+      filters.modelId,
+      (filters as any).priceId,
+      filters.bodyType,
+      handleSelectFilter,
+      handleViewAllVisualFilters,
+      glassSupport,
+      listings,
+      activeFiltersCount,
+      handleClearAll,
+    ]
+  );
+
+  const listFooterComponent = useMemo(
+    () => (
+      <>
+        {isFetchingNextPage && (
+          <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
+        )}
+        {listings && listings.length > 0 && (
+          <SectionFooterAction
+            title="لديك سيارة للبيع؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+            buttonText="أضف إعلانك"
+            iconName="car-sport-outline"
+            iconImage={CATEGORY_ICONS.cars}
+            onPress={handleAddCar}
+          />
+        )}
+      </>
+    ),
+    [isFetchingNextPage, listings, handleAddCar]
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={isLoading}
+        isError={isError}
+        activeFiltersCount={activeFiltersCount}
+        onRetry={refetch}
+        onClearAll={handleClearAll}
+      />
+    ),
+    [isLoading, isError, activeFiltersCount, refetch, handleClearAll]
+  );
 
   return (
     <View style={s.root}>
@@ -250,8 +361,8 @@ export default function CarsBrowseScreen() {
         ref={flatListRef}
         key="list-1-column"
         {...BROWSE_LIST_VIRTUALIZATION_PROPS}
-        data={listings ?? []}
-        keyExtractor={(item) => item.id}
+        data={listings}
+        keyExtractor={keyExtractor}
         contentContainerStyle={[
           s.listContent,
           {
@@ -269,80 +380,19 @@ export default function CarsBrowseScreen() {
             colors={[Colors.primary]}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={() => (
-          <>
-            {isFetchingNextPage && (
-              <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
-            )}
-            {listings && listings.length > 0 && (
-              <SectionFooterAction
-                title="لديك سيارة للبيع؟"
-                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
-                buttonText="أضف إعلانك"
-                iconName="car-sport-outline"
-                iconImage={CATEGORY_ICONS.cars}
-                onPress={handleAddCar}
-              />
-            )}
-          </>
-        )}
-        ListHeaderComponent={
-          <View style={s.listHeader}>
-            <CarsVisualFilters
-              selectedBrandId={selectedBrandId}
-              selectedCity={filters.city}
-              selectedModelId={filters.modelId}
-              selectedPriceId={(filters as any).priceId}
-              selectedTypeId={filters.bodyType}
-              onSelectFilter={handleSelectFilter}
-              onViewAll={(tabId) => setIsFilterVisible(true)}
-              glassSupport={glassSupport}
-            />
-            {listings && listings.length > 0 && (
-              <BrowseResultsBar
-                resultsCount={listings.length}
-                entityName="سيارة"
-                iconName="car-sport-outline"
-                activeFiltersCount={activeFiltersCount}
-                onClearAll={handleClearAll}
-                glassSupport={glassSupport}
-              />
-            )}
-          </View>
-        }
-        ListEmptyComponent={() => (
-          <BrowseEmptyState
-            isLoading={isLoading}
-            isError={isError}
-            activeFiltersCount={activeFiltersCount}
-            onRetry={refetch}
-            onClearAll={handleClearAll}
-          />
-        )}
-        renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <CarCard
-              item={item as any}
-              onPress={() => router.push(`/cars/${item.id}` as any)}
-              fullWidth
-              showChips
-              glassSupport={glassSupport}
-            />
-          </View>
-        )}
+        ListFooterComponent={listFooterComponent}
+        ListHeaderComponent={listHeaderComponent}
+        ListEmptyComponent={listEmptyComponent}
+        renderItem={renderItem}
       />
 
       <FilterBottomSheet
         visible={isFilterVisible}
         onClose={() => setIsFilterVisible(false)}
         initialFilters={filters}
-        onApplyFilters={(appliedFilters) => setFilters(appliedFilters)}
+        onApplyFilters={handleApplyFilters}
       />
 
       <QuickFilterModal

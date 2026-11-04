@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -216,14 +216,14 @@ export default function EquipmentBrowseScreen() {
     return count;
   }, [filters]);
 
-  const handleApplyFilters = (appliedFilters: FilterState) => {
+  const handleApplyFilters = useCallback((appliedFilters: FilterState) => {
     setFilters(appliedFilters);
-  };
+  }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setFilters({});
     setSearchQuery('');
-  };
+  }, []);
 
   const quickFilterItems = DROPDOWN_FILTERS.map(qf => {
     let isActive = false;
@@ -267,11 +267,11 @@ export default function EquipmentBrowseScreen() {
     };
   });
 
-  const handleClearQuickFilter = (id: string) => {
+  const handleClearQuickFilter = useCallback((id: string) => {
     setFilters((prev) => clearEquipmentFilter(prev, id));
-  };
+  }, []);
 
-  const handleSelectVisualFilter = (
+  const handleSelectVisualFilter = useCallback((
     type: 'category' | 'make' | 'city' | 'price' | 'condition',
     valueId: string,
     valueName?: string,
@@ -279,50 +279,157 @@ export default function EquipmentBrowseScreen() {
     max?: number,
     extraId?: number
   ) => {
-    const newFilters = { ...filters };
-    if (type === 'category') {
-      if (newFilters.equipmentType === valueId || !valueId) {
-        delete newFilters.equipmentType;
-        delete newFilters.categoryId;
-      } else {
-        newFilters.equipmentType = valueId;
-        newFilters.categoryId = valueId;
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      if (type === 'category') {
+        if (newFilters.equipmentType === valueId || !valueId) {
+          delete newFilters.equipmentType;
+          delete newFilters.categoryId;
+        } else {
+          newFilters.equipmentType = valueId;
+          newFilters.categoryId = valueId;
+        }
+      } else if (type === 'make') {
+        if (newFilters.make === valueId || !valueId) {
+          delete newFilters.make;
+        } else {
+          newFilters.make = valueId;
+        }
+      } else if (type === 'city') {
+        if (newFilters.city === valueName || newFilters.city === valueId || !valueId) {
+          delete newFilters.city;
+          delete newFilters.governorateId;
+        } else {
+          newFilters.city = valueName || valueId;
+          if (extraId) newFilters.governorateId = extraId;
+        }
+      } else if (type === 'price') {
+        if (newFilters.priceId === valueId || !valueId) {
+          delete newFilters.priceId;
+          delete newFilters.priceMin;
+          delete newFilters.priceMax;
+        } else {
+          newFilters.priceId = valueId;
+          newFilters.priceMin = min !== undefined ? String(min) : undefined;
+          newFilters.priceMax = max !== undefined ? String(max) : undefined;
+        }
+      } else if (type === 'condition') {
+        if (newFilters.condition === valueId || !valueId) {
+          delete newFilters.condition;
+          delete newFilters.conditionId;
+        } else {
+          newFilters.condition = valueId;
+          newFilters.conditionId = valueId;
+        }
       }
-    } else if (type === 'make') {
-      if (newFilters.make === valueId || !valueId) {
-        delete newFilters.make;
-      } else {
-        newFilters.make = valueId;
-      }
-    } else if (type === 'city') {
-      if (newFilters.city === valueName || newFilters.city === valueId || !valueId) {
-        delete newFilters.city;
-        delete newFilters.governorateId;
-      } else {
-        newFilters.city = valueName || valueId;
-        if (extraId) newFilters.governorateId = extraId;
-      }
-    } else if (type === 'price') {
-      if (newFilters.priceId === valueId || !valueId) {
-        delete newFilters.priceId;
-        delete newFilters.priceMin;
-        delete newFilters.priceMax;
-      } else {
-        newFilters.priceId = valueId;
-        newFilters.priceMin = min !== undefined ? String(min) : undefined;
-        newFilters.priceMax = max !== undefined ? String(max) : undefined;
-      }
-    } else if (type === 'condition') {
-      if (newFilters.condition === valueId || !valueId) {
-        delete newFilters.condition;
-        delete newFilters.conditionId;
-      } else {
-        newFilters.condition = valueId;
-        newFilters.conditionId = valueId;
-      }
+      return newFilters;
+    });
+  }, []);
+
+  const handleViewAllVisualFilters = useCallback(() => {
+    setIsFilterVisible(true);
+  }, []);
+
+  const handleAddEquipment = useCallback(() => {
+    navigateToEquipmentForm('push');
+  }, []);
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map());
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id);
+    if (!handler) {
+      handler = () => router.push(`/equipment/${id}` as any);
+      itemPressHandlersRef.current.set(id, handler);
     }
-    setFilters(newFilters);
-  };
+    return handler;
+  }, []);
+
+  const keyExtractor = useCallback((item: UnifiedCardItem) => (item as any).id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: UnifiedCardItem }) => (
+      <View style={s.cardWrapper}>
+        <EquipCard
+          item={item as any}
+          onPress={getItemPressHandler(item.id)}
+          fullWidth
+          showChips
+          maxChips={3}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [getItemPressHandler, glassSupport]
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <View style={s.listHeader}>
+        <EquipmentVisualFilters
+          selectedCategoryId={filters.equipmentType || filters.categoryId}
+          selectedMake={filters.make}
+          selectedCity={filters.city}
+          selectedPriceId={filters.priceId}
+          selectedConditionId={filters.condition || filters.conditionId}
+          onSelectFilter={handleSelectVisualFilter}
+          onViewAll={handleViewAllVisualFilters}
+          glassSupport={glassSupport}
+        />
+
+        <BrowseResultsBar
+          resultsCount={listings?.length || 0}
+          entityName="معدة"
+          iconName="construct-outline"
+          activeFiltersCount={activeFiltersCount}
+          onClearAll={handleClearAll}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [
+      filters.equipmentType,
+      filters.categoryId,
+      filters.make,
+      filters.city,
+      filters.priceId,
+      filters.condition,
+      filters.conditionId,
+      handleSelectVisualFilter,
+      handleViewAllVisualFilters,
+      glassSupport,
+      listings?.length,
+      activeFiltersCount,
+      handleClearAll,
+    ]
+  );
+
+  const listFooterComponent = useMemo(
+    () =>
+      !isLoading && listings && listings.length > 0 ? (
+        <SectionFooterAction
+          title="لديك معدة ثقيلة للبيع أو للإيجار؟"
+          subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات"
+          buttonText="أضف معدتك"
+          iconName="construct-outline"
+          iconImage={CATEGORY_ICONS.equipment}
+          onPress={handleAddEquipment}
+        />
+      ) : null,
+    [isLoading, listings, handleAddEquipment]
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <View style={s.emptyContainer}>
+        <View style={s.emptyIconWrap}>
+          <Ionicons name="search-outline" size={48} color={Colors.equipmentPrimary} />
+        </View>
+        <Text style={s.emptyTitle}>لا توجد معدات مطابقة</Text>
+        <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
+      </View>
+    ),
+    []
+  );
 
   return (
     <View style={s.root}>
@@ -384,7 +491,7 @@ export default function EquipmentBrowseScreen() {
           ref={listRef}
           {...BROWSE_LIST_VIRTUALIZATION_PROPS}
           data={listings || []}
-          keyExtractor={(item) => (item as any).id}
+          keyExtractor={keyExtractor}
           contentContainerStyle={[
             s.listContent,
             {
@@ -398,62 +505,10 @@ export default function EquipmentBrowseScreen() {
           refreshControl={
             <RefreshControl refreshing={isLoading && ((listings as any)?.length > 0)} onRefresh={refetch} tintColor={Colors.equipmentPrimary} />
           }
-          ListHeaderComponent={
-            <View style={s.listHeader}>
-              <EquipmentVisualFilters
-                selectedCategoryId={filters.equipmentType || filters.categoryId}
-                selectedMake={filters.make}
-                selectedCity={filters.city}
-                selectedPriceId={filters.priceId}
-                selectedConditionId={filters.condition || filters.conditionId}
-                onSelectFilter={handleSelectVisualFilter}
-                onViewAll={() => setIsFilterVisible(true)}
-                glassSupport={glassSupport}
-              />
-
-              <BrowseResultsBar
-                resultsCount={listings?.length || 0}
-                entityName="معدة"
-                iconName="construct-outline"
-                activeFiltersCount={activeFiltersCount}
-                onClearAll={handleClearAll}
-                glassSupport={glassSupport}
-              />
-            </View>
-          }
-          ListFooterComponent={() => (
-            !isLoading && listings && listings.length > 0 ? (
-              <SectionFooterAction
-                title="لديك معدة ثقيلة للبيع أو للإيجار؟"
-                subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات"
-                buttonText="أضف معدتك"
-                iconName="construct-outline"
-                iconImage={CATEGORY_ICONS.equipment}
-                onPress={() => navigateToEquipmentForm('push')}
-              />
-            ) : null
-          )}
-          ListEmptyComponent={
-            <View style={s.emptyContainer}>
-              <View style={s.emptyIconWrap}>
-                <Ionicons name="search-outline" size={48} color={Colors.equipmentPrimary} />
-              </View>
-              <Text style={s.emptyTitle}>لا توجد معدات مطابقة</Text>
-              <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <View style={s.cardWrapper}>
-              <EquipCard
-                item={item as any}
-                onPress={() => router.push(`/equipment/${item.id}` as any)}
-                fullWidth
-                showChips
-                maxChips={3}
-                glassSupport={glassSupport}
-              />
-            </View>
-          )}
+          ListHeaderComponent={listHeaderComponent}
+          ListFooterComponent={listFooterComponent}
+          ListEmptyComponent={listEmptyComponent}
+          renderItem={renderItem}
         />
       )}
 

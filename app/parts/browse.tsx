@@ -138,9 +138,9 @@ export default function PartsBrowseScreen() {
   }, [searchParams.q]);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const handleAddPart = () => {
+  const handleAddPart = useCallback(() => {
     navigateToPartForm();
-  };
+  }, []);
 
   // Dropdown Modal State
   const [activeDropdown, setActiveDropdown] = useState<PartsDropdownKind | null>(null);
@@ -367,7 +367,116 @@ export default function PartsBrowseScreen() {
 
   const showSkeleton = isLoading || (isFetching && listings.length === 0);
 
-  const renderEmptyState = () => {
+  const handleViewAllVisualFilters = useCallback(() => {
+    setIsFilterVisible(true);
+  }, []);
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map());
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id);
+    if (!handler) {
+      handler = () => router.push(`/parts/${id}` as any);
+      itemPressHandlersRef.current.set(id, handler);
+    }
+    return handler;
+  }, []);
+
+  const keyExtractor = useCallback(
+    (item: UnifiedCardItem, index: number) => (item as any)?.id || String(index),
+    []
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: UnifiedCardItem }) => (
+      <View style={s.cardWrapper}>
+        <PartCard
+          item={item}
+          onPress={getItemPressHandler(item.id)}
+          fullWidth
+          showChips
+          maxChips={5}
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [getItemPressHandler, glassSupport]
+  );
+
+  const resultsCustomIcon = useMemo(
+    () => (
+      <MaterialCommunityIcons
+        name="car-cog"
+        size={14}
+        color={FilterGlassTokens.resultsBar.countIconColor}
+      />
+    ),
+    []
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <View style={s.listHeader}>
+        <PartsVisualFilters
+          selectedCategory={filters.category}
+          selectedMake={filters.make}
+          onSelectFilter={handleSelectVisualFilter}
+          onViewAll={handleViewAllVisualFilters}
+          glassSupport={glassSupport}
+        />
+
+        {listings && listings.length > 0 && (
+          <BrowseResultsBar
+            resultsCount={listings.length}
+            entityName="قطعة غيار"
+            customIcon={resultsCustomIcon}
+            activeFiltersCount={activeFiltersCount}
+            onClearAll={handleClearAll}
+            glassSupport={glassSupport}
+          />
+        )}
+      </View>
+    ),
+    [
+      filters.category,
+      filters.make,
+      handleSelectVisualFilter,
+      handleViewAllVisualFilters,
+      glassSupport,
+      listings,
+      resultsCustomIcon,
+      activeFiltersCount,
+      handleClearAll,
+    ]
+  );
+
+  const listFooterComponent = useMemo(
+    () => (
+      <>
+        {isFetchingNextPage && (
+          <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
+        )}
+        {listings && listings.length > 0 && (
+          <SectionFooterAction
+            title="لديك قطعة للبيع؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+            buttonText="انشر إعلانك"
+            iconName="construct-outline"
+            iconImage={CATEGORY_ICONS.parts}
+            onPress={handleAddPart}
+          />
+        )}
+      </>
+    ),
+    [isFetchingNextPage, listings, handleAddPart]
+  );
+
+  const listEmptyComponent = useMemo(() => {
     if (showSkeleton) {
       return (
         <View style={s.skeletonGrid}>
@@ -413,7 +522,7 @@ export default function PartsBrowseScreen() {
         onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
       />
     );
-  };
+  }, [showSkeleton, isError, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
 
   return (
     <View style={s.root}>
@@ -450,7 +559,7 @@ export default function PartsBrowseScreen() {
         key="parts-browse-list"
         {...BROWSE_LIST_VIRTUALIZATION_PROPS}
         data={listings}
-        keyExtractor={(item, index) => (item as any)?.id || String(index)}
+        keyExtractor={keyExtractor}
         contentContainerStyle={[
           s.listContent,
           {
@@ -468,70 +577,12 @@ export default function PartsBrowseScreen() {
             colors={[Colors.primary]}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={
-          <View style={s.listHeader}>
-            <PartsVisualFilters
-              selectedCategory={filters.category}
-              selectedMake={filters.make}
-              onSelectFilter={handleSelectVisualFilter}
-              onViewAll={() => setIsFilterVisible(true)}
-              glassSupport={glassSupport}
-            />
-
-            {listings && listings.length > 0 && (
-              <BrowseResultsBar
-                resultsCount={listings.length}
-                entityName="قطعة غيار"
-                customIcon={
-                  <MaterialCommunityIcons
-                    name="car-cog"
-                    size={14}
-                    color={FilterGlassTokens.resultsBar.countIconColor}
-                  />
-                }
-                activeFiltersCount={activeFiltersCount}
-                onClearAll={handleClearAll}
-                glassSupport={glassSupport}
-              />
-            )}
-          </View>
-        }
-        ListEmptyComponent={renderEmptyState}
-        ListFooterComponent={() => (
-          <>
-            {isFetchingNextPage && (
-              <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
-            )}
-            {listings && listings.length > 0 && (
-              <SectionFooterAction
-                title="لديك قطعة للبيع؟"
-                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
-                buttonText="انشر إعلانك"
-                iconName="construct-outline"
-                iconImage={CATEGORY_ICONS.parts}
-                onPress={handleAddPart}
-              />
-            )}
-          </>
-        )}
-        renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <PartCard
-              item={item}
-              onPress={() => router.push(`/parts/${item.id}` as any)}
-              fullWidth
-              showChips
-              maxChips={5}
-              glassSupport={glassSupport}
-            />
-          </View>
-        )}
+        ListHeaderComponent={listHeaderComponent}
+        ListEmptyComponent={listEmptyComponent}
+        ListFooterComponent={listFooterComponent}
+        renderItem={renderItem}
       />
 
       {/* Comprehensive Filter Bottom Sheet */}

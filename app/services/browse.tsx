@@ -264,7 +264,7 @@ export default function ServicesBrowseScreen() {
     setFilters((prev) => clearServicesQuickFilter(prev, filterId));
   }, []);
 
-  const handleVisualFilterSelect = (
+  const handleVisualFilterSelect = useCallback((
     type: 'serviceType' | 'specialization' | 'city' | 'providerType',
     valueId: string,
     valueName?: string,
@@ -304,12 +304,146 @@ export default function ServicesBrowseScreen() {
       }
       return next;
     });
-  };
+  }, []);
 
   const handleClearAll = useCallback(() => {
     setFilters({});
     setSearchQuery('');
   }, []);
+
+  const handleViewAllVisualFilters = useCallback(() => {
+    setIsFilterVisible(true);
+  }, []);
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map());
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id);
+    if (!handler) {
+      handler = () => router.push({ pathname: '/services/[id]', params: { id } });
+      itemPressHandlersRef.current.set(id, handler);
+    }
+    return handler;
+  }, []);
+
+  const listData = useMemo(
+    () => (isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings),
+    [isLoading, listings]
+  );
+
+  const keyExtractor = useCallback(
+    (item: UnifiedCardItem, index: number) => item.id || `skeleton-${index}`,
+    []
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: UnifiedCardItem }) => {
+      if (isLoading) {
+        return (
+          <View style={styles.cardWrapper}>
+            <ServiceSkeletonCard fullWidth />
+          </View>
+        );
+      }
+      return (
+        <View style={styles.cardWrapper}>
+          <ServiceCard
+            item={item}
+            fullWidth
+            onPress={getItemPressHandler(item.id)}
+            glassSupport={glassSupport}
+          />
+        </View>
+      );
+    },
+    [isLoading, getItemPressHandler, glassSupport]
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <View style={styles.listHeader}>
+        <ServicesVisualFilters
+          selectedServiceType={filters.serviceType}
+          selectedSpecialization={filters.specializations?.[0]}
+          selectedCity={filters.city}
+          selectedProviderType={filters.providerType}
+          onSelectFilter={handleVisualFilterSelect}
+          onViewAll={handleViewAllVisualFilters}
+          glassSupport={glassSupport}
+        />
+
+        {!isLoading && listings && listings.length > 0 && (
+          <BrowseResultsBar
+            resultsCount={listings.length}
+            entityName="خدمة"
+            iconName="construct-outline"
+            activeFiltersCount={activeFiltersCount}
+            onClearAll={handleClearAll}
+            glassSupport={glassSupport}
+          />
+        )}
+      </View>
+    ),
+    [
+      filters.serviceType,
+      filters.specializations,
+      filters.city,
+      filters.providerType,
+      handleVisualFilterSelect,
+      handleViewAllVisualFilters,
+      glassSupport,
+      isLoading,
+      listings,
+      activeFiltersCount,
+      handleClearAll,
+    ]
+  );
+
+  const listFooterComponent = useMemo(
+    () => (
+      <>
+        {isFetchingNextPage && (
+          <View style={styles.footerLoader}>
+            <ActivityIndicator size="small" color={Colors.primary} />
+          </View>
+        )}
+        {!isLoading && listings && listings.length > 0 && (
+          <SectionFooterAction
+            title="لديك مركز صيانة أو تقدم خدمات؟"
+            subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
+            buttonText="أضف خدمتك"
+            iconName="construct-outline"
+            iconImage={CATEGORY_ICONS.services}
+            onPress={handleAddService}
+          />
+        )}
+      </>
+    ),
+    [isFetchingNextPage, isLoading, listings, handleAddService]
+  );
+
+  const listEmptyComponent = useMemo(
+    () =>
+      !isLoading ? (
+        <BrowseEmptyState
+          isLoading={isLoading}
+          isError={isError}
+          activeFiltersCount={activeFiltersCount}
+          onRetry={refetch}
+          onClearAll={handleClearAll}
+          iconName="construct-outline"
+          emptyTitle="لم يتم العثور على خدمات مطابقة"
+          emptySubtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر"
+          errorText="حدث خطأ أثناء تحميل الخدمات"
+        />
+      ) : null,
+    [isLoading, isError, activeFiltersCount, refetch, handleClearAll]
+  );
 
   return (
     <View style={styles.container}>
@@ -342,27 +476,9 @@ export default function ServicesBrowseScreen() {
       <Animated.FlatList
         ref={flatListRef}
         {...BROWSE_LIST_VIRTUALIZATION_PROPS}
-        data={isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings}
-        keyExtractor={(item, index) => item.id || `skeleton-${index}`}
-        renderItem={({ item }) => {
-          if (isLoading) {
-            return (
-              <View style={styles.cardWrapper}>
-                <ServiceSkeletonCard fullWidth />
-              </View>
-            );
-          }
-          return (
-            <View style={styles.cardWrapper}>
-              <ServiceCard
-                item={item}
-                fullWidth
-                onPress={() => router.push({ pathname: '/services/[id]', params: { id: item.id } })}
-                glassSupport={glassSupport}
-              />
-            </View>
-          );
-        }}
+        data={listData}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[
           styles.listContent,
           {
@@ -382,70 +498,11 @@ export default function ServicesBrowseScreen() {
             progressViewOffset={Spacing.space4}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={
-          <View style={styles.listHeader}>
-            <ServicesVisualFilters
-              selectedServiceType={filters.serviceType}
-              selectedSpecialization={filters.specializations?.[0]}
-              selectedCity={filters.city}
-              selectedProviderType={filters.providerType}
-              onSelectFilter={handleVisualFilterSelect}
-              onViewAll={(tabId) => setIsFilterVisible(true)}
-              glassSupport={glassSupport}
-            />
-
-            {!isLoading && listings && listings.length > 0 && (
-              <BrowseResultsBar
-                resultsCount={listings.length}
-                entityName="خدمة"
-                iconName="construct-outline"
-                activeFiltersCount={activeFiltersCount}
-                onClearAll={handleClearAll}
-                glassSupport={glassSupport}
-              />
-            )}
-          </View>
-        }
-        ListFooterComponent={() => (
-          <>
-            {isFetchingNextPage && (
-              <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color={Colors.primary} />
-              </View>
-            )}
-            {!isLoading && listings && listings.length > 0 && (
-              <SectionFooterAction
-                title="لديك مركز صيانة أو تقدم خدمات؟"
-                subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
-                buttonText="أضف خدمتك"
-                iconName="construct-outline"
-                iconImage={CATEGORY_ICONS.services}
-                onPress={handleAddService}
-              />
-            )}
-          </>
-        )}
-        ListEmptyComponent={
-          !isLoading ? (
-            <BrowseEmptyState
-              isLoading={isLoading}
-              isError={isError}
-              activeFiltersCount={activeFiltersCount}
-              onRetry={refetch}
-              onClearAll={handleClearAll}
-              iconName="construct-outline"
-              emptyTitle="لم يتم العثور على خدمات مطابقة"
-              emptySubtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر"
-              errorText="حدث خطأ أثناء تحميل الخدمات"
-            />
-          ) : null
-        }
+        ListHeaderComponent={listHeaderComponent}
+        ListFooterComponent={listFooterComponent}
+        ListEmptyComponent={listEmptyComponent}
       />
 
       <QuickFilterModal

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -45,11 +45,21 @@ export default function FavoritesScreen() {
   // since the filter is now IN the list. So contentTopOffset is just navBarHeight.
   const contentTopOffset = navBarHeight + 10
 
-  const filteredData = data?.filter(item => {
-    if (item.category === 'jobs' || item.category === 'transport') return false
-    if (activeTab === 'all') return true
-    return item.category === activeTab
-  }) ?? []
+  const filteredData = useMemo(
+    () =>
+      data?.filter(item => {
+        if (item.category === 'jobs' || item.category === 'transport') return false
+        if (activeTab === 'all') return true
+        return item.category === activeTab
+      }) ?? [],
+    [data, activeTab]
+  )
+
+  const keyExtractor = useCallback((i: any) => i.id, [])
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => <SearchCardDispatcher item={item} glassSupport={glassSupport} />,
+    [glassSupport]
+  )
 
   const hasData = Boolean(data && data.length > 0)
   const isInitialLoading = isLoading && !data
@@ -102,7 +112,7 @@ export default function FavoritesScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           data={filteredData}
-          keyExtractor={i => i.id}
+          keyExtractor={keyExtractor}
           contentContainerStyle={[s.list, { paddingTop: contentTopOffset, paddingBottom: insets.bottom || 20 }]}
           refreshControl={
             <RefreshControl
@@ -150,9 +160,7 @@ export default function FavoritesScreen() {
               </TouchableOpacity>
             </View>
           }
-          renderItem={({ item }) => (
-            <SearchCardDispatcher item={item} glassSupport={glassSupport} />
-          )}
+          renderItem={renderItem}
         />
       )}
       <GlassNavBar

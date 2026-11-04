@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -152,7 +152,7 @@ export default function BusesBrowseScreen() {
     return count;
   }, [filters]);
 
-  const handleClearAll = () => setFilters((prev) => ({ sort: prev.sort }));
+  const handleClearAll = useCallback(() => setFilters((prev) => ({ sort: prev.sort })), []);
 
   const quickFilterItems: QuickFilterItem[] = DROPDOWN_FILTERS.map((qf) => {
     let isActive = false;
@@ -193,11 +193,11 @@ export default function BusesBrowseScreen() {
     };
   });
 
-  const handleClearQuickFilter = (id: string) => {
+  const handleClearQuickFilter = useCallback((id: string) => {
     setFilters((prev) => clearBusesFilter(prev, id));
-  };
+  }, []);
 
-  const handleSelectFilter = (
+  const handleSelectFilter = useCallback((
     type: 'make' | 'busType' | 'capacity' | 'city' | 'price',
     valueId: string,
     valueName?: string,
@@ -274,7 +274,128 @@ export default function BusesBrowseScreen() {
         priceId: valueId,
       }));
     }
-  };
+  }, [filters.make, filters.busType, filters.minCapacity, filters.capacityMin, filters.governorateId, filters.priceId]);
+
+  const handleViewAllVisualFilters = useCallback(() => {
+    setIsFilterVisible(true);
+  }, []);
+
+  const handleAddBus = useCallback(() => {
+    navigateToBusForm();
+  }, []);
+
+  const itemPressHandlersRef = useRef<Map<string, () => void>>(new Map());
+  const getItemPressHandler = useCallback((id: string) => {
+    let handler = itemPressHandlersRef.current.get(id);
+    if (!handler) {
+      handler = () => router.push(`/buses/${id}` as any);
+      itemPressHandlersRef.current.set(id, handler);
+    }
+    return handler;
+  }, []);
+
+  const keyExtractor = useCallback((item: any) => item.id, []);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderItem = useCallback(
+    ({ item }: any) => (
+      <View style={s.cardWrapper}>
+        <BusCard
+          item={item}
+          onPress={getItemPressHandler(item.id)}
+          fullWidth
+          showChips
+          glassSupport={glassSupport}
+        />
+      </View>
+    ),
+    [getItemPressHandler, glassSupport]
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <View style={s.listHeader}>
+        <BusesVisualFilters
+          selectedBrandId={filters.make}
+          selectedCity={filters.city}
+          selectedTypeId={filters.busType}
+          selectedCapacity={filters.minCapacity ?? filters.capacityMin}
+          selectedPriceId={filters.priceId}
+          onSelectFilter={handleSelectFilter}
+          onViewAll={handleViewAllVisualFilters}
+          glassSupport={glassSupport}
+        />
+
+        {listings && listings.length > 0 && (
+          <BrowseResultsBar
+            resultsCount={listings.length}
+            entityName="حافلة"
+            iconName="bus-outline"
+            activeFiltersCount={activeFiltersCount}
+            onClearAll={handleClearAll}
+            glassSupport={glassSupport}
+          />
+        )}
+      </View>
+    ),
+    [
+      filters.make,
+      filters.city,
+      filters.busType,
+      filters.minCapacity,
+      filters.capacityMin,
+      filters.priceId,
+      handleSelectFilter,
+      handleViewAllVisualFilters,
+      glassSupport,
+      listings,
+      activeFiltersCount,
+      handleClearAll,
+    ]
+  );
+
+  const listFooterComponent = useMemo(
+    () => (
+      <>
+        {isFetchingNextPage && (
+          <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
+        )}
+        {listings && listings.length > 0 && (
+          <SectionFooterAction
+            title="لديك حافلة للبيع؟"
+            subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
+            buttonText="أضف إعلانك"
+            iconName="bus-outline"
+            iconImage={CATEGORY_ICONS.buses}
+            onPress={handleAddBus}
+          />
+        )}
+      </>
+    ),
+    [isFetchingNextPage, listings, handleAddBus]
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={isLoading}
+        isError={isError}
+        activeFiltersCount={activeFiltersCount}
+        onRetry={refetch}
+        onClearAll={handleClearAll}
+        iconName="bus-outline"
+        emptyTitle="لا توجد حافلات مطابقة"
+        emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
+        errorText="حدث خطأ أثناء تحميل الحافلات"
+      />
+    ),
+    [isLoading, isError, activeFiltersCount, refetch, handleClearAll]
+  );
 
   return (
     <View style={s.root}>
@@ -321,8 +442,8 @@ export default function BusesBrowseScreen() {
         ref={listRef}
         key="list-1-column"
         {...BROWSE_LIST_VIRTUALIZATION_PROPS}
-        data={listings ?? []}
-        keyExtractor={(item: any) => item.id}
+        data={listings}
+        keyExtractor={keyExtractor}
         contentContainerStyle={[
           s.listContent,
           {
@@ -340,78 +461,12 @@ export default function BusesBrowseScreen() {
             colors={[Colors.primary]}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={() => (
-          <>
-            {isFetchingNextPage && (
-              <ActivityIndicator size="small" color={Colors.primary} style={s.loader} />
-            )}
-            {listings && listings.length > 0 && (
-              <SectionFooterAction
-                title="لديك حافلة للبيع؟"
-                subtitle="انشر إعلانك الآن ووصل لآلاف المشترين"
-                buttonText="أضف إعلانك"
-                iconName="bus-outline"
-                iconImage={CATEGORY_ICONS.buses}
-                onPress={() => navigateToBusForm()}
-              />
-            )}
-          </>
-        )}
-        ListHeaderComponent={
-          <View style={s.listHeader}>
-            <BusesVisualFilters
-              selectedBrandId={filters.make}
-              selectedCity={filters.city}
-              selectedTypeId={filters.busType}
-              selectedCapacity={filters.minCapacity ?? filters.capacityMin}
-              selectedPriceId={filters.priceId}
-              onSelectFilter={handleSelectFilter}
-              onViewAll={() => setIsFilterVisible(true)}
-              glassSupport={glassSupport}
-            />
-
-            {listings && listings.length > 0 && (
-              <BrowseResultsBar
-                resultsCount={listings.length}
-                entityName="حافلة"
-                iconName="bus-outline"
-                activeFiltersCount={activeFiltersCount}
-                onClearAll={handleClearAll}
-                glassSupport={glassSupport}
-              />
-            )}
-          </View>
-        }
-        ListEmptyComponent={() => (
-          <BrowseEmptyState
-            isLoading={isLoading}
-            isError={isError}
-            activeFiltersCount={activeFiltersCount}
-            onRetry={refetch}
-            onClearAll={handleClearAll}
-            iconName="bus-outline"
-            emptyTitle="لا توجد حافلات مطابقة"
-            emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
-            errorText="حدث خطأ أثناء تحميل الحافلات"
-          />
-        )}
-        renderItem={({ item }: any) => (
-          <View style={s.cardWrapper}>
-            <BusCard
-              item={item}
-              onPress={() => router.push(`/buses/${item.id}` as any)}
-              fullWidth
-              showChips
-              glassSupport={glassSupport}
-            />
-          </View>
-        )}
+        ListFooterComponent={listFooterComponent}
+        ListHeaderComponent={listHeaderComponent}
+        ListEmptyComponent={listEmptyComponent}
+        renderItem={renderItem}
       />
 
       <BusFilterBottomSheet
