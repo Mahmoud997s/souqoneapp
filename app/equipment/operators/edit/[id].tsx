@@ -14,7 +14,6 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
-import { LinearGradient } from 'expo-linear-gradient'
 import { WizardStickyFooter } from '../../../../src/components/ui/WizardStickyFooter'
 import { Colors } from '../../../../src/constants/colors'
 import { Radius } from '../../../../src/constants/radius'
@@ -206,15 +205,6 @@ export default function EditOperatorScreen() {
       <View style={[s.root, { paddingBottom: insets.bottom }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <LinearGradient
-          colors={['#EAF2FF', '#F3EEFF', '#FFF6EE']}
-          locations={[0, 0.55, 1]}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
-        <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
 
         <GlassNavBar title="تعديل البطاقة المهنية" paddingTop={insets.top} onBackPress={handlePrev} />
 
@@ -311,27 +301,7 @@ export default function EditOperatorScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F3EEFF',
-  },
-  orb: {
-    position: 'absolute',
-    borderRadius: 9999,
-  },
-  orbPrimary: {
-    width: 260,
-    height: 260,
-    top: -80,
-    left: -70,
-    backgroundColor: Colors.primary,
-    opacity: 0.08,
-  },
-  orbAccent: {
-    width: 220,
-    height: 220,
-    bottom: 80,
-    right: -60,
-    backgroundColor: Colors.accent,
-    opacity: 0.1,
+    backgroundColor: Colors.homeBg,
   },
   center: {
     alignItems: 'center',
