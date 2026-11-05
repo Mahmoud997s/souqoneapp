@@ -70,16 +70,6 @@ export function useOperatorItem(id: string) {
   return useQuery({
     queryKey: ['operator-item', id],
     queryFn: async () => {
-      if (id?.startsWith('op')) {
-        // Return mock data for mock operators
-        const mocks: Record<string, any> = {
-          op1: { id: 'op1', title: 'مشغل بلدوزر وجرافة', dailyRate: 30, currency: 'ر.ع.', location: 'الباطنة شمال', operatorType: 'مشغل', experienceYears: 15, description: 'خبرة طويلة في قيادة جميع أنواع الحفارات والجرافات. مستعد للعمل في أي منطقة.' },
-          op2: { id: 'op2', title: 'فني صيانة مولدات كهربائية', dailyRate: 20, currency: 'ر.ع.', location: 'الداخلية', operatorType: 'صيانة', experienceYears: 6, description: 'متخصص في فحص وصيانة المولدات الكهربائية الصناعية.' },
-          op3: { id: 'op3', title: 'فني صيانة معدات هيدروليك', hourlyRate: 8, currency: 'ر.ع.', location: 'مسقط', operatorType: 'فني', experienceYears: 12, description: 'إصلاح جميع أعطال الأنظمة الهيدروليكية في المعدات الثقيلة.' },
-          op4: { id: 'op4', title: 'مشغل رافعة برجية معتمد', dailyRate: 35, currency: 'ر.ع.', location: 'ظفار', operatorType: 'مشغل', experienceYears: 8, description: 'حاصل على رخصة تشغيل رافعات برجية ولديه خبرة في مشاريع كبرى.' },
-        }
-        return mocks[id] || null
-      }
       const res = await equipmentApi.getOperatorById(id)
       return res.data
     },
