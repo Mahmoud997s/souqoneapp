@@ -109,7 +109,7 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     // 2. Card main surface renders liquid branch
     expect(getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
 
-    // 3. Specification capsules render liquid branch with restored original capsule radius (6px)
+    // 3. Specification capsules render non-native layered wash (D-205 default CARD_PILL_NATIVE_GLASS = false) with capsule radius (6px)
     expect(CardSystem.glass.capsuleRadius).toBe(CardSystem.radius.inner)
     for (const key of ['model', 'year', 'trans', 'mileage']) {
       const wrap = getByTestId(`listing-card-pill-wrap-${key}`)
@@ -117,12 +117,13 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
       expect(wrapStyle.backgroundColor).toBe('transparent')
       expect(wrapStyle.borderRadius).toBe(CardSystem.radius.inner)
       expect(wrapStyle.overflow).toBe('hidden')
-      expect(getByTestId(`listing-card-pill-${key}-glass-liquid`)).toBeTruthy()
+      expect(getByTestId(`listing-card-pill-${key}-layered-wash`)).toBeTruthy()
+      expect(getByTestId(`listing-card-pill-${key}-top-highlight`)).toBeTruthy()
     }
 
-    // 4. Footer price capsule & negotiable capsule render liquid branch
-    expect(getByTestId('listing-card-price-pill-glass-liquid')).toBeTruthy()
-    expect(getByTestId('listing-card-negotiable-pill-glass-liquid')).toBeTruthy()
+    // 4. Footer price capsule & negotiable capsule render non-native layered wash
+    expect(getByTestId('listing-card-price-pill-layered-wash')).toBeTruthy()
+    expect(getByTestId('listing-card-negotiable-pill-layered-wash')).toBeTruthy()
 
     // 5. Floating share & favorite buttons render frosted styling with primary turquoise outline icons
     const shareBtn = getByTestId('listing-card-share')
@@ -143,10 +144,10 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     await act(async () => {})
 
     expect(getByTestId('listing-card-surface-glass-blur')).toBeTruthy()
-    expect(getByTestId('listing-card-pill-model-glass-blur')).toBeTruthy()
-    expect(getByTestId('listing-card-pill-year-glass-blur')).toBeTruthy()
-    expect(getByTestId('listing-card-price-pill-glass-blur')).toBeTruthy()
-    expect(getByTestId('listing-card-negotiable-pill-glass-blur')).toBeTruthy()
+    expect(getByTestId('listing-card-pill-model-layered-wash')).toBeTruthy()
+    expect(getByTestId('listing-card-pill-year-layered-wash')).toBeTruthy()
+    expect(getByTestId('listing-card-price-pill-layered-wash')).toBeTruthy()
+    expect(getByTestId('listing-card-negotiable-pill-layered-wash')).toBeTruthy()
 
     // Only the card surface uses BlurView (1 total), avoiding GPU conflicts over image and nested BlurViews
     const blurViews = getAllByTestId('mock-blur-view')

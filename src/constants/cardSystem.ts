@@ -1,6 +1,13 @@
 import { Platform } from 'react-native'
 import { Colors } from './colors'
 
+/**
+ * Switch controlling whether card pills render native GlassSurface views (`true`)
+ * or the lightweight non-native layered wash (`false`, default).
+ * Flip this single constant to `true` to restore per-pill native GlassSurface.
+ */
+export const CARD_PILL_NATIVE_GLASS = false
+
 export const CardSystem = {
   // Dimensions
   aspectRatioHeight: 140, 
