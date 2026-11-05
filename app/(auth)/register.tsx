@@ -118,7 +118,9 @@ export default function RegisterScreen() {
         router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (e: any) {
-      console.error('[Register Error]', JSON.stringify(e?.response?.data), e?.message)
+      if (__DEV__) {
+        console.error('[Register Error]', e?.message || 'Registration failed')
+      }
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'

@@ -124,7 +124,9 @@ export default function LoginScreen() {
         return
       }
 
-      console.error('[Login Error]', JSON.stringify(e?.response?.data), e?.message)
+      if (__DEV__) {
+        console.error('[Login Error]', e?.message || 'Login failed')
+      }
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       const serverMsg = msg || e?.message || 'بيانات الدخول غير صحيحة'
@@ -199,7 +201,9 @@ export default function LoginScreen() {
         }
       }
 
-      console.error('[Google Login Error]', err?.response?.data || err?.message || err)
+      if (__DEV__) {
+        console.error('[Google Login Error]', err?.message || 'Google login failed')
+      }
       let msg = err?.response?.data?.message || err?.message || 'فشل تسجيل الدخول بواسطة Google'
       if (Array.isArray(msg)) msg = msg[0]
       dialogService.alert('خطأ في تسجيل الدخول', msg)
@@ -284,7 +288,9 @@ export default function LoginScreen() {
         return
       }
 
-      console.error('[Apple Login Error]', err?.response?.data || err?.message || err)
+      if (__DEV__) {
+        console.error('[Apple Login Error]', err?.message || 'Apple login failed')
+      }
       dialogService.alert(
         'خطأ في تسجيل الدخول',
         'تعذر تسجيل الدخول بواسطة Apple، حاول مرة تانية'

@@ -168,7 +168,9 @@ export default function NewTransportRequest() {
         // On success, go to my requests
         router.replace('/transport/my-requests');
       } catch (err: any) {
-        console.error('Failed to create request', err.response?.data || err);
+        if (__DEV__) {
+          console.error('Failed to create request', err?.message || 'Create request failed');
+        }
         const msg = err.response?.data?.message || err.response?.data?.error || err.message;
         dialogService.alert(
           'حدث خطأ أثناء الإرسال',

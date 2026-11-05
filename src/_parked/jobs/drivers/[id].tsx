@@ -66,7 +66,9 @@ export default function DriverProfileScreen() {
       }
     } catch (error: any) {
       dialogService.alert('خطأ', 'حدث خطأ أثناء فتح المحادثة: ' + (error?.response?.data?.message || error?.message || ''))
-      console.log('Chat Error:', error?.response?.data || error)
+      if (__DEV__) {
+        console.error('Chat Error:', error?.message || 'Chat open failed')
+      }
     } finally {
       setIsChatting(false)
     }

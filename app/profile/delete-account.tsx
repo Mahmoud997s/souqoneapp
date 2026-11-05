@@ -146,7 +146,9 @@ export default function DeleteAccountScreen() {
       }
       setAppleCredentials(creds)
     } catch (err: any) {
-      console.error('[Apple Reauth Error]', err)
+      if (__DEV__) {
+        console.error('[Apple Reauth Error]', err?.message || 'Apple reauth failed')
+      }
       const msg =
         err instanceof AppleAuthError
           ? err.message

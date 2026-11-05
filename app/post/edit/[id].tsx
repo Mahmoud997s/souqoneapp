@@ -147,27 +147,25 @@ export default function EditListingLoader() {
           let trimLabel = ''
 
           try {
-            console.log('Resolving car labels for:', { brandId, carModelId, carTrimId })
             if (brandId) {
               const brands = await carsApi.getBrands()
               const b = brands.find((x: any) => String(x.id) === String(brandId))
-              console.log('Brands fetched:', brands?.length, 'Matched brand:', b?.nameAr || b?.name)
               if (b) makeLabel = b.nameAr || b.name
             }
             if (carModelId && brandId) {
               const models = await carsApi.getModels(brandId)
               const m = models.find((x: any) => String(x.id) === String(carModelId))
-              console.log('Models fetched:', models?.length, 'Matched model:', m?.nameAr || m?.name)
               if (m) modelLabel = m.nameAr || m.name
             }
             if (carTrimId && carModelId) {
               const trims = await carsApi.getTrims(carModelId)
               const t = trims.find((x: any) => String(x.id) === String(carTrimId))
-              console.log('Trims fetched:', trims?.length, 'Matched trim:', t?.nameAr || t?.name)
               if (t) trimLabel = t.nameAr || t.name
             }
           } catch (e) {
-            console.warn('Failed to resolve car labels', e)
+            if (__DEV__) {
+              console.warn('Failed to resolve car labels', e)
+            }
           }
 
           useCarWizardStore.getState().setEditMode(id, {

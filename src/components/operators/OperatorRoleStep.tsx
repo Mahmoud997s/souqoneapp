@@ -58,7 +58,9 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
         }
       }
     } catch (err: any) {
-      console.error('❌ [OperatorRoleStep] Error uploading avatar:', err?.message, err?.response?.data || err)
+      if (__DEV__) {
+        console.error('❌ [OperatorRoleStep] Error uploading avatar:', err?.message || 'Upload failed')
+      }
       dialogService.alert('خطأ', 'حدث خطأ أثناء رفع الصورة')
     } finally {
       setIsUploadingImage(false)
