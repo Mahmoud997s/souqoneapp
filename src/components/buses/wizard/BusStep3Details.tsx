@@ -18,6 +18,7 @@ import { WizardCard } from '../../ui/WizardCard'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { BusWizardData } from '../../../store/busWizardStore'
 import { busesApi, BusManufacturer, BusModel } from '../../../api/buses'
+import { logError } from '../../../utils/safeLog'
 import {
   BUS_FEATURES,
   BUS_CONDITIONS,
@@ -60,7 +61,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         setManufacturers(res || [])
       })
       .catch((err) => {
-        console.error('Failed to load bus manufacturers', err)
+        logError('BusStep3:Manufacturers', err)
         setManufacturersError('تعذر تحميل قائمة الماركات، يرجى إعادة المحاولة')
       })
       .finally(() => {
@@ -83,7 +84,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           setModels(res || [])
         })
         .catch((err) => {
-          console.error('Failed to load bus models', err)
+          logError('BusStep3:Models', err)
           setModelsError('تعذر تحميل موديلات الماركة المختارة')
         })
         .finally(() => {

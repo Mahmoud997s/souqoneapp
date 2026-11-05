@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text, TextInput } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
+import { logWarn } from '../../utils/safeLog';
 import { 
   POPULAR_PART_MAKES, 
   PART_CONDITIONS, 
@@ -51,13 +52,13 @@ export function PartsFilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('PartsFilter:Gov', err));
     }
   }, [visible, initialFilters]);
 
   useEffect(() => {
     if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(console.warn);
+      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('PartsFilter:Wilaya', err));
     } else {
       setWilayas([]);
     }

@@ -23,6 +23,7 @@ import { FilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
+import { logWarn } from '../../utils/safeLog';
 
 interface FilterBottomSheetProps {
   visible: boolean;
@@ -56,13 +57,13 @@ export function FilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('FilterBottomSheet:Gov', err));
     }
   }, [visible, initialFilters]);
 
   useEffect(() => {
     if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(console.warn);
+      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('FilterBottomSheet:Wilaya', err));
     } else {
       setWilayas([]);
     }

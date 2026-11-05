@@ -28,6 +28,7 @@ import { useBusWizardStore, BusWizardData } from '../../src/store/busWizardStore
 import { useBusFormLogic } from '../../src/hooks/useBusFormLogic'
 import { validateStep } from '../../src/hooks/useBusValidation'
 import { buildBusPayload } from '../../src/utils/busPayload'
+import { logWarn } from '../../src/utils/safeLog'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
 
@@ -230,7 +231,7 @@ export default function NewBusListingScreen() {
         }
       }
     } catch (uploadErr: any) {
-      console.warn('Error uploading bus images:', uploadErr)
+      logWarn('BusesNew:UploadImages', uploadErr)
       const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
       dialogService.alert(
         'خطأ في رفع الصور',
@@ -264,7 +265,7 @@ export default function NewBusListingScreen() {
               }
             } catch (err) {
               imagesSuccess = false
-              console.warn('Error updating bus images in edit mode:', err)
+              logWarn('BusesNew:UpdateImages', err)
             }
 
             if (imagesSuccess) {
@@ -302,7 +303,7 @@ export default function NewBusListingScreen() {
             try {
               await busesApi.addImages(busId, newImageUrls)
             } catch (imgErr) {
-              console.warn('Failed to add images to bus listing:', imgErr)
+              logWarn('BusesNew:AddImages', imgErr)
             }
           }
 

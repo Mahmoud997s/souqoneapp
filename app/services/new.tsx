@@ -29,6 +29,7 @@ import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceW
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
 import { validateStep } from '../../src/hooks/useServiceValidation'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
+import { logWarn } from '../../src/utils/safeLog'
 
 import { ServiceStep1Type } from '../../src/components/services/wizard/ServiceStep1Type'
 import { ServiceStep2Images } from '../../src/components/services/wizard/ServiceStep2Images'
@@ -220,7 +221,7 @@ export default function NewServiceListingScreen() {
                 newImageUrls.push(url)
               }
             } catch (uploadErr: any) {
-              console.warn('Image upload error for service:', uploadErr)
+              logWarn('ServicesNew:UploadImage', uploadErr)
               const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
               throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
             }
@@ -228,7 +229,7 @@ export default function NewServiceListingScreen() {
         }
       }
     } catch (e: any) {
-      console.warn('Error uploading service images before submit:', e)
+      logWarn('ServicesNew:UploadBeforeSubmit', e)
       dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
       setIsUploadingImages(false)
       return
@@ -285,7 +286,7 @@ export default function NewServiceListingScreen() {
               }
             } catch (err) {
               imagesSuccess = false
-              console.warn('Error removing service images in edit mode:', err)
+              logWarn('ServicesNew:RemoveImages', err)
             }
 
             if (imagesSuccess) {

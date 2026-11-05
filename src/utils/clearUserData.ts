@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store'
 import { disconnectSocket } from '../services/socket'
 import { usersApi } from '../api/users'
 import { queryClient } from '../api/queryClient'
+import { logWarn, logError } from './safeLog'
 
 export const clearAllUserData = async () => {
   // 1. Unregister Push Token from Backend (best effort, fail silently)
@@ -11,7 +12,7 @@ export const clearAllUserData = async () => {
       await usersApi.unregisterPushToken().catch(() => {})
     }
   } catch (error) {
-    console.warn('[clearUserData] Failed to unregister push token:', error)
+    logWarn('clearUserData:PushToken', error)
   }
 
   // 2. Clear Local Tokens (MUST SUCCEED)
@@ -19,14 +20,14 @@ export const clearAllUserData = async () => {
     await SecureStore.deleteItemAsync('accessToken')
     await SecureStore.deleteItemAsync('refreshToken')
   } catch (error) {
-    console.error('[clearUserData] Failed to delete tokens from SecureStore:', error)
+    logError('clearUserData:DeleteTokens', error)
   }
 
   // 3. Disconnect Socket
   try {
     disconnectSocket()
   } catch (error) {
-    console.warn('[clearUserData] Failed to disconnect socket:', error)
+    logWarn('clearUserData:DisconnectSocket', error)
   }
 
   // 4. Reset All Stores safely
@@ -49,6 +50,6 @@ export const clearAllUserData = async () => {
       queryClient.clear()
     }
   } catch (error) {
-    console.warn('[clearUserData] Failed to clear React Query cache:', error)
+    logWarn('clearUserData:ClearQueryCache', error)
   }
 }

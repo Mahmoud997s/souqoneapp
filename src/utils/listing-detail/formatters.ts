@@ -1,3 +1,5 @@
+import { logWarn } from '../safeLog'
+
 const ARABIC_MONTHS = [
   'يناير',
   'فبراير',
@@ -121,8 +123,6 @@ export function parseDecimal(value: unknown): number | undefined {
     const parsed = Number(trimmed)
     if (Number.isFinite(parsed)) return parsed
   }
-  if (typeof __DEV__ !== 'undefined' && __DEV__) {
-    console.warn('[parseDecimal] Unparseable numeric value:', value)
-  }
+  logWarn('parseDecimal:Unparseable', value)
   return undefined
 }

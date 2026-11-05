@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppButton } from './AppButton'
+import { logWarn } from '../../utils/safeLog'
 
 interface MapLocationPickerProps {
   isVisible: boolean
@@ -99,7 +100,7 @@ export function MapLocationPicker({
         longitudeDelta: 0.015,
       })
     } catch (err) {
-      console.warn('Could not fetch location', err)
+      logWarn('MapLocationPicker', err)
     } finally {
       setIsLoadingLoc(false)
     }

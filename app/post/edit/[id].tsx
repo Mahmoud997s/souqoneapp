@@ -14,6 +14,7 @@ import { useServiceWizardStore } from '../../../src/store/serviceWizardStore'
 import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
 import { carsApi } from '../../../src/api/cars'
+import { logWarn } from '../../../src/utils/safeLog'
 
 export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
@@ -163,9 +164,7 @@ export default function EditListingLoader() {
               if (t) trimLabel = t.nameAr || t.name
             }
           } catch (e) {
-            if (__DEV__) {
-              console.warn('Failed to resolve car labels', e)
-            }
+            logWarn('PostEdit:CarLabels', e)
           }
 
           useCarWizardStore.getState().setEditMode(id, {

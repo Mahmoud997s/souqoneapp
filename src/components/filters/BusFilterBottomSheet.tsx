@@ -17,6 +17,7 @@ import {
 } from '../../constants/buses'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
+import { logWarn } from '../../utils/safeLog'
 
 export interface BusFilters {
   busListingType?: string
@@ -176,7 +177,7 @@ export function BusFilterBottomSheet({
         .then((res) => {
           if (Array.isArray(res)) setGovernorates(res)
         })
-        .catch(console.warn)
+        .catch(err => logWarn('BusFilter:Gov', err))
     }
   }, [visible, currentFilters, initialFilters])
 
@@ -191,7 +192,7 @@ export function BusFilterBottomSheet({
         .then((res) => {
           if (!cancelled && Array.isArray(res)) setWilayas(res)
         })
-        .catch(console.warn)
+        .catch(err => logWarn('BusFilter:Wilaya', err))
     }
 
     return () => {

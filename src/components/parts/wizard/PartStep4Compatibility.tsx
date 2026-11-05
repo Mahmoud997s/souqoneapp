@@ -18,6 +18,7 @@ import { MultiSelectSearchModal, MultiSelectOption } from '../../ui/MultiSelectS
 import { PartStep4Props } from '../../../types/partForm.types'
 import { CompatibleVehicleType } from '../../../store/partWizardStore'
 import { carsApi, CarBrand, CarModelItem } from '../../../api/cars'
+import { logError } from '../../../utils/safeLog'
 
 const VEHICLE_TYPE_OPTIONS: { id: CompatibleVehicleType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'CAR', label: 'سيارات', icon: 'car-outline' },
@@ -51,7 +52,7 @@ export function PartStep4Compatibility({
   }>({ visible: false, title: '', data: [], selectedValues: [], onConfirm: () => {} })
 
   useEffect(() => {
-    carsApi.getBrands().then(setBrands).catch(console.error)
+    carsApi.getBrands().then(setBrands).catch(err => logError('PartStep4:Brands', err))
   }, [])
 
   useEffect(() => {

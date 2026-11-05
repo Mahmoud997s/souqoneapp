@@ -19,6 +19,7 @@ import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '.
 
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { dialogService } from '../../src/store/dialogStore'
+import { logWarn } from '../../src/utils/safeLog'
 
 import MapView, { PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -69,7 +70,7 @@ export default function PostStep4Screen() {
       set({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
       mapRef.current?.animateToRegion(newRegion, 1000)
     } catch (e) {
-      console.warn("Location error:", e)
+      logWarn('PostStep4:Location', e)
     } finally {
       setLoadingLocation(false)
     }
