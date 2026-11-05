@@ -24,46 +24,6 @@ import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons'
 import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask'
 
-const MOCK_OPERATORS = [
-  {
-    id: 'op1',
-    title: 'مشغل بلدوزر وجرافة',
-    price: 30,
-    priceLabel: 'يوم',
-    currency: 'ر.ع.',
-    governorate: 'الباطنة شمال',
-    isVerified: true,
-    raw: { operatorType: 'مشغل', experienceYears: 15, equipmentTypes: ['بلدوزر', 'جرافة'] },
-  },
-  {
-    id: 'op2',
-    title: 'فني صيانة مولدات كهربائية',
-    price: 20,
-    priceLabel: 'يوم',
-    currency: 'ر.ع.',
-    governorate: 'الداخلية',
-    raw: { operatorType: 'صيانة', experienceYears: 6, equipmentTypes: ['مولدات', 'كهرباء صناعية'] },
-  },
-  {
-    id: 'op3',
-    title: 'فني صيانة معدات هيدروليك',
-    price: 8,
-    priceLabel: 'ساعة',
-    currency: 'ر.ع.',
-    governorate: 'مسقط',
-    raw: { operatorType: 'فني', experienceYears: 12, equipmentTypes: ['هيدروليك', 'محركات ديزل'] },
-  },
-  {
-    id: 'op4',
-    title: 'مشغل رافعة برجية معتمد',
-    price: 35,
-    priceLabel: 'يوم',
-    currency: 'ر.ع.',
-    governorate: 'ظفار',
-    raw: { operatorType: 'مشغل', experienceYears: 8, equipmentTypes: ['رافعات برجية', 'رافعات متحركة'] },
-  },
-]
-
 export default function EquipmentLandingScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -106,9 +66,15 @@ export default function EquipmentLandingScreen() {
     { enabled: loadRest }
   )
 
-  const { data: opData, isLoading: loadingOp } = useOperatorsInfinite()
+  const {
+    data: opData,
+    isLoading: loadingOp,
+    isError: errorOp,
+    error: opError,
+    refetch: refetchOp,
+  } = useOperatorsInfinite()
   const fetchedOperators = opData?.pages.flatMap((p) => p.items)?.slice(0, 8) || []
-  const operators = fetchedOperators.length > 0 ? fetchedOperators : (loadingOp ? [] : MOCK_OPERATORS)
+  const operators = fetchedOperators
 
   return (
     <View style={s.root}>
@@ -198,6 +164,9 @@ export default function EquipmentLandingScreen() {
                 subTitle="أفضل السائقين والمشغلين المعتمدين لمعداتك"
                 data={operators}
                 isLoading={loadingOp}
+                isError={errorOp}
+                error={opError}
+                onRetry={refetchOp}
                 emptyText="لا يوجد مشغلين مسجلين حالياً"
                 onSeeAll={handleSeeAllOperators}
                 onPressItem={handlePressOperator}

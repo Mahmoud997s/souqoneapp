@@ -17,6 +17,7 @@ import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
+import { getListErrorProps } from '../../../utils/getListErrorProps'
 
 export const OPERATOR_SWIPER_WIDTH_RATIO = 0.65
 
@@ -25,6 +26,9 @@ interface Props {
   subTitle?: string
   data: any[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
+  onRetry?: () => void
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: any) => void
@@ -36,6 +40,9 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   subTitle,
   data,
   isLoading,
+  isError,
+  error,
+  onRetry,
   emptyText,
   onSeeAll,
   onPressItem,
@@ -43,6 +50,7 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
 }: Props) {
   const { width: windowWidth } = useWindowDimensions()
   const cardWidth = Math.round(windowWidth * OPERATOR_SWIPER_WIDTH_RATIO)
+  const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل المشغلين') : null
 
   const renderLoadedItem = useCallback(
     ({ item }: { item: any }) => (
@@ -100,6 +108,26 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
             renderItem={renderLoadedItem}
           />
         </View>
+      ) : isError ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={s.scrollContent}
+        >
+          <View style={[s.emptyCard, { width: cardWidth }]}>
+            <EmptyState
+              testID="operator-list-error-state"
+              icon={errorProps?.icon ?? 'alert-circle-outline'}
+              iconColor={errorProps?.iconColor ?? Colors.error}
+              title={errorProps?.title ?? 'تعذر تحميل المشغلين'}
+              subtitle={errorProps?.subtitle ?? 'حدث خطأ أثناء تحميل البيانات، يرجى المحاولة مرة أخرى.'}
+              actionLabel={onRetry ? (errorProps?.actionLabel ?? 'إعادة المحاولة') : undefined}
+              onAction={onRetry}
+              compact
+            />
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           horizontal
@@ -109,6 +137,7 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
         >
           <View style={[s.emptyCard, { width: cardWidth }]}>
             <EmptyState
+              testID="operator-list-empty-state"
               title={emptyText}
               icon="people-outline"
               compact
