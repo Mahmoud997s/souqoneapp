@@ -174,6 +174,7 @@ export function areListingCardBasePropsEqual(
     prev.favoriteType === next.favoriteType &&
     prev.onFavorite === next.onFavorite &&
     prev.liquidGlass === next.liquidGlass &&
+    prev.pillNativeGlass === next.pillNativeGlass &&
     prev.glassSupport === next.glassSupport &&
     prev.initialCardWidth === next.initialCardWidth &&
     prev.style === next.style &&

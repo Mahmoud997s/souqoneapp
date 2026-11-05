@@ -18,6 +18,7 @@ import { BlurView } from 'expo-blur'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import * as CardSystemModule from '../../constants/cardSystem'
 import { CardSystem } from '../../constants/cardSystem'
 import { useAuthStore } from '../../store/authStore'
 import { useFavoriteToggle } from '../../features/favorites/useFavoriteToggle'
@@ -78,9 +79,53 @@ export interface ListingCardBaseProps {
   /** Notification callback fired AFTER the toggle pipeline executes. MUST NEVER perform the API call. */
   onFavorite?: (isFav: boolean) => void
   liquidGlass?: boolean
+  pillNativeGlass?: boolean
   glassSupport?: GlassSupport
   initialCardWidth?: number
   style?: StyleProp<ViewStyle>
+}
+
+interface CardPillGlassLayerProps {
+  testID: string
+  nativeGlass: boolean
+  isNegotiable?: boolean
+  support: GlassSupport
+}
+
+function CardPillGlassLayer({
+  testID,
+  nativeGlass,
+  isNegotiable = false,
+  support,
+}: CardPillGlassLayerProps) {
+  if (nativeGlass) {
+    return (
+      <GlassSurface
+        testID={testID}
+        variant="capsule"
+        borderRadius={CardSystem.glass.capsuleRadius}
+        tintOverlayColor={isNegotiable ? CardSystem.glass.negotiableTint : undefined}
+        noBorder={true}
+        support={support}
+      />
+    )
+  }
+
+  return (
+    <View
+      testID={`${testID}-layered-wash`}
+      pointerEvents="none"
+      style={[
+        s.pillLayeredWash,
+        isNegotiable && s.pillLayeredWashNegotiable,
+      ]}
+    >
+      <View
+        testID={`${testID}-top-highlight`}
+        style={s.pillTopHighlight}
+      />
+    </View>
+  )
 }
 
 export function computeInitialCardWidth(
@@ -128,10 +173,13 @@ const ListingCardBaseComponent = ({
   favoriteType,
   onFavorite,
   liquidGlass = true,
+  pillNativeGlass,
   glassSupport,
   initialCardWidth,
   style,
 }: ListingCardBaseProps) => {
+  const effectivePillNativeGlass =
+    pillNativeGlass ?? CardSystemModule.CARD_PILL_NATIVE_GLASS
   const router = useRouter()
   const { user } = useAuthStore()
   const hookGlass = useGlassSupport(Boolean(liquidGlass && !glassSupport))
@@ -411,11 +459,9 @@ const ListingCardBaseComponent = ({
                       ]}
                     >
                       {liquidGlass && (
-                        <GlassSurface
+                        <CardPillGlassLayer
                           testID={`listing-card-pill-${pill.key}`}
-                          variant="capsule"
-                          borderRadius={CardSystem.glass.capsuleRadius}
-                          noBorder={true}
+                          nativeGlass={effectivePillNativeGlass}
                           support={glass}
                         />
                       )}
@@ -452,11 +498,9 @@ const ListingCardBaseComponent = ({
                     ]}
                   >
                     {liquidGlass && (
-                      <GlassSurface
+                      <CardPillGlassLayer
                         testID="listing-card-pill-remaining"
-                        variant="capsule"
-                        borderRadius={CardSystem.glass.capsuleRadius}
-                        noBorder={true}
+                        nativeGlass={effectivePillNativeGlass}
                         support={glass}
                       />
                     )}
@@ -484,12 +528,10 @@ const ListingCardBaseComponent = ({
               ]}
             >
               {liquidGlass && (
-                <GlassSurface
+                <CardPillGlassLayer
                   testID="listing-card-negotiable-pill"
-                  variant="capsule"
-                  borderRadius={CardSystem.glass.capsuleRadius}
-                  tintOverlayColor={CardSystem.glass.negotiableTint}
-                  noBorder={true}
+                  nativeGlass={effectivePillNativeGlass}
+                  isNegotiable={true}
                   support={glass}
                 />
               )}
@@ -517,12 +559,10 @@ const ListingCardBaseComponent = ({
             ]}
           >
             {liquidGlass && (
-              <GlassSurface
+              <CardPillGlassLayer
                 testID="listing-card-price-pill"
-                variant="capsule"
-                borderRadius={CardSystem.glass.capsuleRadius}
-                tintOverlayColor={isPriceNegotiable ? CardSystem.glass.negotiableTint : undefined}
-                noBorder={true}
+                nativeGlass={effectivePillNativeGlass}
+                isNegotiable={isPriceNegotiable}
                 support={glass}
               />
             )}
@@ -843,6 +883,25 @@ const s = StyleSheet.create({
   },
   pillGlassNegotiable: {
     borderColor: CardSystem.glass.negotiableBorderColor,
+  },
+  pillLayeredWash: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: CardSystem.glass.capsuleRadius,
+    backgroundColor: CardSystem.glass.capsuleBlurWashBg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: CardSystem.glass.capsuleBorderColor,
+  },
+  pillLayeredWashNegotiable: {
+    backgroundColor: CardSystem.glass.negotiableTint,
+    borderColor: CardSystem.glass.negotiableBorderColor,
+  },
+  pillTopHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.white,
   },
   pillNeutral: CardSystem.styles.pillNeutral,
   pillBlue: CardSystem.styles.pillBlue,
