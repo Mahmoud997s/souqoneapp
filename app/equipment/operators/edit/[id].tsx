@@ -94,6 +94,13 @@ export default function EditOperatorScreen() {
     setErrors((prev) => {
       const updated = { ...prev }
       delete updated[key]
+      if (
+        (key === 'dailyRate' || key === 'hourlyRate') &&
+        (updated.dailyRate?.includes('على الأقل') || updated.hourlyRate?.includes('على الأقل'))
+      ) {
+        delete updated.dailyRate
+        delete updated.hourlyRate
+      }
       return updated
     })
   }

@@ -26,12 +26,15 @@ export function OperatorRatesLocationStep({
   return (
     <View style={s.stepWrap}>
       {/* Expected Rates Card */}
-      <WizardCard title="الأجر المتوقع ونظام التعاقد *" subtitle="حدد الأجر الاسترشادي اليومي أو بالساعة">
+      <WizardCard
+        title="الأجر المتوقع ونظام التعاقد *"
+        subtitle="حدد الأجر الاسترشادي اليومي أو بالساعة (أحدهما على الأقل مطلوب)"
+      >
 
         <View style={s.ratesRow}>
           <View style={{ flex: 1 }}>
             <AppInput
-              label="الأجر اليومي (ر.ع) *"
+              label="الأجر اليومي (ر.ع)"
               placeholder="مثال: 30"
               keyboardType="numeric"
               value={formData.dailyRate}
@@ -41,7 +44,7 @@ export function OperatorRatesLocationStep({
           </View>
           <View style={{ flex: 1 }}>
             <AppInput
-              label="الأجر بالساعة (ر.ع) *"
+              label="الأجر بالساعة (ر.ع)"
               placeholder="مثال: 5"
               keyboardType="numeric"
               value={formData.hourlyRate}
