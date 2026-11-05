@@ -20,6 +20,14 @@ interface OperatorPayloadInput {
   whatsappEnabled: boolean
 }
 
+function parseOptionalPositiveRate(val: unknown): number | undefined {
+  if (val == null) return undefined
+  const s = String(val).trim()
+  if (s === '') return undefined
+  const num = Number(s)
+  return !isNaN(num) && num > 0 ? num : undefined
+}
+
 /**
  * Builds the backend-ready DTO payload from operator form data.
  * Single source of truth for both add and edit flows.
@@ -39,8 +47,8 @@ export function buildOperatorPayload(formData: OperatorPayloadInput): Record<str
     equipmentTypes: formData.equipmentTypes,
     specializations: formData.specializations,
     certifications: formData.certifications,
-    dailyRate: formData.dailyRate ? Number(formData.dailyRate) : undefined,
-    hourlyRate: formData.hourlyRate ? Number(formData.hourlyRate) : undefined,
+    dailyRate: parseOptionalPositiveRate(formData.dailyRate),
+    hourlyRate: parseOptionalPositiveRate(formData.hourlyRate),
     currency: formData.currency || 'OMR',
     isPriceNegotiable: formData.isPriceNegotiable,
     governorateId: Number(formData.governorateId),
