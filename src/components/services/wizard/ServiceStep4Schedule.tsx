@@ -88,8 +88,8 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
     <View style={s.stepWrap}>
       {/* 1. Working Days */}
       <WizardCard
-        title="أيام العمل"
-        subtitle="حدد الأيام التي تستقبل فيها الطلبات وتعمل خلالها"
+        title="أيام العمل (اختياري)"
+        subtitle="حدد الأيام التي تستقبل فيها الطلبات، أو اتركها فارغة لتعني 'غير محدد'"
       >
         {/* Quick Presets */}
         <View style={s.presetRow}>
@@ -149,6 +149,25 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
           })}
         </View>
 
+        {selectedDaysCount > 0 ? (
+          <TouchableOpacity
+            testID="clear-all-days"
+            style={s.clearDaysBtn}
+            onPress={() => applyPreset([])}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close-circle-outline" size={14} color="#64748B" />
+            <Text style={s.clearDaysBtnTxt}>إلغاء التحديد (غير محدد)</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={s.unspecifiedNotice} testID="unspecified-days-notice">
+            <Ionicons name="information-circle-outline" size={14} color="#64748B" />
+            <Text style={s.unspecifiedNoticeTxt}>
+              أيام العمل اختيارية — تركها فارغة يعني "غير محدد" للمشتري
+            </Text>
+          </View>
+        )}
+
         {errors.workingDays ? (
           <Text style={s.inlineErrorTxt} testID="error-working-days">
             {errors.workingDays}
@@ -159,7 +178,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
       {/* 2. Working Hours */}
       <WizardCard
         title="أوقات وساعات العمل (اختياري)"
-        subtitle="حدد توقيت بدء وانتهاء ساعات العمل اليومية"
+        subtitle="حدد توقيت بدء وانتهاء ساعات العمل اليومية أو اتركها فارغة"
       >
         <View style={s.hoursRow}>
           {/* Open Time */}
@@ -380,5 +399,40 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: 6,
+  },
+  clearDaysBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingVertical: 6,
+  },
+  clearDaysBtnTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#64748B',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  unspecifiedNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F1F5F9',
+    borderRadius: Radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginTop: 10,
+  },
+  unspecifiedNoticeTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#475569',
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    flex: 1,
   },
 })

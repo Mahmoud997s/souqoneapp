@@ -468,14 +468,12 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           </Animated.View>
         )}
 
-        {/* 6. Schedule & Working Days Card (renders only when listing provides a schedule) */}
-        {vm.workingSchedule.hasSchedule && (
-          <Animated.View entering={getEnteringAnimation(5)}>
-            <ServiceScheduleCard
-              schedule={vm.workingSchedule}
-            />
-          </Animated.View>
-        )}
+        {/* 6. Schedule & Working Days Card (renders schedule or unspecified, D-232 decision d6) */}
+        <Animated.View entering={getEnteringAnimation(5)}>
+          <ServiceScheduleCard
+            schedule={vm.workingSchedule}
+          />
+        </Animated.View>
 
         {/* 7. Description */}
         {Boolean(vm.description) && (

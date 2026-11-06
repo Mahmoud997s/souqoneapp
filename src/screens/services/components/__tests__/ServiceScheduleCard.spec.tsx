@@ -17,7 +17,7 @@ describe('ServiceScheduleCard', () => {
     isOpenHoursProvided: true,
   }
 
-  it('returns null when hasSchedule is false and isHomeService is not provided', async () => {
+  it('renders unspecified schedule card when hasSchedule is false (Decision d6, D-232)', async () => {
     const emptySchedule: ServiceScheduleViewModel = {
       hasSchedule: false,
       workingDays: [],
@@ -26,7 +26,9 @@ describe('ServiceScheduleCard', () => {
       isOpenHoursProvided: false,
     }
     await render(<ServiceScheduleCard schedule={emptySchedule} />)
-    expect(screen.queryByTestId('service-schedule-card')).toBeNull()
+    expect(screen.getByTestId('service-schedule-card')).toBeTruthy()
+    expect(screen.getByTestId('schedule-unspecified')).toBeTruthy()
+    expect(screen.getByText('غير محدد')).toBeTruthy()
   })
 
   it('renders card with working days chips and hours label', async () => {
@@ -52,7 +54,7 @@ describe('ServiceScheduleCard', () => {
     ).toBeNull()
   })
 
-  it('returns null when hasSchedule is false even if isHomeService is true (D-182a)', async () => {
+  it('renders unspecified schedule card and omits home service badge when hasSchedule is false (D-182a, D-232)', async () => {
     const emptySchedule: ServiceScheduleViewModel = {
       hasSchedule: false,
       workingDays: [],
@@ -64,7 +66,11 @@ describe('ServiceScheduleCard', () => {
       <ServiceScheduleCard schedule={emptySchedule} isHomeService={true} />,
     )
 
-    expect(screen.queryByTestId('service-schedule-card')).toBeNull()
+    expect(screen.getByTestId('service-schedule-card')).toBeTruthy()
+    expect(screen.getByTestId('schedule-unspecified')).toBeTruthy()
+    expect(
+      screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب'),
+    ).toBeNull()
   })
 
   describe('Card Spacing and Visual Tokens (D-170b)', () => {

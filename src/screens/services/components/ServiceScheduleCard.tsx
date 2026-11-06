@@ -21,7 +21,24 @@ export function ServiceScheduleCard({
   schedule,
 }: ServiceScheduleCardProps) {
   if (!schedule.hasSchedule) {
-    return null
+    return (
+      <View style={s.card} testID="service-schedule-card">
+        <View style={s.headerRow}>
+          <View style={s.iconCircle}>
+            <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+          </View>
+          <Text style={s.title}>أوقات وجدول العمل</Text>
+        </View>
+
+        <View style={s.hoursRow}>
+          <Ionicons name="time-outline" size={15} color={Colors.textMuted} />
+          <Text style={s.hoursLabel}>ساعات العمل:</Text>
+          <Text style={s.hoursValUnspecified} testID="schedule-unspecified">
+            غير محدد
+          </Text>
+        </View>
+      </View>
+    )
   }
 
   return (
@@ -174,6 +191,14 @@ const s = StyleSheet.create({
     lineHeight: 18,
     fontFamily: 'Almarai_700Bold',
     color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  hoursValUnspecified: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
