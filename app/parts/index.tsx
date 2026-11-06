@@ -19,6 +19,7 @@ import { PartsHowItWorks } from '../../src/components/parts/PartsHowItWorks';
 import { PartsBottomBar } from '../../src/components/parts/PartsBottomBar';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 
 export default function PartsLandingScreen() {
   const router = useRouter();
@@ -38,8 +39,25 @@ export default function PartsLandingScreen() {
 
 
   // Fetch Parts Data
-  const { data: allParts = [], isLoading: loadingParts } = useParts({ limit: 15 });
-  const { data: originalPartsData = [], isLoading: loadingOriginal } = useParts({ isOriginal: true, limit: 10 });
+  const {
+    data: allParts = [],
+    isLoading: loadingParts,
+    isError: isAllPartsError,
+    error: allPartsError,
+    refetch: refetchAllParts,
+    isRefetchError: isAllPartsRefetchError,
+    isRefetching: isAllPartsRefetching,
+  } = useParts({ limit: 15 });
+
+  const {
+    data: originalPartsData = [],
+    isLoading: loadingOriginal,
+    isError: isOriginalError,
+    error: originalError,
+    refetch: refetchOriginal,
+    isRefetchError: isOriginalRefetchError,
+    isRefetching: isOriginalRefetching,
+  } = useParts({ isOriginal: true, limit: 10 });
 
   const featuredParts = useMemo(() => allParts.slice(0, 5), [allParts]);
   const newParts = useMemo(() => allParts.slice(5, 15), [allParts]);
@@ -91,6 +109,18 @@ export default function PartsLandingScreen() {
         contentContainerStyle={{ paddingTop: insets.top + 106 + Spacing.space5, paddingBottom: 100 }}
       >
         <View style={s.content}>
+          {(isAllPartsRefetchError || isOriginalRefetchError) && (allParts.length > 0 || originalPartsData.length > 0) && (
+            <View style={{ marginBottom: Spacing.space3 }}>
+              <StaleDataBanner
+                onRetry={() => {
+                  if (isAllPartsRefetchError) refetchAllParts();
+                  if (isOriginalRefetchError) refetchOriginal();
+                }}
+                isRefetching={isAllPartsRefetching || isOriginalRefetching}
+              />
+            </View>
+          )}
+
           <PartsCategoriesGrid support={glassSupport} />
 
           <PartHorizontalList
@@ -98,6 +128,11 @@ export default function PartsLandingScreen() {
             subTitle="أفضل القطع الموثوقة المتاحة حالياً"
             data={featuredParts}
             isLoading={loadingParts}
+            isError={isAllPartsError && featuredParts.length === 0}
+            error={allPartsError}
+            onRetry={refetchAllParts}
+            isRefetchError={isAllPartsRefetchError}
+            isRefetching={isAllPartsRefetching}
             emptyText="لا توجد قطع غيار مميزة حالياً"
             onSeeAll={handleBrowseAll}
             onPressItem={handlePressPart}
@@ -109,6 +144,11 @@ export default function PartsLandingScreen() {
             subTitle="قطع وكالة أصلية 100% معتمدة ومضمونة"
             data={originalParts}
             isLoading={loadingOriginal && loadingParts}
+            isError={isOriginalError && originalParts.length === 0}
+            error={originalError}
+            onRetry={refetchOriginal}
+            isRefetchError={isOriginalRefetchError}
+            isRefetching={isOriginalRefetching}
             emptyText="لا توجد قطع غيار أصلية حالياً"
             onSeeAll={handleSeeAllOriginal}
             onPressItem={handlePressPart}
@@ -120,6 +160,11 @@ export default function PartsLandingScreen() {
             subTitle="أحدث قطع الغيار المضافة للسوق"
             data={newParts}
             isLoading={loadingParts}
+            isError={isAllPartsError && newParts.length === 0}
+            error={allPartsError}
+            onRetry={refetchAllParts}
+            isRefetchError={isAllPartsRefetchError}
+            isRefetching={isAllPartsRefetching}
             emptyText="لا توجد قطع غيار حديثة"
             onSeeAll={handleBrowseAll}
             onPressItem={handlePressPart}
