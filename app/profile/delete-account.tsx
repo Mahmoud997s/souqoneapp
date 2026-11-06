@@ -23,6 +23,7 @@ import { usersApi, DeleteAccountPayload } from '../../src/api/users'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
 import { formatDeletionDate } from '../../src/utils/formatDeletionDate'
+import { logError } from '../../src/utils/safeLog'
 import { useAccountDeletion } from '../../src/hooks/useAccountDeletion'
 import {
   GoogleSignin,
@@ -146,9 +147,7 @@ export default function DeleteAccountScreen() {
       }
       setAppleCredentials(creds)
     } catch (err: any) {
-      if (__DEV__) {
-        console.error('[Apple Reauth Error]', err?.message || 'Apple reauth failed')
-      }
+      logError('Apple Reauth Error', err)
       const msg =
         err instanceof AppleAuthError
           ? err.message

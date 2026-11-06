@@ -24,6 +24,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { GovernorateWilayaSelect } from '../../src/components/ui/GovernorateWilayaSelect'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { validateRegister, normalizeEmail } from '../../src/utils/authValidation'
+import { logError } from '../../src/utils/safeLog'
 import { normalizeDigits } from '../../src/utils/digits'
 import { needsVerification, pickVerificationToken } from '../../src/utils/verificationFlow'
 import { usePendingVerificationStore } from '../../src/store/pendingVerificationStore'
@@ -118,9 +119,7 @@ export default function RegisterScreen() {
         router.replace(resolveRedirect(redirect) as any)
       }, 100)
     } catch (e: any) {
-      if (__DEV__) {
-        console.error('[Register Error]', e?.message || 'Registration failed')
-      }
+      logError('Register Error', e)
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       const serverMsg = msg || e?.message || 'حدث خطأ، يرجى المحاولة مجدداً'

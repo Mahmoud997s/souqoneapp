@@ -1,9 +1,10 @@
 import fs from 'fs'
 import path from 'path'
+import ts from 'typescript'
 import { safeErrorInfo, logError, logWarn, logInfo } from '../utils/safeLog'
 import { storeRotatedTokens } from '../utils/storeRotatedTokens'
 
-describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
+describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
   let consoleLogSpy: jest.SpyInstance
   let consoleErrorSpy: jest.SpyInstance
   let consoleWarnSpy: jest.SpyInstance
@@ -23,7 +24,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
     consoleInfoSpy.mockRestore()
   })
 
-  describe('safeErrorInfo Sanitizer', () => {
+  describe('safeErrorInfo Sanitizer (Hardened)', () => {
     const sensitiveAxiosError = {
       name: 'AxiosError',
       message: 'Request failed with status code 401',
@@ -63,12 +64,12 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
       },
     }
 
-    it('sanitizes AxiosError: extracts ONLY name, message, status, code', () => {
+    it('sanitizes AxiosError: replaces raw message with category string and strips internals', () => {
       const sanitized = safeErrorInfo(sensitiveAxiosError)
 
       expect(sanitized).toEqual({
         name: 'AxiosError',
-        message: 'Request failed with status code 401',
+        message: 'Network request failed',
         status: 401,
         code: 'ERR_BAD_REQUEST',
       })
@@ -90,7 +91,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
       expect(serialized).not.toContain('SENSITIVE_NEW_ACCESS_TOKEN')
     })
 
-    it('extracts response.data.code when error.code is missing', () => {
+    it('extracts response.data.code only when error.code is missing and code matches pattern', () => {
       const errorWithoutCode = {
         name: 'AxiosError',
         message: 'Unauthorized',
@@ -103,24 +104,77 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
       const result = safeErrorInfo(errorWithoutCode)
       expect(result).toEqual({
         name: 'AxiosError',
-        message: 'Unauthorized',
+        message: 'Network request failed',
         status: 401,
         code: 'ACCOUNT_BANNED',
       })
     })
 
-    it('handles primitive string errors gracefully', () => {
-      expect(safeErrorInfo('Network disconnected')).toEqual({
-        message: 'Network disconnected',
-      })
+    it('prefers error.code over response.data.code', () => {
+      const err = {
+        name: 'Error',
+        code: 'CLIENT_TIMEOUT',
+        response: {
+          data: { code: 'SERVER_IGNORED' },
+        },
+      }
+      expect(safeErrorInfo(err).code).toBe('CLIENT_TIMEOUT')
     })
 
-    it('handles standard Error instances', () => {
-      const err = new TypeError('Cannot read property of undefined')
-      expect(safeErrorInfo(err)).toEqual({
-        name: 'TypeError',
-        message: 'Cannot read property of undefined',
-      })
+    it('rejects invalid or injection machine codes', () => {
+      expect(safeErrorInfo({ code: 'INVALID CODE WITH SPACES' }).code).toBeUndefined()
+      expect(safeErrorInfo({ code: '<script>alert(1)</script>' }).code).toBeUndefined()
+      expect(safeErrorInfo({ code: 'A'.repeat(50) }).code).toBeUndefined()
+    })
+
+    it('validates status: accepts integer between 100 and 599 only', () => {
+      expect(safeErrorInfo({ status: 200 }).status).toBe(200)
+      expect(safeErrorInfo({ status: 500 }).status).toBe(500)
+      expect(safeErrorInfo({ status: 99 }).status).toBeUndefined()
+      expect(safeErrorInfo({ status: 600 }).status).toBeUndefined()
+      expect(safeErrorInfo({ status: '200' as any }).status).toBeUndefined()
+      expect(safeErrorInfo({ status: NaN }).status).toBeUndefined()
+      expect(safeErrorInfo({ response: { status: 404 } }).status).toBe(404)
+    })
+
+    it('enforces allowlist for error name and defaults unknown to Error', () => {
+      expect(safeErrorInfo({ name: 'TypeError' }).name).toBe('TypeError')
+      expect(safeErrorInfo({ name: 'NetworkError' }).name).toBe('NetworkError')
+      expect(safeErrorInfo({ name: 'AxiosError' }).name).toBe('AxiosError')
+      expect(safeErrorInfo({ name: 'InjectedServerName' }).name).toBe('Error')
+      expect(safeErrorInfo({ name: '<svg onload=alert(1)>' }).name).toBe('Error')
+    })
+
+    it('redacts URLs, Bearer tokens, JWTs, emails, and long numeric IDs from messages', () => {
+      const adversarial = new Error(
+        'Failure accessing https://api.example.com/v1/auth?token=123 with Bearer secret-tok-abc and JWT eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature for user test@souq.om with id 9876543210'
+      )
+      const sanitized = safeErrorInfo(adversarial)
+
+      expect(sanitized.message).not.toContain('https://api.example.com')
+      expect(sanitized.message).not.toContain('secret-tok-abc')
+      expect(sanitized.message).not.toContain('eyJhbGciOiJIUzI1NiJ9')
+      expect(sanitized.message).not.toContain('test@souq.om')
+      expect(sanitized.message).not.toContain('9876543210')
+
+      expect(sanitized.message).toContain('[REDACTED_URL]')
+      expect(sanitized.message).toContain('Bearer [REDACTED_TOKEN]')
+      expect(sanitized.message).toContain('[REDACTED_JWT]')
+      expect(sanitized.message).toContain('[REDACTED_EMAIL]')
+      expect(sanitized.message).toContain('[REDACTED_NUMBER]')
+    })
+
+    it('caps message length at 200 characters', () => {
+      const veryLong = 'Server error: ' + 'x'.repeat(400)
+      const res = safeErrorInfo(new Error(veryLong))
+      expect(res.message.length).toBeLessThanOrEqual(200)
+    })
+
+    it('handles primitive thrown strings safely and redacts them', () => {
+      const res = safeErrorInfo('Failed login for admin@souqone.om with token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.sig')
+      expect(res.message).not.toContain('admin@souqone.om')
+      expect(res.message).toContain('[REDACTED_EMAIL]')
+      expect(res.message).toContain('[REDACTED_JWT]')
     })
 
     it('handles null and undefined safely', () => {
@@ -153,7 +207,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
           '[ImageUpload]',
           {
             name: 'AxiosError',
-            message: 'Failed to upload image',
+            message: 'Network request failed',
             status: 413,
           }
         )
@@ -177,7 +231,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
           '[PostEdit:CarLabels]',
           {
             name: 'AxiosError',
-            message: 'Failed to upload image',
+            message: 'Network request failed',
             status: 413,
           }
         )
@@ -212,7 +266,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
     })
   })
 
-  describe('Static Guard: No Raw Error Logging in app/ and src/', () => {
+  describe('AST Static Guard: Comprehensive Zero-Console Invariant across app/ and src/', () => {
     function findSourceFiles(dir: string): string[] {
       const files: string[] = []
       if (!fs.existsSync(dir)) return files
@@ -227,7 +281,8 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
           (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) &&
           !entry.name.endsWith('.spec.ts') &&
           !entry.name.endsWith('.spec.tsx') &&
-          entry.name !== '_layout.tsx' // Explicit exclusion per task requirement
+          !entry.name.endsWith('.test.ts') &&
+          !entry.name.endsWith('.test.tsx')
         ) {
           files.push(fullPath)
         }
@@ -235,7 +290,7 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
       return files
     }
 
-    it('ensures no app/ or src/ file passes unredacted error objects to console or uses .catch(console.*)', () => {
+    it('AST parser verifies NO direct console calls, aliases, or catches in app/ and src/ (excluding _layout.tsx and safeLog.ts)', () => {
       const projectRoot = path.resolve(__dirname, '../..')
       const targetDirs = [path.join(projectRoot, 'app'), path.join(projectRoot, 'src')]
 
@@ -244,30 +299,36 @@ describe('D-228: Safe Error Logging and Privacy Leak Protection', () => {
 
       const violations: string[] = []
 
-      // Pattern 1: .catch(console.warn) or .catch(console.error) or .catch(console.log)
-      const catchConsolePattern = /\.catch\(\s*console\.(warn|error|log|info)\s*\)/
-
-      // Pattern 2: console.*(..., rawError) without extracting .message
-      // Matches console.error('...', err) or console.warn(e) or console.log('...', error)
-      const rawErrorLogPattern = /console\.(error|warn|log)\([^)]*,\s*(err|error|e|uploadErr|imgErr)\s*\)/
-
       for (const filePath of sourceFiles) {
         const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/')
-        const content = fs.readFileSync(filePath, 'utf8')
-        const lines = content.split('\n')
 
-        lines.forEach((line, index) => {
-          const trimmed = line.trim()
-          if (trimmed.startsWith('//') || trimmed.startsWith('*')) return
+        // Explicitly excluded files per specification:
+        // - app/_layout.tsx: tracked under dedicated PR #109 (D-229)
+        // - src/utils/safeLog.ts: the designated, single authorized logging helper
+        if (relativePath === 'app/_layout.tsx' || relativePath === 'src/utils/safeLog.ts') {
+          continue
+        }
 
-          if (catchConsolePattern.test(line)) {
-            violations.push(`${relativePath}:${index + 1} uses forbidden .catch(console.*): ${trimmed}`)
+        const sourceCode = fs.readFileSync(filePath, 'utf8')
+        const sourceFile = ts.createSourceFile(
+          filePath,
+          sourceCode,
+          ts.ScriptTarget.Latest,
+          true
+        )
+
+        function walk(node: ts.Node) {
+          // Detect any Identifier "console" (direct calls, aliases like const log = console.error, .catch(console.*))
+          if (ts.isIdentifier(node) && node.text === 'console') {
+            const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+            violations.push(
+              `${relativePath}:${line + 1}:${character + 1} uses unauthorized console identifier`
+            )
           }
+          ts.forEachChild(node, walk)
+        }
 
-          if (rawErrorLogPattern.test(line)) {
-            violations.push(`${relativePath}:${index + 1} passes raw error to console: ${trimmed}`)
-          }
-        })
+        walk(sourceFile)
       }
 
       expect(violations).toEqual([])

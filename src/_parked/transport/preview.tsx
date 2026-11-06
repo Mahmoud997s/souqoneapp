@@ -5,6 +5,7 @@ import { TransportRequestStatus, TransportServiceType } from '../../src/types/tr
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
 import { Stack } from 'expo-router';
+import { logInfo } from '../../src/utils/safeLog';
 
 export default function TransportPreviewScreen() {
   const mockCards = [
@@ -147,7 +148,7 @@ export default function TransportPreviewScreen() {
             <Text style={styles.sectionTitle}>حالة الطلب: {req.status}</Text>
             <TransportRequestCard 
               request={req} 
-              onPress={() => console.log('Card Pressed', req.id)} 
+              onPress={() => logInfo('TransportPreview', { message: 'Card pressed', code: String(req.id) })} 
             />
           </View>
         ))}

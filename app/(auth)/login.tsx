@@ -28,6 +28,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { GoogleIcon } from '../../src/components/ui/GoogleIcon'
 import { BlurView } from 'expo-blur'
 import { validateLogin, normalizeEmail } from '../../src/utils/authValidation'
+import { logError } from '../../src/utils/safeLog'
 import { dialogService } from '../../src/store/dialogStore'
 import { resolveRedirect } from '../../src/utils/listing-detail/safeRedirect'
 import { needsVerification, pickVerificationToken } from '../../src/utils/verificationFlow'
@@ -124,9 +125,7 @@ export default function LoginScreen() {
         return
       }
 
-      if (__DEV__) {
-        console.error('[Login Error]', e?.message || 'Login failed')
-      }
+      logError('Login Error', e)
       let msg = e?.response?.data?.message
       if (Array.isArray(msg)) msg = msg[0]
       const serverMsg = msg || e?.message || 'بيانات الدخول غير صحيحة'
@@ -201,9 +200,7 @@ export default function LoginScreen() {
         }
       }
 
-      if (__DEV__) {
-        console.error('[Google Login Error]', err?.message || 'Google login failed')
-      }
+      logError('Google Login Error', err)
       let msg = err?.response?.data?.message || err?.message || 'فشل تسجيل الدخول بواسطة Google'
       if (Array.isArray(msg)) msg = msg[0]
       dialogService.alert('خطأ في تسجيل الدخول', msg)
@@ -288,9 +285,7 @@ export default function LoginScreen() {
         return
       }
 
-      if (__DEV__) {
-        console.error('[Apple Login Error]', err?.message || 'Apple login failed')
-      }
+      logError('Apple Login Error', err)
       dialogService.alert(
         'خطأ في تسجيل الدخول',
         'تعذر تسجيل الدخول بواسطة Apple، حاول مرة تانية'
