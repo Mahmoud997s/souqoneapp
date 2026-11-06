@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, TouchableOpacity } from 'react-native'
+import { View, TouchableOpacity, Linking } from 'react-native'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import { usePartFormLogic } from './usePartFormLogic'
 import { defaultPartFormData, PartFormData } from '../store/partWizardStore'
@@ -68,17 +68,30 @@ describe('usePartFormLogic Hook', () => {
   let mockSetField: jest.Mock
   let mockSetLocation: jest.Mock
   let testFormData: PartFormData
+  let openSettingsSpy: jest.SpyInstance
 
   beforeEach(() => {
     jest.clearAllMocks()
     mockSetField = jest.fn()
     mockSetLocation = jest.fn()
     testFormData = { ...defaultPartFormData }
+    if (!Linking.openSettings) {
+      ;(Linking as any).openSettings = jest.fn()
+    }
+    openSettingsSpy = jest
+      .spyOn(Linking, 'openSettings')
+      .mockImplementation(() => Promise.resolve() as any)
+  })
+
+  afterEach(() => {
+    openSettingsSpy.mockRestore()
   })
 
   it('handles image picking with permission granted', async () => {
     ;(ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'granted',
       granted: true,
+      canAskAgain: true,
     })
     ;(ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
@@ -99,11 +112,44 @@ describe('usePartFormLogic Hook', () => {
       { uri: 'file://new-part-1.jpg', isPrimary: false },
       { uri: 'file://new-part-2.jpg', isPrimary: false },
     ])
+    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(dialogService.confirm).not.toHaveBeenCalled()
   })
 
-  it('shows alert when permission is denied', async () => {
+  it('handles image picking when accessPrivileges is limited (iOS)', async () => {
     ;(ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'denied',
       granted: false,
+      canAskAgain: true,
+      accessPrivileges: 'limited',
+    })
+    ;(ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://limited-part.jpg' }],
+    })
+
+    await render(
+      <TestComponent
+        formData={testFormData}
+        setField={mockSetField}
+        setLocation={mockSetLocation}
+      />
+    )
+
+    await fireEvent.press(screen.getByTestId('btn-pick'))
+
+    expect(mockSetField).toHaveBeenCalledWith('images', [
+      { uri: 'file://limited-part.jpg', isPrimary: false },
+    ])
+    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(dialogService.confirm).not.toHaveBeenCalled()
+  })
+
+  it('shows plain alert without settings button when permission is denied and canAskAgain=true', async () => {
+    ;(ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'denied',
+      granted: false,
+      canAskAgain: true,
     })
 
     await render(
@@ -118,7 +164,67 @@ describe('usePartFormLogic Hook', () => {
 
     expect(dialogService.alert).toHaveBeenCalledWith(
       'إذن الوصول مطلوب',
-      expect.any(String)
+      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
+    )
+    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(mockSetField).not.toHaveBeenCalled()
+  })
+
+  it('shows settings confirm dialog when permission is denied and canAskAgain=false', async () => {
+    ;(ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'denied',
+      granted: false,
+      canAskAgain: false,
+    })
+
+    await render(
+      <TestComponent
+        formData={testFormData}
+        setField={mockSetField}
+        setLocation={mockSetLocation}
+      />
+    )
+
+    await fireEvent.press(screen.getByTestId('btn-pick'))
+
+    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(dialogService.confirm).toHaveBeenCalledTimes(1)
+
+    const [title, message, onConfirm, confirmText, cancelText] = (
+      dialogService.confirm as jest.Mock
+    ).mock.calls[0]
+
+    expect(title).toBe('إذن الوصول مطلوب')
+    expect(message).toBe(
+      'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور القطعة'
+    )
+    expect(confirmText).toBe('فتح الإعدادات')
+    expect(cancelText).toBe('إلغاء')
+
+    expect(openSettingsSpy).not.toHaveBeenCalled()
+    onConfirm()
+    expect(openSettingsSpy).toHaveBeenCalledTimes(1)
+    expect(mockSetField).not.toHaveBeenCalled()
+  })
+
+  it('safely handles unexpected exception during permission request without crashing', async () => {
+    ;(ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockRejectedValue(
+      new Error('Native permissions module error')
+    )
+
+    await render(
+      <TestComponent
+        formData={testFormData}
+        setField={mockSetField}
+        setLocation={mockSetLocation}
+      />
+    )
+
+    await fireEvent.press(screen.getByTestId('btn-pick'))
+
+    expect(dialogService.alert).toHaveBeenCalledWith(
+      'إذن الوصول مطلوب',
+      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
     )
     expect(mockSetField).not.toHaveBeenCalled()
   })

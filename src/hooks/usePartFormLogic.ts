@@ -4,6 +4,7 @@ import { dialogService } from '../store/dialogStore'
 import { PartFormData, PartImageItem, PartExistingImage } from '../store/partWizardStore'
 import { MAX_PART_IMAGES } from '../constants/parts'
 import { router } from 'expo-router'
+import { requestPermission, mediaLibraryAdapter } from '../utils/requestPermission'
 
 /**
  * Shared form logic hook for parts form (image picking, removal, primary reordering, location changes)
@@ -17,12 +18,8 @@ export function usePartFormLogic(
 
   const handlePickImages = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      const permission = await requestPermission(mediaLibraryAdapter)
       if (!permission.granted) {
-        dialogService.alert(
-          'إذن الوصول مطلوب',
-          'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
-        )
         return
       }
 
