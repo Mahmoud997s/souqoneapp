@@ -237,12 +237,12 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
         <View style={s.rowsList}>
           <View style={s.row}>
             <Text style={s.label}>أيام العمل</Text>
-            <Text style={s.value}>{workingDaysText}</Text>
+            <Text style={s.value} testID="review-working-days">{workingDaysText}</Text>
           </View>
 
           <View style={s.row}>
             <Text style={s.label}>ساعات العمل</Text>
-            <Text style={s.value}>{workingHoursText}</Text>
+            <Text style={s.value} testID="review-working-hours">{workingHoursText}</Text>
           </View>
         </View>
       </WizardReviewCard>

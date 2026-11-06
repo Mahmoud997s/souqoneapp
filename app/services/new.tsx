@@ -24,7 +24,6 @@ import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
 import { uploadsApi } from '../../src/api/uploads'
 import { servicesApi } from '../../src/api/services'
-import { WORKING_DAYS_AR } from '../../src/constants/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
 import { validateStep } from '../../src/hooks/useServiceValidation'
@@ -237,11 +236,25 @@ export default function NewServiceListingScreen() {
     }
 
     // 3. Prepare payload matching backend CreateServiceDto
-    // If workingDays is empty, auto-fill with all 7 days
+    // Decision d6 / D-233: Days and hours are optional and independent.
+    // If days are empty, send workingDays: []. Hours are preserved when selected, or null on edit to clear.
     const workingDaysToSubmit =
-      formData.workingDays && formData.workingDays.length > 0
+      Array.isArray(formData.workingDays) && formData.workingDays.length > 0
         ? formData.workingDays
-        : [...WORKING_DAYS_AR]
+        : []
+    const isEdit = Boolean(formData.editMode && formData.editListingId)
+
+    const workingHoursOpen = formData.workingHoursOpen
+      ? formData.workingHoursOpen
+      : isEdit
+        ? null
+        : undefined
+
+    const workingHoursClose = formData.workingHoursClose
+      ? formData.workingHoursClose
+      : isEdit
+        ? null
+        : undefined
 
     const payload: any = {
       title: formData.title.trim(),
@@ -257,8 +270,8 @@ export default function NewServiceListingScreen() {
       ...(formData.priceTo != null ? { priceTo: Number(formData.priceTo) } : {}),
       currency: formData.currency || 'OMR',
       isHomeService: Boolean(formData.isHomeService),
-      workingHoursOpen: formData.workingHoursOpen || undefined,
-      workingHoursClose: formData.workingHoursClose || undefined,
+      workingHoursOpen,
+      workingHoursClose,
       workingDays: workingDaysToSubmit,
       governorateId: Number(formData.governorateId),
       wilayaId: Number(formData.wilayaId),
