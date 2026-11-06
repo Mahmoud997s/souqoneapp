@@ -228,4 +228,129 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
       })
     )
   })
+
+  it('submits valid payload preserving workingHours when days are empty (hours-only schedule, D-233)', async () => {
+    useServiceWizardStore.setState({
+      currentStep: 6,
+      formData: {
+        ...defaultServiceFormData,
+        serviceType: 'MAINTENANCE',
+        providerType: 'WORKSHOP',
+        providerName: 'كراج السرعة',
+        images: [{ uri: 'https://cdn.souqone.app/img.jpg' }],
+        title: 'صيانة شاملة للسيارات',
+        description: 'فحص كمبيوتر وتغيير زيوت مع ضمان شهرين كاملين',
+        specializations: ['تغيير زيت وفلاتر'],
+        priceFrom: 30,
+        priceTo: null,
+        governorateId: 1,
+        wilayaId: 101,
+        workingDays: [], // Empty days
+        workingHoursOpen: '08:00',
+        workingHoursClose: '17:00',
+      },
+    })
+
+    await render(<NewServiceListingScreen />)
+
+    const publishBtn = screen.getByText('نشر الإعلان الآن')
+    await act(async () => {
+      fireEvent.press(publishBtn)
+    })
+
+    expect(servicesApi.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'صيانة شاملة للسيارات',
+        workingDays: [],
+        workingHoursOpen: '08:00',
+        workingHoursClose: '17:00',
+      })
+    )
+  })
+
+  it('submits update payload sending empty workingDays and null hours when schedule is cleared in edit mode (D-233)', async () => {
+    useServiceWizardStore.setState({
+      currentStep: 6,
+      formData: {
+        ...defaultServiceFormData,
+        editMode: true,
+        editListingId: 'srv-123',
+        serviceType: 'MAINTENANCE',
+        providerType: 'WORKSHOP',
+        providerName: 'كراج السرعة',
+        images: [],
+        existingImages: [{ id: 'img-1', url: 'https://cdn.souqone.app/img.jpg' }],
+        title: 'صيانة شاملة للسيارات',
+        description: 'فحص كمبيوتر وتغيير زيوت مع ضمان شهرين كاملين',
+        specializations: ['تغيير زيت وفلاتر'],
+        priceFrom: 30,
+        priceTo: null,
+        governorateId: 1,
+        wilayaId: 101,
+        workingDays: [], // Cleared
+        workingHoursOpen: '', // Cleared
+        workingHoursClose: '', // Cleared
+      },
+    })
+
+    await render(<NewServiceListingScreen />)
+
+    const saveBtn = screen.getByText('حفظ التعديلات')
+    await act(async () => {
+      fireEvent.press(saveBtn)
+    })
+
+    expect(servicesApi.update).toHaveBeenCalledWith(
+      'srv-123',
+      expect.objectContaining({
+        title: 'صيانة شاملة للسيارات',
+        workingDays: [],
+        workingHoursOpen: null,
+        workingHoursClose: null,
+      })
+    )
+  })
+
+  it('submits update payload preserving chosen hours in edit mode when days are unspecified (D-233)', async () => {
+    useServiceWizardStore.setState({
+      currentStep: 6,
+      formData: {
+        ...defaultServiceFormData,
+        editMode: true,
+        editListingId: 'srv-123',
+        serviceType: 'MAINTENANCE',
+        providerType: 'WORKSHOP',
+        providerName: 'كراج السرعة',
+        images: [],
+        existingImages: [{ id: 'img-1', url: 'https://cdn.souqone.app/img.jpg' }],
+        title: 'صيانة شاملة للسيارات',
+        description: 'فحص كمبيوتر وتغيير زيوت مع ضمان شهرين كاملين',
+        specializations: ['تغيير زيت وفلاتر'],
+        priceFrom: 30,
+        priceTo: null,
+        governorateId: 1,
+        wilayaId: 101,
+        workingDays: [], // Unspecified
+        workingHoursOpen: '09:00',
+        workingHoursClose: '18:00',
+      },
+    })
+
+    await render(<NewServiceListingScreen />)
+
+    const saveBtn = screen.getByText('حفظ التعديلات')
+    await act(async () => {
+      fireEvent.press(saveBtn)
+    })
+
+    expect(servicesApi.update).toHaveBeenCalledWith(
+      'srv-123',
+      expect.objectContaining({
+        title: 'صيانة شاملة للسيارات',
+        workingDays: [],
+        workingHoursOpen: '09:00',
+        workingHoursClose: '18:00',
+      })
+    )
+  })
 })

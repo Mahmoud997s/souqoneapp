@@ -44,9 +44,9 @@ const createWrapper = () => {
   )
 }
 
-describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
+describe('Services Schedule Unspecified Behavior (Decision d6, D-233)', () => {
   describe('ServiceStep4Schedule', () => {
-    it('renders optional title and clear explanatory copy that leaving empty means unspecified', async () => {
+    it('renders optional title and clear explanatory copy that days and hours are independent and optional', async () => {
       const onUpdateField = jest.fn()
       const { getByText, getByTestId } = await render(
         <ServiceStep4Schedule
@@ -58,12 +58,15 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
 
       expect(getByText('أيام العمل (اختياري)')).toBeTruthy()
       expect(
-        getByText(/حدد الأيام التي تستقبل فيها الطلبات، أو اتركها فارغة لتعني 'غير محدد'/)
+        getByText(/أيام وساعات العمل اختيارية ومستقلة — حدد الأيام أو اتركها فارغة لتعني 'غير محدد'/)
       ).toBeTruthy()
       expect(getByText('أوقات وساعات العمل (اختياري)')).toBeTruthy()
+      expect(
+        getByText(/ساعات العمل اختيارية ومستقلة عن الأيام — حدد توقيت البدء والانتهاء أو اتركهما فارغين/)
+      ).toBeTruthy()
       expect(getByTestId('unspecified-days-notice')).toBeTruthy()
       expect(
-        getByText(/أيام العمل اختيارية — تركها فارغة يعني "غير محدد" للمشتري/)
+        getByText(/أيام وساعات العمل اختيارية ومستقلة — ترك الأيام فارغة يعني "غير محدد" للمشتري/)
       ).toBeTruthy()
     })
 
@@ -130,6 +133,27 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
       expect(hoursValue.props.children).toContain('08:00 ص')
       expect(hoursValue.props.children).toContain('05:00 م')
     })
+
+    it('displays formatted hours and "غير محدد" for days when user selects hours only (D-233)', async () => {
+      const { getByTestId } = await render(
+        <ServiceStep6Review
+          formData={{
+            ...defaultServiceFormData,
+            workingDays: [],
+            workingHoursOpen: '08:00',
+            workingHoursClose: '17:00',
+          }}
+          onEditStep={jest.fn()}
+        />
+      )
+
+      const daysValue = getByTestId('review-working-days')
+      const hoursValue = getByTestId('review-working-hours')
+
+      expect(daysValue.props.children).toBe('غير محدد')
+      expect(hoursValue.props.children).toContain('08:00 ص')
+      expect(hoursValue.props.children).toContain('05:00 م')
+    })
   })
 
   describe('ServiceScheduleCard', () => {
@@ -155,7 +179,7 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
       expect(getByText('ساعات العمل:')).toBeTruthy()
     })
 
-    it('renders schedule sections when schedule has days or hours', async () => {
+    it('renders schedule sections when schedule has days and hours', async () => {
       const specifiedSchedule: ServiceScheduleViewModel = {
         workingDays: ['السبت', 'الأحد'],
         workingDaysSummary: 'السبت، الأحد',
@@ -172,6 +196,26 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
       expect(queryByTestId('schedule-unspecified')).toBeNull()
       expect(getByText('السبت، الأحد')).toBeTruthy()
       expect(getByText('08:00 - 17:00')).toBeTruthy()
+    })
+
+    it('renders hours row and "أيام العمل: غير محدد" when schedule has hours but no days (D-233)', async () => {
+      const hoursOnlySchedule: ServiceScheduleViewModel = {
+        workingDays: [],
+        workingDaysSummary: '',
+        workingHoursLabel: 'من 08:00 ص إلى 05:00 م',
+        hasSchedule: true,
+        isOpenHoursProvided: true,
+      }
+
+      const { getByTestId, queryByTestId, getByText } = await render(
+        <ServiceScheduleCard schedule={hoursOnlySchedule} />
+      )
+
+      expect(getByTestId('service-schedule-card')).toBeTruthy()
+      expect(queryByTestId('schedule-unspecified')).toBeNull()
+      expect(getByTestId('days-unspecified')).toBeTruthy()
+      expect(getByTestId('days-unspecified').props.children).toBe('غير محدد')
+      expect(getByText('من 08:00 ص إلى 05:00 م')).toBeTruthy()
     })
   })
 
@@ -205,10 +249,10 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
       expect(queryByText(/-/)).toBeNull()
     })
 
-    it('displays hours pill when working hours are specified', async () => {
+    it('displays hours pill when working hours are specified even if days are empty (D-233)', async () => {
       const item: UnifiedCardItem = {
         id: 'srv-2',
-        title: 'خدمة مع جدول عمل',
+        title: 'خدمة مع جدول عمل بساعات فقط',
         price: 40,
         currency: 'OMR',
         governorate: 'مسقط',
@@ -219,7 +263,7 @@ describe('Services Schedule Unspecified Behavior (Decision d6)', () => {
           providerType: 'WORKSHOP',
           workingHoursOpen: '08:00',
           workingHoursClose: '18:00',
-          workingDays: ['السبت'],
+          workingDays: [], // Empty days
         },
       }
 

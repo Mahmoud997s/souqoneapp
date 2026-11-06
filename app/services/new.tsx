@@ -236,25 +236,25 @@ export default function NewServiceListingScreen() {
     }
 
     // 3. Prepare payload matching backend CreateServiceDto
-    // Decision d6: Empty schedule = "غير محدد"; send workingDays: [] and omit/null hours
-    const hasWorkingDays =
+    // Decision d6 / D-233: Days and hours are optional and independent.
+    // If days are empty, send workingDays: []. Hours are preserved when selected, or null on edit to clear.
+    const workingDaysToSubmit =
       Array.isArray(formData.workingDays) && formData.workingDays.length > 0
-    const workingDaysToSubmit = hasWorkingDays ? formData.workingDays : []
+        ? formData.workingDays
+        : []
     const isEdit = Boolean(formData.editMode && formData.editListingId)
 
-    const workingHoursOpen =
-      hasWorkingDays && formData.workingHoursOpen
-        ? formData.workingHoursOpen
-        : isEdit
-          ? null
-          : undefined
+    const workingHoursOpen = formData.workingHoursOpen
+      ? formData.workingHoursOpen
+      : isEdit
+        ? null
+        : undefined
 
-    const workingHoursClose =
-      hasWorkingDays && formData.workingHoursClose
-        ? formData.workingHoursClose
-        : isEdit
-          ? null
-          : undefined
+    const workingHoursClose = formData.workingHoursClose
+      ? formData.workingHoursClose
+      : isEdit
+        ? null
+        : undefined
 
     const payload: any = {
       title: formData.title.trim(),

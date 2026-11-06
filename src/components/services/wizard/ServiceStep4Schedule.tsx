@@ -89,7 +89,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
       {/* 1. Working Days */}
       <WizardCard
         title="أيام العمل (اختياري)"
-        subtitle="حدد الأيام التي تستقبل فيها الطلبات، أو اتركها فارغة لتعني 'غير محدد'"
+        subtitle="أيام وساعات العمل اختيارية ومستقلة — حدد الأيام أو اتركها فارغة لتعني 'غير محدد'"
       >
         {/* Quick Presets */}
         <View style={s.presetRow}>
@@ -163,7 +163,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
           <View style={s.unspecifiedNotice} testID="unspecified-days-notice">
             <Ionicons name="information-circle-outline" size={14} color="#64748B" />
             <Text style={s.unspecifiedNoticeTxt}>
-              أيام العمل اختيارية — تركها فارغة يعني "غير محدد" للمشتري
+              أيام وساعات العمل اختيارية ومستقلة — ترك الأيام فارغة يعني "غير محدد" للمشتري
             </Text>
           </View>
         )}
@@ -178,7 +178,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
       {/* 2. Working Hours */}
       <WizardCard
         title="أوقات وساعات العمل (اختياري)"
-        subtitle="حدد توقيت بدء وانتهاء ساعات العمل اليومية أو اتركها فارغة"
+        subtitle="ساعات العمل اختيارية ومستقلة عن الأيام — حدد توقيت البدء والانتهاء أو اتركهما فارغين"
       >
         <View style={s.hoursRow}>
           {/* Open Time */}

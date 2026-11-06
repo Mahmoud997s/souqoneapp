@@ -51,7 +51,7 @@ export function ServiceScheduleCard({
       </View>
 
       {/* Summary / Working Days */}
-      {schedule.workingDays.length > 0 && (
+      {schedule.workingDays.length > 0 ? (
         <View style={s.section}>
           <View style={s.labelRow}>
             <Ionicons name="time-outline" size={15} color={Colors.textMuted} />
@@ -71,6 +71,14 @@ export function ServiceScheduleCard({
               </View>
             ))}
           </View>
+        </View>
+      ) : (
+        <View style={s.daysUnspecifiedRow}>
+          <Ionicons name="calendar-outline" size={15} color={Colors.textMuted} />
+          <Text style={s.sectionLabel}>أيام العمل:</Text>
+          <Text style={s.hoursValUnspecified} testID="days-unspecified">
+            غير محدد
+          </Text>
         </View>
       )}
 
@@ -201,5 +209,11 @@ const s = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  daysUnspecifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space2,
+    paddingHorizontal: Spacing.space1,
   },
 })
