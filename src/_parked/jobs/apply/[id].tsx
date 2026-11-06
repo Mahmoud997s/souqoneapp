@@ -12,6 +12,7 @@ import { Radius } from '../../../src/constants/radius'
 import { useAuthStore } from '../../../src/store/authStore'
 import { useAuthGuard } from '../../../src/hooks/useAuthGuard'
 import { dialogService } from '../../../src/store/dialogStore'
+import { logWarn } from '../../../src/utils/safeLog'
 
 export default function ApplyJobScreen() {
   const { id } = useLocalSearchParams()
@@ -34,7 +35,7 @@ export default function ApplyJobScreen() {
         setCvFile(result.assets[0])
       }
     } catch (err) {
-      console.log('Error picking document', err)
+      logWarn('JobApply:PickDoc', err)
     }
   }
 

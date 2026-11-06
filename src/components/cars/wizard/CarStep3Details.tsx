@@ -28,6 +28,7 @@ import {
   CAR_FEATURE_KEYS,
 } from '../../../constants/cars'
 import { carsApi, CarBrand, CarModelItem, CarTrimItem } from '../../../api/cars'
+import { logError } from '../../../utils/safeLog'
 
 export function CarStep3Details({
   formData,
@@ -52,12 +53,12 @@ export function CarStep3Details({
   }>({ visible: false, title: '', data: [], selectedValue: undefined, onSelect: () => {} })
 
   useEffect(() => {
-    carsApi.getBrands().then(setBrands).catch(console.error)
+    carsApi.getBrands().then(setBrands).catch(err => logError('CarStep3:Brands', err))
   }, [])
 
   useEffect(() => {
     if (formData.brandId) {
-      carsApi.getModels(formData.brandId).then(setModels).catch(console.error)
+      carsApi.getModels(formData.brandId).then(setModels).catch(err => logError('CarStep3:Models', err))
     } else {
       setModels([])
     }
@@ -65,7 +66,7 @@ export function CarStep3Details({
 
   useEffect(() => {
     if (formData.carModelId) {
-      carsApi.getTrims(formData.carModelId).then(setTrims).catch(console.error)
+      carsApi.getTrims(formData.carModelId).then(setTrims).catch(err => logError('CarStep3:Trims', err))
     } else {
       setTrims([])
     }

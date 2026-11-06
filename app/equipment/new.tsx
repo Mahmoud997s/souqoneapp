@@ -28,6 +28,7 @@ import { useCreateEquipment, useUpdateEquipment } from '../../src/hooks/useEquip
 import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
 import { useEquipmentFormLogic } from '../../src/hooks/useEquipmentFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
+import { logWarn } from '../../src/utils/safeLog'
 
 import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type'
 import { EquipmentStep2Images } from '../../src/components/equipment/wizard/EquipmentStep2Images'
@@ -202,7 +203,7 @@ export default function NewEquipmentListingScreen() {
                     newImageUrls.push(url)
                   }
                 } catch (uploadErr: any) {
-                  console.warn('Image upload error:', uploadErr)
+                  logWarn('EquipmentNew:UploadImage', uploadErr)
                   const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
                   throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
                 }
@@ -212,7 +213,7 @@ export default function NewEquipmentListingScreen() {
         }
       }
     } catch (e: any) {
-      console.warn('Error uploading images before submit:', e)
+      logWarn('EquipmentNew:UploadBeforeSubmit', e)
       dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
       setIsUploadingImages(false)
       return
@@ -280,7 +281,7 @@ export default function NewEquipmentListingScreen() {
               }
             } catch (err) {
               imagesSuccess = false
-              console.warn('Error updating images in edit mode:', err)
+              logWarn('EquipmentNew:UpdateImages', err)
             }
 
             if (imagesSuccess) {

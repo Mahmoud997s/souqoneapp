@@ -29,6 +29,7 @@ import { usePartWizardStore, PartFormData } from '../../src/store/partWizardStor
 import { usePartFormLogic } from '../../src/hooks/usePartFormLogic'
 import { validateStep } from '../../src/hooks/usePartValidation'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
+import { logWarn } from '../../src/utils/safeLog'
 
 import { PartStep1Category } from '../../src/components/parts/wizard/PartStep1Category'
 import { PartStep2Images } from '../../src/components/parts/wizard/PartStep2Images'
@@ -57,7 +58,7 @@ export default function NewPartListingScreen() {
         }
       })
       .catch((err) => {
-        console.warn('Failed to load brands for compatibility step:', err)
+        logWarn('PartsNew:LoadBrands', err)
       })
     return () => {
       mounted = false
@@ -199,7 +200,7 @@ export default function NewPartListingScreen() {
                 newImageUrls.push(url)
               }
             } catch (uploadErr: any) {
-              console.warn('Image upload error for part:', uploadErr)
+              logWarn('PartsNew:UploadImage', uploadErr)
               const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
               throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
             }
@@ -207,7 +208,7 @@ export default function NewPartListingScreen() {
         }
       }
     } catch (e: any) {
-      console.warn('Error uploading part images before submit:', e)
+      logWarn('PartsNew:UploadBeforeSubmit', e)
       dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
       setIsUploadingImages(false)
       return
@@ -268,7 +269,7 @@ export default function NewPartListingScreen() {
               }
             } catch (err) {
               imagesSuccess = false
-              console.warn('Error updating part images in edit mode:', err)
+              logWarn('PartsNew:UpdateImages', err)
             }
 
             if (imagesSuccess) {

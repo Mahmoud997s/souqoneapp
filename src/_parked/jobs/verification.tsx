@@ -17,6 +17,7 @@ import { uploadsApi } from '../../src/api/uploads'
 import { router } from 'expo-router'
 import { STRINGS } from '../../src/constants/jobs'
 import { dialogService } from '../../src/store/dialogStore'
+import { logWarn } from '../../src/utils/safeLog'
 
 export default function VerificationScreen() {
   const insets = useSafeAreaInsets()
@@ -57,7 +58,7 @@ export default function VerificationScreen() {
         currentSetter(result.assets[0].uri)
       }
     } catch (error) {
-      console.log('Camera error:', error)
+      logWarn('JobVerification:Camera', error)
     } finally {
       setSheetVisible(false)
     }
@@ -79,7 +80,7 @@ export default function VerificationScreen() {
         currentSetter(result.assets[0].uri)
       }
     } catch (error) {
-      console.log('Gallery error:', error)
+      logWarn('JobVerification:Gallery', error)
     } finally {
       setSheetVisible(false)
     }

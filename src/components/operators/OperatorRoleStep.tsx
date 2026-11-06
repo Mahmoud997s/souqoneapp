@@ -13,6 +13,7 @@ import { dialogService } from '../../store/dialogStore'
 import { EditProfileAvatar } from '../profile/EditProfileAvatar'
 import { Config } from '../../constants/config'
 import { WizardCard } from '../ui/WizardCard'
+import { logError } from '../../utils/safeLog'
 
 export interface OperatorRoleStepProps {
   formData: OperatorWizardFormData
@@ -58,7 +59,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
         }
       }
     } catch (err: any) {
-      console.error('❌ [OperatorRoleStep] Error uploading avatar:', err?.message, err?.response?.data || err)
+      logError('OperatorRoleStep:UploadAvatar', err)
       dialogService.alert('خطأ', 'حدث خطأ أثناء رفع الصورة')
     } finally {
       setIsUploadingImage(false)

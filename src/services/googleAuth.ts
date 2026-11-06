@@ -2,6 +2,7 @@ import type {
   GoogleSignin as GoogleSigninType,
   statusCodes as statusCodesType,
 } from '@react-native-google-signin/google-signin'
+import { logWarn } from '../utils/safeLog'
 
 export const GOOGLE_WEB_CLIENT_ID =
   '758459912346-5h3e7cbnrg0tvbirumv0mve5f5kpclft.apps.googleusercontent.com'
@@ -47,7 +48,7 @@ export function configureGoogleSignIn(): void {
       offlineAccess: false,
     })
   } catch (e) {
-    console.warn('[GoogleSignIn] Configuration error:', e)
+    logWarn('GoogleSignIn:Config', e)
   }
 }
 

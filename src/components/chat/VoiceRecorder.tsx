@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native
 import { Ionicons } from '@expo/vector-icons'
 import { useAudioRecorder, useAudioRecorderState, RecordingPresets, requestRecordingPermissionsAsync } from 'expo-audio'
 import { Colors } from '../../constants/colors'
+import { logError } from '../../utils/safeLog'
 
 interface Props {
   onSend: (uri: string, duration: number) => void
@@ -56,7 +57,7 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
         setDuration(d => d + 1)
       }, 1000)
     } catch (err) {
-      console.error('Failed to start recording', err)
+      logError('VoiceRecorder:Start', err)
       onCancel()
     }
   }
@@ -76,7 +77,7 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
         onCancel()
       }
     } catch (err) {
-      console.error('Failed to stop recording', err)
+      logError('VoiceRecorder:Stop', err)
       onCancel()
     }
   }

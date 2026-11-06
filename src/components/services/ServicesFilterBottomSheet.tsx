@@ -15,6 +15,7 @@ import { FilterChip } from '../ui/FilterChip';
 import { AppButton } from '../ui/AppButton';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
+import { logWarn } from '../../utils/safeLog';
 
 interface ServicesFilterBottomSheetProps {
   visible: boolean;
@@ -44,13 +45,13 @@ export function ServicesFilterBottomSheet({
     if (visible) {
       setFilters({ ...initialFilters });
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('ServicesFilter:Gov', err));
     }
   }, [visible, initialFilters]);
 
   useEffect(() => {
     if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(console.warn);
+      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('ServicesFilter:Wilaya', err));
     } else {
       setWilayas([]);
     }
