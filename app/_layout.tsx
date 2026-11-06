@@ -66,13 +66,14 @@ export default function RootLayout() {
     if (!isLoggedIn) return
     registerForPushNotifications().then((token) => {
       if (token) {
-        console.log('[Push] Token:', token)
-        usersApi.updatePushToken(token).catch(e => console.warn('[Push] Failed to send token (Endpoint might not exist yet)'))
+        usersApi.updatePushToken(token).catch(() => {
+          if (__DEV__) console.warn('[Push] Failed to send token')
+        })
       }
     })
 
-    const sub1 = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[Push] Received:', notification.request.content.title)
+    const sub1 = Notifications.addNotificationReceivedListener((_notification) => {
+      if (__DEV__) console.log('[Push] Notification received')
     })
     const sub2 = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as any
