@@ -148,7 +148,7 @@ export default function TransportPreviewScreen() {
             <Text style={styles.sectionTitle}>حالة الطلب: {req.status}</Text>
             <TransportRequestCard 
               request={req} 
-              onPress={() => logInfo('TransportPreview', { message: 'Card pressed', code: String(req.id) })} 
+              onPress={() => logInfo('TransportPreview', 'Card pressed')} 
             />
           </View>
         ))}

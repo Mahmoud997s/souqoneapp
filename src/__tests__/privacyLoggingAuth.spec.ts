@@ -1,16 +1,24 @@
 import fs from 'fs'
 import path from 'path'
 import ts from 'typescript'
-import { safeErrorInfo, logError, logWarn, logInfo } from '../utils/safeLog'
+import {
+  safeErrorInfo,
+  logError,
+  logWarn,
+  logInfo,
+  ALLOWED_ERROR_NAMES,
+  ALLOWED_ERROR_CODES,
+} from '../utils/safeLog'
 import { storeRotatedTokens } from '../utils/storeRotatedTokens'
 
-describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
+describe('D-231: Hardened Safe Error Logging (Never-Throw, Code Allowlist, Prod Classification)', () => {
   let consoleLogSpy: jest.SpyInstance
   let consoleErrorSpy: jest.SpyInstance
   let consoleWarnSpy: jest.SpyInstance
   let consoleInfoSpy: jest.SpyInstance
 
   beforeEach(() => {
+    ;(global as any).__DEV__ = true
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -24,166 +32,207 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
     consoleInfoSpy.mockRestore()
   })
 
-  describe('safeErrorInfo Sanitizer (Hardened)', () => {
-    const sensitiveAxiosError = {
-      name: 'AxiosError',
-      message: 'Request failed with status code 401',
-      code: 'ERR_BAD_REQUEST',
-      config: {
-        url: '/api/v1/auth/login',
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer SENSITIVE_JWT_BEARER_TOKEN_999',
-          'X-Custom-Secret': 'SECRET_API_KEY_ABC',
+  describe('A42-4: Never-Throw Guarantee', () => {
+    it('never throws when getters throw on message, name, code, status, or response', () => {
+      const hostileError = {
+        get message(): string {
+          throw new Error('Hostile message getter')
         },
-        data: JSON.stringify({
-          phone: '+96891234567',
-          password: 'CLEAR_TEXT_USER_PASSWORD_123!',
-        }),
-      },
-      request: {
-        _header: 'Authorization: Bearer SENSITIVE_JWT_BEARER_TOKEN_999\n',
-      },
-      response: {
-        status: 401,
-        statusText: 'Unauthorized',
-        headers: {
-          'set-cookie': ['session=SECRET_COOKIE_DATA'],
+        get name(): string {
+          throw new Error('Hostile name getter')
         },
-        data: {
-          code: 'INVALID_CREDENTIALS',
-          message: 'Invalid email or password',
-          user: {
-            id: 'usr_secret_77',
-            email: 'victim@private.om',
-            phone: '+96891234567',
-            accessToken: 'SENSITIVE_NEW_ACCESS_TOKEN_XYZ',
-            refreshToken: 'SENSITIVE_NEW_REFRESH_TOKEN_UVW',
+        get code(): string {
+          throw new Error('Hostile code getter')
+        },
+        get status(): number {
+          throw new Error('Hostile status getter')
+        },
+        get response(): any {
+          throw new Error('Hostile response getter')
+        },
+        get isAxiosError(): boolean {
+          throw new Error('Hostile isAxiosError getter')
+        },
+      }
+
+      expect(() => safeErrorInfo(hostileError)).not.toThrow()
+      const res = safeErrorInfo(hostileError)
+      expect(typeof res.message).toBe('string')
+
+      expect(() => logError('Hostile', hostileError)).not.toThrow()
+      expect(() => logWarn('Hostile', hostileError)).not.toThrow()
+      expect(() => logInfo('Hostile', hostileError)).not.toThrow()
+    })
+
+    it('never throws when passed a hostile Proxy with throwing traps', () => {
+      const hostileProxy = new Proxy(
+        {},
+        {
+          get(_, prop) {
+            throw new Error(`Trap on ${String(prop)}`)
           },
-        },
-      },
-    }
-
-    it('sanitizes AxiosError: replaces raw message with category string and strips internals', () => {
-      const sanitized = safeErrorInfo(sensitiveAxiosError)
-
-      expect(sanitized).toEqual({
-        name: 'AxiosError',
-        message: 'Network request failed',
-        status: 401,
-        code: 'ERR_BAD_REQUEST',
-      })
-
-      // Strict assertions: sensitive fields NEVER present in object
-      expect('config' in sanitized).toBe(false)
-      expect('headers' in sanitized).toBe(false)
-      expect('request' in sanitized).toBe(false)
-      expect('response' in sanitized).toBe(false)
-      expect('data' in sanitized).toBe(false)
-
-      const serialized = JSON.stringify(sanitized)
-      expect(serialized).not.toContain('SENSITIVE_JWT_BEARER_TOKEN')
-      expect(serialized).not.toContain('SECRET_API_KEY')
-      expect(serialized).not.toContain('CLEAR_TEXT_USER_PASSWORD')
-      expect(serialized).not.toContain('victim@private.om')
-      expect(serialized).not.toContain('+96891234567')
-      expect(serialized).not.toContain('SECRET_COOKIE_DATA')
-      expect(serialized).not.toContain('SENSITIVE_NEW_ACCESS_TOKEN')
-    })
-
-    it('extracts response.data.code only when error.code is missing and code matches pattern', () => {
-      const errorWithoutCode = {
-        name: 'AxiosError',
-        message: 'Unauthorized',
-        response: {
-          status: 401,
-          data: { code: 'ACCOUNT_BANNED' },
-        },
-      }
-
-      const result = safeErrorInfo(errorWithoutCode)
-      expect(result).toEqual({
-        name: 'AxiosError',
-        message: 'Network request failed',
-        status: 401,
-        code: 'ACCOUNT_BANNED',
-      })
-    })
-
-    it('prefers error.code over response.data.code', () => {
-      const err = {
-        name: 'Error',
-        code: 'CLIENT_TIMEOUT',
-        response: {
-          data: { code: 'SERVER_IGNORED' },
-        },
-      }
-      expect(safeErrorInfo(err).code).toBe('CLIENT_TIMEOUT')
-    })
-
-    it('rejects invalid or injection machine codes', () => {
-      expect(safeErrorInfo({ code: 'INVALID CODE WITH SPACES' }).code).toBeUndefined()
-      expect(safeErrorInfo({ code: '<script>alert(1)</script>' }).code).toBeUndefined()
-      expect(safeErrorInfo({ code: 'A'.repeat(50) }).code).toBeUndefined()
-    })
-
-    it('validates status: accepts integer between 100 and 599 only', () => {
-      expect(safeErrorInfo({ status: 200 }).status).toBe(200)
-      expect(safeErrorInfo({ status: 500 }).status).toBe(500)
-      expect(safeErrorInfo({ status: 99 }).status).toBeUndefined()
-      expect(safeErrorInfo({ status: 600 }).status).toBeUndefined()
-      expect(safeErrorInfo({ status: '200' as any }).status).toBeUndefined()
-      expect(safeErrorInfo({ status: NaN }).status).toBeUndefined()
-      expect(safeErrorInfo({ response: { status: 404 } }).status).toBe(404)
-    })
-
-    it('enforces allowlist for error name and defaults unknown to Error', () => {
-      expect(safeErrorInfo({ name: 'TypeError' }).name).toBe('TypeError')
-      expect(safeErrorInfo({ name: 'NetworkError' }).name).toBe('NetworkError')
-      expect(safeErrorInfo({ name: 'AxiosError' }).name).toBe('AxiosError')
-      expect(safeErrorInfo({ name: 'InjectedServerName' }).name).toBe('Error')
-      expect(safeErrorInfo({ name: '<svg onload=alert(1)>' }).name).toBe('Error')
-    })
-
-    it('redacts URLs, Bearer tokens, JWTs, emails, and long numeric IDs from messages', () => {
-      const adversarial = new Error(
-        'Failure accessing https://api.example.com/v1/auth?token=123 with Bearer secret-tok-abc and JWT eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature for user test@souq.om with id 9876543210'
+        }
       )
-      const sanitized = safeErrorInfo(adversarial)
 
-      expect(sanitized.message).not.toContain('https://api.example.com')
-      expect(sanitized.message).not.toContain('secret-tok-abc')
-      expect(sanitized.message).not.toContain('eyJhbGciOiJIUzI1NiJ9')
-      expect(sanitized.message).not.toContain('test@souq.om')
-      expect(sanitized.message).not.toContain('9876543210')
+      expect(() => safeErrorInfo(hostileProxy)).not.toThrow()
+      const res = safeErrorInfo(hostileProxy)
+      expect(res).toEqual({ message: 'Unknown error' })
 
-      expect(sanitized.message).toContain('[REDACTED_URL]')
-      expect(sanitized.message).toContain('Bearer [REDACTED_TOKEN]')
-      expect(sanitized.message).toContain('[REDACTED_JWT]')
-      expect(sanitized.message).toContain('[REDACTED_EMAIL]')
-      expect(sanitized.message).toContain('[REDACTED_NUMBER]')
+      expect(() => logError('ProxyTest', hostileProxy)).not.toThrow()
     })
 
-    it('caps message length at 200 characters', () => {
-      const veryLong = 'Server error: ' + 'x'.repeat(400)
-      const res = safeErrorInfo(new Error(veryLong))
-      expect(res.message.length).toBeLessThanOrEqual(200)
+    it('handles circular reference objects without recursion or throwing', () => {
+      const circular: any = { message: 'Circular error' }
+      circular.self = circular
+      circular.nested = { parent: circular }
+
+      expect(() => safeErrorInfo(circular)).not.toThrow()
+      const res = safeErrorInfo(circular)
+      expect(res.message).toBe('Circular error')
     })
 
-    it('handles primitive thrown strings safely and redacts them', () => {
-      const res = safeErrorInfo('Failed login for admin@souqone.om with token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.sig')
-      expect(res.message).not.toContain('admin@souqone.om')
-      expect(res.message).toContain('[REDACTED_EMAIL]')
-      expect(res.message).toContain('[REDACTED_JWT]')
+    it('handles Object.create(null) objects lacking prototype methods', () => {
+      const nullProto: any = Object.create(null)
+      nullProto.name = 'TypeError'
+      nullProto.message = 'Null proto error'
+      nullProto.code = 'ERR_NETWORK'
+
+      expect(() => safeErrorInfo(nullProto)).not.toThrow()
+      const res = safeErrorInfo(nullProto)
+      expect(res).toEqual({
+        name: 'TypeError',
+        message: 'Null proto error',
+        code: 'ERR_NETWORK',
+      })
     })
 
-    it('handles null and undefined safely', () => {
-      expect(safeErrorInfo(null)).toEqual({ message: 'Unknown error' })
-      expect(safeErrorInfo(undefined)).toEqual({ message: 'Unknown error' })
+    it('handles frozen objects safely', () => {
+      const frozen = Object.freeze({
+        name: 'AxiosError',
+        message: 'Forbidden',
+        status: 403,
+      })
+
+      expect(() => safeErrorInfo(frozen)).not.toThrow()
+      const res = safeErrorInfo(frozen)
+      expect(res.name).toBe('AxiosError')
+      expect(res.message).toBe('Network request failed')
+      expect(res.status).toBe(403)
     })
   })
 
-  describe('logError / logWarn / logInfo Gating and Output', () => {
+  describe('A42-1: Production Message Classification vs DEV Redaction', () => {
+    it('in production (__DEV__=false), message is fixed category ONLY', () => {
+      ;(global as any).__DEV__ = false
+
+      // Non-Axios error: fixed category 'Error'
+      const customErr = new Error('Super secret sensitive password in message')
+      expect(safeErrorInfo(customErr)).toEqual({
+        name: 'Error',
+        message: 'Error',
+      })
+
+      // Axios error: fixed category 'Network request failed'
+      const axiosErr = {
+        name: 'AxiosError',
+        message: 'Request failed: http://secret.internal/leak?token=123',
+        status: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+      }
+      expect(safeErrorInfo(axiosErr)).toEqual({
+        name: 'AxiosError',
+        message: 'Network request failed',
+        status: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+      })
+
+      // Primitive string in production
+      expect(safeErrorInfo('Secret thrown string')).toEqual({
+        message: 'Error',
+      })
+    })
+
+    it('in development (__DEV__=true), message redacts bare query-string secrets without scheme', () => {
+      const errWithQuery = new Error(
+        'Failed query with token=secretToken123 and password=MyPass999 and key=apiKeyXYZ'
+      )
+      const res = safeErrorInfo(errWithQuery)
+
+      expect(res.message).not.toContain('secretToken123')
+      expect(res.message).not.toContain('MyPass999')
+      expect(res.message).not.toContain('apiKeyXYZ')
+      expect(res.message).toContain('token=[REDACTED_SECRET]')
+      expect(res.message).toContain('password=[REDACTED_SECRET]')
+      expect(res.message).toContain('key=[REDACTED_SECRET]')
+    })
+
+    it('in development (__DEV__=true), message redacts Arabic-Indic digit runs (7+ digits)', () => {
+      const errWithArabicNums = new Error('حدث خطأ للرقم ١٢٣٤٥٦٧٨٩٠ في النظام')
+      const res = safeErrorInfo(errWithArabicNums)
+
+      expect(res.message).not.toContain('١٢٣٤٥٦٧٨٩٠')
+      expect(res.message).toContain('[REDACTED_NUMBER]')
+    })
+
+    it('in development (__DEV__=true), message redacts phone-like digit groups with separators', () => {
+      const errWithPhone = new Error(
+        'Customer phone +968 9123 4567 or 050-123-4567 could not be verified'
+      )
+      const res = safeErrorInfo(errWithPhone)
+
+      expect(res.message).not.toContain('9123 4567')
+      expect(res.message).not.toContain('050-123-4567')
+      expect(res.message).toContain('[REDACTED_PHONE]')
+    })
+
+    it('in development (__DEV__=true), message redacts URLs, Bearer, JWT, emails, and long numbers', () => {
+      const err = new Error(
+        'Failure accessing https://api.souq.om/v1 with Bearer tok-xyz and JWT eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.sig for user admin@souq.om id 9876543210'
+      )
+      const res = safeErrorInfo(err)
+
+      expect(res.message).not.toContain('https://api.souq.om/v1')
+      expect(res.message).not.toContain('tok-xyz')
+      expect(res.message).not.toContain('eyJhbGciOiJIUzI1NiJ9')
+      expect(res.message).not.toContain('admin@souq.om')
+      expect(res.message).not.toContain('9876543210')
+
+      expect(res.message).toContain('[REDACTED_URL]')
+      expect(res.message).toContain('Bearer [REDACTED_TOKEN]')
+      expect(res.message).toContain('[REDACTED_JWT]')
+      expect(res.message).toContain('[REDACTED_EMAIL]')
+      expect(res.message).toContain('[REDACTED_NUMBER]')
+    })
+  })
+
+  describe('A42-2: Strict Machine Error Code Allowlist', () => {
+    it('accepts known machine error codes from the allowlist', () => {
+      for (const code of ALLOWED_ERROR_CODES) {
+        const res = safeErrorInfo({ name: 'Error', code, message: 'test' })
+        expect(res.code).toBe(code)
+      }
+    })
+
+    it('rejects caller-provided entity IDs or non-allowlisted codes', () => {
+      // Rejects numeric IDs
+      expect(safeErrorInfo({ code: '12345', message: 'test' }).code).toBeUndefined()
+      // Rejects arbitrary fixture IDs
+      expect(safeErrorInfo({ code: 'mock-card-id-99', message: 'test' }).code).toBeUndefined()
+      // Rejects non-allowlisted server strings
+      expect(safeErrorInfo({ code: 'CUSTOM_RANDOM_CODE', message: 'test' }).code).toBeUndefined()
+    })
+
+    it('prefers error.code over response.data.code', () => {
+      const res = safeErrorInfo({
+        code: 'ERR_BAD_REQUEST',
+        response: { data: { code: 'ACCOUNT_BANNED' } },
+        message: 'test',
+      })
+      expect(res.code).toBe('ERR_BAD_REQUEST')
+    })
+  })
+
+  describe('logError / logWarn / logInfo Gating and Safety', () => {
     const sampleError = {
       name: 'AxiosError',
       message: 'Failed to upload image',
@@ -197,64 +246,39 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
     }
 
     it('in development (__DEV__=true), logError outputs sanitized info and no credentials', () => {
-      const devBackup = (global as any).__DEV__
-      try {
-        ;(global as any).__DEV__ = true
+      logError('ImageUpload', sampleError)
 
-        logError('ImageUpload', sampleError)
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ImageUpload]', {
+        name: 'AxiosError',
+        message: 'Network request failed',
+        status: 413,
+      })
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[ImageUpload]',
-          {
-            name: 'AxiosError',
-            message: 'Network request failed',
-            status: 413,
-          }
-        )
-
-        const loggedText = JSON.stringify(consoleErrorSpy.mock.calls)
-        expect(loggedText).not.toContain('SUPER_SECRET')
-        expect(loggedText).not.toContain('do-not-log-me')
-      } finally {
-        ;(global as any).__DEV__ = devBackup
-      }
+      const loggedText = JSON.stringify(consoleErrorSpy.mock.calls)
+      expect(loggedText).not.toContain('SUPER_SECRET')
+      expect(loggedText).not.toContain('do-not-log-me')
     })
 
     it('in development (__DEV__=true), logWarn outputs sanitized warning', () => {
-      const devBackup = (global as any).__DEV__
-      try {
-        ;(global as any).__DEV__ = true
+      logWarn('PostEdit:CarLabels', sampleError)
 
-        logWarn('PostEdit:CarLabels', sampleError)
-
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[PostEdit:CarLabels]',
-          {
-            name: 'AxiosError',
-            message: 'Network request failed',
-            status: 413,
-          }
-        )
-      } finally {
-        ;(global as any).__DEV__ = devBackup
-      }
+      expect(consoleWarnSpy).toHaveBeenCalledWith('[PostEdit:CarLabels]', {
+        name: 'AxiosError',
+        message: 'Network request failed',
+        status: 413,
+      })
     })
 
     it('in production (__DEV__=false), logError, logWarn and logInfo are complete no-ops', () => {
-      const devBackup = (global as any).__DEV__
-      try {
-        ;(global as any).__DEV__ = false
+      ;(global as any).__DEV__ = false
 
-        logError('AnyTag', sampleError)
-        logWarn('AnyTag', sampleError)
-        logInfo('AnyTag', sampleError)
+      logError('AnyTag', sampleError)
+      logWarn('AnyTag', sampleError)
+      logInfo('AnyTag', sampleError)
 
-        expect(consoleErrorSpy).not.toHaveBeenCalled()
-        expect(consoleWarnSpy).not.toHaveBeenCalled()
-        expect(consoleLogSpy).not.toHaveBeenCalled()
-      } finally {
-        ;(global as any).__DEV__ = devBackup
-      }
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+      expect(consoleWarnSpy).not.toHaveBeenCalled()
+      expect(consoleLogSpy).not.toHaveBeenCalled()
     })
   })
 
@@ -266,7 +290,7 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
     })
   })
 
-  describe('AST Static Guard: Comprehensive Zero-Console Invariant across app/ and src/', () => {
+  describe('AST Static Guard: Zero-Console and Bracket-Access Invariant (app/ & src/)', () => {
     function findSourceFiles(dir: string): string[] {
       const files: string[] = []
       if (!fs.existsSync(dir)) return files
@@ -290,7 +314,7 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
       return files
     }
 
-    it('AST parser verifies NO direct console calls, aliases, or catches in app/ and src/ (excluding _layout.tsx and safeLog.ts)', () => {
+    it('AST parser verifies NO direct console calls, aliases, catches, or globalThis["console"] bracket accesses', () => {
       const projectRoot = path.resolve(__dirname, '../..')
       const targetDirs = [path.join(projectRoot, 'app'), path.join(projectRoot, 'src')]
 
@@ -302,7 +326,7 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
       for (const filePath of sourceFiles) {
         const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/')
 
-        // Explicitly excluded files per specification:
+        // Explicit exclusions per specification:
         // - app/_layout.tsx: tracked under dedicated PR #109 (D-229)
         // - src/utils/safeLog.ts: the designated, single authorized logging helper
         if (relativePath === 'app/_layout.tsx' || relativePath === 'src/utils/safeLog.ts') {
@@ -318,13 +342,26 @@ describe('D-230: Hardened Safe Error Logging and AST Privacy Guard', () => {
         )
 
         function walk(node: ts.Node) {
-          // Detect any Identifier "console" (direct calls, aliases like const log = console.error, .catch(console.*))
+          // Detect any Identifier "console" (direct calls, window.console, globalThis.console, aliases, .catch)
           if (ts.isIdentifier(node) && node.text === 'console') {
             const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
             violations.push(
               `${relativePath}:${line + 1}:${character + 1} uses unauthorized console identifier`
             )
           }
+
+          // Detect bracket string accesses like globalThis['console'] or window['console']
+          if (
+            ts.isElementAccessExpression(node) &&
+            ts.isStringLiteral(node.argumentExpression) &&
+            node.argumentExpression.text === 'console'
+          ) {
+            const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+            violations.push(
+              `${relativePath}:${line + 1}:${character + 1} uses unauthorized bracket access ['console']`
+            )
+          }
+
           ts.forEachChild(node, walk)
         }
 
