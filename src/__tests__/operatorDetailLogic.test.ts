@@ -186,22 +186,21 @@ describe('Operator Detail Screen - Business & Display Logic', () => {
       title: 'مشغل رافعة محترف',
     }
 
-    it('constructs correct reviewsUrl with entityType=OPERATOR_LISTING and correct entityId and revieweeId', () => {
-      const sellerId = operator.userId
-      const reviewsUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}`
+    it('constructs correct reviewsUrl with entityType=OPERATOR_LISTING and correct entityId (omits revieweeId derived by backend)', () => {
+      const reviewsUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING`
 
-      expect(reviewsUrl).toBe('/reviews/op-123?type=OPERATOR_LISTING&revieweeId=user-seller-789')
+      expect(reviewsUrl).toBe('/reviews/op-123?type=OPERATOR_LISTING')
       expect(reviewsUrl).toContain(`/reviews/${operator.id}`)
       expect(reviewsUrl).toContain('type=OPERATOR_LISTING')
-      expect(reviewsUrl).toContain(`revieweeId=${sellerId}`)
+      expect(reviewsUrl).not.toContain('revieweeId')
     })
 
-    it('constructs correct writeReviewUrl with write=true parameter', () => {
-      const sellerId = operator.userId
-      const writeReviewUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&revieweeId=${sellerId}&write=true`
+    it('constructs correct writeReviewUrl with write=true parameter (omits revieweeId derived by backend)', () => {
+      const writeReviewUrl = `/reviews/${operator.id}?type=OPERATOR_LISTING&write=true`
 
-      expect(writeReviewUrl).toBe('/reviews/op-123?type=OPERATOR_LISTING&revieweeId=user-seller-789&write=true')
+      expect(writeReviewUrl).toBe('/reviews/op-123?type=OPERATOR_LISTING&write=true')
       expect(writeReviewUrl).toContain('write=true')
+      expect(writeReviewUrl).not.toContain('revieweeId')
     })
 
     it('allows non-owner to see "أضف تقييم" write affordance', () => {
