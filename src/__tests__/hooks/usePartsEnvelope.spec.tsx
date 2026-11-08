@@ -180,6 +180,26 @@ describe('Parts Hooks with S1 parseListEnvelope Contract', () => {
       expect(result.current.hasNextPage).toBe(false)
     })
 
+    it('handles empty page 2+ with totalPages 0 without error (real backend pagination rollover)', async () => {
+      mockedGetAll.mockResolvedValueOnce({
+        data: {
+          items: [],
+          meta: { total: 0, page: 2, limit: 10, totalPages: 0 },
+        },
+      } as never)
+
+      const { result } = await renderHook(() => useInfiniteParts({ limit: 10 }), {
+        wrapper: createWrapper(),
+      })
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true))
+      const emptyPage = result.current.data?.pages[0]
+      expect(emptyPage?.items).toEqual([])
+      expect(emptyPage?.nextPage).toBeUndefined()
+      expect(result.current.hasNextPage).toBe(false)
+      expect(result.current.isError).toBe(false)
+    })
+
     it('enters isError state when infinite query encounters malformed response', async () => {
       mockedGetAll.mockResolvedValueOnce({
         data: { success: false, message: 'Bad Gateway' },

@@ -72,8 +72,8 @@ export function parseListEnvelope<T>(raw: unknown): ParsedListEnvelope<T> {
     if (total > 0) {
       throw new ListContractError(`Malformed pagination meta: totalPages cannot be 0 when total (${total}) > 0`)
     }
-    if (page > 1) {
-      throw new ListContractError(`Malformed pagination meta: page (${page}) cannot exceed totalPages (0)`)
+    if ((candidate.items as unknown[]).length > 0) {
+      throw new ListContractError(`Malformed pagination meta: totalPages cannot be 0 when items is not empty`)
     }
   }
 

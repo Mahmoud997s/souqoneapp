@@ -128,13 +128,25 @@ describe('parseListEnvelope (S1 List Contract Utility)', () => {
       expect(() => parseListEnvelope(corruptedZeroTotalPages)).toThrow('totalPages cannot be 0 when total (10) > 0')
     })
 
-    it('throws ListContractError when total is 0, totalPages is 0, but page > 1', () => {
-      const corruptedEmptyPagination = {
+    it('accepts valid empty page 2+ response when totalPages is 0 and total is 0 (real backend contract)', () => {
+      // Real backend parts.service.ts returns requested page with totalPages: 0 when result set is empty
+      const emptyPageTwo = {
         items: [],
         meta: { total: 0, page: 2, limit: 10, totalPages: 0 },
       }
-      expect(() => parseListEnvelope(corruptedEmptyPagination)).toThrow(ListContractError)
-      expect(() => parseListEnvelope(corruptedEmptyPagination)).toThrow('page (2) cannot exceed totalPages (0)')
+      const result = parseListEnvelope(emptyPageTwo)
+      expect(result.items).toEqual([])
+      expect(result.meta).toEqual({ total: 0, page: 2, limit: 10, totalPages: 0 })
+      expect(result.hasNextPage).toBe(false)
+    })
+
+    it('throws ListContractError when totalPages is 0 and total is 0 but items is non-empty', () => {
+      const corruptedItems = {
+        items: [{ id: 'part-x' }],
+        meta: { total: 0, page: 2, limit: 10, totalPages: 0 },
+      }
+      expect(() => parseListEnvelope(corruptedItems)).toThrow(ListContractError)
+      expect(() => parseListEnvelope(corruptedItems)).toThrow('totalPages cannot be 0 when items is not empty')
     })
   })
 
