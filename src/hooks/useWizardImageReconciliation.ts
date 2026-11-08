@@ -23,6 +23,7 @@ import {
   normalizeLocalImage,
   makeOpKey,
   deserializeLedger,
+  sanitizeErrorMessage,
 } from '../utils/imageReconciliation'
 import { logWarn } from '../utils/safeLog'
 
@@ -64,6 +65,7 @@ export function useWizardImageReconciliation({
 
   const isMountedRef = useRef(true)
   const isReconcilingRef = useRef(false)
+  const activePromiseRef = useRef<Promise<ReconciliationResult> | null>(null)
   const ledgerRef = useRef<ReconciliationLedger>(ledger)
   const abortControllerRef = useRef<AbortController | null>(null)
   const lastParamsRef = useRef<ReconcileParams | null>(null)
@@ -210,18 +212,9 @@ export function useWizardImageReconciliation({
         }
       }
 
-      // Avoid overlapping executions
-      if (isReconcilingRef.current) {
-        return {
-          listingSaved: ledgerRef.current.listingSaved,
-          imagesComplete: Object.keys(ledgerRef.current.failedOperations).length === 0,
-          isPartialSuccess:
-            ledgerRef.current.listingSaved &&
-            Object.keys(ledgerRef.current.failedOperations).length > 0,
-          uploadedUrls: ledgerRef.current.uploadedImages.map((rec) => rec.remoteUrl),
-          failedOperations: Object.values(ledgerRef.current.failedOperations),
-          ledger: ledgerRef.current,
-        }
+      // Avoid overlapping executions: join active in-flight reconciliation (A-053 P2)
+      if (isReconcilingRef.current && activePromiseRef.current) {
+        return activePromiseRef.current
       }
 
       lastParamsRef.current = { ...params }
@@ -236,12 +229,26 @@ export function useWizardImageReconciliation({
 
       // Working copy of the ledger
       const current = ledgerRef.current
+
+      // Populate retained image IDs from params.existingImages if provided (A-053 P1)
+      const existingIds = params.existingImages
+        ? params.existingImages
+            .map((img) => (typeof img === 'string' ? img : img?.id))
+            .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+        : current.retainedImageIds
+
+      const activeRemovedIds = params.removedImageIds
+        ? appendRemovedImageIds(current.removedImageIds, params.removedImageIds)
+        : [...current.removedImageIds]
+
+      const finalRetainedIds = dedupeIds(
+        existingIds.filter((id) => !activeRemovedIds.includes(id))
+      )
+
       const workingLedger: ReconciliationLedger = {
         ...current,
-        retainedImageIds: [...current.retainedImageIds],
-        removedImageIds: params.removedImageIds
-          ? appendRemovedImageIds(current.removedImageIds, params.removedImageIds)
-          : [...current.removedImageIds],
+        retainedImageIds: finalRetainedIds,
+        removedImageIds: activeRemovedIds,
         uploadedImages: [...current.uploadedImages],
         attachedUrls: [...current.attachedUrls],
         deletedImageIds: [...current.deletedImageIds],
@@ -253,180 +260,194 @@ export function useWizardImageReconciliation({
         listingId: params.listingId ?? current.listingId,
       }
 
-      try {
-        // ── 1. Upload Local Images (Retry only failed or not-yet-uploaded) ──
-        if (params.localImages && params.localImages.length > 0) {
-          for (const rawImg of params.localImages) {
-            if (signal.aborted) break
+      const executePromise = (async (): Promise<ReconciliationResult> => {
+        try {
+          // ── 1. Upload Local Images (Retry only failed or not-yet-uploaded) ──
+          if (params.localImages && params.localImages.length > 0) {
+            for (const rawImg of params.localImages) {
+              if (signal.aborted) break
 
-            const norm = normalizeLocalImage(rawImg)
-            if (!norm) continue
+              const norm = normalizeLocalImage(rawImg)
+              if (!norm) continue
 
-            const uri = norm.uri
-            const isHttp = uri.startsWith('http://') || uri.startsWith('https://')
+              const uri = norm.uri
+              const isHttp = uri.startsWith('http://') || uri.startsWith('https://')
 
-            // If already remote URL or already uploaded, verify/store mapping and continue
-            if (isHttp) {
-              const alreadyRecorded = workingLedger.uploadedImages.some(
-                (rec) => rec.remoteUrl === uri
+              // If already remote URL or already uploaded, verify/store mapping and continue
+              if (isHttp) {
+                const alreadyRecorded = workingLedger.uploadedImages.some(
+                  (rec) => rec.remoteUrl === uri
+                )
+                if (!alreadyRecorded) {
+                  workingLedger.uploadedImages.push({
+                    localUri: uri,
+                    remoteUrl: uri,
+                    uploadedAt: Date.now(),
+                    isPrimary: Boolean(norm.isPrimary),
+                  })
+                }
+                continue
+              }
+
+              const existingRecord = workingLedger.uploadedImages.find(
+                (rec) => rec.localUri === uri
               )
-              if (!alreadyRecorded) {
+              if (existingRecord) {
+                // Succeeded in a prior run: do NOT re-upload!
+                continue
+              }
+
+              // Attempt upload
+              const opKey = makeOpKey.upload(uri)
+              try {
+                const remoteUrl = await adapter.uploadImage(norm, signal)
+                if (signal.aborted) break
+
                 workingLedger.uploadedImages.push({
                   localUri: uri,
-                  remoteUrl: uri,
+                  remoteUrl,
                   uploadedAt: Date.now(),
                   isPrimary: Boolean(norm.isPrimary),
                 })
-              }
-              continue
-            }
 
-            const existingRecord = workingLedger.uploadedImages.find(
-              (rec) => rec.localUri === uri
+                // Success clears prior failure record
+                delete workingLedger.failedOperations[opKey]
+              } catch (err: any) {
+                if (signal.aborted) break
+                logWarn('useWizardImageReconciliation:upload', err)
+
+                const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                workingLedger.failedOperations[opKey] = {
+                  key: opKey,
+                  type: 'upload',
+                  error: sanitizeErrorMessage(err, 'فشل رفع الصورة'),
+                  attempts: Math.min(priorAttempts + 1, 10),
+                  lastAttemptAt: Date.now(),
+                  meta: { localUri: uri, isPrimary: Boolean(norm.isPrimary) },
+                }
+              }
+            }
+          }
+
+          // ── 2. Attach Uploaded URLs (Edit Mode or Vertical-Specific URL Attach) ──
+          if (
+            params.isEditMode &&
+            workingLedger.listingId &&
+            typeof adapter.attachImageUrl === 'function' &&
+            !signal.aborted
+          ) {
+            const listingId = workingLedger.listingId
+
+            // Find newly uploaded URLs that haven't been attached yet
+            const unattachedRecords = workingLedger.uploadedImages.filter(
+              (rec) => !workingLedger.attachedUrls.includes(rec.remoteUrl)
             )
-            if (existingRecord) {
-              // Succeeded in a prior run: do NOT re-upload!
-              continue
-            }
 
-            // Attempt upload
-            const opKey = makeOpKey.upload(uri)
-            try {
-              const remoteUrl = await adapter.uploadImage(norm, signal)
+            for (const rec of unattachedRecords) {
               if (signal.aborted) break
+              const opKey = makeOpKey.attach(rec.remoteUrl)
 
-              workingLedger.uploadedImages.push({
-                localUri: uri,
-                remoteUrl,
-                uploadedAt: Date.now(),
-                isPrimary: Boolean(norm.isPrimary),
-              })
+              try {
+                await adapter.attachImageUrl(
+                  listingId,
+                  rec.remoteUrl,
+                  rec.isPrimary,
+                  signal
+                )
+                if (signal.aborted) break
 
-              // Success clears prior failure record
-              delete workingLedger.failedOperations[opKey]
-            } catch (err: any) {
-              if (signal.aborted) break
-              logWarn('useWizardImageReconciliation:upload', err)
+                workingLedger.attachedUrls.push(rec.remoteUrl)
+                delete workingLedger.failedOperations[opKey]
+              } catch (err: any) {
+                if (signal.aborted) break
+                logWarn('useWizardImageReconciliation:attach', err)
 
-              const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
-              workingLedger.failedOperations[opKey] = {
-                key: opKey,
-                type: 'upload',
-                error: err?.message || 'فشل رفع الصورة',
-                attempts: priorAttempts + 1,
-                lastAttemptAt: Date.now(),
-                meta: { localUri: uri, isPrimary: Boolean(norm.isPrimary) },
+                const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                workingLedger.failedOperations[opKey] = {
+                  key: opKey,
+                  type: 'attach',
+                  error: sanitizeErrorMessage(err, 'فشل ربط الصورة بالإعلان'),
+                  attempts: Math.min(priorAttempts + 1, 10),
+                  lastAttemptAt: Date.now(),
+                  meta: { remoteUrl: rec.remoteUrl, listingId, isPrimary: rec.isPrimary },
+                }
               }
             }
           }
-        }
 
-        // ── 2. Attach Uploaded URLs (Edit Mode or Vertical-Specific URL Attach) ──
-        if (
-          params.isEditMode &&
-          workingLedger.listingId &&
-          typeof adapter.attachImageUrl === 'function' &&
-          !signal.aborted
-        ) {
-          const listingId = workingLedger.listingId
+          // ── 3. Delete Removed Images (Edit Mode) ──
+          if (
+            params.isEditMode &&
+            typeof adapter.deleteImage === 'function' &&
+            !signal.aborted
+          ) {
+            const pendingDeletes = workingLedger.removedImageIds.filter(
+              (id) => !workingLedger.deletedImageIds.includes(id)
+            )
 
-          // Find newly uploaded URLs that haven't been attached yet
-          const unattachedRecords = workingLedger.uploadedImages.filter(
-            (rec) => !workingLedger.attachedUrls.includes(rec.remoteUrl)
-          )
-
-          for (const rec of unattachedRecords) {
-            if (signal.aborted) break
-            const opKey = makeOpKey.attach(rec.remoteUrl)
-
-            try {
-              await adapter.attachImageUrl(
-                listingId,
-                rec.remoteUrl,
-                rec.isPrimary,
-                signal
-              )
+            for (const imageId of pendingDeletes) {
               if (signal.aborted) break
+              const opKey = makeOpKey.delete(imageId)
 
-              workingLedger.attachedUrls.push(rec.remoteUrl)
-              delete workingLedger.failedOperations[opKey]
-            } catch (err: any) {
-              if (signal.aborted) break
-              logWarn('useWizardImageReconciliation:attach', err)
+              try {
+                await adapter.deleteImage(imageId, workingLedger.listingId, signal)
+                if (signal.aborted) break
 
-              const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
-              workingLedger.failedOperations[opKey] = {
-                key: opKey,
-                type: 'attach',
-                error: err?.message || 'فشل ربط الصورة بالإعلان',
-                attempts: priorAttempts + 1,
-                lastAttemptAt: Date.now(),
-                meta: { remoteUrl: rec.remoteUrl, listingId, isPrimary: rec.isPrimary },
+                workingLedger.deletedImageIds.push(imageId)
+                delete workingLedger.failedOperations[opKey]
+              } catch (err: any) {
+                if (signal.aborted) break
+                const status = err?.response?.status ?? err?.status
+                if (status === 404) {
+                  // Backend removeImageFromPart throws 404 when image is already absent (A-053 P1).
+                  // Treat 404 as successful deletion for idempotency on retry.
+                  workingLedger.deletedImageIds.push(imageId)
+                  delete workingLedger.failedOperations[opKey]
+                  continue
+                }
+                logWarn('useWizardImageReconciliation:delete', err)
+
+                const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                workingLedger.failedOperations[opKey] = {
+                  key: opKey,
+                  type: 'delete',
+                  error: sanitizeErrorMessage(err, 'فشل حذف الصورة من الخادم'),
+                  attempts: Math.min(priorAttempts + 1, 10),
+                  lastAttemptAt: Date.now(),
+                  meta: { imageId, listingId: workingLedger.listingId },
+                }
               }
             }
           }
-        }
+        } finally {
+          isReconcilingRef.current = false
+          activePromiseRef.current = null
+          abortControllerRef.current = null
 
-        // ── 3. Delete Removed Images (Edit Mode) ──
-        if (
-          params.isEditMode &&
-          typeof adapter.deleteImage === 'function' &&
-          !signal.aborted
-        ) {
-          const pendingDeletes = workingLedger.removedImageIds.filter(
-            (id) => !workingLedger.deletedImageIds.includes(id)
-          )
-
-          for (const imageId of pendingDeletes) {
-            if (signal.aborted) break
-            const opKey = makeOpKey.delete(imageId)
-
-            try {
-              await adapter.deleteImage(imageId, workingLedger.listingId, signal)
-              if (signal.aborted) break
-
-              workingLedger.deletedImageIds.push(imageId)
-              delete workingLedger.failedOperations[opKey]
-            } catch (err: any) {
-              if (signal.aborted) break
-              logWarn('useWizardImageReconciliation:delete', err)
-
-              const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
-              workingLedger.failedOperations[opKey] = {
-                key: opKey,
-                type: 'delete',
-                error: err?.message || 'فشل حذف الصورة من الخادم',
-                attempts: priorAttempts + 1,
-                lastAttemptAt: Date.now(),
-                meta: { imageId, listingId: workingLedger.listingId },
-              }
-            }
+          if (isMountedRef.current) {
+            setIsReconciling(false)
+            commitLedger(workingLedger)
           }
         }
-      } finally {
-        isReconcilingRef.current = false
-        abortControllerRef.current = null
 
-        if (isMountedRef.current) {
-          setIsReconciling(false)
-          commitLedger(workingLedger)
+        const failedList = Object.values(workingLedger.failedOperations)
+        const hasFailures = failedList.length > 0
+        const imagesComplete = !hasFailures
+        const isPartialSuccess = Boolean(workingLedger.listingSaved && !imagesComplete)
+        const uploadedUrls = workingLedger.uploadedImages.map((rec) => rec.remoteUrl)
+
+        return {
+          listingSaved: workingLedger.listingSaved,
+          imagesComplete,
+          isPartialSuccess,
+          uploadedUrls,
+          failedOperations: failedList,
+          ledger: workingLedger,
         }
-      }
+      })()
 
-      const failedList = Object.values(workingLedger.failedOperations)
-      const hasFailures = failedList.length > 0
-      const imagesComplete = !hasFailures
-      const isPartialSuccess = Boolean(workingLedger.listingSaved && !imagesComplete)
-      const uploadedUrls = workingLedger.uploadedImages.map((rec) => rec.remoteUrl)
-
-      return {
-        listingSaved: workingLedger.listingSaved,
-        imagesComplete,
-        isPartialSuccess,
-        uploadedUrls,
-        failedOperations: failedList,
-        ledger: workingLedger,
-      }
+      activePromiseRef.current = executePromise
+      return executePromise
     },
     [adapter, commitLedger]
   )

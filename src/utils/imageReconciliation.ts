@@ -177,50 +177,92 @@ export function normalizeExistingImage(
 }
 
 /**
- * Generates deterministic keys for operations.
+ * Maximum array items and string lengths to prevent storage overflow.
  */
-export const makeOpKey = {
-  upload: (uri: string) => `upload:${uri.trim()}`,
-  attach: (url: string) => `attach:${url.trim()}`,
-  delete: (id: string) => `delete:${id.trim()}`,
+export const LEDGER_LIMITS = {
+  maxItems: 20,
+  maxUriLength: 300,
+  maxErrorLength: 100,
+  maxListingIdLength: 100,
 }
 
 /**
+ * Sanitizes an error message before recording in the ledger to avoid
+ * persisting device paths, internal IP addresses, or signed URL queries.
+ */
+export function sanitizeErrorMessage(err: unknown, fallback = 'Operation failed'): string {
+  if (!err) return fallback
+  const rawMsg =
+    typeof err === 'string'
+      ? err
+      : typeof (err as any)?.message === 'string'
+      ? (err as any).message
+      : fallback
+
+  const stripped = rawMsg
+    .replace(/https?:\/\/[^\s?]+/g, '[URL]')
+    .replace(/\?[^\s]*/g, '')
+    .replace(/file:\/\/[^\s]+/g, '[PATH]')
+    .replace(/[A-Za-z]:\\[^\s]+/g, '[PATH]')
+    .replace(/\/Users\/[^\s]+/g, '[PATH]')
+    .trim()
+
+  return (stripped || fallback).slice(0, LEDGER_LIMITS.maxErrorLength)
+}
+
+/**
+ * Generates deterministic keys for operations.
+ */
+export const makeOpKey = {
+  upload: (uri: string) => `upload:${uri.trim().slice(0, LEDGER_LIMITS.maxUriLength)}`,
+  attach: (url: string) => `attach:${url.trim().slice(0, LEDGER_LIMITS.maxUriLength)}`,
+  delete: (id: string) => `delete:${id.trim().slice(0, LEDGER_LIMITS.maxListingIdLength)}`,
+}
+
+const VALID_OPERATION_TYPES: Set<string> = new Set(['upload', 'attach', 'delete'])
+
+/**
  * Safely serializes a reconciliation ledger into a JSON string.
- * Strips any potential non-serializable properties.
+ * Strips non-serializable properties, bounds arrays, and sanitizes strings.
  */
 export function serializeLedger(ledger: ReconciliationLedger): string {
   try {
     const cleanLedger: ReconciliationLedger = {
       version: 1,
-      listingId: ledger.listingId,
-      retainedImageIds: dedupeIds(ledger.retainedImageIds),
-      removedImageIds: dedupeIds(ledger.removedImageIds),
+      listingId: ledger.listingId
+        ? String(ledger.listingId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+        : undefined,
+      retainedImageIds: dedupeIds(ledger.retainedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(ledger.removedImageIds).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(ledger.uploadedImages)
-        ? ledger.uploadedImages.map((rec) => ({
-            localUri: String(rec.localUri),
-            remoteUrl: String(rec.remoteUrl),
+        ? ledger.uploadedImages.slice(0, LEDGER_LIMITS.maxItems).map((rec) => ({
+            localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
+            remoteUrl: String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
             uploadedAt: Number(rec.uploadedAt) || Date.now(),
             isPrimary: Boolean(rec.isPrimary),
           }))
         : [],
-      attachedUrls: dedupeIds(ledger.attachedUrls),
-      deletedImageIds: dedupeIds(ledger.deletedImageIds),
-      failedOperations: ledger.failedOperations && typeof ledger.failedOperations === 'object'
-        ? Object.fromEntries(
-            Object.entries(ledger.failedOperations).map(([k, op]) => [
-              k,
-              {
-                key: String(op.key),
-                type: op.type,
-                error: String(op.error || 'Error'),
-                attempts: Number(op.attempts) || 1,
-                lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
-                meta: op.meta && typeof op.meta === 'object' ? { ...op.meta } : undefined,
-              },
-            ])
-          )
-        : {},
+      attachedUrls: dedupeIds(ledger.attachedUrls).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(ledger.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      failedOperations:
+        ledger.failedOperations && typeof ledger.failedOperations === 'object'
+          ? Object.fromEntries(
+              Object.entries(ledger.failedOperations)
+                .slice(0, LEDGER_LIMITS.maxItems)
+                .filter(([_, op]) => op && typeof op === 'object' && VALID_OPERATION_TYPES.has(op.type))
+                .map(([k, op]) => [
+                  k,
+                  {
+                    key: String(op.key).slice(0, LEDGER_LIMITS.maxUriLength),
+                    type: op.type,
+                    error: sanitizeErrorMessage(op.error),
+                    attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
+                    lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
+                    meta: op.meta && typeof op.meta === 'object' ? { ...op.meta } : undefined,
+                  },
+                ])
+            )
+          : {},
       listingSaved: Boolean(ledger.listingSaved),
     }
     return JSON.stringify(cleanLedger)
@@ -232,6 +274,7 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
 
 /**
  * Safely parses and deserializes a reconciliation ledger with robust fallback defaults.
+ * Strictly validates version: 1 and bounds arrays.
  */
 export function deserializeLedger(raw: unknown): ReconciliationLedger {
   const fallback = createEmptyLedger()
@@ -241,35 +284,49 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
     const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
     if (!obj || typeof obj !== 'object') return fallback
 
+    // Reject unknown or unsupported ledger versions (A-053 P2)
+    if (obj.version !== 1) {
+      logWarn('imageReconciliation:deserializeLedger:unknownVersion', { version: obj.version })
+      return fallback
+    }
+
     return {
       version: 1,
-      listingId: typeof obj.listingId === 'string' ? obj.listingId : undefined,
-      retainedImageIds: dedupeIds(obj.retainedImageIds),
-      removedImageIds: dedupeIds(obj.removedImageIds),
+      listingId:
+        typeof obj.listingId === 'string'
+          ? obj.listingId.slice(0, LEDGER_LIMITS.maxListingIdLength)
+          : undefined,
+      retainedImageIds: dedupeIds(obj.retainedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(obj.removedImageIds).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(obj.uploadedImages)
         ? obj.uploadedImages
+            .slice(0, LEDGER_LIMITS.maxItems)
             .filter((rec: any) => rec && typeof rec.localUri === 'string' && typeof rec.remoteUrl === 'string')
             .map((rec: any) => ({
-              localUri: String(rec.localUri),
-              remoteUrl: String(rec.remoteUrl),
+              localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
+              remoteUrl: String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
               uploadedAt: Number(rec.uploadedAt) || Date.now(),
               isPrimary: Boolean(rec.isPrimary),
             }))
         : [],
-      attachedUrls: dedupeIds(obj.attachedUrls),
-      deletedImageIds: dedupeIds(obj.deletedImageIds),
+      attachedUrls: dedupeIds(obj.attachedUrls).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(obj.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         obj.failedOperations && typeof obj.failedOperations === 'object'
           ? Object.fromEntries(
               Object.entries(obj.failedOperations)
-                .filter(([_, op]: [string, any]) => op && typeof op === 'object' && op.key && op.type)
+                .slice(0, LEDGER_LIMITS.maxItems)
+                .filter(
+                  ([_, op]: [string, any]) =>
+                    op && typeof op === 'object' && op.key && VALID_OPERATION_TYPES.has(op.type)
+                )
                 .map(([k, op]: [string, any]) => [
                   k,
                   {
-                    key: String(op.key),
+                    key: String(op.key).slice(0, LEDGER_LIMITS.maxUriLength),
                     type: op.type,
-                    error: String(op.error || 'Error'),
-                    attempts: Number(op.attempts) || 1,
+                    error: sanitizeErrorMessage(op.error),
+                    attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
                     lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
                     meta: op.meta && typeof op.meta === 'object' ? op.meta : undefined,
                   },

@@ -350,4 +350,95 @@ describe('useWizardImageReconciliation (S6 / D-243)', () => {
     expect(result.current.uploadedUrls).toEqual(['https://cdn/prev.jpg'])
     expect(result.current.ledger.listingId).toBe('part_hydrated')
   })
+
+  it('10. Delete idempotency: treats 404 error as successful deletion (A-053 P1)', async () => {
+    const error404: any = new Error('Image not found')
+    error404.response = { status: 404 }
+
+    const adapter = createMockAdapter({
+      deleteImage: jest.fn().mockRejectedValueOnce(error404),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'part_404',
+        isEditMode: true,
+        removedImageIds: ['img_already_gone'],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.deleteImage).toHaveBeenCalledWith('img_already_gone', 'part_404', expect.any(Object))
+    // 404 must be treated as successful deletion (idempotent retry)
+    expect(res.ledger.deletedImageIds).toContain('img_already_gone')
+    expect(res.imagesComplete).toBe(true)
+    expect(res.failedOperations.length).toBe(0)
+  })
+
+  it('11. Existing images: populates retainedImageIds excluding removedImageIds (A-053 P1)', async () => {
+    const adapter = createMockAdapter()
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'part_existing',
+        isEditMode: true,
+        existingImages: [
+          { id: 'img_keep_1', url: 'https://cdn/keep1.jpg' },
+          { id: 'img_keep_2', url: 'https://cdn/keep2.jpg' },
+          { id: 'img_to_remove', url: 'https://cdn/remove.jpg' },
+        ],
+        removedImageIds: ['img_to_remove'],
+        listingSaved: true,
+      })
+    })
+
+    expect(res.ledger.retainedImageIds).toEqual(['img_keep_1', 'img_keep_2'])
+    expect(res.ledger.removedImageIds).toContain('img_to_remove')
+  })
+
+  it('12. Concurrent reconcile: joins active in-flight promise and awaits truthful result (A-053 P2)', async () => {
+    let finishUpload: (url: string) => void = () => {}
+    const uploadPromise = new Promise<string>((resolve) => {
+      finishUpload = resolve
+    })
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn().mockReturnValue(uploadPromise),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1Promise: any
+    let res2Promise: any
+
+    await act(async () => {
+      res1Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///concurrent.jpg' }],
+      })
+      // Second call while first is in-flight: must return the active promise
+      res2Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///concurrent.jpg' }],
+      })
+
+      // Finish upload
+      finishUpload('https://cdn/concurrent_done.jpg')
+    })
+
+    const [res1, res2] = await Promise.all([res1Promise, res2Promise])
+    expect(res1.imagesComplete).toBe(true)
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.uploadedUrls).toEqual(['https://cdn/concurrent_done.jpg'])
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+  })
 })

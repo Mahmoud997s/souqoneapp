@@ -124,6 +124,48 @@ describe('imageReconciliation utilities (S6 / D-243)', () => {
       expect(deserializeLedger({}).version).toBe(1)
       expect(deserializeLedger([]).version).toBe(1)
     })
+
+    it('rejects unknown ledger versions and returns safe fallback (A-053 P2)', () => {
+      const v99Ledger = {
+        version: 99,
+        listingId: 'listing-99',
+        uploadedImages: [],
+      }
+      const deserialized = deserializeLedger(JSON.stringify(v99Ledger))
+      expect(deserialized.version).toBe(1)
+      expect(deserialized.listingId).toBeUndefined()
+    })
+
+    it('sanitizes error messages and strips paths or queries (A-053 P2)', () => {
+      const ledger: ReconciliationLedger = {
+        ...createEmptyLedger('part-1'),
+        failedOperations: {
+          'upload:test': {
+            key: 'upload:test',
+            type: 'upload',
+            error: 'Failed file:///data/user/0/com.app/cache/img.jpg with token https://api.com?secret=xyz',
+            attempts: 1,
+            lastAttemptAt: Date.now(),
+          },
+        },
+      }
+      const serialized = serializeLedger(ledger)
+      const parsed = deserializeLedger(serialized)
+      const op = parsed.failedOperations['upload:test']
+      expect(op.error).not.toContain('/data/user/0')
+      expect(op.error).not.toContain('secret=xyz')
+    })
+
+    it('enforces bounds on array items and attempts range (A-053 P2)', () => {
+      const oversizedArray = Array.from({ length: 50 }, (_, i) => `img_${i}`)
+      const ledger: ReconciliationLedger = {
+        ...createEmptyLedger('part-1'),
+        removedImageIds: oversizedArray,
+      }
+      const serialized = serializeLedger(ledger)
+      const parsed = deserializeLedger(serialized)
+      expect(parsed.removedImageIds.length).toBeLessThanOrEqual(20)
+    })
   })
 
   describe('partsImageReconciliationAdapter', () => {
