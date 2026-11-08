@@ -153,7 +153,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
   const handleOpenReviewsList = () => {
     if (!vm) return
-    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}`)
+    router.push(`/reviews/${id}?type=OPERATOR_LISTING`)
   }
 
   const handleOpenWriteReview = () => {
@@ -161,11 +161,11 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
     if (!user) {
       router.push({
         pathname: '/login',
-        params: { redirect: `/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}&write=true` },
+        params: { redirect: `/reviews/${id}?type=OPERATOR_LISTING&write=true` },
       })
       return
     }
-    router.push(`/reviews/${id}?type=OPERATOR_LISTING&revieweeId=${vm.seller.id}&write=true`)
+    router.push(`/reviews/${id}?type=OPERATOR_LISTING&write=true`)
   }
 
   const handleOpenSupport = () => {

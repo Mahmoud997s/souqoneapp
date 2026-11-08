@@ -69,7 +69,7 @@ export default function ReviewsScreen() {
         entityType: type,
         rating,
         comment,
-        revieweeId: revieweeId || entityId,
+        ...(type !== 'OPERATOR_LISTING' ? { revieweeId: revieweeId || entityId } : {}),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', entityId] })
