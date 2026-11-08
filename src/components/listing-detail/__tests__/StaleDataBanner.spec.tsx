@@ -35,4 +35,10 @@ describe('StaleDataBanner', () => {
     fireEvent.press(retryBtn)
     expect(onRetry).not.toHaveBeenCalled()
   })
+
+  it('omits retry button when onRetry is undefined', async () => {
+    await render(<StaleDataBanner />)
+    expect(screen.getByTestId('stale-data-banner')).toBeTruthy()
+    expect(screen.queryByTestId('stale-data-retry-button')).toBeNull()
+  })
 })

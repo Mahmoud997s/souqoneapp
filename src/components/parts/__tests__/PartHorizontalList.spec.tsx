@@ -111,6 +111,29 @@ describe('PartHorizontalList Error and Empty States (D-235)', () => {
     expect(queryByTestId('parts-horizontal-empty-state')).toBeNull()
   })
 
+  it('does NOT render retry button on StaleDataBanner when onRetry is omitted (A-046 F1 fix)', async () => {
+    const { getByTestId, queryByTestId } = await renderWithClient(
+      <PartHorizontalList
+        title="قطع غيار مميزة"
+        data={[mockItem]}
+        isLoading={false}
+        isRefetchError={true}
+        emptyText="لا توجد قطع غيار مميزة حالياً"
+        onSeeAll={jest.fn()}
+        onPressItem={jest.fn()}
+      />
+    )
+
+    // Cached cards MUST remain rendered
+    expect(getByTestId('part-card-p1')).toBeTruthy()
+
+    // StaleDataBanner must be displayed for awareness
+    expect(getByTestId('stale-data-banner')).toBeTruthy()
+
+    // BUT no no-op retry button should be rendered
+    expect(queryByTestId('stale-data-retry-button')).toBeNull()
+  })
+
   it('shows loading skeleton on first load without showing error or empty state', async () => {
     const { queryByTestId } = await renderWithClient(
       <PartHorizontalList

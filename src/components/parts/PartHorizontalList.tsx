@@ -112,7 +112,7 @@ export const PartHorizontalList = memo(function PartHorizontalList({
           {isRefetchError && (
             <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
               <StaleDataBanner
-                onRetry={onRetry ?? (() => {})}
+                onRetry={onRetry}
                 isRefetching={isRefetching}
               />
             </View>
