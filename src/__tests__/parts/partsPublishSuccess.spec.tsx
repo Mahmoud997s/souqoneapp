@@ -255,17 +255,15 @@ describe('Parts Publish Success and Rate Limiting Flow (D-238)', () => {
     expect(router.back).toHaveBeenCalledTimes(1)
   })
 
-  it('4. 429 with structured backend body shows informative Arabic message with daily/monthly limit and resetsAt', async () => {
+  it('4. 429 with real backend filter response (code PUBLISH_RATE_LIMIT_DAILY_REACHED) shows daily limit guidance', async () => {
     const error429 = {
       response: {
         status: 429,
         data: {
           statusCode: 429,
-          code: 'DAILY_LIMIT_EXCEEDED',
-          window: 'day',
-          vertical: 'parts',
-          limit: 3,
-          resetsAt: '2026-11-07T00:00:00.000Z',
+          message: 'تم تجاوز الحد اليومي لنشر الإعلانات',
+          code: 'PUBLISH_RATE_LIMIT_DAILY_REACHED',
+          timestamp: '2026-11-08T12:00:00.000Z',
         },
       },
     }
@@ -291,7 +289,7 @@ describe('Parts Publish Success and Rate Limiting Flow (D-238)', () => {
     await waitFor(() => {
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        expect.stringContaining('لقد وصلت للحد اليومي لنشر الإعلانات (3 إعلانات في اليوم)')
+        'وصلت للحد اليومي للنشر، جرّب غداً.'
       )
     })
   })

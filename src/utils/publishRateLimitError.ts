@@ -25,36 +25,51 @@ export function formatCairoResetsTime(resetsAt: string | number | Date): string 
 
 /**
  * Extracts and formats rate limit errors (HTTP 429).
- * Handles structured backend responses (PR #159 with window/code/resetsAt)
- * as well as legacy/fallback unstructured throttler responses.
+ * Handles structured backend responses (PR #159 with PUBLISH_RATE_LIMIT_DAILY_REACHED /
+ * PUBLISH_RATE_LIMIT_MONTHLY_REACHED and optional resetsAt), as well as legacy/fallback
+ * unstructured throttler responses.
  */
 export function getPublishRateLimitErrorMessage(err: unknown): string {
   const data = (err as any)?.response?.data
 
   if (data && typeof data === 'object') {
-    const window = data.window // 'day' | 'month'
-    const code = data.code
+    const window = typeof data.window === 'string' ? data.window.toUpperCase() : undefined
+    const code = typeof data.code === 'string' ? data.code.toUpperCase() : undefined
     const resetsAt = data.resetsAt
     const limit = data.limit
 
-    if (window === 'day' || code === 'DAILY_LIMIT_EXCEEDED') {
-      let msg = limit
-        ? `لقد وصلت للحد اليومي لنشر الإعلانات (${limit} إعلانات في اليوم).`
-        : 'لقد وصلت للحد اليومي لنشر الإعلانات.'
+    const isDaily =
+      code === 'PUBLISH_RATE_LIMIT_DAILY_REACHED' ||
+      code === 'DAILY_LIMIT_EXCEEDED' ||
+      window === 'DAILY' ||
+      data.window === 'day'
+
+    const isMonthly =
+      code === 'PUBLISH_RATE_LIMIT_MONTHLY_REACHED' ||
+      code === 'MONTHLY_LIMIT_EXCEEDED' ||
+      window === 'MONTHLY' ||
+      data.window === 'month'
+
+    if (isDaily) {
       if (resetsAt) {
-        msg += ` يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
+        return limit
+          ? `وصلت للحد اليومي لنشر الإعلانات (${limit} إعلانات في اليوم). يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
+          : `وصلت للحد اليومي للنشر، يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
       }
-      return msg
+      return limit
+        ? `وصلت للحد اليومي لنشر الإعلانات (${limit} إعلانات في اليوم)، جرّب غداً.`
+        : 'وصلت للحد اليومي للنشر، جرّب غداً.'
     }
 
-    if (window === 'month' || code === 'MONTHLY_LIMIT_EXCEEDED') {
-      let msg = limit
-        ? `لقد وصلت للحد الشهري لنشر الإعلانات (${limit} إعلاناً في الشهر).`
-        : 'لقد وصلت للحد الشهري لنشر الإعلانات.'
+    if (isMonthly) {
       if (resetsAt) {
-        msg += ` يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
+        return limit
+          ? `وصلت للحد الشهري لنشر الإعلانات (${limit} إعلاناً في الشهر). يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
+          : `وصلت للحد الشهري للنشر، يُعاد تعيين الحد في ${formatCairoResetsTime(resetsAt)}.`
       }
-      return msg
+      return limit
+        ? `وصلت للحد الشهري لنشر الإعلانات (${limit} إعلاناً في الشهر)، جرّب الشهر القادم.`
+        : 'وصلت للحد الشهري للنشر، جرّب الشهر القادم.'
     }
   }
 
