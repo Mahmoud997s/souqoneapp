@@ -68,11 +68,11 @@ export interface ImageReconciliationAdapter {
 
 export type LocalImageInput =
   | string
-  | { uri: string; isPrimary?: boolean; [key: string]: unknown }
+  | { uri: string; isPrimary?: boolean }
 
 export type ExistingImageInput =
   | string
-  | { id?: string; url?: string; isPrimary?: boolean; [key: string]: unknown }
+  | { id?: string; url?: string; isPrimary?: boolean }
 
 export interface ReconcileParams {
   listingId?: string
@@ -313,8 +313,8 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     return url
   },
 
-  attachImageUrl: async (partId, url, _isPrimary, _signal) => {
-    return uploadsApi.addPartImage(partId, url)
+  attachImageUrl: async (partId, url, isPrimary, _signal) => {
+    return uploadsApi.addPartImageByUrl(partId, url, isPrimary)
   },
 
   deleteImage: async (imageId, _listingId, _signal) => {

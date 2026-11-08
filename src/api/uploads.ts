@@ -20,6 +20,11 @@ export const uploadsApi = {
               apiClient.patch(`/uploads/listings/${listingId}/images/reorder`, { imageIds }),
   addPartImage: (partId: string, url: string) =>
               apiClient.post(`/uploads/parts/${partId}/images`, { url }),
+  addPartImageByUrl: (partId: string, url: string, isPrimary?: boolean) =>
+              apiClient.post(`/uploads/parts/${partId}/images/url`, {
+                url,
+                isPrimary: Boolean(isPrimary),
+              }),
   removePartImage: (imageId: string) =>
               apiClient.delete(`/uploads/parts/images/${imageId}`),
   removeServiceImage: (imageId: string) =>

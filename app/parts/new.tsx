@@ -17,6 +17,9 @@ import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { invalidatePartListingQueries } from '../../src/screens/parts/hooks/partQueryKeys'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
+import { useWizardImageReconciliation } from '../../src/hooks/useWizardImageReconciliation'
+import { partsImageReconciliationAdapter } from '../../src/utils/imageReconciliation'
+import { logWarn } from '../../src/utils/safeLog'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -25,14 +28,11 @@ import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
-import { uploadsApi } from '../../src/api/uploads'
 import { partsApi } from '../../src/api/parts'
 import { carsApi, CarBrand } from '../../src/api/cars'
 import { usePartWizardStore, PartFormData } from '../../src/store/partWizardStore'
 import { usePartFormLogic } from '../../src/hooks/usePartFormLogic'
 import { validateStep } from '../../src/hooks/usePartValidation'
-import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
-import { logWarn } from '../../src/utils/safeLog'
 
 import { PartStep1Category } from '../../src/components/parts/wizard/PartStep1Category'
 import { PartStep2Images } from '../../src/components/parts/wizard/PartStep2Images'
@@ -54,7 +54,8 @@ export default function NewPartListingScreen() {
   const [publishSuccess, setPublishSuccess] = useState<{
     partId: string
     isEdit: boolean
-    subtitle?: string
+    isPartial?: boolean
+    failedCount?: number
   } | null>(null)
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function NewPartListingScreen() {
         }
       })
       .catch((err) => {
-        logWarn('PartsNew:LoadBrands', err)
+        logWarn('NewPartListingScreen:brands', err)
       })
     return () => {
       mounted = false
@@ -86,6 +87,7 @@ export default function NewPartListingScreen() {
     formData,
     setField,
     setFields,
+    setImageLedger,
     setLocation,
     nextStep: storeNextStep,
     prevStep,
@@ -94,7 +96,15 @@ export default function NewPartListingScreen() {
   } = usePartWizardStore()
 
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isUploadingImages, setIsUploadingImages] = useState(false)
+
+  // Durable Image Reconciliation Hook (S6 / D-243 / D-247)
+  const imageReconciliation = useWizardImageReconciliation({
+    adapter: partsImageReconciliationAdapter,
+    initialLedger: formData.imageLedger,
+    onStateChange: (nextLedger) => {
+      setImageLedger(nextLedger)
+    },
+  })
 
   const formLogic = usePartFormLogic(formData, setField, setLocation)
 
@@ -163,6 +173,30 @@ export default function NewPartListingScreen() {
     }
   }
 
+  const handleRetryFailedImages = async () => {
+    if (!publishSuccess) return
+    const retryRes = await imageReconciliation.retryFailed({
+      listingId: publishSuccess.partId,
+      isEditMode: true,
+      listingSaved: true,
+    })
+    void invalidatePartListingQueries(queryClient, publishSuccess.partId)
+
+    if (retryRes.imagesComplete) {
+      setPublishSuccess({
+        ...publishSuccess,
+        isPartial: false,
+        failedCount: 0,
+      })
+    } else {
+      setPublishSuccess({
+        ...publishSuccess,
+        isPartial: true,
+        failedCount: retryRes.failedOperations.length,
+      })
+    }
+  }
+
   const handleSubmit = async () => {
     // 1. Validation loop for Steps 1-5
     for (let s = 1; s <= 5; s++) {
@@ -174,58 +208,7 @@ export default function NewPartListingScreen() {
       }
     }
 
-    setIsUploadingImages(true)
-
-    // 2. Upload new local images if present (Images are optional)
-    const finalImageUrls: string[] = []
-    const newImageUrls: string[] = []
-
-    try {
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url
-          if (url) finalImageUrls.push(url)
-        }
-      }
-
-      if (formData.images && formData.images.length > 0) {
-        for (const img of formData.images) {
-          const uri = typeof img === 'string' ? img : img.uri
-          if (!uri) continue
-
-          if (uri.startsWith('http://') || uri.startsWith('https://')) {
-            finalImageUrls.push(uri)
-          } else {
-            try {
-              const filePayload = buildUploadFilePayload(img, 'part')
-              if (!filePayload) continue
-
-              const data = new FormData()
-              data.append('file', filePayload as any)
-              const res = await uploadsApi.single(data)
-              const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
-              if (url) {
-                finalImageUrls.push(url)
-                newImageUrls.push(url)
-              }
-            } catch (uploadErr: any) {
-              logWarn('PartsNew:UploadImage', uploadErr)
-              const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-              throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
-            }
-          }
-        }
-      }
-    } catch (e: any) {
-      logWarn('PartsNew:UploadBeforeSubmit', e)
-      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
-      setIsUploadingImages(false)
-      return
-    } finally {
-      setIsUploadingImages(false)
-    }
-
-    // 3. Prepare payload matching backend CreatePartDto
+    // 2. Prepare payload matching backend CreatePartDto
     const payload: any = {
       title: formData.title.trim(),
       description: formData.description.trim(),
@@ -252,48 +235,42 @@ export default function NewPartListingScreen() {
         formData.compatibleVehicleTypes && formData.compatibleVehicleTypes.length > 0
           ? formData.compatibleVehicleTypes
           : undefined,
-
-      ...(formData.editMode
-        ? {}
-        : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
     }
 
-    // 4. Submit Mutation (Update or Create)
+    // 3. Submit Mutation First (Decision d5: Listing saved first, then images reconciled)
     if (formData.editMode && formData.editListingId) {
+      const editId = formData.editListingId
       updateMutation.mutate(
-        { id: formData.editListingId, data: payload },
+        { id: editId, data: payload },
         {
           onSuccess: async () => {
-            let imagesSuccess = true
-            try {
-              if (newImageUrls.length > 0) {
-                for (const url of newImageUrls) {
-                  await uploadsApi.addPartImage(formData.editListingId!, url)
-                }
-              }
-              if (formData.removedImageIds && formData.removedImageIds.length > 0) {
-                for (const imgId of formData.removedImageIds) {
-                  await uploadsApi.removePartImage(imgId)
-                }
-              }
-            } catch (err) {
-              imagesSuccess = false
-              logWarn('PartsNew:UpdateImages', err)
-            }
+            imageReconciliation.setListingSaved(true, editId)
 
-            const targetId = formData.editListingId
-            if (targetId) {
-              void invalidatePartListingQueries(queryClient, String(targetId))
-            } else {
-              void invalidatePartListingQueries(queryClient)
-            }
-            setPublishSuccess({
-              partId: targetId ? String(targetId) : '',
-              isEdit: true,
-              subtitle: imagesSuccess
-                ? 'تم تحديث بيانات قطعة الغيار بنجاح في سوق ون.'
-                : 'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
+            // Reconcile images: uploads new images, attaches via /images/url, and removes deleted IDs
+            const reconRes = await imageReconciliation.reconcile({
+              listingId: editId,
+              isEditMode: true,
+              localImages: formData.images,
+              removedImageIds: formData.removedImageIds,
+              listingSaved: true,
             })
+
+            void invalidatePartListingQueries(queryClient, String(editId))
+
+            if (reconRes.imagesComplete) {
+              setPublishSuccess({
+                partId: String(editId),
+                isEdit: true,
+                isPartial: false,
+              })
+            } else {
+              setPublishSuccess({
+                partId: String(editId),
+                isEdit: true,
+                isPartial: true,
+                failedCount: reconRes.failedOperations.length,
+              })
+            }
           },
           onError: (err: any) => {
             if (err?.response?.status === 409) {
@@ -310,17 +287,45 @@ export default function NewPartListingScreen() {
       )
     } else {
       createMutation.mutate(payload, {
-        onSuccess: (res: any) => {
+        onSuccess: async (res: any) => {
           const partId = res?.data?.id ?? res?.id
-          if (partId) {
-            void invalidatePartListingQueries(queryClient, String(partId))
+          const targetId = partId ? String(partId) : ''
+
+          if (targetId) {
+            imageReconciliation.setListingSaved(true, targetId)
+
+            // Reconcile images for the newly created part listing
+            const reconRes = await imageReconciliation.reconcile({
+              listingId: targetId,
+              isEditMode: true,
+              localImages: formData.images,
+              listingSaved: true,
+            })
+
+            void invalidatePartListingQueries(queryClient, targetId)
+
+            if (reconRes.imagesComplete) {
+              setPublishSuccess({
+                partId: targetId,
+                isEdit: false,
+                isPartial: false,
+              })
+            } else {
+              setPublishSuccess({
+                partId: targetId,
+                isEdit: false,
+                isPartial: true,
+                failedCount: reconRes.failedOperations.length,
+              })
+            }
           } else {
             void invalidatePartListingQueries(queryClient)
+            setPublishSuccess({
+              partId: '',
+              isEdit: false,
+              isPartial: false,
+            })
           }
-          setPublishSuccess({
-            partId: partId ? String(partId) : '',
-            isEdit: false,
-          })
         },
         onError: (err: any) => {
           if (err?.response?.status === 409) {
@@ -337,7 +342,10 @@ export default function NewPartListingScreen() {
     }
   }
 
-  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+  const isSubmitting =
+    imageReconciliation.isReconciling ||
+    createMutation.isPending ||
+    updateMutation.isPending
 
   if (!hasPhone && !formData.editMode) {
     return (
@@ -353,42 +361,93 @@ export default function NewPartListingScreen() {
   }
 
   if (publishSuccess) {
+    const isPartial = Boolean(publishSuccess.isPartial)
+    const title = isPartial
+      ? (publishSuccess.isEdit ? 'تم حفظ التعديل جزئياً' : 'تم نشر الإعلان')
+      : (publishSuccess.isEdit ? 'تم حفظ التعديلات بنجاح!' : 'تم نشر إعلانك بنجاح!')
+
+    const subtitle = isPartial
+      ? (publishSuccess.isEdit
+          ? `تم حفظ التعديلات بنجاح، لكن تعذر تحديث ${publishSuccess.failedCount || ''} من الصور.`
+          : `تم نشر الإعلان بنجاح، لكن تعذر رفع ${publishSuccess.failedCount || ''} من الصور.`)
+      : (publishSuccess.isEdit
+          ? 'تم تحديث بيانات قطعة الغيار بنجاح في سوق ون.'
+          : 'إعلانك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.')
+
     return (
       <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <PublishSuccessView
-          title={publishSuccess.isEdit ? 'تم حفظ التعديلات بنجاح!' : 'تم نشر إعلانك بنجاح!'}
-          subtitle={
-            publishSuccess.isEdit
-              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات قطعة الغيار بنجاح في سوق ون.')
-              : 'إعلانك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          title={title}
+          subtitle={subtitle}
+          primaryAction={
+            isPartial
+              ? {
+                  label: imageReconciliation.isReconciling
+                    ? 'جاري إعادة المحاولة...'
+                    : 'إعادة رفع الصور الفاشلة',
+                  onPress: handleRetryFailedImages,
+                  testID: 'publish-retry-failed-images-btn',
+                }
+              : {
+                  label: 'عرض إعلانك',
+                  onPress: () => {
+                    const targetId = publishSuccess.partId
+                    reset()
+                    if (targetId) {
+                      router.replace(`/parts/${targetId}`)
+                    } else {
+                      router.replace('/parts')
+                    }
+                  },
+                  testID: 'publish-success-primary-btn',
+                }
           }
-          primaryAction={{
-            label: 'عرض إعلانك',
-            onPress: () => {
-              const targetId = publishSuccess.partId
-              reset()
-              if (targetId) {
-                router.replace(`/parts/${targetId}`)
-              } else {
-                router.replace('/parts')
-              }
-            },
-            testID: 'publish-success-primary-btn',
-          }}
-          secondaryAction={{
-            label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة إعلان آخر',
-            onPress: () => {
-              reset()
-              if (publishSuccess.isEdit) {
-                router.back()
-              } else {
-                setPublishSuccess(null)
-              }
-            },
-            testID: 'publish-success-secondary-btn',
-          }}
+          secondaryAction={
+            isPartial
+              ? {
+                  label: 'عرض إعلانك',
+                  onPress: () => {
+                    const targetId = publishSuccess.partId
+                    reset()
+                    if (targetId) {
+                      router.replace(`/parts/${targetId}`)
+                    } else {
+                      router.replace('/parts')
+                    }
+                  },
+                  testID: 'publish-success-primary-btn',
+                }
+              : {
+                  label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة إعلان آخر',
+                  onPress: () => {
+                    reset()
+                    if (publishSuccess.isEdit) {
+                      router.back()
+                    } else {
+                      setPublishSuccess(null)
+                    }
+                  },
+                  testID: 'publish-success-secondary-btn',
+                }
+          }
+          tertiaryAction={
+            isPartial
+              ? {
+                  label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة إعلان آخر',
+                  onPress: () => {
+                    reset()
+                    if (publishSuccess.isEdit) {
+                      router.back()
+                    } else {
+                      setPublishSuccess(null)
+                    }
+                  },
+                  testID: 'publish-success-secondary-btn',
+                }
+              : undefined
+          }
           onHardwareBack={() => {
             reset()
             if (publishSuccess.isEdit) {
@@ -430,98 +489,82 @@ export default function NewPartListingScreen() {
           ]}
         />
 
-        <ScrollView
-          style={s.scrollView}
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Stepper Header */}
-          <Stepper
-            currentStep={currentStep}
-            totalSteps={TOTAL_STEPS}
-            title={getStepTitle()}
-            variant="light"
-          />
-
-          {/* Draft Auto-Save Bar */}
-          <View style={s.draftBar}>
-            <View style={s.draftBadge}>
-              <View style={s.draftIconWrap}>
-                <Ionicons name="cloud-done-outline" size={13} color="#059669" />
-              </View>
-              <Text style={s.draftBadgeTxt}>يتم حفظ مسودتك تلقائياً</Text>
-            </View>
+        <View style={s.topBar}>
+          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          <View style={s.stepHeaderRow}>
+            <Text style={s.stepTitle}>{getStepTitle()}</Text>
             {!formData.editMode && (
-              <TouchableOpacity
-                style={s.clearDraftBtn}
-                onPress={handleClearDraft}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text style={s.clearDraftTxt}>مسح والبدء من جديد</Text>
+              <TouchableOpacity onPress={handleClearDraft} style={s.clearBtn}>
+                <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                <Text style={s.clearBtnText}>مسح</Text>
               </TouchableOpacity>
             )}
           </View>
+        </View>
 
-          {/* ═══════════════ STEP COMPONENTS ═══════════════ */}
-          {currentStep === 1 && (
-            <PartStep1Category
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+        <ScrollView
+          style={s.scrollView}
+          contentContainerStyle={[s.scrollContent, { paddingBottom: Spacing.space8 + 80 }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={s.cardWrapper}>
+            {currentStep === 1 && (
+              <PartStep1Category
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <PartStep2Images
-              images={formData.images}
-              existingImages={formData.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <PartStep2Images
+                images={formData.images}
+                existingImages={formData.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={formLogic.handlePickImages}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <PartStep3Details
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 3 && (
+              <PartStep3Details
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <PartStep4Compatibility
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 4 && (
+              <PartStep4Compatibility
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <PartStep5Pricing
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-              onLocationChange={formLogic.handleLocationChange}
-            />
-          )}
+            {currentStep === 5 && (
+              <PartStep5Pricing
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+                onLocationChange={formLogic.handleLocationChange}
+              />
+            )}
 
-          {currentStep === 6 && (
-            <PartStep6Review
-              formData={formData}
-              onEditStep={goToStep}
-              brands={brands}
-            />
-          )}
+            {currentStep === 6 && (
+              <PartStep6Review
+                formData={formData}
+                onEditStep={goToStep}
+                brands={brands}
+              />
+            )}
+          </View>
         </ScrollView>
 
-        {/* ── STICKY FOOTER NAVIGATION ── */}
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>
           {currentStep > 1 ? (
             <View style={s.footerBtnGroup}>
@@ -569,66 +612,53 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.homeBg,
   },
-  scrollView: {
-    flex: 1,
+  topBar: {
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space2,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  content: {
-    paddingHorizontal: Spacing.space4 - 4,
-    paddingBottom: 120,
-  },
-  draftBar: {
+  stepHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: Spacing.space3,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primaryDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-      },
-      android: { elevation: 1 },
-    }),
-  },
-  draftBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginTop: Spacing.space2,
   },
-  draftIconWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Colors.inputBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  draftBadgeTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: 16,
+  stepTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  clearDraftBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(220,38,38,0.06)',
+  clearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  clearDraftTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
+  clearBtnText: {
+    fontSize: 13,
     color: Colors.error,
+    fontWeight: '600',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: Spacing.space4,
+  },
+  cardWrapper: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.space4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   footerBtnGroup: {
     flexDirection: 'row',
