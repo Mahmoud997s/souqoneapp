@@ -16,6 +16,7 @@ export const partQueryKeys = {
   myParts: () => ['my-parts'] as const,
   myListings: () => ['my-listings'] as const,
   listings: (params?: unknown) => ['listings', params] as const,
+  searchResults: () => ['search-results'] as const,
 }
 
 export interface InvalidatePartListingOptions {
@@ -51,5 +52,6 @@ export async function invalidatePartListingQueries(
     queryClient.invalidateQueries({ queryKey: partQueryKeys.myParts() }),
     queryClient.invalidateQueries({ queryKey: partQueryKeys.myListings() }),
     queryClient.invalidateQueries({ queryKey: ['listings'] }),
+    queryClient.invalidateQueries({ queryKey: partQueryKeys.searchResults() }),
   ])
 }

@@ -12,8 +12,11 @@ import {
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { invalidatePartListingQueries } from '../../src/screens/parts/hooks/partQueryKeys'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -45,8 +48,14 @@ const TOTAL_STEPS = 6
 export default function NewPartListingScreen() {
   const insets = useSafeAreaInsets()
   const { hasPhone } = useProfilePhoneGuard()
+  const queryClient = useQueryClient()
 
   const [brands, setBrands] = useState<CarBrand[]>([])
+  const [publishSuccess, setPublishSuccess] = useState<{
+    partId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -272,23 +281,26 @@ export default function NewPartListingScreen() {
               logWarn('PartsNew:UpdateImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات القطعة بنجاح', 'success')
+            const targetId = formData.editListingId
+            if (targetId) {
+              void invalidatePartListingQueries(queryClient, String(targetId))
             } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
-                'warning'
-              )
+              void invalidatePartListingQueries(queryClient)
             }
-            reset()
-            router.back()
+            setPublishSuccess({
+              partId: targetId ? String(targetId) : '',
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات قطعة الغيار بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
+            })
           },
           onError: (err: any) => {
             if (err?.response?.status === 409) {
               dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
             } else if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+              const msg = getPublishRateLimitErrorMessage(err)
+              dialogService.alert('خطأ', msg)
             } else {
               const msg = err?.response?.data?.message || 'تعذر تحديث بيانات القطعة، يرجى التحقق من المدخلات'
               dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
@@ -299,20 +311,23 @@ export default function NewPartListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: (res: any) => {
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان القطعة بنجاح في سوق ون!')
           const partId = res?.data?.id ?? res?.id
-          reset()
           if (partId) {
-            router.replace(`/parts/${partId}`)
+            void invalidatePartListingQueries(queryClient, String(partId))
           } else {
-            router.replace('/')
+            void invalidatePartListingQueries(queryClient)
           }
+          setPublishSuccess({
+            partId: partId ? String(partId) : '',
+            isEdit: false,
+          })
         },
         onError: (err: any) => {
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+            const msg = getPublishRateLimitErrorMessage(err)
+            dialogService.alert('خطأ', msg)
           } else {
             const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
             dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
@@ -334,6 +349,57 @@ export default function NewPartListingScreen() {
           onBack={() => router.back()}
         />
       </>
+    )
+  }
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ التعديلات بنجاح!' : 'تم نشر إعلانك بنجاح!'}
+          subtitle={
+            publishSuccess.isEdit
+              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات قطعة الغيار بنجاح في سوق ون.')
+              : 'إعلانك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          }
+          primaryAction={{
+            label: 'عرض إعلانك',
+            onPress: () => {
+              const targetId = publishSuccess.partId
+              reset()
+              if (targetId) {
+                router.replace(`/parts/${targetId}`)
+              } else {
+                router.replace('/parts')
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة إعلان آخر',
+            onPress: () => {
+              reset()
+              if (publishSuccess.isEdit) {
+                router.back()
+              } else {
+                setPublishSuccess(null)
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          onHardwareBack={() => {
+            reset()
+            if (publishSuccess.isEdit) {
+              router.back()
+            } else {
+              router.replace('/parts')
+            }
+            return true
+          }}
+        />
+      </View>
     )
   }
 
@@ -475,6 +541,7 @@ export default function NewPartListingScreen() {
                         : 'نشر الإعلان الآن'
                       : 'متابعة الخطوة التالية'
                   }
+                  testID={currentStep === TOTAL_STEPS ? 'wizard-submit-btn' : 'wizard-next-btn'}
                   size="sm"
                   onPress={handleNext}
                   loading={isSubmitting}

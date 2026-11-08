@@ -26,6 +26,7 @@ describe('partQueryKeys', () => {
     expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ['parts-detail', 'p-1'] })
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['parts'] })
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['my-parts'] })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['search-results'] })
   })
 
   it('removes queries when removeDetail is true', async () => {
