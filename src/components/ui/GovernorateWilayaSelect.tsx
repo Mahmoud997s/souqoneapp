@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
+import { logWarn } from '../../utils/safeLog'
 
 interface GovernorateWilayaSelectProps {
   governorateId?: number | null
@@ -87,7 +88,7 @@ export function GovernorateWilayaSelect({
       const govs = await locationsApi.getGovernorates()
       setGovernorates(govs)
     } catch (error) {
-      console.warn('Failed to fetch governorates', error)
+      logWarn('GovWilayaSelect:Governorates', error)
     } finally {
       setIsLoadingGovs(false)
     }
@@ -99,7 +100,7 @@ export function GovernorateWilayaSelect({
       const wils = await locationsApi.getWilayas(govId)
       setWilayas(wils)
     } catch (error) {
-      console.warn('Failed to fetch wilayas', error)
+      logWarn('GovWilayaSelect:Wilayas', error)
     } finally {
       setIsLoadingWilayas(false)
     }

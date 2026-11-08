@@ -8,6 +8,7 @@ import { uploadsApi } from '../api/uploads'
 import { useChatMessagesStore } from '../store/chatMessagesStore'
 import { ChatSyncService } from '../services/ChatSyncService'
 import { FlashList } from '@shopify/flash-list'
+import { logError } from '../utils/safeLog'
 
 export interface LocalMessage {
   id: string
@@ -266,7 +267,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       }
 
     } catch (err) {
-      console.error('Send message error:', err)
+      logError('ChatRoom:SendMessage', err)
       updateMessage(roomId, tempId, { pending: false, error: true })
     }
   }, [msgText, roomId, user?.id, replyingToMessage, addMessage, removeMessage, updateMessage, otherUser?.name])
@@ -321,7 +322,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       addMessage(roomId, { ...realMessage, senderId: (realMessage as any).senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
       
     } catch (err) {
-      console.error('Retry send message error:', err)
+      logError('ChatRoom:RetryMessage', err)
       updateMessage(roomId, msgId, { pending: false, error: true })
     }
   }, [roomId, updateMessage, removeMessage, addMessage])

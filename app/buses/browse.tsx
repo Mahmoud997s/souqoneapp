@@ -23,6 +23,7 @@ import {
   mergeBusesRouteParams,
   BusBrowseFilters,
 } from '../../src/utils/browse-filters/busesBrowseFilters';
+import { logWarn } from '../../src/utils/safeLog';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -76,7 +77,7 @@ export default function BusesBrowseScreen() {
 
   const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
   useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(console.warn);
+    locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('BusesBrowse:Governorates', err));
   }, []);
 
   const { data: manufacturers } = useBusManufacturers();

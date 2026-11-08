@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store'
 import { dialogService } from '../store/dialogStore'
 import { Config } from '../constants/config'
 import { isProfilePhoneRequiredError, promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
+import { logWarn } from '../utils/safeLog'
 
 export const apiClient = axios.create({
   baseURL: Config.apiUrl,
@@ -67,9 +68,7 @@ export async function refreshAuthToken(): Promise<string> {
         const { socketService } = require('../services/socket')
         socketService.refreshTokenAndReconnect(data.accessToken)
       } catch (err) {
-        if (__DEV__) {
-          console.warn('[Socket] Failed to reconnect with new token:', err)
-        }
+        logWarn('Socket:ReconnectNewToken', err)
       }
 
       return data.accessToken

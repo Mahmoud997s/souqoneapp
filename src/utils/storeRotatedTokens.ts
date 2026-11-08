@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store'
+import { logWarn } from './safeLog'
 
 const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 
@@ -19,9 +20,7 @@ export async function storeRotatedTokens(data: any): Promise<boolean> {
     const { socketService } = require('../services/socket')
     socketService.refreshTokenAndReconnect(accessToken)
   } catch (err) {
-    if (__DEV__) {
-      console.warn('[Socket] Failed to reconnect with new token:', err)
-    }
+    logWarn('Socket:ReconnectNewToken', err)
   }
   return true
 }

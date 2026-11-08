@@ -10,6 +10,7 @@ import { NestedSearchableList, SelectOption } from '../ui/NestedSearchableList'
 import { EQUIPMENT_CATEGORIES, EQUIPMENT_CONDITIONS } from '../../constants/equipment'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
+import { logWarn } from '../../utils/safeLog'
 
 export interface EquipmentFilterState {
   listingType?: string
@@ -110,7 +111,7 @@ export function EquipmentFilterBottomSheet({
         .then((res) => {
           if (Array.isArray(res)) setGovernorates(res)
         })
-        .catch(console.warn)
+        .catch(err => logWarn('EquipmentFilter:Gov', err))
     }
   }, [visible, initialFilters])
 
@@ -125,7 +126,7 @@ export function EquipmentFilterBottomSheet({
         .then((res) => {
           if (!cancelled && Array.isArray(res)) setWilayas(res)
         })
-        .catch(console.warn)
+        .catch(err => logWarn('EquipmentFilter:Gov', err))
     }
 
     return () => {

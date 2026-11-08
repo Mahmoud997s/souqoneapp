@@ -27,6 +27,7 @@ import { listingsApi } from '../../src/api/listings'
 import { useCarWizardStore } from '../../src/store/carWizardStore'
 import { useCarFormLogic } from '../../src/hooks/useCarFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
+import { logWarn } from '../../src/utils/safeLog'
 
 import { CarStep1Type } from '../../src/components/cars/wizard/CarStep1Type'
 import { CarStep2Images } from '../../src/components/cars/wizard/CarStep2Images'
@@ -192,7 +193,7 @@ export default function NewCarListingScreen() {
                     newImageUrls.push(url)
                   }
                 } catch (uploadErr: any) {
-                  console.warn('Image upload error:', uploadErr)
+                  logWarn('CarsNew:UploadImage', uploadErr)
                   const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
                   throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
                 }
@@ -202,7 +203,7 @@ export default function NewCarListingScreen() {
         }
       }
     } catch (e: any) {
-      console.warn('Error uploading images before submit:', e)
+      logWarn('CarsNew:UploadBeforeSubmit', e)
       dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
       return
     } finally {
@@ -290,7 +291,7 @@ export default function NewCarListingScreen() {
               }
             } catch (err) {
               imagesSuccess = false
-              console.warn('Error updating images in edit mode:', err)
+              logWarn('CarsNew:UpdateImages', err)
             }
 
             if (imagesSuccess) {

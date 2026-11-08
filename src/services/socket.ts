@@ -2,6 +2,7 @@ import { io, Socket } from 'socket.io-client'
 import * as SecureStore from 'expo-secure-store'
 import { Config } from '../constants/config'
 import { useSocketStore } from '../store/socketStore'
+import { logWarn } from '../utils/safeLog'
 
 class SocketService {
   private socket: Socket | null = null
@@ -63,9 +64,7 @@ class SocketService {
 
     this.socket.on('connect_error', (err) => {
       if (!this.hasLoggedConnectionError) {
-        if (__DEV__) {
-          console.warn(`[Socket] Connection Error: ${err.message} (further socket errors silenced)`)
-        }
+        logWarn('Socket:Connection', err)
         this.hasLoggedConnectionError = true
       }
       useSocketStore.setState({ 
@@ -96,7 +95,7 @@ class SocketService {
     if (this.socket?.connected) {
       this.socket.emit(event, data)
     } else {
-      console.warn(`[Socket] Cannot emit ${event}, socket not connected`)
+      logWarn('Socket:Emit', `Cannot emit ${event}, socket not connected`)
     }
   }
 

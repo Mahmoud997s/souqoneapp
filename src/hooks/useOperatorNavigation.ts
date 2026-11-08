@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMyOperators } from './useEquipment'
+import { logError } from '../utils/safeLog'
 
 export function useOperatorNavigation() {
   const router = useRouter()
@@ -26,7 +27,7 @@ export function useOperatorNavigation() {
         router.push('/equipment/operators/add')
       }
     } catch (err) {
-      console.error('❌ [useOperatorNavigation] Error checking existing operator:', err)
+      logError('useOperatorNavigation', err)
       // Fallback: Proceed to add and let backend/add.tsx safety net handle it
       router.push('/equipment/operators/add')
     } finally {

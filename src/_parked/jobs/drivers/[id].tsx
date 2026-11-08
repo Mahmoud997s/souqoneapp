@@ -23,6 +23,7 @@ import { getInitials, getAvatarColor } from '../../../src/utils/format'
 import { chatApi } from '../../../src/api/chat'
 import { useAuthStore } from '../../../src/store/authStore'
 import { dialogService } from '../../../src/store/dialogStore'
+import { logError } from '../../../src/utils/safeLog'
 import { useListingContact } from '../../../src/hooks/listing-detail/useListingContact'
 
 const SW = Dimensions.get('window').width
@@ -66,7 +67,7 @@ export default function DriverProfileScreen() {
       }
     } catch (error: any) {
       dialogService.alert('خطأ', 'حدث خطأ أثناء فتح المحادثة: ' + (error?.response?.data?.message || error?.message || ''))
-      console.log('Chat Error:', error?.response?.data || error)
+      logError('DriverJobs:Chat', error)
     } finally {
       setIsChatting(false)
     }

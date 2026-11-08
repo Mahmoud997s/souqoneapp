@@ -19,6 +19,7 @@ import { TransportStep5Review } from '../../src/components/transport/wizard/Tran
 import { Ionicons } from '@expo/vector-icons';
 import { Radius } from '../../src/constants/radius';
 import { dialogService } from '../../src/store/dialogStore'
+import { logError } from '../../src/utils/safeLog';
 
 const TOTAL_STEPS = 5;
 
@@ -168,7 +169,7 @@ export default function NewTransportRequest() {
         // On success, go to my requests
         router.replace('/transport/my-requests');
       } catch (err: any) {
-        console.error('Failed to create request', err.response?.data || err);
+        logError('TransportNew:CreateRequest', err);
         const msg = err.response?.data?.message || err.response?.data?.error || err.message;
         dialogService.alert(
           'حدث خطأ أثناء الإرسال',
