@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { partsApi } from '../api/parts';
 import { mapPartToCard } from '../utils/mappers';
+import { parseListEnvelope } from '../utils/parseListEnvelope';
 
 export function useInfiniteParts(params?: Record<string, unknown>, options?: any) {
   const limit = (params?.limit as number) || 30;
@@ -10,14 +11,9 @@ export function useInfiniteParts(params?: Record<string, unknown>, options?: any
     queryFn: async ({ pageParam = 1 }) => {
       const pageNum = pageParam as number;
       const res = await partsApi.getAll({ ...params, page: pageNum, limit });
-      const data = res?.data as any;
-      const items = data?.items ?? data?.data ?? (Array.isArray(data) ? data : []);
-      const rawList = Array.isArray(items) ? items : [];
-      const parts = rawList.map(mapPartToCard).filter(Boolean);
-
-      const hasNextPage = data?.meta?.hasNextPage ?? (rawList.length === limit);
+      const { items: rawList, hasNextPage } = parseListEnvelope(res.data);
       return {
-        items: parts,
+        items: rawList.map(mapPartToCard).filter(Boolean),
         rawItems: rawList,
         nextPage: hasNextPage ? pageNum + 1 : undefined,
       };
