@@ -21,13 +21,17 @@ export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const inFlightRef = useRef(false)
+  const activeRequestKeyRef = useRef<string | null>(null)
+  const requestIdRef = useRef(0)
+  const isMountedRef = useRef(true)
 
   const isParts = type === 'parts' || type === 'part'
 
   const load = useCallback(async () => {
-    if (!id || inFlightRef.current) return
-    inFlightRef.current = true
+    const currentKey = `${id}:${type ?? ''}`
+    if (!id || activeRequestKeyRef.current === currentKey) return
+    activeRequestKeyRef.current = currentKey
+    const thisRequestId = ++requestIdRef.current
     setLoading(true)
     setError(null)
     try {
@@ -57,6 +61,7 @@ export default function EditListingLoader() {
             }
           }
         }
+        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
         const listing: any = res.data ?? res
 
         const isBus = type === 'bus' || type === 'buses' || !!listing.busListingType || !!listing.busType
@@ -315,18 +320,34 @@ export default function EditListingLoader() {
         // Route to step 2 (Images)
         router.replace('/post/step2')
       } catch (err) {
+        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
         setError('تعذر تحميل بيانات الإعلان')
       } finally {
-        inFlightRef.current = false
-        setLoading(false)
+        if (activeRequestKeyRef.current === currentKey) {
+          activeRequestKeyRef.current = null
+        }
+        if (isMountedRef.current && requestIdRef.current === thisRequestId) {
+          setLoading(false)
+        }
       }
     },
     [id, type]
   )
 
   useEffect(() => {
+    isMountedRef.current = true
     load()
+    return () => {
+      requestIdRef.current += 1
+      activeRequestKeyRef.current = null
+    }
   }, [load])
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const handleBack = useCallback(() => {
     router.back()

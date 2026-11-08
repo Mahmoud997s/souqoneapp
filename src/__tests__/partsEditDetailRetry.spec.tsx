@@ -251,4 +251,110 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
       expect(screen.queryByTestId('detail-skeleton')).toBeNull()
     })
   })
+
+  it('guards against stale results and does not block when route id/type changes mid-request (A-047 F1 fix)', async () => {
+    let resolveP1: (val: any) => void = () => {}
+    const p1Promise = new Promise((res) => {
+      resolveP1 = res
+    })
+
+    let resolveP2: (val: any) => void = () => {}
+    const p2Promise = new Promise((res) => {
+      resolveP2 = res
+    })
+
+    ;(partsApi.getById as jest.Mock).mockImplementation((id: string) => {
+      if (id === 'part-old') return p1Promise
+      if (id === 'part-new') return p2Promise
+      return Promise.resolve({ data: mockPartData })
+    })
+
+    ;(useLocalSearchParams as jest.Mock).mockReturnValue({
+      id: 'part-old',
+      type: 'parts',
+    })
+
+    const { rerender } = await render(<EditListingLoader />)
+
+    // Old request was triggered
+    expect(partsApi.getById).toHaveBeenCalledWith('part-old')
+
+    // Mid-flight, route param changes to a different id
+    ;(useLocalSearchParams as jest.Mock).mockReturnValue({
+      id: 'part-new',
+      type: 'parts',
+    })
+    await rerender(<EditListingLoader />)
+
+    // New request is NOT blocked by old request
+    expect(partsApi.getById).toHaveBeenCalledWith('part-new')
+
+    // Now old request finishes first
+    await act(async () => {
+      resolveP1({
+        data: {
+          ...mockPartData,
+          id: 'part-old',
+          title: 'Old Part Title (Stale)',
+        },
+      })
+    })
+
+    // Stale result should NOT have populated the store nor navigated
+    expect(usePartWizardStore.getState().formData.title).not.toBe('Old Part Title (Stale)')
+    expect(router.replace).not.toHaveBeenCalledWith('/parts/new')
+
+    // Now new request finishes
+    await act(async () => {
+      resolveP2({
+        data: {
+          ...mockPartData,
+          id: 'part-new',
+          title: 'New Part Title (Fresh)',
+        },
+      })
+    })
+
+    // Fresh result should populate the store and navigate
+    await waitFor(() => {
+      expect(usePartWizardStore.getState().formData.title).toBe('New Part Title (Fresh)')
+      expect(router.replace).toHaveBeenCalledWith('/parts/new')
+    })
+  })
+
+  it('discards in-flight responses and does not navigate when unmounted (A-047 F1 cleanup)', async () => {
+    let resolvePending: (val: any) => void = () => {}
+    const pendingPromise = new Promise((res) => {
+      resolvePending = res
+    })
+
+    ;(useLocalSearchParams as jest.Mock).mockReturnValue({
+      id: 'part-unmount',
+      type: 'parts',
+    })
+
+    ;(partsApi.getById as jest.Mock).mockReturnValueOnce(pendingPromise)
+
+    const { unmount } = await render(<EditListingLoader />)
+
+    expect(partsApi.getById).toHaveBeenCalledWith('part-unmount')
+
+    // Unmount while request is pending
+    await unmount()
+
+    // Resolve deferred promise after unmount
+    await act(async () => {
+      resolvePending({
+        data: {
+          ...mockPartData,
+          id: 'part-unmount',
+          title: 'Should Be Discarded',
+        },
+      })
+    })
+
+    // Store should not be populated and router.replace should not be called
+    expect(usePartWizardStore.getState().formData.title).not.toBe('Should Be Discarded')
+    expect(router.replace).not.toHaveBeenCalled()
+  })
 })
