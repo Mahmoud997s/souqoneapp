@@ -300,6 +300,7 @@ export default function NewPartListingScreen() {
               listingId: targetId,
               isEditMode: true,
               localImages: formData.images,
+              existingImages: formData.existingImages,
               listingSaved: true,
             })
 

@@ -28,7 +28,6 @@ jest.mock('../../api/cars', () => ({
 jest.mock('../../api/uploads', () => ({
   uploadsApi: {
     single: jest.fn(),
-    addPartImage: jest.fn(),
     addPartImageByUrl: jest.fn(),
     removePartImage: jest.fn(),
   },
@@ -270,7 +269,7 @@ describe('Parts Wizard Image Reconciliation Flow (F6b / D-247 / Codex A-051)', (
         expect(uploadsApi.single).toHaveBeenCalledTimes(1)
         expect(uploadsApi.addPartImageByUrl).toHaveBeenCalledTimes(1)
         // TEETH PROOF: removePartImage MUST have been called despite attach failure!
-        expect(uploadsApi.removePartImage).toHaveBeenCalledWith('img-to-delete-99')
+        expect(uploadsApi.removePartImage).toHaveBeenCalledWith('img-to-delete-99', expect.anything())
       })
 
       // Screen reports partial failure because attach failed
@@ -279,9 +278,47 @@ describe('Parts Wizard Image Reconciliation Flow (F6b / D-247 / Codex A-051)', (
         expect(screen.getByText(/تعذر تحديث 1 من الصور/)).toBeTruthy()
       })
     })
+
+    it('proves existingImages are populated into retainedImageIds and preserved (A-055 P1-1)', async () => {
+      ;(partsApi.update as jest.Mock).mockResolvedValueOnce({
+        id: 'edit-part-existing',
+        title: validPartFormData.title,
+      })
+
+      usePartWizardStore.setState({
+        currentStep: 6,
+        formData: {
+          ...validPartFormData,
+          editMode: true,
+          editListingId: 'edit-part-existing',
+          existingImages: [
+            { id: 'img-keep-10', url: 'https://cdn.souqone.com/img10.jpg' },
+            { id: 'img-keep-20', url: 'https://cdn.souqone.com/img20.jpg' },
+          ],
+          removedImageIds: [],
+          images: [],
+        },
+      })
+
+      await renderScreen()
+
+      const submitBtn = await screen.findByTestId('wizard-submit-btn')
+      await act(async () => {
+        fireEvent.press(submitBtn)
+      })
+
+      await waitFor(() => {
+        expect(partsApi.update).toHaveBeenCalledTimes(1)
+        expect(screen.getByText('تم حفظ التعديلات بنجاح!')).toBeTruthy()
+      })
+
+      const ledger = usePartWizardStore.getState().formData.imageLedger
+      expect(ledger?.retainedImageIds).toContain('img-keep-10')
+      expect(ledger?.retainedImageIds).toContain('img-keep-20')
+    })
   })
 
-  describe('4. Backend Endpoint Parity (A-051 P1 teeth proof)', () => {
+  describe('4. Backend Endpoint Parity (A-051 P1 & A-055 P2-c teeth proof)', () => {
     it('proves addPartImageByUrl calls POST /uploads/parts/:partId/images/url with { url, isPrimary }', async () => {
       // Test the real uploadsApi implementation from uploads.ts against mock apiClient
       const realUploadsModule = jest.requireActual('../../api/uploads')
@@ -296,8 +333,14 @@ describe('Parts Wizard Image Reconciliation Flow (F6b / D-247 / Codex A-051)', (
         {
           url: 'https://cdn.souqone.com/test.jpg',
           isPrimary: true,
-        }
+        },
+        undefined
       )
+    })
+
+    it('proves obsolete addPartImage has been removed from uploadsApi (A-055 P2-c)', () => {
+      const realUploadsModule = jest.requireActual('../../api/uploads')
+      expect((realUploadsModule.uploadsApi as any).addPartImage).toBeUndefined()
     })
   })
 

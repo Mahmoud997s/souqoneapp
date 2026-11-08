@@ -18,15 +18,17 @@ export const uploadsApi = {
               apiClient.post(`/uploads/listings/${listingId}/images/url`, { url }),
   reorderImages: (listingId: string, imageIds: string[]) =>
               apiClient.patch(`/uploads/listings/${listingId}/images/reorder`, { imageIds }),
-  addPartImage: (partId: string, url: string) =>
-              apiClient.post(`/uploads/parts/${partId}/images`, { url }),
-  addPartImageByUrl: (partId: string, url: string, isPrimary?: boolean) =>
-              apiClient.post(`/uploads/parts/${partId}/images/url`, {
-                url,
-                isPrimary: Boolean(isPrimary),
-              }),
-  removePartImage: (imageId: string) =>
-              apiClient.delete(`/uploads/parts/images/${imageId}`),
+  addPartImageByUrl: (partId: string, url: string, isPrimary?: boolean, signal?: AbortSignal) =>
+              apiClient.post(
+                `/uploads/parts/${partId}/images/url`,
+                {
+                  url,
+                  isPrimary: Boolean(isPrimary),
+                },
+                signal ? { signal } : undefined
+              ),
+  removePartImage: (imageId: string, signal?: AbortSignal) =>
+              apiClient.delete(`/uploads/parts/images/${imageId}`, signal ? { signal } : undefined),
   removeServiceImage: (imageId: string) =>
               apiClient.delete(`/uploads/services/images/${imageId}`),
 }

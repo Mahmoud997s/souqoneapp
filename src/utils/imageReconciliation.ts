@@ -15,6 +15,7 @@
 
 import { buildUploadFilePayload } from './fileUploadHelper'
 import { uploadsApi } from '../api/uploads'
+import { partsApi } from '../api/parts'
 import { logWarn } from './safeLog'
 
 export type OperationType = 'upload' | 'attach' | 'delete'
@@ -64,6 +65,10 @@ export interface ImageReconciliationAdapter {
     listingId?: string,
     signal?: AbortSignal
   ) => Promise<unknown>
+  fetchAttachedUrls?: (
+    listingId: string,
+    signal?: AbortSignal
+  ) => Promise<string[]>
 }
 
 export type LocalImageInput =
@@ -370,11 +375,24 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     return url
   },
 
-  attachImageUrl: async (partId, url, isPrimary, _signal) => {
-    return uploadsApi.addPartImageByUrl(partId, url, isPrimary)
+  attachImageUrl: async (partId, url, isPrimary, signal) => {
+    return uploadsApi.addPartImageByUrl(partId, url, isPrimary, signal)
   },
 
-  deleteImage: async (imageId, _listingId, _signal) => {
-    return uploadsApi.removePartImage(imageId)
+  deleteImage: async (imageId, _listingId, signal) => {
+    return uploadsApi.removePartImage(imageId, signal)
+  },
+
+  fetchAttachedUrls: async (partId, signal) => {
+    try {
+      const res = await partsApi.getById(partId, signal ? { signal } : undefined)
+      const part = (res?.data as any) ?? res
+      const images: any[] = Array.isArray(part?.images) ? part.images : []
+      return images
+        .map((img) => (typeof img === 'string' ? img : img?.url))
+        .filter((u): u is string => typeof u === 'string' && u.length > 0)
+    } catch {
+      return []
+    }
   },
 }

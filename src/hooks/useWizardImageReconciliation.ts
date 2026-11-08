@@ -338,6 +338,24 @@ export function useWizardImageReconciliation({
           ) {
             const listingId = workingLedger.listingId
 
+            // Pre-check server attached URLs to guarantee idempotency across lost responses (P1-3)
+            if (typeof adapter.fetchAttachedUrls === 'function' && !signal.aborted) {
+              try {
+                const serverUrls = await adapter.fetchAttachedUrls(listingId, signal)
+                if (Array.isArray(serverUrls) && serverUrls.length > 0) {
+                  for (const sUrl of serverUrls) {
+                    if (!workingLedger.attachedUrls.includes(sUrl)) {
+                      workingLedger.attachedUrls.push(sUrl)
+                    }
+                    const opKey = makeOpKey.attach(sUrl)
+                    delete workingLedger.failedOperations[opKey]
+                  }
+                }
+              } catch (fetchErr) {
+                logWarn('useWizardImageReconciliation:fetchAttachedUrls', fetchErr)
+              }
+            }
+
             // Find newly uploaded URLs that haven't been attached yet
             const unattachedRecords = workingLedger.uploadedImages.filter(
               (rec) => !workingLedger.attachedUrls.includes(rec.remoteUrl)
