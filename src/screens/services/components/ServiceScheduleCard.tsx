@@ -21,7 +21,24 @@ export function ServiceScheduleCard({
   schedule,
 }: ServiceScheduleCardProps) {
   if (!schedule.hasSchedule) {
-    return null
+    return (
+      <View style={s.card} testID="service-schedule-card">
+        <View style={s.headerRow}>
+          <View style={s.iconCircle}>
+            <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+          </View>
+          <Text style={s.title}>أوقات وجدول العمل</Text>
+        </View>
+
+        <View style={s.hoursRow}>
+          <Ionicons name="time-outline" size={15} color={Colors.textMuted} />
+          <Text style={s.hoursLabel}>ساعات العمل:</Text>
+          <Text style={s.hoursValUnspecified} testID="schedule-unspecified">
+            غير محدد
+          </Text>
+        </View>
+      </View>
+    )
   }
 
   return (
@@ -34,7 +51,7 @@ export function ServiceScheduleCard({
       </View>
 
       {/* Summary / Working Days */}
-      {schedule.workingDays.length > 0 && (
+      {schedule.workingDays.length > 0 ? (
         <View style={s.section}>
           <View style={s.labelRow}>
             <Ionicons name="time-outline" size={15} color={Colors.textMuted} />
@@ -54,6 +71,14 @@ export function ServiceScheduleCard({
               </View>
             ))}
           </View>
+        </View>
+      ) : (
+        <View style={s.daysUnspecifiedRow}>
+          <Ionicons name="calendar-outline" size={15} color={Colors.textMuted} />
+          <Text style={s.sectionLabel}>أيام العمل:</Text>
+          <Text style={s.hoursValUnspecified} testID="days-unspecified">
+            غير محدد
+          </Text>
         </View>
       )}
 
@@ -176,5 +201,19 @@ const s = StyleSheet.create({
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  hoursValUnspecified: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  daysUnspecifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space2,
+    paddingHorizontal: Spacing.space1,
   },
 })

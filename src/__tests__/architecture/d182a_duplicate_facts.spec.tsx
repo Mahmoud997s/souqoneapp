@@ -351,7 +351,7 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
       expect(screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeNull()
     })
 
-    it('ServiceScheduleCard: returns null when hasSchedule is false, even if isHomeService is true', async () => {
+    it('ServiceScheduleCard: renders unspecified schedule when hasSchedule is false, and strictly omits home service badge (D-182a, D-232)', async () => {
       const scheduleWithoutDays: ServiceScheduleViewModel = {
         hasSchedule: false,
         workingDays: [],
@@ -362,7 +362,8 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
 
       await render(<ServiceScheduleCard schedule={scheduleWithoutDays} isHomeService={true} />)
 
-      expect(screen.queryByTestId('service-schedule-card')).toBeNull()
+      expect(screen.getByTestId('service-schedule-card')).toBeTruthy()
+      expect(screen.getByTestId('schedule-unspecified')).toBeTruthy()
       expect(screen.queryByText('خدمة منزلية / متنقلة متاحة عند الطلب')).toBeNull()
     })
   })
