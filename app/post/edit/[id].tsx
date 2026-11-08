@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { View, ActivityIndicator, StyleSheet, Text, Alert } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { listingsApi } from '../../../src/api/listings'
@@ -15,17 +15,27 @@ import { Colors } from '../../../src/constants/colors'
 import { Spacing } from '../../../src/constants/spacing'
 import { carsApi } from '../../../src/api/cars'
 import { logWarn } from '../../../src/utils/safeLog'
+import { DetailStates } from '../../../src/components/listing-detail/DetailStates'
 
 export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
-  const { set, reset } = usePostStore()
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const activeRequestKeyRef = useRef<string | null>(null)
+  const requestIdRef = useRef(0)
+  const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    async function fetchListing() {
-      if (!id) return
-      try {
-        let res;
+  const isParts = type === 'parts' || type === 'part'
+
+  const load = useCallback(async () => {
+    const currentKey = `${id}:${type ?? ''}`
+    if (!id || activeRequestKeyRef.current === currentKey) return
+    activeRequestKeyRef.current = currentKey
+    const thisRequestId = ++requestIdRef.current
+    setLoading(true)
+    setError(null)
+    try {
+      let res;
         if (type === 'operator') {
           res = await equipmentApi.getOperatorById(id)
         } else if (type === 'equipment') {
@@ -51,6 +61,7 @@ export default function EditListingLoader() {
             }
           }
         }
+        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
         const listing: any = res.data ?? res
 
         const isBus = type === 'bus' || type === 'buses' || !!listing.busListingType || !!listing.busType
@@ -106,7 +117,7 @@ export default function EditListingLoader() {
           return
         }
 
-        reset()
+        usePostStore.getState().reset()
 
         // Extract and map images to existingImages format
         const existingImgs = (listing.images || []).map((img: any) => ({
@@ -286,7 +297,7 @@ export default function EditListingLoader() {
         }
 
         // Populate store for other generic categories
-        set({
+        usePostStore.getState().set({
           editMode: true,
           editListingId: id,
           category,
@@ -309,18 +320,65 @@ export default function EditListingLoader() {
         // Route to step 2 (Images)
         router.replace('/post/step2')
       } catch (err) {
+        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
         setError('تعذر تحميل بيانات الإعلان')
+      } finally {
+        if (activeRequestKeyRef.current === currentKey) {
+          activeRequestKeyRef.current = null
+        }
+        if (isMountedRef.current && requestIdRef.current === thisRequestId) {
+          setLoading(false)
+        }
       }
+    },
+    [id, type]
+  )
+
+  useEffect(() => {
+    isMountedRef.current = true
+    load()
+    return () => {
+      requestIdRef.current += 1
+      activeRequestKeyRef.current = null
+    }
+  }, [load])
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const handleBack = useCallback(() => {
+    router.back()
+  }, [])
+
+  if (isParts) {
+    if (error) {
+      return (
+        <DetailStates
+          kind="error"
+          title="تعذر تحميل بيانات قطعة الغيار"
+          subtitle="حدث خطأ غير متوقع أثناء جلب بيانات قطعة الغيار. يرجى المحاولة مرة أخرى."
+          onRetry={load}
+          onBack={handleBack}
+        />
+      )
     }
 
-    fetchListing()
-  }, [id])
+    return (
+      <DetailStates
+        kind="loading"
+        onBack={handleBack}
+      />
+    )
+  }
 
   if (error) {
     return (
       <View style={s.center}>
         <Text style={s.error}>{error}</Text>
-        <Text style={s.backBtn} onPress={() => router.back()}>رجوع</Text>
+        <Text style={s.backBtn} onPress={handleBack}>رجوع</Text>
       </View>
     )
   }
