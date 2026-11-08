@@ -12,7 +12,7 @@ import { Spacing } from '../../constants/spacing'
 import { lineHeightFor } from '../../constants/typography'
 
 export interface StaleDataBannerProps {
-  onRetry: () => void | Promise<unknown>
+  onRetry?: () => void | Promise<unknown>
   isRefetching?: boolean
   message?: string
 }
@@ -43,21 +43,23 @@ export function StaleDataBanner({
         </Text>
       </View>
 
-      <TouchableOpacity
-        style={s.retryButton}
-        onPress={onRetry}
-        disabled={isRefetching}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel="إعادة المحاولة"
-        testID="stale-data-retry-button"
-      >
-        {isRefetching ? (
-          <ActivityIndicator size="small" color={Colors.primary} />
-        ) : (
-          <Text style={s.retryText}>إعادة المحاولة</Text>
-        )}
-      </TouchableOpacity>
+      {onRetry && (
+        <TouchableOpacity
+          style={s.retryButton}
+          onPress={onRetry}
+          disabled={isRefetching}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="إعادة المحاولة"
+          testID="stale-data-retry-button"
+        >
+          {isRefetching ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Text style={s.retryText}>إعادة المحاولة</Text>
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   )
 }

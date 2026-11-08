@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
+  Text,
+  TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
@@ -35,6 +37,9 @@ import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
+import { Radius } from '../../src/constants/radius';
+import { getListErrorProps } from '../../src/utils/getListErrorProps';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 
 // Parts Components
 import { PartCard } from '../../src/components/parts/PartCard';
@@ -242,10 +247,13 @@ export default function PartsBrowseScreen() {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
+    isRefetchError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteParts(queryParams);
 
   const listings = useMemo(
@@ -461,6 +469,21 @@ export default function PartsBrowseScreen() {
         {isFetchingNextPage && (
           <ActivityIndicator size="small" color={Colors.primary} style={{ margin: 20 }} />
         )}
+        {isFetchNextPageError && (
+          <View style={s.paginationErrorRow} testID="parts-pagination-error">
+            <Text style={s.paginationErrorText}>تعذر تحميل المزيد من قطع الغيار</Text>
+            <TouchableOpacity
+              style={s.paginationRetryButton}
+              onPress={() => fetchNextPage()}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="إعادة المحاولة"
+              testID="parts-pagination-retry-button"
+            >
+              <Text style={s.paginationRetryText}>إعادة المحاولة</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {listings && listings.length > 0 && (
           <SectionFooterAction
             title="لديك قطعة للبيع؟"
@@ -473,7 +496,7 @@ export default function PartsBrowseScreen() {
         )}
       </>
     ),
-    [isFetchingNextPage, listings, handleAddPart]
+    [isFetchingNextPage, isFetchNextPageError, fetchNextPage, listings, handleAddPart]
   );
 
   const listEmptyComponent = useMemo(() => {
@@ -489,14 +512,16 @@ export default function PartsBrowseScreen() {
       );
     }
 
-    if (isError) {
+    if (isError && listings.length === 0) {
+      const errorProps = getListErrorProps(error, 'تعذر تحميل قطع الغيار');
       return (
         <EmptyState
-          icon="alert-circle-outline"
-          iconColor={Colors.error}
-          title="حدث خطأ أثناء تحميل قطع الغيار"
-          subtitle="تعذر الاتصال بالخادم لجلب البيانات، يرجى المحاولة مرة أخرى."
-          actionLabel="إعادة المحاولة"
+          testID="parts-browse-error-state"
+          icon={errorProps.icon}
+          iconColor={errorProps.iconColor}
+          title={errorProps.title}
+          subtitle={errorProps.subtitle}
+          actionLabel={errorProps.actionLabel}
           actionIcon="refresh-outline"
           onAction={() => refetch()}
         />
@@ -507,6 +532,7 @@ export default function PartsBrowseScreen() {
 
     return (
       <EmptyState
+        testID="parts-browse-empty-state"
         icon="car-cog"
         iconType="material-community"
         iconSize={40}
@@ -522,7 +548,7 @@ export default function PartsBrowseScreen() {
         onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
       />
     );
-  }, [showSkeleton, isError, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
+  }, [showSkeleton, isError, error, listings.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
 
   return (
     <View style={s.root}>
@@ -552,6 +578,13 @@ export default function PartsBrowseScreen() {
           glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
+
+      {isRefetchError && listings.length > 0 && (
+        <StaleDataBanner
+          onRetry={() => refetch()}
+          isRefetching={isFetching && !isFetchingNextPage}
+        />
+      )}
 
       {/* Main Animated List */}
       <Animated.FlatList
@@ -647,5 +680,37 @@ const s = StyleSheet.create({
   },
   fullCard: {
     width: '100%',
+  },
+  paginationErrorRow: {
+    paddingVertical: Spacing.space4,
+    paddingHorizontal: Spacing.space4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+  },
+  paginationErrorText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    color: Colors.error,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  paginationRetryButton: {
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space2,
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paginationRetryText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    color: Colors.primary,
+    writingDirection: 'rtl',
   },
 });
