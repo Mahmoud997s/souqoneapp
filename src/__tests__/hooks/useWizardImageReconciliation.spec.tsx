@@ -441,4 +441,134 @@ describe('useWizardImageReconciliation (S6 / D-243)', () => {
     expect(res2.uploadedUrls).toEqual(['https://cdn/concurrent_done.jpg'])
     expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
   })
+
+  it('13. Precheck fail-closed (A-057 P1-a): when fetchAttachedUrls fails, attach loop is skipped to avoid duplicates', async () => {
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest.fn().mockRejectedValue(new Error('500 Internal Server Error')),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/part_new.jpg'),
+      attachImageUrl: jest.fn(),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'edit-part-100',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///part_new.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+    // TEETH: attachImageUrl must NOT be called when precheck fails!
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+    expect(res.imagesComplete).toBe(false)
+    expect(res.isPartialSuccess).toBe(true)
+    const precheckOp = res.failedOperations.find((op: any) => op.type === 'attach')
+    expect(precheckOp?.error).toContain('تعذر التحقق من صور الإعلان على الخادم')
+  })
+
+  it('14. Precheck URL normalization (A-057 P2-a): matches signed server URLs with local uploaded records', async () => {
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest
+        .fn()
+        .mockResolvedValue(['HTTPS://CDN.SOUQONE.APP/Uploads/Part1.jpg?token=secret123&v=99']),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/Uploads/Part1.jpg'),
+      attachImageUrl: jest.fn(),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'edit-part-200',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///Part1.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+    // TEETH: Normalized URLs match -> attach is NOT called because server already has it!
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+    expect(res.imagesComplete).toBe(true)
+  })
+
+  it('15. Cancel clears activePromise and permits subsequent run with run-token isolation (A-057 P2-c)', async () => {
+    let cancelUploadResolve: (url: string) => void = () => {}
+    let callCount = 0
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async (_img, signal) => {
+        callCount++
+        if (callCount === 1) {
+          return new Promise<string>((resolve, reject) => {
+            signal?.addEventListener('abort', () => reject(new Error('AbortError')))
+          })
+        }
+        return 'https://cdn.souqone.app/run2_done.jpg'
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1Promise: any
+    await act(async () => {
+      res1Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///retry_target.jpg' }],
+      })
+      // Cancel run 1
+      result.current.cancel()
+    })
+
+    const res1 = await res1Promise
+    expect(res1.imagesComplete).toBe(false)
+    expect(result.current.isReconciling).toBe(false)
+
+    // Now start run 2 for the target: should run immediately, succeed, and clear prior aborted failure
+    let res2: any
+    await act(async () => {
+      res2 = await result.current.reconcile({
+        localImages: [{ uri: 'file:///retry_target.jpg' }],
+      })
+    })
+
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.uploadedUrls).toContain('https://cdn.souqone.app/run2_done.jpg')
+  })
+
+  it('16. Cancelled reconciliation returns imagesComplete: false (A-057 P2-d)', async () => {
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async (_img, signal) => {
+        return new Promise<string>((_, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('AbortError')))
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let reconcileRes: any
+    await act(async () => {
+      const p = result.current.reconcile({
+        localImages: [{ uri: 'file:///test_cancel.jpg' }],
+      })
+      result.current.cancel()
+      reconcileRes = await p
+    })
+
+    // TEETH: imagesComplete must be false on cancel!
+    expect(reconcileRes.imagesComplete).toBe(false)
+  })
 })

@@ -9,6 +9,7 @@ import {
   makeOpKey,
   partsImageReconciliationAdapter,
   ReconciliationLedger,
+  normalizeImageUrl,
 } from '../../utils/imageReconciliation'
 
 describe('imageReconciliation utilities (S6 / D-243)', () => {
@@ -166,6 +167,70 @@ describe('imageReconciliation utilities (S6 / D-243)', () => {
       const parsed = deserializeLedger(serialized)
       expect(parsed.removedImageIds.length).toBeLessThanOrEqual(20)
     })
+
+    it('whitelists safe meta keys and strips unapproved raw properties (A-057 P2-b)', () => {
+      const ledger: ReconciliationLedger = {
+        ...createEmptyLedger('part-1'),
+        failedOperations: {
+          'upload:safe': {
+            key: 'upload:safe',
+            type: 'upload',
+            error: 'Failed upload',
+            attempts: 1,
+            lastAttemptAt: Date.now(),
+            meta: {
+              localUri: 'file:///safe.jpg',
+              remoteUrl: 'https://cdn.souqone.app/img.jpg?token=secret',
+              unapprovedSecretToken: 'SUPER_SECRET_TOKEN',
+              nestedObject: { key: 'value' },
+            },
+          },
+        },
+      }
+      const serialized = serializeLedger(ledger)
+      const parsed = deserializeLedger(serialized)
+      const op = parsed.failedOperations['upload:safe']
+      expect(op.meta?.localUri).toBe('file:///safe.jpg')
+      expect(op.meta?.remoteUrl).toBe('https://cdn.souqone.app/img.jpg')
+      expect((op.meta as any)?.unapprovedSecretToken).toBeUndefined()
+      expect((op.meta as any)?.nestedObject).toBeUndefined()
+    })
+
+    it('returns empty ledger fallback if serialized size exceeds 50KB byte limit (A-057 P2-b)', () => {
+      const oversizedString = 'A'.repeat(60000)
+      const ledger: ReconciliationLedger = {
+        ...createEmptyLedger('part-1'),
+        retainedImageIds: [oversizedString],
+      }
+      const serialized = serializeLedger(ledger)
+      expect(serialized.length).toBeLessThan(1000)
+      const parsed = deserializeLedger(serialized)
+      expect(parsed.version).toBe(1)
+      expect(parsed.retainedImageIds).toEqual([])
+    })
+  })
+
+  describe('normalizeImageUrl (A-057 P2-a)', () => {
+    it('strips query parameters and hash fragments', () => {
+      const input = 'https://cdn.souqone.com/uploads/photo1.jpg?token=abc123xyz&version=2#section'
+      expect(normalizeImageUrl(input)).toBe('https://cdn.souqone.com/uploads/photo1.jpg')
+    })
+
+    it('strips trailing slashes', () => {
+      const input = 'https://cdn.souqone.com/uploads/photo1.jpg/'
+      expect(normalizeImageUrl(input)).toBe('https://cdn.souqone.com/uploads/photo1.jpg')
+    })
+
+    it('lowercases protocol and hostname while preserving path casing', () => {
+      const input = 'HTTPS://CDN.SOUQONE.COM/Uploads/MyPartImage_ABC.jpg'
+      expect(normalizeImageUrl(input)).toBe('https://cdn.souqone.com/Uploads/MyPartImage_ABC.jpg')
+    })
+
+    it('handles empty or non-string inputs safely', () => {
+      expect(normalizeImageUrl('')).toBe('')
+      expect(normalizeImageUrl(null as any)).toBe('')
+      expect(normalizeImageUrl(undefined as any)).toBe('')
+    })
   })
 
   describe('partsImageReconciliationAdapter', () => {
@@ -174,6 +239,7 @@ describe('imageReconciliation utilities (S6 / D-243)', () => {
       expect(typeof partsImageReconciliationAdapter.uploadImage).toBe('function')
       expect(typeof partsImageReconciliationAdapter.attachImageUrl).toBe('function')
       expect(typeof partsImageReconciliationAdapter.deleteImage).toBe('function')
+      expect(typeof partsImageReconciliationAdapter.fetchAttachedUrls).toBe('function')
     })
   })
 })

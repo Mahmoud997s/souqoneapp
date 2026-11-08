@@ -342,6 +342,25 @@ describe('Parts Wizard Image Reconciliation Flow (F6b / D-247 / Codex A-051)', (
       const realUploadsModule = jest.requireActual('../../api/uploads')
       expect((realUploadsModule.uploadsApi as any).addPartImage).toBeUndefined()
     })
+
+    it('proves uploadsApi.single passes AbortSignal to apiClient.post (A-057 P1-b)', async () => {
+      const realUploadsModule = jest.requireActual('../../api/uploads')
+      ;(apiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: { url: 'https://cdn.souqone.com/test.jpg' },
+      })
+
+      const controller = new AbortController()
+      const formData = new FormData()
+      await realUploadsModule.uploadsApi.single(formData, controller.signal)
+
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/uploads',
+        formData,
+        expect.objectContaining({
+          signal: controller.signal,
+        })
+      )
+    })
   })
 
   describe('5. Store Hydration and Migration Safety (A-051 P2)', () => {

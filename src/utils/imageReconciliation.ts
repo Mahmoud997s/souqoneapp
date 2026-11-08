@@ -216,11 +216,41 @@ export function sanitizeErrorMessage(err: unknown, fallback = 'Operation failed'
 }
 
 /**
+ * Canonical URL normalization for safe comparison and deduplication:
+ * - Strips query parameters (?...) and hash fragments (#...)
+ * - Strips trailing slashes
+ * - Normalizes protocol (https/http) and lowercases hostname
+ * - Preserves path case and contents
+ */
+export function normalizeImageUrl(rawUrl: string): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return ''
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return ''
+
+  try {
+    if (/^https?:\/\//i.test(trimmed)) {
+      const parsed = new URL(trimmed)
+      const protocol = parsed.protocol.toLowerCase()
+      const host = parsed.host.toLowerCase()
+      const pathname = parsed.pathname.replace(/\/+$/, '')
+      return `${protocol}//${host}${pathname}`
+    }
+  } catch {
+    // URL parsing fallback for non-standard or malformed URLs
+  }
+
+  let clean = trimmed.split('?')[0].split('#')[0]
+  clean = clean.replace(/\/+$/, '')
+  clean = clean.replace(/^(https?:\/\/[^\/]+)/i, (m) => m.toLowerCase())
+  return clean
+}
+
+/**
  * Generates deterministic keys for operations.
  */
 export const makeOpKey = {
   upload: (uri: string) => `upload:${uri.trim().slice(0, LEDGER_LIMITS.maxUriLength)}`,
-  attach: (url: string) => `attach:${url.trim().slice(0, LEDGER_LIMITS.maxUriLength)}`,
+  attach: (url: string) => `attach:${(normalizeImageUrl(url) || url.trim()).slice(0, LEDGER_LIMITS.maxUriLength)}`,
   delete: (id: string) => `delete:${id.trim().slice(0, LEDGER_LIMITS.maxListingIdLength)}`,
 }
 
@@ -228,7 +258,7 @@ const VALID_OPERATION_TYPES: Set<string> = new Set(['upload', 'attach', 'delete'
 
 /**
  * Safely serializes a reconciliation ledger into a JSON string.
- * Strips non-serializable properties, bounds arrays, and sanitizes strings.
+ * Strips non-serializable properties, bounds arrays, sanitizes strings, and enforces byte cap.
  */
 export function serializeLedger(ledger: ReconciliationLedger): string {
   try {
@@ -242,12 +272,16 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
       uploadedImages: Array.isArray(ledger.uploadedImages)
         ? ledger.uploadedImages.slice(0, LEDGER_LIMITS.maxItems).map((rec) => ({
             localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
-            remoteUrl: String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
+            remoteUrl: normalizeImageUrl(String(rec.remoteUrl)).slice(0, LEDGER_LIMITS.maxUriLength) || String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
             uploadedAt: Number(rec.uploadedAt) || Date.now(),
             isPrimary: Boolean(rec.isPrimary),
           }))
         : [],
-      attachedUrls: dedupeIds(ledger.attachedUrls).slice(0, LEDGER_LIMITS.maxItems),
+      attachedUrls: dedupeIds(
+        (Array.isArray(ledger.attachedUrls) ? ledger.attachedUrls : [])
+          .map((u) => normalizeImageUrl(u) || String(u).trim())
+          .filter(Boolean)
+      ).slice(0, LEDGER_LIMITS.maxItems),
       deletedImageIds: dedupeIds(ledger.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         ledger.failedOperations && typeof ledger.failedOperations === 'object'
@@ -263,14 +297,44 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
                     error: sanitizeErrorMessage(op.error),
                     attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
                     lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
-                    meta: op.meta && typeof op.meta === 'object' ? { ...op.meta } : undefined,
+                    meta:
+                      op.meta && typeof op.meta === 'object'
+                        ? (() => {
+                            const safeMeta: Record<string, unknown> = {}
+                            if (typeof op.meta.localUri === 'string') {
+                              safeMeta.localUri = op.meta.localUri.slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.remoteUrl === 'string') {
+                              safeMeta.remoteUrl = (normalizeImageUrl(op.meta.remoteUrl) || op.meta.remoteUrl).slice(
+                                0,
+                                LEDGER_LIMITS.maxUriLength
+                              )
+                            }
+                            if (typeof op.meta.imageId === 'string') {
+                              safeMeta.imageId = String(op.meta.imageId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+                            }
+                            if (typeof op.meta.listingId === 'string') {
+                              safeMeta.listingId = String(op.meta.listingId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+                            }
+                            if (typeof op.meta.isPrimary === 'boolean') {
+                              safeMeta.isPrimary = op.meta.isPrimary
+                            }
+                            return safeMeta
+                          })()
+                        : undefined,
                   },
                 ])
             )
           : {},
       listingSaved: Boolean(ledger.listingSaved),
     }
-    return JSON.stringify(cleanLedger)
+
+    const serialized = JSON.stringify(cleanLedger)
+    if (serialized.length > 50000) {
+      logWarn('imageReconciliation:serializeLedger:byteLimitExceeded', { length: serialized.length })
+      return JSON.stringify(createEmptyLedger())
+    }
+    return serialized
   } catch (err) {
     logWarn('imageReconciliation:serializeLedger', err)
     return JSON.stringify(createEmptyLedger())
@@ -353,7 +417,7 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
 export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
   vertical: 'parts',
 
-  uploadImage: async (imageInput, _signal) => {
+  uploadImage: async (imageInput, signal) => {
     const filePayload = buildUploadFilePayload(imageInput, 'part')
     if (!filePayload) {
       throw new Error('بيانات الصورة غير صالحة للرفع')
@@ -362,7 +426,7 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     const data = new FormData()
     data.append('file', filePayload as any)
 
-    const res = await uploadsApi.single(data)
+    const res = await uploadsApi.single(data, signal)
     const url =
       (res?.data as any)?.url ??
       (res?.data as any)?.path ??
@@ -391,8 +455,12 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
       return images
         .map((img) => (typeof img === 'string' ? img : img?.url))
         .filter((u): u is string => typeof u === 'string' && u.length > 0)
-    } catch {
-      return []
+    } catch (err: any) {
+      const status = err?.response?.status ?? err?.status
+      if (status === 404) {
+        return []
+      }
+      throw err
     }
   },
 }

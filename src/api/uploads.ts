@@ -2,10 +2,11 @@ import { apiClient } from './client'
 import { UploadResponse } from '../types/api.types'
 
 export const uploadsApi = {
-  single:   (formData: FormData) =>
+  single:   (formData: FormData, signal?: AbortSignal) =>
               apiClient.post<UploadResponse>('/uploads', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 transformRequest: (data) => data,
+                signal,
               }),
   multiple: (formData: FormData) =>
               apiClient.post<UploadResponse[]>('/uploads/multiple', formData, {
