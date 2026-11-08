@@ -52,7 +52,7 @@ import { ListingDescription } from '../../components/listing-detail/ListingDescr
 import { SellerCard } from '../../components/listing-detail/SellerCard'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
-import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { DetailStates, DetailStateKind } from '../../components/listing-detail/DetailStates'
 import {
   ContactActions,
   type ContactAvailability,
@@ -333,14 +333,14 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   // 9. Non-Ready States
   if (state !== 'ready' || !vm) {
     const errorKind = getDetailErrorKind(error)
-    const kind =
+    const kind: DetailStateKind =
       state === 'loading'
         ? 'loading'
         : state === 'notFound' || errorKind === 'notFound'
         ? 'notFound'
-        : errorKind === 'unknown'
-        ? 'error'
-        : errorKind
+        : errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError'
+        ? errorKind
+        : 'error'
 
     return (
       <View style={s.rootContainer}>

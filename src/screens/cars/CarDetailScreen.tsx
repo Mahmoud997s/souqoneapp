@@ -78,7 +78,7 @@ import { SpecsSections } from '../../components/listing-detail/SpecsSections'
 import { SimilarListingsGrid } from '../../components/listing-detail/SimilarListingsGrid'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
-import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { DetailStates, DetailStateKind } from '../../components/listing-detail/DetailStates'
 import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
@@ -298,14 +298,14 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
     const errorKind = getDetailErrorKind(error)
-    const kind =
+    const kind: DetailStateKind =
       state === 'loading'
         ? 'loading'
         : state === 'notFound' || errorKind === 'notFound'
         ? 'notFound'
-        : errorKind === 'unknown'
-        ? 'error'
-        : errorKind
+        : errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError'
+        ? errorKind
+        : 'error'
 
     return (
       <View style={s.rootContainer}>

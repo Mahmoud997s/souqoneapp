@@ -51,7 +51,7 @@ import {
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
-import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { DetailStates, DetailStateKind } from '../../components/listing-detail/DetailStates'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 // Shared Listing-Detail Components
@@ -184,14 +184,14 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   // Loading, Not Found, Offline, Timeout, ServerError, Error states
   if (state !== 'ready' || !vm) {
     const errorKind = getDetailErrorKind(error)
-    const kind =
+    const kind: DetailStateKind =
       state === 'loading'
         ? 'loading'
         : state === 'notFound' || errorKind === 'notFound'
         ? 'notFound'
-        : errorKind === 'unknown'
-        ? 'error'
-        : errorKind
+        : errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError'
+        ? errorKind
+        : 'error'
 
     return <DetailStates kind={kind} onBack={() => router.back()} onRetry={() => refetch()} />
   }
