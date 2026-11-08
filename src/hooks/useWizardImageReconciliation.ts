@@ -180,6 +180,8 @@ export function useWizardImageReconciliation({
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
+    // Invalidate active run token so pending promises cannot commit stale ledger (A-060 P2)
+    currentRunIdRef.current = 0
     activePromiseRef.current = null
     if (isReconcilingRef.current) {
       isReconcilingRef.current = false
@@ -361,6 +363,8 @@ export function useWizardImageReconciliation({
             if (typeof adapter.fetchAttachedUrls === 'function' && !signal.aborted) {
               try {
                 const serverUrls = await adapter.fetchAttachedUrls(listingId, signal)
+                // A-060 P2: Successful precheck immediately clears any prior server_precheck failure
+                delete workingLedger.failedOperations[makeOpKey.attach('server_precheck')]
                 if (Array.isArray(serverUrls) && serverUrls.length > 0) {
                   for (const sUrl of serverUrls) {
                     const normServer = normalizeImageUrl(sUrl)

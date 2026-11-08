@@ -571,4 +571,87 @@ describe('useWizardImageReconciliation (S6 / D-243)', () => {
     // TEETH: imagesComplete must be false on cancel!
     expect(reconcileRes.imagesComplete).toBe(false)
   })
+
+  it('17. Precheck recovery (A-060 P2): precheck failure on run 1 is cleared when run 2 succeeds with empty server list', async () => {
+    let precheckCallCount = 0
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest.fn(async () => {
+        precheckCallCount++
+        if (precheckCallCount === 1) {
+          throw new Error('Network timeout during precheck')
+        }
+        return [] // server has no images currently
+      }),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/uploads/p1.jpg'),
+      attachImageUrl: jest.fn().mockResolvedValue(undefined),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1: any
+    await act(async () => {
+      res1 = await result.current.reconcile({
+        listingId: 'part-precheck-recovery',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///p1.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    // Run 1: precheck failed, attach was blocked, failure is recorded
+    expect(res1.imagesComplete).toBe(false)
+    expect(res1.failedOperations.some((op: any) => op.key === 'attach:server_precheck')).toBe(true)
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+
+    // Run 2: retry succeeds with empty server list -> attach:server_precheck is cleared and attachImageUrl succeeds
+    let res2: any
+    await act(async () => {
+      res2 = await result.current.retryFailed()
+    })
+
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.failedOperations.length).toBe(0)
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(1)
+  })
+
+  it('18. Cancel and reset during in-flight upload invalidates active run token (A-060 P2)', async () => {
+    let slowResolve: (val: string) => void = () => {}
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async () => {
+        return new Promise<string>((resolve) => {
+          slowResolve = resolve
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let run1Promise: any
+    await act(async () => {
+      run1Promise = result.current.reconcile({
+        listingId: 'part-reset-test',
+        localImages: [{ uri: 'file:///slow.jpg' }],
+      })
+      // Reset immediately while in flight
+      result.current.reset()
+    })
+
+    // Ledger should now be completely empty
+    expect(result.current.ledger.uploadedImages).toEqual([])
+    expect(result.current.ledger.listingId).toBeUndefined()
+
+    // Now resolve the old lingering promise
+    await act(async () => {
+      slowResolve('https://cdn.souqone.app/uploads/stale.jpg')
+      await run1Promise
+    })
+
+    // TEETH: Settling old promise must NOT commit stale workingLedger back to state!
+    expect(result.current.ledger.uploadedImages).toEqual([])
+    expect(result.current.ledger.listingId).toBeUndefined()
+  })
 })

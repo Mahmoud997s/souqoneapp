@@ -196,6 +196,54 @@ describe('imageReconciliation utilities (S6 / D-243)', () => {
       expect((op.meta as any)?.nestedObject).toBeUndefined()
     })
 
+    it('deserializeLedger directly strips unapproved keys, tokens, and normalizes URLs from raw JSON on hydration (A-060 P2)', () => {
+      const rawJson = JSON.stringify({
+        version: 1,
+        listingId: 'part-123',
+        listingSaved: true,
+        retainedImageIds: ['img-1'],
+        removedImageIds: [],
+        uploadedImages: [
+          {
+            localUri: 'file:///local.jpg',
+            remoteUrl: 'https://cdn.souqone.app/upload.jpg?auth=token123',
+            uploadedAt: 1000,
+            isPrimary: true,
+          },
+        ],
+        attachedUrls: [
+          'https://cdn.souqone.app/upload.jpg?auth=token123',
+          'https://cdn.souqone.app/upload2.jpg#frag',
+        ],
+        deletedImageIds: [],
+        failedOperations: {
+          'upload:bad': {
+            key: 'upload:bad',
+            type: 'upload',
+            error: 'Some error',
+            attempts: 1,
+            lastAttemptAt: 1000,
+            meta: {
+              localUri: 'file:///local.jpg',
+              remoteUrl: 'https://cdn.souqone.app/upload.jpg?auth=token123',
+              injectedMaliciousPayload: { exploit: true },
+              secretApiKey: 'sk_live_12345',
+            },
+          },
+        },
+      })
+      const parsed = deserializeLedger(rawJson)
+      expect(parsed.uploadedImages[0].remoteUrl).toBe('https://cdn.souqone.app/upload.jpg')
+      expect(parsed.attachedUrls).toEqual([
+        'https://cdn.souqone.app/upload.jpg',
+        'https://cdn.souqone.app/upload2.jpg',
+      ])
+      const op = parsed.failedOperations['upload:bad']
+      expect(op.meta?.remoteUrl).toBe('https://cdn.souqone.app/upload.jpg')
+      expect((op.meta as any)?.injectedMaliciousPayload).toBeUndefined()
+      expect((op.meta as any)?.secretApiKey).toBeUndefined()
+    })
+
     it('returns empty ledger fallback if serialized size exceeds 50KB byte limit (A-057 P2-b)', () => {
       const oversizedString = 'A'.repeat(60000)
       const ledger: ReconciliationLedger = {

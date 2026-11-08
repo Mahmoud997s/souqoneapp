@@ -373,12 +373,19 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
             .filter((rec: any) => rec && typeof rec.localUri === 'string' && typeof rec.remoteUrl === 'string')
             .map((rec: any) => ({
               localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
-              remoteUrl: String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
+              remoteUrl: (normalizeImageUrl(String(rec.remoteUrl)) || String(rec.remoteUrl)).slice(
+                0,
+                LEDGER_LIMITS.maxUriLength
+              ),
               uploadedAt: Number(rec.uploadedAt) || Date.now(),
               isPrimary: Boolean(rec.isPrimary),
             }))
         : [],
-      attachedUrls: dedupeIds(obj.attachedUrls).slice(0, LEDGER_LIMITS.maxItems),
+      attachedUrls: dedupeIds(
+        (Array.isArray(obj.attachedUrls) ? obj.attachedUrls : [])
+          .map((u: any) => normalizeImageUrl(String(u)) || String(u).trim())
+          .filter(Boolean)
+      ).slice(0, LEDGER_LIMITS.maxItems),
       deletedImageIds: dedupeIds(obj.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         obj.failedOperations && typeof obj.failedOperations === 'object'
@@ -397,7 +404,36 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
                     error: sanitizeErrorMessage(op.error),
                     attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
                     lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
-                    meta: op.meta && typeof op.meta === 'object' ? op.meta : undefined,
+                    meta:
+                      op.meta && typeof op.meta === 'object'
+                        ? (() => {
+                            const safeMeta: Record<string, unknown> = {}
+                            if (typeof op.meta.localUri === 'string') {
+                              safeMeta.localUri = op.meta.localUri.slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.remoteUrl === 'string') {
+                              safeMeta.remoteUrl = (
+                                normalizeImageUrl(op.meta.remoteUrl) || op.meta.remoteUrl
+                              ).slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.imageId === 'string') {
+                              safeMeta.imageId = String(op.meta.imageId).slice(
+                                0,
+                                LEDGER_LIMITS.maxListingIdLength
+                              )
+                            }
+                            if (typeof op.meta.listingId === 'string') {
+                              safeMeta.listingId = String(op.meta.listingId).slice(
+                                0,
+                                LEDGER_LIMITS.maxListingIdLength
+                              )
+                            }
+                            if (typeof op.meta.isPrimary === 'boolean') {
+                              safeMeta.isPrimary = op.meta.isPrimary
+                            }
+                            return safeMeta
+                          })()
+                        : undefined,
                   },
                 ])
             )
