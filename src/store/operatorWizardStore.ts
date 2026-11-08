@@ -78,6 +78,13 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
         set((state) => {
           const updatedErrors = { ...state.errors }
           delete updatedErrors[key as string]
+          if (
+            (key === 'dailyRate' || key === 'hourlyRate') &&
+            (updatedErrors.dailyRate?.includes('على الأقل') || updatedErrors.hourlyRate?.includes('على الأقل'))
+          ) {
+            delete updatedErrors.dailyRate
+            delete updatedErrors.hourlyRate
+          }
           return {
             formData: { ...state.formData, [key]: value },
             errors: updatedErrors,

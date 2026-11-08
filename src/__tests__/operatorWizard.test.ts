@@ -140,29 +140,60 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
   })
 
   // ── 3. Step 3: Rates, Location & Contact ────────────────────────────────
-  describe('Step 3: Rates, Location & Contact Validation', () => {
-    it('should pass with valid rates, location IDs, and contact info', () => {
+  describe('Step 3: Rates, Location & Contact Validation (D-226 Single Valid Price)', () => {
+    it('should pass with both daily and hourly rates (both valid)', () => {
       const { isValid, errors } = validateOperatorStep(3, baseValidForm)
       expect(isValid).toBe(true)
       expect(Object.keys(errors).length).toBe(0)
     })
 
-    it('should fail if dailyRate is missing or zero', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '' })
-      expect(isValid).toBe(false)
-      expect(errors.dailyRate).toBeDefined()
+    it('should pass with daily rate only when hourly rate is empty (daily only)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '25', hourlyRate: '' })
+      expect(isValid).toBe(true)
+      expect(errors.dailyRate).toBeUndefined()
+      expect(errors.hourlyRate).toBeUndefined()
     })
 
-    it('should fail if dailyRate is zero', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '0' })
-      expect(isValid).toBe(false)
-      expect(errors.dailyRate).toBeDefined()
+    it('should pass with hourly rate only when daily rate is empty (hourly only)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '', hourlyRate: '5' })
+      expect(isValid).toBe(true)
+      expect(errors.dailyRate).toBeUndefined()
+      expect(errors.hourlyRate).toBeUndefined()
     })
 
-    it('should fail if hourlyRate is missing or zero', () => {
-      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, hourlyRate: '' })
+    it('should fail when neither daily nor hourly rate is provided (neither)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '', hourlyRate: '' })
       expect(isValid).toBe(false)
-      expect(errors.hourlyRate).toBeDefined()
+      expect(errors.dailyRate).toBe('يجب تحديد الأجر اليومي أو بالساعة على الأقل')
+      expect(errors.hourlyRate).toBe('يجب تحديد الأجر بالساعة أو اليومي على الأقل')
+    })
+
+    it('should fail when daily is valid but hourly is invalid zero (one valid + one invalid)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '25', hourlyRate: '0' })
+      expect(isValid).toBe(false)
+      expect(errors.hourlyRate).toBe('الأجر بالساعة يجب أن يكون رقماً أكبر من صفر')
+      expect(errors.dailyRate).toBeUndefined()
+    })
+
+    it('should fail when daily is valid but hourly is invalid NaN (one valid + one invalid)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '25', hourlyRate: 'abc' })
+      expect(isValid).toBe(false)
+      expect(errors.hourlyRate).toBe('الأجر بالساعة يجب أن يكون رقماً أكبر من صفر')
+      expect(errors.dailyRate).toBeUndefined()
+    })
+
+    it('should fail when hourly is valid but daily is invalid zero (one valid + one invalid)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '0', hourlyRate: '5' })
+      expect(isValid).toBe(false)
+      expect(errors.dailyRate).toBe('الأجر اليومي يجب أن يكون رقماً أكبر من صفر')
+      expect(errors.hourlyRate).toBeUndefined()
+    })
+
+    it('should fail when hourly is valid but daily is invalid negative (one valid + one invalid)', () => {
+      const { isValid, errors } = validateOperatorStep(3, { ...baseValidForm, dailyRate: '-15', hourlyRate: '5' })
+      expect(isValid).toBe(false)
+      expect(errors.dailyRate).toBe('الأجر اليومي يجب أن يكون رقماً أكبر من صفر')
+      expect(errors.hourlyRate).toBeUndefined()
     })
 
     it('should fail if governorateId is missing (strict ID check, not string)', () => {
@@ -244,6 +275,36 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(hookResult.errors.city).toBe('يرجى اختيار المدينة / الولاية')
     })
 
+    it('store validateStep matches hook for single valid dailyRate and single valid hourlyRate', () => {
+      const { useOperatorWizardStore } = require('../store/operatorWizardStore')
+
+      // Daily only
+      useOperatorWizardStore.getState().setFormData({ ...baseValidForm, dailyRate: '30', hourlyRate: '' })
+      const dailyValid = useOperatorWizardStore.getState().validateStep(3)
+      expect(dailyValid).toBe(true)
+      expect(useOperatorWizardStore.getState().errors.dailyRate).toBeUndefined()
+      expect(useOperatorWizardStore.getState().errors.hourlyRate).toBeUndefined()
+
+      // Hourly only
+      useOperatorWizardStore.getState().setFormData({ ...baseValidForm, dailyRate: '', hourlyRate: '7' })
+      const hourlyValid = useOperatorWizardStore.getState().validateStep(3)
+      expect(hourlyValid).toBe(true)
+      expect(useOperatorWizardStore.getState().errors.dailyRate).toBeUndefined()
+      expect(useOperatorWizardStore.getState().errors.hourlyRate).toBeUndefined()
+
+      // Neither -> errors on both
+      useOperatorWizardStore.getState().setFormData({ ...baseValidForm, dailyRate: '', hourlyRate: '' })
+      const neitherValid = useOperatorWizardStore.getState().validateStep(3)
+      expect(neitherValid).toBe(false)
+      expect(useOperatorWizardStore.getState().errors.dailyRate).toBe('يجب تحديد الأجر اليومي أو بالساعة على الأقل')
+      expect(useOperatorWizardStore.getState().errors.hourlyRate).toBe('يجب تحديد الأجر بالساعة أو اليومي على الأقل')
+
+      // Typing dailyRate clears both mutual errors
+      useOperatorWizardStore.getState().setFormField('dailyRate', '40')
+      expect(useOperatorWizardStore.getState().errors.dailyRate).toBeUndefined()
+      expect(useOperatorWizardStore.getState().errors.hourlyRate).toBeUndefined()
+    })
+
 
   })
 
@@ -285,6 +346,24 @@ describe('Operators Wizard (Add & Edit Tests)', () => {
       expect(payload.whatsappEnabled).toBe(true)
       expect(payload).not.toHaveProperty('contactPhone')
       expect(payload).not.toHaveProperty('whatsapp')
+    })
+
+    it('should build payload with only dailyRate when hourlyRate is empty or whitespace (no 0 or NaN)', () => {
+      const payload = buildOperatorPayload({ ...baseValidForm, dailyRate: '35', hourlyRate: '' })
+      expect(payload.dailyRate).toBe(35)
+      expect(payload.hourlyRate).toBeUndefined()
+    })
+
+    it('should build payload with only hourlyRate when dailyRate is empty or whitespace (no 0 or NaN)', () => {
+      const payload = buildOperatorPayload({ ...baseValidForm, dailyRate: '  ', hourlyRate: '8' })
+      expect(payload.dailyRate).toBeUndefined()
+      expect(payload.hourlyRate).toBe(8)
+    })
+
+    it('should never send 0 or NaN for omitted or zero rates', () => {
+      const payload = buildOperatorPayload({ ...baseValidForm, dailyRate: '0', hourlyRate: 'invalid' })
+      expect(payload.dailyRate).toBeUndefined()
+      expect(payload.hourlyRate).toBeUndefined()
     })
   })
 })

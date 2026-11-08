@@ -33,12 +33,30 @@ export function validateOperatorStep(step: number, formData: Partial<OperatorWiz
       errors.certifications = 'يرجى إرفاق صورة الرخصة / شهادة الكفاءة أو كتابتها نصياً'
     }
   } else if (step === 3) {
-    if (!formData.dailyRate || isNaN(Number(formData.dailyRate)) || Number(formData.dailyRate) <= 0) {
-      errors.dailyRate = 'الأجر اليومي الاسترشادي مطلوب'
+    const rawDaily = formData.dailyRate != null ? String(formData.dailyRate).trim() : ''
+    const rawHourly = formData.hourlyRate != null ? String(formData.hourlyRate).trim() : ''
+
+    const hasDaily = rawDaily.length > 0
+    const hasHourly = rawHourly.length > 0
+
+    if (!hasDaily && !hasHourly) {
+      errors.dailyRate = 'يجب تحديد الأجر اليومي أو بالساعة على الأقل'
+      errors.hourlyRate = 'يجب تحديد الأجر بالساعة أو اليومي على الأقل'
+    } else {
+      if (hasDaily) {
+        const numDaily = Number(rawDaily)
+        if (isNaN(numDaily) || numDaily <= 0) {
+          errors.dailyRate = 'الأجر اليومي يجب أن يكون رقماً أكبر من صفر'
+        }
+      }
+      if (hasHourly) {
+        const numHourly = Number(rawHourly)
+        if (isNaN(numHourly) || numHourly <= 0) {
+          errors.hourlyRate = 'الأجر بالساعة يجب أن يكون رقماً أكبر من صفر'
+        }
+      }
     }
-    if (!formData.hourlyRate || isNaN(Number(formData.hourlyRate)) || Number(formData.hourlyRate) <= 0) {
-      errors.hourlyRate = 'الأجر بالساعة مطلوب'
-    }
+
     if (!formData.governorateId) {
       errors.governorate = 'يرجى اختيار المحافظة'
       errors.governorateId = 'يرجى اختيار المحافظة'
