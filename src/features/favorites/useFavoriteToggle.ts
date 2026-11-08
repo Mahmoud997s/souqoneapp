@@ -7,6 +7,7 @@ import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 import { favoriteKey } from './favoriteEntityTypes'
 import { useFavoriteIds, FAVORITE_IDS_QUERY_KEY } from './useFavoriteIds'
+import { getDetailErrorKind, getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
 
 export interface UseFavoriteToggleOptions {
   /** The path to redirect guests to after login. Defaults to `/listings/${id}`. */
@@ -165,12 +166,17 @@ export function useFavoriteToggle(
             })
           }
         })
-        .catch(() => {
+        .catch((err) => {
           if (requestKeyRef.current !== activeKey) return
           // Restore prevIds on failure
           isFavoriteRef.current = prevFav
           queryClient.setQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY, prevIds)
-          dialogService.alert('خطأ', 'تعذّر تحديث المفضلة، حاول مرة أخرى')
+          const kind = getDetailErrorKind(err)
+          if (kind === 'canceled') {
+            return
+          }
+          const message = getMutationErrorMessage(err, 'تعذّر تحديث المفضلة، حاول مرة أخرى')
+          dialogService.alert('خطأ', message)
         })
         .finally(() => {
           inFlightKeys.delete(activeKey)

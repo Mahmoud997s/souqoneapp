@@ -54,4 +54,28 @@ describe('getListErrorProps', () => {
     expect(props.iconColor).toBe(Colors.error)
     expect(props.actionLabel).toBe('إعادة المحاولة')
   })
+
+  it('safely maps new classified kinds (unauthorized, conflict, validation, rateLimited) to fallback with preserved kind', () => {
+    const statusCodes = [400, 401, 403, 409, 429]
+    for (const status of statusCodes) {
+      const error = new axios.AxiosError(
+        'Request failed',
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          status,
+          statusText: 'Error',
+          data: {},
+          headers: {},
+          config: {} as any,
+        }
+      )
+      const props = getListErrorProps(error)
+      expect(props.title).toBe('تعذر تحميل البيانات')
+      expect(props.icon).toBe('alert-circle-outline')
+      expect(props.iconColor).toBe(Colors.error)
+      expect(props.actionLabel).toBe('إعادة المحاولة')
+    }
+  })
 })

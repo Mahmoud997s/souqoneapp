@@ -232,6 +232,88 @@ describe('useFavoriteToggle (Feature Module)', () => {
     expect(useToastStore.getState().current).toBeNull()
   })
 
+  it('rolls back state and displays session expired copy on 401 unauthorized', async () => {
+    const error401 = new Error('Unauthorized') as any
+    error401.isAxiosError = true
+    error401.response = { status: 401, data: { message: 'Unauthorized' } }
+
+    ;(favoritesApi.add as jest.Mock).mockRejectedValueOnce(error401)
+
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <TestToggleHarness initialIsFavorite={false} />
+      </QueryClientProvider>
+    )
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('fav-btn'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+      expect(screen.getByText('IDLE')).toBeTruthy()
+    })
+
+    expect(dialogService.alert).toHaveBeenCalledWith(
+      'خطأ',
+      expect.stringContaining('انتهت صلاحية الجلسة')
+    )
+  })
+
+  it('rolls back state and stays completely silent (no alert) on request cancellation', async () => {
+    const cancelErr = new Error('canceled') as any
+    cancelErr.isAxiosError = true
+    cancelErr.code = 'ERR_CANCELED'
+
+    ;(favoritesApi.add as jest.Mock).mockRejectedValueOnce(cancelErr)
+
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <TestToggleHarness initialIsFavorite={false} />
+      </QueryClientProvider>
+    )
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('fav-btn'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+      expect(screen.getByText('IDLE')).toBeTruthy()
+    })
+
+    // Silent in UI - no alert called
+    expect(dialogService.alert).not.toHaveBeenCalled()
+  })
+
+  it('rolls back state and displays backend Arabic message on 400 validation', async () => {
+    const error400 = new Error('Bad Request') as any
+    error400.isAxiosError = true
+    error400.response = { status: 400, data: { message: 'لا يمكن إضافة إعلان محذوف إلى المفضلة' } }
+
+    ;(favoritesApi.add as jest.Mock).mockRejectedValueOnce(error400)
+
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <TestToggleHarness initialIsFavorite={false} />
+      </QueryClientProvider>
+    )
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('fav-btn'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('UNFAVORITED')).toBeTruthy()
+      expect(screen.getByText('IDLE')).toBeTruthy()
+    })
+
+    expect(dialogService.alert).toHaveBeenCalledWith(
+      'خطأ',
+      'لا يمكن إضافة إعلان محذوف إلى المفضلة'
+    )
+  })
+
   it('ignores duplicate presses while in-flight', async () => {
     let resolveAdd: (val: any) => void = () => {}
     ;(favoritesApi.add as jest.Mock).mockReturnValue(

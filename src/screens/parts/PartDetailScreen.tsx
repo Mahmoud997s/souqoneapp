@@ -49,7 +49,7 @@ import { LocationCard } from '../../components/listing-detail/LocationCard'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
-import { DetailStates } from '../../components/listing-detail/DetailStates'
+import { DetailStates, DetailStateKind } from '../../components/listing-detail/DetailStates'
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
 import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
@@ -278,14 +278,14 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
   // Non-ready states render DetailStates directly
   if (state !== 'ready' || !vm) {
     const errorKind = getDetailErrorKind(error)
-    const kind =
+    const kind: DetailStateKind =
       state === 'loading'
         ? 'loading'
         : state === 'notFound' || errorKind === 'notFound'
         ? 'notFound'
-        : errorKind === 'unknown'
-        ? 'error'
-        : errorKind
+        : errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError'
+        ? errorKind
+        : 'error'
 
     return (
       <View style={s.rootContainer}>
