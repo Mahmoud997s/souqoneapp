@@ -215,7 +215,7 @@ describe('Services Edit Flow (Phase 5)', () => {
       expect(router.back).toHaveBeenCalled()
     })
 
-    it('handles delete error gracefully and displays error alert without crashing', async () => {
+    it('handles delete error gracefully and displays unified Arabic fallback alert without crashing', async () => {
       ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce(new Error('Network error on delete'))
 
       await render(<ServiceDetailScreen />)
@@ -226,7 +226,7 @@ describe('Services Edit Flow (Phase 5)', () => {
       })
 
       expect(servicesApi.remove).toHaveBeenCalledWith('srv-999')
-      expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'Network error on delete', 'error')
+      expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'فشل حذف الإعلان', 'error')
     })
   })
 
