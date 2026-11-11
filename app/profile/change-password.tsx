@@ -17,6 +17,12 @@ import { dialogService } from '../../src/store/dialogStore'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
 import { PasswordRequirements } from '../../src/components/profile/PasswordRequirements'
+import {
+  validateChangePasswordInput,
+  hasChangePasswordErrors,
+  mapChangePasswordBackendErrors,
+  ChangePasswordFieldErrors,
+} from '../../src/utils/changePasswordErrors'
 
 export default function ChangePasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -29,21 +35,22 @@ export default function ChangePasswordScreen() {
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
+  const [fieldErrors, setFieldErrors] = useState<ChangePasswordFieldErrors>({})
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return dialogService.alert('تنبيه', 'يرجى ملء جميع الحقول')
+    const localErrors = validateChangePasswordInput({
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    })
+
+    if (hasChangePasswordErrors(localErrors)) {
+      setFieldErrors(localErrors)
+      return
     }
-    if (newPassword !== confirmPassword) {
-      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة غير متطابقة مع التأكيد')
-    }
-    if (newPassword.length < 8) {
-      return dialogService.alert('تنبيه', 'كلمة المرور الجديدة يجب أن تكون ٨ أحرف على الأقل')
-    }
-    if (!/[A-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
-      return dialogService.alert('تنبيه', 'كلمة المرور يجب أن تحتوي على حرف كبير ورقم على الأقل')
-    }
+
+    setFieldErrors({})
 
     try {
       setLoading(true)
@@ -55,9 +62,14 @@ export default function ChangePasswordScreen() {
 
       dialogService.alert('نجاح', 'تم تغيير كلمة المرور بنجاح!', 'success')
       router.back()
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'كلمة المرور الحالية غير صحيحة أو حدث خطأ'
-      dialogService.alert('خطأ', typeof msg === 'string' ? msg : Array.isArray(msg) ? msg[0] : 'حدث خطأ')
+    } catch (err: unknown) {
+      const { fieldErrors: backendErrors, generalMessage } = mapChangePasswordBackendErrors(err)
+      if (hasChangePasswordErrors(backendErrors)) {
+        setFieldErrors(backendErrors)
+      }
+      if (generalMessage) {
+        dialogService.alert('خطأ', generalMessage)
+      }
     } finally {
       setLoading(false)
     }
@@ -106,7 +118,14 @@ export default function ChangePasswordScreen() {
                 label="كلمة المرور الحالية"
                 placeholder="أدخل كلمة المرور الحالية"
                 value={currentPassword}
-                onChangeText={setCurrentPassword}
+                onChangeText={(val) => {
+                  setCurrentPassword(val)
+                  if (fieldErrors.currentPassword) {
+                    setFieldErrors((prev) => ({ ...prev, currentPassword: undefined }))
+                  }
+                }}
+                error={fieldErrors.currentPassword}
+                testID="change-password-current-input"
                 iconRight="lock-closed-outline"
                 iconLeft={showCurrent ? "eye-off-outline" : "eye-outline"}
                 onIconLeftPress={() => setShowCurrent(!showCurrent)}
@@ -118,7 +137,14 @@ export default function ChangePasswordScreen() {
                 label="كلمة المرور الجديدة"
                 placeholder="أدخل كلمة المرور الجديدة"
                 value={newPassword}
-                onChangeText={setNewPassword}
+                onChangeText={(val) => {
+                  setNewPassword(val)
+                  if (fieldErrors.newPassword) {
+                    setFieldErrors((prev) => ({ ...prev, newPassword: undefined }))
+                  }
+                }}
+                error={fieldErrors.newPassword}
+                testID="change-password-new-input"
                 iconRight="lock-closed-outline"
                 iconLeft={showNew ? "eye-off-outline" : "eye-outline"}
                 onIconLeftPress={() => setShowNew(!showNew)}
@@ -136,7 +162,14 @@ export default function ChangePasswordScreen() {
                 label="تأكيد كلمة المرور الجديدة"
                 placeholder="أعد كتابة كلمة المرور الجديدة"
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(val) => {
+                  setConfirmPassword(val)
+                  if (fieldErrors.confirmPassword) {
+                    setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+                  }
+                }}
+                error={fieldErrors.confirmPassword}
+                testID="change-password-confirm-input"
                 iconRight="lock-closed-outline"
                 iconLeft={showConfirm ? "eye-off-outline" : "eye-outline"}
                 onIconLeftPress={() => setShowConfirm(!showConfirm)}
@@ -152,6 +185,7 @@ export default function ChangePasswordScreen() {
             title="حفظ التغييرات"
             onPress={handleSave}
             loading={loading}
+            testID="change-password-submit-button"
           />
         </View>
       </View>

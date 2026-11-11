@@ -15,6 +15,7 @@ import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { MyListingCardDispatcher } from './MyListingCardDispatcher'
 import { useGlassSupport } from '../../navigation/glassSupport'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 
 export interface MyListingsCategoryViewProps {
   data: MyListingItem[]
@@ -114,7 +115,17 @@ export function MyListingsCategoryView({
       {...BROWSE_LIST_VIRTUALIZATION_PROPS}
       onScroll={onScroll}
       scrollEventThrottle={16}
-      ListHeaderComponent={header}
+      ListHeaderComponent={
+        <>
+          {header}
+          {isError && data.length > 0 && (
+            <StaleDataBanner
+              onRetry={onRefresh}
+              isRefetching={isRefreshing}
+            />
+          )}
+        </>
+      }
       data={data}
       keyExtractor={keyExtractor}
       contentContainerStyle={[s.list, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
