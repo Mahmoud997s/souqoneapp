@@ -6,6 +6,8 @@ import { dialogService } from '../../store/dialogStore'
 import { servicesApi } from '../../api/services'
 import { WORKING_DAYS_AR } from '../../constants/services'
 import { router } from 'expo-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import * as serviceQueryKeysModule from '../../screens/services/hooks/serviceQueryKeys'
 
 jest.mock('expo-router', () => ({
   router: {
@@ -37,10 +39,13 @@ jest.mock('@expo/vector-icons', () => ({
 
 import { useAuthStore } from '../../store/authStore'
 
+const mockQueryClient = new (jest.requireActual('@tanstack/react-query').QueryClient)()
+
 jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query')
   return {
     ...actual,
+    useQueryClient: () => mockQueryClient,
     useMutation: ({ mutationFn }: any) => ({
       mutate: jest.fn((data, options) => {
         mutationFn(data)
@@ -75,8 +80,13 @@ jest.mock('../../store/dialogStore', () => ({
 }))
 
 describe('NewServiceListingScreen (Wizard Route)', () => {
+  let invalidateSpy: jest.SpyInstance
+
   beforeEach(() => {
     jest.clearAllMocks()
+    invalidateSpy = jest
+      .spyOn(serviceQueryKeysModule, 'invalidateServiceListingQueries')
+      .mockResolvedValue(undefined)
     useAuthStore.setState({ user: { id: 'u1', phone: '+96891234567' } as any })
     useServiceWizardStore.setState({
       currentStep: 1,
@@ -85,6 +95,7 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
   })
 
   afterEach(() => {
+    invalidateSpy.mockRestore()
     cleanup()
   })
 
@@ -188,6 +199,7 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
         workingHoursClose: undefined,
       })
     )
+    expect(invalidateSpy).toHaveBeenCalledWith(mockQueryClient, 'srv-123')
   })
 
   it('submits valid payload preserving chosen workingDays and hours when user specifies schedule', async () => {
@@ -352,5 +364,6 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
         workingHoursClose: '18:00',
       })
     )
+    expect(invalidateSpy).toHaveBeenCalledWith(mockQueryClient, 'srv-123')
   })
 })

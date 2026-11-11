@@ -2,15 +2,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { servicesApi } from '../api/services'
 import { mapServiceToCard } from '../utils/mappers'
 import { UnifiedCardItem } from '../types/unified-card.types'
+import { parseListEnvelope } from '../utils/parseListEnvelope'
 
 export function useServices(params?: Record<string, unknown>, options?: any) {
   return useQuery<UnifiedCardItem[]>({
     queryKey: ['services', params],
     queryFn: async () => {
       const res = await servicesApi.getAll(params)
-      const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data
-      const arr = Array.isArray(raw) ? raw : []
-      return arr.map(mapServiceToCard)
+      const { items } = parseListEnvelope(res.data)
+      return items.map(mapServiceToCard)
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
