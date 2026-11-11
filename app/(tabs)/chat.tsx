@@ -29,6 +29,9 @@ import { ChatFilterTabs, ChatFilterTabType } from '../../src/components/chat/Cha
 import { ChatItemCard } from '../../src/components/chat/ChatItemCard'
 import { ChatListSkeleton } from '../../src/components/chat/ChatListSkeleton'
 import { ChatRoom } from '../../src/types/listing.types'
+import { EmptyState } from '../../src/components/ui/EmptyState'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets()
@@ -37,7 +40,15 @@ export default function ChatListScreen() {
   const FILTER_BAR_HEIGHT = 44
 
   const { user } = useAuthStore()
-  const { data: rooms, isLoading, refetch } = useChatRooms()
+  const {
+    data: rooms,
+    isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
+  } = useChatRooms()
   const { scrollHandler, scrollY } = useScrollAwareNav()
   const { navHidden } = useNavVisibility()
 
@@ -257,6 +268,24 @@ export default function ChatListScreen() {
       return <ChatListSkeleton />
     }
 
+    const allRoomsCount = (rooms as ChatRoom[] | undefined)?.length ?? 0
+    if (isError && allRoomsCount === 0) {
+      const errorProps = getListErrorProps(error, 'تعذر تحميل المحادثات')
+      return (
+        <View style={styles.errorStateWrapper} testID="chat-list-error-state">
+          <EmptyState
+            icon={errorProps.icon}
+            iconColor={errorProps.iconColor}
+            title={errorProps.title}
+            subtitle={errorProps.subtitle}
+            actionLabel={errorProps.actionLabel}
+            onAction={() => refetch()}
+            testID="chat-list-empty-state-error"
+          />
+        </View>
+      )
+    }
+
     return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIconCircle}>
@@ -354,6 +383,13 @@ export default function ChatListScreen() {
         renderItem={renderItem}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        ListHeaderComponent={
+          (isError || isRefetchError) && ((rooms as ChatRoom[] | undefined)?.length ?? 0) > 0 ? (
+            <View style={styles.staleBannerWrapper} testID="chat-list-stale-banner">
+              <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={renderEmptyComponent}
         contentContainerStyle={[
           styles.contentContainer,
@@ -362,7 +398,7 @@ export default function ChatListScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
+            refreshing={isRefetching && !isLoading}
             onRefresh={refetch}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
@@ -391,6 +427,14 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 110,
+  },
+  staleBannerWrapper: {
+    paddingHorizontal: Spacing.space4,
+    paddingBottom: Spacing.space3,
+  },
+  errorStateWrapper: {
+    paddingHorizontal: Spacing.space4,
+    paddingTop: Spacing.space4,
   },
   itemWrapper: {
     paddingHorizontal: Spacing.space4,

@@ -21,6 +21,8 @@ import { ChatRoom } from '../../src/types/listing.types'
 import { useChatStore } from '../../src/store/chatStore'
 import { ListingBanner } from '../../src/components/chat/ListingBanner'
 import { ChatSkeleton } from '../../src/components/chat/ChatSkeleton'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
 import { dialogService } from '../../src/store/dialogStore'
 
@@ -54,7 +56,8 @@ export default function ChatRoomScreen() {
   }, [id, setActiveRoomId])
   
   const {
-    messages, isLoading, otherUser, isOtherUserTyping, isOtherUserOnline, msgText,
+    messages, isLoading, isError, error, isRefetchError, isRefetching, refetch,
+    otherUser, isOtherUserTyping, isOtherUserOnline, msgText,
     handleTextChange, handleSend, handleRetry, handleRemoveFailedMessage, handleDeleteMessage, handleReact, activeReactMsgId,
     setActiveReactMsgId, scrollRef, user,
     replyingToMessage, setReplyingToMessage,
@@ -195,6 +198,38 @@ export default function ChatRoomScreen() {
 
       {isLoading && messages.length === 0 ? (
         <ChatSkeleton />
+      ) : isError && messages.length === 0 ? (
+        (() => {
+          const errorProps = getListErrorProps(error, 'تعذر تحميل الرسائل')
+          return (
+            <View style={s.emptyState} testID="chat-room-error-state">
+              <View style={[s.emptyIconCircle, { backgroundColor: '#FEF2F2' }]}>
+                <Ionicons
+                  name={errorProps.icon as keyof typeof Ionicons.glyphMap}
+                  size={40}
+                  color={errorProps.iconColor}
+                />
+              </View>
+              <Text style={s.emptyTitle}>{errorProps.title}</Text>
+              <Text style={s.emptySub}>{errorProps.subtitle}</Text>
+              <TouchableOpacity
+                style={s.retryBtn}
+                onPress={() => refetch()}
+                disabled={isRefetching}
+                activeOpacity={0.8}
+                testID="chat-room-retry-btn"
+                accessibilityRole="button"
+                accessibilityLabel={errorProps.actionLabel}
+              >
+                {isRefetching ? (
+                  <ActivityIndicator size="small" color={Colors.white} />
+                ) : (
+                  <Text style={s.retryBtnText}>{errorProps.actionLabel}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )
+        })()
       ) : messages.length === 0 ? (
         <View style={s.emptyState}>
           <View style={s.emptyIconCircle}>
@@ -204,7 +239,13 @@ export default function ChatRoomScreen() {
           <Text style={s.emptySub}>ابدأ المحادثة الآن بكلمة طيبة!</Text>
         </View>
       ) : (
-        <FlashList
+        <>
+          {(isError || isRefetchError) && messages.length > 0 ? (
+            <View style={s.staleWrap} testID="chat-room-stale-banner">
+              <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
+            </View>
+          ) : null}
+          <FlashList
           ref={scrollRef as any}
           data={reversedMessages}
           keyExtractor={(item) => item.id}
@@ -255,6 +296,7 @@ export default function ChatRoomScreen() {
             )
           }}
         />
+        </>
       )}
 
       <KeyboardAvoidingView
@@ -356,5 +398,26 @@ const s = StyleSheet.create({
   inputContainer: {
     backgroundColor: Colors.white,
     paddingTop: 4,
+  },
+  staleWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  retryBtn: {
+    marginTop: 16,
+    minHeight: 44,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.white,
   },
 })
