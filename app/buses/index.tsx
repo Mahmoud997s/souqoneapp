@@ -56,19 +56,51 @@ export default function BusesLandingScreen() {
   }, []);
 
   // Stable, cached queries at the screen root (Matching Cars architecture)
-  const { data: newestBuses = [], isLoading: loadingNewest } = useBuses(
+  const {
+    data: newestBuses = [],
+    isLoading: loadingNewest,
+    isError: isNewestError,
+    error: newestError,
+    refetch: refetchNewest,
+    isRefetchError: isNewestRefetchError,
+    isRefetching: isNewestRefetching,
+  } = useBuses(
     { sort: 'newest', limit: 8 },
     { enabled: loadRest }
   );
-  const { data: saleBuses = [], isLoading: loadingSale } = useBuses(
+  const {
+    data: saleBuses = [],
+    isLoading: loadingSale,
+    isError: isSaleError,
+    error: saleError,
+    refetch: refetchSale,
+    isRefetchError: isSaleRefetchError,
+    isRefetching: isSaleRefetching,
+  } = useBuses(
     { busListingType: 'BUS_SALE', limit: 8 },
     { enabled: loadRest }
   );
-  const { data: contractBuses = [], isLoading: loadingContract } = useBuses(
+  const {
+    data: contractBuses = [],
+    isLoading: loadingContract,
+    isError: isContractError,
+    error: contractError,
+    refetch: refetchContract,
+    isRefetchError: isContractRefetchError,
+    isRefetching: isContractRefetching,
+  } = useBuses(
     { busListingType: 'BUS_SALE_WITH_CONTRACT', limit: 8 },
     { enabled: loadRest }
   );
-  const { data: rentBuses = [], isLoading: loadingRent } = useBuses(
+  const {
+    data: rentBuses = [],
+    isLoading: loadingRent,
+    isError: isRentError,
+    error: rentError,
+    refetch: refetchRent,
+    isRefetchError: isRentRefetchError,
+    isRefetching: isRentRefetching,
+  } = useBuses(
     { busListingType: 'BUS_RENT', limit: 8 },
     { enabled: loadRest }
   );
@@ -130,6 +162,11 @@ export default function BusesLandingScreen() {
                 subTitle="تصفح أحدث عروض وإعلانات الحافلات المضافة"
                 data={newestBuses}
                 isLoading={loadingNewest}
+                isError={isNewestError && newestBuses.length === 0}
+                error={newestError}
+                onRetry={refetchNewest}
+                isRefetchError={isNewestRefetchError}
+                isRefetching={isNewestRefetching}
                 emptyText="لا توجد حافلات مضافة حالياً"
                 onSeeAll={handleSeeAllNewest}
                 onPressItem={handlePressBus}
@@ -142,6 +179,9 @@ export default function BusesLandingScreen() {
                   subTitle="إعلانات موثوقة ومختارة بعناية"
                   data={premiumBuses}
                   isLoading={loadingNewest}
+                  onRetry={refetchNewest}
+                  isRefetchError={isNewestRefetchError}
+                  isRefetching={isNewestRefetching}
                   emptyText="لا توجد حافلات مميزة حالياً"
                   onSeeAll={handleSeeAllPremium}
                   onPressItem={handlePressBus}
@@ -154,6 +194,11 @@ export default function BusesLandingScreen() {
                 subTitle="تصفح أفضل عروض بيع الحافلات"
                 data={saleBuses}
                 isLoading={loadingSale}
+                isError={isSaleError && saleBuses.length === 0}
+                error={saleError}
+                onRetry={refetchSale}
+                isRefetchError={isSaleRefetchError}
+                isRefetching={isSaleRefetching}
                 emptyText="لا توجد حافلات للبيع حالياً"
                 onSeeAll={handleSeeAllSale}
                 onPressItem={handlePressBus}
@@ -165,6 +210,11 @@ export default function BusesLandingScreen() {
                 subTitle="حافلات مع عقود تشغيل قائمة ومضمونة"
                 data={contractBuses}
                 isLoading={loadingContract}
+                isError={isContractError && contractBuses.length === 0}
+                error={contractError}
+                onRetry={refetchContract}
+                isRefetchError={isContractRefetchError}
+                isRefetching={isContractRefetching}
                 emptyText="لا توجد حافلات للبيع بعقد حالياً"
                 onSeeAll={handleSeeAllContract}
                 onPressItem={handlePressBus}
@@ -176,6 +226,11 @@ export default function BusesLandingScreen() {
                 subTitle="خيارات تأجير مرنة ومتنوعة"
                 data={rentBuses}
                 isLoading={loadingRent}
+                isError={isRentError && rentBuses.length === 0}
+                error={rentError}
+                onRetry={refetchRent}
+                isRefetchError={isRentRefetchError}
+                isRefetching={isRentRefetching}
                 emptyText="لا توجد حافلات للإيجار حالياً"
                 onSeeAll={handleSeeAllRent}
                 onPressItem={handlePressBus}
