@@ -30,7 +30,6 @@ import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { useBusWizardStore } from '../../store/busWizardStore'
 import { dialogService } from '../../store/dialogStore'
 
 // Hooks & Utilities
@@ -48,7 +47,6 @@ import {
   useBusSimilarListings,
   type SimilarBusItem,
 } from '../../hooks/listing-detail/useBusSimilarListings'
-import { busListingToFormData } from '../../utils/listing-detail/busListingToFormData'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
 import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
@@ -224,10 +222,9 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
-      if (raw) {
-        const formData = busListingToFormData(raw)
-        useBusWizardStore.getState().setEditMode(raw.id, formData, raw.version)
-        router.push('/buses/new' as any)
+      const targetId = raw?.id ?? id
+      if (targetId) {
+        router.push(`/buses/edit/${targetId}` as any)
       }
       return
     }
