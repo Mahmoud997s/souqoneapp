@@ -8,6 +8,8 @@ import { Listing } from '../../types/listing.types'
 import { SkeletonCard } from '../ui/SkeletonCard'
 import { CarCard } from './CarCard'
 import { EmptyState } from '../ui/EmptyState'
+import { StaleDataBanner } from '../listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../utils/getListErrorProps'
 import { CardSystem } from '../../constants/cardSystem'
 import { type GlassSupport } from '../navigation/glassSupport'
 import {
@@ -18,11 +20,16 @@ import {
 } from '../../constants/peekCarousel'
 import { HorizontalScrollCard } from '../ui/HorizontalScrollCard'
 
-interface CarHorizontalListProps {
+export interface CarHorizontalListProps {
   title: string
   subTitle: string
   data: Listing[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
+  onRetry?: () => void
+  isRefetchError?: boolean
+  isRefetching?: boolean
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: Listing) => void
@@ -36,11 +43,18 @@ export const CarHorizontalList = memo(function CarHorizontalList({
   subTitle,
   data,
   isLoading,
+  isError,
+  error,
+  onRetry,
+  isRefetchError,
+  isRefetching,
   emptyText,
   onSeeAll,
   onPressItem,
   glassSupport,
 }: CarHorizontalListProps) {
+  const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل السيارات') : null
+  const showStaleBanner = data.length > 0 && Boolean(isRefetchError || isError)
   const renderLoadedItem = useCallback(
     ({ item }: { item: Listing }) => (
       <View style={{ width: CARD_WIDTH }}>
@@ -97,6 +111,14 @@ export const CarHorizontalList = memo(function CarHorizontalList({
         </View>
       ) : data.length > 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
+          {showStaleBanner && (
+            <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
+              <StaleDataBanner
+                onRetry={onRetry}
+                isRefetching={isRefetching}
+              />
+            </View>
+          )}
           <HorizontalScrollCard
             key="loaded-cards"
             data={data}
@@ -114,6 +136,26 @@ export const CarHorizontalList = memo(function CarHorizontalList({
             renderItem={renderLoadedItem}
           />
         </View>
+      ) : isError ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={{ paddingHorizontal: Spacing.space5, gap: Spacing.space3, paddingVertical: 4, alignItems: 'flex-start' }}
+        >
+          <View style={s.emptyCard}>
+            <EmptyState
+              testID="cars-horizontal-error-state"
+              icon={errorProps?.icon ?? 'alert-circle-outline'}
+              iconColor={errorProps?.iconColor ?? Colors.error}
+              title={errorProps?.title ?? 'تعذر تحميل السيارات'}
+              subtitle={errorProps?.subtitle ?? 'حدث خطأ أثناء تحميل البيانات، يرجى المحاولة مرة أخرى.'}
+              actionLabel={onRetry ? (errorProps?.actionLabel ?? 'إعادة المحاولة') : undefined}
+              onAction={onRetry}
+              compact
+            />
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           horizontal

@@ -57,9 +57,33 @@ export default function CarsLandingScreen() {
     };
   }, []);
 
-  const { data: saleCars = [], isLoading: loadingSale } = useCarListings({ listingType: 'SALE', limit: 10 }, { enabled: loadRest });
-  const { data: rentCars = [], isLoading: loadingRent } = useCarListings({ listingType: 'RENTAL', limit: 10 }, { enabled: loadRest });
-  const { data: wantedCars = [], isLoading: loadingWanted } = useCarListings({ listingType: 'WANTED', limit: 10 }, { enabled: loadRest });
+  const {
+    data: saleCars = [],
+    isLoading: loadingSale,
+    isError: isSaleError,
+    error: saleError,
+    refetch: refetchSale,
+    isRefetchError: isSaleRefetchError,
+    isRefetching: isSaleRefetching,
+  } = useCarListings({ listingType: 'SALE', limit: 10 }, { enabled: loadRest });
+  const {
+    data: rentCars = [],
+    isLoading: loadingRent,
+    isError: isRentError,
+    error: rentError,
+    refetch: refetchRent,
+    isRefetchError: isRentRefetchError,
+    isRefetching: isRentRefetching,
+  } = useCarListings({ listingType: 'RENTAL', limit: 10 }, { enabled: loadRest });
+  const {
+    data: wantedCars = [],
+    isLoading: loadingWanted,
+    isError: isWantedError,
+    error: wantedError,
+    refetch: refetchWanted,
+    isRefetchError: isWantedRefetchError,
+    isRefetching: isWantedRefetching,
+  } = useCarListings({ listingType: 'WANTED', limit: 10 }, { enabled: loadRest });
 
   return (
     <View style={s.root}>
@@ -112,6 +136,11 @@ export default function CarsLandingScreen() {
                 subTitle="تصفح أحدث عروض البيع"
                 data={saleCars}
                 isLoading={loadingSale}
+                isError={isSaleError}
+                error={saleError}
+                onRetry={() => refetchSale()}
+                isRefetchError={isSaleRefetchError}
+                isRefetching={isSaleRefetching}
                 emptyText="لا توجد سيارات للبيع حالياً"
                 onSeeAll={handleSeeAllSale}
                 onPressItem={handlePressCar}
@@ -123,6 +152,11 @@ export default function CarsLandingScreen() {
                 subTitle="خيارات تأجير مرنة ومتنوعة"
                 data={rentCars}
                 isLoading={loadingRent}
+                isError={isRentError}
+                error={rentError}
+                onRetry={() => refetchRent()}
+                isRefetchError={isRentRefetchError}
+                isRefetching={isRentRefetching}
                 emptyText="لا توجد سيارات للإيجار حالياً"
                 onSeeAll={handleSeeAllRent}
                 onPressItem={handlePressCar}
@@ -134,6 +168,11 @@ export default function CarsLandingScreen() {
                 subTitle="طلبات شراء سيارات من المستخدمين"
                 data={wantedCars}
                 isLoading={loadingWanted}
+                isError={isWantedError}
+                error={wantedError}
+                onRetry={() => refetchWanted()}
+                isRefetchError={isWantedRefetchError}
+                isRefetching={isWantedRefetching}
                 emptyText="لا توجد سيارات مطلوبة حالياً"
                 onSeeAll={handleSeeAllWanted}
                 onPressItem={handlePressCar}

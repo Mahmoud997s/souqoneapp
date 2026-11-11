@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { listingsApi } from '../api/listings'
 import { favoritesApi } from '../api/favorites'
+import { parseListEnvelope } from '../utils/parseListEnvelope'
 import { 
   mapListingToCard, 
   mapServiceToCard,
@@ -13,14 +14,9 @@ export function useListings(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: ['listings', params],
     queryFn: async () => {
-      try {
-        const res = await listingsApi.getAll(params);
-        const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data;
-        const arr = Array.isArray(raw) ? raw : [];
-        return arr.map(mapListingToCard);
-      } catch (err) {
-        throw err;
-      }
+      const res = await listingsApi.getAll(params)
+      const { items } = parseListEnvelope(res.data)
+      return items.map(mapListingToCard)
     },
   })
 }
@@ -41,9 +37,8 @@ export function useMyListings() {
     queryKey: ['my-listings'],
     queryFn: async () => {
       const res = await listingsApi.getMy()
-      const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data
-      const arr = Array.isArray(raw) ? raw : []
-      return arr.map(mapListingToCard)
+      const { items } = parseListEnvelope(res.data)
+      return items.map(mapListingToCard)
     },
   })
 }
@@ -53,8 +48,7 @@ export function useFavorites() {
     queryKey: ['favorites'],
     queryFn: async () => {
       const res = await favoritesApi.getAll()
-      const raw = (res.data as any)?.items ?? (res.data as any)?.data ?? res.data
-      const arr = Array.isArray(raw) ? raw : []
+      const { items: arr } = parseListEnvelope<any>(res.data)
       return arr.map((item: any) => {
         let rawItem;
         let cat;
