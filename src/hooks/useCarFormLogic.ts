@@ -4,6 +4,9 @@ import { dialogService } from '../store/dialogStore'
 import { CarFormData, CarFormField } from '../types/carForm.types'
 import { MAX_CAR_IMAGES } from '../constants/cars'
 import { router } from 'expo-router'
+import { requestPermission, mediaLibraryAdapter } from '../utils/requestPermission'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { useCarWizardStore } from '../store/carWizardStore'
 
 /**
  * Shared form logic hook for car forms (custom features, image handling helpers)
@@ -18,12 +21,13 @@ export function useCarFormLogic(
   // ── Image Management ──
   const handlePickImages = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (!permission.granted) {
-        dialogService.alert(
-          'إذن الوصول مطلوب',
-          'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور السيارة'
-        )
+      const permResult = await requestPermission({
+        ...mediaLibraryAdapter,
+        titleAr: 'إذن الوصول مطلوب',
+        deniedMessageAr: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور السيارة',
+        blockedMessageAr: 'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور السيارة',
+      })
+      if (!permResult.granted) {
         return
       }
 
@@ -48,7 +52,7 @@ export function useCarFormLogic(
         updateField('images', newImages)
       }
     } catch (err) {
-      dialogService.alert('خطأ', 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً'))
     } finally {
       setIsUploading(false)
     }
@@ -64,21 +68,25 @@ export function useCarFormLogic(
 
   const handleRemoveExistingImage = useCallback(
     (idOrUrl: string) => {
-      const updated = (formData.existingImages || []).filter((img: any) => {
+      const currentExisting = useCarWizardStore.getState().formData.existingImages || []
+      const updated = currentExisting.filter((img: any) => {
         const match = (img.id && img.id === idOrUrl) || (img.url && img.url === idOrUrl)
         return !match
       })
       updateField('existingImages', updated)
 
-      // Track removed ID for backend deletion
-      const target = (formData.existingImages || []).find(
+      // Track removed ID for backend deletion without losing previous deletions
+      const target = currentExisting.find(
         (img: any) => img.id === idOrUrl || img.url === idOrUrl
       )
       if (target?.id) {
-        updateField('removedImageIds', [...(formData.removedImageIds || []), target.id])
+        const currentRemoved = useCarWizardStore.getState().formData.removedImageIds || []
+        if (!currentRemoved.includes(target.id)) {
+          updateField('removedImageIds', [...currentRemoved, target.id])
+        }
       }
     },
-    [formData.existingImages, formData.removedImageIds, updateField]
+    [updateField]
   )
 
   // ── Features & Tags ──

@@ -12,7 +12,7 @@ import {
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 
 import { Colors } from '../../src/constants/colors'
@@ -28,13 +28,17 @@ import { useCarWizardStore } from '../../src/store/carWizardStore'
 import { useCarFormLogic } from '../../src/hooks/useCarFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
+import { invalidateCarListingQueries } from '../../src/utils/listing-detail/queryKeys'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
 import { CarStep1Type } from '../../src/components/cars/wizard/CarStep1Type'
 import { CarStep2Images } from '../../src/components/cars/wizard/CarStep2Images'
 import { CarStep3Details } from '../../src/components/cars/wizard/CarStep3Details'
 import { CarStep4Location } from '../../src/components/cars/wizard/CarStep4Location'
 import { CarStep5Review } from '../../src/components/cars/wizard/CarStep5Review'
-import { validateCarStep } from '../../src/hooks/useCarValidation'
+import { validateCarStep, mapCarBackendErrors } from '../../src/hooks/useCarValidation'
 
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
@@ -44,6 +48,13 @@ const TOTAL_STEPS = 5
 export default function NewCarListingScreen() {
   const insets = useSafeAreaInsets()
   const { hasPhone } = useProfilePhoneGuard()
+  const queryClient = useQueryClient()
+
+  const [publishSuccess, setPublishSuccess] = useState<{
+    listingId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   const createMutation = useMutation({
     mutationFn: (data: any) => listingsApi.create(data),
@@ -294,17 +305,15 @@ export default function NewCarListingScreen() {
               logWarn('CarsNew:UpdateImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الإعلان والصور بنجاح', 'success')
-            } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يرجى المحاولة مرة أخرى.',
-                'warning'
-              )
-            }
-            resetForm()
-            router.back()
+            await invalidateCarListingQueries(queryClient, formData.editListingId)
+
+            setPublishSuccess({
+              listingId: formData.editListingId!,
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات السيارة بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يمكنك مراجعتها من شاشة الإعلان.',
+            })
           },
           onError: (err: any) => {
             if (err?.response?.status === 409) {
@@ -325,29 +334,54 @@ export default function NewCarListingScreen() {
                 'إلغاء'
               )
             } else if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+              dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+            } else if (err?.response?.status === 400) {
+              const mapped = mapCarBackendErrors(err?.response?.data)
+              if (Object.keys(mapped.fieldErrors).length > 0) {
+                setErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
+                if (mapped.firstInvalidStep !== null) {
+                  setStep(mapped.firstInvalidStep)
+                }
+                const firstMsg = Object.values(mapped.fieldErrors)[0]
+                dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
+              } else {
+                dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'))
+              }
             } else {
-              const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
-              dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+              dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'))
             }
           },
         }
       )
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => {
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان السيارة بنجاح في سوق ون!')
-          resetForm()
-          router.replace('/')
+        onSuccess: async (res: any) => {
+          const createdId = res?.data?.id || res?.id || ''
+          await invalidateCarListingQueries(queryClient, createdId || undefined)
+          setPublishSuccess({
+            listingId: createdId,
+            isEdit: false,
+          })
         },
         onError: (err: any) => {
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+          } else if (err?.response?.status === 400) {
+            const mapped = mapCarBackendErrors(err?.response?.data)
+            if (Object.keys(mapped.fieldErrors).length > 0) {
+              setErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
+              if (mapped.firstInvalidStep !== null) {
+                setStep(mapped.firstInvalidStep)
+              }
+              const firstMsg = Object.values(mapped.fieldErrors)[0]
+              dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
+            } else {
+              dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'))
+            }
           } else {
-            const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+            dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'))
           }
         },
       })
@@ -366,6 +400,65 @@ export default function NewCarListingScreen() {
           onBack={() => router.back()}
         />
       </>
+    )
+  }
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ التعديلات بنجاح!' : 'تم نشر إعلانك بنجاح!'}
+          subtitle={
+            publishSuccess.isEdit
+              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات السيارة بنجاح في سوق ون.')
+              : 'إعلان سيارتك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          }
+          primaryAction={{
+            label: 'عرض الإعلان',
+            onPress: () => {
+              const targetId = publishSuccess.listingId
+              resetForm()
+              if (targetId) {
+                router.replace(`/cars/${targetId}`)
+              } else {
+                router.replace('/cars')
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة سيارة أخرى',
+            onPress: () => {
+              resetForm()
+              if (publishSuccess.isEdit) {
+                router.back()
+              } else {
+                setPublishSuccess(null)
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          tertiaryAction={{
+            label: 'العودة للرئيسية',
+            onPress: () => {
+              resetForm()
+              router.replace('/')
+            },
+            testID: 'publish-success-tertiary-btn',
+          }}
+          onHardwareBack={() => {
+            resetForm()
+            if (publishSuccess.isEdit) {
+              router.back()
+            } else {
+              router.replace('/')
+            }
+            return true
+          }}
+        />
+      </View>
     )
   }
 
@@ -483,6 +576,7 @@ export default function NewCarListingScreen() {
               />
               <View style={{ flex: 1 }}>
                 <AppButton
+                  testID="car-wizard-submit-btn"
                   title={currentStep === TOTAL_STEPS ? (formData.editMode ? 'حفظ التعديلات' : 'نشر الإعلان الآن') : 'متابعة الخطوة التالية'}
                   size="sm"
                   onPress={handleNext}
