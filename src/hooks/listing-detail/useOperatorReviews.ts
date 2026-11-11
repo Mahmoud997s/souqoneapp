@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { reviewsApi } from '../../api/reviews'
 import { operatorQueryKeys } from '../../utils/listing-detail/operatorQueryKeys'
+import { parseListEnvelope } from '../../utils/parseListEnvelope'
 
 export interface OperatorReviewItem {
   id: string
@@ -27,6 +28,9 @@ export interface UseOperatorReviewsResult {
   reviews: OperatorReviewItem[]
   isLoading: boolean
   isError: boolean
+  isRefetchError: boolean
+  isRefetching: boolean
+  error: unknown
   refetch: () => Promise<unknown>
 }
 
@@ -42,12 +46,8 @@ export function useOperatorReviews(operatorId?: string | null): UseOperatorRevie
     queryFn: async (): Promise<OperatorReviewItem[]> => {
       if (!operatorId) return []
       const res = await reviewsApi.getByEntity(operatorId, 'OPERATOR_LISTING')
-      const raw = res.data as unknown
-      if (Array.isArray(raw)) {
-        return raw as OperatorReviewItem[]
-      }
-      const container = raw as { items?: OperatorReviewItem[]; data?: OperatorReviewItem[] }
-      return (container?.items ?? container?.data ?? []) as OperatorReviewItem[]
+      const { items } = parseListEnvelope<OperatorReviewItem>(res.data)
+      return items
     },
     enabled: Boolean(operatorId),
     staleTime: 2 * 60 * 1000,
@@ -72,6 +72,9 @@ export function useOperatorReviews(operatorId?: string | null): UseOperatorRevie
     reviews,
     isLoading: query.isLoading,
     isError: query.isError,
+    isRefetchError: query.isRefetchError,
+    isRefetching: query.isRefetching,
+    error: query.error,
     refetch: query.refetch,
   }
 }
