@@ -70,7 +70,7 @@ jest.mock('../../context/NavVisibilityContext', () => ({
   useNavVisibility: () => ({ navHidden: { value: 0 } }),
 }))
 
-jest.mock('../../services/chatSyncService', () => ({
+jest.mock('../../services/ChatSyncService', () => ({
   ChatSyncService: {
     joinRoom: jest.fn(),
     leaveRoom: jest.fn(),
