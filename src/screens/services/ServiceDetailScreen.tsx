@@ -45,7 +45,10 @@ import {
   LocationCard,
   DetailStaleBanner,
 } from '../../components/listing-detail'
-import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
+import {
+  getDetailErrorKind,
+  getMutationErrorMessage,
+} from '../../utils/listing-detail/getDetailErrorKind'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
@@ -291,15 +294,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             dialogService.alert('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
             goBackSafely()
           } catch (err: unknown) {
-            const kind = getDetailErrorKind(err)
-            let errorMsg = 'فشل حذف الإعلان'
-            if (kind === 'offline') {
-              errorMsg = 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
-            } else if (kind === 'timeout') {
-              errorMsg = 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
-            } else if (err instanceof Error && err.message) {
-              errorMsg = err.message
-            }
+            const errorMsg = getMutationErrorMessage(err, 'فشل حذف الإعلان')
             dialogService.alert('خطأ', errorMsg, 'error')
           } finally {
             setIsOwnerBusy(false)
