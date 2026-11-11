@@ -9,6 +9,8 @@ import { useChatMessagesStore } from '../store/chatMessagesStore'
 import { ChatSyncService } from '../services/ChatSyncService'
 import { FlashList } from '@shopify/flash-list'
 import { logError } from '../utils/safeLog'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { dialogService } from '../store/dialogStore'
 
 export interface LocalMessage {
   id: string
@@ -22,6 +24,8 @@ export interface LocalMessage {
   reactions?: { emoji: string; userId: string; username?: string }[]
   type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
   mediaUrl?: string
+  pendingDelete?: boolean
+  deleteError?: boolean
 }
 
 export function useChatRoomLogic(roomId: string, initialText?: string, otherUserName?: string, otherUserAvatar?: string) {
@@ -70,6 +74,16 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   const [isOtherUserOnline, setIsOtherUserOnline] = useState(false)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const otherTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const deletingIdsRef = useRef<Set<string>>(new Set())
+  const deleteTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  useEffect(() => {
+    return () => {
+      deleteTimeoutsRef.current.forEach((t) => clearTimeout(t))
+      deleteTimeoutsRef.current.clear()
+      deletingIdsRef.current.clear()
+    }
+  }, [])
 
   const {
     data: initialMessagesData,
@@ -280,6 +294,8 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     } catch (err) {
       logError('ChatRoom:SendMessage', err)
       updateMessage(roomId, tempId, { pending: false, error: true })
+      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
+      dialogService.alert('فشل الإرسال', errorMsg)
     }
   }, [msgText, roomId, user?.id, replyingToMessage, addMessage, removeMessage, updateMessage, otherUser?.name])
 
@@ -288,12 +304,65 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   }, [roomId, removeMessage])
 
   const handleDeleteMessage = useCallback((msgId: string) => {
-    removeMessage(roomId, msgId)
-    const socket = getSocket()
-    if (socket) {
-      socket.emit('delete-message', { messageId: msgId, conversationId: roomId })
+    const currentMessages = useChatMessagesStore.getState().messagesByRoom[roomId] || []
+    const msg = currentMessages.find(m => m.id === msgId)
+    if (!msg) return
+
+    // Only allow deleting own messages
+    if (msg.senderId !== user?.id) return
+
+    // Single-flight check
+    if (deletingIdsRef.current.has(msgId) || msg.pendingDelete) {
+      return
     }
-  }, [roomId, removeMessage])
+
+    const socket = getSocket()
+    if (!socket || !socket.connected) {
+      dialogService.alert('تنبيه', 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري')
+      return
+    }
+
+    updateMessage(roomId, msgId, { pendingDelete: true, deleteError: false })
+    deletingIdsRef.current.add(msgId)
+
+    const timeoutId = setTimeout(() => {
+      deleteTimeoutsRef.current.delete(msgId)
+      if (deletingIdsRef.current.has(msgId)) {
+        deletingIdsRef.current.delete(msgId)
+        updateMessage(roomId, msgId, { pendingDelete: false })
+        refetch()
+      }
+    }, 8000)
+
+    deleteTimeoutsRef.current.set(msgId, timeoutId)
+
+    socket.emit(
+      'delete-message',
+      { messageId: msgId, conversationId: roomId },
+      (ack?: { success?: boolean; error?: string; message?: string }) => {
+        const storedTimeout = deleteTimeoutsRef.current.get(msgId)
+        if (storedTimeout) {
+          clearTimeout(storedTimeout)
+          deleteTimeoutsRef.current.delete(msgId)
+        }
+        deletingIdsRef.current.delete(msgId)
+
+        if (ack?.success) {
+          removeMessage(roomId, msgId)
+        } else {
+          updateMessage(roomId, msgId, { pendingDelete: false, deleteError: true })
+          const reason = ack?.message || ack?.error || 'فشل حذف الرسالة من الخادم. هل تريد إعادة المحاولة؟'
+          dialogService.confirm(
+            'تعذر حذف الرسالة',
+            reason,
+            () => handleDeleteMessage(msgId),
+            'إعادة المحاولة',
+            'إلغاء'
+          )
+        }
+      }
+    )
+  }, [roomId, user?.id, updateMessage, removeMessage, refetch])
 
   const handleRetry = useCallback(async (msgId: string) => {
     const failedMsg = useChatMessagesStore.getState().messagesByRoom[roomId]?.find(m => m.id === msgId)
@@ -335,6 +404,8 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     } catch (err) {
       logError('ChatRoom:RetryMessage', err)
       updateMessage(roomId, msgId, { pending: false, error: true })
+      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
+      dialogService.alert('فشل الإرسال', errorMsg)
     }
   }, [roomId, updateMessage, removeMessage, addMessage])
 

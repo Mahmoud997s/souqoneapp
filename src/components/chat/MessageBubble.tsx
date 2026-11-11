@@ -24,7 +24,7 @@ function formatMsgTime(iso: string) {
 
 function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: boolean; isRead?: boolean; isDelivered?: boolean; error?: boolean }) {
   if (pending) {
-    return <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
+    return <Ionicons name="time-outline" size={13} color={Colors.textMuted} testID="chat-message-pending-icon" />
   }
   
   if (error) {
@@ -121,6 +121,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
       renderLeftActions={renderLeftActions}
       friction={2}
       leftThreshold={40}
+      enabled={!msg.pendingDelete}
       onSwipeableOpen={() => {
         onSwipeReply?.(msg.id)
         setTimeout(() => swipeableRef.current?.close(), 0)
@@ -130,21 +131,24 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
         <View style={s.bubbleContainer}>
         <TouchableOpacity 
           activeOpacity={0.9} 
-          onLongPress={() => onLongPress(msg.id)}
-          onPress={msg.error && isOwn ? handleFailedMessagePress : undefined}
+          onLongPress={msg.pendingDelete ? undefined : () => onLongPress(msg.id)}
+          onPress={msg.pendingDelete ? undefined : (msg.error && isOwn ? handleFailedMessagePress : undefined)}
+          disabled={msg.pendingDelete}
           style={[
             s.msgBubble, 
             isOwn ? s.msgBubbleOwn : s.msgBubbleOther,
             msg.error ? s.msgBubbleError : null,
+            msg.pendingDelete ? { opacity: 0.45 } : null,
             (parsed.isReply || isFile || isVoice) ? s.msgBubbleExtended : null,
             (msg.reactions && msg.reactions.length > 0) ? { marginBottom: 12 } : null
           ]}
-          testID="chat_message_bubble"
+          testID={msg.pendingDelete ? "chat-message-pending-delete" : "chat_message_bubble"}
         >
           {isImage && msg.mediaUrl ? (
             <TouchableOpacity 
               activeOpacity={0.8} 
-              onPress={() => setFullScreenImage(true)}
+              onPress={msg.pendingDelete ? undefined : () => setFullScreenImage(true)}
+              disabled={msg.pendingDelete}
               accessibilityLabel={`Image: ${msg.content || 'No caption'}`}
             >
               <Image 
@@ -217,6 +221,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
             onPress={handleFailedMessagePress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityLabel="فشل الإرسال — اضغط للخيارات"
+            testID="chat-message-error-indicator"
           >
             <Ionicons name="alert-circle" size={22} color="#EF4444" />
           </TouchableOpacity>
