@@ -182,7 +182,7 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
 
     const postFab = getByTestId('tab-post-fab')
     fireEvent.press(postFab)
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/login')
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/login?redirect=%2F(modals)%2Fpost-category')
   })
 
   it('(d) returns null when the focused route hides the tab bar (e.g. Profile tab)', async () => {
