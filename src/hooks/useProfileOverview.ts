@@ -11,34 +11,73 @@ import { MenuItem } from '../types/profile.types'
 
 export function useProfileOverview() {
   const { user, logout } = useAuthStore()
-  const { data: myListings } = useMyListings()
-  const { data: favorites } = useFavorites()
+  const {
+    data: myListings,
+    isError: myListingsIsError,
+    isRefetching: myListingsIsRefetching,
+    refetch: refetchMyListings,
+  } = useMyListings()
+  const {
+    data: favorites,
+    isError: favoritesIsError,
+    isRefetching: favoritesIsRefetching,
+    refetch: refetchFavorites,
+  } = useFavorites()
 
   const [locationName, setLocationName] = React.useState('')
+  const [isProfileRefreshError, setIsProfileRefreshError] = React.useState(false)
+  const [isRefreshingProfile, setIsRefreshingProfile] = React.useState(false)
+
+  const refreshProfile = React.useCallback(async () => {
+    setIsRefreshingProfile(true)
+    setIsProfileRefreshError(false)
+    try {
+      const res = await authApi.me()
+      const data = res.data as any
+      const freshUser = data?.user ?? data
+      if (freshUser?.id) {
+        useAuthStore.setState((state) => {
+          const merged = { ...state.user, ...freshUser }
+          // If API explicitly returns null or empty for avatar, clear both avatar and avatarUrl
+          if (freshUser.avatarUrl === null || freshUser.avatarUrl === '') {
+            merged.avatarUrl = undefined
+            merged.avatar = undefined
+          }
+          if (freshUser.avatar === null || freshUser.avatar === '') {
+            merged.avatar = undefined
+          }
+          return { user: merged }
+        })
+      }
+    } catch {
+      setIsProfileRefreshError(true)
+    } finally {
+      setIsRefreshingProfile(false)
+    }
+  }, [])
 
   // Refresh user data from API when screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      authApi.me().then((res) => {
-        const data = res.data as any
-        const freshUser = data?.user ?? data
-        if (freshUser?.id) {
-          useAuthStore.setState((state) => {
-            const merged = { ...state.user, ...freshUser }
-            // If API explicitly returns null or empty for avatar, clear both avatar and avatarUrl
-            if (freshUser.avatarUrl === null || freshUser.avatarUrl === '') {
-              merged.avatarUrl = undefined
-              merged.avatar = undefined
-            }
-            if (freshUser.avatar === null || freshUser.avatar === '') {
-              merged.avatar = undefined
-            }
-            return { user: merged }
-          })
-        }
-      }).catch(() => {})
-    }, [])
+      refreshProfile()
+    }, [refreshProfile])
   )
+
+  const isStaleError = Boolean(
+    user && (isProfileRefreshError || myListingsIsError || favoritesIsError)
+  )
+
+  const isRefreshing = Boolean(
+    isRefreshingProfile || myListingsIsRefetching || favoritesIsRefetching
+  )
+
+  const handleRetryProfile = React.useCallback(async () => {
+    await Promise.all([
+      refreshProfile(),
+      refetchMyListings().catch(() => {}),
+      refetchFavorites().catch(() => {}),
+    ])
+  }, [refreshProfile, refetchMyListings, refetchFavorites])
 
   // Resolve location name cleanly
   React.useEffect(() => {
@@ -161,5 +200,8 @@ export function useProfileOverview() {
     activitiesItems,
     transportItems,
     accountItems,
+    isStaleError,
+    isRefreshing,
+    handleRetryProfile,
   }
 }
