@@ -12,8 +12,12 @@ import {
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { invalidateBusListingQueries } from '../../src/utils/listing-detail/busQueryKeys'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -46,6 +50,7 @@ const TOTAL_STEPS = 6
 export default function NewBusListingScreen() {
   const insets = useSafeAreaInsets()
   const { hasPhone } = useProfilePhoneGuard()
+  const queryClient = useQueryClient()
 
   const {
     currentStep,
@@ -65,6 +70,11 @@ export default function NewBusListingScreen() {
   } = useBusWizardStore()
 
   const [isUploadingImages, setIsUploadingImages] = useState(false)
+  const [publishSuccess, setPublishSuccess] = useState<{
+    busId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   const handleUpdateField = (field: keyof BusWizardData, value: any) => {
     setData({ [field]: value })
@@ -232,12 +242,11 @@ export default function NewBusListingScreen() {
       }
     } catch (uploadErr: any) {
       logWarn('BusesNew:UploadImages', uploadErr)
-      const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-      dialogService.alert(
-        'خطأ في رفع الصور',
-        serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً',
-        'error'
-      )
+      const uploadErrorMsg =
+        uploadErr?.response?.status === 429
+          ? getPublishRateLimitErrorMessage(uploadErr)
+          : getMutationErrorMessage(uploadErr, 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
+      dialogService.alert('خطأ في رفع الصور', uploadErrorMsg, 'error')
       setIsUploadingImages(false)
       return
     } finally {
@@ -268,17 +277,16 @@ export default function NewBusListingScreen() {
               logWarn('BusesNew:UpdateImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الحافلة بنجاح', 'success')
-            } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
-                'warning'
-              )
-            }
+            const targetId = String(editListingId)
+            void invalidateBusListingQueries(queryClient, targetId)
             reset()
-            router.back()
+            setPublishSuccess({
+              busId: targetId,
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات الحافلة بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات ولكن تعذر تحديث بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
+            })
           },
           onError: (err: any) => {
             if (isOptimisticLockError(err)) {
@@ -287,10 +295,12 @@ export default function NewBusListingScreen() {
                 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
               )
             } else if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+              dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
             } else {
-              const msg = err?.response?.data?.message || err?.message || 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات'
-              dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg))
+              dialogService.alert(
+                'خطأ',
+                getMutationErrorMessage(err, 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات')
+              )
             }
           },
         }
@@ -298,31 +308,38 @@ export default function NewBusListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: async (res: any) => {
-          const busId = res?.data?.id ?? res?.id
-          if (busId && newImageUrls.length > 0) {
+          const rawId = res?.data?.id ?? res?.id
+          const targetId = rawId ? String(rawId) : ''
+          let imagesSuccess = true
+          if (targetId && newImageUrls.length > 0) {
             try {
-              await busesApi.addImages(busId, newImageUrls)
+              await busesApi.addImages(targetId, newImageUrls)
             } catch (imgErr) {
+              imagesSuccess = false
               logWarn('BusesNew:AddImages', imgErr)
             }
           }
 
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان الحافلة بنجاح في سوق ون!')
+          void invalidateBusListingQueries(queryClient, targetId || undefined)
           reset()
-          if (busId) {
-            router.replace(`/buses/${busId}`)
-          } else {
-            router.replace('/(tabs)/profile')
-          }
+          setPublishSuccess({
+            busId: targetId,
+            isEdit: false,
+            subtitle: imagesSuccess
+              ? undefined
+              : 'تم نشر الحافلة ولكن تعذر ربط بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
+          })
         },
         onError: (err: any) => {
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.')
+            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
           } else {
-            const msg = err?.response?.data?.message || err?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : String(msg))
+            dialogService.alert(
+              'خطأ',
+              getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
+            )
           }
         },
       })
@@ -330,6 +347,63 @@ export default function NewBusListingScreen() {
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ تعديلات الحافلة بنجاح!' : 'تم نشر إعلان الحافلة بنجاح!'}
+          subtitle={
+            publishSuccess.subtitle ??
+            'إعلانك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          }
+          primaryAction={{
+            label: 'عرض الحافلة',
+            onPress: () => {
+              const targetId = publishSuccess.busId
+              reset()
+              setPublishSuccess(null)
+              if (targetId) {
+                router.replace(`/buses/${targetId}`)
+              } else {
+                router.replace('/buses')
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع للحافلات' : 'إضافة حافلة أخرى',
+            onPress: () => {
+              const wasEdit = publishSuccess.isEdit
+              reset()
+              setPublishSuccess(null)
+              if (wasEdit) {
+                router.replace('/buses')
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          tertiaryAction={{
+            label: 'العودة للرئيسية',
+            onPress: () => {
+              reset()
+              setPublishSuccess(null)
+              router.replace('/')
+            },
+            testID: 'publish-success-tertiary-btn',
+          }}
+          onHardwareBack={() => {
+            reset()
+            setPublishSuccess(null)
+            router.replace('/buses')
+            return true
+          }}
+        />
+      </View>
+    )
+  }
 
   if (!hasPhone && !editMode) {
     return (
