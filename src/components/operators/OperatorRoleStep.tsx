@@ -14,6 +14,8 @@ import { EditProfileAvatar } from '../profile/EditProfileAvatar'
 import { Config } from '../../constants/config'
 import { WizardCard } from '../ui/WizardCard'
 import { logError } from '../../utils/safeLog'
+import { requestPermission, operatorAvatarPermissionAdapter } from '../../utils/requestPermission'
+import { getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
 
 export interface OperatorRoleStepProps {
   formData: OperatorWizardFormData
@@ -26,9 +28,8 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
 
   const handlePickAvatar = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (status !== 'granted') {
-        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز')
+      const perm = await requestPermission(operatorAvatarPermissionAdapter)
+      if (!perm.granted) {
         return
       }
 
@@ -60,7 +61,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
       }
     } catch (err: any) {
       logError('OperatorRoleStep:UploadAvatar', err)
-      dialogService.alert('خطأ', 'حدث خطأ أثناء رفع الصورة')
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء رفع الصورة'))
     } finally {
       setIsUploadingImage(false)
     }
