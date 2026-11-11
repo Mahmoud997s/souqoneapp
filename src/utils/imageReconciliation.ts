@@ -118,7 +118,7 @@ export function createEmptyLedger(listingId?: string): ReconciliationLedger {
  * Deduplicates an array of string IDs, preserving insertion order.
  * Trims strings and filters out empty or invalid values.
  */
-export function dedupeIds(ids: unknown[]): string[] {
+export function dedupeIds(ids: unknown[], maxLength: number = LEDGER_LIMITS.maxIdLength): string[] {
   if (!Array.isArray(ids)) return []
   const seen = new Set<string>()
   const result: string[] = []
@@ -126,7 +126,7 @@ export function dedupeIds(ids: unknown[]): string[] {
   for (const item of ids) {
     if (typeof item === 'string') {
       const trimmed = item.trim()
-      if (trimmed.length > 0 && !seen.has(trimmed)) {
+      if (trimmed.length > 0 && trimmed.length <= maxLength && !seen.has(trimmed)) {
         seen.add(trimmed)
         result.push(trimmed)
       }
@@ -187,8 +187,42 @@ export function normalizeExistingImage(
 export const LEDGER_LIMITS = {
   maxItems: 20,
   maxUriLength: 300,
+  maxIdLength: 300,
+  maxUrlLength: 500,
   maxErrorLength: 100,
   maxListingIdLength: 100,
+  maxBytes: 50000,
+}
+
+/**
+ * Pure JS UTF-8 byte length calculation (Hermes/RN safe without Node Buffer).
+ */
+export function getUtf8ByteLength(str: string): number {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(str).length
+  }
+  let bytes = 0
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
+    if (code < 0x80) {
+      bytes += 1
+    } else if (code < 0x800) {
+      bytes += 2
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      if (i + 1 < str.length) {
+        const next = str.charCodeAt(i + 1)
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          bytes += 4
+          i++
+          continue
+        }
+      }
+      bytes += 3
+    } else {
+      bytes += 3
+    }
+  }
+  return bytes
 }
 
 /**
@@ -267,8 +301,8 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
       listingId: ledger.listingId
         ? String(ledger.listingId).slice(0, LEDGER_LIMITS.maxListingIdLength)
         : undefined,
-      retainedImageIds: dedupeIds(ledger.retainedImageIds).slice(0, LEDGER_LIMITS.maxItems),
-      removedImageIds: dedupeIds(ledger.removedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      retainedImageIds: dedupeIds(ledger.retainedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(ledger.removedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(ledger.uploadedImages)
         ? ledger.uploadedImages.slice(0, LEDGER_LIMITS.maxItems).map((rec) => ({
             localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
@@ -279,10 +313,12 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
         : [],
       attachedUrls: dedupeIds(
         (Array.isArray(ledger.attachedUrls) ? ledger.attachedUrls : [])
-          .map((u) => normalizeImageUrl(u) || String(u).trim())
-          .filter(Boolean)
+          .filter((u: unknown): u is string => typeof u === 'string')
+          .map((u: string) => normalizeImageUrl(u) || u.trim())
+          .filter(Boolean),
+        LEDGER_LIMITS.maxUrlLength
       ).slice(0, LEDGER_LIMITS.maxItems),
-      deletedImageIds: dedupeIds(ledger.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(ledger.deletedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         ledger.failedOperations && typeof ledger.failedOperations === 'object'
           ? Object.fromEntries(
@@ -330,8 +366,9 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
     }
 
     const serialized = JSON.stringify(cleanLedger)
-    if (serialized.length > 50000) {
-      logWarn('imageReconciliation:serializeLedger:byteLimitExceeded', { length: serialized.length })
+    const byteLength = getUtf8ByteLength(serialized)
+    if (byteLength > LEDGER_LIMITS.maxBytes) {
+      logWarn('imageReconciliation:serializeLedger:byteLimitExceeded', { bytes: byteLength })
       return JSON.stringify(createEmptyLedger())
     }
     return serialized
@@ -343,13 +380,20 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
 
 /**
  * Safely parses and deserializes a reconciliation ledger with robust fallback defaults.
- * Strictly validates version: 1 and bounds arrays.
+ * Enforces raw UTF-8 byte limit before JSON.parse, strictly validates version: 1, and bounds arrays/item lengths.
  */
 export function deserializeLedger(raw: unknown): ReconciliationLedger {
   const fallback = createEmptyLedger()
   if (!raw) return fallback
 
   try {
+    if (typeof raw === 'string') {
+      const rawBytes = getUtf8ByteLength(raw)
+      if (rawBytes > LEDGER_LIMITS.maxBytes) {
+        logWarn('imageReconciliation:deserializeLedger:byteLimitExceeded', { bytes: rawBytes })
+        return fallback
+      }
+    }
     const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
     if (!obj || typeof obj !== 'object') return fallback
 
@@ -365,8 +409,8 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
         typeof obj.listingId === 'string'
           ? obj.listingId.slice(0, LEDGER_LIMITS.maxListingIdLength)
           : undefined,
-      retainedImageIds: dedupeIds(obj.retainedImageIds).slice(0, LEDGER_LIMITS.maxItems),
-      removedImageIds: dedupeIds(obj.removedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      retainedImageIds: dedupeIds(obj.retainedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(obj.removedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(obj.uploadedImages)
         ? obj.uploadedImages
             .slice(0, LEDGER_LIMITS.maxItems)
@@ -383,10 +427,12 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
         : [],
       attachedUrls: dedupeIds(
         (Array.isArray(obj.attachedUrls) ? obj.attachedUrls : [])
-          .map((u: any) => normalizeImageUrl(String(u)) || String(u).trim())
-          .filter(Boolean)
+          .filter((u: unknown): u is string => typeof u === 'string')
+          .map((u: string) => normalizeImageUrl(u) || u.trim())
+          .filter(Boolean),
+        LEDGER_LIMITS.maxUrlLength
       ).slice(0, LEDGER_LIMITS.maxItems),
-      deletedImageIds: dedupeIds(obj.deletedImageIds).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(obj.deletedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         obj.failedOperations && typeof obj.failedOperations === 'object'
           ? Object.fromEntries(

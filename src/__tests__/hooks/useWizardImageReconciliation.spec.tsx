@@ -654,4 +654,70 @@ describe('useWizardImageReconciliation (S6 / D-243)', () => {
     expect(result.current.ledger.uploadedImages).toEqual([])
     expect(result.current.ledger.listingId).toBeUndefined()
   })
+
+  it('19. ABA race protection (A-062 P2-1): cancelling run 1 and immediately starting run 2 prevents run 1 settlement from clearing run 2 state or committing stale ledger', async () => {
+    let callIndex = 0
+    let resolveRun1Upload: (val: string) => void = () => {}
+    let resolveRun2Upload: (val: string) => void = () => {}
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async () => {
+        callIndex++
+        if (callIndex === 1) {
+          return new Promise<string>((resolve) => {
+            resolveRun1Upload = resolve
+          })
+        }
+        return new Promise<string>((resolve) => {
+          resolveRun2Upload = resolve
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let run1Promise: Promise<any>
+    let run2Promise: Promise<any>
+
+    await act(async () => {
+      run1Promise = result.current.reconcile({
+        listingId: 'part-aba-test',
+        localImages: [{ uri: 'file:///run1-stale.jpg' }],
+      })
+      // Cancel run 1 (monotonic increment avoids resetting token back to 0)
+      result.current.cancel()
+      // Immediately start run 2 while run 1 promise is still pending
+      run2Promise = result.current.reconcile({
+        listingId: 'part-aba-test',
+        localImages: [{ uri: 'file:///run2-fresh.jpg' }],
+      })
+    })
+
+    expect(result.current.isReconciling).toBe(true)
+
+    // Settle run 1 BEFORE run 2
+    await act(async () => {
+      resolveRun1Upload('https://cdn.souqone.app/uploads/run1-stale.jpg')
+      const res1 = await run1Promise!
+      expect(res1.imagesComplete).toBe(false)
+    })
+
+    // TEETH: run 1's finally must NOT clear run 2's active isReconciling state or commit stale run 1 image!
+    expect(result.current.isReconciling).toBe(true)
+    expect(result.current.ledger.uploadedImages).toEqual([])
+
+    // Now settle run 2
+    let res2: any
+    await act(async () => {
+      resolveRun2Upload('https://cdn.souqone.app/uploads/run2-fresh.jpg')
+      res2 = await run2Promise!
+    })
+
+    expect(result.current.isReconciling).toBe(false)
+    expect(res2.imagesComplete).toBe(true)
+    expect(result.current.ledger.uploadedImages).toHaveLength(1)
+    expect(result.current.ledger.uploadedImages[0].remoteUrl).toBe('https://cdn.souqone.app/uploads/run2-fresh.jpg')
+  })
 })

@@ -10,6 +10,8 @@ import {
   partsImageReconciliationAdapter,
   ReconciliationLedger,
   normalizeImageUrl,
+  LEDGER_LIMITS,
+  getUtf8ByteLength,
 } from '../../utils/imageReconciliation'
 
 describe('imageReconciliation utilities (S6 / D-243)', () => {
@@ -255,6 +257,56 @@ describe('imageReconciliation utilities (S6 / D-243)', () => {
       const parsed = deserializeLedger(serialized)
       expect(parsed.version).toBe(1)
       expect(parsed.retainedImageIds).toEqual([])
+    })
+
+    it('rejects raw JSON exceeding 50KB UTF-8 bytes BEFORE calling JSON.parse (A-062 P2-2)', () => {
+      const parseSpy = jest.spyOn(JSON, 'parse')
+      try {
+        const rawOversized = '{"version":1,"listingId":"' + 'a'.repeat(55000) + '"}'
+        const parsed = deserializeLedger(rawOversized)
+        expect(parsed).toEqual(createEmptyLedger())
+        expect(parseSpy).not.toHaveBeenCalled()
+      } finally {
+        parseSpy.mockRestore()
+      }
+    })
+
+    it('computes multi-byte UTF-8 byte length accurately even when JS string.length <= 50000 (A-062 P2-2)', () => {
+      const parseSpy = jest.spyOn(JSON, 'parse')
+      try {
+        // '\u2713' is 1 JS char (length 1) but 3 UTF-8 bytes -> 20000 chars = 60000 bytes > 50000 limit
+        const multiBytePayload = '{"version":1,"listingId":"' + '\u2713'.repeat(20000) + '"}'
+        expect(multiBytePayload.length).toBeLessThan(50000)
+        expect(getUtf8ByteLength(multiBytePayload)).toBeGreaterThan(LEDGER_LIMITS.maxBytes)
+
+        const parsed = deserializeLedger(multiBytePayload)
+        expect(parsed).toEqual(createEmptyLedger())
+        expect(parseSpy).not.toHaveBeenCalled()
+      } finally {
+        parseSpy.mockRestore()
+      }
+    })
+
+    it('drops oversized IDs (>300), oversized URLs (>500), and non-strings in dedupeIds and deserializeLedger (A-062 P2-2)', () => {
+      const oversizedId = 'id_' + 'x'.repeat(301)
+      const oversizedUrl = 'https://cdn.souqone.app/' + 'u'.repeat(500)
+      const validUrl = 'https://cdn.souqone.app/valid.jpg'
+
+      expect(dedupeIds(['valid-1', oversizedId, 123 as any, null as any, '  '])).toEqual(['valid-1'])
+      expect(dedupeIds([validUrl, oversizedUrl], LEDGER_LIMITS.maxUrlLength)).toEqual([validUrl])
+
+      const parsed = deserializeLedger({
+        version: 1,
+        retainedImageIds: ['ret-1', oversizedId, 42],
+        removedImageIds: ['rem-1', oversizedId],
+        deletedImageIds: ['del-1', oversizedId],
+        attachedUrls: [validUrl, oversizedUrl, 999],
+      })
+
+      expect(parsed.retainedImageIds).toEqual(['ret-1'])
+      expect(parsed.removedImageIds).toEqual(['rem-1'])
+      expect(parsed.deletedImageIds).toEqual(['del-1'])
+      expect(parsed.attachedUrls).toEqual([validUrl])
     })
   })
 

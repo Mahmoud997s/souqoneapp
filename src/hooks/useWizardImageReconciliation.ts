@@ -180,8 +180,8 @@ export function useWizardImageReconciliation({
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
-    // Invalidate active run token so pending promises cannot commit stale ledger (A-060 P2)
-    currentRunIdRef.current = 0
+    // Monotonically invalidate active run token so a cancelled run can never match a subsequent run ID (ABA race fix, A-062 P2-1)
+    ++currentRunIdRef.current
     activePromiseRef.current = null
     if (isReconcilingRef.current) {
       isReconcilingRef.current = false
