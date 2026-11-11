@@ -15,7 +15,9 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { SkeletonCard } from '../../components/ui/SkeletonCard'
+import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
 import { useSearchLogic } from '../../hooks/useSearchLogic'
+import { getListErrorProps } from '../../utils/getListErrorProps'
 import { SearchHeaderBar } from './components/SearchHeaderBar'
 import { SearchCategoryTabs } from './components/SearchCategoryTabs'
 import { SearchActiveFiltersBar } from './components/SearchActiveFiltersBar'
@@ -46,10 +48,16 @@ export function SearchScreen() {
     activeFiltersCount,
     hasActiveCriteria,
     autocompleteSuggestions,
+    isAutocompleteError,
+    autocompleteError,
+    refetchAutocomplete,
+    isRefetchingAutocomplete,
     results,
     totalResultsCount,
     isLoading,
     isError,
+    error,
+    isRefetching,
     refetch,
     fetchNextPage,
     hasNextPage,
@@ -121,7 +129,7 @@ export function SearchScreen() {
     }
 
     // 2. Loading State
-    if (isLoading) {
+    if (isLoading && results.length === 0) {
       return (
         <View style={s.loadingContainer}>
           {[1, 2, 3, 4].map((i) => (
@@ -133,15 +141,32 @@ export function SearchScreen() {
       )
     }
 
-    // 3. Error State
-    if (isError) {
+    // 3. Error State (no cached results)
+    if (isError && results.length === 0) {
+      const errorProps = getListErrorProps(error, 'حدث خطأ أثناء تحميل نتائج البحث')
       return (
-        <View style={s.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={40} color={Colors.error} />
-          <Text style={s.errorTitle}>حدث خطأ أثناء تحميل نتائج البحث</Text>
-          <Text style={s.errorSubtitle}>يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً</Text>
-          <TouchableOpacity style={s.retryBtn} onPress={() => refetch()} activeOpacity={0.8}>
-            <Text style={s.retryBtnText}>إعادة المحاولة</Text>
+        <View style={s.errorContainer} testID="search-results-error">
+          <Ionicons
+            name={errorProps.icon as keyof typeof Ionicons.glyphMap}
+            size={40}
+            color={errorProps.iconColor}
+          />
+          <Text style={s.errorTitle}>{errorProps.title}</Text>
+          <Text style={s.errorSubtitle}>{errorProps.subtitle}</Text>
+          <TouchableOpacity
+            testID="search-results-retry-btn"
+            style={s.retryBtn}
+            onPress={() => refetch()}
+            disabled={isRefetching}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={errorProps.actionLabel}
+          >
+            {isRefetching ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Text style={s.retryBtnText}>{errorProps.actionLabel}</Text>
+            )}
           </TouchableOpacity>
         </View>
       )
@@ -152,37 +177,44 @@ export function SearchScreen() {
       return <SearchEmptyState onClearFilters={clearAllFilters} />
     }
 
-    // 5. Results List
+    // 5. Results List (preserves stale results + StaleDataBanner on refetch error)
     return (
-      <FlatList
-        data={results}
-        keyExtractor={(item, index) => `${item.id || item._id || index}`}
-        renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <SearchCardDispatcher item={item} />
+      <>
+        {isError ? (
+          <View style={s.staleWrap} testID="search-results-stale">
+            <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
           </View>
-        )}
-        ListHeaderComponent={renderResultsHeader}
-        contentContainerStyle={s.listContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage()
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        windowSize={5}
-        maxToRenderPerBatch={6}
-        removeClippedSubviews={true}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <View style={s.footerLoading}>
-              <ActivityIndicator size="small" color={Colors.primary} />
+        ) : null}
+        <FlatList
+          data={results}
+          keyExtractor={(item, index) => `${item.id || item._id || index}`}
+          renderItem={({ item }) => (
+            <View style={s.cardWrapper}>
+              <SearchCardDispatcher item={item} />
             </View>
-          ) : null
-        }
-      />
+          )}
+          ListHeaderComponent={renderResultsHeader}
+          contentContainerStyle={s.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage()
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          windowSize={5}
+          maxToRenderPerBatch={6}
+          removeClippedSubviews={true}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View style={s.footerLoading}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
+            ) : null
+          }
+        />
+      </>
     )
   }
 
@@ -219,11 +251,15 @@ export function SearchScreen() {
         {renderContent()}
 
         {/* ── Autocomplete Suggestions Dropdown (Floats over content) ── */}
-        {autocompleteSuggestions.length > 0 && query.trim().length >= 2 && (
+        {query.trim().length >= 2 && (autocompleteSuggestions.length > 0 || isAutocompleteError) && (
           <View style={s.autocompleteOverlay}>
             <SearchAutocompleteList
               suggestions={autocompleteSuggestions}
               onSelectSuggestion={handleSelectAutocomplete}
+              isError={isAutocompleteError}
+              error={autocompleteError}
+              onRetry={refetchAutocomplete}
+              isRetrying={isRefetchingAutocomplete}
             />
           </View>
         )}
@@ -363,6 +399,10 @@ const s = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: Colors.white,
+  },
+  staleWrap: {
+    paddingHorizontal: Spacing.space4,
+    paddingTop: Spacing.space2,
   },
   footerLoading: {
     paddingVertical: 20,
