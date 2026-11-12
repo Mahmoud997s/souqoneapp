@@ -32,6 +32,8 @@ describe('Phase 6 Services Types & Decomposition (D-291 / P6-4)', () => {
     longitude: 58.123,
     whatsappEnabled: true,
     website: 'https://stars-garage.om',
+    editMode: false,
+    editListingId: null,
   }
 
   describe('extractImageUrlsFromServiceFormData', () => {
