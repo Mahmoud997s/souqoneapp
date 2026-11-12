@@ -45,7 +45,7 @@ export default function AddOperatorScreen() {
   // Safety net: redirect to edit if they already have an operator listing
   useEffect(() => {
     if (!loadingMyOp && myOperators && myOperators.length > 0) {
-      router.replace(`/equipment/operators/edit/${myOperators[0].id}` as any)
+      router.replace(`/equipment/operators/edit/${myOperators[0].id}`)
     }
   }, [loadingMyOp, myOperators])
 
@@ -111,8 +111,9 @@ export default function AddOperatorScreen() {
         dialogService.alert('تم بنجاح', 'تم نشر بطاقتك المهنية في دليل المشغلين بنجاح!')
         router.replace('/equipment/operators/browse')
       },
-      onError: (err: any) => {
-        const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء حفظ البطاقة المهنية'
+      onError: (err: unknown) => {
+        const apiErr = err as { response?: { data?: { message?: string | string[] } }; message?: string } | null | undefined
+        const msg = apiErr?.response?.data?.message || apiErr?.message || 'حدث خطأ أثناء حفظ البطاقة المهنية'
         dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
       },
     })
@@ -189,16 +190,16 @@ export default function AddOperatorScreen() {
           {/* ═══════════════ STEP 1: ROLE & BASIC INFO ═══════════════ */}
           {currentStep === 1 && (
             <OperatorRoleStep
-              formData={formData as any}
+              formData={formData}
               errors={errors}
-              onUpdateField={(k, v) => setFormField(k as any, v)}
+              onUpdateField={setFormField}
             />
           )}
 
           {/* ═══════════════ STEP 2: EQUIPMENT & CERTS ═══════════════ */}
           {currentStep === 2 && (
             <OperatorEquipCertsStep
-              formData={formData as any}
+              formData={formData}
               errors={errors}
               onToggleEquipment={formLogic.toggleEquipmentType}
               onPickCertificateImages={formLogic.pickCertificateImages}
@@ -213,9 +214,9 @@ export default function AddOperatorScreen() {
           {/* ═══════════════ STEP 3: PRICING & LOCATION ═══════════════ */}
           {currentStep === 3 && (
             <OperatorRatesLocationStep
-              formData={formData as any}
+              formData={formData}
               errors={errors}
-              onUpdateField={(k, v) => setFormField(k as any, v)}
+              onUpdateField={setFormField}
               onLocationChange={(govId, wilId, govNameAr, wilNameAr) => {
                 setFormData({
                   governorateId: govId,

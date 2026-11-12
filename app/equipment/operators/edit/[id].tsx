@@ -28,6 +28,15 @@ import { validateOperatorStep } from '../../../../src/hooks/useOperatorValidatio
 import { buildOperatorPayload } from '../../../../src/utils/operator-payload'
 import { OperatorWizardFormData as OperatorFormData } from '../../../../src/store/operatorWizardStore'
 import { OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
+import type { OperatorListing } from '../../../../src/types/equipment.types'
+
+type OperatorDetailPayload = Omit<OperatorListing, 'governorate' | 'wilaya'> & {
+  isNegotiable?: boolean
+  governorateName?: string
+  wilayaName?: string
+  governorate?: string | { nameAr?: string }
+  wilaya?: string | { nameAr?: string }
+}
 
 import { OperatorRoleStep } from '../../../../src/components/operators/OperatorRoleStep'
 import { OperatorEquipCertsStep } from '../../../../src/components/operators/OperatorEquipCertsStep'
@@ -67,6 +76,15 @@ export default function EditOperatorScreen() {
 
   useEffect(() => {
     if (operatorData) {
+      const detail = operatorData as OperatorDetailPayload
+      const govName =
+        (typeof detail.governorate === 'object' ? detail.governorate?.nameAr : undefined) ||
+        detail.governorateName ||
+        ''
+      const wilName =
+        (typeof detail.wilaya === 'object' ? detail.wilaya?.nameAr : undefined) ||
+        detail.wilayaName ||
+        ''
       setFormData({
         operatorType: operatorData.operatorType || 'OPERATOR',
         title: operatorData.title || '',
@@ -78,22 +96,22 @@ export default function EditOperatorScreen() {
         dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
         hourlyRate: operatorData.hourlyRate ? String(operatorData.hourlyRate) : '',
         currency: operatorData.currency || 'OMR',
-        isPriceNegotiable: operatorData.isPriceNegotiable ?? (operatorData as any).isNegotiable ?? true,
+        isPriceNegotiable: operatorData.isPriceNegotiable ?? detail.isNegotiable ?? true,
         governorateId: operatorData.governorateId ?? null,
         wilayaId: operatorData.wilayaId ?? null,
-        governorateName: (operatorData as any).governorate?.nameAr || (operatorData as any).governorateName || '',
-        wilayaName: (operatorData as any).wilaya?.nameAr || (operatorData as any).wilayaName || '',
+        governorateName: govName,
+        wilayaName: wilName,
         whatsappEnabled: operatorData.whatsappEnabled === true,
         profileImageUrl: operatorData.profileImageUrl || '',
       })
     }
   }, [operatorData])
 
-  const updateField = (key: keyof OperatorFormData, value: any) => {
+  const updateField = <K extends keyof OperatorFormData>(key: K, value: OperatorFormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => {
       const updated = { ...prev }
-      delete updated[key]
+      delete updated[key as keyof OperatorFormErrors]
       if (
         (key === 'dailyRate' || key === 'hourlyRate') &&
         (updated.dailyRate?.includes('على الأقل') || updated.hourlyRate?.includes('على الأقل'))
@@ -108,7 +126,7 @@ export default function EditOperatorScreen() {
   const clearFieldError = (key: string) => {
     setErrors((prev) => {
       const updated = { ...prev }
-      delete (updated as any)[key]
+      delete (updated as Record<string, string | undefined>)[key]
       return updated
     })
   }
@@ -160,10 +178,11 @@ export default function EditOperatorScreen() {
       {
         onSuccess: () => {
           dialogService.alert('نجاح', 'تم تحديث بيانات بطاقتك المهنية بنجاح!')
-          router.replace(`/equipment/operators/${id}` as any)
+          router.replace(`/equipment/operators/${id}`)
         },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء تحديث البطاقة المهنية'
+        onError: (err: unknown) => {
+          const apiErr = err as { response?: { data?: { message?: string | string[] } }; message?: string } | null | undefined
+          const msg = apiErr?.response?.data?.message || apiErr?.message || 'حدث خطأ أثناء تحديث البطاقة المهنية'
           dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
         },
       }

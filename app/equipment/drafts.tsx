@@ -30,8 +30,12 @@ export default function EquipmentDraftsScreen() {
 
   const title = formData.title || 'مسودة معدة جديدة'
   const draftImages = [
-    ...(formData.images?.map((img: any) => img.uri || img) || []),
-    ...(formData.existingImages?.map((img: any) => img.url || img) || []),
+    ...(formData.images?.map((img: string | { uri?: string; url?: string }) =>
+      typeof img === 'string' ? img : img.uri || img.url || ''
+    ) || []),
+    ...(formData.existingImages?.map((img: string | { url?: string; uri?: string }) =>
+      typeof img === 'string' ? img : img.url || img.uri || ''
+    ) || []),
   ].filter(Boolean)
 
   return (

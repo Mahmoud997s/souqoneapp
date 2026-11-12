@@ -32,8 +32,12 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
       : formData.governorate || 'سلطنة عمان'
 
   const allImages = [
-    ...(formData.existingImages || []).map((img: any) => (typeof img === 'string' ? img : img.url || img.uri)),
-    ...(formData.images || []).map((img: any) => (typeof img === 'string' ? img : img.uri || img.url)),
+    ...(formData.existingImages || []).map((img: string | { url?: string; uri?: string }) =>
+      typeof img === 'string' ? img : img.url || img.uri || ''
+    ),
+    ...(formData.images || []).map((img: string | { uri?: string; url?: string }) =>
+      typeof img === 'string' ? img : img.uri || img.url || ''
+    ),
   ].filter(Boolean)
 
   return (

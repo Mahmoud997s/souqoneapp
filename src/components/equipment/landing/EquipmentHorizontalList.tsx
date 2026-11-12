@@ -19,6 +19,9 @@ import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
+import { Listing } from '../../../types/listing.types'
+import { EquipmentListing } from '../../../types/equipment.types'
+import { UnifiedCardItem } from '../../../types/unified-card.types'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -28,10 +31,16 @@ import {
 
 const CARD_WIDTH = getPeekCardWidth()
 
+export type EquipmentHorizontalListItem =
+  | UnifiedCardItem
+  | Listing
+  | EquipmentListing
+  | { id: string; title: string; [key: string]: unknown }
+
 interface Props {
   title: string
   subTitle?: string
-  data: any[]
+  data: EquipmentHorizontalListItem[]
   isLoading: boolean
   isError?: boolean
   error?: unknown
@@ -40,7 +49,7 @@ interface Props {
   isRefetching?: boolean
   emptyText: string
   onSeeAll: () => void
-  onPressItem: (item: any) => void
+  onPressItem: (item: EquipmentHorizontalListItem) => void
   glassSupport?: GlassSupport
 }
 
@@ -62,10 +71,10 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
   const safeData = data ?? []
   const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل المعدات') : null
   const renderLoadedItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: EquipmentHorizontalListItem }) => (
       <View style={{ width: CARD_WIDTH }}>
         <EquipCard
-          item={item}
+          item={item as unknown as Listing}
           onPress={() => onPressItem(item)}
           fullWidth={true}
           imageHeight={CARS_PEEK_IMAGE_HEIGHT}

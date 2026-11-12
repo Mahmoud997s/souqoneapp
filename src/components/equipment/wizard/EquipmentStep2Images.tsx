@@ -15,6 +15,8 @@ import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { EquipmentStep2Props } from '../../../types/equipmentForm.types'
 
+type EquipmentExistingImageItem = string | { id?: string; url?: string; uri?: string }
+
 export function EquipmentStep2Images({
   images,
   existingImages,
@@ -70,9 +72,10 @@ export function EquipmentStep2Images({
           subtitle="يمكنك حذف أي صورة غير مناسبة بالضغط على علامة الإغلاق"
         >
           <View style={s.imagesGrid}>
-            {existingImages.map((img: any, idx: number) => {
-              const uri = typeof img === 'string' ? img : img.url
-              const key = img.id || img.url || `existing_${idx}`
+            {existingImages.map((img: EquipmentExistingImageItem, idx: number) => {
+              const uri = typeof img === 'string' ? img : img.url || img.uri || ''
+              const idOrUrl = typeof img === 'string' ? img : img.id || img.url || ''
+              const key = idOrUrl || `existing_${idx}`
               return (
                 <View key={key} style={s.imgThumbWrap}>
                   <Image source={{ uri }} style={s.imgThumb} contentFit="cover" transition={200} />
@@ -83,7 +86,7 @@ export function EquipmentStep2Images({
                   )}
                   <TouchableOpacity
                     style={s.removeImgBtn}
-                    onPress={() => onRemoveExistingImage(img.id || img.url)}
+                    onPress={() => onRemoveExistingImage(idOrUrl)}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                   >
                     <Ionicons name="close" size={14} color="#fff" />

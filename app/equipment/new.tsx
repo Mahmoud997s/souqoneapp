@@ -291,9 +291,9 @@ export default function NewEquipmentListingScreen() {
               const targetId = publishSuccess.equipmentId
               resetDraft()
               if (targetId) {
-                router.replace(`/equipment/${targetId}` as any)
+                router.replace(`/equipment/${targetId}`)
               } else {
-                router.replace('/equipment' as any)
+                router.replace('/equipment')
               }
             },
             testID: 'publish-success-primary-btn',
@@ -303,7 +303,7 @@ export default function NewEquipmentListingScreen() {
             onPress: () => {
               resetDraft()
               if (publishSuccess.isEdit) {
-                router.replace('/equipment' as any)
+                router.replace('/equipment')
               } else {
                 setPublishSuccess(null)
               }
@@ -314,13 +314,13 @@ export default function NewEquipmentListingScreen() {
             label: 'العودة للرئيسية',
             onPress: () => {
               resetDraft()
-              router.replace('/' as any)
+              router.replace('/')
             },
             testID: 'publish-success-tertiary-btn',
           }}
           onHardwareBack={() => {
             resetDraft()
-            router.replace('/equipment' as any)
+            router.replace('/equipment')
             return true
           }}
         />
@@ -357,12 +357,12 @@ export default function NewEquipmentListingScreen() {
           actions={[
             {
               icon: 'chatbubble-outline',
-              onPress: () => router.push('/(tabs)/chat' as any),
+              onPress: () => router.push('/(tabs)/chat'),
               accessibilityLabel: 'الرسائل',
             },
             {
               icon: 'notifications-outline',
-              onPress: () => router.push('/profile/notifications' as any),
+              onPress: () => router.push('/profile/notifications'),
               accessibilityLabel: 'الإشعارات',
             },
           ]}
