@@ -4,6 +4,38 @@ import { LocalMessage } from '../hooks/useChatRoomLogic'
 import { QueryClient } from '@tanstack/react-query'
 import { useChatStore } from '../store/chatStore'
 import { useAuthStore } from '../store/authStore'
+import { ChatRoom } from '../types/listing.types'
+
+export interface SocketIncomingMessagePayload {
+  id?: string
+  conversationId?: string
+  room?: string
+  roomId?: string
+  senderId?: string
+  sender?: { id?: string }
+  content?: string
+  createdAt?: string
+  reactions?: Array<{ emoji: string; userId: string }>
+  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
+  mediaUrl?: string
+}
+
+export interface SocketReactionPayload {
+  conversationId?: string
+  messageId?: string
+  emoji: string
+  userId: string
+  action?: 'add' | 'remove'
+}
+
+export interface SocketMessageDeletedPayload {
+  conversationId?: string
+  messageId?: string
+}
+
+export interface SocketMessagesReadPayload {
+  conversationId?: string
+}
 
 let initialized = false
 let globalQueryClient: QueryClient | null = null
@@ -23,10 +55,10 @@ export const ChatSyncService = {
         }
       })
 
-      socket.on('message', (data: any) => ChatSyncService.handleIncomingMessage(data))
-      socket.on('new_message', (data: any) => ChatSyncService.handleIncomingMessage(data))
+      socket.on('message', (data: SocketIncomingMessagePayload) => ChatSyncService.handleIncomingMessage(data))
+      socket.on('new_message', (data: SocketIncomingMessagePayload) => ChatSyncService.handleIncomingMessage(data))
 
-      socket.on('message-reaction', (data: any) => {
+      socket.on('message-reaction', (data: SocketReactionPayload) => {
         const { conversationId, messageId, emoji, userId, action } = data
         if (!conversationId || !messageId) return
         
@@ -46,14 +78,14 @@ export const ChatSyncService = {
         }
       })
 
-      socket.on('message-deleted', (data: any) => {
+      socket.on('message-deleted', (data: SocketMessageDeletedPayload) => {
         const { conversationId, messageId } = data
         if (conversationId && messageId) {
           useChatMessagesStore.getState().removeMessage(conversationId, messageId)
         }
       })
       
-      socket.on('messages-read', (data: any) => {
+      socket.on('messages-read', (data: SocketMessagesReadPayload) => {
          const { conversationId } = data
          if (conversationId) {
              const user = useAuthStore.getState().user
@@ -65,14 +97,14 @@ export const ChatSyncService = {
     })
   },
 
-  handleIncomingMessage: (data: any) => {
+  handleIncomingMessage: (data: SocketIncomingMessagePayload) => {
     const roomId = data.conversationId || data.room || data.roomId // Fallbacks depending on backend
     if (!roomId) return
 
     const msg: LocalMessage = {
       id: data.id ?? String(Date.now()),
       senderId: data.senderId ?? data.sender?.id ?? '',
-      content: data.content,
+      content: data.content ?? '',
       createdAt: data.createdAt ?? new Date().toISOString(),
       reactions: data.reactions ?? [],
       type: data.type,
@@ -96,9 +128,9 @@ export const ChatSyncService = {
 
     // Update query client for rooms list so the unread badge and last message update instantly
     if (globalQueryClient) {
-      globalQueryClient.setQueryData(['chat-rooms'], (old: any) => {
+      globalQueryClient.setQueryData<ChatRoom[]>(['chat-rooms'], (old) => {
         if (!old) return old
-        return old.map((room: any) => {
+        return old.map((room: ChatRoom) => {
           if (room.id === roomId) {
             return {
               ...room,
@@ -108,7 +140,7 @@ export const ChatSyncService = {
             }
           }
           return room
-        }).sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        }).sort((a: ChatRoom, b: ChatRoom) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       })
     }
   },

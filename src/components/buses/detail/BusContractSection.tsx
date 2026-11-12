@@ -268,6 +268,9 @@ export function BusContractSection({
             onPress={() => setIsAccordionOpen((prev) => !prev)}
             activeOpacity={0.7}
             testID="btn-toggle-contract-accordion"
+            accessibilityRole="button"
+            accessibilityLabel="عرض التفاصيل المالية وحسابات السداد"
+            accessibilityState={{ expanded: isAccordionOpen }}
           >
             <Text style={s.accordionHeaderText} maxFontSizeMultiplier={1.3}>
               عرض التفاصيل المالية وحسابات السداد

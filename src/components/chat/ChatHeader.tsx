@@ -127,7 +127,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   return (
     <AnimatedLinearGradient
-      colors={Gradients.hero as any}
+      colors={[...Gradients.hero]}
       locations={[0, 0.6, 1]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}

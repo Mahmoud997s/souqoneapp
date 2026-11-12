@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView, ImageResizeMode } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { Colors } from '../../constants/colors'
@@ -285,7 +285,7 @@ const s = StyleSheet.create({
   msgBubbleOwn: { backgroundColor: Colors.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 4 },
   // borderBottomLeftRadius maps to physical RIGHT in RTL. Tail for other message points right.
   msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' },
-  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as any },
+  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as ImageResizeMode },
   msgImageOnly: { marginBottom: 0 },
   msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
   msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
