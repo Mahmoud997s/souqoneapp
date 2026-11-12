@@ -34,7 +34,7 @@ export function ChatConnectionBanner({
         <Ionicons
           name="cloud-offline-outline"
           size={16}
-          color={Colors.warning || '#D97706'}
+          color={Colors.warning}
           style={s.icon}
         />
         <Text style={s.messageText} numberOfLines={2}>
@@ -47,9 +47,9 @@ export function ChatConnectionBanner({
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: Colors.warningBg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#FDE68A',
+    borderBottomColor: Colors.warningBorder,
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2,
     flexDirection: 'row',
@@ -69,7 +69,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
-    color: '#92400E',
+    color: Colors.warningText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
