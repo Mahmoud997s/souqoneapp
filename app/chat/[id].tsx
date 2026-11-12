@@ -134,7 +134,7 @@ export default function ChatRoomScreen() {
     if (room?.listing) {
       options.push({
         text: '🏷️ عرض الإعلان',
-        onPress: () => router.push(`${listingRoute}/${room.listing!.id}` as any),
+        onPress: () => router.push({ pathname: `${listingRoute}/[id]` as const, params: { id: room.listing!.id } } as never),
         style: 'default',
       })
     }
@@ -183,7 +183,7 @@ export default function ChatRoomScreen() {
         onBackPress={() => router.back()}
         onProfilePress={() => {
           if (otherUser?.id) {
-            router.push(`/profile/${otherUser.id}` as any)
+            router.push({ pathname: '/profile/[userId]', params: { userId: otherUser.id } } as never)
           }
         }}
         onOptionsPress={handleRoomOptions}
@@ -194,7 +194,7 @@ export default function ChatRoomScreen() {
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
           listing={room.listing}
-          onPress={() => router.push(`${listingRoute}/${room.listing!.id}` as any)}
+          onPress={() => router.push({ pathname: `${listingRoute}/[id]` as const, params: { id: room.listing!.id } } as never)}
           onClose={() => setIsListingBannerVisible(false)}
         />
       )}
@@ -249,7 +249,7 @@ export default function ChatRoomScreen() {
             </View>
           ) : null}
           <FlashList
-          ref={scrollRef as any}
+          ref={scrollRef}
           data={reversedMessages}
           keyExtractor={(item) => item.id}
           // @ts-ignore
