@@ -12,6 +12,8 @@ import { CardSystem } from '../../constants/cardSystem'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { getListErrorProps } from '../../utils/getListErrorProps'
 import { StaleDataBanner } from '../listing-detail/StaleDataBanner'
+import { UnifiedCardItem } from '../../types/unified-card.types'
+import { Service } from '../../types/listing.types'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -24,7 +26,7 @@ const CARD_WIDTH = getPeekCardWidth()
 export interface ServiceHorizontalListProps {
   title: string
   subTitle?: string
-  data: any[]
+  data: Array<Service | UnifiedCardItem | { id: string; title: string; [key: string]: unknown }>
   isLoading: boolean
   isError?: boolean
   error?: unknown

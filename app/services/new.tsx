@@ -46,6 +46,13 @@ import { ServiceStep5Pricing } from '../../src/components/services/wizard/Servic
 import { ServiceStep6Review } from '../../src/components/services/wizard/ServiceStep6Review'
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
+import {
+  ServiceBackendPayload,
+  buildServiceListingPayload,
+  validateAllServiceStepsBeforeSubmit,
+  extractImageUrlsFromServiceFormData,
+} from '../../src/utils/services/serviceWizardSubmitHelpers'
+import { Service } from '../../src/types/listing.types'
 
 const TOTAL_STEPS = 6
 
@@ -60,10 +67,12 @@ export default function NewServiceListingScreen() {
   } | null>(null)
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => servicesApi.create(data),
+    mutationFn: (data: ServiceBackendPayload) =>
+      servicesApi.create(data as unknown as Partial<Service>),
   })
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => servicesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: ServiceBackendPayload }) =>
+      servicesApi.update(id, data as unknown as Partial<Service>),
   })
 
   const {
@@ -98,7 +107,10 @@ export default function NewServiceListingScreen() {
     })
   }
 
-  const setFormFieldAndClearError = (field: keyof ServiceFormData, value: any) => {
+  const setFormFieldAndClearError = <K extends keyof ServiceFormData>(
+    field: K,
+    value: ServiceFormData[K]
+  ) => {
     setField(field, value)
     clearFieldError(field as string)
   }
@@ -223,30 +235,25 @@ export default function NewServiceListingScreen() {
   }
 
   const handleSubmit = async () => {
-    // 1. Validation loop for Steps 1-5
-    for (let s = 1; s <= 5; s++) {
-      const result = validateStep(s, formData)
-      if (!result.isValid) {
-        setErrors(result.errors)
-        goToStep(s)
-        return
+    // 1. Validation loop for Steps 1-5 via extracted helper
+    const validationCheck = validateAllServiceStepsBeforeSubmit(formData)
+    if (!validationCheck.isValid) {
+      setErrors(validationCheck.errors)
+      if (validationCheck.invalidStep !== null) {
+        goToStep(validationCheck.invalidStep)
       }
+      return
     }
 
     setErrors({})
     setIsUploadingImages(true)
 
     // 2. Upload local images
-    const finalImageUrls: string[] = []
+    let finalImageUrls: string[] = []
     const newImageUrls: string[] = []
 
     try {
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url
-          if (url) finalImageUrls.push(url)
-        }
-      }
+      finalImageUrls = extractImageUrlsFromServiceFormData(formData.existingImages)
 
       if (formData.images && formData.images.length > 0) {
         for (const img of formData.images) {
@@ -285,53 +292,8 @@ export default function NewServiceListingScreen() {
       setIsUploadingImages(false)
     }
 
-    // 3. Prepare payload matching backend CreateServiceDto
-    // Decision d6 / D-233: Days and hours are optional and independent.
-    // If days are empty, send workingDays: []. Hours are preserved when selected, or null on edit to clear.
-    const workingDaysToSubmit =
-      Array.isArray(formData.workingDays) && formData.workingDays.length > 0
-        ? formData.workingDays
-        : []
-    const isEdit = Boolean(formData.editMode && formData.editListingId)
-
-    const workingHoursOpen = formData.workingHoursOpen
-      ? formData.workingHoursOpen
-      : isEdit
-        ? null
-        : undefined
-
-    const workingHoursClose = formData.workingHoursClose
-      ? formData.workingHoursClose
-      : isEdit
-        ? null
-        : undefined
-
-    const payload: any = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      serviceType: formData.serviceType!,
-      providerType: formData.providerType!,
-      providerName: formData.providerName.trim(),
-      specializations:
-        formData.specializations && formData.specializations.length > 0
-          ? formData.specializations
-          : undefined,
-      priceFrom: Number(formData.priceFrom),
-      ...(formData.priceTo != null ? { priceTo: Number(formData.priceTo) } : {}),
-      currency: formData.currency || 'OMR',
-      isHomeService: Boolean(formData.isHomeService),
-      workingHoursOpen,
-      workingHoursClose,
-      workingDays: workingDaysToSubmit,
-      governorateId: Number(formData.governorateId),
-      wilayaId: Number(formData.wilayaId),
-      address: formData.address ? formData.address.trim() : undefined,
-      latitude: formData.latitude != null ? Number(formData.latitude) : undefined,
-      longitude: formData.longitude != null ? Number(formData.longitude) : undefined,
-      whatsappEnabled: formData.whatsappEnabled === true,
-      website: formData.website ? formData.website.trim() : undefined,
-      images: finalImageUrls,
-    }
+    // 3. Prepare payload matching backend CreateServiceDto via extracted helper
+    const payload = buildServiceListingPayload(formData, finalImageUrls)
 
     const handleServiceMutationError = (err: any, fallbackMessage: string) => {
       if (err?.response?.status === 429) {
