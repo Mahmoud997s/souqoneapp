@@ -7,8 +7,21 @@ describe('safeRedirect', () => {
       expect(isSafeInternalPath('/cars/browse?search=x')).toBe(true)
       expect(isSafeInternalPath('/(tabs)')).toBe(true)
       expect(isSafeInternalPath('/listings/999?foo=bar&baz=1')).toBe(true)
+      expect(isSafeInternalPath('/profile/edit')).toBe(true)
       expect(isSafeInternalPath('/user/profile')).toBe(true)
       expect(isSafeInternalPath('/')).toBe(true)
+    })
+
+    it('rejects /(auth) routes to prevent auth redirect loops', () => {
+      expect(isSafeInternalPath('/(auth)')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/login')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/login?redirect=%2Fcars')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/login?redirect=/(auth)/login')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/register')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/verify-email')).toBe(false)
+      expect(isSafeInternalPath('/(auth)/account-blocked')).toBe(false)
+      expect(isSafeInternalPath('/(AUTH)/login')).toBe(false)
     })
 
     it('rejects protocol-relative open redirects', () => {
@@ -72,6 +85,7 @@ describe('safeRedirect', () => {
       expect(resolveRedirect('//evil.com')).toBe('/(tabs)')
       expect(resolveRedirect('https://evil.com')).toBe('/(tabs)')
       expect(resolveRedirect('/javascript:alert(1)')).toBe('/(tabs)')
+      expect(resolveRedirect('/(auth)/login')).toBe('/(tabs)')
       expect(resolveRedirect('')).toBe('/(tabs)')
       expect(resolveRedirect(undefined)).toBe('/(tabs)')
       expect(resolveRedirect(null)).toBe('/(tabs)')
@@ -79,6 +93,7 @@ describe('safeRedirect', () => {
 
     it('uses a custom fallback when specified', () => {
       expect(resolveRedirect('//evil.com', '/fallback')).toBe('/fallback')
+      expect(resolveRedirect('/(auth)/login?redirect=/(auth)/login', '/custom')).toBe('/custom')
       expect(resolveRedirect(undefined, '/cars/browse')).toBe('/cars/browse')
       expect(resolveRedirect('/valid/path', '/fallback')).toBe('/valid/path')
     })
