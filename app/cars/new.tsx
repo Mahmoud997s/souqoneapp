@@ -24,6 +24,7 @@ import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
 import { uploadsApi } from '../../src/api/uploads'
 import { listingsApi } from '../../src/api/listings'
+import { Listing } from '../../src/types/listing.types'
 import { useCarWizardStore } from '../../src/store/carWizardStore'
 import { useCarFormLogic } from '../../src/hooks/useCarFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
@@ -39,6 +40,13 @@ import { CarStep3Details } from '../../src/components/cars/wizard/CarStep3Detail
 import { CarStep4Location } from '../../src/components/cars/wizard/CarStep4Location'
 import { CarStep5Review } from '../../src/components/cars/wizard/CarStep5Review'
 import { validateCarStep, mapCarBackendErrors } from '../../src/hooks/useCarValidation'
+import {
+  CarBackendPayload,
+  buildCarListingPayload,
+  validateAllCarStepsBeforeSubmit,
+  extractImageUrlsFromCarFormData,
+} from '../../src/utils/cars/carWizardSubmitHelpers'
+import { CarFormField } from '../../src/types/carForm.types'
 
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
@@ -57,10 +65,11 @@ export default function NewCarListingScreen() {
   } | null>(null)
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => listingsApi.create(data),
+    mutationFn: (data: CarBackendPayload) => listingsApi.create(data as unknown as Partial<Listing>),
   })
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => listingsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: CarBackendPayload }) =>
+      listingsApi.update(id, data as unknown as Partial<Listing>),
   })
 
   const {
@@ -89,9 +98,9 @@ export default function NewCarListingScreen() {
   }
 
   // Wrapper around updateField that clears errors
-  const setFormFieldAndClearError = (field: any, value: any) => {
+  const setFormFieldAndClearError = <K extends CarFormField>(field: K, value: any) => {
     updateField(field, value)
-    clearFieldError(field as string)
+    clearFieldError(field)
   }
 
   const validateCurrentStep = () => {
@@ -145,26 +154,13 @@ export default function NewCarListingScreen() {
   const [isUploadingImages, setIsUploadingImages] = useState(false)
 
   const handleSubmit = async () => {
-    // Final Validation Check before submitting (checks step 1 to 4)
-    let isValid = true
-    for (let s = 1; s <= 4; s++) {
-      const result = validateCarStep(s, formData)
-      if (!result.isValid) {
-        isValid = false
-        setErrors(result.errors)
-        setStep(s)
-        return
+    // Final Validation Check before submitting (checks step 1 to 4 + images)
+    const validationCheck = validateAllCarStepsBeforeSubmit(formData)
+    if (!validationCheck.isValid) {
+      setErrors(validationCheck.errors)
+      if (validationCheck.invalidStep !== null) {
+        setStep(validationCheck.invalidStep)
       }
-    }
-    
-    if (!isValid) return
-
-    // Final Image Validation
-    const hasNewImages = Array.isArray(formData.images) && formData.images.length > 0
-    const hasExistingImages = Array.isArray(formData.existingImages) && formData.existingImages.length > 0
-    if (formData.listingType !== 'WANTED' && !hasNewImages && !hasExistingImages) {
-      setErrors({ images: 'يجب إضافة صورة واحدة على الأقل للسيارة' })
-      setStep(2)
       return
     }
 
@@ -174,12 +170,7 @@ export default function NewCarListingScreen() {
     let finalImageUrls: string[] = []
     let newImageUrls: string[] = []
     try {
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url || img.uri
-          if (url) finalImageUrls.push(url)
-        }
-      }
+      finalImageUrls = extractImageUrlsFromCarFormData(formData.existingImages)
 
       if (formData.images && formData.images.length > 0) {
         for (const img of formData.images) {
@@ -221,61 +212,8 @@ export default function NewCarListingScreen() {
       setIsUploadingImages(false)
     }
 
-    // 2. Prepare payload matching backend CreateListingDto
-    const payload: any = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      listingType: formData.listingType,
-      condition: formData.condition || undefined,
-
-      year: formData.year ? Number(formData.year) : undefined,
-      mileage: formData.condition === 'NEW' ? 0 : (formData.mileage ? Number(formData.mileage) : undefined),
-      fuelType: formData.fuelType || undefined,
-      transmission: formData.transmission || undefined,
-      bodyType: formData.bodyType || undefined,
-      exteriorColor: formData.exteriorColor || undefined,
-      interior: formData.interior || undefined,
-      engineSize: formData.engineSize || undefined,
-      horsepower: formData.horsepower ? Number(formData.horsepower) : undefined,
-      doors: formData.doors ? Number(formData.doors) : undefined,
-      seats: formData.seats ? Number(formData.seats) : undefined,
-      driveType: formData.driveType || undefined,
-      features: formData.features.length > 0 ? formData.features : undefined,
-
-      isPriceNegotiable: formData.isPriceNegotiable,
-      whatsappEnabled: formData.whatsappEnabled === true,
-      
-      governorateId: formData.governorateId ? Number(formData.governorateId) : undefined,
-      wilayaId: formData.wilayaId ? Number(formData.wilayaId) : undefined,
-      latitude: formData.latitude || undefined,
-      longitude: formData.longitude || undefined,
-
-      ...(formData.editMode 
-        ? (formData.brandId !== formData.originalBrandId || formData.carModelId !== formData.originalCarModelId 
-           ? { brandId: formData.brandId, carModelId: formData.carModelId, carTrimId: formData.carTrimId || undefined } 
-           : {}) 
-        : { brandId: formData.brandId, carModelId: formData.carModelId, carTrimId: formData.carTrimId || undefined }
-      ),
-
-      ...(formData.editMode ? { version: formData.version || 1 } : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
-    }
-
-    if (formData.listingType === 'SALE') {
-      payload.price = formData.price ? (isNaN(Number(formData.price)) ? undefined : Number(formData.price)) : undefined
-    } else if (formData.listingType === 'RENTAL') {
-      payload.price = 0 // Required by backend even for rentals
-      payload.dailyPrice = formData.dailyPrice ? (isNaN(Number(formData.dailyPrice)) ? undefined : Number(formData.dailyPrice)) : undefined
-      payload.monthlyPrice = formData.monthlyPrice ? (isNaN(Number(formData.monthlyPrice)) ? undefined : Number(formData.monthlyPrice)) : undefined
-      payload.withDriver = formData.withDriver
-      payload.depositAmount = formData.depositAmount ? (isNaN(Number(formData.depositAmount)) ? undefined : Number(formData.depositAmount)) : undefined
-      payload.minRentalDays = formData.minRentalDays ? (isNaN(Number(formData.minRentalDays)) ? undefined : Number(formData.minRentalDays)) : undefined
-      payload.kmLimitPerDay = formData.kmLimitPerDay ? (isNaN(Number(formData.kmLimitPerDay)) ? undefined : Number(formData.kmLimitPerDay)) : undefined
-      payload.cancellationPolicy = formData.cancellationPolicy || undefined
-      payload.deliveryAvailable = formData.deliveryAvailable
-      payload.insuranceIncluded = formData.insuranceIncluded
-    } else if (formData.listingType === 'WANTED') {
-      payload.price = formData.price ? (isNaN(Number(formData.price)) ? 0 : Number(formData.price)) : 0
-    }
+    // 2. Prepare payload matching backend CreateListingDto via extracted helper
+    const payload = buildCarListingPayload(formData, finalImageUrls)
 
     if (formData.editMode && formData.editListingId) {
       updateMutation.mutate(
