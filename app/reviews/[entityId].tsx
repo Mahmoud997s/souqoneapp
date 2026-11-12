@@ -227,14 +227,13 @@ export default function ReviewsScreen() {
             {[1, 2, 3, 4, 5].map((i) => (
               <TouchableOpacity
                 key={i}
-                testID={`star-rating-${i}`}
+                testID={`review-star-btn-${i}`}
                 accessibilityRole="button"
                 accessibilityLabel={`تقييم ${i} من 5 نجوم`}
                 accessibilityState={{ selected: i <= rating }}
+                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                 onPress={() => setRating(i)}
               >
-                {/* Secondary testID support for review-star-btn-${i} */}
-                <View testID={`review-star-btn-${i}`} pointerEvents="none" style={{ display: 'none' }} />
                 <Ionicons name="star" size={32} color={i <= rating ? Colors.warning : Colors.border} />
               </TouchableOpacity>
             ))}
