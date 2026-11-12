@@ -405,7 +405,7 @@ const ListingCardBaseComponent = ({
         <View style={s.headerRow}>
           <Text
             style={[s.cardTitle, { flex: 1 }]}
-            numberOfLines={1}
+            numberOfLines={titleNumberOfLines}
             ellipsizeMode="tail"
           >
             {title}

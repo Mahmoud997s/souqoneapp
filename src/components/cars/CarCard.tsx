@@ -38,7 +38,7 @@ const CarCardComponent = ({
   maxChips = 3,
   actionMenu,
   disableImageSwipe = false,
-  titleNumberOfLines = 1,
+  titleNumberOfLines = 2,
   imageHeight,
   compactBody = false,
   liquidGlass,
@@ -101,7 +101,7 @@ const CarCardComponent = ({
     transRaw === 'AUTOMATIC' ? 'أوتوماتيك' : transRaw === 'MANUAL' ? 'عادي' : transRaw
 
   const year = yearData ? String(yearData) : 'N/A'
-  const mileage = mileageData ? `${Number(mileageData).toLocaleString('en-US')} كم` : ''
+  const mileage = mileageData ? `${Number(mileageData).toLocaleString('ar')} كم` : ''
 
   const isEquipment =
     listingTypeStr.startsWith('EQUIPMENT') ||
