@@ -1,5 +1,15 @@
 import React from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -16,10 +26,32 @@ import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBa
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 
-function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
+export interface ReviewItem {
+  id: string
+  rating?: number
+  comment?: string
+  createdAt?: string
+  reviewer?: {
+    id?: string
+    displayName?: string
+    username?: string
+  }
+  user?: {
+    id?: string
+    displayName?: string
+    username?: string
+  }
+}
+
+export function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
-    <View style={{ flexDirection: 'row' }}>
-      {[1, 2, 3, 4, 5].map(i => (
+    <View
+      style={{ flexDirection: 'row' }}
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={`التقييم ${rating} من 5 نجوم`}
+    >
+      {[1, 2, 3, 4, 5].map((i) => (
         <Ionicons
           key={i}
           name="star"
@@ -62,18 +94,18 @@ export default function ReviewsScreen() {
     isRefetchError,
     isRefetching,
     refetch,
-  } = useQuery({
+  } = useQuery<ReviewItem[]>({
     queryKey: ['reviews', entityId],
     queryFn: async () => {
       const res = await reviewsApi.getByEntity(entityId, type)
-      const { items } = parseListEnvelope(res.data)
-      return items as any[]
+      const { items } = parseListEnvelope<ReviewItem>(res.data)
+      return items
     },
     enabled: !!entityId,
   })
 
   const avgRating = reviews?.length
-    ? reviews.reduce((sum: number, r: any) => sum + (r.rating ?? 0), 0) / reviews.length
+    ? reviews.reduce((sum: number, r: ReviewItem) => sum + (r.rating ?? 0), 0) / reviews.length
     : 0
 
   const { mutate: submitReview, isPending: submitting } = useMutation({
@@ -97,8 +129,8 @@ export default function ReviewsScreen() {
       setRating(0)
       setComment('')
     },
-    onError: (err: any) => {
-      const status = err?.response?.status
+    onError: (err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status
       const msg =
         status === 429
           ? getPublishRateLimitErrorMessage(err)
@@ -120,7 +152,7 @@ export default function ReviewsScreen() {
       ) : (
         <FlatList
           data={reviews ?? []}
-          keyExtractor={(item: any) => item.id}
+          keyExtractor={(item: ReviewItem) => item.id}
           contentContainerStyle={s.content}
           ListHeaderComponent={
             reviews && reviews.length > 0 ? (
@@ -155,7 +187,7 @@ export default function ReviewsScreen() {
               </View>
             )
           }
-          renderItem={({ item }: { item: any }) => {
+          renderItem={({ item }: { item: ReviewItem }) => {
             const reviewer = item.reviewer ?? item.user
             const name = reviewer?.displayName ?? reviewer?.username ?? 'مستخدم'
             return (
@@ -183,13 +215,26 @@ export default function ReviewsScreen() {
         <View style={s.writeBox}>
           <View style={s.writeHeader}>
             <Text style={s.writeTitle}>تقييمك</Text>
-            <TouchableOpacity onPress={() => setIsWriting(false)}>
+            <TouchableOpacity
+              onPress={() => setIsWriting(false)}
+              accessibilityRole="button"
+              accessibilityLabel="إغلاق نافذة التقييم"
+            >
               <Ionicons name="close" size={24} color={Colors.text2} />
             </TouchableOpacity>
           </View>
           <View style={s.starsInput}>
-            {[1, 2, 3, 4, 5].map(i => (
-              <TouchableOpacity key={i} testID={`star-rating-${i}`} onPress={() => setRating(i)}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <TouchableOpacity
+                key={i}
+                testID={`star-rating-${i}`}
+                accessibilityRole="button"
+                accessibilityLabel={`تقييم ${i} من 5 نجوم`}
+                accessibilityState={{ selected: i <= rating }}
+                onPress={() => setRating(i)}
+              >
+                {/* Secondary testID support for review-star-btn-${i} */}
+                <View testID={`review-star-btn-${i}`} pointerEvents="none" style={{ display: 'none' }} />
                 <Ionicons name="star" size={32} color={i <= rating ? Colors.warning : Colors.border} />
               </TouchableOpacity>
             ))}
@@ -204,18 +249,26 @@ export default function ReviewsScreen() {
             multiline
             textAlign="right"
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             testID="submit-review-btn"
-            style={[s.writeBtn, (!rating || submitting) && s.writeBtnDisabled]} 
-            disabled={!rating || submitting} 
+            style={[s.writeBtn, (!rating || submitting) && s.writeBtnDisabled]}
+            disabled={!rating || submitting}
             onPress={() => submitReview()}
+            accessibilityRole="button"
+            accessibilityLabel="إرسال التقييم"
           >
             {submitting ? <ActivityIndicator color={Colors.white} /> : <Text style={s.writeTxt}>إرسال التقييم</Text>}
           </TouchableOpacity>
         </View>
       ) : (
         <View style={s.footer}>
-          <TouchableOpacity testID="open-write-review-btn" style={s.writeBtn} onPress={() => setIsWriting(true)}>
+          <TouchableOpacity
+            testID="open-write-review-btn"
+            style={s.writeBtn}
+            onPress={() => setIsWriting(true)}
+            accessibilityRole="button"
+            accessibilityLabel="إضافة تقييم"
+          >
             <Ionicons name="create-outline" size={20} color={Colors.white} />
             <Text style={s.writeTxt}>أضف تقييم</Text>
           </TouchableOpacity>
@@ -230,37 +283,45 @@ const s = StyleSheet.create({
   loader: { marginTop: 60 },
   content: { padding: Spacing.space4, paddingBottom: 100, gap: Spacing.space4 },
   summaryCard: {
-    flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: Colors.border, padding: Spacing.space4, marginBottom: Spacing.space2,
+    flexDirection: 'row',
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.space4,
+    marginBottom: Spacing.space2,
   },
   sumRight: { flex: 1, borderLeftWidth: 1, borderLeftColor: Colors.border, alignItems: 'flex-start' },
   scoreRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  score: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 32, color: Colors.primary },
-  outOf: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text2 },
+  score: { fontFamily: 'Almarai_800ExtraBold', fontSize: 32, color: Colors.primary },
+  outOf: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text2 },
   sumLeft: { paddingLeft: Spacing.space4, alignItems: 'center', justifyContent: 'center' },
-  count: { fontFamily: 'Almarai_700Bold',  fontSize: 24, color: Colors.text },
-  countLbl: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2 },
+  count: { fontFamily: 'Almarai_700Bold', fontSize: 24, color: Colors.text },
+  countLbl: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: Spacing.space3 },
-  emptyTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 18, color: Colors.text },
-  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text2, textAlign: 'center' },
+  emptyTitle: { fontFamily: 'Almarai_700Bold', fontSize: 18, color: Colors.text },
+  emptySub: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text2, textAlign: 'center' },
   reviewCard: {
-    backgroundColor: Colors.white, borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: Colors.border, padding: Spacing.space4,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.space4,
   },
   revHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.space3 },
   userInfo: { flexDirection: 'row', gap: Spacing.space3 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f7f9fc', alignItems: 'center', justifyContent: 'center' },
-  avatarInit: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text },
-  revName: { fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
-  revTime: { fontFamily: 'Almarai_400Regular',  fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
-  comment: { fontFamily: 'Almarai_400Regular',  fontSize: 14, color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
+  avatarInit: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text },
+  revName: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
+  revTime: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
+  comment: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
   footer: { backgroundColor: Colors.white, padding: Spacing.space4, borderTopWidth: 1, borderTopColor: Colors.border },
   writeBox: { backgroundColor: Colors.white, padding: Spacing.space4, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.space3 },
   writeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  writeTitle: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.text },
+  writeTitle: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text },
   starsInput: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: Spacing.space2 },
-  commentInput: { height: 80, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, padding: Spacing.space3, fontFamily: 'Almarai_400Regular',  textAlignVertical: 'top' },
+  commentInput: { height: 80, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, padding: Spacing.space3, fontFamily: 'Almarai_400Regular', textAlignVertical: 'top' },
   writeBtn: { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: Radius.lg, gap: 8 },
   writeBtnDisabled: { opacity: 0.5 },
-  writeTxt: { fontFamily: 'Almarai_700Bold',  fontSize: 16, color: Colors.white },
+  writeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.white },
 })

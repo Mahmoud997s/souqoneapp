@@ -402,7 +402,7 @@ export default function BrowseOperatorsScreen() {
           onChangeTab={(tabId: string) => {
             setFilters((prev) => ({
               ...prev,
-              operatorType: tabId === 'all' ? undefined : (tabId as any),
+              operatorType: tabId === 'all' ? undefined : (tabId as OperatorListing['operatorType']),
             }))
           }}
           onClearTab={() =>

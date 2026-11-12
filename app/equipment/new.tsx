@@ -34,6 +34,10 @@ import { logWarn } from '../../src/utils/safeLog'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
+import {
+  uploadAndReconcileEquipmentImages,
+  buildEquipmentListingPayload,
+} from '../../src/utils/equipment/equipmentWizardSubmitHelpers'
 
 import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type'
 import { EquipmentStep2Images } from '../../src/components/equipment/wizard/EquipmentStep2Images'
@@ -46,7 +50,8 @@ import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhone
 const TOTAL_STEPS = 5
 
 function handleEquipmentMutationError(err: unknown, fallbackMessage: string) {
-  if ((err as any)?.response?.status === 429) {
+  const status = (err as { response?: { status?: number } })?.response?.status
+  if (status === 429) {
     dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
     return
   }
@@ -187,54 +192,20 @@ export default function NewEquipmentListingScreen() {
 
     setIsUploadingImages(true)
 
-    // 1. Process existing images + upload any local image files
+    // 1. Process existing images + upload any local image files via extracted helper
     let finalImageUrls: string[] = []
     let newImageUrls: string[] = []
     try {
-      // Add existing images from previous upload
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url || img.uri
-          if (url) finalImageUrls.push(url)
-        }
-      }
-
-      // Upload newly added local images
-      if (formData.images && formData.images.length > 0) {
-        for (const img of formData.images) {
-          if (typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://'))) {
-            finalImageUrls.push(img)
-          } else {
-            const uri = typeof img === 'string' ? img : img.uri
-            if (uri) {
-              if (uri.startsWith('http://') || uri.startsWith('https://')) {
-                finalImageUrls.push(uri)
-              } else {
-                try {
-                  const filePayload = buildUploadFilePayload(img, 'equip')
-                  if (!filePayload) continue
-
-                  const data = new FormData()
-                  data.append('file', filePayload as any)
-                  const res = await uploadsApi.single(data)
-                  const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
-                  if (url) {
-                    finalImageUrls.push(url)
-                    newImageUrls.push(url)
-                  }
-                } catch (uploadErr: any) {
-                  logWarn('EquipmentNew:UploadImage', uploadErr)
-                  const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-                  throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e: any) {
+      const reconcileResult = await uploadAndReconcileEquipmentImages(
+        formData.images,
+        formData.existingImages
+      )
+      finalImageUrls = reconcileResult.finalImageUrls
+      newImageUrls = reconcileResult.newImageUrls
+    } catch (e: unknown) {
       logWarn('EquipmentNew:UploadBeforeSubmit', e)
-      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      const errMessage = (e as Error)?.message || 'تحقق من اتصالك وأعد المحاولة'
+      dialogService.alert('خطأ في رفع الصور', errMessage, 'error')
       setIsUploadingImages(false)
       return
     } finally {
@@ -242,47 +213,7 @@ export default function NewEquipmentListingScreen() {
     }
 
     // 2. Prepare payload matching backend CreateEquipmentListingDto exactly
-    const payload: any = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      equipmentType: formData.equipmentType,
-      listingType: formData.listingType,
-
-      make: formData.make.trim() || undefined,
-      model: formData.model.trim() || undefined,
-      year: formData.year ? Number(formData.year) : undefined,
-      condition: formData.condition || 'USED',
-      capacity: formData.capacity.trim() || undefined,
-      power: formData.power.trim() || undefined,
-      weight: formData.weight.trim() || undefined,
-      hoursUsed: formData.hoursUsed ? Number(formData.hoursUsed) : undefined,
-      features: formData.features.length > 0 ? formData.features : undefined,
-
-      isPriceNegotiable: formData.isPriceNegotiable,
-      withOperator: formData.withOperator,
-      deliveryAvailable: formData.deliveryAvailable,
-
-      governorateId: formData.governorateId ? Number(formData.governorateId) : undefined,
-      wilayaId: formData.wilayaId ? Number(formData.wilayaId) : undefined,
-      latitude: formData.latitude || undefined,
-      longitude: formData.longitude || undefined,
-
-      whatsappEnabled: formData.whatsappEnabled === true,
-      ...(formData.editMode ? {} : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
-    }
-
-    if (formData.listingType === 'EQUIPMENT_SALE') {
-      payload.price = formData.price ? Number(formData.price) : undefined
-    } else if (formData.listingType === 'EQUIPMENT_RENT') {
-      payload.dailyPrice = formData.dailyPrice ? Number(formData.dailyPrice) : undefined
-      payload.monthlyPrice = formData.monthlyPrice ? Number(formData.monthlyPrice) : undefined
-    } else if (formData.listingType === 'EQUIPMENT_WANTED') {
-      payload.budgetMin = formData.budgetMin ? Number(formData.budgetMin) : undefined
-      payload.budgetMax = formData.budgetMax ? Number(formData.budgetMax) : undefined
-      payload.rentalDuration = formData.rentalDuration || undefined
-      payload.quantity = formData.quantity ? Number(formData.quantity) : 1
-      payload.siteDetails = formData.siteDetails || undefined
-    }
+    const payload = buildEquipmentListingPayload(formData, finalImageUrls)
 
     if (formData.editMode && formData.editListingId) {
       updateMutation.mutate(
@@ -315,15 +246,16 @@ export default function NewEquipmentListingScreen() {
                 : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور.',
             })
           },
-          onError: (err: any) => {
+          onError: (err: unknown) => {
             handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات')
           },
         }
       )
     } else {
       createMutation.mutate(payload, {
-        onSuccess: (res: any) => {
-          const equipId = res?.data?.id ?? res?.id
+        onSuccess: (res: unknown) => {
+          const resObj = res as { data?: { id?: string | number }; id?: string | number }
+          const equipId = resObj?.data?.id ?? resObj?.id
           const targetId = equipId ? String(equipId) : ''
           void invalidateEquipmentListingQueries(queryClient, targetId || undefined)
           resetDraft()
@@ -332,7 +264,7 @@ export default function NewEquipmentListingScreen() {
             isEdit: false,
           })
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
         },
       })
