@@ -1,8 +1,11 @@
+import fs from 'fs'
+import path from 'path'
 import React from 'react'
 import { render, fireEvent, waitFor, act, renderHook } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { ChatConnectionBanner } from '../../components/chat/ChatConnectionBanner'
+import { Colors } from '../../constants/colors'
 import { MessageBubble } from '../../components/chat/MessageBubble'
 import ChatRoomScreen from '../../../app/chat/[id]'
 import { chatApi } from '../../api/chat'
@@ -177,6 +180,31 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       })
       await rerender(<ChatConnectionBanner />)
       expect(queryByTestId('chat-connection-banner')).toBeNull()
+    })
+
+    it('resolves semantic Colors tokens in ChatConnectionBanner with zero raw hex in source (D-298)', async () => {
+      const { getByTestId, getByText } = await render(<ChatConnectionBanner isConnected={false} />)
+      const banner = getByTestId('chat-connection-banner')
+      const message = getByText('الاتصال الفوري غير مستقر — قد يتأخر استلام الرسائل أو تحديث حالتها')
+
+      // Assert rendered styles match semantic tokens
+      expect(banner.props.style).toEqual(
+        expect.objectContaining({
+          backgroundColor: Colors.warningBg,
+          borderBottomColor: Colors.warningBorder,
+        })
+      )
+      expect(message.props.style).toEqual(
+        expect.objectContaining({
+          color: Colors.warningText,
+        })
+      )
+
+      // Source-level teeth verification: ensure no raw hex (#...) or rgb/rgba literals exist
+      const sourcePath = path.resolve(__dirname, '../../components/chat/ChatConnectionBanner.tsx')
+      const sourceCode = fs.readFileSync(sourcePath, 'utf8')
+      const hexOrRgbMatches = sourceCode.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g) || []
+      expect(hexOrRgbMatches).toEqual([])
     })
 
     it('renders ChatConnectionBanner in ChatRoomScreen below header when socket is disconnected', async () => {
