@@ -391,7 +391,7 @@ describe('D-296 Equipment & Operators Strict Type Safety & Behavioral Parity', (
 
   it('EditOperatorScreen reads nested governorate.nameAr and surfaces array mutation errors', async () => {
     const mutateMock = jest.fn((_args, opts) => {
-      opts.onError({ response: { data: { message: ['رسالة خطأ أولى', 'رسالة ثانية'] } } })
+      opts.onError({ isAxiosError: true, response: { data: { message: ['رسالة خطأ أولى', 'رسالة ثانية'] } } })
     })
     ;(useUpdateOperator as jest.Mock).mockReturnValue({ mutate: mutateMock, isPending: false })
     ;(useOperatorItem as jest.Mock).mockReturnValue({
