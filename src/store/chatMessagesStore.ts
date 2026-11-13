@@ -9,6 +9,7 @@ interface ChatMessagesState {
   addMessage: (roomId: string, message: LocalMessage) => void
   removeMessage: (roomId: string, messageId: string) => void
   updateMessage: (roomId: string, messageId: string, updates: Partial<LocalMessage>) => void
+  restoreMessageInOrder: (roomId: string, message: LocalMessage) => void
   markRoomAsRead: (roomId: string, currentUserId: string) => void
   clearRoom: (roomId: string) => void
   reset: () => void
@@ -91,6 +92,28 @@ export const useChatMessagesStore = create<ChatMessagesState>()(
             messagesByRoom: {
               ...state.messagesByRoom,
               [roomId]: existing.map(m => m.id === messageId ? { ...m, ...updates } : m)
+            }
+          }
+        })
+      },
+
+      restoreMessageInOrder: (roomId, message) => {
+        set((state) => {
+          const existing = state.messagesByRoom[roomId] || []
+          if (existing.some(m => m.id === message.id)) {
+            return {
+              messagesByRoom: {
+                ...state.messagesByRoom,
+                [roomId]: existing.map(m => m.id === message.id ? { ...m, ...message, pendingDelete: false } : m)
+              }
+            }
+          }
+          const updated = [...existing, { ...message, pendingDelete: false }]
+          updated.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          return {
+            messagesByRoom: {
+              ...state.messagesByRoom,
+              [roomId]: updated
             }
           }
         })

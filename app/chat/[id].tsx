@@ -12,6 +12,7 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { ChatRoomHeader } from '../../src/components/chat/ChatRoomHeader'
+import { ChatConnectionBanner } from '../../src/components/chat/ChatConnectionBanner'
 import { useChatRoomLogic } from '../../src/hooks/useChatRoomLogic'
 import { MemoizedMessageBubble as MessageBubble } from '../../src/components/chat/MessageBubble'
 import { ChatInput } from '../../src/components/chat/ChatInput'
@@ -187,6 +188,8 @@ export default function ChatRoomScreen() {
         }}
         onOptionsPress={handleRoomOptions}
       />
+
+      <ChatConnectionBanner />
 
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
