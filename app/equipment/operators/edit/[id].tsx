@@ -195,7 +195,7 @@ export default function EditOperatorScreen() {
           subtitle="تم حفظ كافة التعديلات على بطاقتك المهنية وتحديثها في دليل المشغلين."
           primaryAction={{
             label: 'عرض البطاقة المهنية',
-            onPress: () => router.replace(`/equipment/operators/${id}` as any),
+            onPress: () => router.replace(`/equipment/operators/${id}`),
             testID: 'publish-success-primary-btn',
           }}
           secondaryAction={{
@@ -204,7 +204,7 @@ export default function EditOperatorScreen() {
             testID: 'publish-success-secondary-btn',
           }}
           onHardwareBack={() => {
-            router.replace(`/equipment/operators/${id}` as any)
+            router.replace(`/equipment/operators/${id}`)
             return true
           }}
         />
