@@ -56,12 +56,36 @@ export default function EquipmentLandingScreen() {
   }, [])
 
   // Data fetching logic (Matching Cars & Buses architecture)
-  const { data: latestEquipment = [], isLoading: loadingEq } = useEquipment({ limit: 8 })
-  const { data: saleEquipment = [], isLoading: loadingSale } = useEquipment(
+  const {
+    data: latestEquipment = [],
+    isLoading: loadingEq,
+    isError: errorEq,
+    error: eqError,
+    refetch: refetchEq,
+    isRefetchError: isRefetchErrorEq,
+    isRefetching: isRefetchingEq,
+  } = useEquipment({ limit: 8 })
+  const {
+    data: saleEquipment = [],
+    isLoading: loadingSale,
+    isError: errorSale,
+    error: saleError,
+    refetch: refetchSale,
+    isRefetchError: isRefetchErrorSale,
+    isRefetching: isRefetchingSale,
+  } = useEquipment(
     { listingType: 'EQUIPMENT_SALE', limit: 8 },
     { enabled: loadRest }
   )
-  const { data: rentEquipment = [], isLoading: loadingRent } = useEquipment(
+  const {
+    data: rentEquipment = [],
+    isLoading: loadingRent,
+    isError: errorRent,
+    error: rentError,
+    refetch: refetchRent,
+    isRefetchError: isRefetchErrorRent,
+    isRefetching: isRefetchingRent,
+  } = useEquipment(
     { listingType: 'EQUIPMENT_RENT', limit: 8 },
     { enabled: loadRest }
   )
@@ -126,6 +150,11 @@ export default function EquipmentLandingScreen() {
             subTitle="تصفح أحدث عروض وإعلانات المعدات المضافة"
             data={latestEquipment}
             isLoading={loadingEq}
+            isError={errorEq}
+            error={eqError}
+            onRetry={refetchEq}
+            isRefetchError={isRefetchErrorEq}
+            isRefetching={isRefetchingEq}
             emptyText="لا توجد معدات مضافة حالياً"
             onSeeAll={handleBrowseAll}
             onPressItem={handlePressEquip}
@@ -140,6 +169,11 @@ export default function EquipmentLandingScreen() {
                 subTitle="تصفح أفضل عروض بيع المعدات الثقيلة"
                 data={saleEquipment}
                 isLoading={loadingSale}
+                isError={errorSale}
+                error={saleError}
+                onRetry={refetchSale}
+                isRefetchError={isRefetchErrorSale}
+                isRefetching={isRefetchingSale}
                 emptyText="لا توجد معدات للبيع حالياً"
                 onSeeAll={handleSeeAllSale}
                 onPressItem={handlePressEquip}
@@ -152,6 +186,11 @@ export default function EquipmentLandingScreen() {
                 subTitle="خيارات تأجير مرنة ومتنوعة يومية وشهرية"
                 data={rentEquipment}
                 isLoading={loadingRent}
+                isError={errorRent}
+                error={rentError}
+                onRetry={refetchRent}
+                isRefetchError={isRefetchErrorRent}
+                isRefetching={isRefetchingRent}
                 emptyText="لا توجد معدات للإيجار حالياً"
                 onSeeAll={handleSeeAllRental}
                 onPressItem={handlePressEquip}
