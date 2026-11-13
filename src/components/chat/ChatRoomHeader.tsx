@@ -66,7 +66,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       {/* Background Gradient */}
       <LinearGradient
-        colors={Gradients.hero as any}
+        colors={[...Gradients.hero]}
         locations={[0, 0.6, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
