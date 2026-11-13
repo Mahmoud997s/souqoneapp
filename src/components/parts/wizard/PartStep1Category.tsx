@@ -23,7 +23,12 @@ const CATEGORIES_DATA: { id: string; label: string; icon: keyof typeof MaterialC
 ]
 
 export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1Props) {
-  const enrichedTypes = [
+  const enrichedTypes: {
+    key: string
+    label: string
+    icon: keyof typeof MaterialCommunityIcons.glyphMap
+    desc: string
+  }[] = [
     {
       key: 'SPARE_PART_SALE',
       label: 'للبيع',
@@ -70,7 +75,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
             >
               <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
                 <MaterialCommunityIcons
-                  name={lt.icon as any}
+                  name={lt.icon}
                   size={20}
                   color={isSel ? '#ffffff' : Colors.primary}
                 />
@@ -102,7 +107,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
               >
                 <View style={[s.gridIconWrap, isSel && s.gridIconWrapActive]}>
                   <MaterialCommunityIcons
-                    name={cat.icon as any}
+                    name={cat.icon}
                     size={20}
                     color={isSel ? '#FFFFFF' : Colors.primary}
                   />

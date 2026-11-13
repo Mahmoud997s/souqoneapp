@@ -83,7 +83,7 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الماركة',
-      data: brands.map((b) => ({ id: b.id, label: (b as any).nameAr || b.name, payload: b })),
+      data: brands.map((b) => ({ id: b.id, label: b.nameAr || b.name, payload: b })),
       selectedValue: formData.brandId,
       onSelect: async (opt) => {
         if (!opt) return
@@ -105,7 +105,7 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الموديل',
-      data: models.map((m) => ({ id: m.id, label: (m as any).nameAr || m.name, payload: m })),
+      data: models.map((m) => ({ id: m.id, label: m.nameAr || m.name, payload: m })),
       selectedValue: formData.carModelId,
       onSelect: async (opt) => {
         if (!opt) return
@@ -125,7 +125,7 @@ export function CarStep3Details({
     setSelectModal({
       visible: true,
       title: 'اختر الفئة',
-      data: trims.map((t) => ({ id: t.id, label: (t as any).nameAr || t.name, payload: t })),
+      data: trims.map((t) => ({ id: t.id, label: t.nameAr || t.name, payload: t })),
       selectedValue: formData.carTrimId,
       onSelect: (opt) => {
         if (!opt) return
@@ -242,7 +242,7 @@ export function CarStep3Details({
             >
               <View style={s.selectorContent}>
                 <Text style={[s.selectorText, !formData.brandId && s.placeholder]} numberOfLines={1}>
-                  {selectedBrand ? (selectedBrand as any).nameAr || selectedBrand.name : 'اختر الماركة'}
+                  {selectedBrand ? selectedBrand.nameAr || selectedBrand.name : 'اختر الماركة'}
                 </Text>
               </View>
               <View style={s.selectorIconWrap}>
@@ -513,7 +513,7 @@ export function CarStep3Details({
                 onPress={() => onToggleFeature(feat.id)}
               >
                 <Ionicons
-                  name={feat.icon as any}
+                  name={feat.icon as keyof typeof Ionicons.glyphMap}
                   size={15}
                   color={isActive ? '#ffffff' : '#64748B'}
                 />

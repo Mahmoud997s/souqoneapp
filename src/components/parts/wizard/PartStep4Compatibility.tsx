@@ -109,7 +109,7 @@ export function PartStep4Compatibility({
     setMultiSelectModal({
       visible: true,
       title: 'اختر الماركات المتوافقة',
-      data: brands.map((b) => ({ id: b.id, label: (b as any).nameAr || b.name })),
+      data: brands.map((b) => ({ id: b.id, label: b.nameAr || b.name })),
       selectedValues: formData.compatibleMakes.filter((m) => m !== 'all'),
       onConfirm: (selectedIds) => {
         onUpdateField('compatibleMakes', selectedIds)
@@ -129,7 +129,7 @@ export function PartStep4Compatibility({
     setMultiSelectModal({
       visible: true,
       title: 'اختر الموديلات المتوافقة',
-      data: fetchedModels.map((m) => ({ id: m.name, label: (m as any).nameAr || m.name })),
+      data: fetchedModels.map((m) => ({ id: m.name, label: m.nameAr || m.name })),
       selectedValues: formData.compatibleModels,
       onConfirm: (selectedNames) => {
         const fetchedNames = new Set(fetchedModels.map((m) => m.name))
@@ -268,7 +268,7 @@ export function PartStep4Compatibility({
                   <View style={s.pillsWrap} testID="selected-makes-pills">
                     {specificMakes.map((makeId) => {
                       const brand = brands.find((b) => b.id === makeId)
-                      const label = brand ? (brand as any).nameAr || brand.name : makeId
+                      const label = brand ? brand.nameAr || brand.name : makeId
                       return (
                         <View key={makeId} style={s.pillItem} testID={`make-pill-${makeId}`}>
                           <Text style={s.pillItemTxt}>{label}</Text>

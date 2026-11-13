@@ -64,7 +64,7 @@ export function PartsFilterBottomSheet({
     }
   }, [filters.governorateId]);
 
-  const updateFilter = (key: keyof PartsFilterState, value: any) => {
+  const updateFilter = <K extends keyof PartsFilterState>(key: K, value: PartsFilterState[K]) => {
     setFilters((prev) => {
       const next = { ...prev, [key]: value };
       if (key === 'governorateId') next.wilayaId = undefined;
@@ -105,12 +105,14 @@ export function PartsFilterBottomSheet({
   const govData = governorates.map(g => ({ id: String(g.id), label: g.nameAr }));
   const cityData = wilayas.map(c => ({ id: String(c.id), label: c.nameAr }));
 
-  const makeData = (brands && brands.length > 0 ? brands : POPULAR_PART_MAKES).map((b: any) => ({
-    id: b.id,
-    label: b.nameAr || b.name || b.label,
-    value: b.name || b.label,
-    image: getBrandLogo(b.slug || b.id),
-  }));
+  const makeData = (brands && brands.length > 0 ? brands : POPULAR_PART_MAKES).map(
+    (b: { id: string; nameAr?: string | null; name?: string; label?: string; slug?: string }) => ({
+      id: b.id,
+      label: b.nameAr || b.name || b.label || '',
+      value: b.name || b.label || '',
+      image: getBrandLogo(b.slug || b.id),
+    })
+  );
 
 
   const categoryData = PART_CATEGORIES.map(c => ({ id: c.id, label: c.label }));
@@ -127,7 +129,7 @@ export function PartsFilterBottomSheet({
       <NestedSearchableList
         data={makeData}
         selectedValue={filters.makeId}
-        onSelect={(option: any) => {
+        onSelect={(option: { id: string; label: string } | null) => {
           if (option) updateFilters({ makeId: option.id, make: option.label });
           else updateFilters({ makeId: undefined, make: undefined });
           setActiveSelector(null);
