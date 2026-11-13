@@ -186,10 +186,10 @@ describe('Operator Reviews Hook & Screen Error / Submit Handling (D-283 / R5-1)'
 
       // Select star rating 5
       await waitFor(() => {
-        expect(getByTestId('star-rating-5')).toBeTruthy()
+        expect(getByTestId('review-star-btn-5')).toBeTruthy()
       })
       await act(async () => {
-        fireEvent.press(getByTestId('star-rating-5'))
+        fireEvent.press(getByTestId('review-star-btn-5'))
       })
 
       // Submit
@@ -238,10 +238,10 @@ describe('Operator Reviews Hook & Screen Error / Submit Handling (D-283 / R5-1)'
       })
 
       await waitFor(() => {
-        expect(getByTestId('star-rating-4')).toBeTruthy()
+        expect(getByTestId('review-star-btn-4')).toBeTruthy()
       })
       await act(async () => {
-        fireEvent.press(getByTestId('star-rating-4'))
+        fireEvent.press(getByTestId('review-star-btn-4'))
       })
 
       await act(async () => {
@@ -278,10 +278,10 @@ describe('Operator Reviews Hook & Screen Error / Submit Handling (D-283 / R5-1)'
       })
 
       await waitFor(() => {
-        expect(getByTestId('star-rating-5')).toBeTruthy()
+        expect(getByTestId('review-star-btn-5')).toBeTruthy()
       })
       await act(async () => {
-        fireEvent.press(getByTestId('star-rating-5'))
+        fireEvent.press(getByTestId('review-star-btn-5'))
       })
 
       await act(async () => {

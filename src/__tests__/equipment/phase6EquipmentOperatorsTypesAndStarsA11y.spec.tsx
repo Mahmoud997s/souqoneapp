@@ -213,31 +213,33 @@ describe('Phase 6 Equipment & Operators Types Sweep and Star Rating Accessibilit
 
       // Wait for writeBox to open and star buttons to appear
       await waitFor(() => {
-        expect(getByTestId('star-rating-1')).toBeTruthy()
+        expect(getByTestId('review-star-btn-1')).toBeTruthy()
       })
 
-      // Verify star rating buttons accessibility via testID
+      // Verify star rating buttons accessibility via testID directly on TouchableOpacity
       for (let star = 1; star <= 5; star++) {
-        const starBtn = getByTestId(`star-rating-${star}`)
+        const starBtn = getByTestId(`review-star-btn-${star}`)
         expect(starBtn).toBeTruthy()
         expect(starBtn.props.accessibilityRole).toBe('button')
         expect(starBtn.props.accessibilityLabel).toBe(`تقييم ${star} من 5 نجوم`)
         expect(starBtn.props.accessibilityState).toEqual({ selected: false })
+        // Must be directly on the interactive pressable button, never a hidden View
+        expect(starBtn.props.style?.display).not.toBe('none')
       }
 
       // Press star 4
       await act(async () => {
-        fireEvent.press(getByTestId('star-rating-4'))
+        fireEvent.press(getByTestId('review-star-btn-4'))
       })
 
       // Verify selected state updated
-      const star4Btn = getByTestId('star-rating-4')
+      const star4Btn = getByTestId('review-star-btn-4')
       expect(star4Btn.props.accessibilityState).toEqual({ selected: true })
 
-      const star1Btn = getByTestId('star-rating-1')
+      const star1Btn = getByTestId('review-star-btn-1')
       expect(star1Btn.props.accessibilityState).toEqual({ selected: true })
 
-      const star5Btn = getByTestId('star-rating-5')
+      const star5Btn = getByTestId('review-star-btn-5')
       expect(star5Btn.props.accessibilityState).toEqual({ selected: false })
     })
   })
