@@ -5,6 +5,84 @@ import { Config } from '../constants/config'
 import { isProfilePhoneRequiredError, promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { logWarn } from '../utils/safeLog'
 
+// ── Operation-Aware Timeout Policy Constants (G4) ──────────────────────────
+export const TIMEOUT_INTERACTIVE_MS = 10000 // 10s: default GET detail/profile/auth
+export const TIMEOUT_LIST_SEARCH_MS = 15000 // 15s: GET list/browse/search/autocomplete
+export const TIMEOUT_MUTATION_MS = 15000 // 15s: POST, PUT, PATCH, DELETE non-upload
+export const TIMEOUT_UPLOAD_MS = 60000 // 60s: /uploads URLs or multipart/form-data
+
+export function resolveRequestTimeoutMs(config: {
+  method?: string
+  url?: string
+  timeout?: number
+  headers?: any
+}): number {
+  const url = (config.url || '').toLowerCase()
+  const method = (config.method || 'get').toUpperCase()
+  const contentType =
+    config.headers?.['Content-Type'] ||
+    config.headers?.['content-type'] ||
+    ''
+
+  // 1. Uploads (highest priority)
+  if (url.includes('/uploads') || String(contentType).includes('multipart/form-data')) {
+    return TIMEOUT_UPLOAD_MS
+  }
+
+  // 2. Mutations
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    return TIMEOUT_MUTATION_MS
+  }
+
+  // 3. Lists / Search / Browse
+  if (
+    url.includes('search') ||
+    url.includes('browse') ||
+    url.includes('page=') ||
+    url.includes('limit=')
+  ) {
+    return TIMEOUT_LIST_SEARCH_MS
+  }
+
+  // 4. Default interactive GET
+  return TIMEOUT_INTERACTIVE_MS
+}
+
+// ── Session Expiry Single-Flight Notice (G2 / S8a) ─────────────────────────
+let sessionExpiredNoticeShown = false
+
+export function resetSessionExpiredNotice() {
+  sessionExpiredNoticeShown = false
+}
+
+export function notifySessionExpiredOnce() {
+  try {
+    const { useBlockedStore } = require('../store/blockedStore')
+    if (useBlockedStore.getState().isBlocked) {
+      return
+    }
+
+    const { useAuthStore } = require('../store/authStore')
+    const authState = useAuthStore.getState()
+    const isLoggedIn = authState?.isLoggedIn
+
+    // Always ensure logout is triggered on expired session
+    if (typeof authState?.logout === 'function') {
+      authState.logout().catch(() => {})
+    }
+
+    // Only show single-flight warning if user was actually logged in and not yet notified
+    if (isLoggedIn !== false && !sessionExpiredNoticeShown) {
+      sessionExpiredNoticeShown = true
+      dialogService.alert(
+        'انتهت الجلسة',
+        'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى للمتابعة.',
+        'warning'
+      )
+    }
+  } catch {}
+}
+
 export const apiClient = axios.create({
   baseURL: Config.apiUrl,
   timeout: 60000,
@@ -12,6 +90,11 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use(async (config) => {
+  // Apply smart operation timeout if unset or default 60000 and not upload
+  if (!config.timeout || config.timeout === 60000) {
+    config.timeout = resolveRequestTimeoutMs(config)
+  }
+
   if (config.headers?.Authorization) {
     return config
   }
@@ -48,8 +131,7 @@ export async function refreshAuthToken(): Promise<string> {
     try {
       const refresh = await SecureStore.getItemAsync('refreshToken')
       if (!refresh) {
-        const { useAuthStore } = require('../store/authStore')
-        useAuthStore.getState().logout()
+        notifySessionExpiredOnce()
         throw new Error('No refresh token stored')
       }
 
@@ -82,8 +164,7 @@ export async function refreshAuthToken(): Promise<string> {
         handleBlockedOrSuspended(code, data?.suspendedUntil)
       } else if (status === 401 || status === 403) {
         // Logout ONLY if the refresh token is rejected by backend (401 or 403)
-        const { useAuthStore } = require('../store/authStore')
-        useAuthStore.getState().logout().catch(() => {})
+        notifySessionExpiredOnce()
       }
       // On network errors, timeouts, 5xx: DO NOT logout. Re-throw to caller.
       throw refreshError
@@ -134,8 +215,7 @@ apiClient.interceptors.response.use(
 
     // 2. Handle live session 401 with ACCOUNT_INACTIVE (logout without blocked screen)
     if (status === 401 && code === 'ACCOUNT_INACTIVE') {
-      const { useAuthStore } = require('../store/authStore')
-      useAuthStore.getState().logout().catch(() => {})
+      notifySessionExpiredOnce()
       return Promise.reject(error)
     }
 

@@ -187,7 +187,10 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
   const { isLoggedIn } = useAuthStore()
 
   const handlePost = useCallback(() => {
-    if (!isLoggedIn) { router.push('/(auth)/login'); return }
+    if (!isLoggedIn) {
+      router.push('/(auth)/login?redirect=%2F(modals)%2Fpost-category' as any)
+      return
+    }
     router.push('/(modals)/post-category')
   }, [isLoggedIn, router])
 

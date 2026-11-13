@@ -25,6 +25,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await SecureStore.setItemAsync('accessToken', accessToken)
     await SecureStore.setItemAsync('refreshToken', refreshToken)
     try {
+      const { resetSessionExpiredNotice } = await import('../api/client')
+      resetSessionExpiredNotice()
+    } catch {}
+    try {
       const { useBlockedStore } = await import('./blockedStore')
       useBlockedStore.getState().clear()
     } catch {}

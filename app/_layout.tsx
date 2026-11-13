@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { I18nManager, Platform, StatusBar, Text, TextInput } from 'react-native'
-import { Stack, useRouter, useSegments } from 'expo-router'
+import { Stack, useRouter, useSegments, usePathname, useGlobalSearchParams } from 'expo-router'
+import { resolveRedirect } from '../src/utils/listing-detail/safeRedirect'
 import {
   useFonts,
   Almarai_400Regular,
@@ -56,6 +57,8 @@ export default function RootLayout() {
   const isBlocked = useBlockedStore((s) => s.isBlocked)
   const segments = useSegments()
   const router = useRouter()
+  const pathname = typeof usePathname === 'function' ? usePathname() : ''
+  const globalParams = typeof useGlobalSearchParams === 'function' ? useGlobalSearchParams() : {}
 
   useEffect(() => { 
     initialize()
@@ -110,14 +113,24 @@ export default function RootLayout() {
       if (currentSegments[1] === 'verify-email' || currentSegments[1] === 'register') {
         return // Allow verify-email to display, and allow register to finish its transition
       }
+      if (currentSegments[1] === 'login') {
+        const rawRedirect = typeof globalParams?.redirect === 'string' ? globalParams.redirect : undefined
+        const target = resolveRedirect(rawRedirect, '/(tabs)')
+        router.replace(target as any)
+        return
+      }
       router.replace('/(tabs)')
       return
     }
 
     if (!isLoggedIn && !isGuest && !inAuth) {
-      router.replace('/(auth)/login')
+      if (pathname && pathname !== '/' && pathname !== '/index' && !pathname.startsWith('/(auth)')) {
+        router.replace(`/(auth)/login?redirect=${encodeURIComponent(pathname)}` as any)
+      } else {
+        router.replace('/(auth)/login')
+      }
     }
-  }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments, isBlocked])
+  }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments, isBlocked, pathname, globalParams])
 
   if (!rtlReady || !fontsLoaded || isLoading) return null
 
