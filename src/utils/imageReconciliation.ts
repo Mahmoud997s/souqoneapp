@@ -15,6 +15,7 @@
 
 import { buildUploadFilePayload } from './fileUploadHelper'
 import { uploadsApi } from '../api/uploads'
+import { partsApi } from '../api/parts'
 import { logWarn } from './safeLog'
 
 export type OperationType = 'upload' | 'attach' | 'delete'
@@ -64,15 +65,19 @@ export interface ImageReconciliationAdapter {
     listingId?: string,
     signal?: AbortSignal
   ) => Promise<unknown>
+  fetchAttachedUrls?: (
+    listingId: string,
+    signal?: AbortSignal
+  ) => Promise<string[]>
 }
 
 export type LocalImageInput =
   | string
-  | { uri: string; isPrimary?: boolean; [key: string]: unknown }
+  | { uri: string; isPrimary?: boolean }
 
 export type ExistingImageInput =
   | string
-  | { id?: string; url?: string; isPrimary?: boolean; [key: string]: unknown }
+  | { id?: string; url?: string; isPrimary?: boolean }
 
 export interface ReconcileParams {
   listingId?: string
@@ -113,7 +118,7 @@ export function createEmptyLedger(listingId?: string): ReconciliationLedger {
  * Deduplicates an array of string IDs, preserving insertion order.
  * Trims strings and filters out empty or invalid values.
  */
-export function dedupeIds(ids: unknown[]): string[] {
+export function dedupeIds(ids: unknown[], maxLength: number = LEDGER_LIMITS.maxIdLength): string[] {
   if (!Array.isArray(ids)) return []
   const seen = new Set<string>()
   const result: string[] = []
@@ -121,7 +126,7 @@ export function dedupeIds(ids: unknown[]): string[] {
   for (const item of ids) {
     if (typeof item === 'string') {
       const trimmed = item.trim()
-      if (trimmed.length > 0 && !seen.has(trimmed)) {
+      if (trimmed.length > 0 && trimmed.length <= maxLength && !seen.has(trimmed)) {
         seen.add(trimmed)
         result.push(trimmed)
       }
@@ -177,53 +182,196 @@ export function normalizeExistingImage(
 }
 
 /**
- * Generates deterministic keys for operations.
+ * Maximum array items and string lengths to prevent storage overflow.
  */
-export const makeOpKey = {
-  upload: (uri: string) => `upload:${uri.trim()}`,
-  attach: (url: string) => `attach:${url.trim()}`,
-  delete: (id: string) => `delete:${id.trim()}`,
+export const LEDGER_LIMITS = {
+  maxItems: 20,
+  maxUriLength: 300,
+  maxIdLength: 300,
+  maxUrlLength: 500,
+  maxErrorLength: 100,
+  maxListingIdLength: 100,
+  maxBytes: 50000,
 }
 
 /**
+ * Pure JS UTF-8 byte length calculation (Hermes/RN safe without Node Buffer).
+ */
+export function getUtf8ByteLength(str: string): number {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(str).length
+  }
+  let bytes = 0
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
+    if (code < 0x80) {
+      bytes += 1
+    } else if (code < 0x800) {
+      bytes += 2
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      if (i + 1 < str.length) {
+        const next = str.charCodeAt(i + 1)
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          bytes += 4
+          i++
+          continue
+        }
+      }
+      bytes += 3
+    } else {
+      bytes += 3
+    }
+  }
+  return bytes
+}
+
+/**
+ * Sanitizes an error message before recording in the ledger to avoid
+ * persisting device paths, internal IP addresses, or signed URL queries.
+ */
+export function sanitizeErrorMessage(err: unknown, fallback = 'Operation failed'): string {
+  if (!err) return fallback
+  const rawMsg =
+    typeof err === 'string'
+      ? err
+      : typeof (err as any)?.message === 'string'
+      ? (err as any).message
+      : fallback
+
+  const stripped = rawMsg
+    .replace(/https?:\/\/[^\s?]+/g, '[URL]')
+    .replace(/\?[^\s]*/g, '')
+    .replace(/file:\/\/[^\s]+/g, '[PATH]')
+    .replace(/[A-Za-z]:\\[^\s]+/g, '[PATH]')
+    .replace(/\/Users\/[^\s]+/g, '[PATH]')
+    .trim()
+
+  return (stripped || fallback).slice(0, LEDGER_LIMITS.maxErrorLength)
+}
+
+/**
+ * Canonical URL normalization for safe comparison and deduplication:
+ * - Strips query parameters (?...) and hash fragments (#...)
+ * - Strips trailing slashes
+ * - Normalizes protocol (https/http) and lowercases hostname
+ * - Preserves path case and contents
+ */
+export function normalizeImageUrl(rawUrl: string): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return ''
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return ''
+
+  try {
+    if (/^https?:\/\//i.test(trimmed)) {
+      const parsed = new URL(trimmed)
+      const protocol = parsed.protocol.toLowerCase()
+      const host = parsed.host.toLowerCase()
+      const pathname = parsed.pathname.replace(/\/+$/, '')
+      return `${protocol}//${host}${pathname}`
+    }
+  } catch {
+    // URL parsing fallback for non-standard or malformed URLs
+  }
+
+  let clean = trimmed.split('?')[0].split('#')[0]
+  clean = clean.replace(/\/+$/, '')
+  clean = clean.replace(/^(https?:\/\/[^\/]+)/i, (m) => m.toLowerCase())
+  return clean
+}
+
+/**
+ * Generates deterministic keys for operations.
+ */
+export const makeOpKey = {
+  upload: (uri: string) => `upload:${uri.trim().slice(0, LEDGER_LIMITS.maxUriLength)}`,
+  attach: (url: string) => `attach:${(normalizeImageUrl(url) || url.trim()).slice(0, LEDGER_LIMITS.maxUriLength)}`,
+  delete: (id: string) => `delete:${id.trim().slice(0, LEDGER_LIMITS.maxListingIdLength)}`,
+}
+
+const VALID_OPERATION_TYPES: Set<string> = new Set(['upload', 'attach', 'delete'])
+
+/**
  * Safely serializes a reconciliation ledger into a JSON string.
- * Strips any potential non-serializable properties.
+ * Strips non-serializable properties, bounds arrays, sanitizes strings, and enforces byte cap.
  */
 export function serializeLedger(ledger: ReconciliationLedger): string {
   try {
     const cleanLedger: ReconciliationLedger = {
       version: 1,
-      listingId: ledger.listingId,
-      retainedImageIds: dedupeIds(ledger.retainedImageIds),
-      removedImageIds: dedupeIds(ledger.removedImageIds),
+      listingId: ledger.listingId
+        ? String(ledger.listingId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+        : undefined,
+      retainedImageIds: dedupeIds(ledger.retainedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(ledger.removedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(ledger.uploadedImages)
-        ? ledger.uploadedImages.map((rec) => ({
-            localUri: String(rec.localUri),
-            remoteUrl: String(rec.remoteUrl),
+        ? ledger.uploadedImages.slice(0, LEDGER_LIMITS.maxItems).map((rec) => ({
+            localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
+            remoteUrl: normalizeImageUrl(String(rec.remoteUrl)).slice(0, LEDGER_LIMITS.maxUriLength) || String(rec.remoteUrl).slice(0, LEDGER_LIMITS.maxUriLength),
             uploadedAt: Number(rec.uploadedAt) || Date.now(),
             isPrimary: Boolean(rec.isPrimary),
           }))
         : [],
-      attachedUrls: dedupeIds(ledger.attachedUrls),
-      deletedImageIds: dedupeIds(ledger.deletedImageIds),
-      failedOperations: ledger.failedOperations && typeof ledger.failedOperations === 'object'
-        ? Object.fromEntries(
-            Object.entries(ledger.failedOperations).map(([k, op]) => [
-              k,
-              {
-                key: String(op.key),
-                type: op.type,
-                error: String(op.error || 'Error'),
-                attempts: Number(op.attempts) || 1,
-                lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
-                meta: op.meta && typeof op.meta === 'object' ? { ...op.meta } : undefined,
-              },
-            ])
-          )
-        : {},
+      attachedUrls: dedupeIds(
+        (Array.isArray(ledger.attachedUrls) ? ledger.attachedUrls : [])
+          .filter((u: unknown): u is string => typeof u === 'string')
+          .map((u: string) => normalizeImageUrl(u) || u.trim())
+          .filter(Boolean),
+        LEDGER_LIMITS.maxUrlLength
+      ).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(ledger.deletedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
+      failedOperations:
+        ledger.failedOperations && typeof ledger.failedOperations === 'object'
+          ? Object.fromEntries(
+              Object.entries(ledger.failedOperations)
+                .slice(0, LEDGER_LIMITS.maxItems)
+                .filter(([_, op]) => op && typeof op === 'object' && VALID_OPERATION_TYPES.has(op.type))
+                .map(([k, op]) => [
+                  k,
+                  {
+                    key: String(op.key).slice(0, LEDGER_LIMITS.maxUriLength),
+                    type: op.type,
+                    error: sanitizeErrorMessage(op.error),
+                    attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
+                    lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
+                    meta:
+                      op.meta && typeof op.meta === 'object'
+                        ? (() => {
+                            const safeMeta: Record<string, unknown> = {}
+                            if (typeof op.meta.localUri === 'string') {
+                              safeMeta.localUri = op.meta.localUri.slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.remoteUrl === 'string') {
+                              safeMeta.remoteUrl = (normalizeImageUrl(op.meta.remoteUrl) || op.meta.remoteUrl).slice(
+                                0,
+                                LEDGER_LIMITS.maxUriLength
+                              )
+                            }
+                            if (typeof op.meta.imageId === 'string') {
+                              safeMeta.imageId = String(op.meta.imageId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+                            }
+                            if (typeof op.meta.listingId === 'string') {
+                              safeMeta.listingId = String(op.meta.listingId).slice(0, LEDGER_LIMITS.maxListingIdLength)
+                            }
+                            if (typeof op.meta.isPrimary === 'boolean') {
+                              safeMeta.isPrimary = op.meta.isPrimary
+                            }
+                            return safeMeta
+                          })()
+                        : undefined,
+                  },
+                ])
+            )
+          : {},
       listingSaved: Boolean(ledger.listingSaved),
     }
-    return JSON.stringify(cleanLedger)
+
+    const serialized = JSON.stringify(cleanLedger)
+    const byteLength = getUtf8ByteLength(serialized)
+    if (byteLength > LEDGER_LIMITS.maxBytes) {
+      logWarn('imageReconciliation:serializeLedger:byteLimitExceeded', { bytes: byteLength })
+      return JSON.stringify(createEmptyLedger())
+    }
+    return serialized
   } catch (err) {
     logWarn('imageReconciliation:serializeLedger', err)
     return JSON.stringify(createEmptyLedger())
@@ -232,46 +380,106 @@ export function serializeLedger(ledger: ReconciliationLedger): string {
 
 /**
  * Safely parses and deserializes a reconciliation ledger with robust fallback defaults.
+ * Enforces raw UTF-8 byte limit before JSON.parse, strictly validates version: 1, and bounds arrays/item lengths.
  */
 export function deserializeLedger(raw: unknown): ReconciliationLedger {
   const fallback = createEmptyLedger()
   if (!raw) return fallback
 
   try {
+    if (typeof raw === 'string') {
+      const rawBytes = getUtf8ByteLength(raw)
+      if (rawBytes > LEDGER_LIMITS.maxBytes) {
+        logWarn('imageReconciliation:deserializeLedger:byteLimitExceeded', { bytes: rawBytes })
+        return fallback
+      }
+    }
     const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
     if (!obj || typeof obj !== 'object') return fallback
 
+    // Reject unknown or unsupported ledger versions (A-053 P2)
+    if (obj.version !== 1) {
+      logWarn('imageReconciliation:deserializeLedger:unknownVersion', { version: obj.version })
+      return fallback
+    }
+
     return {
       version: 1,
-      listingId: typeof obj.listingId === 'string' ? obj.listingId : undefined,
-      retainedImageIds: dedupeIds(obj.retainedImageIds),
-      removedImageIds: dedupeIds(obj.removedImageIds),
+      listingId:
+        typeof obj.listingId === 'string'
+          ? obj.listingId.slice(0, LEDGER_LIMITS.maxListingIdLength)
+          : undefined,
+      retainedImageIds: dedupeIds(obj.retainedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
+      removedImageIds: dedupeIds(obj.removedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       uploadedImages: Array.isArray(obj.uploadedImages)
         ? obj.uploadedImages
+            .slice(0, LEDGER_LIMITS.maxItems)
             .filter((rec: any) => rec && typeof rec.localUri === 'string' && typeof rec.remoteUrl === 'string')
             .map((rec: any) => ({
-              localUri: String(rec.localUri),
-              remoteUrl: String(rec.remoteUrl),
+              localUri: String(rec.localUri).slice(0, LEDGER_LIMITS.maxUriLength),
+              remoteUrl: (normalizeImageUrl(String(rec.remoteUrl)) || String(rec.remoteUrl)).slice(
+                0,
+                LEDGER_LIMITS.maxUriLength
+              ),
               uploadedAt: Number(rec.uploadedAt) || Date.now(),
               isPrimary: Boolean(rec.isPrimary),
             }))
         : [],
-      attachedUrls: dedupeIds(obj.attachedUrls),
-      deletedImageIds: dedupeIds(obj.deletedImageIds),
+      attachedUrls: dedupeIds(
+        (Array.isArray(obj.attachedUrls) ? obj.attachedUrls : [])
+          .filter((u: unknown): u is string => typeof u === 'string')
+          .map((u: string) => normalizeImageUrl(u) || u.trim())
+          .filter(Boolean),
+        LEDGER_LIMITS.maxUrlLength
+      ).slice(0, LEDGER_LIMITS.maxItems),
+      deletedImageIds: dedupeIds(obj.deletedImageIds, LEDGER_LIMITS.maxIdLength).slice(0, LEDGER_LIMITS.maxItems),
       failedOperations:
         obj.failedOperations && typeof obj.failedOperations === 'object'
           ? Object.fromEntries(
               Object.entries(obj.failedOperations)
-                .filter(([_, op]: [string, any]) => op && typeof op === 'object' && op.key && op.type)
+                .slice(0, LEDGER_LIMITS.maxItems)
+                .filter(
+                  ([_, op]: [string, any]) =>
+                    op && typeof op === 'object' && op.key && VALID_OPERATION_TYPES.has(op.type)
+                )
                 .map(([k, op]: [string, any]) => [
                   k,
                   {
-                    key: String(op.key),
+                    key: String(op.key).slice(0, LEDGER_LIMITS.maxUriLength),
                     type: op.type,
-                    error: String(op.error || 'Error'),
-                    attempts: Number(op.attempts) || 1,
+                    error: sanitizeErrorMessage(op.error),
+                    attempts: Math.min(Math.max(Number(op.attempts) || 1, 1), 10),
                     lastAttemptAt: Number(op.lastAttemptAt) || Date.now(),
-                    meta: op.meta && typeof op.meta === 'object' ? op.meta : undefined,
+                    meta:
+                      op.meta && typeof op.meta === 'object'
+                        ? (() => {
+                            const safeMeta: Record<string, unknown> = {}
+                            if (typeof op.meta.localUri === 'string') {
+                              safeMeta.localUri = op.meta.localUri.slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.remoteUrl === 'string') {
+                              safeMeta.remoteUrl = (
+                                normalizeImageUrl(op.meta.remoteUrl) || op.meta.remoteUrl
+                              ).slice(0, LEDGER_LIMITS.maxUriLength)
+                            }
+                            if (typeof op.meta.imageId === 'string') {
+                              safeMeta.imageId = String(op.meta.imageId).slice(
+                                0,
+                                LEDGER_LIMITS.maxListingIdLength
+                              )
+                            }
+                            if (typeof op.meta.listingId === 'string') {
+                              safeMeta.listingId = String(op.meta.listingId).slice(
+                                0,
+                                LEDGER_LIMITS.maxListingIdLength
+                              )
+                            }
+                            if (typeof op.meta.isPrimary === 'boolean') {
+                              safeMeta.isPrimary = op.meta.isPrimary
+                            }
+                            return safeMeta
+                          })()
+                        : undefined,
                   },
                 ])
             )
@@ -291,7 +499,7 @@ export function deserializeLedger(raw: unknown): ReconciliationLedger {
 export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
   vertical: 'parts',
 
-  uploadImage: async (imageInput, _signal) => {
+  uploadImage: async (imageInput, signal) => {
     const filePayload = buildUploadFilePayload(imageInput, 'part')
     if (!filePayload) {
       throw new Error('بيانات الصورة غير صالحة للرفع')
@@ -300,7 +508,7 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     const data = new FormData()
     data.append('file', filePayload as any)
 
-    const res = await uploadsApi.single(data)
+    const res = await uploadsApi.single(data, signal)
     const url =
       (res?.data as any)?.url ??
       (res?.data as any)?.path ??
@@ -313,11 +521,28 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     return url
   },
 
-  attachImageUrl: async (partId, url, _isPrimary, _signal) => {
-    return uploadsApi.addPartImage(partId, url)
+  attachImageUrl: async (partId, url, isPrimary, signal) => {
+    return uploadsApi.addPartImageByUrl(partId, url, isPrimary, signal)
   },
 
-  deleteImage: async (imageId, _listingId, _signal) => {
-    return uploadsApi.removePartImage(imageId)
+  deleteImage: async (imageId, _listingId, signal) => {
+    return uploadsApi.removePartImage(imageId, signal)
+  },
+
+  fetchAttachedUrls: async (partId, signal) => {
+    try {
+      const res = await partsApi.getById(partId, signal ? { signal } : undefined)
+      const part = (res?.data as any) ?? res
+      const images: any[] = Array.isArray(part?.images) ? part.images : []
+      return images
+        .map((img) => (typeof img === 'string' ? img : img?.url))
+        .filter((u): u is string => typeof u === 'string' && u.length > 0)
+    } catch (err: any) {
+      const status = err?.response?.status ?? err?.status
+      if (status === 404) {
+        return []
+      }
+      throw err
+    }
   },
 }

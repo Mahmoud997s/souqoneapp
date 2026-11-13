@@ -350,4 +350,374 @@ describe('useWizardImageReconciliation (S6 / D-243)', () => {
     expect(result.current.uploadedUrls).toEqual(['https://cdn/prev.jpg'])
     expect(result.current.ledger.listingId).toBe('part_hydrated')
   })
+
+  it('10. Delete idempotency: treats 404 error as successful deletion (A-053 P1)', async () => {
+    const error404: any = new Error('Image not found')
+    error404.response = { status: 404 }
+
+    const adapter = createMockAdapter({
+      deleteImage: jest.fn().mockRejectedValueOnce(error404),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'part_404',
+        isEditMode: true,
+        removedImageIds: ['img_already_gone'],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.deleteImage).toHaveBeenCalledWith('img_already_gone', 'part_404', expect.any(Object))
+    // 404 must be treated as successful deletion (idempotent retry)
+    expect(res.ledger.deletedImageIds).toContain('img_already_gone')
+    expect(res.imagesComplete).toBe(true)
+    expect(res.failedOperations.length).toBe(0)
+  })
+
+  it('11. Existing images: populates retainedImageIds excluding removedImageIds (A-053 P1)', async () => {
+    const adapter = createMockAdapter()
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'part_existing',
+        isEditMode: true,
+        existingImages: [
+          { id: 'img_keep_1', url: 'https://cdn/keep1.jpg' },
+          { id: 'img_keep_2', url: 'https://cdn/keep2.jpg' },
+          { id: 'img_to_remove', url: 'https://cdn/remove.jpg' },
+        ],
+        removedImageIds: ['img_to_remove'],
+        listingSaved: true,
+      })
+    })
+
+    expect(res.ledger.retainedImageIds).toEqual(['img_keep_1', 'img_keep_2'])
+    expect(res.ledger.removedImageIds).toContain('img_to_remove')
+  })
+
+  it('12. Concurrent reconcile: joins active in-flight promise and awaits truthful result (A-053 P2)', async () => {
+    let finishUpload: (url: string) => void = () => {}
+    const uploadPromise = new Promise<string>((resolve) => {
+      finishUpload = resolve
+    })
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn().mockReturnValue(uploadPromise),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1Promise: any
+    let res2Promise: any
+
+    await act(async () => {
+      res1Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///concurrent.jpg' }],
+      })
+      // Second call while first is in-flight: must return the active promise
+      res2Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///concurrent.jpg' }],
+      })
+
+      // Finish upload
+      finishUpload('https://cdn/concurrent_done.jpg')
+    })
+
+    const [res1, res2] = await Promise.all([res1Promise, res2Promise])
+    expect(res1.imagesComplete).toBe(true)
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.uploadedUrls).toEqual(['https://cdn/concurrent_done.jpg'])
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+  })
+
+  it('13. Precheck fail-closed (A-057 P1-a): when fetchAttachedUrls fails, attach loop is skipped to avoid duplicates', async () => {
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest.fn().mockRejectedValue(new Error('500 Internal Server Error')),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/part_new.jpg'),
+      attachImageUrl: jest.fn(),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'edit-part-100',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///part_new.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+    // TEETH: attachImageUrl must NOT be called when precheck fails!
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+    expect(res.imagesComplete).toBe(false)
+    expect(res.isPartialSuccess).toBe(true)
+    const precheckOp = res.failedOperations.find((op: any) => op.type === 'attach')
+    expect(precheckOp?.error).toContain('تعذر التحقق من صور الإعلان على الخادم')
+  })
+
+  it('14. Precheck URL normalization (A-057 P2-a): matches signed server URLs with local uploaded records', async () => {
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest
+        .fn()
+        .mockResolvedValue(['HTTPS://CDN.SOUQONE.APP/Uploads/Part1.jpg?token=secret123&v=99']),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/Uploads/Part1.jpg'),
+      attachImageUrl: jest.fn(),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res: any
+    await act(async () => {
+      res = await result.current.reconcile({
+        listingId: 'edit-part-200',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///Part1.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    expect(adapter.uploadImage).toHaveBeenCalledTimes(1)
+    // TEETH: Normalized URLs match -> attach is NOT called because server already has it!
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+    expect(res.imagesComplete).toBe(true)
+  })
+
+  it('15. Cancel clears activePromise and permits subsequent run with run-token isolation (A-057 P2-c)', async () => {
+    let cancelUploadResolve: (url: string) => void = () => {}
+    let callCount = 0
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async (_img, signal) => {
+        callCount++
+        if (callCount === 1) {
+          return new Promise<string>((resolve, reject) => {
+            signal?.addEventListener('abort', () => reject(new Error('AbortError')))
+          })
+        }
+        return 'https://cdn.souqone.app/run2_done.jpg'
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1Promise: any
+    await act(async () => {
+      res1Promise = result.current.reconcile({
+        localImages: [{ uri: 'file:///retry_target.jpg' }],
+      })
+      // Cancel run 1
+      result.current.cancel()
+    })
+
+    const res1 = await res1Promise
+    expect(res1.imagesComplete).toBe(false)
+    expect(result.current.isReconciling).toBe(false)
+
+    // Now start run 2 for the target: should run immediately, succeed, and clear prior aborted failure
+    let res2: any
+    await act(async () => {
+      res2 = await result.current.reconcile({
+        localImages: [{ uri: 'file:///retry_target.jpg' }],
+      })
+    })
+
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.uploadedUrls).toContain('https://cdn.souqone.app/run2_done.jpg')
+  })
+
+  it('16. Cancelled reconciliation returns imagesComplete: false (A-057 P2-d)', async () => {
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async (_img, signal) => {
+        return new Promise<string>((_, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('AbortError')))
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let reconcileRes: any
+    await act(async () => {
+      const p = result.current.reconcile({
+        localImages: [{ uri: 'file:///test_cancel.jpg' }],
+      })
+      result.current.cancel()
+      reconcileRes = await p
+    })
+
+    // TEETH: imagesComplete must be false on cancel!
+    expect(reconcileRes.imagesComplete).toBe(false)
+  })
+
+  it('17. Precheck recovery (A-060 P2): precheck failure on run 1 is cleared when run 2 succeeds with empty server list', async () => {
+    let precheckCallCount = 0
+    const adapter = createMockAdapter({
+      fetchAttachedUrls: jest.fn(async () => {
+        precheckCallCount++
+        if (precheckCallCount === 1) {
+          throw new Error('Network timeout during precheck')
+        }
+        return [] // server has no images currently
+      }),
+      uploadImage: jest.fn().mockResolvedValue('https://cdn.souqone.app/uploads/p1.jpg'),
+      attachImageUrl: jest.fn().mockResolvedValue(undefined),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let res1: any
+    await act(async () => {
+      res1 = await result.current.reconcile({
+        listingId: 'part-precheck-recovery',
+        isEditMode: true,
+        localImages: [{ uri: 'file:///p1.jpg' }],
+        listingSaved: true,
+      })
+    })
+
+    // Run 1: precheck failed, attach was blocked, failure is recorded
+    expect(res1.imagesComplete).toBe(false)
+    expect(res1.failedOperations.some((op: any) => op.key === 'attach:server_precheck')).toBe(true)
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(0)
+
+    // Run 2: retry succeeds with empty server list -> attach:server_precheck is cleared and attachImageUrl succeeds
+    let res2: any
+    await act(async () => {
+      res2 = await result.current.retryFailed()
+    })
+
+    expect(res2.imagesComplete).toBe(true)
+    expect(res2.failedOperations.length).toBe(0)
+    expect(adapter.attachImageUrl).toHaveBeenCalledTimes(1)
+  })
+
+  it('18. Cancel and reset during in-flight upload invalidates active run token (A-060 P2)', async () => {
+    let slowResolve: (val: string) => void = () => {}
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async () => {
+        return new Promise<string>((resolve) => {
+          slowResolve = resolve
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let run1Promise: any
+    await act(async () => {
+      run1Promise = result.current.reconcile({
+        listingId: 'part-reset-test',
+        localImages: [{ uri: 'file:///slow.jpg' }],
+      })
+      // Reset immediately while in flight
+      result.current.reset()
+    })
+
+    // Ledger should now be completely empty
+    expect(result.current.ledger.uploadedImages).toEqual([])
+    expect(result.current.ledger.listingId).toBeUndefined()
+
+    // Now resolve the old lingering promise
+    await act(async () => {
+      slowResolve('https://cdn.souqone.app/uploads/stale.jpg')
+      await run1Promise
+    })
+
+    // TEETH: Settling old promise must NOT commit stale workingLedger back to state!
+    expect(result.current.ledger.uploadedImages).toEqual([])
+    expect(result.current.ledger.listingId).toBeUndefined()
+  })
+
+  it('19. ABA race protection (A-062 P2-1): cancelling run 1 and immediately starting run 2 prevents run 1 settlement from clearing run 2 state or committing stale ledger', async () => {
+    let callIndex = 0
+    let resolveRun1Upload: (val: string) => void = () => {}
+    let resolveRun2Upload: (val: string) => void = () => {}
+
+    const adapter = createMockAdapter({
+      uploadImage: jest.fn(async () => {
+        callIndex++
+        if (callIndex === 1) {
+          return new Promise<string>((resolve) => {
+            resolveRun1Upload = resolve
+          })
+        }
+        return new Promise<string>((resolve) => {
+          resolveRun2Upload = resolve
+        })
+      }),
+    })
+
+    const { result } = await renderHook(() =>
+      useWizardImageReconciliation({ adapter })
+    )
+
+    let run1Promise: Promise<any>
+    let run2Promise: Promise<any>
+
+    await act(async () => {
+      run1Promise = result.current.reconcile({
+        listingId: 'part-aba-test',
+        localImages: [{ uri: 'file:///run1-stale.jpg' }],
+      })
+      // Cancel run 1 (monotonic increment avoids resetting token back to 0)
+      result.current.cancel()
+      // Immediately start run 2 while run 1 promise is still pending
+      run2Promise = result.current.reconcile({
+        listingId: 'part-aba-test',
+        localImages: [{ uri: 'file:///run2-fresh.jpg' }],
+      })
+    })
+
+    expect(result.current.isReconciling).toBe(true)
+
+    // Settle run 1 BEFORE run 2
+    await act(async () => {
+      resolveRun1Upload('https://cdn.souqone.app/uploads/run1-stale.jpg')
+      const res1 = await run1Promise!
+      expect(res1.imagesComplete).toBe(false)
+    })
+
+    // TEETH: run 1's finally must NOT clear run 2's active isReconciling state or commit stale run 1 image!
+    expect(result.current.isReconciling).toBe(true)
+    expect(result.current.ledger.uploadedImages).toEqual([])
+
+    // Now settle run 2
+    let res2: any
+    await act(async () => {
+      resolveRun2Upload('https://cdn.souqone.app/uploads/run2-fresh.jpg')
+      res2 = await run2Promise!
+    })
+
+    expect(result.current.isReconciling).toBe(false)
+    expect(res2.imagesComplete).toBe(true)
+    expect(result.current.ledger.uploadedImages).toHaveLength(1)
+    expect(result.current.ledger.uploadedImages[0].remoteUrl).toBe('https://cdn.souqone.app/uploads/run2-fresh.jpg')
+  })
 })

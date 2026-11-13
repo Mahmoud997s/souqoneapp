@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  ReconciliationLedger,
+  deserializeLedger,
+  serializeLedger,
+} from '../utils/imageReconciliation';
 
 export type PartCategoryValue =
   | 'ENGINE' | 'BODY' | 'ELECTRICAL' | 'SUSPENSION' | 'BRAKES'
@@ -37,6 +42,7 @@ export interface PartFormData {
   images: PartImageItem[]
   existingImages: PartExistingImage[]
   removedImageIds: string[]
+  imageLedger: ReconciliationLedger | null
 
   title: string
   description: string
@@ -76,6 +82,7 @@ export const defaultPartFormData: PartFormData = {
   images: [],
   existingImages: [],
   removedImageIds: [],
+  imageLedger: null,
 
   title: '',
   description: '',
@@ -119,6 +126,7 @@ export interface PartWizardState {
 
   setField: <K extends keyof PartFormData>(field: K, value: PartFormData[K]) => void
   setFields: (fields: Partial<PartFormData>) => void
+  setImageLedger: (ledger: ReconciliationLedger | null) => void
 
   setEditMode: (id: string, data: Partial<PartFormData>) => void
   reset: () => void
@@ -137,12 +145,28 @@ export interface PartWizardState {
 
 export function mergePartWizardState(persistedState: unknown, currentState: PartWizardState): PartWizardState {
   const typedPersistedState = persistedState as PartWizardPersistedState | undefined;
+  const persistedFormData: Partial<PersistedPartFormData> = typedPersistedState?.formData || {};
+
+  // If a persisted imageLedger had an edit listingId, but we are hydrating into create mode (editMode: false),
+  // strip the stale listingId to avoid cross-listing mutations on restart.
+  let hydratedLedger = persistedFormData.imageLedger ? deserializeLedger(persistedFormData.imageLedger) : null;
+  if (hydratedLedger && !currentState.formData.editMode) {
+    hydratedLedger = {
+      ...hydratedLedger,
+      listingId: undefined,
+    };
+  }
+
   return {
     ...currentState,
     ...typedPersistedState,
     formData: {
       ...defaultPartFormData,
-      ...(typedPersistedState?.formData || {}),
+      ...persistedFormData,
+      imageLedger: hydratedLedger,
+      editMode: false,
+      editListingId: null,
+      version: 0,
     },
   };
 }
@@ -164,6 +188,13 @@ export const usePartWizardStore = create<PartWizardState>()(
         formData: {
           ...state.formData,
           ...fields
+        }
+      })),
+
+      setImageLedger: (ledger) => set((state) => ({
+        formData: {
+          ...state.formData,
+          imageLedger: ledger,
         }
       })),
 
@@ -198,11 +229,30 @@ export const usePartWizardStore = create<PartWizardState>()(
     }),
     {
       name: 'part-wizard-draft',
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState: any, version: number) => {
+        if (!version || version < 1) {
+          return {
+            ...persistedState,
+            formData: {
+              ...defaultPartFormData,
+              ...(persistedState?.formData || {}),
+              imageLedger: null,
+            },
+          };
+        }
+        return persistedState;
+      },
       partialize: (state): PartWizardPersistedState => {
         const { editMode, editListingId, version, ...draftableData } = state.formData;
         return {
-          formData: draftableData,
+          formData: {
+            ...draftableData,
+            imageLedger: draftableData.imageLedger
+              ? JSON.parse(serializeLedger(draftableData.imageLedger))
+              : null,
+          },
           currentStep: state.currentStep,
         };
       },
