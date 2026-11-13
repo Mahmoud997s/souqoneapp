@@ -10,6 +10,7 @@ import { DeletionScheduledBanner } from '../../src/components/profile/DeletionSc
 import { ProfilePremiumBanner } from '../../src/components/profile/ProfilePremiumBanner'
 import { ProfileSectionCard } from '../../src/components/profile/ProfileSectionCard'
 import { ProfileLogoutSection } from '../../src/components/profile/ProfileLogoutSection'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
@@ -26,6 +27,9 @@ export default function ProfileScreen() {
     handleLogout,
     activitiesItems,
     accountItems,
+    isStaleError,
+    isRefreshing,
+    handleRetryProfile,
   } = useProfileOverview()
 
   return (
@@ -57,6 +61,13 @@ export default function ProfileScreen() {
       >
         {/* ── Scheduled Deletion Banner ── */}
         <DeletionScheduledBanner />
+
+        {/* ── Stale Data Banner (when profile refresh or listings query fails) ── */}
+        {isStaleError && (
+          <View style={s.staleBannerWrapper} testID="profile-stale-banner">
+            <StaleDataBanner onRetry={handleRetryProfile} isRefetching={isRefreshing} />
+          </View>
+        )}
 
         {/* ── User Profile Card ── */}
         <ProfileHeroCard
@@ -96,5 +107,8 @@ const s = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  staleBannerWrapper: {
+    marginBottom: 12,
   },
 })

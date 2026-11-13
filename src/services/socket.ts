@@ -7,77 +7,88 @@ import { logWarn } from '../utils/safeLog'
 class SocketService {
   private socket: Socket | null = null
   private hasLoggedConnectionError = false
+  private connectPromise: Promise<Socket> | null = null
 
-  async connect() {
+  async connect(): Promise<Socket> {
     if (this.socket?.connected) return this.socket
+    if (this.connectPromise) return this.connectPromise
 
-    // If disconnected socket exists, destroy it before creating new one
-    if (this.socket) {
-      this.socket.disconnect()
-      this.socket = null
-    }
-
-    const token = await SecureStore.getItemAsync('accessToken')
-
-    // Append /chat namespace to match the backend Gateway configuration
-    const url = Config.socketUrl.endsWith('/') 
-      ? `${Config.socketUrl}chat`
-      : `${Config.socketUrl}/chat`
-
-    this.socket = io(url, {
-      auth: { token: token ?? '' },
-      autoConnect: false, // Don't auto-connect, we'll call connect manually
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-    })
-
-    this.socket.on('connect', () => {
-      this.hasLoggedConnectionError = false
-      useSocketStore.setState({ 
-        isConnected: true, 
-        lastError: null,
-        retryCount: 0,
-      })
-    })
-
-    this.socket.on('account-status', (payload: any) => {
-      const code = payload?.code
-      if (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED') {
+    this.connectPromise = (async () => {
+      try {
+        // If disconnected socket exists, destroy it before creating new one
         if (this.socket) {
-          try {
-            this.socket.io.opts.reconnection = false
-          } catch {}
           this.socket.disconnect()
           this.socket = null
         }
-        const { handleBlockedOrSuspended } = require('../api/client')
-        handleBlockedOrSuspended(code, null)
+
+        const token = await SecureStore.getItemAsync('accessToken')
+
+        // Append /chat namespace to match the backend Gateway configuration
+        const url = Config.socketUrl.endsWith('/') 
+          ? `${Config.socketUrl}chat`
+          : `${Config.socketUrl}/chat`
+
+        this.socket = io(url, {
+          auth: { token: token ?? '' },
+          autoConnect: false, // Don't auto-connect, we'll call connect manually
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          randomizationFactor: 0.5,
+        })
+
+        this.socket.on('connect', () => {
+          this.hasLoggedConnectionError = false
+          useSocketStore.setState({ 
+            isConnected: true, 
+            lastError: null,
+            retryCount: 0,
+          })
+        })
+
+        this.socket.on('account-status', (payload: any) => {
+          const code = payload?.code
+          if (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED') {
+            if (this.socket) {
+              try {
+                this.socket.io.opts.reconnection = false
+              } catch {}
+              this.socket.disconnect()
+              this.socket = null
+            }
+            const { handleBlockedOrSuspended } = require('../api/client')
+            handleBlockedOrSuspended(code, null)
+          }
+        })
+
+        this.socket.on('disconnect', () => {
+          useSocketStore.setState({ isConnected: false })
+        })
+
+        this.socket.on('connect_error', (err) => {
+          if (!this.hasLoggedConnectionError) {
+            logWarn('Socket:Connection', err)
+            this.hasLoggedConnectionError = true
+          }
+          useSocketStore.setState({ 
+            isConnected: false, 
+            lastError: err.message,
+          })
+        })
+
+        this.socket.connect()
+        return this.socket
+      } finally {
+        this.connectPromise = null
       }
-    })
+    })()
 
-    this.socket.on('disconnect', () => {
-      useSocketStore.setState({ isConnected: false })
-    })
-
-    this.socket.on('connect_error', (err) => {
-      if (!this.hasLoggedConnectionError) {
-        logWarn('Socket:Connection', err)
-        this.hasLoggedConnectionError = true
-      }
-      useSocketStore.setState({ 
-        isConnected: false,
-        lastError: err.message,
-      })
-    })
-
-    this.socket.connect()
-    return this.socket
+    return this.connectPromise
   }
 
   disconnect() {
+    this.connectPromise = null
     if (this.socket) {
       try {
         this.socket.io.opts.reconnection = false
@@ -124,6 +135,7 @@ class SocketService {
   }
 
   async refreshTokenAndReconnect(newToken: string) {
+    this.connectPromise = null
     if (this.socket) {
       this.socket.auth = { token: newToken }
       this.socket.disconnect() // Force disconnect to reconnect with new auth
