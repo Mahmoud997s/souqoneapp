@@ -71,7 +71,18 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const otherTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { data: initialMessagesData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useChatMessagesInfinite(roomId)
+  const {
+    data: initialMessagesData,
+    isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatMessagesInfinite(roomId)
 
   // Join room via sync service when mounted
   useEffect(() => {
@@ -370,6 +381,11 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   return {
     messages,
     isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
     replyingToMessage,
     setReplyingToMessage,
     otherUser,

@@ -2,6 +2,25 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { usersApi } from '../api/users'
 import { notificationsApi } from '../api/notifications'
 import { PublicProfile } from '../types/profile.types'
+import { NotificationItem } from '../types/api.types'
+import { parseListEnvelope } from '../utils/parseListEnvelope'
+
+/**
+ * Normalizes legacy `{ data: [...] }` envelopes to `{ items: [...] }` safely.
+ */
+function normalizeNotificationsEnvelope(raw: unknown): unknown {
+  if (
+    raw !== null &&
+    typeof raw === 'object' &&
+    !Array.isArray(raw) &&
+    !('items' in raw) &&
+    Array.isArray((raw as Record<string, unknown>).data)
+  ) {
+    const record = raw as Record<string, unknown>
+    return { ...record, items: record.data }
+  }
+  return raw
+}
 
 export function usePublicProfile(userId?: string) {
   return useQuery({
@@ -21,10 +40,10 @@ export function useNotifications() {
     queryKey: ['notifications'],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await notificationsApi.getAll({ page: pageParam, limit: 15 })
-      const data = res.data as any
+      const { items, meta } = parseListEnvelope<NotificationItem>(normalizeNotificationsEnvelope(res.data))
       return { 
-        items: Array.isArray(data) ? data : (data?.items ?? data?.data ?? []), 
-        meta: data?.meta ?? { page: pageParam, totalPages: 1 } 
+        items, 
+        meta: meta ?? { page: pageParam, totalPages: 1 } 
       }
     },
     initialPageParam: 1,
