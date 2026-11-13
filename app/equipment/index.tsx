@@ -96,6 +96,8 @@ export default function EquipmentLandingScreen() {
     isError: errorOp,
     error: opError,
     refetch: refetchOp,
+    isRefetchError: isRefetchErrorOp,
+    isRefetching: isRefetchingOp,
   } = useOperatorsInfinite()
   const fetchedOperators = opData?.pages.flatMap((p) => p.items)?.slice(0, 8) || []
   const operators = fetchedOperators
@@ -206,6 +208,8 @@ export default function EquipmentLandingScreen() {
                 isError={errorOp}
                 error={opError}
                 onRetry={refetchOp}
+                isRefetchError={isRefetchErrorOp}
+                isRefetching={isRefetchingOp}
                 emptyText="لا يوجد مشغلين مسجلين حالياً"
                 onSeeAll={handleSeeAllOperators}
                 onPressItem={handlePressOperator}

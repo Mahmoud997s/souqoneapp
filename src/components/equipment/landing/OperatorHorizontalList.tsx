@@ -15,6 +15,7 @@ import { OperatorCard } from '../../cards/OperatorCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
@@ -27,6 +28,8 @@ interface Props {
   data: any[]
   isLoading: boolean
   isError?: boolean
+  isRefetchError?: boolean
+  isRefetching?: boolean
   error?: unknown
   onRetry?: () => void
   emptyText: string
@@ -41,6 +44,8 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   data,
   isLoading,
   isError,
+  isRefetchError,
+  isRefetching,
   error,
   onRetry,
   emptyText,
@@ -94,6 +99,14 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
         </View>
       ) : data.length > 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
+          {(isError || isRefetchError) && (
+            <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
+              <StaleDataBanner
+                onRetry={onRetry}
+                isRefetching={isRefetching}
+              />
+            </View>
+          )}
           <HorizontalScrollCard
             key="loaded-operators"
             data={data}

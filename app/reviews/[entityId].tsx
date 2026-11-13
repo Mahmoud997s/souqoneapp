@@ -4,11 +4,17 @@ import { useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppHeader } from '../../src/components/ui/AppHeader'
+import { EmptyState } from '../../src/components/ui/EmptyState'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { reviewsApi } from '../../src/api/reviews'
 import { dialogService } from '../../src/store/dialogStore'
+import { parseListEnvelope } from '../../src/utils/parseListEnvelope'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
@@ -48,12 +54,20 @@ export default function ReviewsScreen() {
   const [comment, setComment] = React.useState('')
   const queryClient = useQueryClient()
 
-  const { data: reviews, isLoading } = useQuery({
+  const {
+    data: reviews,
+    isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
+  } = useQuery({
     queryKey: ['reviews', entityId],
     queryFn: async () => {
       const res = await reviewsApi.getByEntity(entityId, type)
-      const raw = res.data as any
-      return Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? [])
+      const { items } = parseListEnvelope(res.data)
+      return items as any[]
     },
     enabled: !!entityId,
   })
@@ -73,19 +87,33 @@ export default function ReviewsScreen() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['operator-detail', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['operator-item', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['equipment-item', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['service-item', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['bus-item', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['car-item', entityId] })
       setIsWriting(false)
       setRating(0)
       setComment('')
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || 'تعذر إضافة التقييم'
-      dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+      const status = err?.response?.status
+      const msg =
+        status === 429
+          ? getPublishRateLimitErrorMessage(err)
+          : getMutationErrorMessage(err, 'تعذر إضافة التقييم')
+      dialogService.alert('خطأ', msg)
     },
   })
 
   return (
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <AppHeader title="التقييمات والمراجعات" showBack />
+
+      {(isError || isRefetchError) && (reviews?.length ?? 0) > 0 && (
+        <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
+      )}
 
       {isLoading ? (
         <ActivityIndicator color={Colors.primary} style={s.loader} />
@@ -112,11 +140,20 @@ export default function ReviewsScreen() {
             ) : null
           }
           ListEmptyComponent={
-            <View style={s.emptyState}>
-              <Ionicons name="star-outline" size={56} color={Colors.border} />
-              <Text style={s.emptyTitle}>لا توجد تقييمات</Text>
-              <Text style={s.emptySub}>كن أول من يضيف تقييماً</Text>
-            </View>
+            isError ? (
+              <EmptyState
+                testID="reviews-error-state"
+                {...getListErrorProps(error, 'تعذر تحميل التقييمات')}
+                actionLabel="إعادة المحاولة"
+                onAction={() => refetch()}
+              />
+            ) : (
+              <View style={s.emptyState}>
+                <Ionicons name="star-outline" size={56} color={Colors.border} />
+                <Text style={s.emptyTitle}>لا توجد تقييمات</Text>
+                <Text style={s.emptySub}>كن أول من يضيف تقييماً</Text>
+              </View>
+            )
           }
           renderItem={({ item }: { item: any }) => {
             const reviewer = item.reviewer ?? item.user
@@ -152,12 +189,13 @@ export default function ReviewsScreen() {
           </View>
           <View style={s.starsInput}>
             {[1, 2, 3, 4, 5].map(i => (
-              <TouchableOpacity key={i} onPress={() => setRating(i)}>
+              <TouchableOpacity key={i} testID={`star-rating-${i}`} onPress={() => setRating(i)}>
                 <Ionicons name="star" size={32} color={i <= rating ? Colors.warning : Colors.border} />
               </TouchableOpacity>
             ))}
           </View>
           <TextInput
+            testID="review-comment-input"
             style={s.commentInput}
             placeholder="اكتب تعليقك هنا..."
             placeholderTextColor={Colors.textMuted}
@@ -167,6 +205,7 @@ export default function ReviewsScreen() {
             textAlign="right"
           />
           <TouchableOpacity 
+            testID="submit-review-btn"
             style={[s.writeBtn, (!rating || submitting) && s.writeBtnDisabled]} 
             disabled={!rating || submitting} 
             onPress={() => submitReview()}
@@ -176,7 +215,7 @@ export default function ReviewsScreen() {
         </View>
       ) : (
         <View style={s.footer}>
-          <TouchableOpacity style={s.writeBtn} onPress={() => setIsWriting(true)}>
+          <TouchableOpacity testID="open-write-review-btn" style={s.writeBtn} onPress={() => setIsWriting(true)}>
             <Ionicons name="create-outline" size={20} color={Colors.white} />
             <Text style={s.writeTxt}>أضف تقييم</Text>
           </TouchableOpacity>
