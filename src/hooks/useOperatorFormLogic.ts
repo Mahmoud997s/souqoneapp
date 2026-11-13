@@ -3,6 +3,8 @@ import * as ImagePicker from 'expo-image-picker'
 import { uploadsApi } from '../api/uploads'
 import { dialogService } from '../store/dialogStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
+import { requestPermission, operatorCertPermissionAdapter } from '../utils/requestPermission'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
 
 interface UseOperatorFormLogicProps {
   certifications: string[]
@@ -39,9 +41,8 @@ export function useOperatorFormLogic({
 
   const pickCertificateImages = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (status !== 'granted') {
-        dialogService.alert('الإذن مطلوب', 'يرجى السماح بالوصول إلى مكتبة الصور لإرفاق شهادتك أو رخصتك')
+      const perm = await requestPermission(operatorCertPermissionAdapter)
+      if (!perm.granted) {
         return
       }
 
@@ -73,7 +74,7 @@ export function useOperatorFormLogic({
         dialogService.alert('نجاح', 'تم إرفاق صورة الشهادة/الرخصة بنجاح')
       }
     } catch (err: any) {
-      dialogService.alert('خطأ', 'فشل رفع الصورة، يرجى المحاولة مجدداً')
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'فشل رفع الصورة، يرجى المحاولة مجدداً'))
     } finally {
       setIsUploading(false)
     }

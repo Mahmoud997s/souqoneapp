@@ -32,6 +32,10 @@ import { OperatorEquipCertsStep } from '../../../src/components/operators/Operat
 import { OperatorRatesLocationStep } from '../../../src/components/operators/OperatorRatesLocationStep'
 import { useProfilePhoneGuard } from '../../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../../src/components/profile/ProfilePhoneGuardView'
+import { PublishSuccessView } from '../../../src/components/publish/PublishSuccessView'
+import { getPublishRateLimitErrorMessage } from '../../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../../src/utils/listing-detail/getDetailErrorKind'
+import { mapOperatorBackendErrors } from '../../../src/hooks/useOperatorValidation'
 
 const TOTAL_STEPS = 3
 
@@ -49,15 +53,19 @@ export default function AddOperatorScreen() {
     }
   }, [loadingMyOp, myOperators])
 
+  const [publishSuccess, setPublishSuccess] = React.useState(false)
+
   const {
     currentStep,
     formData,
     errors,
+    setStep,
     nextStep,
     prevStep,
     setFormField,
     setFormData,
     clearFieldError,
+    setErrors,
     validateStep,
     resetDraft,
   } = useOperatorWizardStore()
@@ -108,13 +116,24 @@ export default function AddOperatorScreen() {
     createMutation.mutate(payload, {
       onSuccess: () => {
         resetDraft()
-        dialogService.alert('تم بنجاح', 'تم نشر بطاقتك المهنية في دليل المشغلين بنجاح!')
-        router.replace('/equipment/operators/browse')
+        setPublishSuccess(true)
       },
       onError: (err: unknown) => {
-        const apiErr = err as { response?: { data?: { message?: string | string[] } }; message?: string } | null | undefined
-        const msg = apiErr?.response?.data?.message || apiErr?.message || 'حدث خطأ أثناء حفظ البطاقة المهنية'
-        dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
+        const apiErr = err as { response?: { status?: number; data?: unknown } } | null | undefined
+        const status = apiErr?.response?.status
+        if (status === 429) {
+          dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+          return
+        }
+        if (status === 400) {
+          const mapped = mapOperatorBackendErrors(apiErr?.response?.data)
+          if (mapped.hasFieldErrors) {
+            setErrors(mapped.fieldErrors)
+            setStep(mapped.firstInvalidStep)
+            return
+          }
+        }
+        dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء حفظ البطاقة المهنية'))
       },
     })
   }
@@ -135,6 +154,32 @@ export default function AddOperatorScreen() {
   // Prevent UI flash while checking/redirecting
   if (loadingMyOp || (myOperators && myOperators.length > 0)) {
     return <View style={{ flex: 1, backgroundColor: '#F8F9FA' }} />
+  }
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <PublishSuccessView
+          title="تم نشر بطاقتك المهنية بنجاح!"
+          subtitle="بطاقتك المهنية متاحة الآن في دليل المشغلين المعتمد بسلطنة عُمان. يمكنك استقبال طلبات العمل والتواصل مباشرة."
+          primaryAction={{
+            label: 'عرض دليل المشغلين',
+            onPress: () => router.replace('/equipment/operators/browse'),
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: 'الرئيسية',
+            onPress: () => router.replace('/'),
+            testID: 'publish-success-secondary-btn',
+          }}
+          onHardwareBack={() => {
+            router.replace('/equipment/operators/browse')
+            return true
+          }}
+        />
+      </View>
+    )
   }
 
   if (!hasPhone) {

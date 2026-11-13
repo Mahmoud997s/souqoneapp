@@ -54,6 +54,26 @@ export const mediaLibraryAdapter: PermissionAdapter = {
   },
 }
 
+export const operatorCertPermissionAdapter: PermissionAdapter = {
+  kind: 'mediaLibrary',
+  titleAr: 'إذن الوصول مطلوب',
+  deniedMessageAr: 'يرجى السماح بالوصول لمكتبة الصور لإرفاق شهادتك أو رخصتك المهنية',
+  blockedMessageAr: 'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لإرفاق شهادتك أو رخصتك المهنية',
+  request: async () => {
+    return await ImagePicker.requestMediaLibraryPermissionsAsync()
+  },
+}
+
+export const operatorAvatarPermissionAdapter: PermissionAdapter = {
+  kind: 'mediaLibrary',
+  titleAr: 'صلاحية مطلوبة',
+  deniedMessageAr: 'يرجى منح إذن الوصول إلى المعرض لاختيار صورتك الشخصية',
+  blockedMessageAr: 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز لاختيار صورتك الشخصية',
+  request: async () => {
+    return await ImagePicker.requestMediaLibraryPermissionsAsync()
+  },
+}
+
 /**
  * Standardized permission requester with unified Arabic presentation and settings redirection.
  * Reuses dialogService.confirm / dialogService.alert without creating new UI components.
