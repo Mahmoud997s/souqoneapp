@@ -14,6 +14,7 @@ import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
 import { MyListingSectionSlider } from './MyListingSectionSlider'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 
 export interface GroupedSectionData {
   config: ListingSectionConfig
@@ -134,6 +135,12 @@ export function MyListingsAllView({
       }
     >
       {header}
+      {isError && (
+        <StaleDataBanner
+          onRetry={onRefresh}
+          isRefetching={isRefreshing}
+        />
+      )}
       {groupedSections.map((section) => (
         <MyListingSectionSlider
           key={section.config.entityType}

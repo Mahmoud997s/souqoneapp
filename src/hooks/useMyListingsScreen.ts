@@ -27,6 +27,8 @@ import {
 } from '../utils/listing-detail/ownerActionMatrix'
 import { invalidateBusListingQueries } from '../utils/listing-detail/busQueryKeys'
 import { invalidateEquipmentListingQueries } from '../utils/listing-detail/equipmentQueryKeys'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
@@ -198,8 +200,8 @@ export function useMyListingsScreen() {
             queryKey: ENTITY_QUERY_KEYS[item.entityType],
           })
           dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
-        } catch {
-          dialogService.alert('خطأ', 'حدث خطأ أثناء الحذف')
+        } catch (err: unknown) {
+          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء الحذف'))
         }
       },
       'حذف',
@@ -219,9 +221,8 @@ export function useMyListingsScreen() {
           await equipmentApi.cancelOperatorDeletionRequest(item.pendingDeletionRequest!.id)
           await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
           dialogService.alert('تم بنجاح', 'تم إلغاء طلب حذف البروفايل بنجاح.', 'success')
-        } catch (err: any) {
-          const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء إلغاء الطلب'
-          dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
+        } catch (err: unknown) {
+          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء إلغاء الطلب'))
         }
       },
       'تأكيد الإلغاء',
@@ -399,7 +400,7 @@ export function useMyListingsScreen() {
             if (!hasResponse) {
               dialogService.alert(
                 'خطأ في الاتصال',
-                'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.'
+                getMutationErrorMessage(err, 'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.')
               )
             } else if (status === 403) {
               dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
@@ -412,10 +413,10 @@ export function useMyListingsScreen() {
             } else if (status === 429) {
               dialogService.alert(
                 'محاولات كثيرة',
-                'لقد قمت بعدة محاولات متتالية، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
+                getPublishRateLimitErrorMessage(err)
               )
             } else {
-              dialogService.alert('خطأ', 'حدث خطأ أثناء تغيير الحالة')
+              dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء تغيير الحالة'))
             }
           } finally {
             isChangingStatus.current = false
