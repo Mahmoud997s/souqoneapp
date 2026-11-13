@@ -22,6 +22,9 @@ export function isSafeInternalPath(p: unknown): p is string {
   // Disallow control characters
   if (/[\u0000-\u001F\u007F]/.test(p)) return false
 
+  // Disallow redirects targeting auth routes to prevent auth redirect loops
+  if (/^\/\(auth\)(?:$|[/?#])/i.test(p)) return false
+
   return true
 }
 
