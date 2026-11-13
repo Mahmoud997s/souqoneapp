@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { View, ActivityIndicator, StyleSheet, Text, Alert } from 'react-native'
+import { StyleSheet } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { listingsApi } from '../../../src/api/listings'
 import { busesApi } from '../../../src/api/buses'
@@ -11,16 +11,24 @@ import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { useCarWizardStore } from '../../../src/store/carWizardStore'
 import { usePartWizardStore } from '../../../src/store/partWizardStore'
 import { useServiceWizardStore } from '../../../src/store/serviceWizardStore'
-import { Colors } from '../../../src/constants/colors'
-import { Spacing } from '../../../src/constants/spacing'
 import { carsApi } from '../../../src/api/cars'
 import { logWarn } from '../../../src/utils/safeLog'
-import { DetailStates } from '../../../src/components/listing-detail/DetailStates'
+import { DetailStates, DetailStateKind } from '../../../src/components/listing-detail/DetailStates'
+import { getDetailErrorKind } from '../../../src/utils/listing-detail/getDetailErrorKind'
+import { dialogService } from '../../../src/store/dialogStore'
+
+function mapErrorKindToStateKind(err: unknown): DetailStateKind {
+  const errorKind = getDetailErrorKind(err)
+  if (errorKind === 'notFound' || errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError') {
+    return errorKind
+  }
+  return 'error'
+}
 
 export default function EditListingLoader() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<unknown>(null)
   const activeRequestKeyRef = useRef<string | null>(null)
   const requestIdRef = useRef(0)
   const isMountedRef = useRef(true)
@@ -33,7 +41,7 @@ export default function EditListingLoader() {
     activeRequestKeyRef.current = currentKey
     const thisRequestId = ++requestIdRef.current
     setLoading(true)
-    setError(null)
+    setLoadError(null)
     try {
       let res;
         if (type === 'operator') {
@@ -147,10 +155,9 @@ export default function EditListingLoader() {
           const carTrimId = listing.carTrimId || listing.trimId || listing.trim || ''
           
           if (!brandId || !carModelId) {
-            Alert.alert(
+            dialogService.alert(
               'تحديث مطلوب',
-              'هذا الإعلان قديم ويحتاج إلى تحديث الماركة والموديل للمتابعة',
-              [{ text: 'حسناً' }]
+              'هذا الإعلان قديم ويحتاج إلى تحديث الماركة والموديل للمتابعة'
             )
           }
 
@@ -321,7 +328,8 @@ export default function EditListingLoader() {
         router.replace('/post/step2')
       } catch (err) {
         if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
-        setError('تعذر تحميل بيانات الإعلان')
+        logWarn('EditListingLoader:load', err)
+        setLoadError(err ?? new Error('تعذر تحميل بيانات الإعلان'))
       } finally {
         if (activeRequestKeyRef.current === currentKey) {
           activeRequestKeyRef.current = null
@@ -353,11 +361,21 @@ export default function EditListingLoader() {
     router.back()
   }, [])
 
-  if (isParts) {
-    if (error) {
+  if (loading) {
+    return (
+      <DetailStates
+        kind="loading"
+        onBack={handleBack}
+      />
+    )
+  }
+
+  if (loadError) {
+    const kind = mapErrorKindToStateKind(loadError)
+    if (isParts) {
       return (
         <DetailStates
-          kind="error"
+          kind={kind}
           title="تعذر تحميل بيانات قطعة الغيار"
           subtitle="حدث خطأ غير متوقع أثناء جلب بيانات قطعة الغيار. يرجى المحاولة مرة أخرى."
           onRetry={load}
@@ -368,52 +386,19 @@ export default function EditListingLoader() {
 
     return (
       <DetailStates
-        kind="loading"
+        kind={kind}
+        onRetry={load}
         onBack={handleBack}
       />
     )
   }
 
-  if (error) {
-    return (
-      <View style={s.center}>
-        <Text style={s.error}>{error}</Text>
-        <Text style={s.backBtn} onPress={handleBack}>رجوع</Text>
-      </View>
-    )
-  }
-
   return (
-    <View style={s.center}>
-      <ActivityIndicator size="large" color={Colors.primary} />
-      <Text style={s.loadingTxt}>جاري تجهيز الإعلان للتعديل...</Text>
-    </View>
+    <DetailStates
+      kind="loading"
+      onBack={handleBack}
+    />
   )
 }
 
-const s = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    padding: Spacing.space4,
-  },
-  loadingTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 16,
-    color: Colors.text,
-    marginTop: Spacing.space4,
-  },
-  error: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 16,
-    color: Colors.error,
-    marginBottom: Spacing.space4,
-  },
-  backBtn: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 14,
-    color: Colors.primary,
-  },
-})
+const s = StyleSheet.create({})
