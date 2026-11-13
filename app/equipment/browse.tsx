@@ -242,20 +242,20 @@ export default function EquipmentBrowseScreen() {
     } else if (qf.id === 'price') {
       isActive = !!filters.priceMax || !!filters.priceMin;
       if (isActive) {
-         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === (filters as any).priceId);
+         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === filters.priceId);
          if (found) displayLabel = found.label;
          else displayLabel = filters.priceMax ? `أقل من ${filters.priceMax}` : qf.label;
       }
     } else if (qf.id === 'year') {
-      isActive = !!(filters as any).yearMax || !!(filters as any).yearMin;
+      isActive = !!filters.yearMax || !!filters.yearMin;
       if (isActive) {
-         const found = YEAR_RANGES.find(b => b.max === (filters as any).yearMax?.toString() || b.id === (filters as any).yearId);
+         const found = YEAR_RANGES.find(b => b.max === filters.yearMax?.toString() || b.id === filters.yearId);
          if (found) displayLabel = found.label;
       }
     } else if (qf.id === 'hours') {
-      isActive = !!(filters as any).hoursMax || !!(filters as any).hoursMin;
+      isActive = !!filters.hoursMax || !!filters.hoursMin;
       if (isActive) {
-         const found = HOURS_RANGES.find(b => b.max === (filters as any).hoursMax?.toString() || b.id === (filters as any).hoursId);
+         const found = HOURS_RANGES.find(b => b.max === filters.hoursMax?.toString() || b.id === filters.hoursId);
          if (found) displayLabel = found.label;
       }
     }

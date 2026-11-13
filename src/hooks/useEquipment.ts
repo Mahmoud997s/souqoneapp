@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query'
 import { equipmentApi } from '../api/equipment'
 import { mapEquipmentToCard, mapOperatorToCard } from '../utils/mappers'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
@@ -25,7 +25,10 @@ export function useEquipmentInfinite(params?: Record<string, unknown>) {
 }
 
 // Simple query for homepage cards
-export function useEquipment(params?: Record<string, unknown>, options?: any) {
+export function useEquipment(
+  params?: Record<string, unknown>,
+  options?: Partial<UseQueryOptions<UnifiedCardItem[], Error, UnifiedCardItem[], readonly unknown[]>>
+) {
   return useQuery<UnifiedCardItem[]>({
     queryKey: ['equipment', params],
     queryFn: async () => {

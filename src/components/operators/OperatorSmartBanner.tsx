@@ -77,7 +77,7 @@ export function OperatorSmartBanner({
 
       <TouchableOpacity style={s.bannerCtaBtn} onPress={onJoinPress} activeOpacity={0.85}>
         <LinearGradient
-          colors={Gradients.primary as any}
+          colors={Gradients.primary}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={s.bannerCtaGradient}
