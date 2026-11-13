@@ -126,7 +126,7 @@ export default function ChatRoomScreen() {
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
   // entityType 'LISTING' is the Cars model; any other room keeps the legacy route
-  const listingRoute = room?.entityType === 'LISTING' ? '/cars' : '/listings'
+  const listingRoute = room?.entityType === 'LISTING' ? ('/cars/[id]' as const) : ('/listings/[id]' as const)
 
   const handleRoomOptions = React.useCallback(() => {
     const options: import('../../src/components/ui/AppDialog').DialogOption[] = []
@@ -134,7 +134,7 @@ export default function ChatRoomScreen() {
     if (room?.listing) {
       options.push({
         text: '🏷️ عرض الإعلان',
-        onPress: () => router.push(`${listingRoute}/${room.listing!.id}` as any),
+        onPress: () => router.push({ pathname: listingRoute, params: { id: room.listing!.id } }),
         style: 'default',
       })
     }
@@ -183,7 +183,7 @@ export default function ChatRoomScreen() {
         onBackPress={() => router.back()}
         onProfilePress={() => {
           if (otherUser?.id) {
-            router.push(`/profile/${otherUser.id}` as any)
+            router.push({ pathname: '/profile/[userId]', params: { userId: otherUser.id } })
           }
         }}
         onOptionsPress={handleRoomOptions}
@@ -194,7 +194,7 @@ export default function ChatRoomScreen() {
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
           listing={room.listing}
-          onPress={() => router.push(`${listingRoute}/${room.listing!.id}` as any)}
+          onPress={() => router.push({ pathname: listingRoute, params: { id: room.listing!.id } })}
           onClose={() => setIsListingBannerVisible(false)}
         />
       )}
@@ -249,7 +249,7 @@ export default function ChatRoomScreen() {
             </View>
           ) : null}
           <FlashList
-          ref={scrollRef as any}
+          ref={scrollRef}
           data={reversedMessages}
           keyExtractor={(item) => item.id}
           // @ts-ignore
