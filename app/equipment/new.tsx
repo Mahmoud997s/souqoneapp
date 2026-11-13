@@ -68,6 +68,7 @@ export default function NewEquipmentListingScreen() {
   const formLogic = useEquipmentFormLogic({
     images: formData.images,
     existingImages: formData.existingImages,
+    removedImageIds: formData.removedImageIds,
     features: formData.features,
     onUpdateImages: (imgs) => setFormField('images', imgs),
     onUpdateExistingImages: (imgs) => setFormField('existingImages', imgs),

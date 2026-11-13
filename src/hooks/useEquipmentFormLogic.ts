@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { dialogService } from '../store/dialogStore'
 
 interface UseEquipmentFormLogicProps {
   images: any[]
   existingImages?: any[]
+  removedImageIds?: string[]
   features: string[]
   onUpdateImages: (images: any[]) => void
   onUpdateExistingImages?: (images: any[]) => void
@@ -16,6 +17,7 @@ interface UseEquipmentFormLogicProps {
 export function useEquipmentFormLogic({
   images,
   existingImages = [],
+  removedImageIds,
   features,
   onUpdateImages,
   onUpdateExistingImages,
@@ -25,6 +27,15 @@ export function useEquipmentFormLogic({
 }: UseEquipmentFormLogicProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [customFeatureInput, setCustomFeatureInput] = useState('')
+  const removedIdsRef = useRef<string[]>(
+    Array.isArray(removedImageIds) ? removedImageIds : []
+  )
+
+  useEffect(() => {
+    if (removedImageIds !== undefined) {
+      removedIdsRef.current = Array.isArray(removedImageIds) ? removedImageIds : []
+    }
+  }, [removedImageIds])
 
   // ── Image Management ──
   const handlePickImages = async () => {
@@ -68,11 +79,16 @@ export function useEquipmentFormLogic({
     })
     onUpdateExistingImages(updated)
 
-    // Track removed ID for backend deletion
+    // Track removed ID for backend deletion without losing previously removed IDs
     if (onUpdateRemovedImageIds) {
       const target = existingImages.find((img: any) => img.id === idOrUrl || img.url === idOrUrl)
       if (target?.id) {
-        onUpdateRemovedImageIds([target.id])
+        const current = Array.isArray(removedIdsRef.current) ? removedIdsRef.current : []
+        if (!current.includes(target.id)) {
+          const next = [...current, target.id]
+          removedIdsRef.current = next
+          onUpdateRemovedImageIds(next)
+        }
       }
     }
   }
