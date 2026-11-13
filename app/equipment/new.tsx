@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native'
 import { router, Stack } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
@@ -20,6 +21,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { dialogService } from '../../src/store/dialogStore'
 import { useAuthStore } from '../../src/store/authStore'
 import { uploadsApi } from '../../src/api/uploads'
@@ -29,6 +31,9 @@ import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
 import { useEquipmentFormLogic } from '../../src/hooks/useEquipmentFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 
 import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type'
 import { EquipmentStep2Images } from '../../src/components/equipment/wizard/EquipmentStep2Images'
@@ -40,12 +45,26 @@ import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhone
 
 const TOTAL_STEPS = 5
 
+function handleEquipmentMutationError(err: unknown, fallbackMessage: string) {
+  if ((err as any)?.response?.status === 429) {
+    dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+    return
+  }
+  dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
+}
+
 export default function NewEquipmentListingScreen() {
   const insets = useSafeAreaInsets()
+  const queryClient = useQueryClient()
   const { hasPhone } = useProfilePhoneGuard()
   const { user } = useAuthStore()
   const createMutation = useCreateEquipment()
   const updateMutation = useUpdateEquipment()
+  const [publishSuccess, setPublishSuccess] = useState<{
+    equipmentId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   const {
     currentStep,
@@ -285,21 +304,19 @@ export default function NewEquipmentListingScreen() {
               logWarn('EquipmentNew:UpdateImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الإعلان والصور بنجاح', 'success')
-            } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يرجى المحاولة مرة أخرى.',
-                'warning'
-              )
-            }
+            const targetId = formData.editListingId ? String(formData.editListingId) : ''
+            void invalidateEquipmentListingQueries(queryClient, targetId || undefined)
             resetDraft()
-            router.back()
+            setPublishSuccess({
+              equipmentId: targetId,
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات المعدة وصورها بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور.',
+            })
           },
           onError: (err: any) => {
-            const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+            handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات')
           },
         }
       )
@@ -307,23 +324,77 @@ export default function NewEquipmentListingScreen() {
       createMutation.mutate(payload, {
         onSuccess: (res: any) => {
           const equipId = res?.data?.id ?? res?.id
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان المعدة بنجاح في سوق ون!')
+          const targetId = equipId ? String(equipId) : ''
+          void invalidateEquipmentListingQueries(queryClient, targetId || undefined)
           resetDraft()
-          if (equipId) {
-            router.replace(`/equipment/${equipId}`)
-          } else {
-            router.replace('/equipment')
-          }
+          setPublishSuccess({
+            equipmentId: targetId,
+            isEdit: false,
+          })
         },
         onError: (err: any) => {
-          const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-          dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+          handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
         },
       })
     }
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ تعديلات المعدة بنجاح!' : 'تم نشر معدتك بنجاح!'}
+          subtitle={
+            publishSuccess.isEdit
+              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات المعدة بنجاح في سوق ون.')
+              : 'إعلان معدتك متاح الآن في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          }
+          primaryAction={{
+            label: 'عرض المعدة',
+            onPress: () => {
+              const targetId = publishSuccess.equipmentId
+              resetDraft()
+              if (targetId) {
+                router.replace(`/equipment/${targetId}` as any)
+              } else {
+                router.replace('/equipment' as any)
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع للمعدات' : 'إضافة معدة أخرى',
+            onPress: () => {
+              resetDraft()
+              if (publishSuccess.isEdit) {
+                router.replace('/equipment' as any)
+              } else {
+                setPublishSuccess(null)
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          tertiaryAction={{
+            label: 'العودة للرئيسية',
+            onPress: () => {
+              resetDraft()
+              router.replace('/' as any)
+            },
+            testID: 'publish-success-tertiary-btn',
+          }}
+          onHardwareBack={() => {
+            resetDraft()
+            router.replace('/equipment' as any)
+            return true
+          }}
+        />
+      </View>
+    )
+  }
 
   if (!hasPhone && !formData.editMode) {
     return (
@@ -467,6 +538,7 @@ export default function NewEquipmentListingScreen() {
               />
               <View style={{ flex: 1 }}>
                 <AppButton
+                  testID={currentStep === TOTAL_STEPS ? 'wizard-submit-btn' : undefined}
                   title={currentStep === TOTAL_STEPS ? (formData.editMode ? 'حفظ التعديلات' : 'نشر الإعلان الآن') : 'متابعة الخطوة التالية'}
                   size="sm"
                   onPress={handleNext}
