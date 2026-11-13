@@ -30,7 +30,11 @@ import { uploadsApi } from '../../src/api/uploads'
 import { servicesApi } from '../../src/api/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
-import { validateStep } from '../../src/hooks/useServiceValidation'
+import {
+  getServiceStepFields,
+  mapServiceBackendErrors,
+  validateStep,
+} from '../../src/hooks/useServiceValidation'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 
@@ -79,13 +83,19 @@ export default function NewServiceListingScreen() {
   const formLogic = useServiceFormLogic(formData, setField, setLocation)
 
   const clearFieldError = (field: string) => {
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev }
-        delete next[field]
-        return next
-      })
-    }
+    const keysToClear =
+      field === 'workingHoursOpen' || field === 'workingHoursClose'
+        ? [field, 'workingHours']
+        : [field]
+
+    setErrors((prev) => {
+      if (!keysToClear.some((k) => Boolean(prev[k]))) return prev
+      const next = { ...prev }
+      for (const k of keysToClear) {
+        delete next[k]
+      }
+      return next
+    })
   }
 
   const setFormFieldAndClearError = (field: keyof ServiceFormData, value: any) => {
@@ -93,9 +103,37 @@ export default function NewServiceListingScreen() {
     clearFieldError(field as string)
   }
 
+  const handlePickImagesAndClearError = async () => {
+    clearFieldError('images')
+    await formLogic.handlePickImages()
+  }
+
+  const handleLocationAndClearErrors = (
+    govId: number,
+    wilId: number,
+    govNameAr: string,
+    wilNameAr: string
+  ) => {
+    formLogic.handleLocationChange(govId, wilId, govNameAr, wilNameAr)
+    setErrors((prev) => {
+      if (!prev.governorateId && !prev.wilayaId) return prev
+      const next = { ...prev }
+      delete next.governorateId
+      delete next.wilayaId
+      return next
+    })
+  }
+
   const validateCurrentStep = () => {
     const result = validateStep(currentStep, formData)
-    setErrors(result.errors)
+    const stepFields = getServiceStepFields(currentStep)
+    setErrors((prev) => {
+      const next = { ...prev }
+      for (const field of stepFields) {
+        delete next[field]
+      }
+      return { ...next, ...result.errors }
+    })
     return result.isValid
   }
 
@@ -195,6 +233,7 @@ export default function NewServiceListingScreen() {
       }
     }
 
+    setErrors({})
     setIsUploadingImages(true)
 
     // 2. Upload local images
@@ -294,6 +333,22 @@ export default function NewServiceListingScreen() {
       images: finalImageUrls,
     }
 
+    const handleServiceMutationError = (err: any, fallbackMessage: string) => {
+      if (err?.response?.status === 429) {
+        dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+        return
+      }
+
+      const mapped = mapServiceBackendErrors(err)
+      if (Object.keys(mapped.fieldErrors).length > 0 && mapped.firstInvalidStep !== null) {
+        setErrors(mapped.fieldErrors)
+        goToStep(mapped.firstInvalidStep)
+        return
+      }
+
+      dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
+    }
+
     // 4. Submit Mutation (Update or Create)
     if (formData.editMode && formData.editListingId) {
       updateMutation.mutate(
@@ -326,16 +381,8 @@ export default function NewServiceListingScreen() {
                 : 'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
             })
           },
-          onError: (err: any) => {
-            if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-              return
-            }
-            dialogService.alert(
-              'خطأ',
-              getMutationErrorMessage(err, 'تعذر تحديث بيانات الخدمة، يرجى التحقق من المدخلات')
-            )
-          },
+          onError: (err: any) =>
+            handleServiceMutationError(err, 'تعذر تحديث بيانات الخدمة، يرجى التحقق من المدخلات'),
         }
       )
     } else {
@@ -353,16 +400,8 @@ export default function NewServiceListingScreen() {
             isEdit: false,
           })
         },
-        onError: (err: any) => {
-          if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-            return
-          }
-          dialogService.alert(
-            'خطأ',
-            getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
-          )
-        },
+        onError: (err: any) =>
+          handleServiceMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'),
       })
     }
   }
@@ -518,7 +557,7 @@ export default function NewServiceListingScreen() {
               existingImages={formData.existingImages || []}
               errors={errors}
               isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
+              onPickImages={handlePickImagesAndClearError}
               onRemoveNewImage={formLogic.handleRemoveNewImage}
               onRemoveExistingImage={formLogic.handleRemoveExistingImage}
               onMakePrimaryNew={formLogic.handleMakePrimaryNew}
@@ -547,7 +586,7 @@ export default function NewServiceListingScreen() {
               formData={formData}
               errors={errors}
               onUpdateField={setFormFieldAndClearError}
-              onLocationChange={formLogic.handleLocationChange}
+              onLocationChange={handleLocationAndClearErrors}
             />
           )}
 
