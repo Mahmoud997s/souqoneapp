@@ -5,6 +5,7 @@ import {
   RefreshControl,
   FlatList,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, {
@@ -68,7 +69,11 @@ const LISTING_TYPES = [
   { id: 'EQUIPMENT_WANTED', label: 'مطلوب' },
 ];
 
-const DROPDOWN_FILTERS = [
+const DROPDOWN_FILTERS: Array<{
+  id: EquipmentDropdownKind;
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+}> = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
   { id: 'category', label: 'نوع المعدة', icon: 'hardware-chip-outline' },
   { id: 'condition', label: 'الحالة', icon: 'construct-outline' },
@@ -263,7 +268,7 @@ export default function EquipmentBrowseScreen() {
     return {
       id: qf.id,
       label: displayLabel,
-      icon: qf.icon as any,
+      icon: qf.icon,
       isActive
     };
   });

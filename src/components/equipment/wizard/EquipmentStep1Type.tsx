@@ -42,7 +42,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
               >
                 <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
                   <MaterialCommunityIcons
-                    name={lt.icon as any}
+                    name={lt.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
                     size={20}
                     color={isSel ? '#ffffff' : Colors.primary}
                   />
@@ -78,7 +78,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
               >
                 <View style={[s.catIconWrap, isSel && s.catIconWrapActive]}>
                   <MaterialCommunityIcons
-                    name={cat.icon as any}
+                    name={cat.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
                     size={18}
                     color={isSel ? '#ffffff' : Colors.primary}
                   />

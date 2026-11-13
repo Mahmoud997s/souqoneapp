@@ -19,13 +19,20 @@ import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
+import { OperatorListing } from '../../../types/equipment.types'
+import { UnifiedCardItem } from '../../../types/unified-card.types'
 
 export const OPERATOR_SWIPER_WIDTH_RATIO = 0.65
+
+export type OperatorHorizontalListItem =
+  | UnifiedCardItem
+  | OperatorListing
+  | { id: string; title: string; [key: string]: unknown }
 
 interface Props {
   title: string
   subTitle?: string
-  data: any[]
+  data: OperatorHorizontalListItem[]
   isLoading: boolean
   isError?: boolean
   isRefetchError?: boolean
@@ -34,7 +41,7 @@ interface Props {
   onRetry?: () => void
   emptyText: string
   onSeeAll: () => void
-  onPressItem: (item: any) => void
+  onPressItem: (item: OperatorHorizontalListItem) => void
   glassSupport?: GlassSupport
 }
 
@@ -58,7 +65,7 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل المشغلين') : null
 
   const renderLoadedItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: OperatorHorizontalListItem }) => (
       <View style={{ width: cardWidth }} testID="operator-swiper-item-wrapper">
         <OperatorCard
           item={item}

@@ -22,7 +22,7 @@ export const EquipmentCategoriesGrid = memo(function EquipmentCategoriesGrid({
         icon: 'sparkles',
         iconBg: Colors.paleMint,
         iconColor: Colors.primary,
-        onPress: () => router.push('/equipment/browse?type=new' as any),
+        onPress: () => router.push('/equipment/browse?type=new'),
       },
       {
         id: 'used',
@@ -30,7 +30,7 @@ export const EquipmentCategoriesGrid = memo(function EquipmentCategoriesGrid({
         icon: 'construct-outline',
         iconBg: Colors.paleMint,
         iconColor: Colors.primary,
-        onPress: () => router.push('/equipment/browse?type=used' as any),
+        onPress: () => router.push('/equipment/browse?type=used'),
       },
       {
         id: 'sale',
@@ -38,7 +38,7 @@ export const EquipmentCategoriesGrid = memo(function EquipmentCategoriesGrid({
         icon: 'cube-outline',
         iconBg: Colors.paleMint,
         iconColor: Colors.primary,
-        onPress: () => router.push('/equipment/browse?type=sale' as any),
+        onPress: () => router.push('/equipment/browse?type=sale'),
       },
       {
         id: 'rental',
@@ -46,7 +46,7 @@ export const EquipmentCategoriesGrid = memo(function EquipmentCategoriesGrid({
         icon: 'key',
         iconBg: Colors.paleMint,
         iconColor: Colors.primary,
-        onPress: () => router.push('/equipment/browse?type=rental' as any),
+        onPress: () => router.push('/equipment/browse?type=rental'),
       },
       {
         id: 'operators',
@@ -54,7 +54,7 @@ export const EquipmentCategoriesGrid = memo(function EquipmentCategoriesGrid({
         icon: 'people',
         iconBg: Colors.paleMint,
         iconColor: Colors.primary,
-        onPress: () => router.push('/equipment/operators/browse' as any),
+        onPress: () => router.push('/equipment/operators/browse'),
       },
     ],
     [router]

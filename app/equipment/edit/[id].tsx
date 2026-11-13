@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import type { AxiosResponse } from 'axios'
 import { useLocalSearchParams, router } from 'expo-router'
 import { equipmentApi } from '../../../src/api/equipment'
+import { EquipmentDetailApi } from '../../../src/types/equipmentDetailApi.types'
 import { useEquipmentWizardStore } from '../../../src/store/equipmentWizardStore'
 import { DetailStates, type DetailStateKind } from '../../../src/components/listing-detail/DetailStates'
 import { getDetailErrorKind } from '../../../src/utils/listing-detail/getDetailErrorKind'
@@ -27,9 +29,9 @@ export default function EditEquipmentLoaderScreen() {
     const thisRequestId = ++requestIdRef.current
     setErrorState(null)
     try {
-      const res = await equipmentApi.getById(id)
+      const res = (await equipmentApi.getById(id)) as AxiosResponse<EquipmentDetailApi> | EquipmentDetailApi
       if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
-      const listing = (res as any)?.data ?? res
+      const listing = res && typeof res === 'object' && 'data' in res ? res.data : res
 
       initEditMode(listing)
       router.replace('/equipment/new')
