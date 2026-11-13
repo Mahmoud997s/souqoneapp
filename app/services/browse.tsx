@@ -189,7 +189,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'serviceType',
       label: foundType ? foundType.label : 'نوع الخدمة',
-      icon: 'build-outline' as any,
+      icon: 'build-outline',
       isActive: !!filters.serviceType,
     });
 
@@ -202,7 +202,7 @@ export default function ServicesBrowseScreen() {
           ? filters.specializations![0]
           : `تخصصات (${filters.specializations!.length})`
         : 'التخصص',
-      icon: 'sparkles-outline' as any,
+      icon: 'sparkles-outline',
       isActive: hasSpec,
     });
 
@@ -212,7 +212,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'city',
       label: hasLocation ? locationLabel : 'الموقع',
-      icon: 'location-outline' as any,
+      icon: 'location-outline',
       isActive: hasLocation,
     });
 
@@ -221,7 +221,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'providerType',
       label: foundProvider ? foundProvider.label : 'نوع المزود',
-      icon: 'business-outline' as any,
+      icon: 'business-outline',
       isActive: !!filters.providerType,
     });
 
@@ -229,7 +229,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'isOpenNow',
       label: 'مفتوح الآن',
-      icon: 'time-outline' as any,
+      icon: 'time-outline',
       isActive: !!filters.isOpenNow,
     });
 
@@ -237,7 +237,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'isHomeService',
       label: 'خدمة منزلية',
-      icon: 'home-outline' as any,
+      icon: 'home-outline',
       isActive: !!filters.isHomeService,
     });
 
@@ -265,8 +265,13 @@ export default function ServicesBrowseScreen() {
         }
         return next;
       });
-    } else {
-      setActiveDropdown(id as any);
+    } else if (
+      id === 'serviceType' ||
+      id === 'specialization' ||
+      id === 'providerType' ||
+      id === 'city'
+    ) {
+      setActiveDropdown(id);
     }
   }, []);
 

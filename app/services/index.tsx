@@ -32,7 +32,10 @@ export default function ServicesLandingScreen() {
   const handleAddService = useCallback(() => {
     navigateToServiceForm();
   }, []);
-  const handlePressService = useCallback((item: any) => router.push(`/services/${item.id}` as any), [router]);
+  const handlePressService = useCallback(
+    (item: { id: string }) => router.push(`/services/${item.id}` as any),
+    [router]
+  );
   const handleBrowseAll = useCallback(() => router.push('/services/browse' as any), [router]);
   const handleSeeAllHome = useCallback(() => router.push('/services/browse?isHomeService=true' as any), [router]);
   const handleSeeAllMaintenance = useCallback(() => router.push('/services/browse?serviceType=MAINTENANCE' as any), [router]);

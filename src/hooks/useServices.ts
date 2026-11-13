@@ -1,10 +1,13 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query'
 import { servicesApi } from '../api/services'
 import { mapServiceToCard } from '../utils/mappers'
 import { UnifiedCardItem } from '../types/unified-card.types'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
 
-export function useServices(params?: Record<string, unknown>, options?: any) {
+export function useServices(
+  params?: Record<string, unknown>,
+  options?: Partial<UseQueryOptions<UnifiedCardItem[], Error>>
+) {
   return useQuery<UnifiedCardItem[]>({
     queryKey: ['services', params],
     queryFn: async () => {
