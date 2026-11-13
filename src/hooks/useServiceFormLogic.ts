@@ -4,6 +4,14 @@ import { dialogService } from '../store/dialogStore'
 import { ServiceFormData, ServiceImageItem } from '../store/serviceWizardStore'
 import { MAX_SERVICE_IMAGES } from '../constants/services'
 import { router } from 'expo-router'
+import { requestPermission, mediaLibraryAdapter, type PermissionAdapter } from '../utils/requestPermission'
+
+const serviceMediaLibraryAdapter: PermissionAdapter = {
+  ...mediaLibraryAdapter,
+  deniedMessageAr: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور الخدمة',
+  blockedMessageAr:
+    'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور الخدمة',
+}
 
 /**
  * Shared form logic hook for services form (image picking, removal, primary reordering, location changes)
@@ -17,12 +25,8 @@ export function useServiceFormLogic(
 
   const handlePickImages = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      const permission = await requestPermission(serviceMediaLibraryAdapter)
       if (!permission.granted) {
-        dialogService.alert(
-          'إذن الوصول مطلوب',
-          'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور الخدمة'
-        )
         return
       }
 

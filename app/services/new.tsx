@@ -12,8 +12,9 @@ import {
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { invalidateServiceListingQueries } from '../../src/screens/services/hooks/serviceQueryKeys'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -44,6 +45,7 @@ const TOTAL_STEPS = 6
 export default function NewServiceListingScreen() {
   const insets = useSafeAreaInsets()
   const { hasPhone } = useProfilePhoneGuard()
+  const queryClient = useQueryClient()
 
   const createMutation = useMutation({
     mutationFn: (data: any) => servicesApi.create(data),
@@ -311,6 +313,12 @@ export default function NewServiceListingScreen() {
                 'warning'
               )
             }
+            const targetId = formData.editListingId
+            if (targetId) {
+              void invalidateServiceListingQueries(queryClient, String(targetId))
+            } else {
+              void invalidateServiceListingQueries(queryClient)
+            }
             reset()
             router.back()
           },
@@ -335,6 +343,11 @@ export default function NewServiceListingScreen() {
         onSuccess: (res: any) => {
           dialogService.alert('تم بنجاح', 'تم نشر إعلان الخدمة بنجاح في سوق ون!')
           const serviceId = res?.data?.id ?? res?.id
+          if (serviceId) {
+            void invalidateServiceListingQueries(queryClient, String(serviceId))
+          } else {
+            void invalidateServiceListingQueries(queryClient)
+          }
           reset()
           if (serviceId) {
             router.replace(`/services/${serviceId}`)

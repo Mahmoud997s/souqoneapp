@@ -17,13 +17,11 @@ import { ServicesCategoriesGrid } from '../../src/components/services/ServicesCa
 import { ServiceHorizontalList } from '../../src/components/services/ServiceHorizontalList';
 import { ServicesHowItWorks } from '../../src/components/services/ServicesHowItWorks';
 import { ServicesBottomBar } from '../../src/components/services/ServicesBottomBar';
-import { Gradients } from '../../src/constants/gradients';
-import { ActionBanner } from '../../src/components/ui/ActionBanner';
-import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 
 export default function ServicesLandingScreen() {
   const router = useRouter();
@@ -48,7 +46,15 @@ export default function ServicesLandingScreen() {
 
 
   // Data fetching logic
-  const { data: baseData = [], isLoading: loadingData, isError, refetch } = useServices({ limit: 20 });
+  const {
+    data: baseData = [],
+    isLoading: loadingData,
+    isError: isBaseError,
+    error: baseError,
+    refetch: refetchBase,
+    isRefetchError: isBaseRefetchError,
+    isRefetching: isBaseRefetching,
+  } = useServices({ limit: 20 });
   const homeServices = useMemo(() => baseData.filter(item => item.raw?.isHomeService).slice(0, 10), [baseData]);
   
   const [loadRest, setLoadRest] = useState(false);
@@ -63,9 +69,39 @@ export default function ServicesLandingScreen() {
     };
   }, []);
 
-  const { data: maintenanceServices = [], isLoading: loadingMaintenance } = useServices({ serviceType: 'MAINTENANCE', limit: 10 }, { enabled: loadRest });
-  const { data: cleaningServices = [], isLoading: loadingCleaning } = useServices({ serviceType: 'CLEANING', limit: 10 }, { enabled: loadRest });
-  const { data: otherServices = [], isLoading: loadingOther } = useServices({ serviceType: 'OTHER_SERVICE', limit: 10 }, { enabled: loadRest });
+  const {
+    data: maintenanceServices = [],
+    isLoading: loadingMaintenance,
+    isError: isMaintenanceError,
+    error: maintenanceError,
+    refetch: refetchMaintenance,
+    isRefetchError: isMaintenanceRefetchError,
+    isRefetching: isMaintenanceRefetching,
+  } = useServices({ serviceType: 'MAINTENANCE', limit: 10 }, { enabled: loadRest });
+  const {
+    data: cleaningServices = [],
+    isLoading: loadingCleaning,
+    isError: isCleaningError,
+    error: cleaningError,
+    refetch: refetchCleaning,
+    isRefetchError: isCleaningRefetchError,
+    isRefetching: isCleaningRefetching,
+  } = useServices({ serviceType: 'CLEANING', limit: 10 }, { enabled: loadRest });
+  const {
+    data: otherServices = [],
+    isLoading: loadingOther,
+    isError: isOtherError,
+    error: otherError,
+    refetch: refetchOther,
+    isRefetchError: isOtherRefetchError,
+    isRefetching: isOtherRefetching,
+  } = useServices({ serviceType: 'OTHER_SERVICE', limit: 10 }, { enabled: loadRest });
+
+  const hasStaleRefetchError =
+    (isBaseRefetchError && baseData.length > 0) ||
+    (isMaintenanceRefetchError && maintenanceServices.length > 0) ||
+    (isCleaningRefetchError && cleaningServices.length > 0) ||
+    (isOtherRefetchError && otherServices.length > 0);
 
   return (
     <View style={s.root}>
@@ -109,66 +145,92 @@ export default function ServicesLandingScreen() {
         }}
       >
         <View style={s.content}>
+          {hasStaleRefetchError && (
+            <View style={{ marginBottom: Spacing.space3 }}>
+              <StaleDataBanner
+                onRetry={() => {
+                  if (isBaseRefetchError) refetchBase();
+                  if (isMaintenanceRefetchError) refetchMaintenance();
+                  if (isCleaningRefetchError) refetchCleaning();
+                  if (isOtherRefetchError) refetchOther();
+                }}
+                isRefetching={
+                  isBaseRefetching ||
+                  isMaintenanceRefetching ||
+                  isCleaningRefetching ||
+                  isOtherRefetching
+                }
+              />
+            </View>
+          )}
+
           <ServicesCategoriesGrid support={glassSupport} />
 
-          {isError && !loadingData ? (
-            <ActionBanner 
-              title="تعذر الاتصال بالشبكة"
-              subtitle="حدث خطأ أثناء جلب البيانات، يرجى المحاولة مرة أخرى."
-              buttonText="إعادة المحاولة"
-              iconName="cloud-offline"
-              onPress={() => refetch()}
-              gradientColors={['#ef4444', '#b91c1c', '#7f1d1d']}
-            />
-          ) : (
+          <ServiceHorizontalList
+            title="خدمات متنقلة"
+            subTitle="خدمات تصلك أينما كنت"
+            data={homeServices}
+            isLoading={loadingData}
+            isError={isBaseError && homeServices.length === 0}
+            error={baseError}
+            onRetry={refetchBase}
+            isRefetchError={isBaseRefetchError}
+            isRefetching={isBaseRefetching}
+            emptyText="لا توجد خدمات متنقلة حالياً"
+            onSeeAll={handleSeeAllHome}
+            onPressItem={handlePressService}
+            glassSupport={glassSupport}
+          />
+
+          {loadRest && (
             <>
               <ServiceHorizontalList
-                title="خدمات متنقلة"
-                subTitle="خدمات تصلك أينما كنت"
-                data={homeServices}
-                isLoading={loadingData}
-                emptyText="لا توجد خدمات متنقلة حالياً"
-                onSeeAll={handleSeeAllHome}
+                title="خدمات الصيانة"
+                subTitle="أفضل ورش الصيانة لسيارتك"
+                data={maintenanceServices}
+                isLoading={loadingMaintenance}
+                isError={isMaintenanceError && maintenanceServices.length === 0}
+                error={maintenanceError}
+                onRetry={refetchMaintenance}
+                isRefetchError={isMaintenanceRefetchError}
+                isRefetching={isMaintenanceRefetching}
+                emptyText="لا توجد خدمات صيانة حالياً"
+                onSeeAll={handleSeeAllMaintenance}
                 onPressItem={handlePressService}
                 glassSupport={glassSupport}
               />
 
-              {loadRest && (
-                <>
-                  <ServiceHorizontalList
-                    title="خدمات الصيانة"
-                    subTitle="أفضل ورش الصيانة لسيارتك"
-                    data={maintenanceServices}
-                    isLoading={loadingMaintenance}
-                    emptyText="لا توجد خدمات صيانة حالياً"
-                    onSeeAll={handleSeeAllMaintenance}
-                    onPressItem={handlePressService}
-                    glassSupport={glassSupport}
-                  />
+              <ServiceHorizontalList
+                title="غسيل وتلميع"
+                subTitle="عناية متكاملة لسيارتك"
+                data={cleaningServices}
+                isLoading={loadingCleaning}
+                isError={isCleaningError && cleaningServices.length === 0}
+                error={cleaningError}
+                onRetry={refetchCleaning}
+                isRefetchError={isCleaningRefetchError}
+                isRefetching={isCleaningRefetching}
+                emptyText="لا توجد خدمات غسيل حالياً"
+                onSeeAll={handleSeeAllCleaning}
+                onPressItem={handlePressService}
+                glassSupport={glassSupport}
+              />
 
-                  <ServiceHorizontalList
-                    title="غسيل وتلميع"
-                    subTitle="عناية متكاملة لسيارتك"
-                    data={cleaningServices}
-                    isLoading={loadingCleaning}
-                    emptyText="لا توجد خدمات غسيل حالياً"
-                    onSeeAll={handleSeeAllCleaning}
-                    onPressItem={handlePressService}
-                    glassSupport={glassSupport}
-                  />
-
-                  <ServiceHorizontalList
-                    title="خدمات أخرى"
-                    subTitle="تصفح المزيد من الخدمات"
-                    data={otherServices}
-                    isLoading={loadingOther}
-                    emptyText="لا توجد خدمات حالياً"
-                    onSeeAll={handleSeeAllOther}
-                    onPressItem={handlePressService}
-                    glassSupport={glassSupport}
-                  />
-                </>
-              )}
+              <ServiceHorizontalList
+                title="خدمات أخرى"
+                subTitle="تصفح المزيد من الخدمات"
+                data={otherServices}
+                isLoading={loadingOther}
+                isError={isOtherError && otherServices.length === 0}
+                error={otherError}
+                onRetry={refetchOther}
+                isRefetchError={isOtherRefetchError}
+                isRefetching={isOtherRefetching}
+                emptyText="لا توجد خدمات حالياً"
+                onSeeAll={handleSeeAllOther}
+                onPressItem={handlePressService}
+                glassSupport={glassSupport}
+              />
             </>
           )}
 
