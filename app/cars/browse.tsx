@@ -34,6 +34,7 @@ import {
 } from '../../src/constants/browseFilters';
 import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { ListingTabs } from '../../src/components/ui/ListingTabs';
@@ -135,7 +136,19 @@ export default function CarsBrowseScreen() {
   }, [debouncedSearchQuery, selectedBrandName, filters]);
 
   // Fetch Listings
-  const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteCarListings(queryParams);
+  const {
+    data: infiniteData,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    isRefetchError,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteCarListings(queryParams);
   const listings = useMemo(() => infiniteData?.pages.flatMap(page => page.items) ?? [], [infiniteData]);
 
   // Active filters count via pure module
@@ -312,12 +325,14 @@ export default function CarsBrowseScreen() {
       <BrowseEmptyState
         isLoading={isLoading}
         isError={isError}
+        error={error}
+        errorTitle="تعذر تحميل إعلانات السيارات"
         activeFiltersCount={activeFiltersCount}
         onRetry={refetch}
         onClearAll={handleClearAll}
       />
     ),
-    [isLoading, isError, activeFiltersCount, refetch, handleClearAll]
+    [isLoading, isError, error, activeFiltersCount, refetch, handleClearAll]
   );
 
   return (
@@ -359,6 +374,13 @@ export default function CarsBrowseScreen() {
         />
       </CollapsibleSubHeader>
 
+      {(isRefetchError || isError) && listings.length > 0 && (
+        <StaleDataBanner
+          onRetry={() => refetch()}
+          isRefetching={isRefetching || (isFetching && !isFetchingNextPage)}
+        />
+      )}
+
       <Animated.FlatList
         ref={flatListRef}
         key="list-1-column"
@@ -377,7 +399,7 @@ export default function CarsBrowseScreen() {
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
+            refreshing={isRefetching}
             onRefresh={refetch}
             colors={[Colors.primary]}
           />
