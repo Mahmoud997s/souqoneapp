@@ -7,6 +7,7 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import { FEATURES } from '../../constants/features'
 import {
   getCardPriceNegotiable,
   getCardSellerVerified,
@@ -174,7 +175,7 @@ const EquipCardComponent = ({
       textColor: Colors.white,
     })
   }
-  if (item.isPremium) {
+  if (FEATURES.PAYMENTS_ENABLED && item.isPremium) {
     badges.push({
       key: 'premium',
       label: 'مميز',

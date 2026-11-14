@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 
-export type EntityType = 'listings' | 'jobs' | 'services' | 'parts' | 'buses' | 'equipment' | 'operators'
+export type EntityType = 'listings' | 'services' | 'parts' | 'buses' | 'equipment' | 'operators'
 export type SortBy = 'newest' | 'price:asc' | 'price:desc' | 'createdAt:desc'
 
 export interface SearchParams {

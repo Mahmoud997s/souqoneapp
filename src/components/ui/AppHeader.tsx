@@ -29,7 +29,7 @@ interface AppHeaderProps {
   centerSlot?: ReactNode
   rightSlot?: ReactNode
   showBack?: boolean
-  variant?: 'default' | 'jobs'
+  variant?: 'default'
   theme?: 'dark' | 'light'
   glassBackground?: boolean
   glassSupport?: GlassSupport

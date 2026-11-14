@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from 'react-native'
+import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { FEATURES } from '../../src/constants/features'
 import { paymentsApi } from '../../src/api/payments'
 import { dialogService } from '../../src/store/dialogStore'
 
@@ -12,6 +14,16 @@ type PlanId = 'FREE' | 'PRO' | 'ENTERPRISE'
 
 export default function SubscriptionScreen() {
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null)
+
+  useEffect(() => {
+    if (!FEATURES.PAYMENTS_ENABLED) {
+      router.replace('/(tabs)/profile')
+    }
+  }, [])
+
+  if (!FEATURES.PAYMENTS_ENABLED) {
+    return null
+  }
 
   const handleSubscribe = async (planId: PlanId) => {
     if (planId === 'FREE') return

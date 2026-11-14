@@ -11,6 +11,7 @@ import { ProfilePremiumBanner } from '../../src/components/profile/ProfilePremiu
 import { ProfileSectionCard } from '../../src/components/profile/ProfileSectionCard'
 import { ProfileLogoutSection } from '../../src/components/profile/ProfileLogoutSection'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { FEATURES } from '../../src/constants/features'
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
@@ -82,7 +83,7 @@ export default function ProfileScreen() {
         />
 
         {/* ── Subscription Card ── */}
-        <ProfilePremiumBanner />
+        {FEATURES.PAYMENTS_ENABLED && <ProfilePremiumBanner />}
 
         {/* ── Section 1: النشاط والإعلانات ── */}
         <ProfileSectionCard title="نشاطي وإعلاناتي" items={activitiesItems} />
