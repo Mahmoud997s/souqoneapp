@@ -51,6 +51,7 @@ jest.mock('expo-router', () => ({
 
 jest.mock('../../store/dialogStore', () => ({
   dialogService: {
+    show: jest.fn(),
     alert: jest.fn(),
     confirm: jest.fn(),
   },
@@ -308,7 +309,8 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await waitFor(() => {
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
+        'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
+        'error'
       )
     })
 
@@ -323,9 +325,12 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await fireEvent.press(offlineSubmitBtn)
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+      expect(dialogService.show).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'offline',
+          title: 'لا يوجد اتصال',
+          message: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.',
+        })
       )
     })
   })

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -33,6 +33,7 @@ import { DetailStates, DetailStateKind } from '../../../../src/components/listin
 import { getDetailErrorKind, getMutationErrorMessage } from '../../../../src/utils/listing-detail/getDetailErrorKind'
 import { PublishSuccessView } from '../../../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../../../src/utils/publishRateLimitError'
+import { showPublishErrorDialog } from '../../../../src/utils/publishErrorDialog'
 
 type OperatorDetailPayload = Omit<OperatorListing, 'governorate' | 'wilaya'> & {
   isNegotiable?: boolean
@@ -168,23 +169,28 @@ export default function EditOperatorScreen() {
     }
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const handleSubmit = () => {
-    if (!id) return
+    if (!id || submitLockRef.current) return
     const { isValid, errors: finalErrors } = validateOperatorStep(3, formData)
     if (!isValid) {
       setErrors(finalErrors)
       return
     }
 
+    submitLockRef.current = true
     const payload = buildOperatorPayload(formData)
 
     updateMutation.mutate(
       { id, data: payload },
       {
         onSuccess: () => {
+          submitLockRef.current = false
           setPublishSuccess(true)
         },
         onError: (err: unknown) => {
+          submitLockRef.current = false
           const apiErr = err as { response?: { status?: number; data?: unknown } } | null | undefined
           const status = apiErr?.response?.status
           if (status === 429) {
@@ -199,7 +205,11 @@ export default function EditOperatorScreen() {
               return
             }
           }
-          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء تحديث البطاقة المهنية'))
+          showPublishErrorDialog({
+            error: err,
+            fallbackMessage: 'حدث خطأ أثناء تحديث البطاقة المهنية',
+            onRetry: handleSubmit,
+          })
         },
       }
     )

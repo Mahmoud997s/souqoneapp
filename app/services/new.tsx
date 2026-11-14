@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -37,6 +37,7 @@ import {
 } from '../../src/hooks/useServiceValidation'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
+import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 
 import { ServiceStep1Type } from '../../src/components/services/wizard/ServiceStep1Type'
 import { ServiceStep2Images } from '../../src/components/services/wizard/ServiceStep2Images'
@@ -234,7 +235,11 @@ export default function NewServiceListingScreen() {
     )
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const handleSubmit = async () => {
+    if (submitLockRef.current) return
+
     // 1. Validation loop for Steps 1-5 via extracted helper
     const validationCheck = validateAllServiceStepsBeforeSubmit(formData)
     if (!validationCheck.isValid) {
@@ -245,6 +250,7 @@ export default function NewServiceListingScreen() {
       return
     }
 
+    submitLockRef.current = true
     setErrors({})
     setIsUploadingImages(true)
 
@@ -277,15 +283,19 @@ export default function NewServiceListingScreen() {
               }
             } catch (uploadErr: any) {
               logWarn('ServicesNew:UploadImage', uploadErr)
-              const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-              throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
+              throw uploadErr
             }
           }
         }
       }
     } catch (e: any) {
       logWarn('ServicesNew:UploadBeforeSubmit', e)
-      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      submitLockRef.current = false
+      showPublishErrorDialog({
+        error: e,
+        fallbackMessage: 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً',
+        onRetry: handleSubmit,
+      })
       setIsUploadingImages(false)
       return
     } finally {
@@ -296,6 +306,7 @@ export default function NewServiceListingScreen() {
     const payload = buildServiceListingPayload(formData, finalImageUrls)
 
     const handleServiceMutationError = (err: any, fallbackMessage: string) => {
+      submitLockRef.current = false
       if (err?.response?.status === 429) {
         dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
         return
@@ -308,7 +319,11 @@ export default function NewServiceListingScreen() {
         return
       }
 
-      dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
+      showPublishErrorDialog({
+        error: err,
+        fallbackMessage,
+        onRetry: handleSubmit,
+      })
     }
 
     // 4. Submit Mutation (Update or Create)
@@ -317,6 +332,7 @@ export default function NewServiceListingScreen() {
         { id: formData.editListingId, data: payload },
         {
           onSuccess: async () => {
+            submitLockRef.current = false
             let imagesSuccess = true
             try {
               if (formData.removedImageIds && formData.removedImageIds.length > 0) {
@@ -350,6 +366,7 @@ export default function NewServiceListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: (res: any) => {
+          submitLockRef.current = false
           const rawId = res?.data?.id ?? res?.id
           const serviceId = rawId ? String(rawId) : ''
           if (serviceId) {

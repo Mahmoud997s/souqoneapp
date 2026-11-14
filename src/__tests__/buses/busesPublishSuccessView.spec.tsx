@@ -310,7 +310,8 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     expect(screen.queryByTestId('publish-success-view')).toBeNull()
   })
 
-  it('4. Network and timeout mutation errors use getMutationErrorMessage instead of generic fallback', async () => {
+  it('4. Network and timeout mutation errors use showPublishErrorDialog with offline icon & retry only for offline', async () => {
+    const showSpy = jest.spyOn(dialogService, 'show')
     const networkErr = {
       isAxiosError: true,
       code: 'ERR_NETWORK',
@@ -321,14 +322,18 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     const screen = await submitPublishFromStep6()
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        'خطأ',
-        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+      expect(showSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'offline',
+          title: 'لا يوجد اتصال',
+          message: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.',
+        })
       )
     })
     expect(screen.queryByTestId('publish-success-view')).toBeNull()
 
     alertSpy.mockClear()
+    showSpy.mockClear()
     const timeoutErr = {
       isAxiosError: true,
       code: 'ECONNABORTED',
@@ -342,10 +347,13 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        'خطأ',
-        'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
+        'انتهت مهلة الاتصال',
+        'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
+        'offline'
       )
     })
+    expect(showSpy).not.toHaveBeenCalled()
+    showSpy.mockRestore()
   })
 
   it('5. Hardware back button on PublishSuccessView navigates to /buses and blocks going back to form', async () => {

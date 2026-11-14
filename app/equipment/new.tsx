@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -33,6 +33,7 @@ import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 import {
   uploadAndReconcileEquipmentImages,
@@ -49,13 +50,21 @@ import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhone
 
 const TOTAL_STEPS = 5
 
-function handleEquipmentMutationError(err: unknown, fallbackMessage: string) {
+function handleEquipmentMutationError(
+  err: unknown,
+  fallbackMessage: string,
+  onRetry?: () => void
+) {
   const status = (err as { response?: { status?: number } })?.response?.status
   if (status === 429) {
     dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
     return
   }
-  dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
+  showPublishErrorDialog({
+    error: err,
+    fallbackMessage,
+    onRetry,
+  })
 }
 
 export default function NewEquipmentListingScreen() {
@@ -181,7 +190,11 @@ export default function NewEquipmentListingScreen() {
     }
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const executeSubmit = async () => {
+    if (submitLockRef.current) return
+
     for (let s = 1; s <= 4; s++) {
       const isValid = validateStep(s)
       if (!isValid) {
@@ -190,6 +203,7 @@ export default function NewEquipmentListingScreen() {
       }
     }
 
+    submitLockRef.current = true
     setIsUploadingImages(true)
 
     // 1. Process existing images + upload any local image files via extracted helper
@@ -204,8 +218,12 @@ export default function NewEquipmentListingScreen() {
       newImageUrls = reconcileResult.newImageUrls
     } catch (e: unknown) {
       logWarn('EquipmentNew:UploadBeforeSubmit', e)
-      const errMessage = (e as Error)?.message || 'تحقق من اتصالك وأعد المحاولة'
-      dialogService.alert('خطأ في رفع الصور', errMessage, 'error')
+      submitLockRef.current = false
+      showPublishErrorDialog({
+        error: e,
+        fallbackMessage: 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً',
+        onRetry: executeSubmit,
+      })
       setIsUploadingImages(false)
       return
     } finally {
@@ -220,6 +238,7 @@ export default function NewEquipmentListingScreen() {
         { id: formData.editListingId, data: payload },
         {
           onSuccess: async () => {
+            submitLockRef.current = false
             let imagesSuccess = true
             try {
               if (newImageUrls.length > 0) {
@@ -247,13 +266,15 @@ export default function NewEquipmentListingScreen() {
             })
           },
           onError: (err: unknown) => {
-            handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات')
+            submitLockRef.current = false
+            handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات', executeSubmit)
           },
         }
       )
     } else {
       createMutation.mutate(payload, {
         onSuccess: (res: unknown) => {
+          submitLockRef.current = false
           const resObj = res as { data?: { id?: string | number }; id?: string | number }
           const equipId = resObj?.data?.id ?? resObj?.id
           const targetId = equipId ? String(equipId) : ''
@@ -265,7 +286,8 @@ export default function NewEquipmentListingScreen() {
           })
         },
         onError: (err: unknown) => {
-          handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
+          submitLockRef.current = false
+          handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات', executeSubmit)
         },
       })
     }

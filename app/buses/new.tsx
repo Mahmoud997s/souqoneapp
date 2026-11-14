@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import { buildBusPayload } from '../../src/utils/busPayload'
 import { logWarn } from '../../src/utils/safeLog'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
+import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 
 import { BusStep1TypeCategory } from '../../src/components/buses/wizard/BusStep1TypeCategory'
 import { BusStep2Images } from '../../src/components/buses/wizard/BusStep2Images'
@@ -182,7 +183,11 @@ export default function NewBusListingScreen() {
     }
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const executeSubmit = async () => {
+    if (submitLockRef.current) return
+
     // 0. Edit needs the listing's `version` (the API rejects PATCH without it). A draft restored
     //    from storage by an older app build has none -> ask the user to reopen the listing.
     if (editMode && editVersion == null) {
@@ -204,6 +209,7 @@ export default function NewBusListingScreen() {
       }
     }
 
+    submitLockRef.current = true
     setIsUploadingImages(true)
 
     // 2. Upload local images
@@ -242,11 +248,16 @@ export default function NewBusListingScreen() {
       }
     } catch (uploadErr: any) {
       logWarn('BusesNew:UploadImages', uploadErr)
-      const uploadErrorMsg =
-        uploadErr?.response?.status === 429
-          ? getPublishRateLimitErrorMessage(uploadErr)
-          : getMutationErrorMessage(uploadErr, 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً')
-      dialogService.alert('خطأ في رفع الصور', uploadErrorMsg, 'error')
+      submitLockRef.current = false
+      if (uploadErr?.response?.status === 429) {
+        dialogService.alert('خطأ في رفع الصور', getPublishRateLimitErrorMessage(uploadErr), 'error')
+      } else {
+        showPublishErrorDialog({
+          error: uploadErr,
+          fallbackMessage: 'فشل رفع إحدى الصور، يرجى التحقق من الاتصال والمحاولة مجدداً',
+          onRetry: executeSubmit,
+        })
+      }
       setIsUploadingImages(false)
       return
     } finally {
@@ -262,6 +273,7 @@ export default function NewBusListingScreen() {
         { id: editListingId, payload: { ...payload, version: editVersion } },
         {
           onSuccess: async () => {
+            submitLockRef.current = false
             let imagesSuccess = true
             try {
               if (newImageUrls.length > 0) {
@@ -289,6 +301,7 @@ export default function NewBusListingScreen() {
             })
           },
           onError: (err: any) => {
+            submitLockRef.current = false
             if (isOptimisticLockError(err)) {
               dialogService.alert(
                 'تعارض في البيانات',
@@ -297,10 +310,11 @@ export default function NewBusListingScreen() {
             } else if (err?.response?.status === 429) {
               dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
             } else {
-              dialogService.alert(
-                'خطأ',
-                getMutationErrorMessage(err, 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات')
-              )
+              showPublishErrorDialog({
+                error: err,
+                fallbackMessage: 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات',
+                onRetry: executeSubmit,
+              })
             }
           },
         }
@@ -308,6 +322,7 @@ export default function NewBusListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: async (res: any) => {
+          submitLockRef.current = false
           const rawId = res?.data?.id ?? res?.id
           const targetId = rawId ? String(rawId) : ''
           let imagesSuccess = true
@@ -331,15 +346,17 @@ export default function NewBusListingScreen() {
           })
         },
         onError: (err: any) => {
+          submitLockRef.current = false
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
             dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
           } else {
-            dialogService.alert(
-              'خطأ',
-              getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
-            )
+            showPublishErrorDialog({
+              error: err,
+              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+              onRetry: executeSubmit,
+            })
           }
         },
       })

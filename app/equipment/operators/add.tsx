@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ import { PublishSuccessView } from '../../../src/components/publish/PublishSucce
 import { getPublishRateLimitErrorMessage } from '../../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../../src/utils/listing-detail/getDetailErrorKind'
 import { mapOperatorBackendErrors } from '../../../src/hooks/useOperatorValidation'
+import { showPublishErrorDialog } from '../../../src/utils/publishErrorDialog'
 
 const TOTAL_STEPS = 3
 
@@ -107,18 +108,25 @@ export default function AddOperatorScreen() {
     })
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const handleSubmit = () => {
+    if (submitLockRef.current) return
+
     const isValid = validateStep(3)
     if (!isValid) return
 
+    submitLockRef.current = true
     const payload = buildOperatorPayload(formData)
 
     createMutation.mutate(payload, {
       onSuccess: () => {
+        submitLockRef.current = false
         resetDraft()
         setPublishSuccess(true)
       },
       onError: (err: unknown) => {
+        submitLockRef.current = false
         const apiErr = err as { response?: { status?: number; data?: unknown } } | null | undefined
         const status = apiErr?.response?.status
         if (status === 429) {
@@ -133,7 +141,11 @@ export default function AddOperatorScreen() {
             return
           }
         }
-        dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء حفظ البطاقة المهنية'))
+        showPublishErrorDialog({
+          error: err,
+          fallbackMessage: 'حدث خطأ أثناء حفظ البطاقة المهنية',
+          onRetry: handleSubmit,
+        })
       },
     })
   }

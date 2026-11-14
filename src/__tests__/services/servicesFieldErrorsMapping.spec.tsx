@@ -360,7 +360,7 @@ describe('mapServiceBackendErrors & NewServiceListingScreen 400 field error rout
       })
 
       await waitFor(() => {
-        expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'البيانات المدخلة غير صحيحة')
+        expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'البيانات المدخلة غير صحيحة', 'error')
       })
     })
   })
