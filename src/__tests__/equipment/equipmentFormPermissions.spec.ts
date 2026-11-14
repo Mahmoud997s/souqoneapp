@@ -157,7 +157,8 @@ describe('Equipment Form Logic Permissions & Unified Errors (D-283 / S4)', () =>
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        'تعذر اختيار الصور، يرجى المحاولة مجدداً'
+        'تعذر اختيار الصور، يرجى المحاولة مجدداً',
+        'error'
       )
       expect(result.current.isUploading).toBe(false)
     })

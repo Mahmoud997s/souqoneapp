@@ -314,7 +314,8 @@ describe('MyListings — Stale Data Banner and F8 Mutation Errors (D-280 / R7-2)
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.'
+        'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.',
+        'error'
       )
     })
 

@@ -9,6 +9,7 @@ import { DialogType, DialogAction, DialogOption } from '../components/ui/AppDial
 interface DialogState {
   visible: boolean;
   type: DialogType;
+  iconVariant?: DialogType | 'destructive';
   title?: string;
   message?: string;
   actions: DialogAction[];
@@ -17,6 +18,7 @@ interface DialogState {
   // Actions
   show: (config: {
     type?: DialogType;
+    iconVariant?: DialogType | 'destructive';
     title?: string;
     message?: string;
     actions?: DialogAction[];
@@ -44,6 +46,7 @@ interface DialogState {
 export const useDialogStore = create<DialogState>((set) => ({
   visible: false,
   type: 'info',
+  iconVariant: undefined,
   title: undefined,
   message: undefined,
   actions: [],
@@ -53,6 +56,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     set({
       visible: true,
       type: config.type ?? 'info',
+      iconVariant: config.iconVariant,
       title: config.title,
       message: config.message,
       actions: config.actions ?? [],
@@ -65,6 +69,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     set({
       visible: true,
       type,
+      iconVariant: undefined,
       title,
       message,
       actions: [{ text: 'حسناً', style: 'default' }],
@@ -75,6 +80,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     set({
       visible: true,
       type: 'confirm',
+      iconVariant: undefined,
       title,
       message,
       options: [],
@@ -88,6 +94,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     set({
       visible: true,
       type: 'options',
+      iconVariant: undefined,
       title,
       options: opts,
       actions: [],
@@ -101,6 +108,7 @@ export const useDialogStore = create<DialogState>((set) => ({
 export const dialogService = {
   show: (config: {
     type?: DialogType;
+    iconVariant?: DialogType | 'destructive';
     title?: string;
     message?: string;
     actions?: DialogAction[];
