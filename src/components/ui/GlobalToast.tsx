@@ -12,50 +12,134 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useToastStore, TOAST_DURATION_MS, type ToastKind } from '../../store/toastStore'
+import {
+  useToastStore,
+  TOAST_DURATION_MS,
+  type ToastConfig,
+  type ToastKind,
+} from '../../store/toastStore'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
+import { GlassSurface } from '../navigation/GlassSurface'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const MAX_TOAST_WIDTH = Math.min(SCREEN_WIDTH - Spacing.space4 * 2, 420)
+const MAX_TOAST_WIDTH = Math.min(SCREEN_WIDTH - Spacing.space4 * 2, 360)
+const TOAST_ENTER_OFFSET_Y = -28
+const TOAST_EXIT_OFFSET_Y = -20
+const TOAST_EXIT_DURATION_MS = 180
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name']
+
+const DEFAULT_ICON_BY_KIND: Record<ToastKind, IoniconName> = {
+  success: 'checkmark-circle-outline',
+  neutral: 'information-circle-outline',
+  error: 'alert-circle-outline',
+}
+
+function getIconChipStyle(toast: ToastConfig) {
+  if (toast.icon === 'heart' || toast.kind === 'error') {
+    return styles.iconChipAlert
+  }
+  if (toast.kind === 'success') {
+    return styles.iconChipSuccess
+  }
+  return styles.iconChipNeutral
+}
+
+function resolveIconColor(toast: ToastConfig): string {
+  if (toast.icon === 'heart' || toast.kind === 'error') {
+    return Colors.error
+  }
+  if (toast.kind === 'success') {
+    return Colors.primary
+  }
+  return Colors.textMuted
+}
 
 export function GlobalToast() {
   const insets = useSafeAreaInsets()
   const current = useToastStore((s) => s.current)
-  const hide = useToastStore((s) => s.hide)
   const shouldReduceMotion = useAppReducedMotion()
 
-  const translateY = useSharedValue(-100)
+  const currentRef = useRef<ToastConfig | null>(current)
+  currentRef.current = current
+
+  const isExitingRef = useRef(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const translateY = useSharedValue(TOAST_ENTER_OFFSET_Y)
   const opacity = useSharedValue(0)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const clearTimers = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    if (exitTimerRef.current) {
+      clearTimeout(exitTimerRef.current)
+      exitTimerRef.current = null
+    }
+  }, [])
+
+  const finalizeHide = useCallback((dismissId?: string) => {
+    isExitingRef.current = false
+    const activeStoreToast = useToastStore.getState().current
+    if (activeStoreToast && (!dismissId || activeStoreToast.id === dismissId)) {
+      useToastStore.getState().hide()
+    }
+  }, [])
 
   const dismiss = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
-    useToastStore.getState().hide()
-    translateY.value = withTiming(-100, { duration: 200 })
-    opacity.value = withTiming(0, { duration: 150 })
-  }, [opacity, translateY])
 
-  const currentRef = useRef(current)
-  currentRef.current = current
+    const active = useToastStore.getState().current ?? currentRef.current
+    if (!active) {
+      return
+    }
+
+    if (shouldReduceMotion) {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current)
+        exitTimerRef.current = null
+      }
+      translateY.value = TOAST_EXIT_OFFSET_Y
+      opacity.value = 0
+      finalizeHide(active.id)
+      return
+    }
+
+    if (isExitingRef.current) {
+      return
+    }
+
+    isExitingRef.current = true
+    const dismissId = active.id
+    translateY.value = withTiming(TOAST_EXIT_OFFSET_Y, {
+      duration: TOAST_EXIT_DURATION_MS,
+    })
+    opacity.value = withTiming(0, { duration: TOAST_EXIT_DURATION_MS })
+
+    exitTimerRef.current = setTimeout(() => {
+      exitTimerRef.current = null
+      finalizeHide(dismissId)
+    }, TOAST_EXIT_DURATION_MS)
+  }, [finalizeHide, opacity, shouldReduceMotion, translateY])
 
   const toastId = current?.id
 
   useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
+    clearTimers()
+    isExitingRef.current = false
 
     const activeToast = currentRef.current
     if (activeToast) {
@@ -63,11 +147,13 @@ export function GlobalToast() {
         translateY.value = 0
         opacity.value = 1
       } else {
+        translateY.value = TOAST_ENTER_OFFSET_Y
+        opacity.value = 0
         translateY.value = withSpring(0, {
-          damping: 18,
-          stiffness: 140,
+          damping: 22,
+          stiffness: 180,
         })
-        opacity.value = withTiming(1, { duration: 200 })
+        opacity.value = withTiming(1, { duration: 220 })
       }
 
       const duration = activeToast.durationMs ?? TOAST_DURATION_MS
@@ -75,17 +161,14 @@ export function GlobalToast() {
         dismiss()
       }, duration)
     } else {
-      translateY.value = -100
+      translateY.value = TOAST_ENTER_OFFSET_Y
       opacity.value = 0
     }
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
+      clearTimers()
     }
-  }, [toastId, dismiss, opacity, shouldReduceMotion, translateY])
+  }, [clearTimers, dismiss, opacity, shouldReduceMotion, toastId, translateY])
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -98,15 +181,8 @@ export function GlobalToast() {
     return null
   }
 
-  const renderIcon = (kind: ToastKind) => {
-    if (kind === 'success') {
-      return <Ionicons name="heart" size={20} color={Colors.error} />
-    }
-    if (kind === 'neutral') {
-      return <Ionicons name="heart-dislike-outline" size={20} color={Colors.textMuted} />
-    }
-    return <Ionicons name="alert-circle-outline" size={20} color={Colors.error} />
-  }
+  const iconName = (current.icon ?? DEFAULT_ICON_BY_KIND[current.kind]) as IoniconName
+  const iconColor = resolveIconColor(current)
 
   const fullAccessibilityLabel = current.message
     ? `${current.title}: ${current.message}`
@@ -124,6 +200,12 @@ export function GlobalToast() {
         style={[styles.card, animatedStyle]}
         testID="global-toast-container"
       >
+        <GlassSurface
+          testID="global-toast"
+          variant="capsule"
+          borderRadius={Radius.pill}
+          noBorder
+        />
         <TouchableOpacity
           style={styles.touchable}
           activeOpacity={0.85}
@@ -133,14 +215,19 @@ export function GlobalToast() {
           accessibilityLiveRegion="polite"
           accessibilityLabel={fullAccessibilityLabel}
         >
-          <View style={styles.iconChip}>{renderIcon(current.kind)}</View>
+          <View
+            style={[styles.iconChip, getIconChipStyle(current)]}
+            testID="global-toast-icon-chip"
+          >
+            <Ionicons name={iconName} size={17} color={iconColor} />
+          </View>
 
           <View style={styles.textContainer}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={styles.title} numberOfLines={2}>
               {current.title}
             </Text>
             {Boolean(current.message) && (
-              <Text style={styles.message} numberOfLines={1}>
+              <Text style={styles.message} numberOfLines={2}>
                 {current.message}
               </Text>
             )}
@@ -154,52 +241,61 @@ export function GlobalToast() {
 const styles = StyleSheet.create({
   host: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: Spacing.space4,
+    right: Spacing.space4,
     alignItems: 'center',
     zIndex: 99999,
   },
   card: {
-    width: MAX_TOAST_WIDTH,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadows.card2,
+    alignSelf: 'center',
+    maxWidth: MAX_TOAST_WIDTH,
+    borderRadius: Radius.pill,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.72)',
+    ...Shadows.card,
   },
   touchable: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.space3,
-    paddingHorizontal: Spacing.space4,
-    gap: Spacing.space3,
+    paddingVertical: Spacing.space2,
+    paddingHorizontal: Spacing.space3,
+    gap: Spacing.space2,
   },
   iconChip: {
-    width: 36,
-    height: 36,
+    width: 28,
+    height: 28,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.inputBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  iconChipSuccess: {
+    backgroundColor: 'rgba(0, 156, 181, 0.12)',
+  },
+  iconChipNeutral: {
+    backgroundColor: 'rgba(107, 114, 128, 0.12)',
+  },
+  iconChipAlert: {
+    backgroundColor: 'rgba(220, 38, 38, 0.12)',
+  },
   textContainer: {
-    flex: 1,
+    flexShrink: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Almarai_700Bold',
-    lineHeight: 20,
+    lineHeight: 19,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   message: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Almarai_400Regular',
-    lineHeight: 18,
+    lineHeight: 16,
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
-    marginTop: 2,
+    marginTop: 1,
   },
 })
