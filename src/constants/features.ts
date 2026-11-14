@@ -2,4 +2,5 @@
 export const FEATURES = {
   JOBS_ENABLED: false,
   TRANSPORT_ENABLED: false,
+  PAYMENTS_ENABLED: false,
 } as const

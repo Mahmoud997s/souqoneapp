@@ -24,7 +24,7 @@ function normalizeSearchEnvelope(raw: unknown): unknown {
   return raw
 }
 
-export type CategoryFilterType = 'all' | 'cars' | 'parts' | 'buses' | 'equipment' | 'jobs' | 'services'
+export type CategoryFilterType = 'all' | 'cars' | 'parts' | 'buses' | 'equipment' | 'services'
 
 export function useSearchLogic() {
   const params = useLocalSearchParams()

@@ -142,13 +142,11 @@ export function useMyListingsScreen() {
       ).toUpperCase()
       const rawPartCat = String(raw.partCategory || '').toUpperCase()
       const rawServiceType = String(raw.serviceType || '').toUpperCase()
-      const rawJobType = String(raw.jobType || raw.employmentType || '').toUpperCase()
       const rawCond = String(raw.condition || '').toUpperCase()
 
       if (rawType === activeSubFilter) return true
       if (rawPartCat === activeSubFilter) return true
       if (rawServiceType === activeSubFilter) return true
-      if (rawJobType === activeSubFilter) return true
       if (rawCond === activeSubFilter) return true
 
       return false

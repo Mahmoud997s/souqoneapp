@@ -22,6 +22,7 @@ import { useNotifications, useMarkAllRead, useMarkNotificationRead, useDeleteNot
 import { navigateFromNotification } from '../../src/utils/notificationRouter'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
+import { FEATURES } from '../../src/constants/features'
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
@@ -76,7 +77,7 @@ const FILTERS = [
   { label: 'غير مقروءة', icon: 'mail-unread-outline' },
   { label: 'رسائل', icon: 'chatbubble-ellipses-outline' },
   { label: 'إعلانات', icon: 'megaphone-outline' },
-  { label: 'مدفوعات', icon: 'card-outline' },
+  ...(FEATURES.PAYMENTS_ENABLED ? [{ label: 'مدفوعات', icon: 'card-outline' }] : []),
   { label: 'موافقات', icon: 'checkmark-circle-outline' },
   { label: 'تنبيهات', icon: 'warning-outline' },
   { label: 'نظام', icon: 'information-circle-outline' }
@@ -273,8 +274,16 @@ export default function NotificationsScreen() {
       
       const typeMap: Record<string, string[]> = {
         'رسائل': ['message', 'room', 'conversation'],
-        'إعلانات': ['listing', 'bus', 'equipment', 'part', 'service', 'job', 'transport'],
-        'مدفوعات': ['payment', 'transaction'],
+        'إعلانات': [
+          'listing',
+          'bus',
+          'equipment',
+          'part',
+          'service',
+          ...(FEATURES.JOBS_ENABLED ? ['job'] : []),
+          ...(FEATURES.TRANSPORT_ENABLED ? ['transport'] : []),
+        ],
+        ...(FEATURES.PAYMENTS_ENABLED ? { 'مدفوعات': ['payment', 'transaction'] } : {}),
         'موافقات': ['approval', 'verify'],
         'تنبيهات': ['warning', 'alert'],
         'نظام': ['system', 'admin']

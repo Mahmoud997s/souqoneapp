@@ -158,10 +158,7 @@ export function useProfileOverview() {
     },
   ]
 
-  // Group 2: خدمات النقل واللوجستيات
-  const transportItems: MenuItem[] = []
-
-  // Group 3: إعدادات الحساب والأمان
+  // Group 2: إعدادات الحساب والأمان
   const accountItems: MenuItem[] = [
     {
       icon: 'person-outline',
@@ -198,7 +195,6 @@ export function useProfileOverview() {
     handleBack,
     handleLogout,
     activitiesItems,
-    transportItems,
     accountItems,
     isStaleError,
     isRefreshing,
