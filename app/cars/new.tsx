@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import { logWarn } from '../../src/utils/safeLog'
 import { invalidateCarListingQueries } from '../../src/utils/listing-detail/queryKeys'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
 import { CarStep1Type } from '../../src/components/cars/wizard/CarStep1Type'
@@ -152,8 +153,11 @@ export default function NewCarListingScreen() {
   }
 
   const [isUploadingImages, setIsUploadingImages] = useState(false)
+  const submitLockRef = useRef<boolean>(false)
 
   const handleSubmit = async () => {
+    if (submitLockRef.current) return
+
     // Final Validation Check before submitting (checks step 1 to 4 + images)
     const validationCheck = validateAllCarStepsBeforeSubmit(formData)
     if (!validationCheck.isValid) {
@@ -164,6 +168,7 @@ export default function NewCarListingScreen() {
       return
     }
 
+    submitLockRef.current = true
     setIsUploadingImages(true)
 
     // 1. Process images
@@ -196,8 +201,7 @@ export default function NewCarListingScreen() {
                   }
                 } catch (uploadErr: any) {
                   logWarn('CarsNew:UploadImage', uploadErr)
-                  const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-                  throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
+                  throw uploadErr
                 }
               }
             }
@@ -206,7 +210,12 @@ export default function NewCarListingScreen() {
       }
     } catch (e: any) {
       logWarn('CarsNew:UploadBeforeSubmit', e)
-      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      submitLockRef.current = false
+      showPublishErrorDialog({
+        error: e,
+        fallbackMessage: 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً',
+        onRetry: handleSubmit,
+      })
       return
     } finally {
       setIsUploadingImages(false)
@@ -220,6 +229,7 @@ export default function NewCarListingScreen() {
         { id: formData.editListingId, data: payload },
         {
           onSuccess: async () => {
+            submitLockRef.current = false
             let imagesSuccess = true
             try {
               if (newImageUrls.length > 0) {
@@ -254,6 +264,7 @@ export default function NewCarListingScreen() {
             })
           },
           onError: (err: any) => {
+            submitLockRef.current = false
             if (err?.response?.status === 409) {
               dialogService.confirm(
                 'تحديث مطلوب',
@@ -286,7 +297,11 @@ export default function NewCarListingScreen() {
                 dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'))
               }
             } else {
-              dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'))
+              showPublishErrorDialog({
+                error: err,
+                fallbackMessage: 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات',
+                onRetry: handleSubmit,
+              })
             }
           },
         }
@@ -294,6 +309,7 @@ export default function NewCarListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: async (res: any) => {
+          submitLockRef.current = false
           const createdId = res?.data?.id || res?.id || ''
           await invalidateCarListingQueries(queryClient, createdId || undefined)
           setPublishSuccess({
@@ -302,6 +318,7 @@ export default function NewCarListingScreen() {
           })
         },
         onError: (err: any) => {
+          submitLockRef.current = false
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
@@ -319,7 +336,11 @@ export default function NewCarListingScreen() {
               dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'))
             }
           } else {
-            dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'))
+            showPublishErrorDialog({
+              error: err,
+              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+              onRetry: handleSubmit,
+            })
           }
         },
       })

@@ -53,9 +53,7 @@ export async function uploadAndReconcileEquipmentImages(
               }
             } catch (uploadErr: unknown) {
               logWarn('EquipmentNew:UploadImage', uploadErr)
-              const errObj = uploadErr as { response?: { data?: { message?: string } }; message?: string }
-              const serverMsg = errObj?.response?.data?.message || errObj?.message
-              throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
+              throw uploadErr
             }
           }
         }

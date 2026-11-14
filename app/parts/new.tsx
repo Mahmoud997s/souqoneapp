@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -42,6 +42,7 @@ import { PartStep5Pricing } from '../../src/components/parts/wizard/PartStep5Pri
 import { PartStep6Review } from '../../src/components/parts/wizard/PartStep6Review'
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
+import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 
 const TOTAL_STEPS = 6
 
@@ -197,7 +198,11 @@ export default function NewPartListingScreen() {
     }
   }
 
+  const submitLockRef = useRef<boolean>(false)
+
   const handleSubmit = async () => {
+    if (submitLockRef.current) return
+
     // 1. Validation loop for Steps 1-5
     for (let s = 1; s <= 5; s++) {
       const result = validateStep(s, formData)
@@ -207,6 +212,8 @@ export default function NewPartListingScreen() {
         return
       }
     }
+
+    submitLockRef.current = true
 
     // 2. Prepare payload matching backend CreatePartDto
     const payload: any = {
@@ -244,6 +251,7 @@ export default function NewPartListingScreen() {
         { id: editId, data: payload },
         {
           onSuccess: async () => {
+            submitLockRef.current = false
             imageReconciliation.setListingSaved(true, editId)
 
             // Reconcile images: uploads new images, attaches via /images/url, and removes deleted IDs
@@ -274,14 +282,18 @@ export default function NewPartListingScreen() {
             }
           },
           onError: (err: any) => {
+            submitLockRef.current = false
             if (err?.response?.status === 409) {
               dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
             } else if (err?.response?.status === 429) {
               const msg = getPublishRateLimitErrorMessage(err)
               dialogService.alert('خطأ', msg)
             } else {
-              const msg = err?.response?.data?.message || 'تعذر تحديث بيانات القطعة، يرجى التحقق من المدخلات'
-              dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+              showPublishErrorDialog({
+                error: err,
+                fallbackMessage: 'تعذر تحديث بيانات القطعة، يرجى التحقق من المدخلات',
+                onRetry: handleSubmit,
+              })
             }
           },
         }
@@ -289,6 +301,7 @@ export default function NewPartListingScreen() {
     } else {
       createMutation.mutate(payload, {
         onSuccess: async (res: any) => {
+          submitLockRef.current = false
           const partId = res?.data?.id ?? res?.id
           const targetId = partId ? String(partId) : ''
 
@@ -330,14 +343,18 @@ export default function NewPartListingScreen() {
           }
         },
         onError: (err: any) => {
+          submitLockRef.current = false
           if (err?.response?.status === 409) {
             dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
           } else if (err?.response?.status === 429) {
             const msg = getPublishRateLimitErrorMessage(err)
             dialogService.alert('خطأ', msg)
           } else {
-            const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+            showPublishErrorDialog({
+              error: err,
+              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+              onRetry: handleSubmit,
+            })
           }
         },
       })
