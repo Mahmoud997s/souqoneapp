@@ -22,6 +22,7 @@ import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
 import { AnimatedHeroHeader } from '../../src/components/ui/AnimatedHeroHeader';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { scheduleIdleTask } from '../../src/utils/scheduleIdleTask';
+import { FEATURES } from '../../src/constants/features';
 
 export default function BusesLandingScreen() {
   const router = useRouter();
@@ -107,6 +108,7 @@ export default function BusesLandingScreen() {
 
   // Safe client-side derivation of premium buses (eliminates 400 Bad Request error)
   const premiumBuses = React.useMemo(() => {
+    if (!FEATURES.PAYMENTS_ENABLED) return [];
     return newestBuses.filter((b: any) => b.isPremium || b.raw?.isPremium);
   }, [newestBuses]);
 
@@ -173,7 +175,7 @@ export default function BusesLandingScreen() {
                 glassSupport={glassSupport}
               />
 
-              {premiumBuses.length > 0 && (
+              {FEATURES.PAYMENTS_ENABLED && premiumBuses.length > 0 && (
                 <BusHorizontalList
                   title="حافلات مميزة"
                   subTitle="إعلانات موثوقة ومختارة بعناية"

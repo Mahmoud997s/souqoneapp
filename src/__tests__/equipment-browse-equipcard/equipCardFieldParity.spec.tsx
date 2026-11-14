@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { EquipCard } from '../../../src/components/cards/EquipCard'
+import { FEATURES } from '../../../src/constants/features'
 import { mapEquipmentToCard } from '../../../src/utils/mappers'
 
 const createWrapper = () => {
@@ -63,8 +64,12 @@ describe('EquipCard - Field Parity with old CarCard and Enhancements', () => {
     expect(screen.getByText('2021')).toBeTruthy()
     expect(screen.getByText('3500 س')).toBeTruthy()
 
-    // 6. Premium badge is displayed
-    expect(screen.getByText('مميز')).toBeTruthy()
+    // 6. Premium badge respects FEATURES.PAYMENTS_ENABLED
+    if (FEATURES.PAYMENTS_ENABLED) {
+      expect(screen.getByText('مميز')).toBeTruthy()
+    } else {
+      expect(screen.queryByText('مميز')).toBeNull()
+    }
   })
 
   it('correctly displays all rental equipment fields: daily price with / يوم, rental badge, driver badge', async () => {

@@ -13,6 +13,7 @@ import {
   VEHICLE_TYPE_LABELS,
 } from '../../constants/parts'
 import { useBrands } from '../../hooks/useCars'
+import { FEATURES } from '../../constants/features'
 import { areCardPropsEqual } from '../../utils/cardMemoComparison'
 
 export interface PartCardProps {
@@ -195,7 +196,7 @@ const PartCardComponent: React.FC<PartCardProps> = ({
     badges.push({ key: 'refurbished', label: 'مجدد', backgroundColor: Colors.forestGreen, textColor: Colors.white })
   }
 
-  if (rawData.isPremium || item.isPremium) {
+  if (FEATURES.PAYMENTS_ENABLED && (rawData.isPremium || item.isPremium)) {
     badges.push({
       key: 'premium',
       label: 'مميز',

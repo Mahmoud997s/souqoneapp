@@ -6,6 +6,75 @@ import ProfileScreen from '../../app/(tabs)/profile'
 import SubscriptionScreen from '../../app/profile/subscription'
 import NotificationsScreen from '../../app/profile/notifications'
 import { notificationsApi } from '../api/notifications'
+import { CarCard } from '../components/cars/CarCard'
+import { BusCard } from '../components/buses/BusCard'
+import { EquipCard } from '../components/cards/EquipCard'
+import { PartCard } from '../components/parts/PartCard'
+import BusesLandingScreen from '../../app/buses/index'
+import { NavVisibilityProvider } from '../context/NavVisibilityContext'
+import { Listing } from '../types/listing.types'
+import { UnifiedCardItem } from '../types/unified-card.types'
+
+jest.mock('expo-glass-effect', () => ({
+  GlassView: () => null,
+  GlassContainer: () => null,
+  isLiquidGlassAvailable: () => false,
+  isGlassEffectAPIAvailable: () => false,
+}))
+
+jest.mock('expo-blur', () => ({
+  BlurView: () => null,
+}))
+
+jest.mock('../store/authStore', () => ({
+  useAuthStore: () => ({ user: { id: 'viewer-1' } }),
+}))
+
+jest.mock('../features/favorites/useFavoriteToggle', () => ({
+  useFavoriteToggle: () => ({
+    isFavorite: false,
+    toggle: jest.fn(),
+  }),
+}))
+
+jest.mock('../hooks/useCars', () => ({
+  useBrands: () => ({ data: [] }),
+}))
+
+jest.mock('../hooks/useBuses', () => ({
+  useBuses: () => ({
+    data: [
+      {
+        id: 'bus-premium-1',
+        title: 'حافلة سياحية مميزة',
+        price: 15000,
+        currency: 'OMR',
+        images: ['https://example.com/bus.jpg'],
+        listingType: 'BUS_SALE',
+        condition: 'NEW',
+        isPremium: true,
+      },
+    ],
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: jest.fn(),
+    isRefetchError: false,
+    isRefetching: false,
+  }),
+}))
+
+jest.mock('../components/buses/BusesBottomBar', () => ({
+  BusesBottomBar: () => null,
+}))
+
+jest.mock('../components/ui/AnimatedHeroHeader', () => ({
+  AnimatedHeroHeader: ({ title }: { title: string }) => {
+    const ReactLib = require('react')
+    const { Text } = require('react-native')
+    return ReactLib.createElement(Text, null, title)
+  },
+}))
 
 const mockReplace = jest.fn()
 
@@ -53,8 +122,19 @@ jest.mock('expo-haptics', () => ({
 
 jest.mock('react-native-gesture-handler', () => {
   const { View } = require('react-native')
+  const makePanChain = () => {
+    const chain: Record<string, () => unknown> = {}
+    for (const method of ['activeOffsetX', 'failOffsetY', 'onStart', 'onUpdate', 'onEnd']) {
+      chain[method] = () => chain
+    }
+    return chain
+  }
   return {
     Swipeable: ({ children }: { children?: React.ReactNode }) => <View>{children}</View>,
+    GestureDetector: ({ children }: { children?: React.ReactNode }) => <View>{children}</View>,
+    Gesture: {
+      Pan: () => makePanChain(),
+    },
   }
 })
 
@@ -195,5 +275,97 @@ describe('P1-04 + X-02: Feature Flags & Hidden Payments Surfaces (D-322)', () =>
     expect(screen.queryByText('مدفوعات')).toBeNull()
     expect(screen.getByText('رسائل')).toBeTruthy()
     expect(screen.getByText('إعلانات')).toBeTruthy()
+  })
+})
+
+describe('M-033: Premium badge and buses premium section gating', () => {
+  const premiumListing: Listing = {
+    id: 'item-premium-1',
+    title: 'مركبة اختبارية مميزة',
+    description: 'وصف اختباري',
+    price: 12000,
+    currency: 'OMR',
+    listingType: 'SALE',
+    condition: 'NEW',
+    governorate: 'مسقط',
+    city: 'السيب',
+    isPremium: true,
+    views: 10,
+    user: { id: 'seller-1', username: 'seller1' },
+    images: [{ id: 'img-1', url: 'https://example.com/item.jpg', isPrimary: true, order: 0 }],
+    createdAt: '2026-11-14T12:00:00Z',
+  }
+
+  const premiumPartItem: UnifiedCardItem = {
+    id: 'part-premium-1',
+    title: 'مركبة اختبارية مميزة',
+    price: 12000,
+    currency: 'OMR',
+    images: ['https://example.com/item.jpg'],
+    listingType: 'SALE',
+    condition: 'NEW',
+    isPremium: true,
+  }
+
+  it('CarCard hides the "مميز" badge when isPremium is true and PAYMENTS_ENABLED is false', async () => {
+    expect(FEATURES.PAYMENTS_ENABLED).toBe(false)
+    const screen = await render(<CarCard item={premiumListing} onPress={jest.fn()} />)
+    expect(screen.getByText('مركبة اختبارية مميزة')).toBeTruthy()
+    expect(screen.queryByText('مميز')).toBeNull()
+  })
+
+  it('BusCard hides the "مميز" badge when isPremium is true and PAYMENTS_ENABLED is false', async () => {
+    expect(FEATURES.PAYMENTS_ENABLED).toBe(false)
+    const screen = await render(<BusCard item={premiumListing} onPress={jest.fn()} />)
+    expect(screen.getByText('مركبة اختبارية مميزة')).toBeTruthy()
+    expect(screen.queryByText('مميز')).toBeNull()
+  })
+
+  it('EquipCard hides the "مميز" badge when isPremium is true and PAYMENTS_ENABLED is false', async () => {
+    expect(FEATURES.PAYMENTS_ENABLED).toBe(false)
+    const screen = await render(<EquipCard item={premiumListing} onPress={jest.fn()} />)
+    expect(screen.getByText('مركبة اختبارية مميزة')).toBeTruthy()
+    expect(screen.queryByText('مميز')).toBeNull()
+  })
+
+  it('PartCard hides the "مميز" badge when isPremium is true and PAYMENTS_ENABLED is false', async () => {
+    expect(FEATURES.PAYMENTS_ENABLED).toBe(false)
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const screen = await render(
+      <QueryClientProvider client={client}>
+        <PartCard item={premiumPartItem} onPress={jest.fn()} />
+      </QueryClientProvider>
+    )
+    expect(screen.getByText('مركبة اختبارية مميزة')).toBeTruthy()
+    expect(screen.getAllByText('جديد').length).toBeGreaterThan(0)
+    expect(screen.queryByText('مميز')).toBeNull()
+  })
+
+  it('hides the "حافلات مميزة" section on BusesLandingScreen when PAYMENTS_ENABLED is false', async () => {
+    expect(FEATURES.PAYMENTS_ENABLED).toBe(false)
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    const screen = await render(
+      <QueryClientProvider client={client}>
+        <NavVisibilityProvider>
+          <BusesLandingScreen />
+        </NavVisibilityProvider>
+      </QueryClientProvider>
+    )
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('أحدث اعلانات الحافلات')).toBeTruthy()
+      },
+      { timeout: 3000 }
+    )
+
+    expect(screen.queryByText('حافلات مميزة')).toBeNull()
+    expect(screen.queryByText('إعلانات موثوقة ومختارة بعناية')).toBeNull()
   })
 })
