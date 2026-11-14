@@ -7,6 +7,7 @@ export type ToastKind = 'success' | 'neutral' | 'error'
 export interface ToastConfig {
   id?: string
   kind: ToastKind
+  icon?: string
   title: string
   message?: string
   durationMs?: number

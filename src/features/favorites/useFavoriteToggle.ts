@@ -155,12 +155,14 @@ export function useFavoriteToggle(
           if (serverFavorited) {
             toastService.show({
               kind: 'success',
+              icon: 'heart',
               title: 'تمت إضافة الإعلان إلى المفضلة',
               message: titleRef.current,
             })
           } else {
             toastService.show({
               kind: 'neutral',
+              icon: 'heart-dislike-outline',
               title: 'تمت إزالة الإعلان من المفضلة',
               message: titleRef.current,
             })

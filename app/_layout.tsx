@@ -60,6 +60,16 @@ export default function RootLayout() {
   const pathname = typeof usePathname === 'function' ? usePathname() : ''
   const globalParams = typeof useGlobalSearchParams === 'function' ? useGlobalSearchParams() : {}
 
+  useEffect(() => {
+    const currentSegments = segments as readonly string[]
+    const isImageViewerRoute =
+      (currentSegments[0] === '(modals)' && currentSegments[1] === 'image-viewer') ||
+      pathname === '/image-viewer'
+    if (!isImageViewerRoute && typeof StatusBar.setBarStyle === 'function') {
+      StatusBar.setBarStyle('dark-content')
+    }
+  }, [segments, pathname])
+
   useEffect(() => { 
     initialize()
     ChatSyncService.init(queryClient)
