@@ -3,6 +3,7 @@ import { queryClient } from '../api/queryClient'
 import { useAuthStore } from '../store/authStore'
 import { dialogService } from '../store/dialogStore'
 import { usersApi } from '../api/users'
+import { showErrorDialog } from '../utils/showErrorDialog'
 
 export function useAccountDeletion() {
   const [cancelling, setCancelling] = useState(false)
@@ -40,13 +41,7 @@ export function useAccountDeletion() {
               'info',
             )
           } else {
-            const errorMsg =
-              typeof message === 'string'
-                ? message
-                : Array.isArray(message)
-                  ? message[0]
-                  : 'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.'
-            dialogService.alert('خطأ', errorMsg)
+            showErrorDialog(err, 'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.')
           }
         } finally {
           setCancelling(false)

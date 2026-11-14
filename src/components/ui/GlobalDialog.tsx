@@ -7,12 +7,13 @@ import { AppDialog } from './AppDialog';
 import { useDialogStore } from '../../store/dialogStore';
 
 export function GlobalDialog() {
-  const { visible, type, title, message, actions, options, hide } = useDialogStore();
+  const { visible, type, iconVariant, title, message, actions, options, hide } = useDialogStore();
 
   return (
     <AppDialog
       visible={visible}
       type={type}
+      iconVariant={iconVariant}
       title={title}
       message={message}
       actions={actions}

@@ -4,7 +4,7 @@ import { uploadsApi } from '../api/uploads'
 import { dialogService } from '../store/dialogStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 import { requestPermission, operatorCertPermissionAdapter } from '../utils/requestPermission'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 
 interface UseOperatorFormLogicProps {
   certifications: string[]
@@ -74,7 +74,7 @@ export function useOperatorFormLogic({
         dialogService.alert('نجاح', 'تم إرفاق صورة الشهادة/الرخصة بنجاح')
       }
     } catch (err: any) {
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'فشل رفع الصورة، يرجى المحاولة مجدداً'))
+      showErrorDialog(err, 'فشل رفع الصورة، يرجى المحاولة مجدداً')
     } finally {
       setIsUploading(false)
     }

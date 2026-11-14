@@ -389,7 +389,7 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     };
 
     await expect(apiClient.get('/items')).rejects.toThrow();
-    expect(dialogService.alert).toHaveBeenCalledWith('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning');
+    expect(dialogService.alert).toHaveBeenCalledWith('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'offline');
   });
 });
 

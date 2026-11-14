@@ -4,7 +4,7 @@ import { dialogService } from '../store/dialogStore'
 import { BusWizardData, useBusWizardStore } from '../store/busWizardStore'
 import { MAX_BUS_IMAGES } from '../constants/buses'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 
 const busMediaAdapter: PermissionAdapter = {
   kind: 'mediaLibrary',
@@ -51,7 +51,7 @@ export function useBusFormLogic(
         onUpdateField('images', newImages)
       }
     } catch (err: unknown) {
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، حاول مرة أخرى'))
+      showErrorDialog(err, 'تعذر اختيار الصور، حاول مرة أخرى')
     } finally {
       setIsUploading(false)
     }

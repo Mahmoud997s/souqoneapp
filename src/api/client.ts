@@ -244,7 +244,7 @@ apiClient.interceptors.response.use(
       } else if (error.response?.status >= 500) {
         dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
       } else if (error.message === 'Network Error') {
-        dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'warning')
+        dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'offline')
       }
     }
     return Promise.reject(error)

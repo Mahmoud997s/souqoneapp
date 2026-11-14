@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { dialogService } from '../store/dialogStore'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 
 export const equipmentMediaAdapter: PermissionAdapter = {
   kind: 'equipmentMediaLibrary',
@@ -71,7 +71,7 @@ export function useEquipmentFormLogic({
         onClearFieldError?.('images')
       }
     } catch (err) {
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً'))
+      showErrorDialog(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
     } finally {
       setIsUploading(false)
     }

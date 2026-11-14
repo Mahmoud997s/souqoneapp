@@ -21,7 +21,7 @@ const { width: SW, height: SH } = Dimensions.get('window');
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type DialogType = 'info' | 'success' | 'error' | 'warning' | 'confirm' | 'options';
+export type DialogType = 'info' | 'success' | 'error' | 'warning' | 'offline' | 'confirm' | 'options';
 
 export interface DialogAction {
   text: string;
@@ -39,6 +39,7 @@ export interface DialogOption {
 interface AppDialogProps {
   visible: boolean;
   type?: DialogType;
+  iconVariant?: DialogType | 'destructive';
   title?: string;
   message?: string;
   actions?: DialogAction[];
@@ -53,6 +54,7 @@ const ICON_CONFIG: Record<string, { name: string; color: string; bgColor: string
   success:     { name: 'checkmark-circle-outline', color: '#16A34A', bgColor: '#F0FDF4', borderColor: '#BBF7D0' },
   error:       { name: 'close-circle-outline',     color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
   warning:     { name: 'alert-circle-outline',     color: '#D97706', bgColor: '#FEF3C7', borderColor: '#FDE68A' },
+  offline:     { name: 'cloud-offline-outline',    color: '#D97706', bgColor: '#FFFBEB', borderColor: '#FDE68A' },
   info:        { name: 'information-circle-outline', color: '#0284C7', bgColor: '#F0F9FF', borderColor: '#BAE6FD' },
   confirm:     { name: 'help-circle-outline',      color: Colors.primaryDark, bgColor: Colors.paleMint, borderColor: Colors.border },
   destructive: { name: 'trash-outline',              color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
@@ -64,6 +66,7 @@ const ICON_CONFIG: Record<string, { name: string; color: string; bgColor: string
 export function AppDialog({
   visible,
   type = 'info',
+  iconVariant,
   title,
   message,
   actions = [],
@@ -188,7 +191,7 @@ export function AppDialog({
   const cancelAction = actions.find((a) => a.style === 'cancel');
   const hasDestructive = primaryActions.some((a) => a.style === 'destructive');
 
-  const iconConfKey = hasDestructive ? 'destructive' : type;
+  const iconConfKey = iconVariant ?? (hasDestructive ? 'destructive' : type);
   const iconConf = ICON_CONFIG[iconConfKey] || ICON_CONFIG.info;
 
   return (
@@ -272,6 +275,7 @@ export function AppDialog({
 
 interface DialogConfig {
   type?: DialogType;
+  iconVariant?: DialogType | 'destructive';
   title?: string;
   message?: string;
   actions?: DialogAction[];
@@ -337,6 +341,7 @@ export function useAppDialog() {
     <AppDialog
       visible={config.visible}
       type={config.type}
+      iconVariant={config.iconVariant}
       title={config.title}
       message={config.message}
       actions={config.actions}

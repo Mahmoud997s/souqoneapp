@@ -187,7 +187,8 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        expect.any(String)
+        expect.any(String),
+        'error'
       )
     })
 
@@ -204,7 +205,8 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        expect.any(String)
+        expect.any(String),
+        'error'
       )
     })
   })
@@ -284,7 +286,8 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'محاولات كثيرة',
-        expect.stringContaining('وصلت للحد اليومي')
+        expect.stringContaining('وصلت للحد اليومي'),
+        'error'
       )
     })
   })

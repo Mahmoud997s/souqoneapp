@@ -274,7 +274,8 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       // Verifies dialogService.alert was called with classified error so failure is never silent
       expect(dialogService.alert).toHaveBeenCalledWith(
         'فشل الإرسال',
-        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
+        'offline'
       )
 
       // Verifies error bubble renders error indicator
@@ -317,7 +318,8 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       expect(messages[0].pending).toBe(false)
       expect(dialogService.alert).toHaveBeenCalledWith(
         'فشل الإرسال',
-        expect.stringContaining('حدث خطأ في الخادم')
+        expect.stringContaining('حدث خطأ في الخادم'),
+        'error'
       )
     })
   })
@@ -343,7 +345,8 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'تنبيه',
-        'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري'
+        'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري',
+        'offline'
       )
       // Message must NOT be removed or marked pendingDelete
       const current = useChatMessagesStore.getState().messagesByRoom[roomId] || []

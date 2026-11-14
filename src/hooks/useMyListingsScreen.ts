@@ -27,7 +27,7 @@ import {
 } from '../utils/listing-detail/ownerActionMatrix'
 import { invalidateBusListingQueries } from '../utils/listing-detail/busQueryKeys'
 import { invalidateEquipmentListingQueries } from '../utils/listing-detail/equipmentQueryKeys'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
@@ -199,7 +199,7 @@ export function useMyListingsScreen() {
           })
           dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
         } catch (err: unknown) {
-          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء الحذف'))
+          showErrorDialog(err, 'حدث خطأ أثناء الحذف')
         }
       },
       'حذف',
@@ -220,7 +220,7 @@ export function useMyListingsScreen() {
           await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
           dialogService.alert('تم بنجاح', 'تم إلغاء طلب حذف البروفايل بنجاح.', 'success')
         } catch (err: unknown) {
-          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء إلغاء الطلب'))
+          showErrorDialog(err, 'حدث خطأ أثناء إلغاء الطلب')
         }
       },
       'تأكيد الإلغاء',
@@ -396,9 +396,10 @@ export function useMyListingsScreen() {
           } catch (err: unknown) {
             const { hasResponse, status } = getErrorStatus(err)
             if (!hasResponse) {
-              dialogService.alert(
-                'خطأ في الاتصال',
-                getMutationErrorMessage(err, 'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.')
+              showErrorDialog(
+                err,
+                'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.',
+                'خطأ في الاتصال'
               )
             } else if (status === 403) {
               dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
@@ -414,7 +415,7 @@ export function useMyListingsScreen() {
                 getPublishRateLimitErrorMessage(err)
               )
             } else {
-              dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء تغيير الحالة'))
+              showErrorDialog(err, 'حدث خطأ أثناء تغيير الحالة')
             }
           } finally {
             isChangingStatus.current = false

@@ -22,7 +22,7 @@ import {
 import { normalizeOmaniPhoneDigits } from '../utils/authValidation'
 import { invalidateProfileQueries } from '../utils/profileQueryInvalidation'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
 
 function normalizeArabic(text: string): string {
@@ -169,8 +169,7 @@ export function useEditProfile() {
         setLocalAvatarUri(result.assets[0].uri)
       }
     } catch (err: unknown) {
-      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء فتح المعرض')
-      dialogService.alert('خطأ', msg)
+      showErrorDialog(err, 'حدث خطأ أثناء فتح المعرض')
     } finally {
       setShowAvatarSheet(false)
     }
@@ -193,8 +192,7 @@ export function useEditProfile() {
         setLocalAvatarUri(result.assets[0].uri)
       }
     } catch (err: unknown) {
-      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء فتح الكاميرا')
-      dialogService.alert('خطأ', msg)
+      showErrorDialog(err, 'حدث خطأ أثناء فتح الكاميرا')
     } finally {
       setShowAvatarSheet(false)
     }
@@ -218,7 +216,7 @@ export function useEditProfile() {
         const data = await locationsApi.getGovernorates()
         setGovernoratesList(data)
       } catch (err: unknown) {
-        dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحميل قائمة المحافظات'))
+        showErrorDialog(err, 'تعذر تحميل قائمة المحافظات')
       } finally {
         setLoadingLocations(false)
       }
@@ -237,7 +235,7 @@ export function useEditProfile() {
       const data = await locationsApi.getWilayas(governorateId)
       setWilayasList(data)
     } catch (err: unknown) {
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحميل قائمة الولايات'))
+      showErrorDialog(err, 'تعذر تحميل قائمة الولايات')
     } finally {
       setLoadingLocations(false)
     }
@@ -329,7 +327,7 @@ export function useEditProfile() {
 
       // If avatar upload was attempted but failed or produced no URL, abort save immediately
       if (shouldBlockForFailedAvatarUpload(avatarAction, uploadedAvatarUrl)) {
-        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى')
+        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى', 'error')
         return
       }
 
@@ -375,7 +373,7 @@ export function useEditProfile() {
 
       // 429 Rate Limit
       if (status === 429) {
-        dialogService.alert('محاولات كثيرة', getPublishRateLimitErrorMessage(err))
+        dialogService.alert('محاولات كثيرة', getPublishRateLimitErrorMessage(err), 'error')
         return
       }
 
@@ -386,16 +384,15 @@ export function useEditProfile() {
           setErrors((prev) => ({ ...prev, ...fieldErrors }))
         }
         if (nonFieldErrors.length > 0) {
-          dialogService.alert('خطأ في البيانات', nonFieldErrors.join('\n'))
+          dialogService.alert('خطأ في البيانات', nonFieldErrors.join('\n'), 'error')
         } else if (Object.keys(fieldErrors).length === 0) {
-          dialogService.alert('خطأ في البيانات', getMutationErrorMessage(err, 'البيانات المدخلة غير صحيحة'))
+          showErrorDialog(err, 'البيانات المدخلة غير صحيحة', 'خطأ في البيانات')
         }
         return
       }
 
-      // Network / 5xx / Fallback via getMutationErrorMessage
-      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء التحديث')
-      dialogService.alert('خطأ', msg)
+      // Network / 5xx / Fallback via showErrorDialog
+      showErrorDialog(err, 'حدث خطأ أثناء التحديث')
     } finally {
       setLoading(false)
     }
@@ -420,6 +417,7 @@ export function useEditProfile() {
 
       dialogService.show({
         type: 'confirm',
+        iconVariant: 'warning',
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
         actions: [
@@ -457,6 +455,7 @@ export function useEditProfile() {
 
       dialogService.show({
         type: 'confirm',
+        iconVariant: 'warning',
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
         actions: [
