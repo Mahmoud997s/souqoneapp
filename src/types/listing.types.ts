@@ -116,6 +116,7 @@ export interface Service {
 
 export interface Part {
   id: string
+  listingType?: 'SPARE_PART_SALE' | 'SPARE_PART_WANTED'
   title: string
   description?: string
   partName?: string
