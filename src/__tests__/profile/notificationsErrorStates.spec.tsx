@@ -46,11 +46,13 @@ jest.mock('react-native-reanimated', () => {
   const reanimated = require('react-native-reanimated/mock')
   return {
     ...reanimated,
+    FadeIn: { duration: () => ({}) },
     FadeInDown: {
       delay: () => ({ springify: () => ({ damping: () => ({}) }) }),
       duration: () => ({}),
     },
     Layout: { springify: () => ({}) },
+    useReducedMotion: jest.fn(() => false),
     useSharedValue: jest.fn((init) => ({ value: init })),
     useAnimatedStyle: jest.fn((cb) => cb()),
     withTiming: jest.fn((val) => val),
