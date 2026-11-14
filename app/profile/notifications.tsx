@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, RefreshControl, Pressable, SectionList } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import Animated, { 
-  FadeInDown, 
-  Layout, 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
+import Animated, {
+  FadeIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
   withRepeat,
   withSequence,
+  useReducedMotion,
   Easing
 } from 'react-native-reanimated'
 import { Swipeable } from 'react-native-gesture-handler'
 import * as Haptics from 'expo-haptics'
 import { useRouter } from 'expo-router'
 import { AppHeader } from '../../src/components/ui/AppHeader'
+import { TopBarGlassSurface } from '../../src/components/ui/TopBarGlassSurface'
+import { GlassSurface, useGlassSupport, type GlassSupport } from '../../src/components/navigation/glassSupport'
+import { CardSystem } from '../../src/constants/cardSystem'
+import { TopBarTokens } from '../../src/constants/topBarTokens'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Typography } from '../../src/constants/typography'
@@ -24,9 +28,45 @@ import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBa
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { FEATURES } from '../../src/constants/features'
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
-
 export const NOTIFICATIONS_EMPTY_CTA_ROUTE = '/(tabs)/search' as const
+
+export function cleanNotificationTitle(title?: string | null): string {
+  if (!title) return ''
+  return title.replace(/\u2705\uFE0F?/g, '').replace(/\s{2,}/g, ' ').trim()
+}
+
+export type NotificationVisualConfig = {
+  label: string
+  icon: string
+  color: string
+  bg: string
+}
+
+const NOTIFICATION_VISUAL_MAP: Record<string, NotificationVisualConfig> = {
+  LISTING_CREATED:        { label: 'إعلان جديد',   icon: 'add-circle-outline',       color: '#10B981', bg: '#ECFDF5' },
+  LISTING_UPDATED:        { label: 'تحديث إعلان',  icon: 'refresh-circle-outline',   color: '#009CB5', bg: '#ECF8FA' },
+  LISTING_SOLD:           { label: 'تم البيع',     icon: 'bag-check-outline',        color: '#10B981', bg: '#ECFDF5' },
+  LISTING_DELETED:        { label: 'حذف إعلان',    icon: 'trash-outline',            color: '#EF4444', bg: '#FEF2F2' },
+  LISTING_STATUS_CHANGED: { label: 'تغيير الحالة', icon: 'swap-horizontal-outline',  color: '#D97706', bg: '#FFFBEB' },
+  LISTING_FAVORITED:      { label: 'مفضلة',        icon: 'heart-outline',            color: '#EF4444', bg: '#FEF2F2' },
+  PRICE_DROP:             { label: 'تخفيض سعر',    icon: 'pricetag-outline',         color: '#F97316', bg: '#FFF7ED' },
+  MESSAGE:                { label: 'رسالة',        icon: 'chatbubble-ellipses-outline', color: '#3B82F6', bg: '#EFF6FF' },
+  PAYMENT_SUCCESS:        { label: 'دفع',          icon: 'card-outline',             color: '#10B981', bg: '#ECFDF5' },
+  SUBSCRIPTION_ACTIVATED: { label: 'اشتراك',       icon: 'card-outline',             color: '#10B981', bg: '#ECFDF5' },
+  REVIEW_RECEIVED:        { label: 'تقييم',        icon: 'star-outline',             color: '#D97706', bg: '#FFFBEB' },
+  REVIEW_REMINDER:        { label: 'تذكير تقييم',  icon: 'star-outline',             color: '#D97706', bg: '#FFFBEB' },
+  SYSTEM:                 { label: 'نظام',         icon: 'notifications-outline',    color: '#64748B', bg: '#F1F5F9' },
+  // Legacy lowercase keys preserved for backward compatibility (via uppercase normalization)
+  LISTING:                { label: 'إعلان',        icon: 'megaphone-outline',        color: '#8B5CF6', bg: '#F5F3FF' },
+  PAYMENT:                { label: 'دفع',          icon: 'card-outline',             color: '#10B981', bg: '#ECFDF5' },
+  APPROVAL:               { label: 'موافقة',       icon: 'checkmark-circle-outline', color: '#10B981', bg: '#ECFDF5' },
+  WARNING:                { label: 'تنبيه',        icon: 'warning-outline',          color: '#EF4444', bg: '#FEF2F2' },
+}
+
+export function resolveNotificationVisualConfig(type?: string | null): NotificationVisualConfig {
+  const key = (type ?? '').trim().toUpperCase()
+  return NOTIFICATION_VISUAL_MAP[key] ?? NOTIFICATION_VISUAL_MAP.SYSTEM
+}
 
 function formatTime(iso: string) {
   if (!iso) return 'غير معروف'
@@ -63,15 +103,6 @@ function formatTime(iso: string) {
   return `${d.getDate()} ${months[d.getMonth()]}`
 }
 
-const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; pillBg: string }> = {
-  message:  { label: 'رسالة',   icon: 'chatbubble-ellipses-outline', color: '#3B82F6', bg: '#EFF6FF', pillBg: '#DBEAFE' },
-  listing:  { label: 'إعلان',   icon: 'megaphone-outline',           color: '#8B5CF6', bg: '#F5F3FF', pillBg: '#EDE9FE' },
-  payment:  { label: 'دفع',     icon: 'card-outline',                color: '#10B981', bg: '#ECFDF5', pillBg: '#D1FAE5' },
-  system:   { label: 'نظام',    icon: 'information-circle-outline',       color: '#64748B', bg: '#F8FAFC', pillBg: '#F1F5F9' },
-  approval: { label: 'موافقة',  icon: 'checkmark-circle-outline',    color: '#10B981', bg: '#ECFDF5', pillBg: '#D1FAE5' },
-  warning:  { label: 'تنبيه',   icon: 'warning-outline',             color: '#EF4444', bg: '#FEF2F2', pillBg: '#FEE2E2' },
-}
-
 const FILTERS = [
   { label: 'الكل', icon: 'grid-outline' },
   { label: 'غير مقروءة', icon: 'mail-unread-outline' },
@@ -83,10 +114,14 @@ const FILTERS = [
   { label: 'نظام', icon: 'information-circle-outline' }
 ]
 
-function NotificationSkeleton() {
-  const opacity = useSharedValue(0.5);
+function NotificationSkeleton({ reducedMotion }: { reducedMotion: boolean }) {
+  const opacity = useSharedValue(reducedMotion ? 0.65 : 0.5)
 
   useEffect(() => {
+    if (reducedMotion) {
+      opacity.value = 0.65
+      return
+    }
     opacity.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 800, easing: Easing.ease }),
@@ -94,13 +129,13 @@ function NotificationSkeleton() {
       ),
       -1,
       true
-    );
-  }, []);
+    )
+  }, [reducedMotion])
 
-  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }))
 
   return (
-    <Animated.View style={[s.card, animatedStyle, { borderColor: 'transparent', shadowOpacity: 0 }]}>
+    <Animated.View style={[s.card, s.skeletonCard, animatedStyle, { borderColor: 'transparent', shadowOpacity: 0 }]}>
       <View style={s.cardRow}>
         <View style={[s.iconBox, { backgroundColor: '#F1F5F9' }]} />
         <View style={s.contentCol}>
@@ -116,65 +151,98 @@ function NotificationSkeleton() {
   )
 }
 
-const NotificationCard = React.memo(({ item, index, onPress, onDelete }: { item: any; index: number; onPress: (item: any) => void, onDelete: (id: string) => void }) => {
-  const config = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.system
-  
+const NotificationCard = React.memo(({
+  item,
+  onPress,
+  onDelete,
+  glassSupport,
+  reducedMotion,
+}: {
+  item: any
+  onPress: (item: any) => void
+  onDelete: (id: string) => void
+  glassSupport: GlassSupport
+  reducedMotion: boolean
+}) => {
+  const config = resolveNotificationVisualConfig(item.type)
+  const displayTitle = cleanNotificationTitle(item.title)
+
   const renderRightActions = () => (
     <View style={s.deleteActionContainer}>
-      <TouchableOpacity 
-        style={s.deleteCircle} 
+      <TouchableOpacity
+        style={s.deleteCircle}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
           onDelete(item.id)
-        }} 
+        }}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="حذف الإشعار"
       >
         <Ionicons name="trash-outline" size={22} color="#EF4444" />
       </TouchableOpacity>
     </View>
   )
-  
+
   return (
-    <Animated.View entering={FadeInDown.delay(index * 20).springify().damping(15)} layout={Layout.springify()}>
-      <Swipeable 
-        renderRightActions={renderRightActions} 
-        overshootRight={false} 
+    <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(180)}>
+      <Swipeable
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        friction={2}
+        rightThreshold={40}
+        overshootFriction={8}
         containerStyle={{ overflow: 'visible' }}
         onSwipeableOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
       >
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => onPress(item)}
-          style={[s.card, !item.isRead && s.cardUnread]}
-        >
-          <View style={s.cardRow}>
-            {/* Right Side (Icon) */}
-            <View style={[s.iconBox, { backgroundColor: config.bg }]}>
-              <Ionicons name={config.icon as any} size={22} color={config.color} />
-            </View>
-
-            {/* Left Side (Content) */}
-            <View style={s.contentCol}>
-              <View style={s.titleRow}>
-                <View style={s.titleWrap}>
-                  {!item.isRead && <View style={s.newDot} />}
-                  <Text style={s.cardTitle} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                </View>
-                <Text style={s.timeText}>{formatTime(item.createdAt)}</Text>
+        <View style={[s.card, !item.isRead && s.cardUnread]}>
+          <GlassSurface
+            testID={`notification-card-glass-${item.id}`}
+            borderRadius={CardSystem.radius.outer}
+            glassEffectStyle="clear"
+            tintOverlayColor={CardSystem.glass.cardTint}
+            noBorder={true}
+            support={glassSupport}
+          />
+          {!item.isRead && <View style={s.unreadBar} pointerEvents="none" />}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => onPress(item)}
+            style={s.cardTouchable}
+          >
+            <View style={s.cardRow}>
+              <View style={[s.iconBox, { backgroundColor: config.bg }]}>
+                <Ionicons name={config.icon as any} size={22} color={config.color} />
               </View>
-              
-              <Text style={s.bodyText} numberOfLines={2}>
-                {item.body}
-              </Text>
+
+              <View style={s.contentCol}>
+                <View style={s.titleRow}>
+                  <View style={s.titleWrap}>
+                    {!item.isRead && <View style={s.newDot} />}
+                    <Text style={s.cardTitle} numberOfLines={2}>
+                      {displayTitle}
+                    </Text>
+                  </View>
+                  <Text style={s.timeText}>{formatTime(item.createdAt)}</Text>
+                </View>
+
+                <Text style={s.bodyText} numberOfLines={2}>
+                  {item.body}
+                </Text>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </Swipeable>
     </Animated.View>
   )
-}, (prev, next) => prev.item.isRead === next.item.isRead && prev.item.id === next.item.id)
+}, (prev, next) =>
+  prev.item.isRead === next.item.isRead &&
+  prev.item.id === next.item.id &&
+  prev.item.title === next.item.title &&
+  prev.item.type === next.item.type &&
+  prev.reducedMotion === next.reducedMotion
+)
 
 function groupNotifications(notifs: any[]) {
   const groups: Record<string, any[]> = {
@@ -212,6 +280,8 @@ function groupNotifications(notifs: any[]) {
 export default function NotificationsScreen() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('الكل')
+  const glassSupport = useGlassSupport()
+  const reducedMotion = typeof useReducedMotion === 'function' ? Boolean(useReducedMotion()) : false
   
   const { 
     data: infiniteData, 
@@ -235,7 +305,7 @@ export default function NotificationsScreen() {
 
   const animatedFilterStyle = useAnimatedStyle(() => {
     return {
-      height: isFilterVisible.value ? 40 : 0,
+      height: isFilterVisible.value ? 48 : 0,
       opacity: isFilterVisible.value,
       transform: [
         { translateY: isFilterVisible.value ? 0 : -10 }
@@ -331,23 +401,33 @@ export default function NotificationsScreen() {
 
   return (
     <View style={s.root}>
-      <AppHeader 
-        title="الإشعارات" 
-        showBack 
+      <AppHeader
+        title="الإشعارات"
+        showBack
         rightSlot={
           unreadCount > 0 ? (
             <TouchableOpacity
+              testID="notifications-mark-all-read-btn"
+              accessibilityRole="button"
+              accessibilityLabel="تحديد الكل كمقروء"
               onPress={() => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
                 markAllRead()
               }}
               disabled={marking}
-              hitSlop={10}
-              style={{ opacity: marking ? 0.5 : 1 }}
+              hitSlop={6}
+              style={[s.markAllBtn, { opacity: marking ? 0.5 : 1 }]}
+              activeOpacity={0.7}
             >
-              <Ionicons name="checkmark-done" size={24} color={Colors.white} />
+              <TopBarGlassSurface
+                testID="notifications-mark-all-glass"
+                kind="ice-control"
+                borderRadius={16}
+                support={glassSupport}
+              />
+              <Ionicons name="checkmark-done" size={18} color={TopBarTokens.buttonIconColor} />
             </TouchableOpacity>
-          ) : <View style={{ width: 24 }} />
+          ) : <View style={{ width: 32 }} />
         }
       />
 
@@ -382,7 +462,7 @@ export default function NotificationsScreen() {
 
       {isLoading ? (
         <View style={s.list}>
-          {[1, 2, 3, 4, 5].map(i => <NotificationSkeleton key={i} />)}
+          {[1, 2, 3, 4, 5].map(i => <NotificationSkeleton key={i} reducedMotion={reducedMotion} />)}
         </View>
       ) : (
         <SectionList
@@ -408,7 +488,7 @@ export default function NotificationsScreen() {
           onEndReachedThreshold={0.5}
           stickySectionHeadersEnabled={true}
           ListEmptyComponent={
-            <Animated.View entering={FadeInDown.duration(300)} style={s.emptyState}>
+            <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(220)} style={s.emptyState}>
               <View style={s.emptyIconCircle}>
                 <Ionicons name="notifications-off-outline" size={44} color={Colors.primary} />
               </View>
@@ -431,12 +511,13 @@ export default function NotificationsScreen() {
               <Text style={s.sectionHeader}>{title}</Text>
             </View>
           )}
-          renderItem={({ item, index }) => (
-            <NotificationCard 
-              item={item} 
-              index={index} 
+          renderItem={({ item }) => (
+            <NotificationCard
+              item={item}
               onPress={handleNotificationPress}
               onDelete={handleDelete}
+              glassSupport={glassSupport}
+              reducedMotion={reducedMotion}
             />
           )}
         />
@@ -453,20 +534,36 @@ const softShadow = Platform.select({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8FAFC' },
   
+  markAllBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: TopBarTokens.iceGlass,
+    borderWidth: TopBarTokens.buttonBorderWidth,
+    borderColor: TopBarTokens.buttonBorderColor,
+    ...TopBarTokens.buttonShadow,
+  },
+
   headerContainer: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
     justifyContent: 'center',
-    paddingBottom: 6,
-    paddingTop: 6,
+    paddingVertical: 6,
     zIndex: 10,
   },
-  tabsRow: { paddingHorizontal: Spacing.space3, gap: 6, alignItems: 'center' },
+  tabsRow: {
+    paddingStart: Spacing.space3,
+    paddingEnd: Spacing.space5,
+    gap: 8,
+    alignItems: 'center',
+  },
   tab: { 
-    flexDirection: 'row', alignItems: 'center', gap: 4, 
-    paddingHorizontal: 10, paddingVertical: 5, 
-    borderRadius: 6, backgroundColor: Colors.white, 
+    flexDirection: 'row', alignItems: 'center', gap: 5, 
+    paddingHorizontal: 12, paddingVertical: 7, 
+    borderRadius: 8, backgroundColor: Colors.white, 
     borderWidth: 1, borderColor: '#E2E8F0',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
@@ -481,7 +578,7 @@ const s = StyleSheet.create({
       android: { elevation: 2 },
     }), 
   },
-  tabTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.text, lineHeight: 14 },
+  tabTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.text, lineHeight: 16, writingDirection: 'rtl' },
   tabTxtActive: { color: Colors.white },
   
   list: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 80 },
@@ -552,21 +649,31 @@ const s = StyleSheet.create({
   },
   
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: CardSystem.radius.outer,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: CardSystem.glass.cardBorderColor,
     marginBottom: 10,
-    ...Platform.select({
-      ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
+    overflow: 'hidden',
+    ...CardSystem.styles.softShadow,
   },
-  cardUnread: { 
-    backgroundColor: '#F8FAFC', 
-    borderColor: '#BFDBFE',
-    borderWidth: 1.5,
+  skeletonCard: {
+    backgroundColor: Colors.white,
+    padding: 12,
+  },
+  cardUnread: {
+    borderColor: Colors.borderStrong,
+  },
+  unreadBar: {
+    position: 'absolute',
+    top: 10,
+    bottom: 10,
+    start: 0,
+    width: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.primary,
+  },
+  cardTouchable: {
+    padding: 12,
   },
   
   cardRow: {

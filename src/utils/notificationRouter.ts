@@ -53,12 +53,13 @@ export function routeForNotification(data: NotificationData | undefined): string
 /**
  * Maps listing-type entityTypes to their detail screen route.
  * Route segments verified against actual app/ folder structure:
- *   app/buses/[id].tsx    → /buses/:id
- *   app/equipment/[id].tsx → /equipment/:id
- *   app/parts/[id].tsx    → /parts/:id
- *   app/services/[id].tsx → /services/:id
- *   app/cars/[id].tsx     → /cars/:id      (LISTING = Cars)
- *   app/listings/[id].tsx → /listings/:id  (fallback for unknown types)
+ *   app/buses/[id].tsx               → /buses/:id
+ *   app/equipment/[id].tsx           → /equipment/:id
+ *   app/equipment/operators/[id].tsx → /equipment/operators/:id
+ *   app/parts/[id].tsx               → /parts/:id
+ *   app/services/[id].tsx            → /services/:id
+ *   app/cars/[id].tsx                → /cars/:id      (LISTING = Cars)
+ *   app/listings/[id].tsx            → /listings/:id  (fallback for unknown types)
  */
 function routeForListingEntity(entityType: string | undefined, id: string): string {
   switch (entityType) {
@@ -66,6 +67,8 @@ function routeForListingEntity(entityType: string | undefined, id: string): stri
       return `/buses/${id}`
     case 'EQUIPMENT_LISTING':
       return `/equipment/${id}`
+    case 'OPERATOR_LISTING':
+      return `/equipment/operators/${id}`
     case 'SPARE_PART':
       return `/parts/${id}`
     case 'CAR_SERVICE':
