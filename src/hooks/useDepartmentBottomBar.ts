@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useRouter, usePathname, useFocusEffect } from 'expo-router';
+import { useRouter, usePathname, useFocusEffect, type Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
@@ -136,6 +136,23 @@ export function useDepartmentBottomBar({
     }
   }, [isLoggedIn, onPost, postRoute, set, category, router]);
 
+  const handleHomeNavigation = useCallback(
+    (customRoute?: string) => {
+      setActiveTab('home');
+      if (onHomePress) {
+        onHomePress();
+        return;
+      }
+      const targetRoute = customRoute || (category ? `/${category}` : '');
+      const cleanPathname = (pathname || '').split('?')[0].replace(/\/+$/, '');
+      const cleanTarget = targetRoute.split('?')[0].replace(/\/+$/, '');
+      if (targetRoute && cleanPathname !== cleanTarget) {
+        router.replace(targetRoute as Href);
+      }
+    },
+    [category, onHomePress, pathname, router]
+  );
+
   const handleTabPress = useCallback(
     (tab: BottomBarTabItem) => {
       // Check if this tab is configured with custom routing in customTabs
@@ -152,8 +169,7 @@ export function useDepartmentBottomBar({
           }
           if (customDef.route) {
             if (customDef.id === 'home') {
-              setActiveTab('home');
-              if (onHomePress) onHomePress();
+              handleHomeNavigation(customDef.route);
             } else {
               router.push(customDef.route as any);
             }
@@ -164,8 +180,8 @@ export function useDepartmentBottomBar({
 
       // Default routing behaviors
       if (tab.id === 'home') {
-        setActiveTab('home');
-        if (onHomePress) onHomePress();
+        const homeCustomRoute = customTabs?.find((t) => t.id === 'home')?.route;
+        handleHomeNavigation(homeCustomRoute);
       } else if (tab.id === 'favorites') {
         if (!isLoggedIn) {
           router.push('/(auth)/login' as any);
@@ -187,7 +203,7 @@ export function useDepartmentBottomBar({
         router.push('/(tabs)/profile' as any);
       }
     },
-    [customTabs, favoritesTab, isLoggedIn, onHomePress, router]
+    [customTabs, favoritesTab, handleHomeNavigation, isLoggedIn, router]
   );
 
   return {
