@@ -424,6 +424,6 @@ describe('D-296 Equipment & Operators Strict Type Safety & Behavioral Parity', (
     await fireEvent.press(getByText('حفظ وتحديث البطاقة'))
 
     expect(mutateMock).toHaveBeenCalledTimes(1)
-    expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'رسالة خطأ أولى')
+    expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'رسالة خطأ أولى', 'error')
   })
 })

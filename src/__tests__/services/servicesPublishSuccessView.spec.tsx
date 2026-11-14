@@ -55,6 +55,7 @@ jest.mock('expo-router', () => ({
 
 jest.mock('../../store/dialogStore', () => ({
   dialogService: {
+    show: jest.fn(),
     alert: jest.fn(),
     confirm: jest.fn((_title, _msg, onConfirm) => {
       if (onConfirm) onConfirm()
@@ -353,36 +354,42 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
     })
   })
 
-  it('7. unified getMutationErrorMessage handles offline, 409 conflict, 401/403 auth, and 500 server errors cleanly', async () => {
-    const cases: Array<{ label: string; err: unknown; expectedMsg: string }> = [
+  it('7. unified showPublishErrorDialog handles offline, timeout, 409 conflict, 401/403 auth, and 500 server errors cleanly', async () => {
+    const cases: Array<{ label: string; err: unknown; kind: 'offline' | 'timeout' | 'error'; expectedMsg: string }> = [
       {
         label: 'offline',
         err: { isAxiosError: true, code: 'ERR_NETWORK', request: {} },
-        expectedMsg: 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
+        kind: 'offline',
+        expectedMsg: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.',
       },
       {
         label: 'timeout',
         err: { isAxiosError: true, code: 'ECONNABORTED' },
-        expectedMsg: 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.',
+        kind: 'timeout',
+        expectedMsg: 'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
       },
       {
         label: 'conflict-409',
         err: { isAxiosError: true, response: { status: 409, data: {} } },
+        kind: 'error',
         expectedMsg: 'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
       },
       {
         label: 'unauthorized-401',
         err: { isAxiosError: true, response: { status: 401, data: {} } },
+        kind: 'error',
         expectedMsg: 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.',
       },
       {
         label: 'forbidden-403',
         err: { isAxiosError: true, response: { status: 403, data: {} } },
+        kind: 'error',
         expectedMsg: 'ليس لديك الصلاحية لتنفيذ هذا الإجراء.',
       },
       {
         label: 'server-500',
         err: { isAxiosError: true, response: { status: 500, data: {} } },
+        kind: 'error',
         expectedMsg: 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.',
       },
     ]
@@ -400,7 +407,23 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
       })
 
       await waitFor(() => {
-        expect(dialogService.alert).toHaveBeenCalledWith('خطأ', c.expectedMsg)
+        if (c.kind === 'offline') {
+          expect(dialogService.show).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'offline',
+              title: 'لا يوجد اتصال',
+              message: c.expectedMsg,
+            })
+          )
+        } else if (c.kind === 'timeout') {
+          expect(dialogService.alert).toHaveBeenCalledWith(
+            'انتهت مهلة الاتصال',
+            c.expectedMsg,
+            'offline'
+          )
+        } else {
+          expect(dialogService.alert).toHaveBeenCalledWith('خطأ', c.expectedMsg, 'error')
+        }
       })
       await unmount()
     }
