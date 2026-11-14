@@ -12,7 +12,7 @@ import { ChatRoom, ChatMessage } from '../types/listing.types'
 import { UserSummary } from '../types/auth.types'
 import { ChatFileInfo } from '../components/chat/ChatInput'
 import { logError } from '../utils/safeLog'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 import { dialogService } from '../store/dialogStore'
 
 export interface LocalMessage {
@@ -302,8 +302,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     } catch (err) {
       logError('ChatRoom:SendMessage', err)
       updateMessage(roomId, tempId, { pending: false, error: true })
-      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
-      dialogService.alert('فشل الإرسال', errorMsg)
+      showErrorDialog(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة', 'فشل الإرسال')
     }
   }, [msgText, roomId, user?.id, replyingToMessage, addMessage, removeMessage, updateMessage, otherUser?.name])
 
@@ -326,7 +325,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
 
     const socket = getSocket()
     if (!socket || !socket.connected) {
-      dialogService.alert('تنبيه', 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري')
+      dialogService.alert('تنبيه', 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري', 'offline')
       return
     }
 
@@ -412,8 +411,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     } catch (err) {
       logError('ChatRoom:RetryMessage', err)
       updateMessage(roomId, msgId, { pending: false, error: true })
-      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
-      dialogService.alert('فشل الإرسال', errorMsg)
+      showErrorDialog(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة', 'فشل الإرسال')
     }
   }, [roomId, updateMessage, removeMessage, addMessage])
 

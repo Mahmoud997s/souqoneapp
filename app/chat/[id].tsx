@@ -111,7 +111,7 @@ export default function ChatRoomScreen() {
         text: '🗑️ حذف الرسالة',
         style: 'destructive',
         onPress: () => {
-          dialogService.confirm('حذف الرسالة', 'هل أنت متأكد من حذف هذه الرسالة؟', () => handleDeleteMessage(msgId), 'حذف', 'إلغاء')
+          dialogService.confirm('حذف الرسالة', 'هل أنت متأكد من حذف هذه الرسالة؟', () => handleDeleteMessage(msgId), 'حذف', 'إلغاء', true)
         }
       })
     }

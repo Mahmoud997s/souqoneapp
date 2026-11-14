@@ -147,7 +147,8 @@ describe('useBusFormLogic — S4 Permissions, Error Formatting & Image Removal (
 
       expect(dialogService.alert).toHaveBeenCalledWith(
         'خطأ',
-        expect.any(String)
+        expect.any(String),
+        'error'
       )
     })
   })

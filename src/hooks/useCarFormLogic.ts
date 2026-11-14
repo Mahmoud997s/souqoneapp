@@ -5,7 +5,7 @@ import { CarFormData, CarFormField } from '../types/carForm.types'
 import { MAX_CAR_IMAGES } from '../constants/cars'
 import { router } from 'expo-router'
 import { requestPermission, mediaLibraryAdapter } from '../utils/requestPermission'
-import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { showErrorDialog } from '../utils/showErrorDialog'
 import { useCarWizardStore } from '../store/carWizardStore'
 
 /**
@@ -52,7 +52,7 @@ export function useCarFormLogic(
         updateField('images', newImages)
       }
     } catch (err) {
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً'))
+      showErrorDialog(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
     } finally {
       setIsUploading(false)
     }

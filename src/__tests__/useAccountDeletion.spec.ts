@@ -117,6 +117,10 @@ describe('useAccountDeletion hook', () => {
     })
 
     expect(useAuthStore.getState().user?.deletionScheduledAt).toBe('2026-10-25T11:15:00.000Z')
-    expect(spyAlert).toHaveBeenCalledWith('خطأ', 'حدث خطأ في الخادم')
+    expect(spyAlert).toHaveBeenCalledWith(
+      'خطأ',
+      'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.',
+      'error'
+    )
   })
 })
