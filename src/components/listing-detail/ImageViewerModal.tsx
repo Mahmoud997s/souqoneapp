@@ -76,6 +76,17 @@ export function ImageViewerModal({
     }
   }, [visible, initialIndex])
 
+  useEffect(() => {
+    if (!visible && typeof StatusBar.setBarStyle === 'function') {
+      StatusBar.setBarStyle('dark-content')
+    }
+    return () => {
+      if (typeof StatusBar.setBarStyle === 'function') {
+        StatusBar.setBarStyle('dark-content')
+      }
+    }
+  }, [visible])
+
   const scale = useSharedValue(1)
   const translateX = useSharedValue(0)
   const translateY = useSharedValue(0)

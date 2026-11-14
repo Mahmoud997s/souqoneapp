@@ -3,12 +3,20 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function ImageViewerModal() {
   const { width, height } = useWindowDimensions()
   const { url, urls, index } = useLocalSearchParams()
   const [currentIndex, setCurrentIndex] = useState(index ? parseInt(index as string, 10) : 0)
+
+  useEffect(() => {
+    return () => {
+      if (typeof StatusBar.setBarStyle === 'function') {
+        StatusBar.setBarStyle('dark-content')
+      }
+    }
+  }, [])
   
   const images = urls ? (urls as string).split(',') : (url ? [url as string] : [])
 
