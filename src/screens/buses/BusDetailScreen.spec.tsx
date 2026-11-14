@@ -441,6 +441,19 @@ describe('BusDetailScreen', () => {
       expect(screen.getAllByText('حذف').length).toBeGreaterThan(0)
       expect(screen.queryByText('تعديل')).toBeNull()
     })
+
+    it('pushes to /buses/edit/:id when owner presses the edit button (R3-2)', async () => {
+      mockCurrentUser = { id: 'seller-77' }
+      await render(<BusDetailScreen id="bus-101" />)
+
+      const editButtons = screen.getAllByText('تعديل')
+      await act(async () => {
+        fireEvent.press(editButtons[0])
+      })
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/buses/edit/bus-101')
+      expect(mockSetEditMode).not.toHaveBeenCalled()
+    })
   })
 
   // 9. Tone and UI Button Constraints

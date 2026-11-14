@@ -20,6 +20,8 @@ import { Spacing } from '../../src/constants/spacing'
 import { Typography } from '../../src/constants/typography'
 import { useNotifications, useMarkAllRead, useMarkNotificationRead, useDeleteNotification } from '../../src/hooks/useProfile'
 import { navigateFromNotification } from '../../src/utils/notificationRouter'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
@@ -214,6 +216,8 @@ export default function NotificationsScreen() {
     data: infiniteData, 
     isLoading,
     isError,
+    error,
+    isRefetchError,
     isRefetching, 
     refetch, 
     fetchNextPage, 
@@ -285,18 +289,31 @@ export default function NotificationsScreen() {
 
   const sections = useMemo(() => groupNotifications(filteredData), [filteredData])
 
-  if (isError) {
+  if (isError && notifs.length === 0) {
+    const errorProps = getListErrorProps(error, 'تعذر تحميل الإشعارات')
     return (
       <View style={s.root}>
         <AppHeader title="الإشعارات" showBack />
-        <View style={s.emptyState}>
+        <View style={s.emptyState} testID="notifications-error-state">
           <View style={[s.emptyIconCircle, { backgroundColor: '#FEF2F2' }]}>
-            <Ionicons name="warning-outline" size={44} color={Colors.error} />
+            <Ionicons
+              name={errorProps.icon as keyof typeof Ionicons.glyphMap}
+              size={44}
+              color={errorProps.iconColor}
+            />
           </View>
-          <Text style={s.emptyTitle}>حدث خطأ في الاتصال</Text>
-          <Text style={s.emptySub}>تعذر جلب الإشعارات، يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.</Text>
-          <TouchableOpacity style={s.ctaButton} onPress={() => refetch()} activeOpacity={0.8}>
-             <Text style={s.ctaText}>إعادة المحاولة</Text>
+          <Text style={s.emptyTitle}>{errorProps.title}</Text>
+          <Text style={s.emptySub}>{errorProps.subtitle}</Text>
+          <TouchableOpacity
+            style={s.ctaButton}
+            onPress={() => refetch()}
+            disabled={isRefetching}
+            activeOpacity={0.8}
+            testID="notifications-retry-btn"
+            accessibilityRole="button"
+            accessibilityLabel={errorProps.actionLabel}
+          >
+            <Text style={s.ctaText}>{errorProps.actionLabel}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -347,6 +364,12 @@ export default function NotificationsScreen() {
           ))}
         </ScrollView>
       </Animated.View>
+
+      {(isError || isRefetchError) && notifs.length > 0 ? (
+        <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }} testID="notifications-stale-banner">
+          <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
+        </View>
+      ) : null}
 
       {isLoading ? (
         <View style={s.list}>

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView, ImageResizeMode } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { Colors } from '../../constants/colors'
@@ -24,7 +24,7 @@ function formatMsgTime(iso: string) {
 
 function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: boolean; isRead?: boolean; isDelivered?: boolean; error?: boolean }) {
   if (pending) {
-    return <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
+    return <Ionicons name="time-outline" size={13} color={Colors.textMuted} testID="chat-message-pending-icon" />
   }
   
   if (error) {
@@ -121,6 +121,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
       renderLeftActions={renderLeftActions}
       friction={2}
       leftThreshold={40}
+      enabled={!msg.pendingDelete}
       onSwipeableOpen={() => {
         onSwipeReply?.(msg.id)
         setTimeout(() => swipeableRef.current?.close(), 0)
@@ -130,21 +131,24 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
         <View style={s.bubbleContainer}>
         <TouchableOpacity 
           activeOpacity={0.9} 
-          onLongPress={() => onLongPress(msg.id)}
-          onPress={msg.error && isOwn ? handleFailedMessagePress : undefined}
+          onLongPress={msg.pendingDelete ? undefined : () => onLongPress(msg.id)}
+          onPress={msg.pendingDelete ? undefined : (msg.error && isOwn ? handleFailedMessagePress : undefined)}
+          disabled={msg.pendingDelete}
           style={[
             s.msgBubble, 
             isOwn ? s.msgBubbleOwn : s.msgBubbleOther,
             msg.error ? s.msgBubbleError : null,
+            msg.pendingDelete ? { opacity: 0.45 } : null,
             (parsed.isReply || isFile || isVoice) ? s.msgBubbleExtended : null,
             (msg.reactions && msg.reactions.length > 0) ? { marginBottom: 12 } : null
           ]}
-          testID="chat_message_bubble"
+          testID={msg.pendingDelete ? "chat-message-pending-delete" : "chat_message_bubble"}
         >
           {isImage && msg.mediaUrl ? (
             <TouchableOpacity 
               activeOpacity={0.8} 
-              onPress={() => setFullScreenImage(true)}
+              onPress={msg.pendingDelete ? undefined : () => setFullScreenImage(true)}
+              disabled={msg.pendingDelete}
               accessibilityLabel={`Image: ${msg.content || 'No caption'}`}
             >
               <Image 
@@ -217,6 +221,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
             onPress={handleFailedMessagePress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityLabel="فشل الإرسال — اضغط للخيارات"
+            testID="chat-message-error-indicator"
           >
             <Ionicons name="alert-circle" size={22} color="#EF4444" />
           </TouchableOpacity>
@@ -280,7 +285,7 @@ const s = StyleSheet.create({
   msgBubbleOwn: { backgroundColor: Colors.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 4 },
   // borderBottomLeftRadius maps to physical RIGHT in RTL. Tail for other message points right.
   msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' },
-  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as any },
+  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as ImageResizeMode },
   msgImageOnly: { marginBottom: 0 },
   msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
   msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },

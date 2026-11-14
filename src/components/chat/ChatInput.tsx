@@ -10,17 +10,23 @@ import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import { VoiceRecorder } from './VoiceRecorder'
 
+export interface ChatFileInfo {
+  name?: string
+  size?: number
+  duration?: number
+}
+
 interface Props {
   msgText: string
   onChangeText: (text: string) => void
-  onSend: (text?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: any) => void
+  onSend: (text?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: ChatFileInfo) => void
   insetsBottom: number
 }
 
 export function ChatInput({ msgText, onChangeText, onSend, insetsBottom }: Props) {
   const [mediaUri, setMediaUri] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<'IMAGE' | 'FILE' | null>(null)
-  const [fileInfo, setFileInfo] = useState<any>(null)
+  const [fileInfo, setFileInfo] = useState<ChatFileInfo | null>(null)
   
   const [showVoice, setShowVoice] = useState(false)
 

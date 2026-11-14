@@ -17,6 +17,11 @@ import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
+import { getListErrorProps } from '../../../utils/getListErrorProps'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
+import { Listing } from '../../../types/listing.types'
+import { EquipmentListing } from '../../../types/equipment.types'
+import { UnifiedCardItem } from '../../../types/unified-card.types'
 import {
   CARS_PEEK_GAP,
   CARS_PEEK_IMAGE_HEIGHT,
@@ -26,14 +31,25 @@ import {
 
 const CARD_WIDTH = getPeekCardWidth()
 
+export type EquipmentHorizontalListItem =
+  | UnifiedCardItem
+  | Listing
+  | EquipmentListing
+  | { id: string; title: string; [key: string]: unknown }
+
 interface Props {
   title: string
   subTitle?: string
-  data: any[]
+  data: EquipmentHorizontalListItem[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
+  onRetry?: () => void
+  isRefetchError?: boolean
+  isRefetching?: boolean
   emptyText: string
   onSeeAll: () => void
-  onPressItem: (item: any) => void
+  onPressItem: (item: EquipmentHorizontalListItem) => void
   glassSupport?: GlassSupport
 }
 
@@ -42,16 +58,23 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
   subTitle,
   data,
   isLoading,
+  isError,
+  error,
+  onRetry,
+  isRefetchError,
+  isRefetching,
   emptyText,
   onSeeAll,
   onPressItem,
   glassSupport,
 }: Props) {
+  const safeData = data ?? []
+  const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل المعدات') : null
   const renderLoadedItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: EquipmentHorizontalListItem }) => (
       <View style={{ width: CARD_WIDTH }}>
         <EquipCard
-          item={item}
+          item={item as unknown as Listing}
           onPress={() => onPressItem(item)}
           fullWidth={true}
           imageHeight={CARS_PEEK_IMAGE_HEIGHT}
@@ -79,7 +102,7 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
         </TouchableOpacity>
       </View>
 
-      {isLoading ? (
+      {isLoading && safeData.length === 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
           <HorizontalScrollCard
             key="loading-skeleton"
@@ -101,11 +124,19 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
             )}
           />
         </View>
-      ) : data.length > 0 ? (
+      ) : safeData.length > 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
+          {(isError || isRefetchError) && (
+            <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
+              <StaleDataBanner
+                onRetry={onRetry}
+                isRefetching={isRefetching}
+              />
+            </View>
+          )}
           <HorizontalScrollCard
             key="loaded-cards"
-            data={data}
+            data={safeData}
             cardWidth={CARD_WIDTH}
             gap={CARS_PEEK_GAP}
             paddingEnd={getPeekLeadingInset()}
@@ -113,13 +144,33 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
             paging
             showDots
             depthEffect
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, idx) => item.id ?? String(idx)}
             onSeeAll={onSeeAll}
             seeAllTitle="عرض الكل"
             seeAllSubtitle={`تصفح جميع ${title}`}
             renderItem={renderLoadedItem}
           />
         </View>
+      ) : isError ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={s.scrollContent}
+        >
+          <View style={s.emptyCard}>
+            <EmptyState
+              testID="equipment-horizontal-error-state"
+              icon={errorProps?.icon ?? 'alert-circle-outline'}
+              iconColor={errorProps?.iconColor ?? Colors.error}
+              title={errorProps?.title ?? 'تعذر تحميل المعدات'}
+              subtitle={errorProps?.subtitle ?? 'حدث خطأ أثناء تحميل البيانات، يرجى المحاولة مرة أخرى.'}
+              actionLabel={onRetry ? (errorProps?.actionLabel ?? 'إعادة المحاولة') : undefined}
+              onAction={onRetry}
+              compact
+            />
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           horizontal
@@ -129,6 +180,7 @@ export const EquipmentHorizontalList = memo(function EquipmentHorizontalList({
         >
           <View style={s.emptyCard}>
             <EmptyState
+              testID="equipment-horizontal-empty-state"
               title={emptyText}
               icon="construct-outline"
               compact

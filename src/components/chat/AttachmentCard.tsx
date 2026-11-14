@@ -12,7 +12,15 @@ interface Props {
   isOwn: boolean
 }
 
-const TYPE_STYLES: Record<string, { bg: string; text: string; icon: any }> = {
+type IoniconsName = keyof typeof Ionicons.glyphMap
+
+interface AttachmentTypeStyle {
+  bg: string
+  text: string
+  icon: IoniconsName
+}
+
+const TYPE_STYLES: Record<string, AttachmentTypeStyle> = {
   pdf: { bg: '#FFE5E5', text: '#FF4D4D', icon: 'document-text' },
   doc: { bg: 'rgba(0, 74, 198, 0.1)', text: Colors.primary, icon: 'document' },
   xls: { bg: '#E5F6E5', text: '#2E7D32', icon: 'stats-chart' },

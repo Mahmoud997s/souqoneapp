@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
-  Platform,
-  ActivityIndicator,
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,6 +44,9 @@ import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
+import { EmptyState } from '../../src/components/ui/EmptyState';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
+import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { useGlassSupport } from '../../src/components/navigation/glassSupport';
@@ -70,7 +69,11 @@ const LISTING_TYPES = [
   { id: 'EQUIPMENT_WANTED', label: 'مطلوب' },
 ];
 
-const DROPDOWN_FILTERS = [
+const DROPDOWN_FILTERS: Array<{
+  id: EquipmentDropdownKind;
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+}> = [
   { id: 'governorate', label: 'المدينة', icon: 'location-outline' },
   { id: 'category', label: 'نوع المعدة', icon: 'hardware-chip-outline' },
   { id: 'condition', label: 'الحالة', icon: 'construct-outline' },
@@ -204,7 +207,9 @@ export default function EquipmentBrowseScreen() {
   }, [queryParams]);
 
   // Fetch Listings
-  const { data: listings, isLoading, isError, refetch } = useEquipment(queryParams);
+  const { data: listings, isLoading, isFetching, isError, error, refetch, isRefetchError } = useEquipment(queryParams);
+  const items = listings ?? [];
+  const showSkeleton = isLoading || (Boolean(isFetching) && items.length === 0);
 
   // Active filters count
   const activeFiltersCount = useMemo(() => {
@@ -242,20 +247,20 @@ export default function EquipmentBrowseScreen() {
     } else if (qf.id === 'price') {
       isActive = !!filters.priceMax || !!filters.priceMin;
       if (isActive) {
-         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === (filters as any).priceId);
+         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === filters.priceId);
          if (found) displayLabel = found.label;
          else displayLabel = filters.priceMax ? `أقل من ${filters.priceMax}` : qf.label;
       }
     } else if (qf.id === 'year') {
-      isActive = !!(filters as any).yearMax || !!(filters as any).yearMin;
+      isActive = !!filters.yearMax || !!filters.yearMin;
       if (isActive) {
-         const found = YEAR_RANGES.find(b => b.max === (filters as any).yearMax?.toString() || b.id === (filters as any).yearId);
+         const found = YEAR_RANGES.find(b => b.max === filters.yearMax?.toString() || b.id === filters.yearId);
          if (found) displayLabel = found.label;
       }
     } else if (qf.id === 'hours') {
-      isActive = !!(filters as any).hoursMax || !!(filters as any).hoursMin;
+      isActive = !!filters.hoursMax || !!filters.hoursMin;
       if (isActive) {
-         const found = HOURS_RANGES.find(b => b.max === (filters as any).hoursMax?.toString() || b.id === (filters as any).hoursId);
+         const found = HOURS_RANGES.find(b => b.max === filters.hoursMax?.toString() || b.id === filters.hoursId);
          if (found) displayLabel = found.label;
       }
     }
@@ -263,7 +268,7 @@ export default function EquipmentBrowseScreen() {
     return {
       id: qf.id,
       label: displayLabel,
-      icon: qf.icon as any,
+      icon: qf.icon,
       isActive
     };
   });
@@ -378,7 +383,7 @@ export default function EquipmentBrowseScreen() {
         />
 
         <BrowseResultsBar
-          resultsCount={listings?.length || 0}
+          resultsCount={items.length}
           entityName="معدة"
           iconName="construct-outline"
           activeFiltersCount={activeFiltersCount}
@@ -398,7 +403,7 @@ export default function EquipmentBrowseScreen() {
       handleSelectVisualFilter,
       handleViewAllVisualFilters,
       glassSupport,
-      listings?.length,
+      items.length,
       activeFiltersCount,
       handleClearAll,
     ]
@@ -406,7 +411,7 @@ export default function EquipmentBrowseScreen() {
 
   const listFooterComponent = useMemo(
     () =>
-      !isLoading && listings && listings.length > 0 ? (
+      !isLoading && items.length > 0 ? (
         <SectionFooterAction
           title="لديك معدة ثقيلة للبيع أو للإيجار؟"
           subtitle="انشر إعلانك الآن ووصل لآلاف المقاولين والشركات"
@@ -416,21 +421,57 @@ export default function EquipmentBrowseScreen() {
           onPress={handleAddEquipment}
         />
       ) : null,
-    [isLoading, listings, handleAddEquipment]
+    [isLoading, items.length, handleAddEquipment]
   );
 
-  const listEmptyComponent = useMemo(
-    () => (
-      <View style={s.emptyContainer}>
-        <View style={s.emptyIconWrap}>
-          <Ionicons name="search-outline" size={48} color={Colors.equipmentPrimary} />
+  const listEmptyComponent = useMemo(() => {
+    if (showSkeleton) {
+      return (
+        <View style={s.skeletonGrid}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={s.fullCard}>
+              <SkeletonCard />
+            </View>
+          ))}
         </View>
-        <Text style={s.emptyTitle}>لا توجد معدات مطابقة</Text>
-        <Text style={s.emptySub}>لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.</Text>
-      </View>
-    ),
-    []
-  );
+      );
+    }
+
+    if (isError && items.length === 0) {
+      const errorProps = getListErrorProps(error, 'تعذر تحميل المعدات');
+      return (
+        <EmptyState
+          testID="equipment-browse-error-state"
+          icon={errorProps.icon}
+          iconColor={errorProps.iconColor}
+          title={errorProps.title}
+          subtitle={errorProps.subtitle}
+          actionLabel={errorProps.actionLabel}
+          actionIcon="refresh-outline"
+          onAction={() => refetch()}
+        />
+      );
+    }
+
+    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
+
+    return (
+      <EmptyState
+        testID="equipment-browse-empty-state"
+        icon="construct-outline"
+        iconColor={Colors.equipmentPrimary}
+        title="لا توجد معدات مطابقة"
+        subtitle={
+          hasActiveFiltersOrSearch
+            ? 'لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر.'
+            : 'لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.'
+        }
+        actionLabel={hasActiveFiltersOrSearch ? 'إعادة تعيين الكل' : 'تحديث الصفحة'}
+        actionIcon={hasActiveFiltersOrSearch ? 'close-circle-outline' : 'refresh-outline'}
+        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+      />
+    );
+  }, [showSkeleton, isError, error, items.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
 
   return (
     <View style={s.root}>
@@ -467,51 +508,41 @@ export default function EquipmentBrowseScreen() {
         />
       </CollapsibleSubHeader>
 
-      {/* ── LISTINGS LIST ── */}
-      {isLoading ? (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <SkeletonCard />
-            </View>
-          ))}
-        </View>
-      ) : isError ? (
-        <View style={s.emptyContainer}>
-          <View style={s.emptyIconWrapError}>
-            <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
-          </View>
-          <Text style={s.emptyTitle}>حدث خطأ!</Text>
-          <Text style={s.emptySub}>تعذر جلب البيانات، يرجى المحاولة لاحقاً.</Text>
-          <TouchableOpacity style={s.retryBtn} onPress={() => refetch()}>
-            <Text style={s.retryBtnTxt}>إعادة المحاولة</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <Animated.FlatList
-          ref={listRef}
-          {...BROWSE_LIST_VIRTUALIZATION_PROPS}
-          data={listings || []}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={[
-            s.listContent,
-            {
-              paddingTop: Spacing.space2,
-              paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
-            },
-          ]}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={isLoading && ((listings as any)?.length > 0)} onRefresh={refetch} tintColor={Colors.equipmentPrimary} />
-          }
-          ListHeaderComponent={listHeaderComponent}
-          ListFooterComponent={listFooterComponent}
-          ListEmptyComponent={listEmptyComponent}
-          renderItem={renderItem}
+      {(isError || isRefetchError) && items.length > 0 && (
+        <StaleDataBanner
+          onRetry={() => refetch()}
+          isRefetching={Boolean(isFetching)}
         />
       )}
+
+      {/* ── LISTINGS LIST ── */}
+      <Animated.FlatList
+        ref={listRef}
+        {...BROWSE_LIST_VIRTUALIZATION_PROPS}
+        data={items}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={[
+          s.listContent,
+          {
+            paddingTop: Spacing.space2,
+            paddingBottom: UNIFIED_BOTTOM_BAR_HEIGHT + Math.max(insets.bottom, 12) + 8,
+          },
+        ]}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={Boolean(isFetching) && !showSkeleton}
+            onRefresh={refetch}
+            tintColor={Colors.equipmentPrimary}
+          />
+        }
+        ListHeaderComponent={listHeaderComponent}
+        ListFooterComponent={listFooterComponent}
+        ListEmptyComponent={listEmptyComponent}
+        renderItem={renderItem}
+      />
 
       <QuickFilterModal
         visible={activeDropdown !== null}
@@ -559,46 +590,4 @@ const s = StyleSheet.create({
     gap: 16,
   },
   fullCard: { width: '100%' },
-
-  emptyContainer: {
-    padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
-  },
-  emptyIconWrap: {
-    width: 96, height: 96,
-    borderRadius: 48,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
-  },
-  emptyIconWrapError: {
-    width: 96, height: 96,
-    borderRadius: 48,
-    backgroundColor: '#fef2f2',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold', 
-    fontSize: 20, color: '#0f172a',
-    marginBottom: 8,
-  },
-  emptySub: {
-    fontFamily: 'Almarai_400Regular', 
-    fontSize: 15, color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  retryBtn: {
-    backgroundColor: Colors.equipmentPrimary,
-    paddingHorizontal: 32, paddingVertical: 14,
-    borderRadius: 12,
-  },
-  retryBtnTxt: {
-    fontFamily: 'Almarai_700Bold', 
-    fontSize: 15, color: '#fff',
-  },
 });

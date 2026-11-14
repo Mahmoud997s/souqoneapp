@@ -24,10 +24,22 @@ import { Stepper } from '../../../../src/components/ui/Stepper'
 import { dialogService } from '../../../../src/store/dialogStore'
 import { useOperatorItem, useUpdateOperator } from '../../../../src/hooks/useEquipment'
 import { useOperatorFormLogic } from '../../../../src/hooks/useOperatorFormLogic'
-import { validateOperatorStep } from '../../../../src/hooks/useOperatorValidation'
+import { validateOperatorStep, mapOperatorBackendErrors, OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
 import { buildOperatorPayload } from '../../../../src/utils/operator-payload'
 import { OperatorWizardFormData as OperatorFormData } from '../../../../src/store/operatorWizardStore'
-import { OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
+import type { OperatorListing } from '../../../../src/types/equipment.types'
+import { DetailStates, DetailStateKind } from '../../../../src/components/listing-detail/DetailStates'
+import { getDetailErrorKind, getMutationErrorMessage } from '../../../../src/utils/listing-detail/getDetailErrorKind'
+import { PublishSuccessView } from '../../../../src/components/publish/PublishSuccessView'
+import { getPublishRateLimitErrorMessage } from '../../../../src/utils/publishRateLimitError'
+
+type OperatorDetailPayload = Omit<OperatorListing, 'governorate' | 'wilaya'> & {
+  isNegotiable?: boolean
+  governorateName?: string
+  wilayaName?: string
+  governorate?: string | { nameAr?: string }
+  wilaya?: string | { nameAr?: string }
+}
 
 import { OperatorRoleStep } from '../../../../src/components/operators/OperatorRoleStep'
 import { OperatorEquipCertsStep } from '../../../../src/components/operators/OperatorEquipCertsStep'
@@ -40,10 +52,11 @@ export default function EditOperatorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
   const updateMutation = useUpdateOperator()
-  const { data: operatorData, isLoading, isError } = useOperatorItem(id as string)
+  const { data: operatorData, isLoading, isError, error, refetch } = useOperatorItem(id as string)
 
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<OperatorFormErrors>({})
+  const [publishSuccess, setPublishSuccess] = useState(false)
 
   const [formData, setFormData] = useState<OperatorFormData>({
     operatorType: 'OPERATOR',
@@ -67,6 +80,15 @@ export default function EditOperatorScreen() {
 
   useEffect(() => {
     if (operatorData) {
+      const detail = operatorData as OperatorDetailPayload
+      const govName =
+        (typeof detail.governorate === 'object' ? detail.governorate?.nameAr : undefined) ||
+        detail.governorateName ||
+        ''
+      const wilName =
+        (typeof detail.wilaya === 'object' ? detail.wilaya?.nameAr : undefined) ||
+        detail.wilayaName ||
+        ''
       setFormData({
         operatorType: operatorData.operatorType || 'OPERATOR',
         title: operatorData.title || '',
@@ -78,22 +100,22 @@ export default function EditOperatorScreen() {
         dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
         hourlyRate: operatorData.hourlyRate ? String(operatorData.hourlyRate) : '',
         currency: operatorData.currency || 'OMR',
-        isPriceNegotiable: operatorData.isPriceNegotiable ?? (operatorData as any).isNegotiable ?? true,
+        isPriceNegotiable: operatorData.isPriceNegotiable ?? detail.isNegotiable ?? true,
         governorateId: operatorData.governorateId ?? null,
         wilayaId: operatorData.wilayaId ?? null,
-        governorateName: (operatorData as any).governorate?.nameAr || (operatorData as any).governorateName || '',
-        wilayaName: (operatorData as any).wilaya?.nameAr || (operatorData as any).wilayaName || '',
+        governorateName: govName,
+        wilayaName: wilName,
         whatsappEnabled: operatorData.whatsappEnabled === true,
         profileImageUrl: operatorData.profileImageUrl || '',
       })
     }
   }, [operatorData])
 
-  const updateField = (key: keyof OperatorFormData, value: any) => {
+  const updateField = <K extends keyof OperatorFormData>(key: K, value: OperatorFormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => {
       const updated = { ...prev }
-      delete updated[key]
+      delete updated[key as keyof OperatorFormErrors]
       if (
         (key === 'dailyRate' || key === 'hourlyRate') &&
         (updated.dailyRate?.includes('على الأقل') || updated.hourlyRate?.includes('على الأقل'))
@@ -108,7 +130,7 @@ export default function EditOperatorScreen() {
   const clearFieldError = (key: string) => {
     setErrors((prev) => {
       const updated = { ...prev }
-      delete (updated as any)[key]
+      delete (updated as Record<string, string | undefined>)[key]
       return updated
     })
   }
@@ -159,34 +181,78 @@ export default function EditOperatorScreen() {
       { id, data: payload },
       {
         onSuccess: () => {
-          dialogService.alert('نجاح', 'تم تحديث بيانات بطاقتك المهنية بنجاح!')
-          router.replace(`/equipment/operators/${id}` as any)
+          setPublishSuccess(true)
         },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء تحديث البطاقة المهنية'
-          dialogService.alert('خطأ', Array.isArray(msg) ? msg[0] : msg)
+        onError: (err: unknown) => {
+          const apiErr = err as { response?: { status?: number; data?: unknown } } | null | undefined
+          const status = apiErr?.response?.status
+          if (status === 429) {
+            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+            return
+          }
+          if (status === 400) {
+            const mapped = mapOperatorBackendErrors(apiErr?.response?.data)
+            if (mapped.hasFieldErrors) {
+              setErrors(mapped.fieldErrors)
+              setCurrentStep(mapped.firstInvalidStep)
+              return
+            }
+          }
+          dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء تحديث البطاقة المهنية'))
         },
       }
     )
   }
 
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <PublishSuccessView
+          title="تم تحديث بطاقتك المهنية بنجاح!"
+          subtitle="تم حفظ كافة التعديلات على بطاقتك المهنية وتحديثها في دليل المشغلين."
+          primaryAction={{
+            label: 'عرض البطاقة المهنية',
+            onPress: () => router.replace(`/equipment/operators/${id}`),
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: 'العودة للخلف',
+            onPress: () => router.back(),
+            testID: 'publish-success-secondary-btn',
+          }}
+          onHardwareBack={() => {
+            router.replace(`/equipment/operators/${id}`)
+            return true
+          }}
+        />
+      </View>
+    )
+  }
+
   if (isLoading) {
     return (
-      <View style={[s.root, s.center]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={s.loadingTxt}>جاري تحميل بيانات البطاقة المهنية...</Text>
+      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <DetailStates kind="loading" onBack={() => router.back()} />
       </View>
     )
   }
 
   if (isError || !operatorData) {
+    const rawKind = getDetailErrorKind(error)
+    const kind: DetailStateKind =
+      rawKind === 'offline' || rawKind === 'timeout' || rawKind === 'serverError' || rawKind === 'notFound'
+        ? rawKind
+        : 'error'
     return (
-      <View style={[s.root, s.center]}>
-        <Ionicons name="alert-circle-outline" size={54} color={Colors.error} />
-        <Text style={s.errorTxt}>تعذّر جلب بيانات المشغل، يرجى المحاولة لاحقاً</Text>
-        <TouchableOpacity style={s.retryBtn} onPress={() => router.back()}>
-          <Text style={s.retryTxt}>العودة للخلف</Text>
-        </TouchableOpacity>
+      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <DetailStates
+          kind={kind}
+          onBack={() => router.back()}
+          onRetry={() => refetch()}
+        />
       </View>
     )
   }

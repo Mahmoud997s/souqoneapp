@@ -464,6 +464,62 @@ describe('ServiceDetailScreen', () => {
         'success',
       )
     })
+
+    it('shows unified network error message from getMutationErrorMessage when delete fails offline (D-265)', async () => {
+      mockCurrentUser = { id: 'seller-user-99', phone: '96891234567' }
+      const confirmSpy = jest
+        .spyOn(dialogService, 'confirm')
+        .mockImplementation((_t, _m, onConfirm) => {
+          onConfirm()
+        })
+      ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce({
+        isAxiosError: true,
+        code: 'ERR_NETWORK',
+        request: {},
+      })
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const deleteBtn = screen.getByTestId('btn-owner-delete')
+      await act(async () => {
+        fireEvent.press(deleteBtn)
+      })
+
+      expect(dialogService.alert).toHaveBeenCalledWith(
+        'خطأ',
+        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
+        'error',
+      )
+      expect(mockRouterBack).not.toHaveBeenCalled()
+      confirmSpy.mockRestore()
+    })
+
+    it('shows unified 409 conflict message from getMutationErrorMessage when delete fails with conflict (D-265)', async () => {
+      mockCurrentUser = { id: 'seller-user-99', phone: '96891234567' }
+      const confirmSpy = jest
+        .spyOn(dialogService, 'confirm')
+        .mockImplementation((_t, _m, onConfirm) => {
+          onConfirm()
+        })
+      ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce({
+        isAxiosError: true,
+        response: { status: 409, data: {} },
+      })
+
+      await render(<ServiceDetailScreen id="srv-101" />)
+
+      const deleteBtn = screen.getByTestId('btn-owner-delete')
+      await act(async () => {
+        fireEvent.press(deleteBtn)
+      })
+
+      expect(dialogService.alert).toHaveBeenCalledWith(
+        'خطأ',
+        'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
+        'error',
+      )
+      confirmSpy.mockRestore()
+    })
   })
 
   describe('Non-ready states', () => {

@@ -1,10 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { dialogService } from '../store/dialogStore'
+import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+
+export const equipmentMediaAdapter: PermissionAdapter = {
+  kind: 'equipmentMediaLibrary',
+  titleAr: 'إذن الوصول مطلوب',
+  deniedMessageAr: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور المعدة',
+  blockedMessageAr: 'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور المعدة',
+  request: async () => {
+    return await ImagePicker.requestMediaLibraryPermissionsAsync()
+  },
+}
 
 interface UseEquipmentFormLogicProps {
   images: any[]
   existingImages?: any[]
+  removedImageIds?: string[]
   features: string[]
   onUpdateImages: (images: any[]) => void
   onUpdateExistingImages?: (images: any[]) => void
@@ -16,6 +29,7 @@ interface UseEquipmentFormLogicProps {
 export function useEquipmentFormLogic({
   images,
   existingImages = [],
+  removedImageIds,
   features,
   onUpdateImages,
   onUpdateExistingImages,
@@ -25,13 +39,21 @@ export function useEquipmentFormLogic({
 }: UseEquipmentFormLogicProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [customFeatureInput, setCustomFeatureInput] = useState('')
+  const removedIdsRef = useRef<string[]>(
+    Array.isArray(removedImageIds) ? removedImageIds : []
+  )
+
+  useEffect(() => {
+    if (removedImageIds !== undefined) {
+      removedIdsRef.current = Array.isArray(removedImageIds) ? removedImageIds : []
+    }
+  }, [removedImageIds])
 
   // ── Image Management ──
   const handlePickImages = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      const permission = await requestPermission(equipmentMediaAdapter)
       if (!permission.granted) {
-        dialogService.alert('إذن الوصول مطلوب', 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور المعدة')
         return
       }
 
@@ -49,7 +71,7 @@ export function useEquipmentFormLogic({
         onClearFieldError?.('images')
       }
     } catch (err) {
-      dialogService.alert('خطأ', 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، يرجى المحاولة مجدداً'))
     } finally {
       setIsUploading(false)
     }
@@ -68,11 +90,16 @@ export function useEquipmentFormLogic({
     })
     onUpdateExistingImages(updated)
 
-    // Track removed ID for backend deletion
+    // Track removed ID for backend deletion without losing previously removed IDs
     if (onUpdateRemovedImageIds) {
       const target = existingImages.find((img: any) => img.id === idOrUrl || img.url === idOrUrl)
       if (target?.id) {
-        onUpdateRemovedImageIds([target.id])
+        const current = Array.isArray(removedIdsRef.current) ? removedIdsRef.current : []
+        if (!current.includes(target.id)) {
+          const next = [...current, target.id]
+          removedIdsRef.current = next
+          onUpdateRemovedImageIds(next)
+        }
       }
     }
   }

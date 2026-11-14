@@ -24,9 +24,12 @@ import { useAuthStore } from '../../../src/store/authStore'
 import { useScrollAwareNav } from '../../../src/hooks/useScrollAwareNav'
 import { useOperatorNavigation } from '../../../src/hooks/useOperatorNavigation'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
+import { EmptyState } from '../../../src/components/ui/EmptyState'
 import { SectionFooterAction } from '../../../src/components/ui/SectionFooterAction'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
 import { BrowseResultsBar } from '../../../src/components/ui/BrowseResultsBar'
+import { StaleDataBanner } from '../../../src/components/listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../../src/utils/getListErrorProps'
 import { FilterGlassTokens } from '../../../src/constants/filterGlassTokens'
 import { ListingTabs } from '../../../src/components/ui/ListingTabs'
 import { QuickFilters, QuickFilterItem } from '../../../src/components/ui/QuickFilters'
@@ -86,8 +89,18 @@ export default function BrowseOperatorsScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: false })
   }, [queryParams])
 
-  const { data, isLoading, isError, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useOperatorsInfinite(queryParams)
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isRefetchError,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useOperatorsInfinite(queryParams)
 
   const { isLoggedIn } = useAuthStore()
   const { data: myOperators } = useMyOperators(!!isLoggedIn)
@@ -307,27 +320,43 @@ export default function BrowseOperatorsScreen() {
     ]
   )
 
-  const listEmptyComponent = useMemo(
-    () =>
-      !isLoading ? (
-        <View style={s.emptyContainer}>
-          <View style={s.emptyIconWrap}>
-            <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
-          </View>
-          <Text style={s.emptyTitle}>لا توجد نتائج مطابقة</Text>
-          <Text style={s.emptySubtitle}>
-            جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى
-          </Text>
-          {(searchQuery.length > 0 || activeFiltersCount > 0) && (
-            <TouchableOpacity style={s.resetBtn} onPress={handleClearAll} activeOpacity={0.8}>
-              <Ionicons name="refresh" size={14} color={Colors.primary} />
-              <Text style={s.resetBtnTxt}>إعادة تعيين الكل</Text>
-            </TouchableOpacity>
-          )}
+  const listEmptyComponent = useMemo(() => {
+    if (isLoading) return null
+
+    if (isError && operators.length === 0) {
+      const errorProps = getListErrorProps(error, 'تعذر تحميل المشغلين')
+      return (
+        <EmptyState
+          testID="operators-browse-error-state"
+          icon={errorProps.icon}
+          iconColor={errorProps.iconColor}
+          title={errorProps.title}
+          subtitle={errorProps.subtitle}
+          actionLabel={errorProps.actionLabel ?? 'إعادة المحاولة'}
+          actionIcon="refresh-outline"
+          onAction={() => refetch()}
+        />
+      )
+    }
+
+    return (
+      <View style={s.emptyContainer}>
+        <View style={s.emptyIconWrap}>
+          <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
         </View>
-      ) : null,
-    [isLoading, searchQuery.length, activeFiltersCount, handleClearAll]
-  )
+        <Text style={s.emptyTitle}>لا توجد نتائج مطابقة</Text>
+        <Text style={s.emptySubtitle}>
+          جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى
+        </Text>
+        {(searchQuery.length > 0 || activeFiltersCount > 0) && (
+          <TouchableOpacity style={s.resetBtn} onPress={handleClearAll} activeOpacity={0.8}>
+            <Ionicons name="refresh" size={14} color={Colors.primary} />
+            <Text style={s.resetBtnTxt}>إعادة تعيين الكل</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    )
+  }, [isLoading, isError, operators.length, error, refetch, searchQuery.length, activeFiltersCount, handleClearAll])
 
   const listFooterComponent = useMemo(
     () => (
@@ -373,7 +402,7 @@ export default function BrowseOperatorsScreen() {
           onChangeTab={(tabId: string) => {
             setFilters((prev) => ({
               ...prev,
-              operatorType: tabId === 'all' ? undefined : (tabId as any),
+              operatorType: tabId === 'all' ? undefined : (tabId as OperatorListing['operatorType']),
             }))
           }}
           onClearTab={() =>
@@ -392,6 +421,13 @@ export default function BrowseOperatorsScreen() {
           glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
+
+      {(isError || isRefetchError) && operators.length > 0 && (
+        <StaleDataBanner
+          onRetry={() => refetch()}
+          isRefetching={isRefetching}
+        />
+      )}
 
       {/* ═══════════════ 3. MAIN LIST ═══════════════ */}
       <Animated.FlatList

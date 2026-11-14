@@ -4,6 +4,25 @@ import { useLocalSearchParams, router } from 'expo-router'
 import { searchApi, EntityType, SortBy, SearchParams } from '../api/search'
 import { useDebounce } from './useDebounce'
 import { useSearchHistory } from './useSearchHistory'
+import { parseListEnvelope } from '../utils/parseListEnvelope'
+
+/**
+ * Normalizes legacy `{ data: [...] }` envelopes to `{ items: [...] }` while
+ * preserving strict `parseListEnvelope` validation on invalid/malformed shapes.
+ */
+function normalizeSearchEnvelope(raw: unknown): unknown {
+  if (
+    raw !== null &&
+    typeof raw === 'object' &&
+    !Array.isArray(raw) &&
+    !('items' in raw) &&
+    Array.isArray((raw as Record<string, unknown>).data)
+  ) {
+    const record = raw as Record<string, unknown>
+    return { ...record, items: record.data }
+  }
+  return raw
+}
 
 export type CategoryFilterType = 'all' | 'cars' | 'parts' | 'buses' | 'equipment' | 'jobs' | 'services'
 
@@ -70,25 +89,29 @@ export function useSearchLogic() {
 
   // Autocomplete Query
   const shouldFetchAutocomplete = Boolean(query.trim().length >= 2 && query !== debouncedQuery)
-  const { data: autocompleteSuggestions = [] } = useQuery<string[]>({
+  const {
+    data: autocompleteSuggestions = [],
+    isError: isAutocompleteError,
+    error: autocompleteError,
+    refetch: refetchAutocomplete,
+    isRefetching: isRefetchingAutocomplete,
+  } = useQuery<string[]>({
     queryKey: ['search-autocomplete', debouncedAutocompleteQuery],
     queryFn: async () => {
       if (!debouncedAutocompleteQuery || debouncedAutocompleteQuery.trim().length < 2) return []
-      try {
-        const res = await searchApi.autocomplete(debouncedAutocompleteQuery.trim(), 6)
-        const raw = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.items)
-            ? res.data.items
-            : Array.isArray(res.data?.data)
-              ? res.data.data
-              : []
-        return raw
-          .map((item: any) => (typeof item === 'string' ? item : item?.title || item?.name || ''))
-          .filter((t: string) => Boolean(t && t.trim()))
-      } catch {
-        return []
-      }
+      const res = await searchApi.autocomplete(debouncedAutocompleteQuery.trim(), 6)
+      const { items } = parseListEnvelope<unknown>(normalizeSearchEnvelope(res.data))
+      return items
+        .map((item) => {
+          if (typeof item === 'string') return item
+          if (item && typeof item === 'object') {
+            const obj = item as { title?: unknown; name?: unknown }
+            if (typeof obj.title === 'string') return obj.title
+            if (typeof obj.name === 'string') return obj.name
+          }
+          return ''
+        })
+        .filter((t) => Boolean(t && t.trim()))
     },
     enabled: Boolean(debouncedAutocompleteQuery && debouncedAutocompleteQuery.trim().length >= 2),
     staleTime: 60 * 1000,
@@ -106,6 +129,8 @@ export function useSearchLogic() {
     data,
     isLoading,
     isError,
+    error,
+    isRefetching,
     refetch,
     fetchNextPage,
     hasNextPage,
@@ -140,27 +165,26 @@ export function useSearchLogic() {
 
       const res = await searchApi.search(searchParams)
       const raw = res.data
+      const parsed = parseListEnvelope<any>(normalizeSearchEnvelope(raw))
+      const items = parsed.items
+      const rawRecord =
+        raw !== null && typeof raw === 'object' && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>)
+          : undefined
 
-      let items: any[] = []
-      let total = 0
-      let totalPages = 1
-
-      if (Array.isArray(raw)) {
-        items = raw
-        total = raw.length
-      } else if (raw && typeof raw === 'object') {
-        items = Array.isArray(raw.items) ? raw.items : Array.isArray(raw.data) ? raw.data : []
-        total = typeof raw.meta?.total === 'number'
-          ? raw.meta.total
-          : typeof raw.total === 'number'
-          ? raw.total
+      const total =
+        typeof parsed.meta?.total === 'number'
+          ? parsed.meta.total
+          : typeof rawRecord?.total === 'number'
+          ? rawRecord.total
           : items.length
-        totalPages = typeof raw.meta?.totalPages === 'number'
-          ? raw.meta.totalPages
-          : typeof raw.totalPages === 'number'
-          ? raw.totalPages
+
+      const totalPages =
+        typeof parsed.meta?.totalPages === 'number'
+          ? parsed.meta.totalPages
+          : typeof rawRecord?.totalPages === 'number'
+          ? rawRecord.totalPages
           : Math.ceil(total / 20) || 1
-      }
 
       return {
         items,
@@ -246,10 +270,16 @@ export function useSearchLogic() {
     activeFiltersCount,
     hasActiveCriteria,
     autocompleteSuggestions,
+    isAutocompleteError,
+    autocompleteError,
+    refetchAutocomplete,
+    isRefetchingAutocomplete,
     results,
     totalResultsCount,
     isLoading: hasActiveCriteria && isLoading,
     isError,
+    error,
+    isRefetching,
     refetch,
     fetchNextPage,
     hasNextPage,

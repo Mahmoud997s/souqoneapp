@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
   Platform,
   FlatList,
 } from 'react-native';
@@ -24,7 +26,9 @@ import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHead
 import { ListingTabs, TabItem } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
-import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
+import { EmptyState } from '../../src/components/ui/EmptyState';
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
+import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
@@ -52,6 +56,7 @@ import {
 // Constants
 import { Colors } from '../../src/constants/colors';
 import { Spacing } from '../../src/constants/spacing';
+import { Radius } from '../../src/constants/radius';
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../src/constants/services';
 
 const PROVIDER_TABS: TabItem[] = [
@@ -126,16 +131,21 @@ export default function ServicesBrowseScreen() {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
+    isRefetchError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteServices(queryParams);
 
   const listings = useMemo(
     () => infiniteData?.pages.flatMap((page) => page.items) ?? [],
     [infiniteData]
   );
+
+  const showSkeleton = isLoading && listings.length === 0;
 
   // Active filters count calculation via pure module
   const activeFiltersCount = useMemo(() => {
@@ -179,7 +189,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'serviceType',
       label: foundType ? foundType.label : 'نوع الخدمة',
-      icon: 'build-outline' as any,
+      icon: 'build-outline',
       isActive: !!filters.serviceType,
     });
 
@@ -192,7 +202,7 @@ export default function ServicesBrowseScreen() {
           ? filters.specializations![0]
           : `تخصصات (${filters.specializations!.length})`
         : 'التخصص',
-      icon: 'sparkles-outline' as any,
+      icon: 'sparkles-outline',
       isActive: hasSpec,
     });
 
@@ -202,7 +212,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'city',
       label: hasLocation ? locationLabel : 'الموقع',
-      icon: 'location-outline' as any,
+      icon: 'location-outline',
       isActive: hasLocation,
     });
 
@@ -211,7 +221,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'providerType',
       label: foundProvider ? foundProvider.label : 'نوع المزود',
-      icon: 'business-outline' as any,
+      icon: 'business-outline',
       isActive: !!filters.providerType,
     });
 
@@ -219,7 +229,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'isOpenNow',
       label: 'مفتوح الآن',
-      icon: 'time-outline' as any,
+      icon: 'time-outline',
       isActive: !!filters.isOpenNow,
     });
 
@@ -227,7 +237,7 @@ export default function ServicesBrowseScreen() {
     items.push({
       id: 'isHomeService',
       label: 'خدمة منزلية',
-      icon: 'home-outline' as any,
+      icon: 'home-outline',
       isActive: !!filters.isHomeService,
     });
 
@@ -255,8 +265,13 @@ export default function ServicesBrowseScreen() {
         }
         return next;
       });
-    } else {
-      setActiveDropdown(id as any);
+    } else if (
+      id === 'serviceType' ||
+      id === 'specialization' ||
+      id === 'providerType' ||
+      id === 'city'
+    ) {
+      setActiveDropdown(id);
     }
   }, []);
 
@@ -326,8 +341,8 @@ export default function ServicesBrowseScreen() {
   }, []);
 
   const listData = useMemo(
-    () => (isLoading ? (Array(6).fill({}) as UnifiedCardItem[]) : listings),
-    [isLoading, listings]
+    () => (showSkeleton ? (Array(6).fill({}) as UnifiedCardItem[]) : listings),
+    [showSkeleton, listings]
   );
 
   const keyExtractor = useCallback(
@@ -343,7 +358,7 @@ export default function ServicesBrowseScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: UnifiedCardItem }) => {
-      if (isLoading) {
+      if (showSkeleton) {
         return (
           <View style={styles.cardWrapper}>
             <ServiceSkeletonCard fullWidth />
@@ -361,7 +376,7 @@ export default function ServicesBrowseScreen() {
         </View>
       );
     },
-    [isLoading, getItemPressHandler, glassSupport]
+    [showSkeleton, getItemPressHandler, glassSupport]
   );
 
   const listHeaderComponent = useMemo(
@@ -377,7 +392,7 @@ export default function ServicesBrowseScreen() {
           glassSupport={glassSupport}
         />
 
-        {!isLoading && listings && listings.length > 0 && (
+        {!showSkeleton && listings && listings.length > 0 && (
           <BrowseResultsBar
             resultsCount={listings.length}
             entityName="خدمة"
@@ -397,7 +412,7 @@ export default function ServicesBrowseScreen() {
       handleVisualFilterSelect,
       handleViewAllVisualFilters,
       glassSupport,
-      isLoading,
+      showSkeleton,
       listings,
       activeFiltersCount,
       handleClearAll,
@@ -412,7 +427,22 @@ export default function ServicesBrowseScreen() {
             <ActivityIndicator size="small" color={Colors.primary} />
           </View>
         )}
-        {!isLoading && listings && listings.length > 0 && (
+        {isFetchNextPageError && (
+          <View style={styles.paginationErrorRow} testID="services-pagination-error">
+            <Text style={styles.paginationErrorText}>تعذر تحميل المزيد من الخدمات</Text>
+            <TouchableOpacity
+              style={styles.paginationRetryButton}
+              onPress={() => fetchNextPage()}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="إعادة المحاولة"
+              testID="services-pagination-retry-button"
+            >
+              <Text style={styles.paginationRetryText}>إعادة المحاولة</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!showSkeleton && listings && listings.length > 0 && (
           <SectionFooterAction
             title="لديك مركز صيانة أو تقدم خدمات؟"
             subtitle="انشر خدماتك الآن ووصل لآلاف العملاء في منطقتك"
@@ -424,26 +454,50 @@ export default function ServicesBrowseScreen() {
         )}
       </>
     ),
-    [isFetchingNextPage, isLoading, listings, handleAddService]
+    [isFetchingNextPage, isFetchNextPageError, fetchNextPage, showSkeleton, listings, handleAddService]
   );
 
-  const listEmptyComponent = useMemo(
-    () =>
-      !isLoading ? (
-        <BrowseEmptyState
-          isLoading={isLoading}
-          isError={isError}
-          activeFiltersCount={activeFiltersCount}
-          onRetry={refetch}
-          onClearAll={handleClearAll}
-          iconName="construct-outline"
-          emptyTitle="لم يتم العثور على خدمات مطابقة"
-          emptySubtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر"
-          errorText="حدث خطأ أثناء تحميل الخدمات"
+  const listEmptyComponent = useMemo(() => {
+    if (showSkeleton) {
+      return null;
+    }
+
+    if (isError && listings.length === 0) {
+      const errorProps = getListErrorProps(error, 'تعذر تحميل الخدمات');
+      return (
+        <EmptyState
+          testID="services-browse-error-state"
+          icon={errorProps.icon}
+          iconColor={errorProps.iconColor}
+          title={errorProps.title}
+          subtitle={errorProps.subtitle}
+          actionLabel={errorProps.actionLabel}
+          actionIcon="refresh-outline"
+          onAction={() => refetch()}
         />
-      ) : null,
-    [isLoading, isError, activeFiltersCount, refetch, handleClearAll]
-  );
+      );
+    }
+
+    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
+
+    return (
+      <EmptyState
+        testID="services-browse-empty-state"
+        icon="construct-outline"
+        iconSize={40}
+        iconColor={Colors.primary}
+        title="لم يتم العثور على خدمات مطابقة"
+        subtitle={
+          hasActiveFiltersOrSearch
+            ? 'جرب تغيير معايير البحث أو إزالة بعض الفلاتر.'
+            : 'لا توجد خدمات متاحة في هذا القسم حالياً.'
+        }
+        actionLabel={hasActiveFiltersOrSearch ? 'إعادة تعيين الكل' : 'تحديث الصفحة'}
+        actionIcon={hasActiveFiltersOrSearch ? 'close-circle-outline' : 'refresh-outline'}
+        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+      />
+    );
+  }, [showSkeleton, isError, error, listings.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
 
   return (
     <View style={styles.container}>
@@ -472,6 +526,13 @@ export default function ServicesBrowseScreen() {
         />
       </CollapsibleSubHeader>
 
+      {(isRefetchError || (isError && !isFetchNextPageError)) && listings.length > 0 && (
+        <StaleDataBanner
+          onRetry={() => refetch()}
+          isRefetching={isFetching && !isFetchingNextPage}
+        />
+      )}
+
       {/* Main Content List */}
       <Animated.FlatList
         ref={flatListRef}
@@ -491,7 +552,7 @@ export default function ServicesBrowseScreen() {
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
-            refreshing={isFetching && !isFetchingNextPage}
+            refreshing={isFetching && !showSkeleton && !isFetchingNextPage}
             onRefresh={refetch}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
@@ -545,5 +606,39 @@ const styles = StyleSheet.create({
   footerLoader: {
     paddingVertical: Spacing.space4,
     alignItems: 'center',
+  },
+  paginationErrorRow: {
+    paddingVertical: Spacing.space4,
+    paddingHorizontal: Spacing.space4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+  },
+  paginationErrorText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.error,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  paginationRetryButton: {
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space2,
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paginationRetryText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.primary,
+    writingDirection: 'rtl',
   },
 });

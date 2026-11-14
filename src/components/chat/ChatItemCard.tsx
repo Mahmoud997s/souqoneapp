@@ -16,6 +16,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Config } from '../../constants/config'
 import { ChatRoom } from '../../types/listing.types'
+import { UserSummary } from '../../types/auth.types'
 
 export interface ChatItemCardProps {
   room: ChatRoom
@@ -69,7 +70,7 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
   const swipeableRef = useRef<Swipeable>(null)
 
   const otherParticipant =
-    room.participants?.find((p: any) => p.id !== currentUserId) ??
+    room.participants?.find((p: UserSummary) => p.id !== currentUserId) ??
     room.participants?.[0]
 
   const displayName =
@@ -78,7 +79,7 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
     'مستخدم سوق ون'
 
   const avatarUri = getAvatarUrl(
-    otherParticipant?.avatarUrl || (otherParticipant as any)?.avatar
+    otherParticipant?.avatarUrl || otherParticipant?.avatar
   )
 
   const unreadCount = room.unreadCount ?? 0
@@ -86,10 +87,10 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
   const lastMessage = room.lastMessage
   const isOwnLastMessage =
     lastMessage?.sender?.id === currentUserId ||
-    (lastMessage as any)?.senderId === currentUserId
+    lastMessage?.senderId === currentUserId
 
   const listing = room.listing
-  const isOwnerOfListing = listing && (listing as any).userId === currentUserId
+  const isOwnerOfListing = listing && listing.userId === currentUserId
   const listingImage = listing?.images?.[0]?.url
 
   const handlePress = () => {

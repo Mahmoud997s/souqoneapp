@@ -1,8 +1,20 @@
 import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { dialogService } from '../store/dialogStore'
-import { BusWizardData } from '../store/busWizardStore'
+import { BusWizardData, useBusWizardStore } from '../store/busWizardStore'
 import { MAX_BUS_IMAGES } from '../constants/buses'
+import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+
+const busMediaAdapter: PermissionAdapter = {
+  kind: 'mediaLibrary',
+  titleAr: 'إذن الوصول مطلوب',
+  deniedMessageAr: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور الحافلة',
+  blockedMessageAr: 'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور الحافلة',
+  request: async () => {
+    return await ImagePicker.requestMediaLibraryPermissionsAsync()
+  },
+}
 
 export function useBusFormLogic(
   data: BusWizardData,
@@ -12,12 +24,8 @@ export function useBusFormLogic(
 
   const handlePickImages = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      const permission = await requestPermission(busMediaAdapter)
       if (!permission.granted) {
-        dialogService.alert(
-          'إذن الوصول مطلوب',
-          'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور الحافلة'
-        )
         return
       }
 
@@ -42,8 +50,8 @@ export function useBusFormLogic(
         const newImages = [...(data.images || []), ...picked]
         onUpdateField('images', newImages)
       }
-    } catch (err) {
-      dialogService.alert('خطأ', 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
+    } catch (err: unknown) {
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر اختيار الصور، حاول مرة أخرى'))
     } finally {
       setIsUploading(false)
     }
@@ -69,10 +77,12 @@ export function useBusFormLogic(
         (img: any) => img.id === idOrUrl || img.url === idOrUrl
       )
       if (target?.id) {
-        onUpdateField('removedImageIds', [...(data.removedImageIds || []), target.id])
+        // Read latest state from store to prevent stale closure race conditions
+        const latestRemoved = useBusWizardStore.getState().data.removedImageIds || []
+        onUpdateField('removedImageIds', [...latestRemoved, target.id])
       }
     },
-    [data.existingImages, data.removedImageIds, onUpdateField]
+    [data.existingImages, onUpdateField]
   )
 
   const handleMakePrimaryNew = useCallback(

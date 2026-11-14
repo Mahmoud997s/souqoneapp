@@ -2,10 +2,11 @@ import { apiClient } from './client'
 import { UploadResponse } from '../types/api.types'
 
 export const uploadsApi = {
-  single:   (formData: FormData) =>
+  single:   (formData: FormData, signal?: AbortSignal) =>
               apiClient.post<UploadResponse>('/uploads', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 transformRequest: (data) => data,
+                signal,
               }),
   multiple: (formData: FormData) =>
               apiClient.post<UploadResponse[]>('/uploads/multiple', formData, {
@@ -18,10 +19,17 @@ export const uploadsApi = {
               apiClient.post(`/uploads/listings/${listingId}/images/url`, { url }),
   reorderImages: (listingId: string, imageIds: string[]) =>
               apiClient.patch(`/uploads/listings/${listingId}/images/reorder`, { imageIds }),
-  addPartImage: (partId: string, url: string) =>
-              apiClient.post(`/uploads/parts/${partId}/images`, { url }),
-  removePartImage: (imageId: string) =>
-              apiClient.delete(`/uploads/parts/images/${imageId}`),
+  addPartImageByUrl: (partId: string, url: string, isPrimary?: boolean, signal?: AbortSignal) =>
+              apiClient.post(
+                `/uploads/parts/${partId}/images/url`,
+                {
+                  url,
+                  isPrimary: Boolean(isPrimary),
+                },
+                signal ? { signal } : undefined
+              ),
+  removePartImage: (imageId: string, signal?: AbortSignal) =>
+              apiClient.delete(`/uploads/parts/images/${imageId}`, signal ? { signal } : undefined),
   removeServiceImage: (imageId: string) =>
               apiClient.delete(`/uploads/services/images/${imageId}`),
 }

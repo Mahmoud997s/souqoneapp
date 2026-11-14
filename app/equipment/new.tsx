@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native'
 import { router, Stack } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
@@ -20,6 +21,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { dialogService } from '../../src/store/dialogStore'
 import { useAuthStore } from '../../src/store/authStore'
 import { uploadsApi } from '../../src/api/uploads'
@@ -29,6 +31,13 @@ import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
 import { useEquipmentFormLogic } from '../../src/hooks/useEquipmentFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
+import {
+  uploadAndReconcileEquipmentImages,
+  buildEquipmentListingPayload,
+} from '../../src/utils/equipment/equipmentWizardSubmitHelpers'
 
 import { EquipmentStep1Type } from '../../src/components/equipment/wizard/EquipmentStep1Type'
 import { EquipmentStep2Images } from '../../src/components/equipment/wizard/EquipmentStep2Images'
@@ -40,12 +49,27 @@ import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhone
 
 const TOTAL_STEPS = 5
 
+function handleEquipmentMutationError(err: unknown, fallbackMessage: string) {
+  const status = (err as { response?: { status?: number } })?.response?.status
+  if (status === 429) {
+    dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+    return
+  }
+  dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
+}
+
 export default function NewEquipmentListingScreen() {
   const insets = useSafeAreaInsets()
+  const queryClient = useQueryClient()
   const { hasPhone } = useProfilePhoneGuard()
   const { user } = useAuthStore()
   const createMutation = useCreateEquipment()
   const updateMutation = useUpdateEquipment()
+  const [publishSuccess, setPublishSuccess] = useState<{
+    equipmentId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   const {
     currentStep,
@@ -68,6 +92,7 @@ export default function NewEquipmentListingScreen() {
   const formLogic = useEquipmentFormLogic({
     images: formData.images,
     existingImages: formData.existingImages,
+    removedImageIds: formData.removedImageIds,
     features: formData.features,
     onUpdateImages: (imgs) => setFormField('images', imgs),
     onUpdateExistingImages: (imgs) => setFormField('existingImages', imgs),
@@ -167,54 +192,20 @@ export default function NewEquipmentListingScreen() {
 
     setIsUploadingImages(true)
 
-    // 1. Process existing images + upload any local image files
+    // 1. Process existing images + upload any local image files via extracted helper
     let finalImageUrls: string[] = []
     let newImageUrls: string[] = []
     try {
-      // Add existing images from previous upload
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url || img.uri
-          if (url) finalImageUrls.push(url)
-        }
-      }
-
-      // Upload newly added local images
-      if (formData.images && formData.images.length > 0) {
-        for (const img of formData.images) {
-          if (typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://'))) {
-            finalImageUrls.push(img)
-          } else {
-            const uri = typeof img === 'string' ? img : img.uri
-            if (uri) {
-              if (uri.startsWith('http://') || uri.startsWith('https://')) {
-                finalImageUrls.push(uri)
-              } else {
-                try {
-                  const filePayload = buildUploadFilePayload(img, 'equip')
-                  if (!filePayload) continue
-
-                  const data = new FormData()
-                  data.append('file', filePayload as any)
-                  const res = await uploadsApi.single(data)
-                  const url = (res.data as any)?.url ?? (res.data as any)?.path ?? (res as any)?.url
-                  if (url) {
-                    finalImageUrls.push(url)
-                    newImageUrls.push(url)
-                  }
-                } catch (uploadErr: any) {
-                  logWarn('EquipmentNew:UploadImage', uploadErr)
-                  const serverMsg = uploadErr?.response?.data?.message || uploadErr?.message
-                  throw new Error(serverMsg || 'فشل رفع إحدى الصور، يرجى المحاولة مجدداً')
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e: any) {
+      const reconcileResult = await uploadAndReconcileEquipmentImages(
+        formData.images,
+        formData.existingImages
+      )
+      finalImageUrls = reconcileResult.finalImageUrls
+      newImageUrls = reconcileResult.newImageUrls
+    } catch (e: unknown) {
       logWarn('EquipmentNew:UploadBeforeSubmit', e)
-      dialogService.alert('خطأ في رفع الصور', e.message || 'تحقق من اتصالك وأعد المحاولة', 'error')
+      const errMessage = (e as Error)?.message || 'تحقق من اتصالك وأعد المحاولة'
+      dialogService.alert('خطأ في رفع الصور', errMessage, 'error')
       setIsUploadingImages(false)
       return
     } finally {
@@ -222,47 +213,7 @@ export default function NewEquipmentListingScreen() {
     }
 
     // 2. Prepare payload matching backend CreateEquipmentListingDto exactly
-    const payload: any = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      equipmentType: formData.equipmentType,
-      listingType: formData.listingType,
-
-      make: formData.make.trim() || undefined,
-      model: formData.model.trim() || undefined,
-      year: formData.year ? Number(formData.year) : undefined,
-      condition: formData.condition || 'USED',
-      capacity: formData.capacity.trim() || undefined,
-      power: formData.power.trim() || undefined,
-      weight: formData.weight.trim() || undefined,
-      hoursUsed: formData.hoursUsed ? Number(formData.hoursUsed) : undefined,
-      features: formData.features.length > 0 ? formData.features : undefined,
-
-      isPriceNegotiable: formData.isPriceNegotiable,
-      withOperator: formData.withOperator,
-      deliveryAvailable: formData.deliveryAvailable,
-
-      governorateId: formData.governorateId ? Number(formData.governorateId) : undefined,
-      wilayaId: formData.wilayaId ? Number(formData.wilayaId) : undefined,
-      latitude: formData.latitude || undefined,
-      longitude: formData.longitude || undefined,
-
-      whatsappEnabled: formData.whatsappEnabled === true,
-      ...(formData.editMode ? {} : { images: finalImageUrls.length > 0 ? finalImageUrls : undefined }),
-    }
-
-    if (formData.listingType === 'EQUIPMENT_SALE') {
-      payload.price = formData.price ? Number(formData.price) : undefined
-    } else if (formData.listingType === 'EQUIPMENT_RENT') {
-      payload.dailyPrice = formData.dailyPrice ? Number(formData.dailyPrice) : undefined
-      payload.monthlyPrice = formData.monthlyPrice ? Number(formData.monthlyPrice) : undefined
-    } else if (formData.listingType === 'EQUIPMENT_WANTED') {
-      payload.budgetMin = formData.budgetMin ? Number(formData.budgetMin) : undefined
-      payload.budgetMax = formData.budgetMax ? Number(formData.budgetMax) : undefined
-      payload.rentalDuration = formData.rentalDuration || undefined
-      payload.quantity = formData.quantity ? Number(formData.quantity) : 1
-      payload.siteDetails = formData.siteDetails || undefined
-    }
+    const payload = buildEquipmentListingPayload(formData, finalImageUrls)
 
     if (formData.editMode && formData.editListingId) {
       updateMutation.mutate(
@@ -284,45 +235,98 @@ export default function NewEquipmentListingScreen() {
               logWarn('EquipmentNew:UpdateImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الإعلان والصور بنجاح', 'success')
-            } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يرجى المحاولة مرة أخرى.',
-                'warning'
-              )
-            }
+            const targetId = formData.editListingId ? String(formData.editListingId) : ''
+            void invalidateEquipmentListingQueries(queryClient, targetId || undefined)
             resetDraft()
-            router.back()
+            setPublishSuccess({
+              equipmentId: targetId,
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات المعدة وصورها بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور.',
+            })
           },
-          onError: (err: any) => {
-            const msg = err?.response?.data?.message || 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+          onError: (err: unknown) => {
+            handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات')
           },
         }
       )
     } else {
       createMutation.mutate(payload, {
-        onSuccess: (res: any) => {
-          const equipId = res?.data?.id ?? res?.id
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان المعدة بنجاح في سوق ون!')
+        onSuccess: (res: unknown) => {
+          const resObj = res as { data?: { id?: string | number }; id?: string | number }
+          const equipId = resObj?.data?.id ?? resObj?.id
+          const targetId = equipId ? String(equipId) : ''
+          void invalidateEquipmentListingQueries(queryClient, targetId || undefined)
           resetDraft()
-          if (equipId) {
-            router.replace(`/equipment/${equipId}`)
-          } else {
-            router.replace('/equipment')
-          }
+          setPublishSuccess({
+            equipmentId: targetId,
+            isEdit: false,
+          })
         },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-          dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
+        onError: (err: unknown) => {
+          handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات')
         },
       })
     }
   }
 
   const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ تعديلات المعدة بنجاح!' : 'تم نشر معدتك بنجاح!'}
+          subtitle={
+            publishSuccess.isEdit
+              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات المعدة بنجاح في سوق ون.')
+              : 'إعلان معدتك متاح الآن في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.'
+          }
+          primaryAction={{
+            label: 'عرض المعدة',
+            onPress: () => {
+              const targetId = publishSuccess.equipmentId
+              resetDraft()
+              if (targetId) {
+                router.replace(`/equipment/${targetId}`)
+              } else {
+                router.replace('/equipment')
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع للمعدات' : 'إضافة معدة أخرى',
+            onPress: () => {
+              resetDraft()
+              if (publishSuccess.isEdit) {
+                router.replace('/equipment')
+              } else {
+                setPublishSuccess(null)
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          tertiaryAction={{
+            label: 'العودة للرئيسية',
+            onPress: () => {
+              resetDraft()
+              router.replace('/')
+            },
+            testID: 'publish-success-tertiary-btn',
+          }}
+          onHardwareBack={() => {
+            resetDraft()
+            router.replace('/equipment')
+            return true
+          }}
+        />
+      </View>
+    )
+  }
 
   if (!hasPhone && !formData.editMode) {
     return (
@@ -353,12 +357,12 @@ export default function NewEquipmentListingScreen() {
           actions={[
             {
               icon: 'chatbubble-outline',
-              onPress: () => router.push('/(tabs)/chat' as any),
+              onPress: () => router.push('/(tabs)/chat'),
               accessibilityLabel: 'الرسائل',
             },
             {
               icon: 'notifications-outline',
-              onPress: () => router.push('/profile/notifications' as any),
+              onPress: () => router.push('/profile/notifications'),
               accessibilityLabel: 'الإشعارات',
             },
           ]}
@@ -466,6 +470,7 @@ export default function NewEquipmentListingScreen() {
               />
               <View style={{ flex: 1 }}>
                 <AppButton
+                  testID={currentStep === TOTAL_STEPS ? 'wizard-submit-btn' : undefined}
                   title={currentStep === TOTAL_STEPS ? (formData.editMode ? 'حفظ التعديلات' : 'نشر الإعلان الآن') : 'متابعة الخطوة التالية'}
                   size="sm"
                   onPress={handleNext}

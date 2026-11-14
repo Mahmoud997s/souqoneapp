@@ -46,6 +46,7 @@ export interface EquipmentListing {
   capacity?: string
   power?: string
   weight?: string
+  features?: string[]
 
   // Pricing (Sale & Rent)
   price?: number

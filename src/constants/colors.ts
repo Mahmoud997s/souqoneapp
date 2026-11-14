@@ -46,5 +46,8 @@ export const Colors = {
   successDeep:  '#192435',
   error:        '#dc2626',
   warning:      '#f59e0b',
+  warningBg:     '#FFFBEB',
+  warningBorder: '#FDE68A',
+  warningText:   '#92400E',
   info:         '#009CB5',
 } as const

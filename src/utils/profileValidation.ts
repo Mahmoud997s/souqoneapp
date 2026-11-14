@@ -206,3 +206,85 @@ export function shouldBlockForFailedAvatarUpload(
   return avatarAction === 'uploaded' && (!uploadedAvatarUrl || uploadedAvatarUrl.trim().length === 0)
 }
 
+export interface ProfileBackendErrorMapping {
+  fieldErrors: {
+    displayName?: string
+    phone?: string
+    bio?: string
+  }
+  nonFieldErrors: string[]
+}
+
+/**
+ * Pure function to map backend error responses (S7 fieldErrors, class-validator array, or single string)
+ * into field-level errors and non-field messages for profile editing.
+ * Aligned with UpdateProfileDto and PR #163.
+ */
+export function mapProfileBackendErrors(errorResponse: unknown): ProfileBackendErrorMapping {
+  const result: ProfileBackendErrorMapping = {
+    fieldErrors: {},
+    nonFieldErrors: [],
+  }
+
+  if (!errorResponse || typeof errorResponse !== 'object') {
+    return result
+  }
+
+  const data = (errorResponse as any)?.response?.data ?? errorResponse
+
+  // 1. Structured S7 fieldErrors: Array<{ field: string; message: string }>
+  if (Array.isArray(data?.fieldErrors)) {
+    for (const item of data.fieldErrors) {
+      if (!item || typeof item !== 'object') continue
+      const field = typeof item.field === 'string' ? item.field.trim() : ''
+      const message = typeof item.message === 'string' ? item.message.trim() : ''
+      if (!message) continue
+
+      if (field === 'displayName') {
+        result.fieldErrors.displayName = message
+      } else if (field === 'phone') {
+        result.fieldErrors.phone = message
+      } else if (field === 'bio') {
+        result.fieldErrors.bio = message
+      } else {
+        result.nonFieldErrors.push(message)
+      }
+    }
+  }
+
+  // 2. Class-validator or legacy array: message: string[]
+  if (Array.isArray(data?.message)) {
+    for (const msg of data.message) {
+      if (typeof msg !== 'string') continue
+      const trimmed = msg.trim()
+      if (!trimmed) continue
+
+      if (/الاسم|displayName/i.test(trimmed)) {
+        if (!result.fieldErrors.displayName) result.fieldErrors.displayName = trimmed
+      } else if (/الهاتف|phone/i.test(trimmed)) {
+        if (!result.fieldErrors.phone) result.fieldErrors.phone = trimmed
+      } else if (/النبذة|bio/i.test(trimmed)) {
+        if (!result.fieldErrors.bio) result.fieldErrors.bio = trimmed
+      } else {
+        if (!result.nonFieldErrors.includes(trimmed)) {
+          result.nonFieldErrors.push(trimmed)
+        }
+      }
+    }
+  } else if (typeof data?.message === 'string' && data.message.trim()) {
+    const trimmed = data.message.trim()
+    if (/الاسم|displayName/i.test(trimmed)) {
+      if (!result.fieldErrors.displayName) result.fieldErrors.displayName = trimmed
+    } else if (/الهاتف|phone/i.test(trimmed)) {
+      if (!result.fieldErrors.phone) result.fieldErrors.phone = trimmed
+    } else if (/النبذة|bio/i.test(trimmed)) {
+      if (!result.fieldErrors.bio) result.fieldErrors.bio = trimmed
+    } else {
+      if (!result.nonFieldErrors.includes(trimmed)) {
+        result.nonFieldErrors.push(trimmed)
+      }
+    }
+  }
+
+  return result
+}

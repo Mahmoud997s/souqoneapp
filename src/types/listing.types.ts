@@ -182,6 +182,7 @@ export interface ChatMessage {
   roomId: string
   content: string
   sender: UserSummary
+  senderId?: string
   createdAt: string
   isRead: boolean
   type?: 'TEXT' | 'IMAGE' | 'FILE'
@@ -193,12 +194,22 @@ export interface ChatRoom {
   entityType: string
   entityId: string
   participants: UserSummary[]
-  lastMessage?: ChatMessage
+  lastMessage?: ChatMessage | {
+    id: string
+    senderId?: string
+    content: string
+    createdAt: string
+    sender?: UserSummary
+    isRead?: boolean
+    type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
+    mediaUrl?: string
+  }
   unreadCount: number
   updatedAt: string
   listing?: {
     id: string
     title: string
+    userId?: string
     price?: number
     currency?: string
     images?: { url: string }[]

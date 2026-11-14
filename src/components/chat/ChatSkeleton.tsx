@@ -1,6 +1,13 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Animated } from 'react-native'
+import { View, StyleSheet, Animated, DimensionValue } from 'react-native'
 import { Colors } from '../../constants/colors'
+
+interface SkeletonBubble {
+  isOwn: boolean
+  width: DimensionValue
+  height: number
+  marginTop: number
+}
 
 export function ChatSkeleton() {
   const anim = useRef(new Animated.Value(0)).current
@@ -19,7 +26,7 @@ export function ChatSkeleton() {
   const bgOwn = anim.interpolate({ inputRange: [0, 1], outputRange: ['#E0F2FE', '#BAE6FD'] }) // Light blue shades
   const bgOther = anim.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface, Colors.border] })
 
-  const bubbles = [
+  const bubbles: SkeletonBubble[] = [
     { isOwn: false, width: '60%', height: 44, marginTop: 16 },
     { isOwn: true, width: '40%', height: 44, marginTop: 12 },
     { isOwn: true, width: '75%', height: 64, marginTop: 4 },
@@ -36,7 +43,7 @@ export function ChatSkeleton() {
             style={[
               s.bubble,
               b.isOwn ? s.bubbleOwn : s.bubbleOther,
-              { width: b.width as any, height: b.height },
+              { width: b.width, height: b.height },
               { backgroundColor: b.isOwn ? bgOwn : bgOther }
             ]}
           />

@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -18,6 +18,8 @@ import { BusCard } from '../../src/components/buses/BusCard'
 import { PartCard } from '../../src/components/parts/PartCard'
 import { ServiceCard } from '../../src/components/services/ServiceCard'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
+import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import {
   HorizontalScrollCard,
   SIDE_SCALE,
@@ -94,6 +96,10 @@ export interface SectionProps {
   seeAllRoute: string
   data: UnifiedCardItem[] | undefined
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
+  onRetry?: () => void | Promise<unknown>
+  isRefetching?: boolean
   routeBase: string
   CustomCard: React.ComponentType<HomeCustomCardProps>
   peek?: boolean
@@ -228,6 +234,10 @@ export const CategorySection = memo(function CategorySection({
   seeAllRoute,
   data,
   isLoading,
+  isError = false,
+  error,
+  onRetry,
+  isRefetching = false,
   routeBase,
   CustomCard,
   peek = false,
@@ -261,7 +271,10 @@ export const CategorySection = memo(function CategorySection({
     [CustomCard, glassSupport, peek, routeBase, sectionCardWidth]
   )
 
-  if (!isLoading && (!data || data.length === 0)) return null
+  const hasData = Array.isArray(data) && data.length > 0
+  if (!isLoading && !isError && !hasData) return null
+
+  const errorProps = !hasData && isError ? getListErrorProps(error, `تعذر تحميل ${title}`) : null
 
   return (
     <Animated.View style={s.section} entering={FadeInDown.duration(400)} testID={`home-section-${routeBase}`}>
@@ -291,7 +304,7 @@ export const CategorySection = memo(function CategorySection({
         </TouchableOpacity>
       </View>
 
-      {isLoading ? (
+      {isLoading && !hasData ? (
         <HorizontalScrollCard
           key="loading-skeletons"
           data={[1, 2, 3]}
@@ -311,23 +324,64 @@ export const CategorySection = memo(function CategorySection({
             />
           )}
         />
+      ) : errorProps ? (
+        <View style={s.sectionErrorCard} testID={`home-section-error-${routeBase}`}>
+          <View style={s.sectionErrorInfoRow}>
+            <View style={s.sectionErrorIconWrap}>
+              <Ionicons
+                name={errorProps.icon as keyof typeof Ionicons.glyphMap}
+                size={20}
+                color={errorProps.iconColor}
+              />
+            </View>
+            <View style={s.sectionErrorTextWrap}>
+              <Text style={s.sectionErrorTitle}>{errorProps.title}</Text>
+              <Text style={s.sectionErrorSubtitle}>{errorProps.subtitle}</Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            testID={`home-section-retry-${routeBase}`}
+            style={[s.sectionRetryBtn, (!onRetry || isRefetching) && s.sectionRetryBtnDisabled]}
+            onPress={() => onRetry?.()}
+            disabled={!onRetry || isRefetching}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={errorProps.actionLabel}
+          >
+            {isRefetching ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <>
+                <Ionicons name="refresh" size={14} color={Colors.white} />
+                <Text style={s.sectionRetryBtnText}>{errorProps.actionLabel}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       ) : (
-        <HorizontalScrollCard
-          key="loaded-cards"
-          data={data || []}
-          cardWidth={sectionCardWidth}
-          gap={sectionGap}
-          paddingEnd={sectionPaddingEnd}
-          trackPendingIndex
-          paging={sectionPaging}
-          showDots={sectionShowDots}
-          depthEffect={peek}
-          keyExtractor={(item) => item.id}
-          onSeeAll={handleSeeAll}
-          seeAllTitle="عرض الكل"
-          seeAllSubtitle={`تصفح جميع ${title}`}
-          renderItem={renderLoadedItem}
-        />
+        <>
+          {isError ? (
+            <View style={s.sectionStaleWrap} testID={`home-section-stale-${routeBase}`}>
+              <StaleDataBanner onRetry={onRetry ?? (() => {})} isRefetching={isRefetching} />
+            </View>
+          ) : null}
+          <HorizontalScrollCard
+            key="loaded-cards"
+            data={data || []}
+            cardWidth={sectionCardWidth}
+            gap={sectionGap}
+            paddingEnd={sectionPaddingEnd}
+            trackPendingIndex
+            paging={sectionPaging}
+            showDots={sectionShowDots}
+            depthEffect={peek}
+            keyExtractor={(item) => item.id}
+            onSeeAll={handleSeeAll}
+            seeAllTitle="عرض الكل"
+            seeAllSubtitle={`تصفح جميع ${title}`}
+            renderItem={renderLoadedItem}
+          />
+        </>
       )}
     </Animated.View>
   )
@@ -338,11 +392,46 @@ export default function HomeScreen() {
   const { user } = useAuthStore()
   const glassSupport = useGlassSupport()
 
-  const { data: listings, isLoading: loadingListings } = useListings({ limit: 8 })
-  const { data: services,  isLoading: loadingServices  } = useServices({ limit: 8 })
-  const { data: parts,     isLoading: loadingParts     } = useParts({ limit: 8 })
-  const { data: buses,     isLoading: loadingBuses     } = useBuses({ limit: 8 })
-  const { data: equipment, isLoading: loadingEquipment } = useEquipment({ limit: 8 })
+  const {
+    data: listings,
+    isLoading: loadingListings,
+    isError: errorFlagListings,
+    error: errorListings,
+    refetch: refetchListings,
+    isRefetching: refetchingListings,
+  } = useListings({ limit: 8 })
+  const {
+    data: services,
+    isLoading: loadingServices,
+    isError: errorFlagServices,
+    error: errorServices,
+    refetch: refetchServices,
+    isRefetching: refetchingServices,
+  } = useServices({ limit: 8 })
+  const {
+    data: parts,
+    isLoading: loadingParts,
+    isError: errorFlagParts,
+    error: errorParts,
+    refetch: refetchParts,
+    isRefetching: refetchingParts,
+  } = useParts({ limit: 8 })
+  const {
+    data: buses,
+    isLoading: loadingBuses,
+    isError: errorFlagBuses,
+    error: errorBuses,
+    refetch: refetchBuses,
+    isRefetching: refetchingBuses,
+  } = useBuses({ limit: 8 })
+  const {
+    data: equipment,
+    isLoading: loadingEquipment,
+    isError: errorFlagEquipment,
+    error: errorEquipment,
+    refetch: refetchEquipment,
+    isRefetching: refetchingEquipment,
+  } = useEquipment({ limit: 8 })
 
   const { scrollHandler, scrollY } = useScrollAwareNav()
   const { navHidden } = useNavVisibility()
@@ -445,6 +534,10 @@ export default function HomeScreen() {
           seeAllRoute="/cars/browse"
           data={listings}
           isLoading={loadingListings}
+          isError={errorFlagListings}
+          error={errorListings}
+          onRetry={refetchListings}
+          isRefetching={refetchingListings}
           routeBase="cars"
           CustomCard={HomeCarCard}
           glassSupport={glassSupport}
@@ -459,6 +552,10 @@ export default function HomeScreen() {
           seeAllRoute="/services"
           data={services}
           isLoading={loadingServices}
+          isError={errorFlagServices}
+          error={errorServices}
+          onRetry={refetchServices}
+          isRefetching={refetchingServices}
           routeBase="services"
           CustomCard={HomeServiceCard}
           glassSupport={glassSupport}
@@ -473,6 +570,10 @@ export default function HomeScreen() {
           seeAllRoute="/parts"
           data={parts}
           isLoading={loadingParts}
+          isError={errorFlagParts}
+          error={errorParts}
+          onRetry={refetchParts}
+          isRefetching={refetchingParts}
           routeBase="parts"
           CustomCard={HomePartCard}
           glassSupport={glassSupport}
@@ -487,6 +588,10 @@ export default function HomeScreen() {
           seeAllRoute="/buses"
           data={buses}
           isLoading={loadingBuses}
+          isError={errorFlagBuses}
+          error={errorBuses}
+          onRetry={refetchBuses}
+          isRefetching={refetchingBuses}
           routeBase="buses"
           CustomCard={HomeBusCard}
           glassSupport={glassSupport}
@@ -501,6 +606,10 @@ export default function HomeScreen() {
           seeAllRoute="/equipment"
           data={equipment}
           isLoading={loadingEquipment}
+          isError={errorFlagEquipment}
+          error={errorEquipment}
+          onRetry={refetchEquipment}
+          isRefetching={refetchingEquipment}
           routeBase="equipment"
           CustomCard={HomeEquipCard}
           glassSupport={glassSupport}
@@ -597,7 +706,75 @@ const s = StyleSheet.create({
   seeAll: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
+    lineHeight: 16,
     color: Colors.primary,
     paddingTop: 1,
+  },
+  sectionStaleWrap: {
+    marginHorizontal: Spacing.space5,
+    marginBottom: Spacing.space2,
+  },
+  sectionErrorCard: {
+    marginHorizontal: Spacing.space5,
+    padding: Spacing.space4,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.space3,
+  },
+  sectionErrorInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.space3,
+  },
+  sectionErrorIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionErrorTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  sectionErrorTitle: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  sectionErrorSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  sectionRetryBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: 10,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primary,
+  },
+  sectionRetryBtnDisabled: {
+    opacity: 0.65,
+  },
+  sectionRetryBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: Colors.white,
   },
 })

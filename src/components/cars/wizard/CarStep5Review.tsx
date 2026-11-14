@@ -36,11 +36,11 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
       : formData.governorateName || 'سلطنة عمان'
 
   const allImages = [
-    ...(formData.existingImages || []).map((img: any) => (typeof img === 'string' ? img : img.url || img.uri)),
-    ...(formData.images || []).map((img: any) => (typeof img === 'string' ? img : img.uri || img.url)),
+    ...(formData.existingImages || []).map((img: string | { url?: string; uri?: string }) => (typeof img === 'string' ? img : img.url || img.uri)),
+    ...(formData.images || []).map((img: string | { uri?: string; url?: string }) => (typeof img === 'string' ? img : img.uri || img.url)),
   ].filter(Boolean)
 
-  const getLabel = (arr: any[], val: string) => arr.find((a) => a.value === val)?.label || val
+  const getLabel = (arr: Array<{ value: string; label: string }>, val: string) => arr.find((a) => a.value === val)?.label || val
   const getColorLabel = (val: string) => CAR_COLORS.find((c) => c.value === val)?.label || val
 
   const listingTypeLabel = isSale ? 'للبيع' : isRent ? 'للإيجار' : isWanted ? 'مطلوب' : formData.listingType
@@ -298,7 +298,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
               {formData.features.map((feat) => {
                 const featureObj = CAR_FEATURE_KEYS.find(f => f.id === feat)
                 const label = featureObj ? featureObj.label : feat
-                const icon = featureObj ? (featureObj.icon as any) : 'checkmark-circle'
+                const icon = featureObj ? (featureObj.icon as keyof typeof Ionicons.glyphMap) : 'checkmark-circle'
                 return (
                   <View key={feat} style={s.featureChip}>
                     <Ionicons name={icon} size={13} color="#059669" />

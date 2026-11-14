@@ -1,117 +1,103 @@
-import React, { useEffect, useState } from 'react'
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import type { AxiosResponse } from 'axios'
 import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
 import { equipmentApi } from '../../../src/api/equipment'
+import { EquipmentDetailApi } from '../../../src/types/equipmentDetailApi.types'
 import { useEquipmentWizardStore } from '../../../src/store/equipmentWizardStore'
-import { Colors } from '../../../src/constants/colors'
-import { Spacing } from '../../../src/constants/spacing'
-import { Radius } from '../../../src/constants/radius'
+import { DetailStates, type DetailStateKind } from '../../../src/components/listing-detail/DetailStates'
+import { getDetailErrorKind } from '../../../src/utils/listing-detail/getDetailErrorKind'
+
+function mapErrorToDetailStateKind(error: unknown): Exclude<DetailStateKind, 'loading'> {
+  const kind = getDetailErrorKind(error)
+  if (kind === 'offline' || kind === 'timeout' || kind === 'serverError' || kind === 'notFound') {
+    return kind
+  }
+  return 'error'
+}
 
 export default function EditEquipmentLoaderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { initEditMode } = useEquipmentWizardStore()
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const initEditMode = useEquipmentWizardStore((s) => s.initEditMode)
+  const [errorState, setErrorState] = useState<{ raw: unknown } | null>(null)
+  const activeRequestKeyRef = useRef<string | null>(null)
+  const requestIdRef = useRef(0)
+  const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    async function fetchListing() {
-      if (!id) return
-      setIsLoading(true)
-      setError(null)
-      try {
-        const res = await equipmentApi.getById(id)
-        const listing = (res as any)?.data ?? res
+  const load = useCallback(async () => {
+    if (!id || activeRequestKeyRef.current === id) return
+    activeRequestKeyRef.current = id
+    const thisRequestId = ++requestIdRef.current
+    setErrorState(null)
+    try {
+      const res = (await equipmentApi.getById(id)) as AxiosResponse<EquipmentDetailApi> | EquipmentDetailApi
+      if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
+      const listing = res && typeof res === 'object' && 'data' in res ? res.data : res
 
-        initEditMode(listing)
-        router.replace('/equipment/new')
-      } catch (err: any) {
-        setError('تعذر تحميل بيانات الإعلان، يرجى التحقق من اتصالك بالإنترنت')
-      } finally {
-        setIsLoading(false)
+      initEditMode(listing)
+      router.replace('/equipment/new')
+    } catch (err: unknown) {
+      if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
+      setErrorState({ raw: err })
+    } finally {
+      if (activeRequestKeyRef.current === id) {
+        activeRequestKeyRef.current = null
       }
     }
+  }, [id, initEditMode])
 
-    fetchListing()
-  }, [id])
+  useEffect(() => {
+    isMountedRef.current = true
+    if (id) {
+      load()
+    }
+    return () => {
+      requestIdRef.current += 1
+      activeRequestKeyRef.current = null
+    }
+  }, [id, load])
 
-  if (error) {
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const handleBack = useCallback(() => {
+    router.back()
+  }, [])
+
+  if (!id) {
     return (
-      <View style={styles.center}>
-        <View style={styles.errorIconWrap}>
-          <Ionicons name="alert-circle-outline" size={52} color={Colors.error} />
-        </View>
-        <Text style={styles.errorTitle}>خطأ في التحميل</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryBtn}
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.retryBtnTxt}>العودة للخلف</Text>
-        </TouchableOpacity>
-      </View>
+      <DetailStates
+        kind="notFound"
+        title="الإعلان غير موجود"
+        subtitle="تعذر العثور على معرّف إعلان المعدة المطلوب تعديله."
+        onBack={handleBack}
+      />
+    )
+  }
+
+  if (errorState) {
+    const detailKind = mapErrorToDetailStateKind(errorState.raw)
+    return (
+      <DetailStates
+        kind={detailKind}
+        title={detailKind === 'error' ? 'تعذر تحميل بيانات المعدة' : undefined}
+        subtitle={
+          detailKind === 'error'
+            ? 'حدث خطأ غير متوقع أثناء جلب بيانات إعلان المعدة. يرجى المحاولة مرة أخرى.'
+            : undefined
+        }
+        onRetry={load}
+        onBack={handleBack}
+      />
     )
   }
 
   return (
-    <View style={styles.center}>
-      <ActivityIndicator size="large" color={Colors.primary} />
-      <Text style={styles.loadingText}>جاري تجهيز بيانات إعلان المعدة للتعديل...</Text>
-    </View>
+    <DetailStates
+      kind="loading"
+      onBack={handleBack}
+    />
   )
 }
-
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.space5,
-    gap: 12,
-  },
-  loadingText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    lineHeight: 18,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    marginTop: Spacing.space2,
-  },
-  errorIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  errorTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  errorText: {
-    fontFamily: 'Almarai_400Regular',
-    color: Colors.textMuted,
-    fontSize: 12.5,
-    lineHeight: 17,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-  },
-  retryBtnTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: '#fff',
-  },
-})

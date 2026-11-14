@@ -15,6 +15,8 @@ import { BusCard } from '../BusCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
+import { getListErrorProps } from '../../../utils/getListErrorProps'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
 import {
@@ -26,11 +28,16 @@ import {
 
 const CARD_WIDTH = getPeekCardWidth()
 
-interface Props {
+export interface BusHorizontalListProps {
   title: string
   subTitle?: string
   data: any[]
   isLoading: boolean
+  isError?: boolean
+  error?: unknown
+  onRetry?: () => void
+  isRefetchError?: boolean
+  isRefetching?: boolean
   emptyText: string
   onSeeAll: () => void
   onPressItem: (item: any) => void
@@ -42,11 +49,17 @@ export const BusHorizontalList = memo(function BusHorizontalList({
   subTitle,
   data,
   isLoading,
+  isError,
+  error,
+  onRetry,
+  isRefetchError,
+  isRefetching,
   emptyText,
   onSeeAll,
   onPressItem,
   glassSupport,
-}: Props) {
+}: BusHorizontalListProps) {
+  const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل الحافلات') : null
   const renderLoadedItem = useCallback(
     ({ item }: { item: any }) => (
       <View style={{ width: CARD_WIDTH }}>
@@ -103,6 +116,14 @@ export const BusHorizontalList = memo(function BusHorizontalList({
         </View>
       ) : data.length > 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
+          {isRefetchError && (
+            <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
+              <StaleDataBanner
+                onRetry={onRetry}
+                isRefetching={isRefetching}
+              />
+            </View>
+          )}
           <HorizontalScrollCard
             key="loaded-cards"
             data={data}
@@ -120,6 +141,26 @@ export const BusHorizontalList = memo(function BusHorizontalList({
             renderItem={renderLoadedItem}
           />
         </View>
+      ) : isError ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -Spacing.space5 }}
+          contentContainerStyle={s.scrollContent}
+        >
+          <View style={s.emptyCard}>
+            <EmptyState
+              testID="buses-horizontal-error-state"
+              icon={errorProps?.icon ?? 'alert-circle-outline'}
+              iconColor={errorProps?.iconColor ?? Colors.error}
+              title={errorProps?.title ?? 'تعذر تحميل الحافلات'}
+              subtitle={errorProps?.subtitle ?? 'حدث خطأ أثناء تحميل البيانات، يرجى المحاولة مرة أخرى.'}
+              actionLabel={onRetry ? (errorProps?.actionLabel ?? 'إعادة المحاولة') : undefined}
+              onAction={onRetry}
+              compact
+            />
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           horizontal

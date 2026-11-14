@@ -15,23 +15,33 @@ import { OperatorCard } from '../../cards/OperatorCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { EmptyState } from '../../ui/EmptyState'
+import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 import { CardSystem } from '../../../constants/cardSystem'
 import { type GlassSupport } from '../../navigation/glassSupport'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
+import { OperatorListing } from '../../../types/equipment.types'
+import { UnifiedCardItem } from '../../../types/unified-card.types'
 
 export const OPERATOR_SWIPER_WIDTH_RATIO = 0.65
+
+export type OperatorHorizontalListItem =
+  | UnifiedCardItem
+  | OperatorListing
+  | { id: string; title: string; [key: string]: unknown }
 
 interface Props {
   title: string
   subTitle?: string
-  data: any[]
+  data: OperatorHorizontalListItem[]
   isLoading: boolean
   isError?: boolean
+  isRefetchError?: boolean
+  isRefetching?: boolean
   error?: unknown
   onRetry?: () => void
   emptyText: string
   onSeeAll: () => void
-  onPressItem: (item: any) => void
+  onPressItem: (item: OperatorHorizontalListItem) => void
   glassSupport?: GlassSupport
 }
 
@@ -41,6 +51,8 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   data,
   isLoading,
   isError,
+  isRefetchError,
+  isRefetching,
   error,
   onRetry,
   emptyText,
@@ -53,7 +65,7 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
   const errorProps = isError ? getListErrorProps(error, 'تعذر تحميل المشغلين') : null
 
   const renderLoadedItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: OperatorHorizontalListItem }) => (
       <View style={{ width: cardWidth }} testID="operator-swiper-item-wrapper">
         <OperatorCard
           item={item}
@@ -94,6 +106,14 @@ export const OperatorHorizontalList = memo(function OperatorHorizontalList({
         </View>
       ) : data.length > 0 ? (
         <View style={{ marginHorizontal: -Spacing.space5 }}>
+          {(isError || isRefetchError) && (
+            <View style={{ marginHorizontal: Spacing.space5, marginBottom: Spacing.space2 }}>
+              <StaleDataBanner
+                onRetry={onRetry}
+                isRefetching={isRefetching}
+              />
+            </View>
+          )}
           <HorizontalScrollCard
             key="loaded-operators"
             data={data}

@@ -5,10 +5,14 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { SkeletonCard } from './SkeletonCard'
+import { EmptyState } from './EmptyState'
+import { getListErrorProps } from '../../utils/getListErrorProps'
 
 export interface BrowseEmptyStateProps {
   isLoading: boolean
   isError: boolean
+  error?: unknown
+  errorTitle?: string
   activeFiltersCount?: number
   onRetry: () => void
   onClearAll?: () => void
@@ -21,6 +25,8 @@ export interface BrowseEmptyStateProps {
 export function BrowseEmptyState({
   isLoading,
   isError,
+  error,
+  errorTitle,
   activeFiltersCount = 0,
   onRetry,
   onClearAll,
@@ -42,6 +48,22 @@ export function BrowseEmptyState({
   }
 
   if (isError) {
+    if (error !== undefined) {
+      const errorProps = getListErrorProps(error, errorTitle ?? errorText)
+      return (
+        <EmptyState
+          testID="browse-error-state"
+          icon={errorProps.icon}
+          iconType="ionicons"
+          iconColor={errorProps.iconColor}
+          title={errorProps.title}
+          subtitle={errorProps.subtitle}
+          actionLabel={errorProps.actionLabel}
+          onAction={onRetry}
+        />
+      )
+    }
+
     return (
       <View style={styles.center}>
         <Text style={styles.errorTxt}>{errorText}</Text>

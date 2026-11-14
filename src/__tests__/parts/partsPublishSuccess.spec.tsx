@@ -20,7 +20,8 @@ jest.mock('../../api/cars', () => ({
 
 jest.mock('../../api/uploads', () => ({
   uploadsApi: {
-    addPartImage: jest.fn().mockResolvedValue({}),
+    single: jest.fn().mockResolvedValue({ data: { url: 'https://cdn.souqone.com/img.jpg' } }),
+    addPartImageByUrl: jest.fn().mockResolvedValue({}),
     removePartImage: jest.fn().mockResolvedValue({}),
   },
 }))

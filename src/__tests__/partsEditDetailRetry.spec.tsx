@@ -233,7 +233,7 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
     })
   })
 
-  it('non-parts regression: other types (e.g. buses) keep original ActivityIndicator and plain error', async () => {
+  it('non-parts regression: other types (e.g. buses) render DetailStates with error and retry', async () => {
     ;(useLocalSearchParams as jest.Mock).mockReturnValue({
       id: 'bus-777',
       type: 'buses',
@@ -243,12 +243,11 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
 
     await render(<EditListingLoader />)
 
-    // For buses, error renders plain s.error and s.backBtn instead of DetailStates
+    // With R4-2 (D-282), DetailStates is unified for all types including buses
     await waitFor(() => {
-      expect(screen.getByText('تعذر تحميل بيانات الإعلان')).toBeTruthy()
-      expect(screen.getByText('رجوع')).toBeTruthy()
-      expect(screen.queryByTestId('detail-state-error')).toBeNull()
-      expect(screen.queryByTestId('detail-skeleton')).toBeNull()
+      expect(screen.getByTestId('detail-state-error')).toBeTruthy()
+      expect(screen.getByLabelText('إعادة المحاولة')).toBeTruthy()
+      expect(screen.getByLabelText('الرجوع')).toBeTruthy()
     })
   })
 

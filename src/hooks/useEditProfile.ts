@@ -17,9 +17,13 @@ import {
   buildProfilePatch,
   hasProfileUnsavedChanges,
   shouldBlockForFailedAvatarUpload,
+  mapProfileBackendErrors,
 } from '../utils/profileValidation'
 import { normalizeOmaniPhoneDigits } from '../utils/authValidation'
 import { invalidateProfileQueries } from '../utils/profileQueryInvalidation'
+import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
 
 function normalizeArabic(text: string): string {
   return text
@@ -30,18 +34,24 @@ function normalizeArabic(text: string): string {
     .trim()
 }
 
-function extractApiErrorMessage(err: unknown, fallback: string): string {
-  if (err && typeof err === 'object') {
-    const res = (err as { response?: { data?: { message?: unknown } } }).response
-    const msg = res?.data?.message ?? (err as { message?: unknown }).message ?? fallback
-    if (Array.isArray(msg) && msg.length > 0) {
-      return String(msg[0])
-    }
-    if (typeof msg === 'string' && msg.trim()) {
-      return msg.trim()
-    }
-  }
-  return fallback
+const profileMediaAdapter: PermissionAdapter = {
+  kind: 'mediaLibrary',
+  titleAr: 'إذن الوصول مطلوب',
+  deniedMessageAr: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من اختيار صورة للملف الشخصي',
+  blockedMessageAr: 'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من اختيار صورة للملف الشخصي',
+  request: async () => {
+    return await ImagePicker.requestMediaLibraryPermissionsAsync()
+  },
+}
+
+const profileCameraAdapter: PermissionAdapter = {
+  kind: 'camera',
+  titleAr: 'صلاحية مطلوبة',
+  deniedMessageAr: 'يرجى منح إذن الوصول إلى الكاميرا من إعدادات الجهاز لالتقاط صورة للملف الشخصي',
+  blockedMessageAr: 'يرجى تفعيل صلاحية الكاميرا من إعدادات الهاتف لتتمكن من التقاط صورة للملف الشخصي',
+  request: async () => {
+    return await ImagePicker.requestCameraPermissionsAsync()
+  },
 }
 
 export function useEditProfile() {
@@ -99,47 +109,11 @@ export function useEditProfile() {
       setWilayaName(user.wilayaRef?.nameAr || user.city || '')
       setAvatarAction('unchanged')
       setLocalAvatarUri(null)
+      setErrors({})
     }
   }, [user])
 
-  // Resolve governorate name if user had ID but no name
-  useEffect(() => {
-    if (governorateId && !governorateName) {
-      locationsApi
-        .getGovernorates()
-        .then((list) => {
-          const found = list.find((g) => g.id === governorateId)
-          if (found) setGovernorateName(found.nameAr)
-        })
-        .catch(() => {})
-    }
-  }, [governorateId, governorateName])
-
-  // Resolve wilaya name if user had ID but no name
-  useEffect(() => {
-    if (governorateId && wilayaId && !wilayaName) {
-      locationsApi
-        .getWilayas(governorateId)
-        .then((list) => {
-          const found = list.find((w) => w.id === wilayaId)
-          if (found) setWilayaName(found.nameAr)
-        })
-        .catch(() => {})
-    }
-  }, [governorateId, wilayaId, wilayaName])
-
-  // Derived Avatar for display
-  const displayAvatar = useMemo(() => {
-    if (avatarAction === 'deleted') return null
-    if (avatarAction === 'uploaded' && localAvatarUri) return localAvatarUri
-
-    const orig = user?.avatarUrl || user?.avatar || null
-    if (!orig) return null
-    if (orig.startsWith('http') || orig.startsWith('file')) return orig
-    return `${Config.apiUrl}${orig.startsWith('/') ? '' : '/'}${orig}`
-  }, [avatarAction, localAvatarUri, user?.avatarUrl, user?.avatar])
-
-  // Clear specific field error on change
+  // Clear field errors on change
   const handleDisplayNameChange = (value: string) => {
     setDisplayName(value)
     if (errors.displayName) {
@@ -161,11 +135,27 @@ export function useEditProfile() {
     }
   }
 
+  // Active avatar display URL
+  const displayAvatar = useMemo(() => {
+    if (avatarAction === 'deleted') {
+      return null
+    }
+    if (avatarAction === 'uploaded' && localAvatarUri) {
+      return localAvatarUri
+    }
+    const rawStored = user?.avatarUrl || user?.avatar
+    if (!rawStored) return null
+    if (rawStored.startsWith('http://') || rawStored.startsWith('https://')) {
+      return rawStored
+    }
+    return `${Config.apiUrl}${rawStored.startsWith('/') ? '' : '/'}${rawStored}`
+  }, [avatarAction, localAvatarUri, user?.avatarUrl, user?.avatar])
+
+  // Image Picker Logic (Gallery & Camera via S4 requestPermission)
   const pickFromGallery = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (status !== 'granted') {
-        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى المعرض من إعدادات الجهاز')
+      const perm = await requestPermission(profileMediaAdapter)
+      if (!perm.granted) {
         return
       }
 
@@ -179,7 +169,7 @@ export function useEditProfile() {
         setLocalAvatarUri(result.assets[0].uri)
       }
     } catch (err: unknown) {
-      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء فتح المعرض')
+      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء فتح المعرض')
       dialogService.alert('خطأ', msg)
     } finally {
       setShowAvatarSheet(false)
@@ -188,9 +178,8 @@ export function useEditProfile() {
 
   const pickFromCamera = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync()
-      if (status !== 'granted') {
-        dialogService.alert('صلاحية مطلوبة', 'يرجى منح إذن الوصول إلى الكاميرا من إعدادات الجهاز')
+      const perm = await requestPermission(profileCameraAdapter)
+      if (!perm.granted) {
         return
       }
 
@@ -204,7 +193,7 @@ export function useEditProfile() {
         setLocalAvatarUri(result.assets[0].uri)
       }
     } catch (err: unknown) {
-      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء فتح الكاميرا')
+      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء فتح الكاميرا')
       dialogService.alert('خطأ', msg)
     } finally {
       setShowAvatarSheet(false)
@@ -228,8 +217,8 @@ export function useEditProfile() {
       try {
         const data = await locationsApi.getGovernorates()
         setGovernoratesList(data)
-      } catch {
-        dialogService.alert('خطأ', 'تعذر تحميل قائمة المحافظات')
+      } catch (err: unknown) {
+        dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحميل قائمة المحافظات'))
       } finally {
         setLoadingLocations(false)
       }
@@ -247,8 +236,8 @@ export function useEditProfile() {
     try {
       const data = await locationsApi.getWilayas(governorateId)
       setWilayasList(data)
-    } catch {
-      dialogService.alert('خطأ', 'تعذر تحميل قائمة الولايات')
+    } catch (err: unknown) {
+      dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحميل قائمة الولايات'))
     } finally {
       setLoadingLocations(false)
     }
@@ -382,7 +371,30 @@ export function useEditProfile() {
         router.back()
       }
     } catch (err: unknown) {
-      const msg = extractApiErrorMessage(err, 'حدث خطأ أثناء التحديث')
+      const status = (err as any)?.response?.status
+
+      // 429 Rate Limit
+      if (status === 429) {
+        dialogService.alert('محاولات كثيرة', getPublishRateLimitErrorMessage(err))
+        return
+      }
+
+      // 400 Validation / S7 Field Errors
+      if (status === 400) {
+        const { fieldErrors, nonFieldErrors } = mapProfileBackendErrors(err)
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...fieldErrors }))
+        }
+        if (nonFieldErrors.length > 0) {
+          dialogService.alert('خطأ في البيانات', nonFieldErrors.join('\n'))
+        } else if (Object.keys(fieldErrors).length === 0) {
+          dialogService.alert('خطأ في البيانات', getMutationErrorMessage(err, 'البيانات المدخلة غير صحيحة'))
+        }
+        return
+      }
+
+      // Network / 5xx / Fallback via getMutationErrorMessage
+      const msg = getMutationErrorMessage(err, 'حدث خطأ أثناء التحديث')
       dialogService.alert('خطأ', msg)
     } finally {
       setLoading(false)
@@ -433,23 +445,44 @@ export function useEditProfile() {
     return unsubscribe
   }, [navigation, hasUnsavedChanges])
 
-  // Android hardware back handler fallback
+  // Android hardware back button fallback
   useEffect(() => {
-    const backAction = () => {
-      if (hasUnsavedChanges) {
-        router.back()
-        return true
+    const onBackPress = () => {
+      if (!hasUnsavedChanges || isSaveSuccessfulRef.current) {
+        return false
       }
-      return false
+
+      if (isShowingConfirmRef.current) return true
+      isShowingConfirmRef.current = true
+
+      dialogService.show({
+        type: 'confirm',
+        title: 'تغييرات غير محفوظة',
+        message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
+        actions: [
+          {
+            text: 'متابعة التعديل',
+            style: 'cancel',
+            onPress: () => {
+              isShowingConfirmRef.current = false
+            },
+          },
+          {
+            text: 'تجاهل والخروج',
+            style: 'destructive',
+            onPress: () => {
+              isShowingConfirmRef.current = false
+              router.back()
+            },
+          },
+        ],
+      })
+      return true
     }
 
-    const subscription = BackHandler.addEventListener('hardwareBackPress', backAction)
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress)
     return () => subscription.remove()
   }, [hasUnsavedChanges])
-
-  const handleBackPress = () => {
-    router.back()
-  }
 
   return {
     displayName,
@@ -473,21 +506,18 @@ export function useEditProfile() {
     loadingLocations,
     filteredList,
 
-    hasUnsavedChanges,
-
     setDisplayName: handleDisplayNameChange,
-    setEmail,
     setPhone: handlePhoneChange,
     setBio: handleBioChange,
     setFocusedField,
-    setShowAvatarSheet,
     setSearchQuery,
+    setShowAvatarSheet,
     setModalType,
 
+    handlePickImage,
     pickFromGallery,
     pickFromCamera,
     handleDeleteAvatar,
-    handlePickImage,
 
     openGovernoratePicker,
     openWilayaPicker,
@@ -495,6 +525,7 @@ export function useEditProfile() {
     handleSelectWilaya,
 
     handleSave,
-    handleBackPress,
+    handleBackPress: () => router.back(),
+    hasUnsavedChanges,
   }
 }

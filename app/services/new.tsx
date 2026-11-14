@@ -12,8 +12,12 @@ import {
 import { router, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { invalidateServiceListingQueries } from '../../src/screens/services/hooks/serviceQueryKeys'
+import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
+import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
+import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -26,7 +30,11 @@ import { uploadsApi } from '../../src/api/uploads'
 import { servicesApi } from '../../src/api/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
-import { validateStep } from '../../src/hooks/useServiceValidation'
+import {
+  getServiceStepFields,
+  mapServiceBackendErrors,
+  validateStep,
+} from '../../src/hooks/useServiceValidation'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 
@@ -38,18 +46,33 @@ import { ServiceStep5Pricing } from '../../src/components/services/wizard/Servic
 import { ServiceStep6Review } from '../../src/components/services/wizard/ServiceStep6Review'
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
+import {
+  ServiceBackendPayload,
+  buildServiceListingPayload,
+  validateAllServiceStepsBeforeSubmit,
+  extractImageUrlsFromServiceFormData,
+} from '../../src/utils/services/serviceWizardSubmitHelpers'
+import { Service } from '../../src/types/listing.types'
 
 const TOTAL_STEPS = 6
 
 export default function NewServiceListingScreen() {
   const insets = useSafeAreaInsets()
   const { hasPhone } = useProfilePhoneGuard()
+  const queryClient = useQueryClient()
+  const [publishSuccess, setPublishSuccess] = useState<{
+    serviceId: string
+    isEdit: boolean
+    subtitle?: string
+  } | null>(null)
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => servicesApi.create(data),
+    mutationFn: (data: ServiceBackendPayload) =>
+      servicesApi.create(data as unknown as Partial<Service>),
   })
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => servicesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: ServiceBackendPayload }) =>
+      servicesApi.update(id, data as unknown as Partial<Service>),
   })
 
   const {
@@ -69,23 +92,60 @@ export default function NewServiceListingScreen() {
   const formLogic = useServiceFormLogic(formData, setField, setLocation)
 
   const clearFieldError = (field: string) => {
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev }
-        delete next[field]
-        return next
-      })
-    }
+    const keysToClear =
+      field === 'workingHoursOpen' || field === 'workingHoursClose'
+        ? [field, 'workingHours']
+        : [field]
+
+    setErrors((prev) => {
+      if (!keysToClear.some((k) => Boolean(prev[k]))) return prev
+      const next = { ...prev }
+      for (const k of keysToClear) {
+        delete next[k]
+      }
+      return next
+    })
   }
 
-  const setFormFieldAndClearError = (field: keyof ServiceFormData, value: any) => {
+  const setFormFieldAndClearError = <K extends keyof ServiceFormData>(
+    field: K,
+    value: ServiceFormData[K]
+  ) => {
     setField(field, value)
     clearFieldError(field as string)
   }
 
+  const handlePickImagesAndClearError = async () => {
+    clearFieldError('images')
+    await formLogic.handlePickImages()
+  }
+
+  const handleLocationAndClearErrors = (
+    govId: number,
+    wilId: number,
+    govNameAr: string,
+    wilNameAr: string
+  ) => {
+    formLogic.handleLocationChange(govId, wilId, govNameAr, wilNameAr)
+    setErrors((prev) => {
+      if (!prev.governorateId && !prev.wilayaId) return prev
+      const next = { ...prev }
+      delete next.governorateId
+      delete next.wilayaId
+      return next
+    })
+  }
+
   const validateCurrentStep = () => {
     const result = validateStep(currentStep, formData)
-    setErrors(result.errors)
+    const stepFields = getServiceStepFields(currentStep)
+    setErrors((prev) => {
+      const next = { ...prev }
+      for (const field of stepFields) {
+        delete next[field]
+      }
+      return { ...next, ...result.errors }
+    })
     return result.isValid
   }
 
@@ -175,29 +235,25 @@ export default function NewServiceListingScreen() {
   }
 
   const handleSubmit = async () => {
-    // 1. Validation loop for Steps 1-5
-    for (let s = 1; s <= 5; s++) {
-      const result = validateStep(s, formData)
-      if (!result.isValid) {
-        setErrors(result.errors)
-        goToStep(s)
-        return
+    // 1. Validation loop for Steps 1-5 via extracted helper
+    const validationCheck = validateAllServiceStepsBeforeSubmit(formData)
+    if (!validationCheck.isValid) {
+      setErrors(validationCheck.errors)
+      if (validationCheck.invalidStep !== null) {
+        goToStep(validationCheck.invalidStep)
       }
+      return
     }
 
+    setErrors({})
     setIsUploadingImages(true)
 
     // 2. Upload local images
-    const finalImageUrls: string[] = []
+    let finalImageUrls: string[] = []
     const newImageUrls: string[] = []
 
     try {
-      if (formData.existingImages && formData.existingImages.length > 0) {
-        for (const img of formData.existingImages) {
-          const url = typeof img === 'string' ? img : img.url
-          if (url) finalImageUrls.push(url)
-        }
-      }
+      finalImageUrls = extractImageUrlsFromServiceFormData(formData.existingImages)
 
       if (formData.images && formData.images.length > 0) {
         for (const img of formData.images) {
@@ -236,52 +292,23 @@ export default function NewServiceListingScreen() {
       setIsUploadingImages(false)
     }
 
-    // 3. Prepare payload matching backend CreateServiceDto
-    // Decision d6 / D-233: Days and hours are optional and independent.
-    // If days are empty, send workingDays: []. Hours are preserved when selected, or null on edit to clear.
-    const workingDaysToSubmit =
-      Array.isArray(formData.workingDays) && formData.workingDays.length > 0
-        ? formData.workingDays
-        : []
-    const isEdit = Boolean(formData.editMode && formData.editListingId)
+    // 3. Prepare payload matching backend CreateServiceDto via extracted helper
+    const payload = buildServiceListingPayload(formData, finalImageUrls)
 
-    const workingHoursOpen = formData.workingHoursOpen
-      ? formData.workingHoursOpen
-      : isEdit
-        ? null
-        : undefined
+    const handleServiceMutationError = (err: any, fallbackMessage: string) => {
+      if (err?.response?.status === 429) {
+        dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+        return
+      }
 
-    const workingHoursClose = formData.workingHoursClose
-      ? formData.workingHoursClose
-      : isEdit
-        ? null
-        : undefined
+      const mapped = mapServiceBackendErrors(err)
+      if (Object.keys(mapped.fieldErrors).length > 0 && mapped.firstInvalidStep !== null) {
+        setErrors(mapped.fieldErrors)
+        goToStep(mapped.firstInvalidStep)
+        return
+      }
 
-    const payload: any = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      serviceType: formData.serviceType!,
-      providerType: formData.providerType!,
-      providerName: formData.providerName.trim(),
-      specializations:
-        formData.specializations && formData.specializations.length > 0
-          ? formData.specializations
-          : undefined,
-      priceFrom: Number(formData.priceFrom),
-      ...(formData.priceTo != null ? { priceTo: Number(formData.priceTo) } : {}),
-      currency: formData.currency || 'OMR',
-      isHomeService: Boolean(formData.isHomeService),
-      workingHoursOpen,
-      workingHoursClose,
-      workingDays: workingDaysToSubmit,
-      governorateId: Number(formData.governorateId),
-      wilayaId: Number(formData.wilayaId),
-      address: formData.address ? formData.address.trim() : undefined,
-      latitude: formData.latitude != null ? Number(formData.latitude) : undefined,
-      longitude: formData.longitude != null ? Number(formData.longitude) : undefined,
-      whatsappEnabled: formData.whatsappEnabled === true,
-      website: formData.website ? formData.website.trim() : undefined,
-      images: finalImageUrls,
+      dialogService.alert('خطأ', getMutationErrorMessage(err, fallbackMessage))
     }
 
     // 4. Submit Mutation (Update or Create)
@@ -302,60 +329,41 @@ export default function NewServiceListingScreen() {
               logWarn('ServicesNew:RemoveImages', err)
             }
 
-            if (imagesSuccess) {
-              dialogService.alert('تم بنجاح', 'تم تحديث بيانات الخدمة بنجاح', 'success')
+            const targetId = formData.editListingId ? String(formData.editListingId) : ''
+            if (targetId) {
+              void invalidateServiceListingQueries(queryClient, targetId)
             } else {
-              dialogService.alert(
-                'تنبيه',
-                'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
-                'warning'
-              )
+              void invalidateServiceListingQueries(queryClient)
             }
-            reset()
-            router.back()
+            setPublishSuccess({
+              serviceId: targetId,
+              isEdit: true,
+              subtitle: imagesSuccess
+                ? 'تم تحديث بيانات الخدمة بنجاح في سوق ون.'
+                : 'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
+            })
           },
-          onError: (err: any) => {
-            if (err?.response?.status === 409) {
-              dialogService.alert('خطأ', 'تم تعديل هذه الخدمة مؤخراً أو يوجد تعارض في البيانات.')
-            } else if (err?.response?.status === 429) {
-              dialogService.alert(
-                'خطأ',
-                'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
-              )
-            } else {
-              const msg =
-                err?.response?.data?.message || 'تعذر تحديث بيانات الخدمة، يرجى التحقق من المدخلات'
-              dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
-            }
-          },
+          onError: (err: any) =>
+            handleServiceMutationError(err, 'تعذر تحديث بيانات الخدمة، يرجى التحقق من المدخلات'),
         }
       )
     } else {
       createMutation.mutate(payload, {
         onSuccess: (res: any) => {
-          dialogService.alert('تم بنجاح', 'تم نشر إعلان الخدمة بنجاح في سوق ون!')
-          const serviceId = res?.data?.id ?? res?.id
-          reset()
+          const rawId = res?.data?.id ?? res?.id
+          const serviceId = rawId ? String(rawId) : ''
           if (serviceId) {
-            router.replace(`/services/${serviceId}`)
+            void invalidateServiceListingQueries(queryClient, serviceId)
           } else {
-            router.replace('/')
+            void invalidateServiceListingQueries(queryClient)
           }
+          setPublishSuccess({
+            serviceId,
+            isEdit: false,
+          })
         },
-        onError: (err: any) => {
-          if (err?.response?.status === 409) {
-            dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
-          } else if (err?.response?.status === 429) {
-            dialogService.alert(
-              'خطأ',
-              'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
-            )
-          } else {
-            const msg =
-              err?.response?.data?.message || 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'
-            dialogService.alert('خطأ', Array.isArray(msg) ? msg.join('\n') : msg)
-          }
-        },
+        onError: (err: any) =>
+          handleServiceMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'),
       })
     }
   }
@@ -372,6 +380,65 @@ export default function NewServiceListingScreen() {
           onBack={() => router.back()}
         />
       </>
+    )
+  }
+
+  if (publishSuccess) {
+    return (
+      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <PublishSuccessView
+          title={publishSuccess.isEdit ? 'تم حفظ التعديلات بنجاح!' : 'تم نشر إعلانك بنجاح!'}
+          subtitle={
+            publishSuccess.isEdit
+              ? (publishSuccess.subtitle ?? 'تم تحديث بيانات الخدمة بنجاح في سوق ون.')
+              : 'إعلان الخدمة الخاص بك متاح الآن للعملاء في سوق ون بسلطنة عُمان.'
+          }
+          primaryAction={{
+            label: 'عرض الخدمة',
+            onPress: () => {
+              const targetId = publishSuccess.serviceId
+              reset()
+              if (targetId) {
+                router.replace(`/services/${targetId}`)
+              } else {
+                router.replace('/services')
+              }
+            },
+            testID: 'publish-success-primary-btn',
+          }}
+          secondaryAction={{
+            label: publishSuccess.isEdit ? 'الرجوع' : 'إضافة خدمة أخرى',
+            onPress: () => {
+              reset()
+              if (publishSuccess.isEdit) {
+                router.back()
+              } else {
+                setPublishSuccess(null)
+              }
+            },
+            testID: 'publish-success-secondary-btn',
+          }}
+          tertiaryAction={{
+            label: 'العودة للرئيسية',
+            onPress: () => {
+              reset()
+              router.replace('/')
+            },
+            testID: 'publish-success-tertiary-btn',
+          }}
+          onHardwareBack={() => {
+            reset()
+            if (publishSuccess.isEdit) {
+              router.back()
+            } else {
+              router.replace('/')
+            }
+            return true
+          }}
+        />
+      </View>
     )
   }
 
@@ -452,7 +519,7 @@ export default function NewServiceListingScreen() {
               existingImages={formData.existingImages || []}
               errors={errors}
               isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
+              onPickImages={handlePickImagesAndClearError}
               onRemoveNewImage={formLogic.handleRemoveNewImage}
               onRemoveExistingImage={formLogic.handleRemoveExistingImage}
               onMakePrimaryNew={formLogic.handleMakePrimaryNew}
@@ -481,7 +548,7 @@ export default function NewServiceListingScreen() {
               formData={formData}
               errors={errors}
               onUpdateField={setFormFieldAndClearError}
-              onLocationChange={formLogic.handleLocationChange}
+              onLocationChange={handleLocationAndClearErrors}
             />
           )}
 

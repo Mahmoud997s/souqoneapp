@@ -7,8 +7,13 @@ import { useChatMessagesInfinite } from './useChat'
 import { uploadsApi } from '../api/uploads'
 import { useChatMessagesStore } from '../store/chatMessagesStore'
 import { ChatSyncService } from '../services/ChatSyncService'
-import { FlashList } from '@shopify/flash-list'
+import { FlashListRef } from '@shopify/flash-list'
+import { ChatRoom, ChatMessage } from '../types/listing.types'
+import { UserSummary } from '../types/auth.types'
+import { ChatFileInfo } from '../components/chat/ChatInput'
 import { logError } from '../utils/safeLog'
+import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
+import { dialogService } from '../store/dialogStore'
 
 export interface LocalMessage {
   id: string
@@ -22,12 +27,19 @@ export interface LocalMessage {
   reactions?: { emoji: string; userId: string; username?: string }[]
   type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
   mediaUrl?: string
+  pendingDelete?: boolean
+  deleteError?: boolean
+}
+
+export interface TypingSocketEvent {
+  userId: string
+  conversationId: string
 }
 
 export function useChatRoomLogic(roomId: string, initialText?: string, otherUserName?: string, otherUserAvatar?: string) {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
-  const scrollRef = useRef<any>(null)
+  const scrollRef = useRef<FlashListRef<LocalMessage>>(null)
   
   const [msgText, setMsgText] = useState(initialText || '')
   
@@ -40,9 +52,9 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   
   const [otherUser, setOtherUser] = useState<{ id?: string; name: string; avatar?: string } | null>(() => {
     if (otherUserName) return { name: otherUserName, avatar: otherUserAvatar }
-    const cachedRooms = queryClient.getQueryData<any[]>(['chat-rooms'])
+    const cachedRooms = queryClient.getQueryData<ChatRoom[]>(['chat-rooms'])
     const cachedRoom = cachedRooms?.find((r) => r.id === roomId)
-    const otherParticipant = cachedRoom?.participants?.find((p: any) => p.id !== user?.id)
+    const otherParticipant = cachedRoom?.participants?.find((p: UserSummary) => p.id !== user?.id)
     if (otherParticipant) {
       return {
         id: otherParticipant.id,
@@ -70,8 +82,29 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   const [isOtherUserOnline, setIsOtherUserOnline] = useState(false)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const otherTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const deletingIdsRef = useRef<Set<string>>(new Set())
+  const deleteTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
-  const { data: initialMessagesData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useChatMessagesInfinite(roomId)
+  useEffect(() => {
+    return () => {
+      deleteTimeoutsRef.current.forEach((t) => clearTimeout(t))
+      deleteTimeoutsRef.current.clear()
+      deletingIdsRef.current.clear()
+    }
+  }, [])
+
+  const {
+    data: initialMessagesData,
+    isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatMessagesInfinite(roomId)
 
   // Join room via sync service when mounted
   useEffect(() => {
@@ -79,11 +112,11 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       ChatSyncService.joinRoom(roomId)
       
       // Clear unread count locally and find other user if missing
-      queryClient.setQueryData(['chat-rooms'], (old: any) => {
+      queryClient.setQueryData<ChatRoom[]>(['chat-rooms'], (old) => {
         if (!Array.isArray(old)) return old
         return old.map((room) => {
           if (room.id === roomId) {
-            const otherP = room.participants?.find((p: any) => p.id !== user?.id)
+            const otherP = room.participants?.find((p: UserSummary) => p.id !== user?.id)
             if (otherP) {
               setOtherUser(prev => prev?.name ? prev : {
                 id: otherP.id,
@@ -107,12 +140,12 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   useEffect(() => {
     if (initialMessagesData) {
       const initialMessages = initialMessagesData.pages.flat()
-      const mapped: LocalMessage[] = (initialMessages as any[]).map((m: any) => ({
+      const mapped: LocalMessage[] = initialMessages.map((m: ChatMessage) => ({
         id: m.id,
         senderId: m.senderId ?? m.sender?.id ?? '',
         content: m.content,
         createdAt: m.createdAt,
-        reactions: m.reactions ?? [],
+        reactions: (m as { reactions?: { emoji: string; userId: string; username?: string }[] }).reactions ?? [],
         isRead: m.isRead ?? false,
         type: m.type,
         mediaUrl: m.mediaUrl,
@@ -121,7 +154,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       addMessages(roomId, mapped)
 
       // Extract other user info
-      const other = (initialMessages as any[]).find((m: any) => {
+      const other = initialMessages.find((m: ChatMessage) => {
         const sid = m.senderId ?? m.sender?.id
         return sid !== user?.id
       })
@@ -140,7 +173,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     const socket = getSocket()
     if (!socket || !roomId) return
 
-    const onUserTyping = (data: any) => {
+    const onUserTyping = (data: TypingSocketEvent) => {
       if (data.userId !== user?.id && data.conversationId === roomId) {
         setIsOtherUserTyping(true)
         if (otherTypingTimeoutRef.current) clearTimeout(otherTypingTimeoutRef.current)
@@ -150,7 +183,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       }
     }
     
-    const onUserStopTyping = (data: any) => {
+    const onUserStopTyping = (data: TypingSocketEvent) => {
       if (data.userId !== user?.id && data.conversationId === roomId) {
         setIsOtherUserTyping(false)
         if (otherTypingTimeoutRef.current) clearTimeout(otherTypingTimeoutRef.current)
@@ -190,7 +223,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     }
   }, [messages.length])
 
-  const handleSend = useCallback(async (textOverride?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: any) => {
+  const handleSend = useCallback(async (textOverride?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: ChatFileInfo) => {
     let text = (textOverride ?? msgText).trim().substring(0, 2000)
     text = text.replace(/[\r\n]{3,}/g, '\n\n')
     
@@ -241,7 +274,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           uri: mediaUri,
           type: mime,
           name: filename,
-        } as any)
+        } as unknown as Blob)
         
         const uploadRes = await uploadsApi.single(formData)
         finalMediaUrl = uploadRes.data.url
@@ -263,12 +296,14 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
          removeMessage(roomId, tempId)
       } else {
          removeMessage(roomId, tempId)
-         addMessage(roomId, { ...realMessage, senderId: (realMessage as any).senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
+         addMessage(roomId, { ...realMessage, senderId: realMessage.senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
       }
 
     } catch (err) {
       logError('ChatRoom:SendMessage', err)
       updateMessage(roomId, tempId, { pending: false, error: true })
+      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
+      dialogService.alert('فشل الإرسال', errorMsg)
     }
   }, [msgText, roomId, user?.id, replyingToMessage, addMessage, removeMessage, updateMessage, otherUser?.name])
 
@@ -277,12 +312,65 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   }, [roomId, removeMessage])
 
   const handleDeleteMessage = useCallback((msgId: string) => {
-    removeMessage(roomId, msgId)
-    const socket = getSocket()
-    if (socket) {
-      socket.emit('delete-message', { messageId: msgId, conversationId: roomId })
+    const currentMessages = useChatMessagesStore.getState().messagesByRoom[roomId] || []
+    const msg = currentMessages.find(m => m.id === msgId)
+    if (!msg) return
+
+    // Only allow deleting own messages
+    if (msg.senderId !== user?.id) return
+
+    // Single-flight check
+    if (deletingIdsRef.current.has(msgId) || msg.pendingDelete) {
+      return
     }
-  }, [roomId, removeMessage])
+
+    const socket = getSocket()
+    if (!socket || !socket.connected) {
+      dialogService.alert('تنبيه', 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري')
+      return
+    }
+
+    updateMessage(roomId, msgId, { pendingDelete: true, deleteError: false })
+    deletingIdsRef.current.add(msgId)
+
+    const timeoutId = setTimeout(() => {
+      deleteTimeoutsRef.current.delete(msgId)
+      if (deletingIdsRef.current.has(msgId)) {
+        deletingIdsRef.current.delete(msgId)
+        updateMessage(roomId, msgId, { pendingDelete: false })
+        refetch()
+      }
+    }, 8000)
+
+    deleteTimeoutsRef.current.set(msgId, timeoutId)
+
+    socket.emit(
+      'delete-message',
+      { messageId: msgId, conversationId: roomId },
+      (ack?: { success?: boolean; error?: string; message?: string }) => {
+        const storedTimeout = deleteTimeoutsRef.current.get(msgId)
+        if (storedTimeout) {
+          clearTimeout(storedTimeout)
+          deleteTimeoutsRef.current.delete(msgId)
+        }
+        deletingIdsRef.current.delete(msgId)
+
+        if (ack?.success) {
+          removeMessage(roomId, msgId)
+        } else {
+          updateMessage(roomId, msgId, { pendingDelete: false, deleteError: true })
+          const reason = ack?.message || ack?.error || 'فشل حذف الرسالة من الخادم. هل تريد إعادة المحاولة؟'
+          dialogService.confirm(
+            'تعذر حذف الرسالة',
+            reason,
+            () => handleDeleteMessage(msgId),
+            'إعادة المحاولة',
+            'إلغاء'
+          )
+        }
+      }
+    )
+  }, [roomId, user?.id, updateMessage, removeMessage, refetch])
 
   const handleRetry = useCallback(async (msgId: string) => {
     const failedMsg = useChatMessagesStore.getState().messagesByRoom[roomId]?.find(m => m.id === msgId)
@@ -305,7 +393,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           uri: failedMsg.mediaUrl,
           type: mime,
           name: filename,
-        } as any)
+        } as unknown as Blob)
         
         const uploadRes = await uploadsApi.single(formData)
         finalMediaUrl = uploadRes.data.url
@@ -319,11 +407,13 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       const realMessage = res.data
       
       removeMessage(roomId, msgId)
-      addMessage(roomId, { ...realMessage, senderId: (realMessage as any).senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
+      addMessage(roomId, { ...realMessage, senderId: realMessage.senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
       
     } catch (err) {
       logError('ChatRoom:RetryMessage', err)
       updateMessage(roomId, msgId, { pending: false, error: true })
+      const errorMsg = getMutationErrorMessage(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة')
+      dialogService.alert('فشل الإرسال', errorMsg)
     }
   }, [roomId, updateMessage, removeMessage, addMessage])
 
@@ -370,6 +460,11 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   return {
     messages,
     isLoading,
+    isError,
+    error,
+    isRefetchError,
+    isRefetching,
+    refetch,
     replyingToMessage,
     setReplyingToMessage,
     otherUser,

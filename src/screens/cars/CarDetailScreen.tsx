@@ -81,7 +81,7 @@ import { SupportButton } from '../../components/listing-detail/SupportButton'
 import { DetailStates, DetailStateKind } from '../../components/listing-detail/DetailStates'
 import { DetailStaleBanner } from '../../components/listing-detail/DetailStaleBanner'
 import { filterSpecsSections } from '../../utils/listing-detail/filterSpecsSections'
-import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
+import { getDetailErrorKind, getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
 
 import type { CarDetailViewModel } from '../../types/carDetailViewModel.types'
 
@@ -242,21 +242,10 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
           )
         } else {
-          const kind = getDetailErrorKind(err)
-          let errorMsg = 'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
-          if (kind === 'offline') {
-            errorMsg = 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.'
-          } else if (kind === 'timeout') {
-            errorMsg = 'انتهت مهلة الاتصال بالخادم. يرجى إعادة المحاولة.'
-          } else {
-            const responseMsg =
-              typeof err === 'object' && err !== null && 'response' in err
-                ? (err as { response?: { data?: { message?: unknown } } }).response?.data?.message
-                : undefined
-            if (typeof responseMsg === 'string' && responseMsg.trim().length > 0) {
-              errorMsg = responseMsg
-            }
-          }
+          const errorMsg = getMutationErrorMessage(
+            err,
+            'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
+          )
           dialogService.alert('خطأ', errorMsg)
         }
       }

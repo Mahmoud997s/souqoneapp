@@ -196,19 +196,19 @@ export default function PostStep5Screen() {
         
         switch (store.category) {
           case 'services':
-            await servicesApi.update(store.editListingId, payload as any)
+            await servicesApi.update(store.editListingId, payload as Record<string, unknown>)
             break
           case 'parts':
-            await partsApi.update(store.editListingId, payload as any)
+            await partsApi.update(store.editListingId, payload as Record<string, unknown>)
             break
           case 'equipment':
-            await equipmentApi.update(store.editListingId, payload as any)
+            await equipmentApi.update(store.editListingId, payload as Record<string, unknown>)
             break
           case 'buses':
-            await busesApi.update(store.editListingId, payload as any)
+            await busesApi.update(store.editListingId, payload as Record<string, unknown>)
             break
           default:
-            await listingsApi.update(store.editListingId, payload as any)
+            await listingsApi.update(store.editListingId, payload as Record<string, unknown>)
             break
         }
 
@@ -231,19 +231,19 @@ export default function PostStep5Screen() {
       } else {
         switch (store.category) {
           case 'services':
-            await servicesApi.create(payload as any)
+            await servicesApi.create(payload as Record<string, unknown>)
             break
           case 'parts':
-            await partsApi.create(payload as any)
+            await partsApi.create(payload as Record<string, unknown>)
             break
           case 'equipment':
-            await equipmentApi.create(payload as any)
+            await equipmentApi.create(payload as Record<string, unknown>)
             break
           case 'buses':
-            await busesApi.create(payload as any)
+            await busesApi.create(payload as Record<string, unknown>)
             break
           default:
-            await listingsApi.create(payload as any)
+            await listingsApi.create(payload as Record<string, unknown>)
             break
         }
       }
