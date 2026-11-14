@@ -232,7 +232,7 @@ describe('mapOperatorDetail', () => {
       expect(vm.location.hasCoordinates).toBe(false)
     })
 
-    it('drops unknown equipment types gracefully while mapping known types', () => {
+    it('preserves unknown non-empty equipment types for display while normalizing known and legacy types', () => {
       const vm = mapOperatorDetail({
         ...baseApiData,
         operatorType: 'UNDERWATER_WELDER' as any,
@@ -240,9 +240,10 @@ describe('mapOperatorDetail', () => {
       })
 
       expect(vm.operatorTypeLabel).toBe('UNDERWATER_WELDER')
-      expect(vm.equipmentTypes).toHaveLength(2)
+      expect(vm.equipmentTypes).toHaveLength(3)
       expect(vm.equipmentTypes).toEqual([
         { value: 'CRANE', label: 'رافعة' },
+        { value: 'OTHER_EQUIPMENT', label: 'SUBMARINE' },
         { value: 'EXCAVATOR', label: 'حفار' },
       ])
     })

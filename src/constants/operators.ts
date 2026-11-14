@@ -2,6 +2,9 @@
  * Unified Operators Directory Constants (Single Source of Truth)
  */
 
+import type { EquipmentType } from '../types/equipment.types'
+import { EQUIPMENT_CATEGORIES } from './equipment'
+
 export interface OperatorRoleOption {
   id: 'OPERATOR' | 'DRIVER' | 'TECHNICIAN' | 'MAINTENANCE'
   title: string
@@ -13,7 +16,7 @@ export const OPERATOR_ROLES: OperatorRoleOption[] = [
   {
     id: 'OPERATOR',
     title: 'مشغل معدات ثقيلة',
-    desc: 'حفارات، لوادر، بلدوزرات، كرينات، مداحل',
+    desc: 'حفارات، لوادر، بلدوزرات، كرينات، رافعات شوكية',
     icon: 'construct-outline',
   },
   {
@@ -45,24 +48,103 @@ export const OPERATOR_ROLE_TABS = [
 ]
 
 export interface EquipmentCatalogItem {
-  id: string
+  id: EquipmentType
   label: string
 }
 
-export const AVAILABLE_EQUIPMENT: EquipmentCatalogItem[] = [
-  { id: 'حفار', label: 'حفار (Excavator)' },
-  { id: 'لودر', label: 'لودر (Wheel Loader)' },
-  { id: 'بلدوزر', label: 'بلدوزر (Bulldozer)' },
-  { id: 'كرين', label: 'كرين / رافعة (Crane)' },
-  { id: 'رافعة شوكية', label: 'رافعة شوكية (Forklift)' },
-  { id: 'جريدر', label: 'جريدر (Grader)' },
-  { id: 'مدحلة', label: 'مدحلة (Roller Compactor)' },
-  { id: 'قلاب', label: 'قلاب (Dump Truck)' },
-  { id: 'شاحنة ثقيلة', label: 'شاحنة ثقيلة (Heavy Truck)' },
-  { id: 'خلاطة خرسانة', label: 'خلاطة خرسانة (Concrete Mixer)' },
-  { id: 'صهريج مياه', label: 'صهريج مياه / وقود (Tanker)' },
-  { id: 'بوبكات', label: 'بوبكات (Bobcat)' },
-]
+export const AVAILABLE_EQUIPMENT: EquipmentCatalogItem[] = EQUIPMENT_CATEGORIES.map(
+  ({ key, label }) => ({
+    id: key,
+    label,
+  })
+)
+
+const VALID_OPERATOR_EQUIPMENT_CODES = new Set<EquipmentType>(
+  EQUIPMENT_CATEGORIES.map((item) => item.key)
+)
+
+const LEGACY_OPERATOR_EQUIPMENT_MAP: Record<string, EquipmentType> = {
+  'حفار': 'EXCAVATOR',
+  'حفارات': 'EXCAVATOR',
+  'حفار (Excavator)': 'EXCAVATOR',
+  'لودر': 'LOADER',
+  'شيول': 'LOADER',
+  'لودر / شيول': 'LOADER',
+  'لودر / جرافة': 'LOADER',
+  'لودر (Wheel Loader)': 'LOADER',
+  'بلدوزر': 'BULLDOZER',
+  'جرافة': 'BULLDOZER',
+  'بلدوزر / جرافة': 'BULLDOZER',
+  'بلدوزر (Bulldozer)': 'BULLDOZER',
+  'كرين': 'CRANE',
+  'كرين / رافعة': 'CRANE',
+  'رافعة': 'CRANE',
+  'رافعة / كرين': 'CRANE',
+  'كرين / رافعة (Crane)': 'CRANE',
+  'رافعة شوكية': 'FORKLIFT',
+  'رافعة شوكية (Forklift)': 'FORKLIFT',
+  'خلاطة خرسانة': 'CONCRETE_MIXER',
+  'خلاطة خرسانة (Concrete Mixer)': 'CONCRETE_MIXER',
+  'مولد كهرباء': 'GENERATOR',
+  'مولد ومضخة': 'GENERATOR',
+  'ضاغط هواء': 'COMPRESSOR',
+  'كمبروسر': 'COMPRESSOR',
+  'كمبروسر / ضاغط': 'COMPRESSOR',
+  'سقالات': 'SCAFFOLDING',
+  'سقالات ومعدات موقع': 'SCAFFOLDING',
+  'ماكينة لحام': 'WELDING_MACHINE',
+  'شاحنة ثقيلة': 'TRUCK',
+  'شاحنة ثقيلة (Heavy Truck)': 'TRUCK',
+  'شاحنة': 'TRUCK',
+  'شاحنة نقل': 'TRUCK',
+  'قلاب': 'DUMP_TRUCK',
+  'قلاب (Dump Truck)': 'DUMP_TRUCK',
+  'شاحنة تفريغ': 'DUMP_TRUCK',
+  'شاحنة تفريغ (قلاب)': 'DUMP_TRUCK',
+  'صهريج مياه': 'WATER_TANKER',
+  'صهريج مياه / وقود (Tanker)': 'WATER_TANKER',
+  'معدات خفيفة': 'LIGHT_EQUIPMENT',
+  'معدات أخرى': 'OTHER_EQUIPMENT',
+}
+
+/**
+ * Normalizes a single equipment type code or legacy Arabic label to a canonical EquipmentType enum code.
+ * Returns null for removed legacy items (e.g. grader/roller/bobcat) or unrecognized strings.
+ */
+export function normalizeOperatorEquipmentType(raw: unknown): EquipmentType | null {
+  if (typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+
+  const upper = trimmed.toUpperCase() as EquipmentType
+  if (VALID_OPERATOR_EQUIPMENT_CODES.has(upper)) {
+    return upper
+  }
+
+  if (Object.prototype.hasOwnProperty.call(LEGACY_OPERATOR_EQUIPMENT_MAP, trimmed)) {
+    return LEGACY_OPERATOR_EQUIPMENT_MAP[trimmed]
+  }
+
+  return null
+}
+
+/**
+ * Normalizes and deduplicates an array of equipment types to canonical EquipmentType enum codes.
+ */
+export function normalizeOperatorEquipmentTypes(rawList: unknown): EquipmentType[] {
+  if (!Array.isArray(rawList)) return []
+
+  const seen = new Set<EquipmentType>()
+  const result: EquipmentType[] = []
+  for (const item of rawList) {
+    const normalized = normalizeOperatorEquipmentType(item)
+    if (normalized && !seen.has(normalized)) {
+      seen.add(normalized)
+      result.push(normalized)
+    }
+  }
+  return result
+}
 
 export const CERTIFICATION_PRESETS: string[] = [
   'رخصة قيادة معدات ثقيلة سارية (ROP)',

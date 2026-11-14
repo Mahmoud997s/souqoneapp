@@ -55,8 +55,8 @@ export function OperatorCertificationsCard({
             المعدات المعتمد عليها
           </Text>
           <View style={s.chipsWrap}>
-            {equipmentTypes.map((eq) => (
-              <View key={eq.value} style={s.chip} testID={`operator-eq-chip-${eq.value}`}>
+            {equipmentTypes.map((eq, idx) => (
+              <View key={`${eq.value}-${idx}`} style={s.chip} testID={`operator-eq-chip-${eq.value}`}>
                 <Ionicons name="construct-outline" size={14} color={Colors.primary} />
                 <Text style={s.chipText} maxFontSizeMultiplier={1.3}>
                   {eq.label}

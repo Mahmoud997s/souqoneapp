@@ -1,3 +1,5 @@
+import { normalizeOperatorEquipmentTypes } from '../constants/operators'
+
 /**
  * Accepts OperatorWizardFormData (for both add and edit flows).
  * governorateId/wilayaId are optional here because the store marks them as optional;
@@ -44,7 +46,7 @@ export function buildOperatorPayload(formData: OperatorPayloadInput): Record<str
     description: formData.description.trim(),
     operatorType: formData.operatorType,
     experienceYears: formData.experienceYears ? Number(formData.experienceYears) : undefined,
-    equipmentTypes: formData.equipmentTypes,
+    equipmentTypes: normalizeOperatorEquipmentTypes(formData.equipmentTypes),
     specializations: formData.specializations,
     certifications: formData.certifications,
     dailyRate: parseOptionalPositiveRate(formData.dailyRate),

@@ -41,7 +41,9 @@ import {
   OPERATOR_ROLE_TABS,
   AVAILABLE_EQUIPMENT,
   OPERATOR_EXPERIENCE_RANGES,
+  normalizeOperatorEquipmentType,
 } from '../../../src/constants/operators'
+import { getEquipmentTypeLabel } from '../../../src/utils/equipment-mappers'
 import { OperatorFilterState } from '../../../src/types/filters.types'
 import { OperatorListing } from '../../../src/types/equipment.types'
 import { OMAN_LOCATIONS } from '../../../src/constants/locations'
@@ -141,8 +143,15 @@ export default function BrowseOperatorsScreen() {
   // Complete Set of Quick Filter Pills (Always visible & interactive)
   const quickFilterItems: QuickFilterItem[] = useMemo(() => {
     // 1. Equipment Category
-    const selectedEquipment = AVAILABLE_EQUIPMENT.find((e) => e.id === filters.equipmentType)
-    const equipmentLabel = selectedEquipment ? selectedEquipment.label : (filters.equipmentType || 'نوع المعدة')
+    const selectedEquipmentCode = normalizeOperatorEquipmentType(filters.equipmentType)
+    const selectedEquipment = AVAILABLE_EQUIPMENT.find(
+      (e) => e.id === (selectedEquipmentCode ?? filters.equipmentType)
+    )
+    const equipmentLabel = selectedEquipment
+      ? selectedEquipment.label
+      : filters.equipmentType
+        ? getEquipmentTypeLabel(filters.equipmentType)
+        : 'نوع المعدة'
 
     // 2. Location
     let locationLabel = 'المحافظة'

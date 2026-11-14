@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { validateOperatorStep } from '../hooks/useOperatorValidation'
+import { normalizeOperatorEquipmentTypes } from '../constants/operators'
 
 export interface OperatorWizardFormData {
   operatorType: string
@@ -85,17 +86,33 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
             delete updatedErrors.dailyRate
             delete updatedErrors.hourlyRate
           }
+          const nextFormData: OperatorWizardFormData = {
+            ...state.formData,
+            [key]: value,
+          }
+          if (key === 'equipmentTypes') {
+            nextFormData.equipmentTypes = normalizeOperatorEquipmentTypes(value)
+          }
           return {
-            formData: { ...state.formData, [key]: value },
+            formData: nextFormData,
             errors: updatedErrors,
           }
         })
       },
 
       setFormData: (data) => {
-        set((state) => ({
-          formData: { ...state.formData, ...data },
-        }))
+        set((state) => {
+          const nextFormData: OperatorWizardFormData = {
+            ...state.formData,
+            ...data,
+          }
+          if (data.equipmentTypes !== undefined) {
+            nextFormData.equipmentTypes = normalizeOperatorEquipmentTypes(data.equipmentTypes)
+          }
+          return {
+            formData: nextFormData,
+          }
+        })
       },
 
       setFieldError: (field, error) => {
@@ -136,6 +153,19 @@ export const useOperatorWizardStore = create<OperatorWizardState>()(
         currentStep: state.currentStep,
         formData: state.formData,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<OperatorWizardState>
+        const mergedFormData: OperatorWizardFormData = {
+          ...currentState.formData,
+          ...(persisted.formData ?? {}),
+        }
+        mergedFormData.equipmentTypes = normalizeOperatorEquipmentTypes(mergedFormData.equipmentTypes)
+        return {
+          ...currentState,
+          ...persisted,
+          formData: mergedFormData,
+        }
+      },
     }
   )
 )

@@ -1,6 +1,7 @@
 import { OperatorsQueryContract } from '../../types/contracts/operatorsQuery';
 import { OperatorFilterState } from '../../types/filters.types';
 import { toSingleString } from './routeParams';
+import { normalizeOperatorEquipmentType } from '../../constants/operators';
 
 /**
  * Builds API query parameters strictly conforming to QueryOperatorListingsDto.
@@ -89,8 +90,14 @@ export function refineOperatorsClientSide<T extends { raw?: unknown } | Record<s
 
     // 1. Equipment Type Filter
     if (filters.equipmentType) {
+      const targetCode = normalizeOperatorEquipmentType(filters.equipmentType) ?? filters.equipmentType.trim();
       const types = Array.isArray(op.equipmentTypes) ? (op.equipmentTypes as string[]) : [];
-      if (!types.includes(filters.equipmentType)) return false;
+      const matches = types.some((t) => {
+        if (typeof t !== 'string') return false;
+        const normalizedItem = normalizeOperatorEquipmentType(t);
+        return normalizedItem ? normalizedItem === targetCode : t.trim() === targetCode;
+      });
+      if (!matches) return false;
     }
 
     // 2. Negotiable Price Filter
@@ -133,7 +140,7 @@ export function clearOperatorFilter(
   } else if (id === 'experience') {
     delete next.minExperience;
     delete next.maxExperience;
-  } else if (id === 'equipmentType') {
+  } else if (id === 'equipmentType' || id === 'category') {
     delete next.equipmentType;
   } else if (id === 'certification') {
     delete next.certification;
