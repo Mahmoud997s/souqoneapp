@@ -7,6 +7,16 @@ import {
   serializeLedger,
 } from '../utils/imageReconciliation';
 
+export type PartListingType = 'SPARE_PART_SALE' | 'SPARE_PART_WANTED'
+
+/**
+ * Resolves a safe spare part listingType for edit prefill.
+ * Defaults to 'SPARE_PART_SALE' when missing or unrecognized.
+ */
+export function resolvePartListingType(value: unknown): PartListingType {
+  return value === 'SPARE_PART_WANTED' ? 'SPARE_PART_WANTED' : 'SPARE_PART_SALE'
+}
+
 export type PartCategoryValue =
   | 'ENGINE' | 'BODY' | 'ELECTRICAL' | 'SUSPENSION' | 'BRAKES'
   | 'INTERIOR' | 'TIRES' | 'BATTERIES' | 'OILS' | 'ACCESSORIES' | 'OTHER'
@@ -34,7 +44,7 @@ export interface PartExistingImage {
 }
 
 export interface PartFormData {
-  listingType: 'SPARE_PART_SALE' | 'SPARE_PART_WANTED' | null
+  listingType: PartListingType | null
   partCategory: PartCategoryValue | null
   condition: PartConditionValue | null
   isOriginal: boolean | null
@@ -202,6 +212,7 @@ export const usePartWizardStore = create<PartWizardState>()(
         formData: {
           ...state.formData,
           ...data,
+          listingType: data.listingType ?? state.formData.listingType ?? 'SPARE_PART_SALE',
           editMode: true,
           editListingId: id,
           version: data.version ?? state.formData.version

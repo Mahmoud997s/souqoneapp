@@ -9,7 +9,7 @@ import { servicesApi } from '../../../src/api/services'
 import { usePostStore } from '../../../src/store/postStore'
 import { useBusWizardStore } from '../../../src/store/busWizardStore'
 import { useCarWizardStore } from '../../../src/store/carWizardStore'
-import { usePartWizardStore } from '../../../src/store/partWizardStore'
+import { usePartWizardStore, resolvePartListingType } from '../../../src/store/partWizardStore'
 import { useServiceWizardStore } from '../../../src/store/serviceWizardStore'
 import { carsApi } from '../../../src/api/cars'
 import { logWarn } from '../../../src/utils/safeLog'
@@ -240,6 +240,7 @@ export default function EditListingLoader() {
 
         if (category === 'parts') {
           usePartWizardStore.getState().setEditMode(id, {
+            listingType: resolvePartListingType(listing.listingType),
             title: listing.title ?? '',
             description: listing.description ?? '',
             partCategory: listing.partCategory,

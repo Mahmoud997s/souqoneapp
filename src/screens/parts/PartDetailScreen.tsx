@@ -27,7 +27,7 @@ import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
-import { usePartWizardStore } from '../../store/partWizardStore'
+import { usePartWizardStore, resolvePartListingType } from '../../store/partWizardStore'
 import { partsApi } from '../../api/parts'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 
@@ -195,6 +195,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             : null
 
         usePartWizardStore.getState().setEditMode(raw.id, {
+          listingType: resolvePartListingType(raw.listingType),
           title: raw.title ?? '',
           description: raw.description ?? '',
           partCategory: raw.partCategory,
