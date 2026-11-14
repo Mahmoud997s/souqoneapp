@@ -13,6 +13,7 @@ import { Radius } from '../../constants/radius';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
 import { logWarn } from '../../utils/safeLog';
+import { AVAILABLE_EQUIPMENT, normalizeOperatorEquipmentType } from '../../constants/operators';
 
 interface OperatorsFilterBottomSheetProps {
   visible: boolean;
@@ -30,21 +31,7 @@ const ROLE_OPTIONS = [
   { id: 'MAINTENANCE', label: 'صيانة' },
 ];
 
-const EQUIPMENT_TYPE_OPTIONS = [
-  { id: 'EXCAVATOR', label: 'حفار' },
-  { id: 'CRANE', label: 'رافعة / كرين' },
-  { id: 'LOADER', label: 'لودر / جرافة' },
-  { id: 'BULLDOZER', label: 'بلدوزر' },
-  { id: 'FORKLIFT', label: 'رافعة شوكية' },
-  { id: 'CONCRETE_MIXER', label: 'خلاطة خرسانة' },
-  { id: 'GENERATOR', label: 'مولد ومضخة' },
-  { id: 'COMPRESSOR', label: 'ضاغط هواء' },
-  { id: 'TRUCK', label: 'شاحنة ثقيلة' },
-  { id: 'DUMP_TRUCK', label: 'قلاب' },
-  { id: 'WATER_TANKER', label: 'صهريج مياه' },
-  { id: 'LIGHT_EQUIPMENT', label: 'معدات خفيفة' },
-  { id: 'OTHER_EQUIPMENT', label: 'معدات أخرى' },
-];
+const EQUIPMENT_TYPE_OPTIONS = AVAILABLE_EQUIPMENT;
 
 const EXPERIENCE_OPTIONS = [
   { id: 'all', label: 'الكل' },
@@ -117,6 +104,14 @@ export function OperatorsFilterBottomSheet({
     if (cleaned.dailyRateMax === 150) delete cleaned.dailyRateMax;
     if (cleaned.operatorType === 'all') delete cleaned.operatorType;
     if (cleaned.experienceLevel === 'all') delete cleaned.experienceLevel;
+    if (cleaned.equipmentType) {
+      const normalizedEquip = normalizeOperatorEquipmentType(cleaned.equipmentType);
+      if (normalizedEquip) {
+        cleaned.equipmentType = normalizedEquip;
+      } else {
+        delete cleaned.equipmentType;
+      }
+    }
 
     // Remove empty values
     (Object.keys(cleaned) as (keyof OperatorFilterState)[]).forEach((k) => {
@@ -134,7 +129,8 @@ export function OperatorsFilterBottomSheet({
 
   const selectedGov = governorates.find((g) => g.id === filters.governorateId);
   const selectedCity = wilayas.find((w) => w.id === filters.wilayaId);
-  const selectedEquip = EQUIPMENT_TYPE_OPTIONS.find((e) => e.id === filters.equipmentType);
+  const selectedEquipmentCode = normalizeOperatorEquipmentType(filters.equipmentType) ?? filters.equipmentType;
+  const selectedEquip = EQUIPMENT_TYPE_OPTIONS.find((e) => e.id === selectedEquipmentCode);
   const selectedSort = SORT_OPTIONS.find((s) => s.id === filters.sortBy);
 
   const govData = governorates.map((g) => ({ id: String(g.id), label: g.nameAr }));
@@ -150,7 +146,7 @@ export function OperatorsFilterBottomSheet({
     nestedContent = (
       <NestedSearchableList
         data={equipData}
-        selectedValue={filters.equipmentType}
+        selectedValue={selectedEquipmentCode}
         onSelect={(opt) => {
           updateFilter('equipmentType', opt?.id);
           setActiveSelector(null);

@@ -17,6 +17,7 @@ import {
   getEquipmentTypeLabel,
   EQUIPMENT_TYPES,
 } from '../equipment-mappers'
+import { normalizeOperatorEquipmentType } from '../../constants/operators'
 import { normalizeCurrency } from './mapEquipmentDetail'
 import {
   formatDetailPrice,
@@ -165,21 +166,44 @@ export function isKnownEquipmentType(type: string): type is EquipmentType {
 
 /**
  * Maps equipment types into chip items with Arabic labels.
- * Filters unknown strings so value is guaranteed to be a valid EquipmentType without casting.
+ * Normalizes legacy Arabic labels to canonical EquipmentType codes,
+ * and preserves any non-empty unrecognized backend string for display rather than dropping it silently.
  */
 function mapEquipmentTypes(types?: unknown[] | null): OperatorEquipmentTypeChip[] {
   if (!Array.isArray(types) || types.length === 0) return []
 
   const result: OperatorEquipmentTypeChip[] = []
+  const seen = new Set<string>()
   for (const t of types) {
-    if (typeof t === 'string') {
-      const trimmed = t.trim()
-      if (isKnownEquipmentType(trimmed)) {
-        result.push({
-          value: trimmed,
-          label: getEquipmentTypeLabel(trimmed),
-        })
+    if (typeof t !== 'string') continue
+    const trimmed = t.trim()
+    if (!trimmed) continue
+
+    let chip: OperatorEquipmentTypeChip
+    if (isKnownEquipmentType(trimmed)) {
+      chip = {
+        value: trimmed,
+        label: getEquipmentTypeLabel(trimmed),
       }
+    } else {
+      const normalizedCode = normalizeOperatorEquipmentType(trimmed)
+      if (normalizedCode) {
+        chip = {
+          value: normalizedCode,
+          label: getEquipmentTypeLabel(normalizedCode),
+        }
+      } else {
+        chip = {
+          value: 'OTHER_EQUIPMENT',
+          label: getEquipmentTypeLabel(trimmed),
+        }
+      }
+    }
+
+    const dedupeKey = `${chip.value}::${chip.label}`
+    if (!seen.has(dedupeKey)) {
+      seen.add(dedupeKey)
+      result.push(chip)
     }
   }
   return result

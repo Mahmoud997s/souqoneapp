@@ -26,6 +26,7 @@ import { useOperatorItem, useUpdateOperator } from '../../../../src/hooks/useEqu
 import { useOperatorFormLogic } from '../../../../src/hooks/useOperatorFormLogic'
 import { validateOperatorStep, mapOperatorBackendErrors, OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
 import { buildOperatorPayload } from '../../../../src/utils/operator-payload'
+import { normalizeOperatorEquipmentTypes } from '../../../../src/constants/operators'
 import { OperatorWizardFormData as OperatorFormData } from '../../../../src/store/operatorWizardStore'
 import type { OperatorListing } from '../../../../src/types/equipment.types'
 import { DetailStates, DetailStateKind } from '../../../../src/components/listing-detail/DetailStates'
@@ -94,7 +95,7 @@ export default function EditOperatorScreen() {
         title: operatorData.title || '',
         description: operatorData.description || '',
         experienceYears: operatorData.experienceYears != null ? String(operatorData.experienceYears) : '',
-        equipmentTypes: operatorData.equipmentTypes || [],
+        equipmentTypes: normalizeOperatorEquipmentTypes(operatorData.equipmentTypes),
         specializations: operatorData.specializations || [],
         certifications: operatorData.certifications || [],
         dailyRate: operatorData.dailyRate ? String(operatorData.dailyRate) : '',
