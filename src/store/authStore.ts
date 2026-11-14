@@ -1,7 +1,34 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
+import { authApi } from '../api/auth'
 import { User } from '../types/auth.types'
-import { clearAllUserData } from '../utils/clearUserData'
+import { clearAllUserData, clearLocalUserDraftsAndHistory } from '../utils/clearUserData'
+import { logWarn } from '../utils/safeLog'
+import { useBlockedStore } from './blockedStore'
+
+export const LAST_USER_ID_KEY = '@souqone_last_user_id'
+
+async function clearDraftsIfUserChanged(nextUserId?: string): Promise<void> {
+  if (!nextUserId) return
+  try {
+    const prevUserId = await AsyncStorage.getItem(LAST_USER_ID_KEY)
+    if (prevUserId && prevUserId !== nextUserId) {
+      await clearLocalUserDraftsAndHistory()
+    }
+  } catch (error) {
+    logWarn('authStore:CheckLastUserId', error)
+  }
+}
+
+async function persistLastUserId(userId?: string): Promise<void> {
+  if (!userId) return
+  try {
+    await AsyncStorage.setItem(LAST_USER_ID_KEY, userId)
+  } catch (error) {
+    logWarn('authStore:PersistLastUserId', error)
+  }
+}
 
 interface AuthState {
   user: User | null
@@ -22,16 +49,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
 
   setAuth: async (user, accessToken, refreshToken) => {
+    await clearDraftsIfUserChanged(user?.id)
     await SecureStore.setItemAsync('accessToken', accessToken)
     await SecureStore.setItemAsync('refreshToken', refreshToken)
+    await persistLastUserId(user?.id)
     try {
-      const { resetSessionExpiredNotice } = await import('../api/client')
+      const { resetSessionExpiredNotice } = require('../api/client') as typeof import('../api/client')
       resetSessionExpiredNotice()
-    } catch {}
+    } catch (error) {
+      logWarn('authStore:ResetSessionNotice', error)
+    }
     try {
-      const { useBlockedStore } = await import('./blockedStore')
       useBlockedStore.getState().clear()
-    } catch {}
+    } catch (error) {
+      logWarn('authStore:ClearBlocked', error)
+    }
     set({ user, isLoggedIn: true, isGuest: false })
   },
 
@@ -43,7 +75,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const refreshToken = await SecureStore.getItemAsync('refreshToken')
       if (refreshToken) {
-        const { authApi } = await import('../api/auth')
         await authApi.logout(refreshToken).catch(() => {})
       }
     } finally {
@@ -58,12 +89,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (token) {
         set({ isLoggedIn: true })
         try {
-          const { authApi } = await import('../api/auth')
           const res = await authApi.me()
-          const data = res.data as any
-          const user = data?.user ?? data
-          if (user?.id) set({ user })
-        } catch {}
+          const data = res.data as { user?: User } | User
+          const user = 'user' in data && data.user ? data.user : (data as User)
+          if (user?.id) {
+            await clearDraftsIfUserChanged(user.id)
+            await persistLastUserId(user.id)
+            set({ user })
+          }
+        } catch (error) {
+          logWarn('authStore:InitializeMe', error)
+        }
       }
     } finally {
       set({ isLoading: false })
