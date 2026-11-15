@@ -1,6 +1,7 @@
 import React from 'react'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { OwnerCardActions, OwnerCardBusyAction } from './OwnerCardActions'
+import { getMyListingStatusBadgeForItem } from './myListingStatusBadge'
 import { CarCard } from '../../cars/CarCard'
 import { BusCard } from '../../buses/BusCard'
 import { EquipCard } from '../../cards/EquipCard'
@@ -37,11 +38,13 @@ export function MyListingOwnerCard({
   glassSupport,
 }: MyListingOwnerCardProps) {
   const canChangeStatus = STATUS_CHANGE_ENTITIES.includes(item.entityType)
+  const statusBadge = getMyListingStatusBadgeForItem(item)
 
   const ownerActions = (
     <OwnerCardActions
       isEditSupported={isEditSupported}
       canChangeStatus={canChangeStatus}
+      statusBadge={statusBadge}
       pendingDeletionRequest={item.pendingDeletionRequest}
       busyAction={busyAction}
       onEdit={() => onEdit(item)}

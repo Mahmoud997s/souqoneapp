@@ -145,8 +145,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
       const config = {
         entityType: 'car' as const,
         title: 'إعلانات السيارات',
-        icon: 'car-sport-outline' as const,
-        gradient: ['#1e3a8a', '#3b82f6'] as const,
+        icon: 'car-sports' as const,
         categoryId: 'cars',
       }
 
@@ -185,8 +184,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
       const config = {
         entityType: 'car' as const,
         title: 'إعلانات السيارات',
-        icon: 'car-sport-outline' as const,
-        gradient: ['#1e3a8a', '#3b82f6'] as const,
+        icon: 'car-sports' as const,
         categoryId: 'cars',
       }
 

@@ -132,7 +132,7 @@ describe('AddOperatorScreen (S5 / 429 / 400 FieldErrors) (D-281)', () => {
 
     expect(await screen.findByTestId('publish-success-view')).toBeTruthy()
     expect(screen.getByText('تم نشر بطاقتك المهنية بنجاح!')).toBeTruthy()
-    expect(screen.getByText('عرض دليل المشغلين')).toBeTruthy()
+    expect(screen.getByText('عرض بطاقتي')).toBeTruthy()
     expect(mockWizardState.resetDraft).toHaveBeenCalled()
   })
 

@@ -6,8 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
@@ -62,14 +61,9 @@ export function MyListingSectionSlider({
       {/* ── Section Header ── */}
       <View style={s.sectionHeader} testID="my-listing-section-header">
         <View style={s.titleRow}>
-          <LinearGradient
-            colors={config.gradient as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.iconWrap}
-          >
-            <Ionicons name={config.icon} size={15} color={Colors.white} />
-          </LinearGradient>
+          <View style={s.iconWrap} testID="my-listing-section-icon-box">
+            <MaterialCommunityIcons name={config.icon} size={16} color={Colors.primary} />
+          </View>
           <Text style={s.sectionTitle}>{config.title}</Text>
           
           {/* Count Badge */}
@@ -152,32 +146,30 @@ const s = StyleSheet.create({
     gap: 10,
   },
   iconWrap: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: Radius.md,
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
   },
   sectionTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
     lineHeight: 22,
-    color: '#1E293B',
+    color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   countBadge: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   countText: {
     fontFamily: 'Almarai_700Bold',

@@ -151,7 +151,7 @@ export default function MyListingsScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.homeBg,
   },
   sharedBlur: {
     position: 'absolute',
@@ -164,7 +164,7 @@ const s = StyleSheet.create({
   },
   whiteWash: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     opacity: 0.08,
   },
   tintOverlay: {

@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
+import type { MyListingStatusBadge } from './myListingStatusBadge'
 
 export type OwnerCardBusyAction = 'delete' | 'edit' | 'status' | 'cancelDeletion' | null
 
 export interface OwnerCardActionsProps {
   isEditSupported: boolean
   canChangeStatus?: boolean
+  statusBadge?: MyListingStatusBadge | null
   pendingDeletionRequest?: {
     id: string
     createdAt: string
@@ -31,6 +33,7 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000
 export function OwnerCardActions({
   isEditSupported,
   canChangeStatus = false,
+  statusBadge = null,
   pendingDeletionRequest,
   busyAction = null,
   onEdit,
@@ -39,6 +42,30 @@ export function OwnerCardActions({
   onCancelDeletionRequest,
 }: OwnerCardActionsProps) {
   const isBusy = busyAction !== null
+
+  const renderStatusBadge = () => {
+    if (!statusBadge) return null
+    const toneStyle =
+      statusBadge.tone === 'success'
+        ? s.badgeSuccess
+        : statusBadge.tone === 'warning'
+        ? s.badgeWarning
+        : s.badgeNeutral
+    const toneTextStyle =
+      statusBadge.tone === 'success'
+        ? s.badgeTextSuccess
+        : statusBadge.tone === 'warning'
+        ? s.badgeTextWarning
+        : s.badgeTextNeutral
+
+    return (
+      <View style={s.statusRow} testID="owner-card-status-badge-row">
+        <View style={[s.statusBadge, toneStyle]} testID="owner-card-status-badge">
+          <Text style={[s.statusBadgeText, toneTextStyle]}>{statusBadge.label}</Text>
+        </View>
+      </View>
+    )
+  }
 
   if (pendingDeletionRequest && pendingDeletionRequest.status === 'PENDING') {
     const createdAtMs = new Date(pendingDeletionRequest.createdAt).getTime()
@@ -79,7 +106,9 @@ export function OwnerCardActions({
   }
 
   return (
-    <View style={s.row} testID="owner-card-actions">
+    <View style={s.container} testID="owner-card-actions-wrap">
+      {renderStatusBadge()}
+      <View style={s.row} testID="owner-card-actions">
       {isEditSupported && (
         <TouchableOpacity
           testID="owner-card-edit-btn"
@@ -134,17 +163,60 @@ export function OwnerCardActions({
         {busyAction === 'delete' ? (
           <ActivityIndicator size="small" color={Colors.error} />
         ) : (
-          <>
-            <Ionicons name="trash" size={15} color={Colors.error} />
-            <Text style={[s.btnText, s.dangerText]}>حذف</Text>
-          </>
-        )}
-      </TouchableOpacity>
+            <>
+              <Ionicons name="trash" size={15} color={Colors.error} />
+              <Text style={[s.btnText, s.dangerText]}>حذف</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }
 
 const s = StyleSheet.create({
+  container: {
+    width: '100%',
+    gap: Spacing.space2,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+  },
+  badgeSuccess: {
+    backgroundColor: Colors.paleMint,
+    borderColor: Colors.borderStrong,
+  },
+  badgeNeutral: {
+    backgroundColor: Colors.surfaceAlt,
+    borderColor: Colors.border,
+  },
+  badgeWarning: {
+    backgroundColor: Colors.warningBg,
+    borderColor: Colors.warningBorder,
+  },
+  statusBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  badgeTextSuccess: {
+    color: Colors.primary,
+  },
+  badgeTextNeutral: {
+    color: Colors.textMuted,
+  },
+  badgeTextWarning: {
+    color: Colors.warningText,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
