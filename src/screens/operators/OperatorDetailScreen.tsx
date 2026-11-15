@@ -236,7 +236,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: insets.bottom + 90,
+            paddingBottom: 104 + insets.bottom,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -253,15 +253,8 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         {/* Profile Hero Header */}
         <OperatorHeroHeader vm={vm} />
 
-        {/* Primary Action Row: Owner Management Bar OR Contact Actions */}
-        {isOwner ? (
-          <OwnerManageBar
-            actions={ownerActions.actions}
-            onAction={handleOwnerAction}
-            busy={ownerActions.busy}
-            viewCount={ownerActions.viewCount}
-          />
-        ) : (
+        {/* Primary Action Row: Contact Actions for visitors (Owner uses sticky bottom bar) */}
+        {!isOwner ? (
           <ContactActions
             variant="inline"
             availability={availability}
@@ -270,7 +263,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
             onWhatsApp={contact.whatsApp}
             onChat={contact.chat}
           />
-        )}
+        ) : null}
 
         {/* Profile Bio / Description */}
         {Boolean(vm.description) && (
@@ -318,8 +311,16 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         <SupportButton onPress={handleOpenSupport} />
       </Animated.ScrollView>
 
-      {/* Sticky Bottom Floating Contact Actions (Visitors only) */}
-      {!isOwner && (
+      {/* Sticky Bottom Floating Bar (Owner Manage Bar OR Visitor Contact Actions) */}
+      {isOwner ? (
+        <OwnerManageBar
+          variant="sticky"
+          actions={ownerActions.actions}
+          onAction={handleOwnerAction}
+          busy={ownerActions.busy}
+          viewCount={ownerActions.viewCount}
+        />
+      ) : (
         <ContactActions
           variant="sticky"
           availability={availability}

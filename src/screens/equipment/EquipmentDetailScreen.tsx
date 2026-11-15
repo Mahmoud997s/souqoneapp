@@ -322,7 +322,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: hasBottomBar ? 90 : 40,
+            paddingBottom: hasBottomBar ? 104 + insets.bottom : 40,
           },
         ]}
         testID="equipment-detail-scroll-view"
@@ -517,8 +517,6 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           busy={ownerActions.busy}
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
-          scrollY={scrollY}
-          threshold={320}
         />
       ) : contactAvailability.mode !== 'hidden' ? (
         <ContactActions

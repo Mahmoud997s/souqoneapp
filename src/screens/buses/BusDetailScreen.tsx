@@ -347,7 +347,9 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
             paddingBottom:
-              (!isOwner && contactAvailability.mode !== 'hidden') || isOwner ? 90 : 40,
+              (!isOwner && contactAvailability.mode !== 'hidden') || isOwner
+                ? 104 + insets.bottom
+                : 40,
           },
         ]}
       >
@@ -519,7 +521,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         />
       ) : null}
 
-      {/* Sticky Owner Manage Bar (when owner) */}
+      {/* Sticky Owner Manage Bar (always visible when owner from scrollY=0) */}
       {isOwner ? (
         <OwnerManageBar
           variant="sticky"
@@ -527,8 +529,6 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
           busy={ownerActions.busy}
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
-          scrollY={scrollY}
-          threshold={320}
         />
       ) : null}
 

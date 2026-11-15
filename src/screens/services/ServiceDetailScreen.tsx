@@ -392,7 +392,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: hasBottomBar ? 90 : 40,
+            paddingBottom: hasBottomBar ? 104 + insets.bottom : 40,
           },
         ]}
         testID="service-detail-scroll-view"
@@ -525,8 +525,6 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           busy={isOwnerBusy}
           actions={OWNER_ACTIONS}
           onAction={handleOwnerAction}
-          scrollY={scrollY}
-          threshold={320}
         />
       ) : contactAvailability.mode !== 'hidden' ? (
         <ContactActions

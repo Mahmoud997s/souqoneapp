@@ -387,7 +387,7 @@ const s = StyleSheet.create({
     color: Colors.white,
   },
   dangerButton: {
-    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    backgroundColor: Colors.errorSoftBg,
     borderWidth: 1,
     borderColor: Colors.error + '40',
   },

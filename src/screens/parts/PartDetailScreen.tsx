@@ -111,7 +111,7 @@ const DUMMY_VM: PartDetailViewModel = {
 }
 
 const PART_OWNER_ACTIONS = [
-  { id: 'edit' as const, label: 'تعديل', tone: 'neutral' as const, icon: 'create-outline' },
+  { id: 'edit' as const, label: 'تعديل', tone: 'primary' as const, icon: 'create-outline' },
   { id: 'delete' as const, label: 'حذف', tone: 'danger' as const, icon: 'trash-outline' },
 ]
 
@@ -332,7 +332,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: hasBottomBar ? 90 : 40,
+            paddingBottom: hasBottomBar ? 104 + insets.bottom : 40,
           },
         ]}
         testID="part-detail-scroll-view"
@@ -438,8 +438,6 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           busy={ownerBusy}
           actions={PART_OWNER_ACTIONS}
           onAction={handleOwnerAction}
-          scrollY={scrollY}
-          threshold={320}
         />
       ) : contactAvailability.mode !== 'hidden' ? (
         <ContactActions
