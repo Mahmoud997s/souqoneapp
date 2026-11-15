@@ -10,7 +10,7 @@ Single source of truth and one unified pipeline for all favorite interactions (c
 2. **Unified Mutation (`useFavoriteToggle`)**:
    - Single pipeline per toggle action: optimistic cache update of `['favorite-ids']` and check key.
    - In-flight request guard per entity key prevents duplicate requests or stale latches.
-   - Server confirmation shows professional floating `GlobalToast` (5 seconds).
+   - Server confirmation shows professional bottom-anchored floating `GlobalToast` (5 seconds).
    - Network failure performs instant rollback and shows Arabic error alert via `dialogService`.
    - On settle, invalidates `['favorite-ids']`, `['favorites']`, and detail query keys.
 3. **Entity Resolution (`favoriteEntityTypes.ts`)**:

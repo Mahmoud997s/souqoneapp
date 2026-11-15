@@ -19,6 +19,7 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: jest.fn(),
   }),
+  usePathname: jest.fn(() => '/'),
 }))
 
 jest.mock('../api/favorites', () => ({
@@ -162,7 +163,7 @@ describe('F-07 GlobalToast Liquid Glass Capsule, Icon Mapping & Smooth Exit', ()
     queryClient.clear()
   })
 
-  it('renders GlassSurface capsule with compact proportions, default icons, and top placement', async () => {
+  it('renders GlassSurface capsule with compact proportions, default icons, and bottom placement', async () => {
     await render(<GlobalToast />)
 
     await act(async () => {
@@ -173,6 +174,12 @@ describe('F-07 GlobalToast Liquid Glass Capsule, Icon Mapping & Smooth Exit', ()
       })
       await Promise.resolve()
     })
+
+    const host = screen.getByTestId('global-toast-host')
+    const hostStyle = StyleSheet.flatten(host.props.style)
+    expect(hostStyle.top).toBeUndefined()
+    expect(typeof hostStyle.bottom).toBe('number')
+    expect(hostStyle.bottom).toBeGreaterThan(0)
 
     const glassElements = [
       ...screen.queryAllByTestId('global-toast-glass-liquid'),
