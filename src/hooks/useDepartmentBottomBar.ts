@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
 import { Colors } from '../constants/colors';
+import { buildFavoritesRoute } from '../utils/favoritesCategoryTabs';
 import { BottomBarTabItem, IconFamily } from '../components/navigation/UnifiedBottomBar';
 import { showDraftResumePrompt, hasMeaningfulPostData, navigateToCarForm, navigateToBusForm, navigateToPartForm, navigateToServiceForm, navigateToEquipmentForm } from '../components/ui/DraftResumePrompt';
 
@@ -187,8 +188,7 @@ export function useDepartmentBottomBar({
           router.push('/(auth)/login' as any);
           return;
         }
-        const tabQuery = favoritesTab ? `?tab=${encodeURIComponent(favoritesTab)}` : '';
-        router.push(`/profile/favorites${tabQuery}` as any);
+        router.push(buildFavoritesRoute(favoritesTab) as any);
       } else if (tab.id === 'listings') {
         if (!isLoggedIn) {
           router.push('/(auth)/login' as any);
@@ -230,7 +230,7 @@ export function useCarsBottomBar() {
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/cars' },
       { id: 'browse', label: 'تصفح', icon: 'car-multiple', iconOutline: 'car-multiple', family: 'MaterialCommunityIcons', route: '/cars/browse' },
       { id: 'post', isPost: true },
-      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: '/profile/favorites?tab=سيارات', requireAuth: true },
+      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: buildFavoritesRoute('cars'), requireAuth: true },
       { id: 'profile', label: 'حسابي', icon: 'person', iconOutline: 'person-outline', family: 'Ionicons', route: '/(tabs)/profile', requireAuth: true },
     ],
   });
@@ -247,7 +247,7 @@ export function useServicesBottomBar() {
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/services' },
       { id: 'browse', label: 'الخدمات', icon: 'toolbox', iconOutline: 'toolbox-outline', family: 'MaterialCommunityIcons', route: '/services/browse' },
       { id: 'post', isPost: true },
-      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: '/profile/favorites?tab=خدمات', requireAuth: true },
+      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: buildFavoritesRoute('services'), requireAuth: true },
       { id: 'profile', label: 'حسابي', icon: 'person', iconOutline: 'person-outline', family: 'Ionicons', route: '/(tabs)/profile', requireAuth: true },
     ],
   });
@@ -263,7 +263,7 @@ export function usePartsBottomBar() {
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/parts' },
       { id: 'browse', label: 'قطع الغيار', icon: 'car-wrench', iconOutline: 'car-wrench', family: 'MaterialCommunityIcons', route: '/parts/browse' },
       { id: 'post', isPost: true },
-      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: '/profile/favorites?tab=قطع غيار', requireAuth: true },
+      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: buildFavoritesRoute('parts'), requireAuth: true },
       { id: 'profile', label: 'حسابي', icon: 'person', iconOutline: 'person-outline', family: 'Ionicons', route: '/(tabs)/profile', requireAuth: true },
     ],
   });
@@ -280,7 +280,7 @@ export function useEquipmentBottomBar() {
       { id: 'browse', label: 'المعدات', icon: 'excavator', iconOutline: 'excavator', family: 'MaterialCommunityIcons', route: '/equipment/browse' },
       { id: 'post', isPost: true },
       { id: 'operators', label: 'المشغلين', icon: 'account-hard-hat', iconOutline: 'account-hard-hat-outline', family: 'MaterialCommunityIcons', route: '/equipment/operators/browse' },
-      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: '/profile/favorites?tab=معدات', requireAuth: true },
+      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: buildFavoritesRoute('equipment'), requireAuth: true },
     ],
   });
 }
@@ -295,7 +295,7 @@ export function useBusesBottomBar() {
       { id: 'home', label: 'الرئيسية', icon: 'home', iconOutline: 'home-outline', family: 'Ionicons', route: '/buses' },
       { id: 'browse', label: 'الحافلات', icon: 'bus-side', iconOutline: 'bus-side', family: 'MaterialCommunityIcons', route: '/buses/browse' },
       { id: 'post', isPost: true },
-      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: '/profile/favorites?tab=حافلات', requireAuth: true },
+      { id: 'favorites', label: 'مفضلتي', icon: 'heart', iconOutline: 'heart-outline', family: 'Ionicons', route: buildFavoritesRoute('buses'), requireAuth: true },
       { id: 'profile', label: 'حسابي', icon: 'person', iconOutline: 'person-outline', family: 'Ionicons', route: '/(tabs)/profile', requireAuth: true },
     ],
   });

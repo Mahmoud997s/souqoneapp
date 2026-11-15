@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,6 +10,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { FilterGlassTokens } from '../../src/constants/filterGlassTokens'
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization'
 import { SearchCardDispatcher } from '../../src/screens/search/components/SearchCardDispatcher'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
@@ -17,27 +18,29 @@ import { EmptyState } from '../../src/components/ui/EmptyState'
 import { useFavorites } from '../../src/hooks/useListings'
 import { usePullToRefresh } from '../../src/hooks/usePullToRefresh'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
+import {
+  FAVORITES_CATEGORY_FILTERS,
+  FavoritesTabId,
+  normalizeFavoritesTabParam,
+} from '../../src/utils/favoritesCategoryTabs'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated'
 
-export const FAVORITES_CATEGORY_FILTERS = [
-  { id: 'all', label: 'الكل' },
-  { id: 'cars', label: 'سيارات' },
-  { id: 'services', label: 'خدمات' },
-  { id: 'parts', label: 'قطع غيار' },
-  { id: 'buses', label: 'حافلات' },
-  { id: 'equipment', label: 'معدات' },
-]
-
+export { FAVORITES_CATEGORY_FILTERS }
 export const CATEGORY_FILTERS = FAVORITES_CATEGORY_FILTERS
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets()
   const glassSupport = useGlassSupport()
   const { scrollHandler } = useScrollAwareNav()
-  const params = useLocalSearchParams()
-  const [activeTab, setActiveTab] = useState((params.tab as string) || 'all')
+  const params = useLocalSearchParams<{ tab?: string | string[] }>()
+  const normalizedParamTab = useMemo(() => normalizeFavoritesTabParam(params.tab), [params.tab])
+  const [activeTab, setActiveTab] = useState<FavoritesTabId>(normalizedParamTab)
+
+  useEffect(() => {
+    setActiveTab(normalizedParamTab)
+  }, [normalizedParamTab])
   const { data, isLoading, isError, error, refetch } = useFavorites()
   const { refreshing, onRefresh } = usePullToRefresh(refetch)
   const navBarHeight = insets.top + 52
@@ -133,11 +136,17 @@ export default function FavoritesScreen() {
                   return (
                     <TouchableOpacity
                       key={f.id}
+                      testID={`favorites-tab-${f.id}`}
                       style={[s.segmentTab, isActive && s.segmentTabActive]}
                       onPress={() => setActiveTab(f.id)}
                       activeOpacity={0.8}
                     >
-                      <Text style={[s.segmentTabText, isActive && s.segmentTabTextActive]}>{f.label}</Text>
+                      <Text
+                        testID={`favorites-tab-label-${f.id}`}
+                        style={[s.segmentTabText, isActive && s.segmentTabTextActive]}
+                      >
+                        {f.label}
+                      </Text>
                     </TouchableOpacity>
                   )
                 })}
@@ -190,8 +199,10 @@ const s = StyleSheet.create({
     marginHorizontal: Spacing.space5,
     marginBottom: 6,
     marginTop: Spacing.space2,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
+    backgroundColor: FilterGlassTokens.tab.trackBg,
+    borderColor: FilterGlassTokens.tab.trackBorderColor,
+    borderWidth: FilterGlassTokens.tab.trackBorderWidth,
+    borderRadius: FilterGlassTokens.tab.trackRadius,
     padding: 3,
   },
   segmentedContainer: {
@@ -203,33 +214,27 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: FilterGlassTokens.tab.inactiveBg,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
     gap: 5,
   },
   segmentTabActive: {
-    backgroundColor: '#ffffff',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
+    backgroundColor: FilterGlassTokens.tab.activeBg,
+    ...(FilterGlassTokens.tab.activeShadow ?? {}),
   },
   segmentTabText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 15.5,
-    color: '#64748b',
+    fontFamily: FilterGlassTokens.tab.inactiveFontFamily,
+    fontSize: FilterGlassTokens.tab.fontSize,
+    lineHeight: FilterGlassTokens.tab.lineHeight,
+    color: FilterGlassTokens.tab.inactiveTextColor,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   segmentTabTextActive: {
-    color: Colors.primary,
+    fontFamily: FilterGlassTokens.tab.activeFontFamily,
+    color: FilterGlassTokens.tab.activeTextColor,
   },
   list: { paddingHorizontal: Spacing.space4, gap: Spacing.space4 },
   
