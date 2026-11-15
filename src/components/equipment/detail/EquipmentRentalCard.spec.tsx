@@ -100,4 +100,25 @@ describe('EquipmentRentalCard', () => {
     expect(screen.getByTestId('rental-row-delivery')).toBeTruthy()
     expect(screen.getByText('غير متاح')).toBeTruthy()
   })
+
+  it('styles daily and monthly rate values with Cars-style paleMint + Radius.md badges (D-333b)', async () => {
+    const { StyleSheet } = require('react-native')
+    const { Colors } = require('../../../constants/colors')
+    const { Radius } = require('../../../constants/radius')
+    const rental: EquipmentRentalView = {
+      dailyPrice: 120,
+      dailyPriceFormatted: '120 ر.ع',
+      monthlyPrice: 2500,
+      monthlyPriceFormatted: '2,500 ر.ع',
+      withOperator: true,
+      deliveryAvailable: true,
+    }
+    await render(<EquipmentRentalCard rental={rental} />)
+    const dailyBadge = StyleSheet.flatten(screen.getByTestId('rental-daily-price-badge').props.style)
+    const monthlyBadge = StyleSheet.flatten(screen.getByTestId('rental-monthly-price-badge').props.style)
+    expect(dailyBadge.backgroundColor).toBe(Colors.paleMint)
+    expect(dailyBadge.borderRadius).toBe(Radius.md)
+    expect(monthlyBadge.backgroundColor).toBe(Colors.paleMint)
+    expect(monthlyBadge.borderRadius).toBe(Radius.md)
+  })
 })

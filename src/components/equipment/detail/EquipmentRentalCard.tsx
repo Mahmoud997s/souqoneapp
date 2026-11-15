@@ -17,17 +17,26 @@ interface RentalRowProps {
   value: string
   isLast?: boolean
   testID?: string
+  priceBadgeTestID?: string
 }
 
-function RentalRow({ label, value, isLast, testID }: RentalRowProps) {
+function RentalRow({ label, value, isLast, testID, priceBadgeTestID }: RentalRowProps) {
   return (
     <View style={[s.row, !isLast && s.rowBorder]} testID={testID}>
       <Text style={s.rowLabel} maxFontSizeMultiplier={1.3}>
         {label}
       </Text>
-      <Text style={s.rowValue} maxFontSizeMultiplier={1.3}>
-        {value}
-      </Text>
+      {priceBadgeTestID ? (
+        <View style={s.priceBadge} testID={priceBadgeTestID}>
+          <Text style={s.priceBadgeValue} maxFontSizeMultiplier={1.3}>
+            {value}
+          </Text>
+        </View>
+      ) : (
+        <Text style={s.rowValue} maxFontSizeMultiplier={1.3}>
+          {value}
+        </Text>
+      )}
     </View>
   )
 }
@@ -45,7 +54,13 @@ export function EquipmentRentalCard({ rental }: EquipmentRentalCardProps) {
     return null
   }
 
-  const rows: { key: string; label: string; value: string; testID: string }[] = []
+  const rows: {
+    key: string
+    label: string
+    value: string
+    testID: string
+    priceBadgeTestID?: string
+  }[] = []
 
   if (rental.dailyPriceFormatted) {
     rows.push({
@@ -53,6 +68,7 @@ export function EquipmentRentalCard({ rental }: EquipmentRentalCardProps) {
       label: 'الأجر اليومي',
       value: rental.dailyPriceFormatted,
       testID: 'rental-row-daily-price',
+      priceBadgeTestID: 'rental-daily-price-badge',
     })
   }
 
@@ -62,6 +78,7 @@ export function EquipmentRentalCard({ rental }: EquipmentRentalCardProps) {
       label: 'الأجر الشهري',
       value: rental.monthlyPriceFormatted,
       testID: 'rental-row-monthly-price',
+      priceBadgeTestID: 'rental-monthly-price-badge',
     })
   }
 
@@ -96,6 +113,7 @@ export function EquipmentRentalCard({ rental }: EquipmentRentalCardProps) {
             value={r.value}
             isLast={idx === rows.length - 1}
             testID={r.testID}
+            priceBadgeTestID={r.priceBadgeTestID}
           />
         ))}
       </View>
@@ -159,6 +177,22 @@ const s = StyleSheet.create({
     fontSize: 13,
     lineHeight: lineHeightFor(13),
     color: Colors.primaryDeep,
+    textAlign: 'left',
+  },
+  priceBadge: {
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: Spacing.space1 + 2,
+  },
+  priceBadgeValue: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.primary,
     textAlign: 'left',
   },
 })

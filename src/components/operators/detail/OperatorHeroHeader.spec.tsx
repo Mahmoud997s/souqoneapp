@@ -99,4 +99,15 @@ describe('OperatorHeroHeader', () => {
     expect(screen.queryByTestId('operator-negotiable-badge')).toBeNull()
     expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
   })
+
+  it('styles operator-stat-rate with unified Cars-style paleMint + Radius.md tokens (D-333b)', async () => {
+    const { StyleSheet } = require('react-native')
+    const { Colors } = require('../../../constants/colors')
+    const { Radius } = require('../../../constants/radius')
+    await render(<OperatorHeroHeader vm={baseMockVm} />)
+    const rateChip = StyleSheet.flatten(screen.getByTestId('operator-stat-rate').props.style)
+    expect(rateChip.backgroundColor).toBe(Colors.paleMint)
+    expect(rateChip.borderRadius).toBe(Radius.md)
+    expect(rateChip.borderWidth).toBe(1)
+  })
 })
