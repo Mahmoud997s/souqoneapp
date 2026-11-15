@@ -14,6 +14,7 @@ import { useCarWizardStore } from '../store/carWizardStore'
 import { usePartWizardStore } from '../store/partWizardStore'
 import { useServiceWizardStore } from '../store/serviceWizardStore'
 import { logWarn, logError } from './safeLog'
+import { clearAllNotificationPrefs } from './notificationPrefsStorage'
 
 export const USER_LOCAL_DRAFT_AND_HISTORY_KEYS = [
   'part-wizard-draft',
@@ -63,6 +64,13 @@ export const clearLocalUserDraftsAndHistory = async (): Promise<void> => {
     await AsyncStorage.multiRemove([...USER_LOCAL_DRAFT_AND_HISTORY_KEYS])
   } catch (error) {
     logWarn('clearUserData:ClearAsyncStorage', error)
+  }
+
+  // 2b. Wipe per-account notification prefs so switching accounts never leaks previous user's prefs
+  try {
+    await clearAllNotificationPrefs()
+  } catch (error) {
+    logWarn('clearUserData:ClearNotificationPrefs', error)
   }
 
   // 3. Clear React Query Cache
