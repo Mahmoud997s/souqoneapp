@@ -146,8 +146,10 @@ export interface ComputeToastBottomOffsetParams {
  * Computes the `bottom` offset for `GlobalToast` so it clears any bottom navigation,
  * detail action bar, wizard footer, chat input, or open software keyboard.
  *
- * Android (`app.json` omits `softwareKeyboardLayoutMode`, defaulting to `adjustResize`
- * as confirmed in `app/chat/[id].tsx:304`) resizes the root viewport above the keyboard,
+ * `app.json` omits `android.softwareKeyboardLayoutMode` and `edgeToEdgeEnabled`;
+ * this assumes Expo's default `"resize"` behavior on Android (`app/chat/[id].tsx:304`
+ * sets `KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}`,
+ * which relies on OS resize rather than proving it — must be verified via DEVICE-TEST),
  * whereas iOS overlays the keyboard over the root `<Stack>` so `keyboardHeight` is added on iOS.
  */
 export function computeGlobalToastBottomOffset({
