@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { View } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { DetailStates } from '../../../src/components/listing-detail/DetailStates'
@@ -10,6 +10,16 @@ import {
 export default function LegacyPostEditRedirect() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
   const [errorKind, setErrorKind] = useState<LegacyRedirectErrorKind | null>(null)
+  const isMountedRef = useRef(true)
+  const requestSeqRef = useRef(0)
+  const inFlightKeyRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const resolve = useCallback(async () => {
     if (!id) {
@@ -17,13 +27,32 @@ export default function LegacyPostEditRedirect() {
       return
     }
 
-    setErrorKind(null)
-    const result = await resolveLegacyEditRoute(id, type)
-    if (result.ok) {
-      router.replace(result.href)
+    const requestKey = `${id}::${type ?? ''}`
+    if (inFlightKeyRef.current === requestKey) {
       return
     }
-    setErrorKind(result.errorKind)
+
+    const seq = ++requestSeqRef.current
+    inFlightKeyRef.current = requestKey
+    setErrorKind(null)
+
+    try {
+      const result = await resolveLegacyEditRoute(id, type, () => {
+        return !isMountedRef.current || requestSeqRef.current !== seq
+      })
+      if (!isMountedRef.current || requestSeqRef.current !== seq) {
+        return
+      }
+      if (result.ok) {
+        router.replace(result.href)
+        return
+      }
+      setErrorKind(result.errorKind)
+    } finally {
+      if (requestSeqRef.current === seq) {
+        inFlightKeyRef.current = null
+      }
+    }
   }, [id, type])
 
   useEffect(() => {

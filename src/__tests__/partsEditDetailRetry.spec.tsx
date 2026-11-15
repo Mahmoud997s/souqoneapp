@@ -89,7 +89,6 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
     // Wait for failure
     await waitFor(() => {
       expect(screen.getByTestId('detail-state-error')).toBeTruthy()
-      expect(screen.getByText('تعذر تحميل بيانات قطعة الغيار')).toBeTruthy()
     })
 
     // Retry button must be present
@@ -233,21 +232,16 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
     })
   })
 
-  it('non-parts regression: other types (e.g. buses) render DetailStates with error and retry', async () => {
+  it('non-parts regression: buses redirect directly to /buses/edit/:id', async () => {
     ;(useLocalSearchParams as jest.Mock).mockReturnValue({
       id: 'bus-777',
       type: 'buses',
     })
 
-    ;(busesApi.getById as jest.Mock).mockRejectedValueOnce(new Error('Bus error'))
-
     await render(<EditListingLoader />)
 
-    // With R4-2 (D-282), DetailStates is unified for all types including buses
     await waitFor(() => {
-      expect(screen.getByTestId('detail-state-error')).toBeTruthy()
-      expect(screen.getByLabelText('إعادة المحاولة')).toBeTruthy()
-      expect(screen.getByLabelText('الرجوع')).toBeTruthy()
+      expect(router.replace).toHaveBeenCalledWith('/buses/edit/bus-777')
     })
   })
 

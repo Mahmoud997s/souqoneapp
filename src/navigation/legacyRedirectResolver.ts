@@ -66,11 +66,17 @@ export async function resolveLegacyListingById(id: string): Promise<LegacyResolv
   return { ok: false, errorKind: 'notFound' }
 }
 
+const PARKED_EDIT_TYPES = new Set(['jobs', 'job', 'transport', 'heavy_transport'])
+
 export async function resolveLegacyEditRoute(
   id: string,
-  rawType?: string | null
+  rawType?: string | null,
+  isStale?: () => boolean
 ): Promise<{ ok: true; href: Href } | { ok: false; errorKind: LegacyRedirectErrorKind }> {
   if (rawType) {
+    if (PARKED_EDIT_TYPES.has(rawType.trim().toLowerCase())) {
+      return { ok: true, href: '/(tabs)' as Href }
+    }
     const entityType = normalizeListingEntityType(rawType)
     if (
       entityType === 'BUS_LISTING' ||
@@ -88,6 +94,9 @@ export async function resolveLegacyEditRoute(
       } else {
         res = await listingsApi.getById(id)
       }
+      if (isStale?.()) {
+        return { ok: false, errorKind: 'error' }
+      }
       const item = unwrapApiData(res)
       if (!item) {
         return { ok: false, errorKind: 'notFound' }
@@ -102,8 +111,8 @@ export async function resolveLegacyEditRoute(
   }
 
   const resolved = await resolveLegacyListingById(id)
-  if (!resolved.ok) {
-    return resolved
+  if (!resolved.ok || isStale?.()) {
+    return resolved.ok ? { ok: false, errorKind: 'error' } : resolved
   }
 
   if (
