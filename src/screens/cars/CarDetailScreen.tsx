@@ -382,7 +382,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
             <ContactActions
               variant="inline"
               availability={contactAvailability}
-              busy={contact.busy}
+              busyAction={contact.busyAction}
               onCall={contact.call}
               onWhatsApp={contact.whatsApp}
               onChat={contact.chat}
@@ -532,7 +532,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         <ContactActions
           variant="sticky"
           availability={contactAvailability}
-          busy={contact.busy}
+          busyAction={contact.busyAction}
           onCall={contact.call}
           onWhatsApp={contact.whatsApp}
           onChat={contact.chat}

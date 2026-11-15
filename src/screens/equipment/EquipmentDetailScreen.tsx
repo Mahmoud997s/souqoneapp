@@ -366,7 +366,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
               onChat={contact.chat}
               onCall={contact.call}
               onWhatsApp={contact.whatsApp}
-              busy={contact.busy}
+              busyAction={contact.busyAction}
             />
           </Animated.View>
         ) : null}
@@ -524,7 +524,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         <ContactActions
           variant="sticky"
           availability={contactAvailability}
-          busy={contact.busy}
+          busyAction={contact.busyAction}
           onCall={contact.call}
           onWhatsApp={contact.whatsApp}
           onChat={contact.chat}

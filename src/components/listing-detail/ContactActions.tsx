@@ -26,6 +26,8 @@ import type { GlassSupport } from '../navigation/glassCapability'
 export const CONTACT_ACTIONS_BAR_HEIGHT = 64.4
 export const CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y = 100
 
+export type ContactActionType = 'call' | 'whatsapp' | 'chat'
+
 export type ContactAvailability =
   | { mode: 'full' }
   | { mode: 'noWhatsapp' }
@@ -35,7 +37,7 @@ export type ContactAvailability =
 export interface ContactActionsProps {
   variant: 'inline' | 'sticky'
   availability: ContactAvailability
-  busy: boolean
+  busyAction: ContactActionType | null
   onCall: () => void
   onWhatsApp: () => void
   onChat: () => void
@@ -55,7 +57,7 @@ export interface ContactActionsProps {
 export function ContactActions({
   variant,
   availability,
-  busy,
+  busyAction,
   onCall,
   onWhatsApp,
   onChat,
@@ -69,6 +71,10 @@ export function ContactActions({
     return null
   }
 
+  const anyBusy = busyAction != null
+  const isChatBusy = busyAction === 'chat'
+  const isWhatsappBusy = busyAction === 'whatsapp'
+  const isCallBusy = busyAction === 'call'
   const isSticky = variant === 'sticky'
   const buttonSizeStyle = isSticky ? null : s.inlineButton
 
@@ -99,12 +105,17 @@ export function ContactActions({
           availability.mode === 'chatOnly' && s.fullWidthButton,
         ]}
         onPress={onChat}
-        disabled={busy}
+        disabled={anyBusy}
+        accessibilityState={{ disabled: anyBusy, busy: isChatBusy }}
         activeOpacity={0.8}
         testID="btn-contact-chat"
       >
-        {busy ? (
-          <ActivityIndicator size="small" color={Colors.primary} />
+        {isChatBusy ? (
+          <ActivityIndicator
+            testID="btn-contact-chat-spinner"
+            size="small"
+            color={Colors.primary}
+          />
         ) : (
           <>
             <Ionicons
@@ -122,12 +133,17 @@ export function ContactActions({
         <TouchableOpacity
           style={[s.button, buttonSizeStyle, s.whatsappButton]}
           onPress={onWhatsApp}
-          disabled={busy}
+          disabled={anyBusy}
+          accessibilityState={{ disabled: anyBusy, busy: isWhatsappBusy }}
           activeOpacity={0.8}
           testID="btn-contact-whatsapp"
         >
-          {busy ? (
-            <ActivityIndicator size="small" color={Colors.white} />
+          {isWhatsappBusy ? (
+            <ActivityIndicator
+              testID="btn-contact-whatsapp-spinner"
+              size="small"
+              color={Colors.white}
+            />
           ) : (
             <>
               <Ionicons name="logo-whatsapp" size={17} color={Colors.white} />
@@ -142,12 +158,17 @@ export function ContactActions({
         <TouchableOpacity
           style={[s.button, buttonSizeStyle, s.callButton]}
           onPress={onCall}
-          disabled={busy}
+          disabled={anyBusy}
+          accessibilityState={{ disabled: anyBusy, busy: isCallBusy }}
           activeOpacity={0.8}
           testID="btn-contact-call"
         >
-          {busy ? (
-            <ActivityIndicator size="small" color={Colors.white} />
+          {isCallBusy ? (
+            <ActivityIndicator
+              testID="btn-contact-call-spinner"
+              size="small"
+              color={Colors.white}
+            />
           ) : (
             <>
               <Ionicons name="call-outline" size={17} color={Colors.white} />

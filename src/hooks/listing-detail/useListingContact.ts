@@ -5,6 +5,7 @@ import { contactApi, ContactInfo } from '../../api/contact'
 import { chatApi } from '../../api/chat'
 import { useRequireAuth } from './useRequireAuth'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
+import type { ContactActionType } from '../../components/listing-detail/ContactActions'
 
 export type ContactEntityType =
   | 'LISTING'
@@ -23,6 +24,7 @@ export type ContactEntityType =
 
 export interface UseListingContactReturn {
   busy: boolean
+  busyAction: ContactActionType | null
   error: string | null
   phone: string | null
   whatsappNumber: string | null
@@ -72,7 +74,8 @@ export function useListingContact(
   redirectPath: string,
   listingTitle?: string
 ): UseListingContactReturn {
-  const [busy, setBusy] = useState(false)
+  const [busyAction, setBusyAction] = useState<ContactActionType | null>(null)
+  const busy = busyAction !== null
   const [error, setError] = useState<string | null>(null)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
 
@@ -103,19 +106,19 @@ export function useListingContact(
   }, [entityType, id, navRouter])
 
   const chat = useCallback(async () => {
-    if (busy) return
+    if (busyAction !== null) return
     requireAuth(redirectPath, () => {
-      setBusy(true)
+      setBusyAction('chat')
       setError(null)
       ;(async () => {
         try {
           await startChatInternal()
         } finally {
-          setBusy(false)
+          setBusyAction(null)
         }
       })()
     })
-  }, [busy, redirectPath, requireAuth, startChatInternal])
+  }, [busyAction, redirectPath, requireAuth, startChatInternal])
 
   const getContact = useCallback(async (): Promise<ContactInfo | null> => {
     try {
@@ -132,9 +135,9 @@ export function useListingContact(
   }, [entityType, id])
 
   const call = useCallback(async () => {
-    if (busy) return
+    if (busyAction !== null) return
     requireAuth(redirectPath, () => {
-      setBusy(true)
+      setBusyAction('call')
       setError(null)
       ;(async () => {
         try {
@@ -159,16 +162,16 @@ export function useListingContact(
         } catch (err: any) {
           setError(extractErrorMessage(err, 'تعذر جلب بيانات الاتصال'))
         } finally {
-          setBusy(false)
+          setBusyAction(null)
         }
       })()
     })
-  }, [busy, contactInfo, entityType, id, redirectPath, requireAuth, startChatInternal])
+  }, [busyAction, contactInfo, entityType, id, redirectPath, requireAuth, startChatInternal])
 
   const whatsApp = useCallback(async () => {
-    if (busy) return
+    if (busyAction !== null) return
     requireAuth(redirectPath, () => {
-      setBusy(true)
+      setBusyAction('whatsapp')
       setError(null)
       ;(async () => {
         try {
@@ -197,14 +200,15 @@ export function useListingContact(
         } catch (err: any) {
           setError(extractErrorMessage(err, 'تعذر جلب بيانات التواصل'))
         } finally {
-          setBusy(false)
+          setBusyAction(null)
         }
       })()
     })
-  }, [busy, contactInfo, entityType, id, redirectPath, listingTitle, requireAuth, startChatInternal])
+  }, [busyAction, contactInfo, entityType, id, redirectPath, listingTitle, requireAuth, startChatInternal])
 
   return {
     busy,
+    busyAction,
     error,
     phone: contactInfo?.phone ?? null,
     whatsappNumber: contactInfo?.whatsappNumber ?? null,

@@ -261,7 +261,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
         <ContactActions
           variant="sticky"
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={jest.fn()}
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}
@@ -350,7 +350,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
         <ContactActions
           variant="sticky"
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={jest.fn()}
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}
@@ -366,7 +366,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
         <ContactActions
           variant="sticky"
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={jest.fn()}
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}

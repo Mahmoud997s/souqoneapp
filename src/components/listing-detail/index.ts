@@ -1,5 +1,9 @@
 export { ContactActions } from './ContactActions'
-export type { ContactActionsProps, ContactAvailability } from './ContactActions'
+export type {
+  ContactActionsProps,
+  ContactActionType,
+  ContactAvailability,
+} from './ContactActions'
 
 export { DetailTopBar } from './DetailTopBar'
 export type { DetailTopBarProps } from './DetailTopBar'

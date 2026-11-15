@@ -74,7 +74,7 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="sticky"
         availability={{ mode: 'full' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
@@ -95,7 +95,7 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="sticky"
         availability={{ mode: 'full' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
@@ -126,7 +126,7 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="inline"
         availability={{ mode: 'full' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
@@ -160,7 +160,7 @@ describe('ContactActions Glass Conversion Specification', () => {
         <ContactActions
           variant={variant}
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={jest.fn()}
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}
@@ -184,7 +184,7 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="inline"
         availability={{ mode: 'chatOnly' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
@@ -203,7 +203,7 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="inline"
         availability={{ mode: 'noWhatsapp' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
@@ -223,12 +223,119 @@ describe('ContactActions Glass Conversion Specification', () => {
       <ContactActions
         variant="inline"
         availability={{ mode: 'hidden' }}
-        busy={false}
+        busyAction={null}
         onCall={jest.fn()}
         onWhatsApp={jest.fn()}
         onChat={jest.fn()}
       />
     )
     expect(toJSON()).toBeNull()
+  })
+
+  describe('6. D-342 per-button busyAction spinner & accessibilityState', () => {
+    const cases: Array<{
+      action: 'call' | 'whatsapp' | 'chat'
+      spinnerId: string
+      otherSpinners: string[]
+      otherLabels: string[]
+      pressedBtnId: string
+      otherBtnIds: string[]
+    }> = [
+      {
+        action: 'call',
+        spinnerId: 'btn-contact-call-spinner',
+        otherSpinners: ['btn-contact-whatsapp-spinner', 'btn-contact-chat-spinner'],
+        otherLabels: ['واتساب', 'محادثة'],
+        pressedBtnId: 'btn-contact-call',
+        otherBtnIds: ['btn-contact-whatsapp', 'btn-contact-chat'],
+      },
+      {
+        action: 'whatsapp',
+        spinnerId: 'btn-contact-whatsapp-spinner',
+        otherSpinners: ['btn-contact-call-spinner', 'btn-contact-chat-spinner'],
+        otherLabels: ['اتصال', 'محادثة'],
+        pressedBtnId: 'btn-contact-whatsapp',
+        otherBtnIds: ['btn-contact-call', 'btn-contact-chat'],
+      },
+      {
+        action: 'chat',
+        spinnerId: 'btn-contact-chat-spinner',
+        otherSpinners: ['btn-contact-call-spinner', 'btn-contact-whatsapp-spinner'],
+        otherLabels: ['اتصال', 'واتساب'],
+        pressedBtnId: 'btn-contact-chat',
+        otherBtnIds: ['btn-contact-call', 'btn-contact-whatsapp'],
+      },
+    ]
+
+    it.each(cases)(
+      'shows spinner only on $action when busyAction="$action" and disables all buttons',
+      async ({ action, spinnerId, otherSpinners, otherLabels, pressedBtnId, otherBtnIds }) => {
+        const onCall = jest.fn()
+        const onWhatsApp = jest.fn()
+        const onChat = jest.fn()
+        const { getByTestId, queryByTestId, getByText } = await render(
+          <ContactActions
+            variant="inline"
+            availability={{ mode: 'full' }}
+            busyAction={action}
+            onCall={onCall}
+            onWhatsApp={onWhatsApp}
+            onChat={onChat}
+          />
+        )
+
+        expect(getByTestId(spinnerId)).toBeTruthy()
+        for (const other of otherSpinners) {
+          expect(queryByTestId(other)).toBeNull()
+        }
+        for (const label of otherLabels) {
+          expect(getByText(label)).toBeTruthy()
+        }
+
+        const pressedBtn = getByTestId(pressedBtnId)
+        expect(pressedBtn.props.accessibilityState).toEqual({ disabled: true, busy: true })
+        fireEvent.press(pressedBtn)
+
+        for (const otherBtnId of otherBtnIds) {
+          const otherBtn = getByTestId(otherBtnId)
+          expect(otherBtn.props.accessibilityState).toEqual({ disabled: true, busy: false })
+          fireEvent.press(otherBtn)
+        }
+
+        expect(onCall).not.toHaveBeenCalled()
+        expect(onWhatsApp).not.toHaveBeenCalled()
+        expect(onChat).not.toHaveBeenCalled()
+      }
+    )
+
+    it('renders no spinners and enables all buttons when busyAction=null', async () => {
+      const onCall = jest.fn()
+      const onWhatsApp = jest.fn()
+      const onChat = jest.fn()
+      const { getByTestId, queryByTestId } = await render(
+        <ContactActions
+          variant="inline"
+          availability={{ mode: 'full' }}
+          busyAction={null}
+          onCall={onCall}
+          onWhatsApp={onWhatsApp}
+          onChat={onChat}
+        />
+      )
+
+      expect(queryByTestId('btn-contact-call-spinner')).toBeNull()
+      expect(queryByTestId('btn-contact-whatsapp-spinner')).toBeNull()
+      expect(queryByTestId('btn-contact-chat-spinner')).toBeNull()
+
+      for (const id of ['btn-contact-call', 'btn-contact-whatsapp', 'btn-contact-chat']) {
+        const btn = getByTestId(id)
+        expect(btn.props.accessibilityState).toEqual({ disabled: false, busy: false })
+        fireEvent.press(btn)
+      }
+
+      expect(onCall).toHaveBeenCalledTimes(1)
+      expect(onWhatsApp).toHaveBeenCalledTimes(1)
+      expect(onChat).toHaveBeenCalledTimes(1)
+    })
   })
 })

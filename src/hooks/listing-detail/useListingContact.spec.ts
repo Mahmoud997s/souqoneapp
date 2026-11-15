@@ -36,7 +36,7 @@ function TestContactHarness({
   redirectPath?: string
   listingTitle?: string
 }) {
-  const { busy, error, call, whatsApp, chat } = useListingContact(
+  const { busy, busyAction, error, call, whatsApp, chat } = useListingContact(
     entityType,
     id,
     redirectPath,
@@ -62,6 +62,7 @@ function TestContactHarness({
       React.createElement(Text, null, 'Chat')
     ),
     React.createElement(Text, { testID: 'busy-status' }, busy ? 'BUSY' : 'IDLE'),
+    React.createElement(Text, { testID: 'busy-action-status' }, busyAction ?? 'NONE'),
     React.createElement(Text, { testID: 'error-status' }, error || 'NO_ERROR')
   )
 }
@@ -320,6 +321,62 @@ describe('useListingContact', () => {
         resolveContact({ data: { phone: '+96899999999', whatsappNumber: null } })
       })
       await waitFor(() => expect(screen.getByTestId('busy-status')).toHaveTextContent('IDLE'))
+    })
+
+    it('D-342: tracks busyAction per action (call / whatsapp / chat) and resets to null in finally on resolve and reject', async () => {
+      // 1. call -> 'call' -> null on reject
+      let rejectCall: (err: unknown) => void = () => {}
+      ;(contactApi.getContact as jest.Mock).mockReturnValueOnce(
+        new Promise((_res, rej) => {
+          rejectCall = rej
+        })
+      )
+      await render(React.createElement(TestContactHarness))
+      expect(screen.getByTestId('busy-action-status')).toHaveTextContent('NONE')
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('btn-call'))
+      })
+      expect(screen.getByTestId('busy-action-status')).toHaveTextContent('call')
+
+      await act(async () => {
+        rejectCall(new Error('network'))
+      })
+      await waitFor(() => expect(screen.getByTestId('busy-action-status')).toHaveTextContent('NONE'))
+
+      // 2. whatsApp -> 'whatsapp' -> null on resolve
+      let resolveWa: (val: unknown) => void = () => {}
+      ;(contactApi.getContact as jest.Mock).mockReturnValueOnce(
+        new Promise((res) => {
+          resolveWa = res
+        })
+      )
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('btn-whatsapp'))
+      })
+      expect(screen.getByTestId('busy-action-status')).toHaveTextContent('whatsapp')
+
+      await act(async () => {
+        resolveWa({ data: { phone: null, whatsappNumber: '+96899999999' } })
+      })
+      await waitFor(() => expect(screen.getByTestId('busy-action-status')).toHaveTextContent('NONE'))
+
+      // 3. chat -> 'chat' -> null on resolve
+      let resolveChat: (val: unknown) => void = () => {}
+      ;(chatApi.createRoom as jest.Mock).mockReturnValueOnce(
+        new Promise((res) => {
+          resolveChat = res
+        })
+      )
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('btn-chat'))
+      })
+      expect(screen.getByTestId('busy-action-status')).toHaveTextContent('chat')
+
+      await act(async () => {
+        resolveChat({ data: { id: 'room-1' } })
+      })
+      await waitFor(() => expect(screen.getByTestId('busy-action-status')).toHaveTextContent('NONE'))
     })
   })
 })
