@@ -73,12 +73,14 @@ function mapImages(rawImages?: EquipmentDetailApiImage[] | null): GalleryImage[]
     .sort((a, b) => {
       if (a.isPrimary && !b.isPrimary) return -1
       if (!a.isPrimary && b.isPrimary) return 1
-      return (a.order ?? 0) - (b.order ?? 0)
+      const aOrder = a.order ?? (a as any).sortOrder ?? 0
+      const bOrder = b.order ?? (b as any).sortOrder ?? 0
+      return aOrder - bOrder
     })
     .map((img) => ({
       id: String(img.id),
       url: img.url,
-      order: img.order ?? 0,
+      order: img.order ?? (img as any).sortOrder ?? 0,
       isPrimary: Boolean(img.isPrimary),
     }))
 }

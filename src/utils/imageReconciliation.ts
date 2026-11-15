@@ -18,7 +18,7 @@ import { uploadsApi } from '../api/uploads'
 import { partsApi } from '../api/parts'
 import { logWarn } from './safeLog'
 
-export type OperationType = 'upload' | 'attach' | 'delete'
+export type OperationType = 'upload' | 'attach' | 'reorder' | 'delete'
 
 export interface FailedOperation {
   key: string
@@ -63,6 +63,11 @@ export interface ImageReconciliationAdapter {
   deleteImage?: (
     imageId: string,
     listingId?: string,
+    signal?: AbortSignal
+  ) => Promise<unknown>
+  reorderImages?: (
+    listingId: string,
+    imageIds: string[],
     signal?: AbortSignal
   ) => Promise<unknown>
   fetchAttachedUrls?: (
@@ -527,6 +532,10 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
 
   deleteImage: async (imageId, _listingId, signal) => {
     return uploadsApi.removePartImage(imageId, signal)
+  },
+
+  reorderImages: async (partId, imageIds, signal) => {
+    return uploadsApi.reorderPartImages(partId, imageIds, signal)
   },
 
   fetchAttachedUrls: async (partId, signal) => {

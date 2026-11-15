@@ -19,6 +19,14 @@ export const uploadsApi = {
               apiClient.post(`/uploads/listings/${listingId}/images/url`, { url }),
   reorderImages: (listingId: string, imageIds: string[]) =>
               apiClient.patch(`/uploads/listings/${listingId}/images/reorder`, { imageIds }),
+  reorderPartImages: (partId: string, imageIds: string[]) =>
+              apiClient.patch(`/uploads/parts/${partId}/images/reorder`, { imageIds }),
+  reorderServiceImages: (serviceId: string, imageIds: string[]) =>
+              apiClient.patch(`/uploads/services/${serviceId}/images/reorder`, { imageIds }),
+  reorderBusImages: (busId: string, imageIds: string[]) =>
+              apiClient.patch(`/uploads/buses/${busId}/images/reorder`, { imageIds }),
+  reorderEquipmentImages: (equipmentId: string, imageIds: string[]) =>
+              apiClient.patch(`/uploads/equipment/${equipmentId}/images/reorder`, { imageIds }),
   addPartImageByUrl: (partId: string, url: string, isPrimary?: boolean, signal?: AbortSignal) =>
               apiClient.post(
                 `/uploads/parts/${partId}/images/url`,

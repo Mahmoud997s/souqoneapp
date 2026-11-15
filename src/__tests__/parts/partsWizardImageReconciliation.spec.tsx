@@ -30,6 +30,7 @@ jest.mock('../../api/uploads', () => ({
     single: jest.fn(),
     addPartImageByUrl: jest.fn(),
     removePartImage: jest.fn(),
+    reorderPartImages: jest.fn().mockResolvedValue({}),
   },
 }))
 

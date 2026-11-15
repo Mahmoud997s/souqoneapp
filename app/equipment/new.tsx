@@ -33,6 +33,7 @@ import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 import {
@@ -241,14 +242,15 @@ export default function NewEquipmentListingScreen() {
             submitLockRef.current = false
             let imagesSuccess = true
             try {
-              if (newImageUrls.length > 0) {
-                await equipmentApi.addImages(formData.editListingId!, newImageUrls)
-              }
-              if (formData.removedImageIds && formData.removedImageIds.length > 0) {
-                for (const imgId of formData.removedImageIds) {
-                  await equipmentApi.removeImage(imgId)
-                }
-              }
+              await reconcileEditSectionImages({
+                listingId: formData.editListingId!,
+                newImageUrls,
+                existingImages: formData.existingImages,
+                removedImageIds: formData.removedImageIds,
+                attachNew: (id, urls) => equipmentApi.addImages(id, urls),
+                reorderExisting: (id, imageIds) => uploadsApi.reorderEquipmentImages(id, imageIds),
+                removeExisting: (_id, imgId) => equipmentApi.removeImage(imgId),
+              })
             } catch (err) {
               imagesSuccess = false
               logWarn('EquipmentNew:UpdateImages', err)

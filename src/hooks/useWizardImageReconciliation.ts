@@ -451,8 +451,62 @@ export function useWizardImageReconciliation({
             }
           }
 
-          // ── 3. Delete Removed Images (Edit Mode) ──
+          // ── 2b. Reorder Existing Images (Edit Mode) ──
+          const hasUploadFailure = Object.values(workingLedger.failedOperations).some(
+            (op) => op.type === 'upload'
+          )
           if (
+            !hasUploadFailure &&
+            params.isEditMode &&
+            typeof adapter.reorderImages === 'function' &&
+            workingLedger.listingId &&
+            !signal.aborted
+          ) {
+            const existingIds = (params.existingImages ?? [])
+              .map((img) => (typeof img === 'string' ? undefined : img?.id))
+              .filter((id): id is string => typeof id === 'string' && id.length > 0)
+
+            if (existingIds.length > 0) {
+              const opKey = `reorder:${workingLedger.listingId}`
+              try {
+                await adapter.reorderImages(workingLedger.listingId, existingIds, signal)
+                if (signal.aborted) {
+                  const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                  workingLedger.failedOperations[opKey] = {
+                    key: opKey,
+                    type: 'reorder',
+                    error: 'تم إلغاء ترتيب الصور أثناء الاتصال، يرجى إعادة المحاولة',
+                    attempts: Math.min(priorAttempts + 1, 10),
+                    lastAttemptAt: Date.now(),
+                    meta: { listingId: workingLedger.listingId, imageIds: existingIds },
+                  }
+                } else {
+                  delete workingLedger.failedOperations[opKey]
+                }
+              } catch (err: any) {
+                const isAbort = signal.aborted || err?.name === 'AbortError' || err?.name === 'CanceledError'
+                logWarn('useWizardImageReconciliation:reorder', err)
+                const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                workingLedger.failedOperations[opKey] = {
+                  key: opKey,
+                  type: 'reorder',
+                  error: isAbort
+                    ? 'تم إلغاء ترتيب الصور أثناء الاتصال، يرجى إعادة المحاولة'
+                    : sanitizeErrorMessage(err, 'فشل ترتيب الصور'),
+                  attempts: Math.min(priorAttempts + 1, 10),
+                  lastAttemptAt: Date.now(),
+                  meta: { listingId: workingLedger.listingId, imageIds: existingIds },
+                }
+              }
+            }
+          }
+
+          // ── 3. Delete Removed Images (Edit Mode — only if upload & reorder succeeded) ──
+          const hasUploadOrReorderFailure = Object.values(workingLedger.failedOperations).some(
+            (op) => op.type === 'upload' || op.type === 'reorder'
+          )
+          if (
+            !hasUploadOrReorderFailure &&
             params.isEditMode &&
             typeof adapter.deleteImage === 'function' &&
             !signal.aborted

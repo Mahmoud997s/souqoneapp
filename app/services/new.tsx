@@ -30,6 +30,7 @@ import { uploadsApi } from '../../src/api/uploads'
 import { servicesApi } from '../../src/api/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
 import { useServiceFormLogic } from '../../src/hooks/useServiceFormLogic'
+import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import {
   getServiceStepFields,
   mapServiceBackendErrors,
@@ -335,11 +336,19 @@ export default function NewServiceListingScreen() {
             submitLockRef.current = false
             let imagesSuccess = true
             try {
-              if (formData.removedImageIds && formData.removedImageIds.length > 0) {
-                for (const imgId of formData.removedImageIds) {
-                  await uploadsApi.removeServiceImage(imgId)
-                }
-              }
+              await reconcileEditSectionImages({
+                listingId: formData.editListingId!,
+                newImageUrls: [],
+                existingImages: formData.existingImages,
+                removedImageIds: formData.removedImageIds,
+                removeExisting: async (_id, imgId) => {
+                  try {
+                    await uploadsApi.removeServiceImage(imgId)
+                  } catch (e: any) {
+                    if (e?.response?.status !== 404) throw e
+                  }
+                },
+              })
             } catch (err) {
               imagesSuccess = false
               logWarn('ServicesNew:RemoveImages', err)
