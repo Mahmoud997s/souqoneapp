@@ -423,6 +423,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             isHomeService={vm.isHomeService}
             postedAtLabel={vm.postedAtLabel}
             viewCount={vm.viewCount}
+            locationLabel={vm.location.fullLocationText}
           />
         </Animated.View>
 

@@ -17,6 +17,10 @@ export function stripMarkdown(raw: string | undefined | null): string {
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     // Remove heading markers (# Heading)
     .replace(/^#{1,6}\s+/gm, '')
+    // Remove horizontal rules
+    .replace(/^([-*_]){3,}\s*$/gm, '')
+    // Convert unordered list bullets (- item / * item / + item) to clean bullet "• "
+    .replace(/^\s*[-*+]\s+/gm, '• ')
     // Remove bold/italic markers: ***text***, **text**, *text*, ___text___, __text__, _text_
     .replace(/(\*\*|__)(.*?)\1/g, '$2')
     .replace(/(\*|_)(.*?)\1/g, '$2')
@@ -26,8 +30,6 @@ export function stripMarkdown(raw: string | undefined | null): string {
     .replace(/`([^`]+)`/g, '$1')
     // Remove blockquote markers (> text)
     .replace(/^\s*>\s+/gm, '')
-    // Remove horizontal rules
-    .replace(/^([-*_]){3,}\s*$/gm, '')
     // Normalize excessive newlines
     .replace(/\n{3,}/g, '\n\n')
     .trim()
