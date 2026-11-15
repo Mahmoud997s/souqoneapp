@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import {
   View,
   Text,
@@ -65,6 +65,7 @@ import {
   OwnerManageBar,
   type OwnerAction,
   type OwnerActionId,
+  type OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 
 // Service-Specific Presentational Components & Constants
@@ -132,7 +133,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   // 3. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
-  const [isOwnerBusy, setIsOwnerBusy] = useState<boolean>(false)
+  const [ownerBusyAction, setOwnerBusyAction] = useState<OwnerBusyAction>(null)
+  const ownerBusyRef = useRef<OwnerBusyAction>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   // Filter specializations by in-page search query
@@ -254,12 +256,15 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
     }
 
     if (actionId === 'delete') {
+      if (ownerBusyRef.current !== null) return
       dialogService.confirm(
         'حذف الإعلان',
         'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
         async () => {
+          if (ownerBusyRef.current !== null) return
+          ownerBusyRef.current = 'delete'
+          setOwnerBusyAction('delete')
           try {
-            setIsOwnerBusy(true)
             await servicesApi.remove(id)
             if (queryClient) {
               await invalidateServiceListingQueries(queryClient, id, {
@@ -272,7 +277,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             const errorMsg = getMutationErrorMessage(err, 'فشل حذف الإعلان')
             dialogService.alert('خطأ', errorMsg, 'error')
           } finally {
-            setIsOwnerBusy(false)
+            ownerBusyRef.current = null
+            setOwnerBusyAction(null)
           }
         },
         'نعم، احذف',
@@ -499,7 +505,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         <OwnerManageBar
           variant="sticky"
           viewCount={vm.viewCount}
-          busy={isOwnerBusy}
+          busyAction={ownerBusyAction}
           actions={OWNER_ACTIONS}
           onAction={handleOwnerAction}
         />

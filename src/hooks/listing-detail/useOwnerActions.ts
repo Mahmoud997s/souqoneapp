@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type {
   OwnerAction,
   OwnerActionId,
+  OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 import { useDeleteCarListing } from './useDeleteCarListing'
 import { useChangeCarListingStatus } from './useChangeCarListingStatus'
@@ -31,6 +32,8 @@ export interface UseOwnerActionsResult {
   run: (id: OwnerActionId) => Promise<void>
   /** True while any mutation is in flight */
   busy: boolean
+  /** Specific action currently in flight, or null */
+  busyAction: OwnerBusyAction
   /** Passthrough from vm.viewCount for the OwnerManageBar */
   viewCount: number
 }
@@ -47,8 +50,10 @@ export interface UseOwnerActionsResult {
 export function useOwnerActions(vm: CarDetailViewModel): UseOwnerActionsResult {
   const deleteMutation = useDeleteCarListing()
   const statusMutation = useChangeCarListingStatus()
+  const [busyAction, setBusyAction] = useState<OwnerBusyAction>(null)
+  const pendingRef = useRef<OwnerBusyAction>(null)
 
-  const busy = deleteMutation.isPending || statusMutation.isPending
+  const busy = busyAction !== null || deleteMutation.isPending || statusMutation.isPending
 
   const actions = useMemo<OwnerAction[]>(
     () => buildCarOwnerActions(vm.status, vm.listingType),
@@ -57,6 +62,7 @@ export function useOwnerActions(vm: CarDetailViewModel): UseOwnerActionsResult {
 
   const run = async (id: OwnerActionId): Promise<void> => {
     if (id === 'edit') return
+    if (pendingRef.current !== null) return
 
     if (id === 'restore' || id === 'submit') {
       const user = useAuthStore.getState().user
@@ -67,24 +73,39 @@ export function useOwnerActions(vm: CarDetailViewModel): UseOwnerActionsResult {
     }
 
     if (id === 'delete') {
-      await deleteMutation.mutateAsync(vm.id)
+      pendingRef.current = 'delete'
+      setBusyAction('delete')
+      try {
+        await deleteMutation.mutateAsync(vm.id)
+      } finally {
+        pendingRef.current = null
+        setBusyAction(null)
+      }
       return
     }
 
     const backendAction = CAR_STATUS_ACTION[id]
     if (!backendAction) return
 
-    await statusMutation.mutateAsync({
-      id: vm.id,
-      action: backendAction,
-      version: vm.version,
-    })
+    pendingRef.current = id
+    setBusyAction(id)
+    try {
+      await statusMutation.mutateAsync({
+        id: vm.id,
+        action: backendAction,
+        version: vm.version,
+      })
+    } finally {
+      pendingRef.current = null
+      setBusyAction(null)
+    }
   }
 
   return {
     actions,
     run,
     busy,
+    busyAction,
     viewCount: vm.viewCount ?? 0,
   }
 }

@@ -9,10 +9,13 @@ import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import type { OperatorPendingDeletionView } from '../../../types/operatorDetailViewModel.types'
 
+export type OperatorPendingDeletionBusyAction = 'cancelDeletion' | null
+
 export interface OperatorPendingDeletionBannerProps {
   pendingDeletion?: OperatorPendingDeletionView | null
   onCancel?: () => void
   busy?: boolean
+  busyAction?: OperatorPendingDeletionBusyAction
 }
 
 /**
@@ -27,10 +30,13 @@ export function OperatorPendingDeletionBanner({
   pendingDeletion,
   onCancel,
   busy = false,
+  busyAction,
 }: OperatorPendingDeletionBannerProps) {
   if (!pendingDeletion) {
     return null
   }
+
+  const isBusy = busyAction !== undefined ? busyAction === 'cancelDeletion' : busy
 
   return (
     <View style={s.banner} testID="operator-pending-deletion-banner">
@@ -48,16 +54,22 @@ export function OperatorPendingDeletionBanner({
 
       {onCancel && (
         <TouchableOpacity
-          style={[s.cancelBtn, busy && s.btnDisabled]}
-          onPress={onCancel}
-          disabled={busy}
+          style={[s.cancelBtn, isBusy && s.btnDisabled]}
+          onPress={() => {
+            if (!isBusy) onCancel()
+          }}
+          disabled={isBusy}
           activeOpacity={0.8}
           testID="operator-cancel-deletion-button"
           accessibilityRole="button"
           accessibilityLabel="إلغاء طلب الحذف"
         >
-          {busy ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
+          {isBusy ? (
+            <ActivityIndicator
+              size="small"
+              color={Colors.primary}
+              testID="operator-cancel-deletion-spinner"
+            />
           ) : (
             <Text style={s.cancelBtnText} maxFontSizeMultiplier={1.3}>
               إلغاء الطلب

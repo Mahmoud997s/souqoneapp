@@ -527,7 +527,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         <OwnerManageBar
           variant="sticky"
           viewCount={ownerActions.viewCount}
-          busy={ownerActions.busy}
+          busyAction={ownerActions.busyAction}
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
         />

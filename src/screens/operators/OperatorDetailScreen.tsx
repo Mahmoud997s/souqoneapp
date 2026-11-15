@@ -244,7 +244,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           <OperatorPendingDeletionBanner
             pendingDeletion={vm.pendingDeletion}
             onCancel={handleCancelPendingDeletion}
-            busy={ownerActions.busy}
+            busyAction={ownerActions.busyAction === 'restore' ? 'cancelDeletion' : null}
           />
         )}
 
@@ -315,7 +315,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           variant="sticky"
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
-          busy={ownerActions.busy}
+          busyAction={ownerActions.busyAction}
           viewCount={ownerActions.viewCount}
         />
       ) : (

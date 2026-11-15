@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type {
   OwnerAction,
   OwnerActionId,
+  OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 import type { OperatorDetailViewModel } from '../../types/operatorDetailViewModel.types'
 import { equipmentApi } from '../../api/equipment'
@@ -16,6 +17,7 @@ export interface UseOperatorOwnerActionsResult {
   actions: OwnerAction[]
   run: (id: OwnerActionId) => Promise<void>
   busy: boolean
+  busyAction: OwnerBusyAction
   viewCount: number
 }
 
@@ -32,7 +34,9 @@ export function useOperatorOwnerActions(
   vm: OperatorDetailViewModel | null | undefined
 ): UseOperatorOwnerActionsResult {
   const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
+  const [busyAction, setBusyAction] = useState<OwnerBusyAction>(null)
+  const pendingRef = useRef<OwnerBusyAction>(null)
+  const busy = busyAction !== null
   const user = useAuthStore((s) => s.user)
 
   const isOwner = Boolean(user?.id && vm?.seller.id && user.id === vm.seller.id)
@@ -86,9 +90,10 @@ export function useOperatorOwnerActions(
       throw new Error('غير مصرح لك بتنفيذ هذا الإجراء')
     }
 
-    if (busy) return
+    if (pendingRef.current !== null) return
 
-    setBusy(true)
+    pendingRef.current = id
+    setBusyAction(id)
     try {
       if (id === 'edit') {
         const user = useAuthStore.getState().user
@@ -118,7 +123,8 @@ export function useOperatorOwnerActions(
 
       throw new Error(`إجراء غير معروف: ${id}`)
     } finally {
-      setBusy(false)
+      pendingRef.current = null
+      setBusyAction(null)
     }
   }
 
@@ -126,6 +132,7 @@ export function useOperatorOwnerActions(
     actions,
     run,
     busy,
+    busyAction,
     viewCount: vm?.viewCount ?? 0,
   }
 }

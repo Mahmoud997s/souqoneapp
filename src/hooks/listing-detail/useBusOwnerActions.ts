@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type {
   OwnerAction,
   OwnerActionId,
+  OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 import type { BusDetailViewModel } from '../../types/busDetailViewModel.types'
 import { busesApi, BusStatusUpdatePayload } from '../../api/buses'
@@ -20,6 +21,7 @@ export interface UseBusOwnerActionsResult {
   actions: OwnerAction[]
   run: (id: OwnerActionId) => Promise<void>
   busy: boolean
+  busyAction: OwnerBusyAction
   viewCount: number
 }
 
@@ -46,7 +48,9 @@ export function isOptimisticLockError(error: unknown): boolean {
  */
 export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsResult {
   const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
+  const [busyAction, setBusyAction] = useState<OwnerBusyAction>(null)
+  const pendingRef = useRef<OwnerBusyAction>(null)
+  const busy = busyAction !== null
 
   const actions = useMemo<OwnerAction[]>(
     () => buildBusOwnerActions(vm.status, vm.busListingType),
@@ -55,6 +59,7 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
 
   const run = async (id: OwnerActionId): Promise<void> => {
     if (id === 'edit') return
+    if (pendingRef.current !== null) return
 
     if (id === 'restore' || id === 'submit') {
       const user = useAuthStore.getState().user
@@ -65,12 +70,14 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
     }
 
     if (id === 'delete') {
-      setBusy(true)
+      pendingRef.current = 'delete'
+      setBusyAction('delete')
       try {
         await busesApi.remove(vm.id)
         await invalidateBusListingQueries(queryClient, vm.id, { removeDetail: true })
       } finally {
-        setBusy(false)
+        pendingRef.current = null
+        setBusyAction(null)
       }
       return
     }
@@ -78,7 +85,8 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
     const nextStatus = OWNER_STATUS_TARGET[id]
     if (!nextStatus) return
 
-    setBusy(true)
+    pendingRef.current = id
+    setBusyAction(id)
     try {
       await busesApi.update(vm.id, {
         version: vm.version,
@@ -91,7 +99,8 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
       }
       throw err
     } finally {
-      setBusy(false)
+      pendingRef.current = null
+      setBusyAction(null)
     }
   }
 
@@ -99,6 +108,7 @@ export function useBusOwnerActions(vm: BusDetailViewModel): UseBusOwnerActionsRe
     actions,
     run,
     busy,
+    busyAction,
     viewCount: vm.viewCount ?? 0,
   }
 }

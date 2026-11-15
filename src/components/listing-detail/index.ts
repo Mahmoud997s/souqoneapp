@@ -36,7 +36,7 @@ export { ListingHeaderBlock } from './ListingHeaderBlock'
 export type { ListingHeaderBlockProps } from './ListingHeaderBlock'
 
 export { OwnerManageBar } from './OwnerManageBar'
-export type { OwnerManageBarProps, OwnerActionId } from './OwnerManageBar'
+export type { OwnerManageBarProps, OwnerActionId, OwnerBusyAction } from './OwnerManageBar'
 
 export { SafetyTips } from './SafetyTips'
 export type { SafetyTipsProps } from './SafetyTips'
