@@ -18,6 +18,7 @@ jest.mock('../../api/equipment')
 jest.mock('../../api/uploads', () => ({
   uploadsApi: {
     single: jest.fn(),
+    reorderEquipmentImages: jest.fn().mockResolvedValue({}),
   },
 }))
 
