@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -59,7 +59,7 @@ export function PostCategoryCard({ category, index, onPress }: PostCategoryCardP
       accessibilityRole="button"
       accessibilityLabel={category.title}
     >
-      <Animated.View style={[styles.card, pressStyle]}>
+      <Animated.View style={[styles.rowCard, pressStyle]}>
         <View pointerEvents="none" style={styles.iceBacking} />
         <GlassSurface
           testID={`post-category-glass-${category.id}`}
@@ -77,16 +77,26 @@ export function PostCategoryCard({ category, index, onPress }: PostCategoryCardP
             <MaterialCommunityIcons
               testID={`post-category-icon-${category.id}`}
               name={category.icon}
-              size={32}
+              size={PostCategoryTokens.iconSize}
               color={Colors.primary}
             />
           </View>
-          <Text style={styles.title} numberOfLines={2}>
-            {category.title}
-          </Text>
-          <Text style={styles.description} numberOfLines={2}>
-            {category.description}
-          </Text>
+
+          <View style={styles.textColumn}>
+            <Text style={styles.title} numberOfLines={1}>
+              {category.title}
+            </Text>
+            <Text style={styles.description} numberOfLines={1}>
+              {category.description}
+            </Text>
+          </View>
+
+          <Ionicons
+            testID={`post-category-chevron-${category.id}`}
+            name="chevron-back"
+            size={PostCategoryTokens.chevronSize}
+            color={Colors.textMuted}
+          />
         </Animated.View>
       </Animated.View>
     </Pressable>
@@ -95,15 +105,13 @@ export function PostCategoryCard({ category, index, onPress }: PostCategoryCardP
 
 const styles = StyleSheet.create({
   pressable: {
-    width: PostCategoryTokens.cardWidth,
-    minHeight: PostCategoryTokens.cardMinHeight,
+    width: '100%',
+    height: PostCategoryTokens.rowHeight,
   },
-  card: {
+  rowCard: {
     flex: 1,
-    minHeight: PostCategoryTokens.cardMinHeight,
+    height: PostCategoryTokens.rowHeight,
     paddingHorizontal: Spacing.space3,
-    paddingVertical: Spacing.space4,
-    alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     borderRadius: PostCategoryTokens.cardRadius,
@@ -118,34 +126,38 @@ const styles = StyleSheet.create({
     borderRadius: PostCategoryTokens.cardRadius,
   },
   content: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: Spacing.space3,
     width: '100%',
   },
   iconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: Colors.inputBg,
+    width: PostCategoryTokens.iconBoxSize,
+    height: PostCategoryTokens.iconBoxSize,
+    borderRadius: PostCategoryTokens.iconBoxRadius,
+    backgroundColor: Colors.paleMint,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: PostCategoryTokens.cardIconGap,
+  },
+  textColumn: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 2,
   },
   title: {
     fontFamily: 'Almarai_700Bold',
     fontSize: PostCategoryTokens.cardTitleFontSize,
     lineHeight: PostCategoryTokens.cardTitleLineHeight,
     color: Colors.text,
-    textAlign: 'center',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
   description: {
-    marginTop: PostCategoryTokens.titleDescriptionGap,
     fontFamily: 'Almarai_400Regular',
     fontSize: PostCategoryTokens.descriptionFontSize,
     lineHeight: PostCategoryTokens.descriptionLineHeight,
     color: Colors.textMuted,
-    textAlign: 'center',
+    textAlign: 'left',
     writingDirection: 'rtl',
   },
 })
