@@ -319,7 +319,7 @@ export function ServicesFilterBottomSheet({
             <Switch
               value={filters.isOpenNow || false}
               onValueChange={(val) => updateFilter('isOpenNow', val ? true : undefined)}
-              trackColor={{ false: '#e2e8f0', true: '#22c55e' }}
+              trackColor={{ false: '#e2e8f0', true: Colors.primary }}
               thumbColor={'#ffffff'}
             />
           </View>

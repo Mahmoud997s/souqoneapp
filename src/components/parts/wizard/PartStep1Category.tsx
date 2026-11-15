@@ -48,7 +48,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
       {/* Intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="car-sport" size={16} color="#2563EB" />
+          <Ionicons name="car-sport" size={16} color={Colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>سوق قطع الغيار</Text>

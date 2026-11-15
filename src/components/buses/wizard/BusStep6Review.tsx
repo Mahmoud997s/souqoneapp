@@ -48,8 +48,9 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
     ),
   ].filter(Boolean)
 
-  const listingTypeLabel =
-    BUS_LISTING_TYPES.find((t) => t.id === data.busListingType)?.label || data.busListingType || '—'
+  const listingTypeLabel = isContract
+    ? 'بيع مع عقد'
+    : BUS_LISTING_TYPES.find((t) => t.id === data.busListingType)?.label || data.busListingType || '—'
   const busTypeLabel =
     BUS_TYPES.find((t) => t.id === data.busType)?.label || data.busType || '—'
   const conditionLabel =
@@ -597,32 +598,32 @@ const s = StyleSheet.create({
     borderRadius: 6,
   },
   badgeSale: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
   },
   badgeRent: {
-    backgroundColor: '#FDF4FF',
+    backgroundColor: Colors.paleMint,
   },
   badgeContract: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.paleMint,
   },
   badgeWanted: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.paleMint,
   },
   badgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
   },
   badgeTxtSale: {
-    color: '#1D4ED8',
+    color: Colors.primary,
   },
   badgeTxtRent: {
-    color: '#A21CAF',
+    color: Colors.primary,
   },
   badgeTxtContract: {
-    color: '#B45309',
+    color: Colors.primary,
   },
   badgeTxtWanted: {
-    color: '#475569',
+    color: Colors.primary,
   },
   typeBadge: {
     backgroundColor: Colors.surface,
@@ -796,7 +797,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: Colors.paleMint,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
@@ -804,20 +805,20 @@ const s = StyleSheet.create({
   negoBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
-    color: '#15803D',
+    color: Colors.primary,
   },
   priceBigNumber: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 19,
     lineHeight: 25,
-    color: '#15803D',
+    color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   priceCurrency: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    color: '#166534',
+    color: Colors.primary,
   },
   rentalBox: {
     backgroundColor: '#F8FAFC',

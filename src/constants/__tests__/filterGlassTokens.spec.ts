@@ -25,8 +25,8 @@ describe('FilterGlassTokens', () => {
     expect(FilterGlassTokens.tab.trackBorderWidth).toBe(1);
     expect(FilterGlassTokens.tab.fontSize).toBe(11.5);
     expect(FilterGlassTokens.tab.lineHeight).toBe(15.5);
-    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.white);
-    expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.primary);
+    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primary);
+    expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.white);
 
     // VisualFiltersBase item cards equal to master 7353e69
     expect(FilterGlassTokens.card.borderRadius).toBe(8);

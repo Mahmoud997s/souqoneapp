@@ -526,20 +526,20 @@ const s = StyleSheet.create({
     borderRadius: 6,
   },
   badgeSale: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
   },
   badgeWanted: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.paleMint,
   },
   badgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
   },
   badgeTxtSale: {
-    color: '#1D4ED8',
+    color: Colors.primary,
   },
   badgeTxtWanted: {
-    color: '#B45309',
+    color: Colors.primary,
   },
   descBox: {
     backgroundColor: '#F8FAFC',
@@ -700,7 +700,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: Colors.paleMint,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
@@ -708,20 +708,20 @@ const s = StyleSheet.create({
   negoBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
-    color: '#15803D',
+    color: Colors.primary,
   },
   priceBigNumber: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 19,
     lineHeight: 25,
-    color: '#15803D',
+    color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   priceCurrency: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    color: '#166534',
+    color: Colors.primary,
   },
   gpsBadge: {
     flexDirection: 'row',
