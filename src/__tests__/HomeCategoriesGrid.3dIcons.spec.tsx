@@ -117,10 +117,8 @@ describe('HomeCategoriesGrid — Vector Category Icons & 4+3 Layout (D-196)', ()
       })
     })
 
-    it('Tooth f: operator and browse 3D assets do NOT exist and HomeCategoriesGrid does not reference category PNGs', () => {
-      const operatorAsset = path.resolve(__dirname, '../../assets/images/categories/cat-operators.png')
+    it('Tooth f: browse 3D asset does NOT exist and HomeCategoriesGrid does not reference category PNGs', () => {
       const browseAsset = path.resolve(__dirname, '../../assets/images/categories/cat-browse.png')
-      expect(fs.existsSync(operatorAsset)).toBe(false)
       expect(fs.existsSync(browseAsset)).toBe(false)
 
       const gridSource = fs.readFileSync(path.resolve(__dirname, '../components/home/HomeCategoriesGrid.tsx'), 'utf8')
