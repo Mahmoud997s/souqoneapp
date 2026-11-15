@@ -534,8 +534,8 @@ export const partsImageReconciliationAdapter: ImageReconciliationAdapter = {
     return uploadsApi.removePartImage(imageId, signal)
   },
 
-  reorderImages: async (partId, imageIds, signal) => {
-    return uploadsApi.reorderPartImages(partId, imageIds, signal)
+  reorderImages: async (partId, imageIds) => {
+    return uploadsApi.reorderPartImages(partId, imageIds)
   },
 
   fetchAttachedUrls: async (partId, signal) => {

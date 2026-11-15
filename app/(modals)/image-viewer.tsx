@@ -5,6 +5,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../src/constants/colors'
 import { useEffect, useState } from 'react'
 
+/**
+ * @deprecated Unused legacy route kept only for backwards route safety & StatusBar characterization (#156).
+ * All active detail screens use `src/components/listing-detail/ImageViewerModal.tsx` directly.
+ */
 export default function ImageViewerModal() {
   const { width, height } = useWindowDimensions()
   const { url, urls, index } = useLocalSearchParams()
