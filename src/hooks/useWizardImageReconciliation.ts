@@ -350,6 +350,7 @@ export function useWizardImageReconciliation({
           }
 
           // ── 2. Attach Uploaded URLs (Edit Mode or Vertical-Specific URL Attach) ──
+          const attachedIds: string[] = []
           if (
             params.isEditMode &&
             workingLedger.listingId &&
@@ -406,12 +407,18 @@ export function useWizardImageReconciliation({
                 const opKey = makeOpKey.attach(rec.remoteUrl)
 
                 try {
-                  await adapter.attachImageUrl(
+                  const attachRes = await adapter.attachImageUrl(
                     listingId,
                     rec.remoteUrl,
                     rec.isPrimary,
                     signal
                   )
+                  const maybeId =
+                    (attachRes as { data?: { id?: unknown }; id?: unknown } | null | undefined)?.data?.id ??
+                    (attachRes as { id?: unknown } | null | undefined)?.id
+                  if (typeof maybeId === 'string' && maybeId.length > 0 && !attachedIds.includes(maybeId)) {
+                    attachedIds.push(maybeId)
+                  }
                   if (signal.aborted) {
                     const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
                     workingLedger.failedOperations[opKey] = {
@@ -467,9 +474,13 @@ export function useWizardImageReconciliation({
               .filter((id): id is string => typeof id === 'string' && id.length > 0)
 
             if (existingIds.length > 0) {
+              const orderedIds = [
+                ...existingIds,
+                ...attachedIds.filter((id) => !existingIds.includes(id)),
+              ]
               const opKey = `reorder:${workingLedger.listingId}`
               try {
-                await adapter.reorderImages(workingLedger.listingId, existingIds, signal)
+                await adapter.reorderImages(workingLedger.listingId, orderedIds, signal)
                 if (signal.aborted) {
                   const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
                   workingLedger.failedOperations[opKey] = {
@@ -478,7 +489,7 @@ export function useWizardImageReconciliation({
                     error: 'تم إلغاء ترتيب الصور أثناء الاتصال، يرجى إعادة المحاولة',
                     attempts: Math.min(priorAttempts + 1, 10),
                     lastAttemptAt: Date.now(),
-                    meta: { listingId: workingLedger.listingId, imageIds: existingIds },
+                    meta: { listingId: workingLedger.listingId, imageIds: orderedIds },
                   }
                 } else {
                   delete workingLedger.failedOperations[opKey]
@@ -495,7 +506,7 @@ export function useWizardImageReconciliation({
                     : sanitizeErrorMessage(err, 'فشل ترتيب الصور'),
                   attempts: Math.min(priorAttempts + 1, 10),
                   lastAttemptAt: Date.now(),
-                  meta: { listingId: workingLedger.listingId, imageIds: existingIds },
+                  meta: { listingId: workingLedger.listingId, imageIds: orderedIds },
                 }
               }
             }

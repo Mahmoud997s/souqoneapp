@@ -239,9 +239,11 @@ export default function NewCarListingScreen() {
                 existingImages: formData.existingImages,
                 removedImageIds: formData.removedImageIds,
                 attachNew: async (id, urls) => {
+                  const responses: unknown[] = []
                   for (const url of urls) {
-                    await uploadsApi.attachListingImageUrl(id, url)
+                    responses.push(await uploadsApi.attachListingImageUrl(id, url))
                   }
+                  return responses
                 },
                 reorderExisting: (id, imageIds) => uploadsApi.reorderImages(id, imageIds),
                 removeExisting: (id, imgId) => uploadsApi.removeListingImage(id, imgId),

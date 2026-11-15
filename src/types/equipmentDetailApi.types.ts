@@ -6,6 +6,7 @@ export interface EquipmentDetailApiImage {
   url: string
   isPrimary?: boolean
   order?: number
+  sortOrder?: number
 }
 
 export interface EquipmentDetailApiSeller {
