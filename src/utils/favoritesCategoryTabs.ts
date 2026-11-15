@@ -48,3 +48,19 @@ export function buildFavoritesRoute(tab?: string | null): string {
   if (normalized === 'all') return '/profile/favorites'
   return `/profile/favorites?tab=${encodeURIComponent(normalized)}`
 }
+
+/**
+ * Matches a favorited card's category against the active Favorites tab filter.
+ * Operators appear in both 'all' and 'equipment' tabs without adding a separate tab.
+ */
+export function matchesFavoritesCategoryFilter(
+  category: string | undefined,
+  activeTab: FavoritesTabId
+): boolean {
+  if (category === 'jobs' || category === 'transport') return false
+  if (activeTab === 'all') return true
+  if (activeTab === 'equipment') {
+    return category === 'equipment' || category === 'operators'
+  }
+  return category === activeTab
+}

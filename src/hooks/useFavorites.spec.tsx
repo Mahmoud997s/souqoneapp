@@ -33,14 +33,29 @@ describe('useFavorites (Filtering & Mapping)', () => {
     )
   }
 
-  it('filters out legacy OPERATOR_LISTING favorites rows and keeps supported items without crashing', async () => {
+  it('maps OPERATOR_LISTING favorites rows via mapOperatorToCard, skips deleted entities, and keeps supported items', async () => {
     ;(favoritesApi.getAll as jest.Mock).mockResolvedValueOnce({
       data: [
         {
           id: 'fav-1',
           entityType: 'OPERATOR_LISTING',
-          entityId: 'op-legacy-99',
-          entity: { id: 'op-legacy-99', name: 'مشغل رافعة قديم' },
+          entityId: 'op-101',
+          operatorListing: {
+            id: 'op-101',
+            title: 'مشغل رافعة محترف',
+            dailyRate: 45,
+            currency: 'OMR',
+            operatorType: 'OPERATOR',
+            experienceYears: 6,
+            governorate: 'مسقط',
+            images: [],
+          },
+        },
+        {
+          id: 'fav-1b',
+          entityType: 'OPERATOR_LISTING',
+          entityId: 'op-deleted-1',
+          // Deleted operator: no operatorListing and no entity
         },
         {
           id: 'fav-2',
@@ -89,15 +104,14 @@ describe('useFavorites (Filtering & Mapping)', () => {
     })
 
     const items = result.current.data || []
-    // Exactly 2 items (bus and equipment); operator and deleted entity are filtered out
-    expect(items).toHaveLength(2)
-    expect(items[0].id).toBe('bus-200')
-    expect(items[0].category).toBe('buses')
-    expect(items[1].id).toBe('eq-300')
-    expect(items[1].category).toBe('equipment')
-
-    // Confirm no operator item made it into the result
-    const hasOperator = items.some((i: any) => i.id === 'op-legacy-99' || i.category === 'operators')
-    expect(hasOperator).toBe(false)
+    expect(items).toHaveLength(3)
+    expect(items[0].id).toBe('op-101')
+    expect(items[0].category).toBe('operators')
+    expect(items[0].listingType).toBe('OPERATOR')
+    expect(items[1].id).toBe('bus-200')
+    expect(items[1].category).toBe('buses')
+    expect(items[2].id).toBe('eq-300')
+    expect(items[2].category).toBe('equipment')
+    expect(items.some((i: any) => i.id === 'op-deleted-1' || i.id === 'deleted-1')).toBe(false)
   })
 })

@@ -5,6 +5,7 @@ export const SUPPORTED_FAVORITE_ENTITY_TYPES = [
   'LISTING',
   'BUS_LISTING',
   'EQUIPMENT_LISTING',
+  'OPERATOR_LISTING',
   'SPARE_PART',
   'CAR_SERVICE',
   'JOB',
@@ -27,7 +28,7 @@ export function favoriteKey(type: string, id: string): string {
 /**
  * Resolves the valid FavoriteEntityType for a card item, or null if unsupported.
  * Explicit prop wins; otherwise delegates to resolveContactEntityType.
- * Operators and profile types (driver, employer, carrier) return null.
+ * Profile types (driver, employer, carrier) return null.
  */
 export function favoriteTypeForCard(
   item: Partial<UnifiedCardItem> | Record<string, unknown> | null | undefined,
@@ -35,9 +36,6 @@ export function favoriteTypeForCard(
 ): FavoriteEntityType | null {
   if (explicitType) {
     const upperExplicit = explicitType.trim().toUpperCase()
-    if (upperExplicit === 'OPERATOR_LISTING') {
-      return null
-    }
     if (SUPPORTED_SET.has(upperExplicit)) {
       return upperExplicit as FavoriteEntityType
     }
@@ -47,10 +45,6 @@ export function favoriteTypeForCard(
   if (!item) return null
 
   const resolved = resolveContactEntityType((item as any)?.category, item)
-
-  if (resolved === 'OPERATOR_LISTING') {
-    return null
-  }
 
   if (SUPPORTED_SET.has(resolved)) {
     return resolved as FavoriteEntityType

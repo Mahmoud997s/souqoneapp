@@ -26,10 +26,10 @@ describe('favoriteEntityTypes', () => {
     expect(favoriteTypeForCard({ id: '6', category: 'jobs' })).toBe('DRIVER_JOB')
   })
 
-  it('returns null for OPERATOR_LISTING (operators have NO favorites per decision)', () => {
-    expect(favoriteTypeForCard({ id: 'op-1', category: 'operators' })).toBeNull()
-    expect(favoriteTypeForCard({ id: 'op-1', category: 'operator' })).toBeNull()
-    expect(favoriteTypeForCard(null, 'OPERATOR_LISTING')).toBeNull()
+  it('maps OPERATOR_LISTING to OPERATOR_LISTING (D-333a)', () => {
+    expect(favoriteTypeForCard({ id: 'op-1', category: 'operators' })).toBe('OPERATOR_LISTING')
+    expect(favoriteTypeForCard({ id: 'op-1', category: 'operator' })).toBe('OPERATOR_LISTING')
+    expect(favoriteTypeForCard(null, 'OPERATOR_LISTING')).toBe('OPERATOR_LISTING')
   })
 
   it('returns null for unsupported profiles (driver, employer, carrier)', () => {

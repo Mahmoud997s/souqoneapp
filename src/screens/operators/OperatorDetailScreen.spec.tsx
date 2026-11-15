@@ -298,7 +298,7 @@ describe('OperatorDetailScreen', () => {
     expect(screen.queryByTestId('similar-operators-section')).toBeNull()
   })
 
-  it('renders visitor view with contact actions and NO navbar favorite, without owner bar', async () => {
+  it('renders visitor view with contact actions and floating favorite, without owner bar', async () => {
     await render(<OperatorDetailScreen id="op-100" />)
 
     expect(screen.getByTestId('operator-detail-screen')).toBeTruthy()
@@ -313,9 +313,13 @@ describe('OperatorDetailScreen', () => {
     // Owner bar is absent
     expect(screen.queryByTestId('btn-owner-edit')).toBeNull()
 
-    // Operators have NO favorites (Part O decision)
+    // Operators support favorites (D-333a)
     expect(screen.queryByTestId('nav-favorite-button')).toBeNull()
-    expect(useFavoriteToggle).not.toHaveBeenCalled()
+    expect(screen.getByTestId('operator-top-favorite-btn')).toBeTruthy()
+    expect(useFavoriteToggle).toHaveBeenCalledWith('OPERATOR_LISTING', 'op-100', false, {
+      redirectPath: '/equipment/operators/op-100',
+      title: 'مشغل رافعة معتمد',
+    })
     expect(useListingContact).toHaveBeenCalledWith(
       'OPERATOR_LISTING',
       'op-100',
@@ -474,12 +478,12 @@ describe('OperatorDetailScreen', () => {
     expect(screen.queryByTestId('nav-search-container')).toBeNull()
   })
 
-  it('renders share button in top bar and triggers share on press (D-095 Item 30)', async () => {
+  it('renders floating circular share button and triggers share on press (D-333a)', async () => {
     const shareSpy = jest.spyOn(Share, 'share').mockImplementation(async () => ({ action: 'sharedAction' as const }))
 
     await render(<OperatorDetailScreen id="op-100" />)
 
-    const shareBtn = screen.getByTestId('btn-detail-share')
+    const shareBtn = screen.getByTestId('operator-top-share-btn')
     expect(shareBtn).toBeTruthy()
     await act(async () => {
       fireEvent.press(shareBtn)
@@ -491,16 +495,55 @@ describe('OperatorDetailScreen', () => {
     shareSpy.mockRestore()
   })
 
-  it('renders fixed top bar before scroll view and strictly omits favorite heart (D-095)', async () => {
+  it('renders floating circular back, share, and favorite buttons for visitors with OPERATOR_LISTING toggle (D-333a)', async () => {
     await render(<OperatorDetailScreen id="op-100" />)
 
-    const topBar = screen.getByTestId('detail-top-bar')
-    const backBtn = screen.getByTestId('nav-back-button')
-    const shareBtn = screen.getByTestId('btn-detail-share')
+    const backBtn = screen.getByTestId('operator-top-back-btn')
+    const shareBtn = screen.getByTestId('operator-top-share-btn')
+    const favBtn = screen.getByTestId('operator-top-favorite-btn')
 
-    expect(topBar).toBeTruthy()
     expect(backBtn).toBeTruthy()
     expect(shareBtn).toBeTruthy()
-    expect(screen.queryByTestId('nav-favorite-button')).toBeNull()
+    expect(favBtn).toBeTruthy()
+    expect(screen.queryByTestId('detail-top-bar')).toBeNull()
+
+    expect(useFavoriteToggle).toHaveBeenCalledWith('OPERATOR_LISTING', 'op-100', false, {
+      redirectPath: '/equipment/operators/op-100',
+      title: 'مشغل رافعة معتمد',
+    })
+
+    await act(async () => {
+      fireEvent.press(backBtn)
+    })
+    expect(mockRouter.back).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      fireEvent.press(favBtn)
+    })
+    expect(mockFavorite.toggle).toHaveBeenCalledTimes(1)
+    cleanup()
+  })
+
+  it('hides floating favorite button for owner (D-333a / 3.10)', async () => {
+    cleanup()
+    ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector: any) =>
+      selector({ user: { id: 'user-seller-9' } })
+    )
+
+    const view = await render(<OperatorDetailScreen id="op-100" />)
+
+    expect(view.getByTestId('operator-top-back-btn')).toBeTruthy()
+    expect(view.getByTestId('operator-top-share-btn')).toBeTruthy()
+    expect(view.queryByTestId('operator-top-favorite-btn')).toBeNull()
+  })
+
+  it('renders filled heart state when operator is already favorited on reopen (M-143)', async () => {
+    cleanup()
+    mockFavorite = { isFavorite: true, isBusy: false, toggle: jest.fn() }
+    ;(useFavoriteToggle as jest.Mock).mockReturnValue(mockFavorite)
+
+    const view = await render(<OperatorDetailScreen id="op-100" />)
+    const favBtn = view.getByTestId('operator-top-favorite-btn')
+    expect(favBtn.props.accessibilityLabel).toBe('إزالة من المفضلة')
   })
 })

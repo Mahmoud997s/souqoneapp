@@ -8,6 +8,7 @@ import {
   mapPartToCard,
   mapBusToCard,
   mapEquipmentToCard,
+  mapOperatorToCard,
 } from '../utils/mappers'
 
 export function useListings(params?: Record<string, unknown>) {
@@ -53,13 +54,8 @@ export function useFavorites() {
         let rawItem;
         let cat;
         
-        // Operators have NO favorites in the app (Part O decision). Skip any legacy OPERATOR_LISTING rows.
-        if (item.entityType === 'OPERATOR_LISTING') {
-          return null;
-        }
-
         // If the underlying entity was deleted but the favorite record remains, skip it
-        if (!item.listing && !item.job && !item.carService && !item.sparePart && !item.busListing && !item.equipmentListing && !item.entity) {
+        if (!item.listing && !item.job && !item.carService && !item.sparePart && !item.busListing && !item.equipmentListing && !item.operatorListing && !item.entity) {
           return null;
         }
         
@@ -82,6 +78,10 @@ export function useFavorites() {
             rawItem = item.equipmentListing ?? item.entity ?? item;
             cat = 'equipment';
             break;
+          case 'OPERATOR_LISTING':
+            rawItem = item.operatorListing ?? item.entity ?? item;
+            cat = 'operators';
+            break;
           case 'LISTING':
           default:
             rawItem = item.listing ?? item.entity ?? item;
@@ -100,6 +100,7 @@ export function useFavorites() {
           case 'parts': return mapPartToCard(rawItem);
           case 'buses': return mapBusToCard(rawItem);
           case 'equipment': return mapEquipmentToCard(rawItem);
+          case 'operators': return mapOperatorToCard(rawItem);
           default: return mapListingToCard(rawItem);
         }
       }).filter((item: any) => item !== null) as import('../types/unified-card.types').UnifiedCardItem[]
