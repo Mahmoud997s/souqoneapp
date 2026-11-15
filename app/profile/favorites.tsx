@@ -22,6 +22,7 @@ import {
   FAVORITES_CATEGORY_FILTERS,
   FavoritesTabId,
   normalizeFavoritesTabParam,
+  matchesFavoritesCategoryFilter,
 } from '../../src/utils/favoritesCategoryTabs'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
@@ -49,12 +50,7 @@ export default function FavoritesScreen() {
   const contentTopOffset = navBarHeight + 10
 
   const filteredData = useMemo(
-    () =>
-      data?.filter(item => {
-        if (item.category === 'jobs' || item.category === 'transport') return false
-        if (activeTab === 'all') return true
-        return item.category === activeTab
-      }) ?? [],
+    () => data?.filter(item => matchesFavoritesCategoryFilter(item.category, activeTab)) ?? [],
     [data, activeTab]
   )
 

@@ -536,4 +536,14 @@ describe('OperatorDetailScreen', () => {
     expect(view.getByTestId('operator-top-share-btn')).toBeTruthy()
     expect(view.queryByTestId('operator-top-favorite-btn')).toBeNull()
   })
+
+  it('renders filled heart state when operator is already favorited on reopen (M-143)', async () => {
+    cleanup()
+    mockFavorite = { isFavorite: true, isBusy: false, toggle: jest.fn() }
+    ;(useFavoriteToggle as jest.Mock).mockReturnValue(mockFavorite)
+
+    const view = await render(<OperatorDetailScreen id="op-100" />)
+    const favBtn = view.getByTestId('operator-top-favorite-btn')
+    expect(favBtn.props.accessibilityLabel).toBe('إزالة من المفضلة')
+  })
 })

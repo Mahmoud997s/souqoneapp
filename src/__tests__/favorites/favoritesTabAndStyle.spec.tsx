@@ -75,6 +75,8 @@ const mockFavoritesData = [
   { id: 'car-1', category: 'cars', title: 'تويوتا كامري' },
   { id: 'srv-1', category: 'services', title: 'صيانة مكيف' },
   { id: 'prt-1', category: 'parts', title: 'فلتر زيت' },
+  { id: 'eq-1', category: 'equipment', title: 'حفارة كاتربيلر' },
+  { id: 'op-1', category: 'operators', title: 'مشغل رافعة معتمد' },
 ]
 
 jest.mock('../../hooks/useListings', () => ({
@@ -220,6 +222,22 @@ describe('D-338: Favorites ?tab normalization, canonical bottom bar routes, and 
       await fireEvent.press(getByTestId('favorites-tab-parts'))
       expect(getByTestId('fav-card-prt-1')).toBeTruthy()
       expect(queryByTestId('fav-card-srv-1')).toBeNull()
+    })
+
+    it('shows operator favorites in both all and equipment tabs without adding a new tab (M-143)', async () => {
+      mockParams = { tab: 'all' }
+      const { getByTestId, queryByTestId } = await render(<FavoritesScreen />)
+      expect(getByTestId('fav-card-op-1')).toBeTruthy()
+      expect(getByTestId('fav-card-eq-1')).toBeTruthy()
+
+      await fireEvent.press(getByTestId('favorites-tab-equipment'))
+      expect(getByTestId('fav-card-op-1')).toBeTruthy()
+      expect(getByTestId('fav-card-eq-1')).toBeTruthy()
+      expect(queryByTestId('fav-card-car-1')).toBeNull()
+
+      await fireEvent.press(getByTestId('favorites-tab-cars'))
+      expect(queryByTestId('fav-card-op-1')).toBeNull()
+      expect(getByTestId('fav-card-car-1')).toBeTruthy()
     })
   })
 })
