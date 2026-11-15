@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, router as expoRouter } from 'expo-router'
+import { startEdit } from '../../navigation/listingRoutes'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
@@ -187,45 +188,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
     if (actionId === 'edit') {
       if (!assertOwnerHasPhoneForEdit()) return
       if (raw) {
-        const conditionValue: 'NEW' | 'USED' | 'REFURBISHED' | null =
-          raw.condition === 'LIKE_NEW'
-            ? 'NEW'
-            : raw.condition === 'NEW' || raw.condition === 'USED' || raw.condition === 'REFURBISHED'
-            ? raw.condition
-            : null
-
-        usePartWizardStore.getState().setEditMode(raw.id, {
-          listingType: resolvePartListingType(raw.listingType),
-          title: raw.title ?? '',
-          description: raw.description ?? '',
-          partCategory: raw.partCategory,
-          condition: conditionValue,
-          partNumber: raw.partNumber ?? '',
-          compatibleMakes: raw.compatibleMakes ?? [],
-          compatibleModels: raw.compatibleModels ?? [],
-          yearFrom: raw.yearFrom ?? null,
-          yearTo: raw.yearTo ?? null,
-          isOriginal: raw.isOriginal ?? false,
-          hasWarranty: raw.hasWarranty ?? false,
-          warrantyDuration: raw.warrantyDuration ?? null,
-          quantity: raw.quantity ?? null,
-          compatibleVehicleTypes: raw.compatibleVehicleTypes ?? [],
-          price: Number(raw.price) || null,
-          currency: 'OMR',
-          isPriceNegotiable: raw.isPriceNegotiable ?? false,
-          whatsappEnabled: Boolean(raw.whatsappEnabled),
-          governorateId: raw.governorateId ? Number(raw.governorateId) : null,
-          wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
-          governorateNameAr: raw.governorateRef?.nameAr ?? raw.governorate ?? '',
-          wilayaNameAr: raw.wilayaRef?.nameAr ?? raw.city ?? '',
-          latitude: raw.latitude ?? null,
-          longitude: raw.longitude ?? null,
-          existingImages: (raw.images ?? []).map((img: { id?: string; url?: string } | string) => ({
-            id: typeof img === 'string' ? img : img.id ?? '',
-            url: typeof img === 'string' ? img : img.url ?? '',
-          })),
-        })
-        router.push('/parts/new' as Parameters<typeof router.push>[0])
+        router.push(startEdit('SPARE_PART', raw))
       }
       return
     }

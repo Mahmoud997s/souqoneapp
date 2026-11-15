@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { editRoute } from '../../navigation/listingRoutes'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -225,7 +226,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
     if (actionId === 'edit') {
       const targetId = raw?.id ?? id
       if (targetId) {
-        router.push(`/buses/edit/${targetId}` as any)
+        router.push(editRoute('BUS_LISTING', targetId))
       }
       return
     }

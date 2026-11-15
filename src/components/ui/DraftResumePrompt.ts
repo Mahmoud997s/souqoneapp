@@ -76,7 +76,8 @@ export function navigateToCarForm(method: 'push' | 'replace' = 'push'): void {
   const { useCarWizardStore } = require('../../store/carWizardStore')
 
   if (!useAuthStore.getState().user) {
-    method === 'replace' ? router.replace('/login') : router.push('/login')
+    const { loginRoute } = require('../../navigation/listingRoutes')
+    method === 'replace' ? router.replace(loginRoute()) : router.push(loginRoute())
     return
   }
 
@@ -118,7 +119,8 @@ export function navigateToPartForm(method: 'push' | 'replace' = 'push'): void {
   const { usePartWizardStore } = require('../../store/partWizardStore')
 
   if (!useAuthStore.getState().user) {
-    method === 'replace' ? router.replace('/login') : router.push('/login')
+    const { loginRoute } = require('../../navigation/listingRoutes')
+    method === 'replace' ? router.replace(loginRoute()) : router.push(loginRoute())
     return
   }
 
@@ -161,7 +163,8 @@ export function navigateToServiceForm(method: 'push' | 'replace' = 'push'): void
   const { useServiceWizardStore } = require('../../store/serviceWizardStore')
 
   if (!useAuthStore.getState().user) {
-    method === 'replace' ? router.replace('/login') : router.push('/login')
+    const { loginRoute } = require('../../navigation/listingRoutes')
+    method === 'replace' ? router.replace(loginRoute()) : router.push(loginRoute())
     return
   }
 
@@ -208,7 +211,8 @@ export function navigateToBusForm(method: 'push' | 'replace' = 'push'): void {
   const { useBusWizardStore } = require('../../store/busWizardStore')
 
   if (!useAuthStore.getState().user) {
-    method === 'replace' ? router.replace('/login') : router.push('/login')
+    const { loginRoute } = require('../../navigation/listingRoutes')
+    method === 'replace' ? router.replace(loginRoute()) : router.push(loginRoute())
     return
   }
 
@@ -255,7 +259,8 @@ export function navigateToEquipmentForm(method: 'push' | 'replace' = 'push'): vo
   const { useEquipmentWizardStore } = require('../../store/equipmentWizardStore')
 
   if (!useAuthStore.getState().user) {
-    method === 'replace' ? router.replace('/login') : router.push('/login')
+    const { loginRoute } = require('../../navigation/listingRoutes')
+    method === 'replace' ? router.replace(loginRoute()) : router.push(loginRoute())
     return
   }
 

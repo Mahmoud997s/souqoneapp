@@ -1,5 +1,6 @@
 import React from 'react'
 import { Listing } from '../../types/listing.types'
+import { buildListingShareUrl } from '../../navigation/listingRoutes'
 import {
   ListingCardBase,
   ListingCardPill,
@@ -275,7 +276,7 @@ const CarCardComponent = ({
       compactBody={compactBody}
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
-      shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`}
+      shareMessage={`شاهد هذه السيارة المعروضة على سوق ون: ${carName}\nالسعر: ${priceLabel}\n${buildListingShareUrl('LISTING', item.id)}`}
     />
   )
 }

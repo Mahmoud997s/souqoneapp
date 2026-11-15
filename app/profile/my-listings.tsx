@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, interpolate, Extrapolation 
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { postEntryRoute } from '../../src/navigation/listingRoutes'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { MyListingsVisualFilters } from '../../src/components/profile/MyListingsVisualFilters'
 import { MyListingsAllView } from '../../src/components/profile/my-listings/MyListingsAllView'
@@ -137,7 +138,7 @@ export default function MyListingsScreen() {
       <TouchableOpacity
         style={[s.fab, { bottom: insets.bottom + 20 }]}
         activeOpacity={0.8}
-        onPress={() => router.push('/post' as any)}
+        onPress={() => router.push(postEntryRoute())}
       >
         <Ionicons name="add" size={24} color={Colors.white} />
       </TouchableOpacity>

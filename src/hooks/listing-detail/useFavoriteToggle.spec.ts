@@ -281,8 +281,8 @@ describe('useFavoriteToggle', () => {
     // API was never called
     expect(favoritesApi.add).not.toHaveBeenCalled()
 
-    // Routed to login with the default /listings/${id} path
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/login?redirect=%2Flistings%2Fcar-123')
+    // Routed to login with the canonical /cars/${id} path
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/login?redirect=%2Fcars%2Fcar-123')
   })
 
   it('guest with explicit redirectPath (/cars/${id}) is routed to that path — CarDetailScreen use case', async () => {

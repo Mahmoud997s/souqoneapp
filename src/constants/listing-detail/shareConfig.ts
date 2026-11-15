@@ -1,3 +1,5 @@
+import { buildListingShareUrl } from '../../navigation/listingRoutes'
+
 /**
  * Listing Detail Sharing Configuration
  *
@@ -9,6 +11,4 @@ export const APP_NAME = 'سوق ون'
 
 export const SHARE_LINK_ENABLED = false
 
-export function buildListingShareUrl(id: string): string {
-  return `https://souqone.app/listings/${id}`
-}
+export { buildListingShareUrl }

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useRouter } from 'expo-router'
+import { router as expoRouter, useRouter } from 'expo-router'
 import { useAuthStore } from '../store/authStore'
 import { dialogService } from '../store/dialogStore'
 import { listingsApi } from '../api/listings'
@@ -24,7 +24,17 @@ function unwrapApiData<T>(res: T | { data: T }): T {
 }
 
 export function useListingNavigation() {
-  const router = useRouter()
+  let router = expoRouter
+  try {
+    if (typeof useRouter === 'function') {
+      const r = useRouter()
+      if (r && typeof r.push === 'function') {
+        router = r
+      }
+    }
+  } catch {
+    // Fallback to global expo-router singleton in unit tests that only mock `router`
+  }
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
   const [isEditingLoading, setIsEditingLoading] = useState(false)
 

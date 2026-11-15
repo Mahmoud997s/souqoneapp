@@ -7,6 +7,7 @@ import { FlashList } from '@shopify/flash-list'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router, useLocalSearchParams } from 'expo-router'
+import { detailRoute } from '../../src/navigation/listingRoutes'
 import { Image } from 'expo-image'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
@@ -125,16 +126,13 @@ export default function ChatRoomScreen() {
 
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
-  // entityType 'LISTING' is the Cars model; any other room keeps the legacy route
-  const listingRoute = room?.entityType === 'LISTING' ? ('/cars/[id]' as const) : ('/listings/[id]' as const)
-
   const handleRoomOptions = React.useCallback(() => {
     const options: import('../../src/components/ui/AppDialog').DialogOption[] = []
 
     if (room?.listing) {
       options.push({
         text: '🏷️ عرض الإعلان',
-        onPress: () => router.push({ pathname: listingRoute, params: { id: room.listing!.id } }),
+        onPress: () => router.push(detailRoute(room?.entityType, room.listing!.id)),
         style: 'default',
       })
     }
@@ -171,7 +169,7 @@ export default function ChatRoomScreen() {
     )
 
     dialogService.showOptions('خيارات المحادثة', options)
-  }, [room?.listing, listingRoute])
+  }, [room?.listing, room?.entityType])
 
   return (
     <View style={s.root}>
@@ -194,7 +192,7 @@ export default function ChatRoomScreen() {
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
           listing={room.listing}
-          onPress={() => router.push({ pathname: listingRoute, params: { id: room.listing!.id } })}
+          onPress={() => router.push(detailRoute(room?.entityType, room.listing!.id))}
           onClose={() => setIsListingBannerVisible(false)}
         />
       )}

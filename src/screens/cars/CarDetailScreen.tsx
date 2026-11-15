@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { startEdit } from '../../navigation/listingRoutes'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -215,9 +216,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
       if (raw) {
-        const formData = carListingToFormData(raw)
-        useCarWizardStore.getState().setEditMode(raw.id, formData)
-        router.push('/cars/new' as any)
+        router.push(startEdit('LISTING', raw))
       }
       return
     }

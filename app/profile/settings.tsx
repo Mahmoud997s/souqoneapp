@@ -144,8 +144,9 @@ export default function SettingsScreen() {
       'تسجيل الخروج',
       'هل أنت متأكد من تسجيل الخروج؟',
       async () => {
+        const { loginRoute } = require('../../src/navigation/listingRoutes')
         await logout()
-        router.replace('/(auth)/login')
+        router.replace(loginRoute())
       },
       'تسجيل الخروج',
       'إلغاء',

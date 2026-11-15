@@ -1,5 +1,6 @@
 import React from 'react'
 import { router, useFocusEffect } from 'expo-router'
+import { loginRoute } from '../navigation/listingRoutes'
 import { useAuthStore } from '../store/authStore'
 import { useMyListings, useFavorites } from './useListings'
 import { dialogService } from '../store/dialogStore'
@@ -133,7 +134,7 @@ export function useProfileOverview() {
     dialogService.confirm(
       'تسجيل الخروج',
       'هل أنت متأكد من تسجيل الخروج؟',
-      async () => { await logout(); router.replace('/(auth)/login') },
+      async () => { await logout(); router.replace(loginRoute()) },
       'تسجيل الخروج', 'إلغاء', true
     )
   }

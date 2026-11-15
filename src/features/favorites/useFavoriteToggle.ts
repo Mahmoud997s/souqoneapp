@@ -8,6 +8,7 @@ import { toastService } from '../../store/toastStore'
 import { favoriteKey } from './favoriteEntityTypes'
 import { useFavoriteIds, FAVORITE_IDS_QUERY_KEY } from './useFavoriteIds'
 import { getDetailErrorKind, getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
+import { detailRoute } from '../../navigation/listingRoutes'
 
 export interface UseFavoriteToggleOptions {
   /** The path to redirect guests to after login. Defaults to `/listings/${id}`. */
@@ -32,7 +33,7 @@ export function useFavoriteToggle(
 ): UseFavoriteToggleReturn {
   const resolvedType = entityType ?? ''
   const resolvedId = id ?? ''
-  const redirectPath = options.redirectPath ?? `/listings/${resolvedId}`
+  const redirectPath = options.redirectPath ?? String(detailRoute(resolvedType, resolvedId))
 
   const currentEntityKey = useMemo(
     () => (resolvedType && resolvedId ? favoriteKey(resolvedType, resolvedId) : ''),

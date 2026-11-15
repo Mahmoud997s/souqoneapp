@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, usePathname, useFocusEffect, type Href } from 'expo-router';
+import { loginRoute } from '../navigation/listingRoutes';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { usePostStore } from '../store/postStore';
@@ -103,7 +104,7 @@ export function useDepartmentBottomBar({
 
   const handlePostPress = useCallback(() => {
     if (!isLoggedIn) {
-      router.push('/(auth)/login' as any);
+      router.push(loginRoute());
       return;
     }
 
@@ -165,7 +166,7 @@ export function useDepartmentBottomBar({
             return;
           }
           if (customDef.requireAuth && !isLoggedIn) {
-            router.push('/(auth)/login' as any);
+            router.push(loginRoute());
             return;
           }
           if (customDef.route) {
@@ -185,19 +186,19 @@ export function useDepartmentBottomBar({
         handleHomeNavigation(homeCustomRoute);
       } else if (tab.id === 'favorites') {
         if (!isLoggedIn) {
-          router.push('/(auth)/login' as any);
+          router.push(loginRoute());
           return;
         }
         router.push(buildFavoritesRoute(favoritesTab) as any);
       } else if (tab.id === 'listings') {
         if (!isLoggedIn) {
-          router.push('/(auth)/login' as any);
+          router.push(loginRoute());
           return;
         }
         router.push('/profile/my-listings' as any);
       } else if (tab.id === 'profile') {
         if (!isLoggedIn) {
-          router.push('/(auth)/login' as any);
+          router.push(loginRoute());
           return;
         }
         router.push('/(tabs)/profile' as any);

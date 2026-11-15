@@ -78,7 +78,7 @@ describe('useShareListing & shareConfig', () => {
   it('verifies shareConfig constants and url builder', () => {
     expect(APP_NAME).toBe('سوق ون')
     expect(SHARE_LINK_ENABLED).toBe(false)
-    expect(buildListingShareUrl('car-789')).toBe('https://souqone.app/listings/car-789')
+    expect(buildListingShareUrl('LISTING', 'car-789')).toBe('https://souqone.app/listings/car-789')
   })
 
   it('buildShareMessage excludes the URL when link inclusion is false (default)', () => {

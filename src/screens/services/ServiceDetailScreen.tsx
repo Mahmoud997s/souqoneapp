@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, router as globalRouter } from 'expo-router'
+import { startEdit } from '../../navigation/listingRoutes'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -245,36 +246,10 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
       }
 
       if (raw) {
-        useServiceWizardStore.getState().setEditMode(raw.id, {
-          title: raw.title ?? '',
-          description: raw.description ?? '',
-          serviceType: raw.serviceType ?? null,
-          providerType: raw.providerType ?? null,
-          providerName: raw.providerName ?? '',
-          specializations: raw.specializations ?? [],
-          isHomeService: Boolean(raw.isHomeService),
-          workingHoursOpen: raw.workingHoursOpen ?? null,
-          workingHoursClose: raw.workingHoursClose ?? null,
-          workingDays: raw.workingDays ?? [],
-          priceFrom: raw.priceFrom != null ? Number(raw.priceFrom) : null,
-          priceTo: raw.priceTo != null ? Number(raw.priceTo) : null,
-          currency: raw.currency ?? 'OMR',
-          whatsappEnabled: Boolean(raw.whatsappEnabled),
-          website: raw.website ?? '',
-          governorateId: raw.governorateId ? Number(raw.governorateId) : null,
-          wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
-          governorateNameAr: raw.governorateRef?.nameAr ?? '',
-          wilayaNameAr: raw.wilayaRef?.nameAr ?? '',
-          address: raw.address ?? '',
-          latitude: raw.latitude ?? null,
-          longitude: raw.longitude ?? null,
-          existingImages: (raw.images ?? []).map((img) => ({
-            id: typeof img === 'string' ? img : img.id || img.url,
-            url: typeof img === 'string' ? img : img.url || '',
-          })),
-        })
+        router.push(startEdit('CAR_SERVICE', raw))
+      } else {
+        router.push('/services/new')
       }
-      router.push('/services/new')
       return
     }
 

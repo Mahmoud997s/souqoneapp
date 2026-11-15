@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { editRoute, loginRoute } from '../../navigation/listingRoutes'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
@@ -124,7 +125,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
       if (!assertOwnerHasPhoneForEdit()) return
-      router.push(`/equipment/operators/edit/${id}`)
+      router.push(editRoute('OPERATOR_LISTING', id))
       return
     }
 
@@ -167,10 +168,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   const handleOpenWriteReview = () => {
     if (!vm) return
     if (!user) {
-      router.push({
-        pathname: '/login',
-        params: { redirect: `/reviews/${id}?type=OPERATOR_LISTING&write=true` },
-      })
+      router.push(loginRoute(`/reviews/${id}?type=OPERATOR_LISTING&write=true`))
       return
     }
     router.push(`/reviews/${id}?type=OPERATOR_LISTING&write=true`)

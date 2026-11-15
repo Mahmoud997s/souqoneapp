@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { router, useRouter } from 'expo-router'
 import { useAuthStore } from '../../store/authStore'
+import { loginRoute } from '../../navigation/listingRoutes'
 
 export interface UseRequireAuthReturn {
   requireAuth: (redirectPath: string, then: () => void) => void
@@ -35,8 +36,7 @@ export function useRequireAuth(): UseRequireAuthReturn {
         return
       }
 
-      const encodedRedirect = encodeURIComponent(redirectPath)
-      navRouter.push(`/(auth)/login?redirect=${encodedRedirect}` as any)
+      navRouter.push(loginRoute(redirectPath))
     },
     [isLoggedIn, navRouter]
   )
