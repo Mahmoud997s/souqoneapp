@@ -27,6 +27,8 @@ import { useDetailRefresh } from '../../hooks/listing-detail/useDetailRefresh'
 import { useOperatorReviews } from '../../hooks/listing-detail/useOperatorReviews'
 import { useOperatorOwnerActions } from '../../hooks/listing-detail/useOperatorOwnerActions'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
+import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
+import { useGlassSupport } from '../../components/navigation/glassSupport'
 import { translateOperatorOwnerError } from '../../utils/listing-detail/operatorOwnerErrors'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -56,7 +58,6 @@ import type { GalleryImage } from '../../types/carDetailViewModel.types'
 
 // Shared Listing-Detail Components
 import {
-  DetailTopBar,
   LocationCard,
   DetailStaleBanner,
 } from '../../components/listing-detail'
@@ -69,6 +70,7 @@ import {
   OperatorCertificationsCard,
   OperatorReviewsCard,
   OperatorPendingDeletionBanner,
+  OperatorFloatingTopBar,
 } from '../../components/operators/detail'
 
 export interface OperatorDetailScreenProps {
@@ -93,6 +95,12 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
     `/equipment/operators/${id}`,
     vm?.title
   )
+
+  const glassSupport = useGlassSupport()
+  const fav = useFavoriteToggle('OPERATOR_LISTING', id, false, {
+    redirectPath: `/equipment/operators/${id}`,
+    title: vm?.title,
+  })
 
   const reviewsQuery = useOperatorReviews(id)
 
@@ -333,11 +341,16 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         category="operators"
       />
 
-      {/* Floating Glassmorphic Top Bar (Overlay) */}
-      <DetailTopBar
+      {/* Floating Circular Top Bar (Overlay) */}
+      <OperatorFloatingTopBar
+        topInset={insets.top}
         onBack={() => router.back()}
         onShare={handleShare}
-        canFavorite={false}
+        isOwner={isOwner}
+        isFavorite={fav.isFavorite}
+        favoriteBusy={fav.isBusy}
+        onToggleFavorite={fav.toggle}
+        support={glassSupport}
       />
 
       {/* Pinned Stale Data Banner directly below overlaid top bar */}
