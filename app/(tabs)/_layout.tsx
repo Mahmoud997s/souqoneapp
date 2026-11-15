@@ -187,11 +187,12 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
   const { isLoggedIn } = useAuthStore()
 
   const handlePost = useCallback(() => {
+    const { loginRoute, postEntryRoute } = require('../../src/navigation/listingRoutes')
     if (!isLoggedIn) {
-      router.push('/(auth)/login?redirect=%2F(modals)%2Fpost-category' as any)
+      router.push(loginRoute('/(modals)/post-category'))
       return
     }
-    router.push('/(modals)/post-category')
+    router.push(postEntryRoute())
   }, [isLoggedIn, router])
 
   // Dynamically hide tab bar if the focused route explicitly disables it
@@ -236,7 +237,8 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
 
           const onPress = () => {
             if ((route.name === 'chat' || route.name === 'profile') && !isLoggedIn) {
-              router.push('/(auth)/login'); return
+              const { loginRoute } = require('../../src/navigation/listingRoutes')
+              router.push(loginRoute()); return
             }
             const event = navigation.emit({
               type: 'tabPress',

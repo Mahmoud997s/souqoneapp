@@ -6,6 +6,7 @@ import {
 } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { router } from 'expo-router'
+import { postEntryRoute } from '../../../navigation/listingRoutes'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { SkeletonCard } from '../../ui/SkeletonCard'
@@ -111,7 +112,7 @@ export function MyListingsAllView({
               subtitle="لم يتم العثور على أي إعلانات مطابقة للتصنيف أو الفلتر المختار."
               actionLabel="أضف إعلانك الأول"
               actionIcon="add"
-              onAction={() => router.push('/post' as any)}
+              onAction={() => router.push(postEntryRoute())}
             />
           )}
         </View>

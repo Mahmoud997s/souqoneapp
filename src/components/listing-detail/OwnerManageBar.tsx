@@ -45,6 +45,8 @@ export interface OwnerAction {
   confirmLabel?: string
 }
 
+export type OwnerBusyAction = OwnerActionId | 'manageStatus' | null
+
 export interface OwnerManageBarProps {
   variant?: 'inline' | 'sticky'
   actions: {
@@ -54,7 +56,8 @@ export interface OwnerManageBarProps {
     icon: string
   }[]
   viewCount: number
-  busy: boolean
+  busy?: boolean
+  busyAction?: OwnerBusyAction
   onAction: (id: OwnerActionId) => void
   support?: GlassSupport
 }
@@ -68,7 +71,8 @@ export function OwnerManageBar({
   variant = 'inline',
   actions,
   viewCount,
-  busy,
+  busy = false,
+  busyAction,
   onAction,
   support,
 }: OwnerManageBarProps) {
@@ -117,8 +121,16 @@ export function OwnerManageBar({
     (a) => a.id !== 'edit' && a.id !== 'delete'
   )
 
+  const isAnyBusy = busyAction !== undefined ? busyAction !== null : busy
+  const isActionBusy = (id: OwnerActionId): boolean =>
+    busyAction !== undefined ? busyAction === id : busy
+  const isManageStatusBusy =
+    busyAction !== undefined
+      ? busyAction === 'manageStatus' || statusActions.some((a) => a.id === busyAction)
+      : busy
+
   const handleManageStatusPress = () => {
-    if (busy || statusActions.length === 0) return
+    if (isAnyBusy || statusActions.length === 0) return
     dialogService.showOptions(
       'إدارة حالة الإعلان',
       statusActions.map((a) => ({
@@ -149,17 +161,24 @@ export function OwnerManageBar({
     icon: string
   }) => {
     const styles = getButtonStyles(action.tone)
+    const buttonBusy = isActionBusy(action.id)
     return (
       <TouchableOpacity
         key={action.id}
-        style={[s.button, styles.btn, busy && s.disabledButton]}
-        onPress={() => onAction(action.id)}
-        disabled={busy}
+        style={[s.button, styles.btn, isAnyBusy && s.disabledButton]}
+        onPress={() => {
+          if (!isAnyBusy) onAction(action.id)
+        }}
+        disabled={isAnyBusy}
         activeOpacity={0.75}
         testID={`btn-owner-${action.id}`}
       >
-        {busy ? (
-          <ActivityIndicator size="small" color={styles.iconColor} />
+        {buttonBusy ? (
+          <ActivityIndicator
+            size="small"
+            color={styles.iconColor}
+            testID={`btn-owner-${action.id}-spinner`}
+          />
         ) : (
           <>
             <Ionicons
@@ -208,14 +227,18 @@ export function OwnerManageBar({
             {editAction ? renderStickyActionButton(editAction) : null}
             {statusActions.length > 0 ? (
               <TouchableOpacity
-                style={[s.button, neutralStyles.btn, busy && s.disabledButton]}
+                style={[s.button, neutralStyles.btn, isAnyBusy && s.disabledButton]}
                 onPress={handleManageStatusPress}
-                disabled={busy}
+                disabled={isAnyBusy}
                 activeOpacity={0.75}
                 testID="btn-owner-manage-status"
               >
-                {busy ? (
-                  <ActivityIndicator size="small" color={neutralStyles.iconColor} />
+                {isManageStatusBusy ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={neutralStyles.iconColor}
+                    testID="btn-owner-manage-status-spinner"
+                  />
                 ) : (
                   <>
                     <Ionicons
@@ -256,21 +279,28 @@ export function OwnerManageBar({
       <View style={s.actionsRow}>
         {actions.map((action) => {
           const styles = getButtonStyles(action.tone)
+          const buttonBusy = isActionBusy(action.id)
           return (
             <TouchableOpacity
               key={action.id}
-              style={[s.button, styles.btn, busy && s.disabledButton]}
-              onPress={() => onAction(action.id)}
-              disabled={busy}
+              style={[s.button, styles.btn, isAnyBusy && s.disabledButton]}
+              onPress={() => {
+                if (!isAnyBusy) onAction(action.id)
+              }}
+              disabled={isAnyBusy}
               activeOpacity={0.75}
               testID={`btn-owner-${action.id}`}
             >
-              {busy ? (
-                <ActivityIndicator size="small" color={styles.iconColor} />
+              {buttonBusy ? (
+                <ActivityIndicator
+                  size="small"
+                  color={styles.iconColor}
+                  testID={`btn-owner-${action.id}-spinner`}
+                />
               ) : (
                 <>
                   <Ionicons
-                    name={action.icon as any}
+                    name={action.icon as keyof typeof Ionicons.glyphMap}
                     size={16}
                     color={styles.iconColor}
                   />

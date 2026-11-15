@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { router } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
+import { useListingNavigation } from '../navigation/useListingNavigation'
 import { useAllMyListings } from './useAllMyListings'
 import { listingsApi } from '../api/listings'
 import { busesApi } from '../api/buses'
@@ -70,6 +70,7 @@ function getErrorStatus(err: unknown): {
 }
 
 export function useMyListingsScreen() {
+  const { openListing, editListing } = useListingNavigation()
   const queryClient = useQueryClient()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [activeSubFilter, setActiveSubFilter] = useState<string>('all')
@@ -251,45 +252,11 @@ export function useMyListingsScreen() {
       return
     }
 
-    switch (item.entityType) {
-      case 'car':
-        router.push(`/post/edit/${item.id}` as any)
-        break
-      case 'bus':
-        router.push(`/post/edit/${item.id}?type=bus` as any)
-        break
-      case 'equipment':
-        router.push(`/equipment/edit/${item.id}` as any)
-        break
-      case 'part':
-        router.push(`/post/edit/${item.id}?type=parts` as any)
-        break
-      case 'service':
-        router.push(`/post/edit/${item.id}?type=services` as any)
-        break
-      default:
-        break
-    }
+    void editListing(item.entityType, item.id)
   }
 
   const handleView = (item: MyListingItem) => {
-    switch (item.entityType) {
-      case 'car':
-        router.push(`/cars/${item.id}` as any)
-        break
-      case 'bus':
-        router.push(`/buses/${item.id}` as any)
-        break
-      case 'equipment':
-        router.push(`/equipment/${item.id}` as any)
-        break
-      case 'part':
-        router.push(`/parts/${item.id}` as any)
-        break
-      case 'service':
-        router.push(`/services/${item.id}` as any)
-        break
-    }
+    openListing(item.entityType, item.id)
   }
 
   const groupedSections = useMemo<GroupedSectionData[]>(() => {

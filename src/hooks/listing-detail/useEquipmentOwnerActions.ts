@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type {
   OwnerAction,
   OwnerActionId,
+  OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { equipmentApi } from '../../api/equipment'
@@ -20,6 +21,7 @@ export interface UseEquipmentOwnerActionsResult {
   actions: OwnerAction[]
   run: (id: OwnerActionId) => Promise<void>
   busy: boolean
+  busyAction: OwnerBusyAction
   viewCount: number
 }
 
@@ -36,7 +38,9 @@ export function isOptimisticLockError(error: unknown): boolean {
  */
 export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquipmentOwnerActionsResult {
   const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
+  const [busyAction, setBusyAction] = useState<OwnerBusyAction>(null)
+  const pendingRef = useRef<OwnerBusyAction>(null)
+  const busy = busyAction !== null
 
   const actions = useMemo<OwnerAction[]>(
     () => buildEquipmentOwnerActions(vm.status, vm.equipmentListingType),
@@ -45,6 +49,7 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
 
   const run = async (id: OwnerActionId): Promise<void> => {
     if (id === 'edit') return
+    if (pendingRef.current !== null) return
 
     if (id === 'restore' || id === 'submit') {
       const user = useAuthStore.getState().user
@@ -55,12 +60,14 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
     }
 
     if (id === 'delete') {
-      setBusy(true)
+      pendingRef.current = 'delete'
+      setBusyAction('delete')
       try {
         await equipmentApi.remove(vm.id)
         await invalidateEquipmentListingQueries(queryClient, vm.id, { removeDetail: true })
       } finally {
-        setBusy(false)
+        pendingRef.current = null
+        setBusyAction(null)
       }
       return
     }
@@ -68,7 +75,8 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
     const nextStatus = OWNER_STATUS_TARGET[id]
     if (!nextStatus) return
 
-    setBusy(true)
+    pendingRef.current = id
+    setBusyAction(id)
     try {
       await equipmentApi.update(vm.id, {
         version: vm.version,
@@ -81,7 +89,8 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
       }
       throw err
     } finally {
-      setBusy(false)
+      pendingRef.current = null
+      setBusyAction(null)
     }
   }
 
@@ -89,6 +98,7 @@ export function useEquipmentOwnerActions(vm: EquipmentDetailViewModel): UseEquip
     actions,
     run,
     busy,
+    busyAction,
     viewCount: vm.viewCount ?? 0,
   }
 }

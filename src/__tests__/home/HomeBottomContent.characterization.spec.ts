@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { postEntryRoute } from '../../navigation/listingRoutes'
 
 const homeSource = fs.readFileSync(
   path.resolve(__dirname, '../../../app/(tabs)/index.tsx'),
@@ -7,8 +8,9 @@ const homeSource = fs.readFileSync(
 )
 
 describe('Home bottom content characterization', () => {
-  it('keeps the existing post-category destination in the Home add handler', () => {
-    expect(homeSource).toContain("router.push('/(modals)/post-category'")
+  it('keeps the existing post-category destination in the Home add handler via postEntryRoute', () => {
+    expect(homeSource).toContain('router.push(postEntryRoute())')
+    expect(postEntryRoute()).toBe('/(modals)/post-category')
   })
 
   it('renders banner then support, and does NOT render or import HomeHowItWorks', () => {

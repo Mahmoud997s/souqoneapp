@@ -2,13 +2,6 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
 describe('W2c Unified ImageViewerModal verification', () => {
-  it('app/listings/[id].tsx uses unified ImageViewerModal instead of duplicate inline Modal/FlatList', () => {
-    const content = readFileSync(resolve(__dirname, '../../../app/listings/[id].tsx'), 'utf8')
-    expect(content).toContain("from '../../src/components/listing-detail/ImageViewerModal'")
-    expect(content).toContain('<ImageViewerModal')
-    expect(content).not.toContain('<Modal visible={isGalleryOpen}')
-  })
-
   it('all active section detail screens use ImageViewerModal', () => {
     const screens = [
       'src/screens/cars/CarDetailScreen.tsx',

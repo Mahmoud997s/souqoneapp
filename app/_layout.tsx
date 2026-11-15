@@ -134,10 +134,11 @@ export default function RootLayout() {
     }
 
     if (!isLoggedIn && !isGuest && !inAuth) {
+      const { loginRoute } = require('../src/navigation/listingRoutes')
       if (pathname && pathname !== '/' && pathname !== '/index' && !pathname.startsWith('/(auth)')) {
-        router.replace(`/(auth)/login?redirect=${encodeURIComponent(pathname)}` as any)
+        router.replace(loginRoute(pathname))
       } else {
-        router.replace('/(auth)/login')
+        router.replace(loginRoute())
       }
     }
   }, [isLoggedIn, isGuest, isLoading, fontsLoaded, segments, isBlocked, pathname, globalParams])

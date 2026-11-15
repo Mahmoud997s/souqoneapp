@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { editRoute } from '../../navigation/listingRoutes'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -171,7 +172,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
       if (!assertOwnerHasPhoneForEdit()) return
-      router.push(`/equipment/edit/${id}`)
+      router.push(editRoute('EQUIPMENT_LISTING', id))
       return
     }
 
@@ -516,7 +517,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         <OwnerManageBar
           variant="sticky"
           viewCount={ownerActions.viewCount}
-          busy={ownerActions.busy}
+          busyAction={ownerActions.busyAction}
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
         />

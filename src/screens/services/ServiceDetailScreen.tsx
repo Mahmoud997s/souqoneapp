@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, router as globalRouter } from 'expo-router'
+import { startEdit } from '../../navigation/listingRoutes'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -64,6 +65,7 @@ import {
   OwnerManageBar,
   type OwnerAction,
   type OwnerActionId,
+  type OwnerBusyAction,
 } from '../../components/listing-detail/OwnerManageBar'
 
 // Service-Specific Presentational Components & Constants
@@ -131,7 +133,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
   // 3. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
-  const [isOwnerBusy, setIsOwnerBusy] = useState<boolean>(false)
+  const [ownerBusyAction, setOwnerBusyAction] = useState<OwnerBusyAction>(null)
+  const ownerBusyRef = useRef<OwnerBusyAction>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   // Filter specializations by in-page search query
@@ -245,46 +248,23 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
       }
 
       if (raw) {
-        useServiceWizardStore.getState().setEditMode(raw.id, {
-          title: raw.title ?? '',
-          description: raw.description ?? '',
-          serviceType: raw.serviceType ?? null,
-          providerType: raw.providerType ?? null,
-          providerName: raw.providerName ?? '',
-          specializations: raw.specializations ?? [],
-          isHomeService: Boolean(raw.isHomeService),
-          workingHoursOpen: raw.workingHoursOpen ?? null,
-          workingHoursClose: raw.workingHoursClose ?? null,
-          workingDays: raw.workingDays ?? [],
-          priceFrom: raw.priceFrom != null ? Number(raw.priceFrom) : null,
-          priceTo: raw.priceTo != null ? Number(raw.priceTo) : null,
-          currency: raw.currency ?? 'OMR',
-          whatsappEnabled: Boolean(raw.whatsappEnabled),
-          website: raw.website ?? '',
-          governorateId: raw.governorateId ? Number(raw.governorateId) : null,
-          wilayaId: raw.wilayaId ? Number(raw.wilayaId) : null,
-          governorateNameAr: raw.governorateRef?.nameAr ?? '',
-          wilayaNameAr: raw.wilayaRef?.nameAr ?? '',
-          address: raw.address ?? '',
-          latitude: raw.latitude ?? null,
-          longitude: raw.longitude ?? null,
-          existingImages: (raw.images ?? []).map((img) => ({
-            id: typeof img === 'string' ? img : img.id || img.url,
-            url: typeof img === 'string' ? img : img.url || '',
-          })),
-        })
+        router.push(startEdit('CAR_SERVICE', raw))
+      } else {
+        router.push('/services/new')
       }
-      router.push('/services/new')
       return
     }
 
     if (actionId === 'delete') {
+      if (ownerBusyRef.current !== null) return
       dialogService.confirm(
         'حذف الإعلان',
         'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
         async () => {
+          if (ownerBusyRef.current !== null) return
+          ownerBusyRef.current = 'delete'
+          setOwnerBusyAction('delete')
           try {
-            setIsOwnerBusy(true)
             await servicesApi.remove(id)
             if (queryClient) {
               await invalidateServiceListingQueries(queryClient, id, {
@@ -297,7 +277,8 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             const errorMsg = getMutationErrorMessage(err, 'فشل حذف الإعلان')
             dialogService.alert('خطأ', errorMsg, 'error')
           } finally {
-            setIsOwnerBusy(false)
+            ownerBusyRef.current = null
+            setOwnerBusyAction(null)
           }
         },
         'نعم، احذف',
@@ -524,7 +505,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
         <OwnerManageBar
           variant="sticky"
           viewCount={vm.viewCount}
-          busy={isOwnerBusy}
+          busyAction={ownerBusyAction}
           actions={OWNER_ACTIONS}
           onAction={handleOwnerAction}
         />

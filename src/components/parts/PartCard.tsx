@@ -1,4 +1,5 @@
 import React from 'react'
+import { buildListingShareUrl } from '../../navigation/listingRoutes'
 import {
   ListingCardBase,
   ListingCardPill,
@@ -301,7 +302,7 @@ const PartCardComponent: React.FC<PartCardProps> = ({
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       favoriteType="SPARE_PART"
-      shareMessage={`شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\nhttps://souqone.app/parts/${rawData.id || item.id}`}
+      shareMessage={`شاهد هذه القطعة المعروضة على سوق ون: ${partTitle}\nالسعر: ${priceLabel}\n${buildListingShareUrl('SPARE_PART', String(rawData.id || item.id))}`}
     />
   )
 }

@@ -452,16 +452,18 @@ export default function HomeScreen() {
 
   // Actions
   const handlePost = useCallback(() => {
+    const { loginRoute, postEntryRoute } = require('../../src/navigation/listingRoutes')
     if (!user) {
-      router.push('/(auth)/login' as any)
+      router.push(loginRoute())
       return
     }
-    router.push('/(modals)/post-category' as any)
+    router.push(postEntryRoute())
   }, [user])
 
   const handleChat = useCallback(() => {
+    const { loginRoute } = require('../../src/navigation/listingRoutes')
     if (!user) {
-      router.push('/(auth)/login')
+      router.push(loginRoute())
       return
     }
     router.push('/(tabs)/chat')

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react'
+import { buildListingShareUrl } from '../../navigation/listingRoutes'
 import {
   View,
   Text,
@@ -228,7 +229,7 @@ const ListingCardBaseComponent = ({
       await Share.share({
         message:
           shareMessage ||
-          `شاهد هذا الإعلان على سوق ون: ${title}\nالسعر: ${priceLabel}\nhttps://souqone.app/listings/${item.id}`,
+          `شاهد هذا الإعلان على سوق ون: ${title}\nالسعر: ${priceLabel}\n${buildListingShareUrl(favoriteType ?? item.category, item.id)}`,
       })
     } catch {
       // User dismissed share sheet or platform error

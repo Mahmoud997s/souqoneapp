@@ -105,17 +105,17 @@ describe('navigateToServiceForm & hasMeaningfulServiceData (Phase 7 Entry Points
   })
 
   describe('navigateToServiceForm', () => {
-    it('redirects to /login when user is not authenticated (push)', () => {
+    it('redirects to /(auth)/login when user is not authenticated (push)', () => {
       useAuthStore.setState({ user: null })
       navigateToServiceForm('push')
-      expect(router.push).toHaveBeenCalledWith('/login')
+      expect(router.push).toHaveBeenCalledWith('/(auth)/login')
       expect(router.replace).not.toHaveBeenCalled()
     })
 
-    it('redirects to /login when user is not authenticated (replace)', () => {
+    it('redirects to /(auth)/login when user is not authenticated (replace)', () => {
       useAuthStore.setState({ user: null })
       navigateToServiceForm('replace')
-      expect(router.replace).toHaveBeenCalledWith('/login')
+      expect(router.replace).toHaveBeenCalledWith('/(auth)/login')
       expect(router.push).not.toHaveBeenCalled()
     })
 

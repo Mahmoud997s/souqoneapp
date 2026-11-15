@@ -1,405 +1,79 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { StyleSheet } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { View } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
-import { listingsApi } from '../../../src/api/listings'
-import { busesApi } from '../../../src/api/buses'
-import { equipmentApi } from '../../../src/api/equipment'
-import { partsApi } from '../../../src/api/parts'
-import { servicesApi } from '../../../src/api/services'
-import { usePostStore } from '../../../src/store/postStore'
-import { useBusWizardStore } from '../../../src/store/busWizardStore'
-import { useCarWizardStore } from '../../../src/store/carWizardStore'
-import { usePartWizardStore, resolvePartListingType } from '../../../src/store/partWizardStore'
-import { useServiceWizardStore } from '../../../src/store/serviceWizardStore'
-import { carsApi } from '../../../src/api/cars'
-import { logWarn } from '../../../src/utils/safeLog'
-import { DetailStates, DetailStateKind } from '../../../src/components/listing-detail/DetailStates'
-import { getDetailErrorKind } from '../../../src/utils/listing-detail/getDetailErrorKind'
-import { dialogService } from '../../../src/store/dialogStore'
+import { DetailStates } from '../../../src/components/listing-detail/DetailStates'
+import {
+  resolveLegacyEditRoute,
+  type LegacyRedirectErrorKind,
+} from '../../../src/navigation/legacyRedirectResolver'
 
-function mapErrorKindToStateKind(err: unknown): DetailStateKind {
-  const errorKind = getDetailErrorKind(err)
-  if (errorKind === 'notFound' || errorKind === 'offline' || errorKind === 'timeout' || errorKind === 'serverError') {
-    return errorKind
-  }
-  return 'error'
-}
-
-export default function EditListingLoader() {
+export default function LegacyPostEditRedirect() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>()
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<unknown>(null)
-  const activeRequestKeyRef = useRef<string | null>(null)
-  const requestIdRef = useRef(0)
+  const [errorKind, setErrorKind] = useState<LegacyRedirectErrorKind | null>(null)
   const isMountedRef = useRef(true)
-
-  const isParts = type === 'parts' || type === 'part'
-
-  const load = useCallback(async () => {
-    const currentKey = `${id}:${type ?? ''}`
-    if (!id || activeRequestKeyRef.current === currentKey) return
-    activeRequestKeyRef.current = currentKey
-    const thisRequestId = ++requestIdRef.current
-    setLoading(true)
-    setLoadError(null)
-    try {
-      let res;
-        if (type === 'operator') {
-          res = await equipmentApi.getOperatorById(id)
-        } else if (type === 'equipment') {
-          res = await equipmentApi.getById(id)
-        } else if (type === 'bus' || type === 'buses') {
-          res = await busesApi.getById(id)
-        } else if (type === 'parts' || type === 'part') {
-          res = await partsApi.getById(id)
-        } else if (type === 'services' || type === 'service') {
-          res = await servicesApi.getById(id)
-        } else {
-          try {
-            res = await listingsApi.getById(id)
-          } catch {
-            try {
-              res = await partsApi.getById(id)
-            } catch {
-              try {
-                res = await servicesApi.getById(id)
-              } catch {
-                res = await busesApi.getById(id)
-              }
-            }
-          }
-        }
-        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
-        const listing: any = res.data ?? res
-
-        const isBus = type === 'bus' || type === 'buses' || !!listing.busListingType || !!listing.busType
-
-        if (isBus) {
-          useBusWizardStore.getState().setEditMode(id, {
-            busListingType: listing.busListingType || '',
-            busType: listing.busType || '',
-            make: listing.make || '',
-            model: listing.model || '',
-            manufacturerId: listing.manufacturerId || '',
-            modelId: listing.modelId || '',
-            year: listing.year ? String(listing.year) : '',
-            capacity: listing.capacity ? String(listing.capacity) : '',
-            condition: listing.condition || 'USED',
-            transmission: listing.transmission || '',
-            fuelType: listing.fuelType || '',
-            mileage: listing.mileage ? String(listing.mileage) : '',
-            plateNumber: listing.plateNumber || '',
-            features: listing.features || [],
-            price: listing.price ? String(listing.price) : '',
-            currency: listing.currency || 'OMR',
-            isPriceNegotiable: listing.isPriceNegotiable || false,
-            dailyPrice: listing.dailyPrice ? String(listing.dailyPrice) : '',
-            monthlyPrice: listing.monthlyPrice ? String(listing.monthlyPrice) : '',
-            withDriver: listing.withDriver || false,
-            contractType: listing.contractType || '',
-            contractClient: listing.contractClient || '',
-            contractMonthly: listing.contractMonthly ? String(listing.contractMonthly) : '',
-            contractDuration: listing.contractDuration ? String(listing.contractDuration) : '',
-            contractExpiry: listing.contractExpiry
-              ? (typeof listing.contractExpiry === 'string'
-                  ? listing.contractExpiry.split('T')[0]
-                  : new Date(listing.contractExpiry).toISOString().split('T')[0])
-              : null,
-            title: listing.title || '',
-            description: listing.description || '',
-            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
-            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
-            governorateNameAr: listing.governorateRef?.nameAr ?? listing.governorate?.nameAr ?? listing.governorateNameAr ?? '',
-            wilayaNameAr: listing.wilayaRef?.nameAr ?? listing.wilaya?.nameAr ?? listing.wilayaNameAr ?? '',
-            latitude: listing.latitude != null ? Number(listing.latitude) : null,
-            longitude: listing.longitude != null ? Number(listing.longitude) : null,
-            existingImages: (listing.images || []).map((img: any) => ({
-              id: img.id,
-              url: img.url || img,
-            })),
-            images: [],
-            removedImageIds: [],
-            whatsappEnabled: listing.whatsappEnabled === true,
-          }, listing.version)
-          router.replace('/buses/new')
-          return
-        }
-
-        usePostStore.getState().reset()
-
-        // Extract and map images to existingImages format
-        const existingImgs = (listing.images || []).map((img: any) => ({
-          id: img.id,
-          url: img.url || img,
-          isPrimary: img.isPrimary,
-        }))
-
-        // Determine category mapping based on type or listingType
-        // Mobile uses 'cars', 'buses', 'equipment', 'transport', 'jobs', 'services', 'parts'
-        let category = 'cars'
-        if (type === 'operator') category = 'operators'
-        else if (type === 'equipment' || listing.type === 'equipment' || ['EQUIPMENT_SALE', 'EQUIPMENT_RENT', 'EQUIPMENT_WANTED', 'EQUIPMENT_LISTING'].includes(listing.listingType)) category = 'equipment'
-        else if (type === 'transport' || listing.type === 'transport' || listing.listingType === 'TRANSPORT_REQUEST') category = 'transport'
-        else if (type === 'jobs' || type === 'job' || listing.type === 'job' || listing.listingType === 'JOB') category = 'jobs'
-        else if (type === 'service' || type === 'services' || listing.type === 'service' || listing.listingType === 'CAR_SERVICE' || !!listing.serviceType) category = 'services'
-        else if (type === 'part' || type === 'parts' || listing.type === 'part' || listing.listingType === 'SPARE_PART' || !!listing.partCategory) category = 'parts'
-
-        if (category === 'jobs' || category === 'transport') {
-          router.replace('/(tabs)')
-          return
-        }
-
-        if (category === 'cars') {
-          const brandId = listing.brandId || ''
-          const carModelId = listing.carModelId || listing.modelId || ''
-          const carTrimId = listing.carTrimId || listing.trimId || listing.trim || ''
-          
-          if (!brandId || !carModelId) {
-            dialogService.alert(
-              'تحديث مطلوب',
-              'هذا الإعلان قديم ويحتاج إلى تحديث الماركة والموديل للمتابعة'
-            )
-          }
-
-          let makeLabel = ''
-          let modelLabel = ''
-          let trimLabel = ''
-
-          try {
-            if (brandId) {
-              const brands = await carsApi.getBrands()
-              const b = brands.find((x: any) => String(x.id) === String(brandId))
-              if (b) makeLabel = b.nameAr || b.name
-            }
-            if (carModelId && brandId) {
-              const models = await carsApi.getModels(brandId)
-              const m = models.find((x: any) => String(x.id) === String(carModelId))
-              if (m) modelLabel = m.nameAr || m.name
-            }
-            if (carTrimId && carModelId) {
-              const trims = await carsApi.getTrims(carModelId)
-              const t = trims.find((x: any) => String(x.id) === String(carTrimId))
-              if (t) trimLabel = t.nameAr || t.name
-            }
-          } catch (e) {
-            logWarn('PostEdit:CarLabels', e)
-          }
-
-          useCarWizardStore.getState().setEditMode(id, {
-            listingType: listing.listingType || '',
-            version: listing.version || 1,
-            title: listing.title || '',
-            description: listing.description || '',
-            price: listing.price != null ? String(listing.price) : '',
-            isPriceNegotiable: listing.isPriceNegotiable || false,
-            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
-            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
-            governorateName: listing.governorateRef?.nameAr || '',
-            wilayaName: listing.wilayaRef?.nameAr || '',
-            latitude: listing.latitude ?? null,
-            longitude: listing.longitude ?? null,
-            brandId: brandId,
-            carModelId: carModelId,
-            originalBrandId: brandId,
-            originalCarModelId: carModelId,
-            carTrimId: carTrimId,
-            make: makeLabel,
-            model: modelLabel,
-            trim: trimLabel,
-            year: listing.year != null ? String(listing.year) : '',
-            condition: listing.condition || '',
-            transmission: listing.transmission || '',
-            fuelType: listing.fuelType || '',
-            mileage: listing.mileage != null ? String(listing.mileage) : '',
-            exteriorColor: listing.exteriorColor || listing.color || '',
-            bodyType: listing.bodyType || '',
-            engineSize: listing.engineSize != null ? String(listing.engineSize) : '',
-            horsepower: listing.horsepower != null ? String(listing.horsepower) : '',
-            doors: listing.doors != null ? String(listing.doors) : '',
-            seats: listing.seats != null ? String(listing.seats) : '',
-            driveType: listing.driveType || '',
-            interior: listing.interior || listing.interiorColor || '',
-            features: listing.features || [],
-            dailyPrice: listing.dailyPrice != null ? String(listing.dailyPrice) : '',
-            monthlyPrice: listing.monthlyPrice != null ? String(listing.monthlyPrice) : '',
-            withDriver: listing.withDriver || false,
-            depositAmount: listing.depositAmount != null ? String(listing.depositAmount) : '',
-            minRentalDays: listing.minRentalDays != null ? String(listing.minRentalDays) : '',
-            kmLimitPerDay: listing.kmLimitPerDay != null ? String(listing.kmLimitPerDay) : '',
-            cancellationPolicy: listing.cancellationPolicy || '',
-            deliveryAvailable: listing.deliveryAvailable || false,
-            insuranceIncluded: listing.insuranceIncluded || false,
-            whatsappEnabled: listing.whatsappEnabled === true,
-            existingImages: existingImgs,
-            images: [],
-            removedImageIds: [],
-          })
-          router.replace('/cars/new')
-          return
-        }
-
-        if (category === 'parts') {
-          usePartWizardStore.getState().setEditMode(id, {
-            listingType: resolvePartListingType(listing.listingType),
-            title: listing.title ?? '',
-            description: listing.description ?? '',
-            partCategory: listing.partCategory,
-            condition: listing.condition,
-            partNumber: listing.partNumber ?? '',
-            compatibleMakes: listing.compatibleMakes ?? [],
-            compatibleModels: listing.compatibleModels ?? [],
-            yearFrom: listing.yearFrom ?? null,
-            yearTo: listing.yearTo ?? null,
-            isOriginal: listing.isOriginal ?? false,
-            hasWarranty: listing.hasWarranty ?? false,
-            warrantyDuration: listing.warrantyDuration ?? null,
-            quantity: listing.quantity ?? null,
-            compatibleVehicleTypes: listing.compatibleVehicleTypes ?? [],
-            price: Number(listing.price) || null,
-            currency: listing.currency ?? 'OMR',
-            isPriceNegotiable: listing.isPriceNegotiable ?? false,
-            whatsappEnabled: listing.whatsappEnabled === true,
-            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
-            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
-            governorateNameAr: listing.governorateRef?.nameAr ?? listing.governorate ?? '',
-            wilayaNameAr: listing.wilayaRef?.nameAr ?? listing.city ?? '',
-            latitude: listing.latitude ?? null,
-            longitude: listing.longitude ?? null,
-            existingImages: (listing.images ?? []).map((img: any) => ({ id: img.id, url: img.url || img })),
-          })
-          router.replace('/parts/new')
-          return
-        }
-
-        if (category === 'services') {
-          useServiceWizardStore.getState().setEditMode(id, {
-            title: listing.title ?? '',
-            description: listing.description ?? '',
-            serviceType: listing.serviceType ?? null,
-            providerType: listing.providerType ?? null,
-            providerName: listing.providerName ?? '',
-            specializations: listing.specializations ?? [],
-            isHomeService: Boolean(listing.isHomeService),
-            workingHoursOpen: listing.workingHoursOpen ?? null,
-            workingHoursClose: listing.workingHoursClose ?? null,
-            workingDays: listing.workingDays ?? [],
-            priceFrom: listing.priceFrom != null ? Number(listing.priceFrom) : null,
-            priceTo: listing.priceTo != null ? Number(listing.priceTo) : null,
-            currency: listing.currency ?? 'OMR',
-            whatsappEnabled: listing.whatsappEnabled === true,
-            website: listing.website ?? '',
-            governorateId: listing.governorateId ? Number(listing.governorateId) : null,
-            wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
-            governorateNameAr: listing.governorateRef?.nameAr ?? '',
-            wilayaNameAr: listing.wilayaRef?.nameAr ?? '',
-            address: listing.address ?? '',
-            latitude: listing.latitude ?? null,
-            longitude: listing.longitude ?? null,
-            existingImages: (listing.images ?? []).map((img: any) => ({
-              id: typeof img === 'string' ? img : (img.id || img.url),
-              url: typeof img === 'string' ? img : (img.url || img.uri),
-            })),
-          })
-          router.replace('/services/new')
-          return
-        }
-
-        // Populate store for other generic categories
-        usePostStore.getState().set({
-          editMode: true,
-          editListingId: id,
-          category,
-          title: listing.title || '',
-          description: listing.description || '',
-          price: String(listing.price || listing.priceFrom || listing.dailyPrice || listing.monthlyPrice || listing.basePrice || listing.dailyRate || listing.hourlyRate || ''),
-          isPriceNegotiable: listing.isPriceNegotiable || false,
-          governorate: listing.governorate || '',
-          city: listing.city || '',
-          governorateId: listing.governorateId ? Number(listing.governorateId) : null,
-          wilayaId: listing.wilayaId ? Number(listing.wilayaId) : null,
-          latitude: listing.latitude,
-          longitude: listing.longitude,
-          existingImages: existingImgs,
-          removedImageIds: [],
-          images: [],
-          details: { ...listing }, // push everything else into details
-        })
-
-        // Route to step 2 (Images)
-        router.replace('/post/step2')
-      } catch (err) {
-        if (!isMountedRef.current || requestIdRef.current !== thisRequestId) return
-        logWarn('EditListingLoader:load', err)
-        setLoadError(err ?? new Error('تعذر تحميل بيانات الإعلان'))
-      } finally {
-        if (activeRequestKeyRef.current === currentKey) {
-          activeRequestKeyRef.current = null
-        }
-        if (isMountedRef.current && requestIdRef.current === thisRequestId) {
-          setLoading(false)
-        }
-      }
-    },
-    [id, type]
-  )
+  const requestSeqRef = useRef(0)
+  const inFlightKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
     isMountedRef.current = true
-    load()
-    return () => {
-      requestIdRef.current += 1
-      activeRequestKeyRef.current = null
-    }
-  }, [load])
-
-  useEffect(() => {
     return () => {
       isMountedRef.current = false
     }
   }, [])
 
+  const resolve = useCallback(async () => {
+    if (!id) {
+      setErrorKind('notFound')
+      return
+    }
+
+    const requestKey = `${id}::${type ?? ''}`
+    if (inFlightKeyRef.current === requestKey) {
+      return
+    }
+
+    const seq = ++requestSeqRef.current
+    inFlightKeyRef.current = requestKey
+    setErrorKind(null)
+
+    try {
+      const result = await resolveLegacyEditRoute(id, type, () => {
+        return !isMountedRef.current || requestSeqRef.current !== seq
+      })
+      if (!isMountedRef.current || requestSeqRef.current !== seq) {
+        return
+      }
+      if (result.ok) {
+        router.replace(result.href)
+        return
+      }
+      setErrorKind(result.errorKind)
+    } finally {
+      if (requestSeqRef.current === seq) {
+        inFlightKeyRef.current = null
+      }
+    }
+  }, [id, type])
+
+  useEffect(() => {
+    void resolve()
+  }, [resolve])
+
   const handleBack = useCallback(() => {
     router.back()
   }, [])
 
-  if (loading) {
+  if (errorKind) {
     return (
-      <DetailStates
-        kind="loading"
-        onBack={handleBack}
-      />
-    )
-  }
-
-  if (loadError) {
-    const kind = mapErrorKindToStateKind(loadError)
-    if (isParts) {
-      return (
-        <DetailStates
-          kind={kind}
-          title="تعذر تحميل بيانات قطعة الغيار"
-          subtitle="حدث خطأ غير متوقع أثناء جلب بيانات قطعة الغيار. يرجى المحاولة مرة أخرى."
-          onRetry={load}
-          onBack={handleBack}
-        />
-      )
-    }
-
-    return (
-      <DetailStates
-        kind={kind}
-        onRetry={load}
-        onBack={handleBack}
-      />
+      <View style={{ flex: 1 }} testID="legacy-edit-redirect-error">
+        <DetailStates kind={errorKind} onRetry={() => void resolve()} onBack={handleBack} />
+      </View>
     )
   }
 
   return (
-    <DetailStates
-      kind="loading"
-      onBack={handleBack}
-    />
+    <View style={{ flex: 1 }} testID="legacy-edit-redirect-loading">
+      <DetailStates kind="loading" onBack={handleBack} />
+    </View>
   )
 }
-
-const s = StyleSheet.create({})

@@ -18,13 +18,14 @@ export interface UseShareListingReturn {
 export function buildShareMessage(
   title: string,
   id: string,
-  includeLink: boolean = SHARE_LINK_ENABLED
+  includeLink: boolean = SHARE_LINK_ENABLED,
+  entityType: string = 'LISTING'
 ): string {
   const base = `${title} - ${APP_NAME}`
   if (!includeLink) {
     return base
   }
-  return `${base}\n${buildListingShareUrl(id)}`
+  return `${base}\n${buildListingShareUrl(entityType, id)}`
 }
 
 /**

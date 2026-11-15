@@ -85,31 +85,16 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
     })
   })
 
-  it('intercepts type="bus", populates busWizardStore, and redirects to /buses/new', async () => {
+  it('intercepts type="bus" and redirects to canonical /buses/edit/:id', async () => {
     ;(useLocalSearchParams as jest.Mock).mockReturnValue({
       id: 'bus-101',
       type: 'buses',
     })
 
-    const busPayload = {
-      id: 'bus-101',
-      busListingType: 'RENTAL',
-      busType: 'MINIBUS',
-      title: 'باص كوستر للايجار',
-      price: 250,
-      images: [],
-    }
-
-    ;(busesApi.getById as jest.Mock).mockResolvedValue({ data: busPayload })
-
-    render(<EditListingLoader />)
+    await render(<EditListingLoader />)
 
     await waitFor(() => {
-      expect(busesApi.getById).toHaveBeenCalledWith('bus-101')
-      const store = useBusWizardStore.getState()
-      expect(store.editMode).toBe(true)
-      expect(store.editListingId).toBe('bus-101')
-      expect(router.replace).toHaveBeenCalledWith('/buses/new')
+      expect(router.replace).toHaveBeenCalledWith('/buses/edit/bus-101')
     })
   })
 
@@ -148,20 +133,9 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
       type: 'jobs',
     })
 
-    const jobPayload = {
-      id: 'job-505',
-      category: 'jobs',
-      title: 'مطلوب ميكانيكي سيارات',
-      price: 400,
-      images: [],
-    }
-
-    ;(listingsApi.getById as jest.Mock).mockResolvedValue({ data: jobPayload })
-
-    render(<EditListingLoader />)
+    await render(<EditListingLoader />)
 
     await waitFor(() => {
-      expect(listingsApi.getById).toHaveBeenCalledWith('job-505')
       expect(router.replace).toHaveBeenCalledWith('/(tabs)')
     })
   })
@@ -172,20 +146,9 @@ describe('EditListingLoader Parts & Multi-Vertical Dispatcher', () => {
       type: 'transport',
     })
 
-    const transportPayload = {
-      id: 'tr-606',
-      listingType: 'TRANSPORT_REQUEST',
-      title: 'طلب نقل بضائع',
-      price: 150,
-      images: [],
-    }
-
-    ;(listingsApi.getById as jest.Mock).mockResolvedValue({ data: transportPayload })
-
-    render(<EditListingLoader />)
+    await render(<EditListingLoader />)
 
     await waitFor(() => {
-      expect(listingsApi.getById).toHaveBeenCalledWith('tr-606')
       expect(router.replace).toHaveBeenCalledWith('/(tabs)')
     })
   })

@@ -1,4 +1,5 @@
 import React from 'react'
+import { buildListingShareUrl } from '../../navigation/listingRoutes'
 import {
   ListingCardBase,
   ListingCardPill,
@@ -161,7 +162,7 @@ const ServiceCardComponent = ({
       liquidGlass={liquidGlass ?? true}
       glassSupport={glassSupport}
       favoriteType="CAR_SERVICE"
-      shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\nhttps://souqone.app/services/${item.id}`}
+      shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\n${buildListingShareUrl('CAR_SERVICE', item.id)}`}
       actionMenu={actionMenu}
     />
   )
