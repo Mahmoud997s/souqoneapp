@@ -375,7 +375,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
               onChat={contact.chat}
               onCall={contact.call}
               onWhatsApp={contact.whatsApp}
-              busy={contact.busy}
+              busyAction={contact.busyAction}
             />
           </Animated.View>
         ) : null}
@@ -445,7 +445,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
         <ContactActions
           variant="sticky"
           availability={contactAvailability}
-          busy={contact.busy}
+          busyAction={contact.busyAction}
           onCall={contact.call}
           onWhatsApp={contact.whatsApp}
           onChat={contact.chat}

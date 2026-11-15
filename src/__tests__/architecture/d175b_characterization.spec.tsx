@@ -101,7 +101,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
         <ContactActions
           variant="inline"
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={onCall}
           onWhatsApp={onWhatsApp}
           onChat={onChat}
@@ -131,7 +131,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
         <ContactActions
           variant="sticky"
           availability={{ mode: 'full' }}
-          busy={false}
+          busyAction={null}
           onCall={jest.fn()}
           onWhatsApp={jest.fn()}
           onChat={jest.fn()}

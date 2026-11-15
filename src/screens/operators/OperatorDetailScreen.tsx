@@ -258,7 +258,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           <ContactActions
             variant="inline"
             availability={availability}
-            busy={contact.busy}
+            busyAction={contact.busyAction}
             onCall={contact.call}
             onWhatsApp={contact.whatsApp}
             onChat={contact.chat}
@@ -324,7 +324,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         <ContactActions
           variant="sticky"
           availability={availability}
-          busy={contact.busy}
+          busyAction={contact.busyAction}
           onCall={contact.call}
           onWhatsApp={contact.whatsApp}
           onChat={contact.chat}
