@@ -11,6 +11,7 @@ jest.setTimeout(30000)
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
+  useFocusEffect: jest.fn(),
 }))
 
 jest.mock('react-native-gesture-handler', () => {
