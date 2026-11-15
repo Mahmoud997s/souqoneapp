@@ -119,7 +119,8 @@ describe('PartStep5Pricing', () => {
     await render(<PartStep5Pricing {...propsWithCoords} />);
 
     expect(screen.getByTestId('coords-box')).toBeTruthy();
-    expect(screen.getByText(/23.5880, 58.3829/)).toBeTruthy();
+    expect(screen.getByText('تم تحديد الموقع على الخريطة ✓')).toBeTruthy();
+    expect(screen.queryByText(/23\.5880/)).toBeNull();
 
     const clearBtn = screen.getByTestId('clear-map-coords-btn');
     await act(async () => {

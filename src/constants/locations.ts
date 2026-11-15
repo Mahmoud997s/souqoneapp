@@ -241,3 +241,112 @@ export const OMAN_GOVERNORATES_INDEXED = [
   { id: 10, nameAr: 'الظاهرة', nameEn: 'Ad Dhahirah' },
   { id: 11, nameAr: 'الوسطى', nameEn: 'Al Wusta' },
 ];
+
+export interface LatLngPoint {
+  latitude: number;
+  longitude: number;
+}
+
+export const DEFAULT_OMAN_CENTER: LatLngPoint = {
+  latitude: 23.588,
+  longitude: 58.3829,
+};
+
+export const OMAN_GOVERNORATE_COORDS: Record<string, LatLngPoint> = {
+  muscat: { latitude: 23.588, longitude: 58.3829 },
+  dhofar: { latitude: 17.0194, longitude: 54.0897 },
+  batinah_north: { latitude: 24.3461, longitude: 56.7075 },
+  batinah_south: { latitude: 23.3908, longitude: 57.4244 },
+  dakhiliyah: { latitude: 22.9333, longitude: 57.5333 },
+  sharqiyah_north: { latitude: 22.6906, longitude: 58.5334 },
+  sharqiyah_south: { latitude: 22.5667, longitude: 59.5289 },
+  dhahirah: { latitude: 23.2257, longitude: 56.5157 },
+  buraimi: { latitude: 24.2509, longitude: 55.7931 },
+  wusta: { latitude: 19.9565, longitude: 56.2757 },
+  musandam: { latitude: 26.1799, longitude: 56.2477 },
+};
+
+export const OMAN_WILAYAT_COORDS: Record<string, LatLngPoint> = {
+  seeb: { latitude: 23.6703, longitude: 58.1891 },
+  bousher: { latitude: 23.5653, longitude: 58.4136 },
+  muttrah: { latitude: 23.6197, longitude: 58.5675 },
+  amerat: { latitude: 23.5167, longitude: 58.4833 },
+  muscat_city: { latitude: 23.6143, longitude: 58.5453 },
+  qurayyat: { latitude: 23.2614, longitude: 58.9186 },
+  salalah: { latitude: 17.0194, longitude: 54.0897 },
+  sohar: { latitude: 24.3461, longitude: 56.7075 },
+  suwaiq: { latitude: 23.8494, longitude: 57.4386 },
+  khaburah: { latitude: 23.9711, longitude: 57.0936 },
+  saham: { latitude: 24.1722, longitude: 56.8886 },
+  liwa: { latitude: 24.5364, longitude: 56.565 },
+  shinas: { latitude: 24.7426, longitude: 56.4669 },
+  rustaq: { latitude: 23.3908, longitude: 57.4244 },
+  barka: { latitude: 23.6787, longitude: 57.8861 },
+  mussanah: { latitude: 23.7736, longitude: 57.6414 },
+  nizwa: { latitude: 22.9333, longitude: 57.5333 },
+  samail: { latitude: 23.2978, longitude: 57.9494 },
+  bahla: { latitude: 22.9644, longitude: 57.3008 },
+  ibra: { latitude: 22.6906, longitude: 58.5334 },
+  sur: { latitude: 22.5667, longitude: 59.5289 },
+  ibri: { latitude: 23.2257, longitude: 56.5157 },
+  buraimi_city: { latitude: 24.2509, longitude: 55.7931 },
+  duqm: { latitude: 19.6697, longitude: 57.7022 },
+  haima: { latitude: 19.9565, longitude: 56.2757 },
+  khasab: { latitude: 26.1799, longitude: 56.2477 },
+};
+
+/**
+ * Resolves the map center coordinates for a chosen Omani governorate and/or wilaya.
+ * Falls back to Muscat (DEFAULT_OMAN_CENTER) when no selection matches.
+ */
+export function getLocationCenterCoords(
+  governorate?: string | number | null,
+  wilaya?: string | number | null,
+): LatLngPoint {
+  if (typeof wilaya === 'string' && wilaya.trim()) {
+    const wNorm = normalizeLoc(wilaya);
+    for (const g of OMAN_LOCATIONS) {
+      const foundW = g.wilayats.find(
+        (w) =>
+          w.id === wilaya ||
+          w.labelAr === wilaya ||
+          normalizeLoc(w.labelEn || '') === wNorm ||
+          normalizeLoc(w.id) === wNorm ||
+          normalizeLoc(w.labelAr) === wNorm,
+      );
+      if (foundW) {
+        if (OMAN_WILAYAT_COORDS[foundW.id]) {
+          return OMAN_WILAYAT_COORDS[foundW.id];
+        }
+        if (OMAN_GOVERNORATE_COORDS[g.id]) {
+          return OMAN_GOVERNORATE_COORDS[g.id];
+        }
+      }
+    }
+  }
+
+  let govKey: string | number | null | undefined = governorate;
+  if (typeof govKey === 'number') {
+    const indexed = OMAN_GOVERNORATES_INDEXED.find((g) => g.id === govKey);
+    if (indexed) govKey = indexed.nameAr;
+  }
+
+  if (typeof govKey === 'string' && govKey.trim()) {
+    const gNorm = normalizeLoc(govKey);
+    const foundG = OMAN_LOCATIONS.find(
+      (g) =>
+        g.id === govKey ||
+        g.legacyId === govKey ||
+        g.altLegacyIds?.includes(govKey) ||
+        g.labelAr === govKey ||
+        normalizeLoc(g.labelEn || '') === gNorm ||
+        normalizeLoc(g.id) === gNorm ||
+        normalizeLoc(g.labelAr) === gNorm,
+    );
+    if (foundG && OMAN_GOVERNORATE_COORDS[foundG.id]) {
+      return OMAN_GOVERNORATE_COORDS[foundG.id];
+    }
+  }
+
+  return DEFAULT_OMAN_CENTER;
+}

@@ -83,7 +83,9 @@ export function PartStep5Pricing({
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
                 <Text style={s.coordsSub}>
-                  {formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}
+                  {formData.wilayaNameAr || formData.governorateNameAr
+                    ? `${formData.governorateNameAr || ''}${formData.wilayaNameAr ? ` - ${formData.wilayaNameAr}` : ''}`
+                    : 'تم تحديد الموقع على الخريطة ✓'}
                 </Text>
               </View>
             </View>
@@ -144,6 +146,8 @@ export function PartStep5Pricing({
         title="موقع القطعة على الخريطة"
         initialLat={formData.latitude ?? undefined}
         initialLng={formData.longitude ?? undefined}
+        governorate={formData.governorateNameAr || formData.governorateId}
+        wilaya={formData.wilayaNameAr || formData.wilayaId}
         onConfirm={(lat, lng) => {
           onUpdateField('latitude', lat)
           onUpdateField('longitude', lng)

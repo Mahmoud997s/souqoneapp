@@ -69,7 +69,9 @@ export function BusStep5Location({
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
                 <Text style={s.coordsSub}>
-                  {data.latitude?.toFixed(4)}, {data.longitude?.toFixed(4)}
+                  {data.wilayaNameAr || data.governorateNameAr
+                    ? `${data.governorateNameAr || ''}${data.wilayaNameAr ? ` - ${data.wilayaNameAr}` : ''}`
+                    : 'تم تحديد الموقع على الخريطة ✓'}
                 </Text>
               </View>
             </View>
@@ -132,6 +134,8 @@ export function BusStep5Location({
         title="موقع الحافلة على الخريطة"
         initialLat={data.latitude ?? undefined}
         initialLng={data.longitude ?? undefined}
+        governorate={data.governorateNameAr || data.governorateId}
+        wilaya={data.wilayaNameAr || data.wilayaId}
         onConfirm={(lat, lng) => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
           onUpdateField('latitude', lat)

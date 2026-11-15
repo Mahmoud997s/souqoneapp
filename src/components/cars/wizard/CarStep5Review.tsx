@@ -427,9 +427,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
               </View>
               <View style={s.gpsBadge}>
                 <Ionicons name="location" size={12} color="#059669" />
-                <Text style={s.gpsBadgeTxt}>
-                  {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)} ✓
-                </Text>
+                <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
           ) : null}

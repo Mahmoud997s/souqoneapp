@@ -193,7 +193,9 @@ export function EquipmentStep4Location({
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
                 <Text style={s.coordsSub}>
-                  {formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}
+                  {formData.city || formData.governorate
+                    ? `${formData.governorate || ''}${formData.city ? ` - ${formData.city}` : ''}`
+                    : 'تم تحديد الموقع على الخريطة ✓'}
                 </Text>
               </View>
             </View>
@@ -250,6 +252,8 @@ export function EquipmentStep4Location({
         title="موقع المعدة على الخريطة"
         initialLat={formData.latitude ?? undefined}
         initialLng={formData.longitude ?? undefined}
+        governorate={formData.governorate || formData.governorateId}
+        wilaya={formData.city || formData.wilayaId}
         onConfirm={(lat, lng) => {
           onUpdateField('latitude', lat)
           onUpdateField('longitude', lng)

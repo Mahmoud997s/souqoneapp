@@ -192,7 +192,8 @@ describe('BusStep5Location', () => {
     )
 
     expect(screen.getByTestId('coords-box')).toBeTruthy()
-    expect(screen.getByText(/23.5880, 58.3829/)).toBeTruthy()
+    expect(screen.getByText('تم تحديد الموقع على الخريطة ✓')).toBeTruthy()
+    expect(screen.queryByText(/23\.5880/)).toBeNull()
     expect(screen.queryByTestId('open-map-picker-btn')).toBeNull()
 
     // Test editing coordinates

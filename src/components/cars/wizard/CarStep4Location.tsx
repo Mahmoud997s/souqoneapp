@@ -223,7 +223,9 @@ export function CarStep4Location({
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
                 <Text style={s.coordsSub}>
-                  {formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}
+                  {formData.wilayaName || formData.governorateName
+                    ? `${formData.governorateName || ''}${formData.wilayaName ? ` - ${formData.wilayaName}` : ''}`
+                    : 'تم تحديد الموقع على الخريطة ✓'}
                 </Text>
               </View>
             </View>
@@ -280,6 +282,8 @@ export function CarStep4Location({
         title="موقع السيارة على الخريطة"
         initialLat={formData.latitude ?? undefined}
         initialLng={formData.longitude ?? undefined}
+        governorate={formData.governorateName || formData.governorateId}
+        wilaya={formData.wilayaName || formData.wilayaId}
         onConfirm={(lat, lng) => {
           onUpdateField('latitude', lat)
           onUpdateField('longitude', lng)

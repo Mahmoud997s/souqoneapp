@@ -107,7 +107,8 @@ describe('BusStep6Review', () => {
 
     // Location & Contact Card
     expect(screen.getByText('مسقط - السيب')).toBeTruthy()
-    expect(screen.getByText(/23.6143/)).toBeTruthy()
+    expect(screen.getByText('تم التحديد على الخريطة ✓')).toBeTruthy()
+    expect(screen.queryByText(/23\.6143/)).toBeNull()
     // no phone numbers on the review screen; only the WhatsApp switch state
     expect(screen.queryByText('91234567')).toBeNull()
     expect(screen.queryByText('99887766')).toBeNull()

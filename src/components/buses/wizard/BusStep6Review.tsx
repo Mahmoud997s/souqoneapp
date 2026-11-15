@@ -456,9 +456,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
               </View>
               <View style={s.gpsBadge}>
                 <Ionicons name="location" size={12} color="#059669" />
-                <Text style={s.gpsBadgeTxt}>
-                  {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)} ✓
-                </Text>
+                <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
           ) : null}

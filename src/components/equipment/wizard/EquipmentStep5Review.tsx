@@ -388,9 +388,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
               </View>
               <View style={s.gpsBadge}>
                 <Ionicons name="location" size={12} color="#059669" />
-                <Text style={s.gpsBadgeTxt}>
-                  {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)} ✓
-                </Text>
+                <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
           ) : null}

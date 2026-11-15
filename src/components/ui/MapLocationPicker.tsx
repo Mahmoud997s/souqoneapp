@@ -19,6 +19,7 @@ import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppButton } from './AppButton'
 import { logWarn } from '../../utils/safeLog'
+import { getLocationCenterCoords } from '../../constants/locations'
 
 interface MapLocationPickerProps {
   isVisible: boolean
@@ -26,11 +27,10 @@ interface MapLocationPickerProps {
   onConfirm: (lat: number, lng: number) => void
   initialLat?: number
   initialLng?: number
+  governorate?: string | number | null
+  wilaya?: string | number | null
   title?: string
 }
-
-const MUSCAT_LAT = 23.588
-const MUSCAT_LNG = 58.3829
 
 export function MapLocationPicker({
   isVisible,
@@ -38,20 +38,25 @@ export function MapLocationPicker({
   onConfirm,
   initialLat,
   initialLng,
+  governorate,
+  wilaya,
   title = 'تحديد الموقع على الخريطة',
 }: MapLocationPickerProps) {
   const insets = useSafeAreaInsets()
+  const fallbackCenter = getLocationCenterCoords(governorate, wilaya)
 
   const [selectedLocation, setSelectedLocation] = useState<{
     latitude: number
     longitude: number
   } | null>(
-    initialLat && initialLng ? { latitude: initialLat, longitude: initialLng } : null
+    initialLat != null && initialLng != null
+      ? { latitude: initialLat, longitude: initialLng }
+      : fallbackCenter
   )
 
   const [region, setRegion] = useState<Region>({
-    latitude: initialLat || MUSCAT_LAT,
-    longitude: initialLng || MUSCAT_LNG,
+    latitude: initialLat ?? fallbackCenter.latitude,
+    longitude: initialLng ?? fallbackCenter.longitude,
     latitudeDelta: 0.04,
     longitudeDelta: 0.04,
   })
@@ -59,10 +64,10 @@ export function MapLocationPicker({
   const [isLoadingLoc, setIsLoadingLoc] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Sync initial props when opened
+  // Sync initial props or selected governorate/wilaya center when opened (never auto-fetch GPS)
   useEffect(() => {
     if (isVisible) {
-      if (initialLat && initialLng) {
+      if (initialLat != null && initialLng != null) {
         setSelectedLocation({ latitude: initialLat, longitude: initialLng })
         setRegion({
           latitude: initialLat,
@@ -71,11 +76,17 @@ export function MapLocationPicker({
           longitudeDelta: 0.015,
         })
       } else {
-        setSelectedLocation(null)
-        getCurrentLocation()
+        const center = getLocationCenterCoords(governorate, wilaya)
+        setSelectedLocation(center)
+        setRegion({
+          latitude: center.latitude,
+          longitude: center.longitude,
+          latitudeDelta: 0.04,
+          longitudeDelta: 0.04,
+        })
       }
     }
-  }, [isVisible, initialLat, initialLng])
+  }, [isVisible, initialLat, initialLng, governorate, wilaya])
 
   const getCurrentLocation = async () => {
     try {
@@ -152,6 +163,17 @@ export function MapLocationPicker({
               setSelectedLocation({ latitude: r.latitude, longitude: r.longitude })
               setIsDragging(false)
             }}
+            onPress={(e: any) => {
+              const coord = e?.nativeEvent?.coordinate
+              if (coord && typeof coord.latitude === 'number' && typeof coord.longitude === 'number') {
+                setSelectedLocation({ latitude: coord.latitude, longitude: coord.longitude })
+                setRegion((prev) => ({
+                  ...prev,
+                  latitude: coord.latitude,
+                  longitude: coord.longitude,
+                }))
+              }
+            }}
             showsUserLocation
             showsMyLocationButton={false}
           />
@@ -198,10 +220,7 @@ export function MapLocationPicker({
           {selectedLocation ? (
             <View style={styles.coordDisplayRow}>
               <View style={styles.coordDot} />
-              <Text style={styles.coordLabel}>الإحداثيات:</Text>
-              <Text style={styles.coordValue}>
-                {selectedLocation.latitude.toFixed(4)}, {selectedLocation.longitude.toFixed(4)}
-              </Text>
+              <Text style={styles.coordLabel}>تم تحديد الموقع على الخريطة ✓</Text>
             </View>
           ) : (
             <Text style={styles.helpText}>يرجى تحريك الخريطة لتحديد الموقع</Text>
