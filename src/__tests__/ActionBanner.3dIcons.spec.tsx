@@ -136,10 +136,11 @@ describe('D-157: ActionBanner & SectionFooterAction 3D Category Icons', () => {
   })
 
   describe('3. CATEGORY_ICONS Integrity for Bottom Action Banners', () => {
-    it('defines CATEGORY_ICONS with the 5 banner verticals', () => {
+    it('defines CATEGORY_ICONS with the 6 banner verticals', () => {
       expect(CATEGORY_ICONS.cars).toBeDefined()
       expect(CATEGORY_ICONS.buses).toBeDefined()
       expect(CATEGORY_ICONS.equipment).toBeDefined()
+      expect(CATEGORY_ICONS.operators).toBeDefined()
       expect(CATEGORY_ICONS.parts).toBeDefined()
       expect(CATEGORY_ICONS.services).toBeDefined()
     })
@@ -153,6 +154,7 @@ describe('D-157: ActionBanner & SectionFooterAction 3D Category Icons', () => {
       { file: 'app/buses/browse.tsx', expected: 'CATEGORY_ICONS.buses' },
       { file: 'app/equipment/index.tsx', expected: 'CATEGORY_ICONS.equipment' },
       { file: 'app/equipment/browse.tsx', expected: 'CATEGORY_ICONS.equipment' },
+      { file: 'app/equipment/operators/browse.tsx', expected: 'CATEGORY_ICONS.operators' },
       { file: 'app/parts/index.tsx', expected: 'CATEGORY_ICONS.parts' },
       { file: 'app/parts/browse.tsx', expected: 'CATEGORY_ICONS.parts' },
       { file: 'app/services/index.tsx', expected: 'CATEGORY_ICONS.services' },

@@ -30,12 +30,11 @@ describe('D-196: Architectural Gate — 3D Category PNG Removal (Except Bottom B
     expect(fs.existsSync(partsDir)).toBe(false)
     expect(fs.existsSync(servicesDir)).toBe(false)
 
-    // cat-operators.png and cat-browse.png are deleted (unreferenced)
-    expect(fs.existsSync(path.resolve(rootDir, 'assets/images/categories/cat-operators.png'))).toBe(false)
+    // cat-browse.png is deleted (unreferenced)
     expect(fs.existsSync(path.resolve(rootDir, 'assets/images/categories/cat-browse.png'))).toBe(false)
   })
 
-  it('Gate 4: only the 5 banner 3D category PNGs exist in assets/images/categories', () => {
+  it('Gate 4: only the 6 banner 3D category PNGs exist in assets/images/categories', () => {
     const categoriesDir = path.resolve(rootDir, 'assets/images/categories')
     expect(fs.existsSync(categoriesDir)).toBe(true)
     const existing = fs.readdirSync(categoriesDir).sort()
@@ -43,6 +42,7 @@ describe('D-196: Architectural Gate — 3D Category PNG Removal (Except Bottom B
       'cat-buses.png',
       'cat-cars.png',
       'cat-equipment.png',
+      'cat-operators.png',
       'cat-parts.png',
       'cat-services.png',
     ])
@@ -80,6 +80,7 @@ describe('D-196: Architectural Gate — 3D Category PNG Removal (Except Bottom B
       'app/buses/browse.tsx',
       'app/equipment/index.tsx',
       'app/equipment/browse.tsx',
+      'app/equipment/operators/browse.tsx',
       'app/parts/index.tsx',
       'app/parts/browse.tsx',
       'app/services/index.tsx',

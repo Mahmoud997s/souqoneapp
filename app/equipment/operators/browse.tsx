@@ -26,6 +26,7 @@ import { useOperatorNavigation } from '../../../src/hooks/useOperatorNavigation'
 import { SkeletonCard } from '../../../src/components/ui/SkeletonCard'
 import { EmptyState } from '../../../src/components/ui/EmptyState'
 import { SectionFooterAction } from '../../../src/components/ui/SectionFooterAction'
+import { CATEGORY_ICONS } from '../../../src/constants/categoryIcons'
 import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
 import { BrowseResultsBar } from '../../../src/components/ui/BrowseResultsBar'
 import { StaleDataBanner } from '../../../src/components/listing-detail/StaleDataBanner'
@@ -381,7 +382,7 @@ export default function BrowseOperatorsScreen() {
               title="هل أنت مشغل معدات محترف؟"
               subtitle="سجل بروفايلك المهني الآن وتلق عروض عمل ومشاريع مجزية"
               buttonText="سجل كمشغل"
-              iconName="construct-outline"
+              iconImage={CATEGORY_ICONS.operators}
               onPress={navigateToAddOperator}
             />
           </>
