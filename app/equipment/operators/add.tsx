@@ -47,14 +47,19 @@ export default function AddOperatorScreen() {
   const createMutation = useCreateOperator()
   const { data: myOperators, isLoading: loadingMyOp } = useMyOperators(!!user)
 
-  // Safety net: redirect to edit if they already have an operator listing
+  const hasCheckedInitialOperatorRef = useRef(false)
+  const [publishSuccess, setPublishSuccess] = React.useState(false)
+  const [createdOperatorId, setCreatedOperatorId] = React.useState<string | null>(null)
+  const submitLockRef = useRef<boolean>(false)
+
+  // Safety net: redirect to edit ONLY on initial load if they already have an operator listing
   useEffect(() => {
-    if (!loadingMyOp && myOperators && myOperators.length > 0) {
+    if (loadingMyOp || hasCheckedInitialOperatorRef.current) return
+    hasCheckedInitialOperatorRef.current = true
+    if (!publishSuccess && !submitLockRef.current && myOperators && myOperators.length > 0) {
       router.replace(`/equipment/operators/edit/${myOperators[0].id}`)
     }
-  }, [loadingMyOp, myOperators])
-
-  const [publishSuccess, setPublishSuccess] = React.useState(false)
+  }, [loadingMyOp, myOperators, publishSuccess])
 
   const {
     currentStep,
@@ -108,8 +113,6 @@ export default function AddOperatorScreen() {
     })
   }
 
-  const submitLockRef = useRef<boolean>(false)
-
   const handleSubmit = () => {
     if (submitLockRef.current) return
 
@@ -120,8 +123,13 @@ export default function AddOperatorScreen() {
     const payload = buildOperatorPayload(formData)
 
     createMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         submitLockRef.current = false
+        const createdId =
+          (response as { data?: { id?: string }; id?: string } | undefined)?.data?.id ??
+          (response as { id?: string } | undefined)?.id ??
+          null
+        setCreatedOperatorId(createdId)
         resetDraft()
         setPublishSuccess(true)
       },
@@ -163,12 +171,16 @@ export default function AddOperatorScreen() {
     }
   }
 
-  // Prevent UI flash while checking/redirecting
-  if (loadingMyOp || (myOperators && myOperators.length > 0)) {
-    return <View style={{ flex: 1, backgroundColor: '#F8F9FA' }} />
+  // Prevent UI flash while checking/redirecting on initial load
+  if (!publishSuccess && !submitLockRef.current && (loadingMyOp || (myOperators && myOperators.length > 0))) {
+    return <View style={{ flex: 1, backgroundColor: Colors.homeBg }} />
   }
 
   if (publishSuccess) {
+    const primaryTarget = createdOperatorId
+      ? `/equipment/operators/${createdOperatorId}`
+      : '/equipment/operators/browse'
+
     return (
       <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -176,8 +188,8 @@ export default function AddOperatorScreen() {
           title="تم نشر بطاقتك المهنية بنجاح!"
           subtitle="بطاقتك المهنية متاحة الآن في دليل المشغلين المعتمد بسلطنة عُمان. يمكنك استقبال طلبات العمل والتواصل مباشرة."
           primaryAction={{
-            label: 'عرض دليل المشغلين',
-            onPress: () => router.replace('/equipment/operators/browse'),
+            label: 'عرض بطاقتي',
+            onPress: () => router.replace(primaryTarget as any),
             testID: 'publish-success-primary-btn',
           }}
           secondaryAction={{
@@ -186,7 +198,7 @@ export default function AddOperatorScreen() {
             testID: 'publish-success-secondary-btn',
           }}
           onHardwareBack={() => {
-            router.replace('/equipment/operators/browse')
+            router.replace(primaryTarget as any)
             return true
           }}
         />

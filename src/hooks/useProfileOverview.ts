@@ -3,6 +3,8 @@ import { router, useFocusEffect } from 'expo-router'
 import { loginRoute } from '../navigation/listingRoutes'
 import { useAuthStore } from '../store/authStore'
 import { useMyListings, useFavorites } from './useListings'
+import { useMyOperators } from './useEquipment'
+import { useOperatorNavigation } from './useOperatorNavigation'
 import { dialogService } from '../store/dialogStore'
 import { locationsApi } from '../api/locations'
 import { authApi } from '../api/auth'
@@ -24,6 +26,8 @@ export function useProfileOverview() {
     isRefetching: favoritesIsRefetching,
     refetch: refetchFavorites,
   } = useFavorites()
+  const { data: myOperators, isLoading: loadingMyOperators } = useMyOperators(!!user)
+  const { navigateToAddOperator } = useOperatorNavigation()
 
   const [locationName, setLocationName] = React.useState('')
   const [isProfileRefreshError, setIsProfileRefreshError] = React.useState(false)
@@ -140,6 +144,25 @@ export function useProfileOverview() {
   }
 
   // Group 1: النشاط التجاري والإعلانات
+  const operatorItem: MenuItem | null =
+    !user || loadingMyOperators
+      ? null
+      : myOperators && myOperators.length > 0
+        ? {
+            icon: 'construct-outline',
+            title: 'ملفي كمشغّل',
+            subTitle: 'عرض وتحديث بطاقتك المهنية',
+            route: `/equipment/operators/${myOperators[0].id}`,
+            iconColor: Colors.primary,
+          }
+        : {
+            icon: 'add-circle-outline',
+            title: 'سجّل كمشغّل الآن وتلقَّ عروض عمل',
+            subTitle: 'انضم إلى دليل مشغلي المعدات المعتمد',
+            onPress: navigateToAddOperator,
+            iconColor: Colors.primary,
+          }
+
   const activitiesItems: MenuItem[] = [
     {
       icon: 'grid-outline',
@@ -154,9 +177,21 @@ export function useProfileOverview() {
       title: 'المفضلة',
       subTitle: 'الإعلانات والخدمات المحفوظة',
       route: '/profile/favorites',
-      iconColor: '#0284C7',
+      iconColor: Colors.primary,
       badge: favorites?.length,
     },
+    ...(user?.id
+      ? [
+          {
+            icon: 'storefront-outline',
+            title: 'ملفي العام كبائع',
+            subTitle: 'كما يراه المشترون',
+            route: `/profile/${user.id}`,
+            iconColor: Colors.primary,
+          } satisfies MenuItem,
+        ]
+      : []),
+    ...(operatorItem ? [operatorItem] : []),
   ]
 
   // Group 2: إعدادات الحساب والأمان
