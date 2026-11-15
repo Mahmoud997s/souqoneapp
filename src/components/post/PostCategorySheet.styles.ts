@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native'
 import { Colors } from '../../constants/colors'
+import { FilterGlassTokens } from '../../constants/filterGlassTokens'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { TopBarTokens } from '../../constants/topBarTokens'
@@ -9,6 +10,14 @@ export const PostCategorySheetStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: FilterGlassTokens.sheet.bottomSheetOverlayBg,
+  },
+  sheet: {
+    width: '100%',
     borderTopLeftRadius: PostCategoryTokens.sheetTopRadius,
     borderTopRightRadius: PostCategoryTokens.sheetTopRadius,
     alignItems: 'center',
@@ -22,6 +31,10 @@ export const PostCategorySheetStyles = StyleSheet.create({
   gridOverlay: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
+  },
+  dragZone: {
+    width: '100%',
+    alignItems: 'center',
   },
   handleWrap: {
     width: '100%',
@@ -66,20 +79,8 @@ export const PostCategorySheetStyles = StyleSheet.create({
     paddingHorizontal: PostCategoryTokens.horizontalPadding,
     gap: PostCategoryTokens.rowGap,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: PostCategoryTokens.columnGap,
-  },
-  centeredRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
   bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    width: '100%',
     paddingTop: PostCategoryTokens.cancelTopPadding,
     paddingHorizontal: PostCategoryTokens.cancelHorizontalPadding,
   },
