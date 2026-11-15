@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
@@ -236,7 +236,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: 104 + insets.bottom,
+            paddingBottom: DetailLayoutTokens.stickyBarContentPadding + insets.bottom,
           },
         ]}
         showsVerticalScrollIndicator={false}

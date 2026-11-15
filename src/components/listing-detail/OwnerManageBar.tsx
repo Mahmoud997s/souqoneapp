@@ -6,12 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
-  type SharedValue,
-} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
@@ -25,7 +19,6 @@ import { GlassSurface } from '../navigation/GlassSurface'
 import type { GlassSupport } from '../navigation/glassCapability'
 
 export const OWNER_MANAGE_BAR_HEIGHT = 60.4
-export const OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y = 100
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
@@ -63,10 +56,6 @@ export interface OwnerManageBarProps {
   viewCount: number
   busy: boolean
   onAction: (id: OwnerActionId) => void
-  /** Required when variant='sticky' — Reanimated shared scroll value */
-  scrollY?: SharedValue<number>
-  /** Scroll position (px) at which the sticky bar fully appears */
-  threshold?: number
   support?: GlassSupport
 }
 
@@ -81,8 +70,6 @@ export function OwnerManageBar({
   viewCount,
   busy,
   onAction,
-  scrollY,
-  threshold = 300,
   support,
 }: OwnerManageBarProps) {
   const insets = useSafeAreaInsets()
@@ -123,23 +110,6 @@ export function OwnerManageBar({
         }
     }
   }
-
-  // Scroll-aware animation for sticky variant
-  const animatedStickyStyle = useAnimatedStyle(() => {
-    if (!scrollY) {
-      return { transform: [{ translateY: 0 }] }
-    }
-    const translateY = interpolate(
-      scrollY.value,
-      [threshold - 50, threshold],
-      [OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y, 0],
-      Extrapolation.CLAMP
-    )
-    return {
-      transform: [{ translateY }],
-      pointerEvents: scrollY.value >= threshold - 30 ? 'auto' : 'none',
-    }
-  })
 
   const editAction = actions.find((a) => a.id === 'edit')
   const deleteAction = actions.find((a) => a.id === 'delete')
@@ -210,11 +180,10 @@ export function OwnerManageBar({
   if (variant === 'sticky') {
     const neutralStyles = getButtonStyles('neutral')
     return (
-      <Animated.View
+      <View
         style={[
           s.stickyWrapper,
           { bottom: Math.max(insets.bottom, 12) },
-          animatedStickyStyle,
         ]}
         pointerEvents="box-none"
       >
@@ -267,7 +236,7 @@ export function OwnerManageBar({
             {deleteAction ? renderStickyActionButton(deleteAction) : null}
           </View>
         </View>
-      </Animated.View>
+      </View>
     )
   }
 

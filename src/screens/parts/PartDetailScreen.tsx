@@ -21,7 +21,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
-import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
@@ -332,7 +332,9 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: hasBottomBar ? 104 + insets.bottom : 40,
+            paddingBottom: hasBottomBar
+              ? DetailLayoutTokens.stickyBarContentPadding + insets.bottom
+              : DetailLayoutTokens.noBarContentPadding,
           },
         ]}
         testID="part-detail-scroll-view"

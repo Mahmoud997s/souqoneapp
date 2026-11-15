@@ -310,9 +310,13 @@ describe('OwnerManageBar', () => {
     expect(src).not.toContain('rgba(220, 38, 38, 0.08)')
   })
 
-  it('(j) D-333c: all 6 detail screens render OwnerManageBar variant="sticky" from scrollY=0 with >= 104 + insets.bottom padding', () => {
+  it('(j) D-333c: all 6 detail screens render OwnerManageBar variant="sticky" from scrollY=0 with DetailLayoutTokens.stickyBarContentPadding + insets.bottom padding', () => {
     const fs = require('fs')
     const path = require('path')
+    const { DetailLayoutTokens } = require('../../constants/topBarTokens')
+    expect(DetailLayoutTokens.stickyBarContentPadding).toBeGreaterThanOrEqual(104)
+    expect(DetailLayoutTokens.noBarContentPadding).toBe(40)
+
     const screens = [
       '../../screens/cars/CarDetailScreen.tsx',
       '../../screens/buses/BusDetailScreen.tsx',
@@ -330,7 +334,13 @@ describe('OwnerManageBar', () => {
       expect(ownerBarBlock).toContain('variant="sticky"')
       expect(ownerBarBlock).not.toContain('scrollY={scrollY}')
       expect(ownerBarBlock).not.toContain('threshold={320}')
-      expect(content).toContain('104 + insets.bottom')
+      expect(content).toContain('DetailLayoutTokens.stickyBarContentPadding + insets.bottom')
     }
+
+    const ownerBarSrc = fs.readFileSync(path.resolve(__dirname, './OwnerManageBar.tsx'), 'utf8')
+    expect(ownerBarSrc).not.toContain('scrollY')
+    expect(ownerBarSrc).not.toContain('threshold')
+    expect(ownerBarSrc).not.toContain('OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y')
+    expect(ownerBarSrc).not.toContain('interpolate')
   })
 })

@@ -26,7 +26,7 @@ import { matchesArabicQuery } from '../../utils/arabicNormalize'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
-import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
@@ -348,8 +348,8 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
             paddingBottom:
               (!isOwner && contactAvailability.mode !== 'hidden') || isOwner
-                ? 104 + insets.bottom
-                : 40,
+                ? DetailLayoutTokens.stickyBarContentPadding + insets.bottom
+                : DetailLayoutTokens.noBarContentPadding,
           },
         ]}
       >
