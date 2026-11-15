@@ -384,18 +384,6 @@ export function mapBusDetail(
     specsSections.push({ title: 'الميزات الإضافية', items: featureItems })
   }
 
-  // Location section
-  const locationItems: SpecItemView[] = []
-  if (location.governorateName) {
-    locationItems.push({ key: 'governorate', label: 'المحافظة', value: location.governorateName })
-  }
-  if (location.wilayaName) {
-    locationItems.push({ key: 'wilaya', label: 'الولاية', value: location.wilayaName })
-  }
-  if (locationItems.length > 0) {
-    specsSections.push({ title: 'الموقع', items: locationItems })
-  }
-
   return {
     id: String(api.id),
     version: api.version ?? 1,

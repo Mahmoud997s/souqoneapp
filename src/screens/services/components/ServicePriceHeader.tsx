@@ -15,6 +15,7 @@ export interface ServicePriceHeaderProps {
   isHomeService?: boolean
   postedAtLabel: string
   viewCount: number
+  locationLabel?: string
 }
 
 /**
@@ -31,7 +32,11 @@ export function ServicePriceHeader({
   isHomeService,
   postedAtLabel,
   viewCount,
+  locationLabel,
 }: ServicePriceHeaderProps) {
+  const showProviderTypeBadge =
+    Boolean(providerTypeLabel) &&
+    !(Boolean(isHomeService) && providerTypeLabel?.trim() === 'خدمة متنقلة')
   return (
     <View style={s.container} testID="service-price-header">
       {/* Badges Row */}
@@ -41,7 +46,7 @@ export function ServicePriceHeader({
           <Text style={s.badgePrimaryText}>{serviceTypeLabel}</Text>
         </View>
 
-        {Boolean(providerTypeLabel) && (
+        {showProviderTypeBadge && (
           <View style={s.badgeNeutral}>
             <Ionicons name="business-outline" size={13} color={Colors.textMuted} />
             <Text style={s.badgeNeutralText}>{providerTypeLabel}</Text>
@@ -89,6 +94,16 @@ export function ServicePriceHeader({
           <Ionicons name="eye-outline" size={14} color={Colors.textMuted} />
           <Text style={s.metaText}>{viewCount.toLocaleString('en-US')} مشاهدة</Text>
         </View>
+
+        {Boolean(locationLabel) && (
+          <>
+            <View style={s.metaDivider} />
+            <View style={s.metaItem}>
+              <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.metaText}>{locationLabel}</Text>
+            </View>
+          </>
+        )}
       </View>
     </View>
   )
@@ -225,6 +240,7 @@ const s = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.space3,
   },
