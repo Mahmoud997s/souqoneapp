@@ -6,6 +6,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppButton } from './AppButton'
+import { getLocationCenterCoords } from '../../constants/locations'
 
 interface MapLocationPickerProps {
   isVisible: boolean
@@ -13,19 +14,23 @@ interface MapLocationPickerProps {
   onConfirm: (lat: number, lng: number) => void
   initialLat?: number
   initialLng?: number
+  governorate?: string | number | null
+  wilaya?: string | number | null
   title?: string
 }
-
-const MUSCAT_LAT = 23.588
-const MUSCAT_LNG = 58.3829
 
 export function MapLocationPicker({
   isVisible,
   onClose,
   onConfirm,
+  initialLat,
+  initialLng,
+  governorate,
+  wilaya,
   title = 'تحديد الموقع على الخريطة',
 }: MapLocationPickerProps) {
   const insets = useSafeAreaInsets()
+  const center = getLocationCenterCoords(governorate, wilaya)
 
   return (
     <Modal visible={isVisible} animationType="slide" onRequestClose={onClose}>
@@ -43,10 +48,10 @@ export function MapLocationPicker({
         </View>
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <AppButton
-            title="استخدام الموقع الافتراضي (مسقط)"
+            title="تأكيد موقع المنطقة المختارة"
             size="sm"
             onPress={() => {
-              onConfirm(MUSCAT_LAT, MUSCAT_LNG)
+              onConfirm(initialLat ?? center.latitude, initialLng ?? center.longitude)
               onClose()
             }}
           />
