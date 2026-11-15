@@ -2,7 +2,6 @@ import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import type { GlassViewProps } from 'expo-glass-effect'
-import type { SharedValue } from 'react-native-reanimated'
 import { OwnerManageBar, type OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { dialogService } from '../../store/dialogStore'
@@ -11,15 +10,6 @@ import { dialogService } from '../../store/dialogStore'
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }))
-
-// Mock react-native-reanimated interpolate
-jest.mock('react-native-reanimated', () => {
-  const reanimated = require('react-native-reanimated/mock')
-  return {
-    ...reanimated,
-    interpolate: jest.fn((_val: number, _inRange: number[], outRange: number[]) => outRange[outRange.length - 1] ?? 0),
-  }
-})
 
 // Mock expo-blur
 jest.mock('expo-blur', () => {
@@ -83,7 +73,6 @@ describe('OwnerManageBar Glass Conversion Specification', () => {
         viewCount={250}
         busy={false}
         onAction={jest.fn()}
-        scrollY={{ value: 400 } as unknown as SharedValue<number>}
         support={{ kind: 'liquid', GlassView: MockGlassView }}
       />
     )
@@ -104,7 +93,6 @@ describe('OwnerManageBar Glass Conversion Specification', () => {
         viewCount={250}
         busy={false}
         onAction={jest.fn()}
-        scrollY={{ value: 400 } as unknown as SharedValue<number>}
         support={{ kind: 'blur' }}
       />
     )
@@ -135,7 +123,6 @@ describe('OwnerManageBar Glass Conversion Specification', () => {
         viewCount={250}
         busy={false}
         onAction={onAction}
-        scrollY={{ value: 400 } as unknown as SharedValue<number>}
         support={{ kind: 'blur' }}
       />
     )

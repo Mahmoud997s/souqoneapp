@@ -51,7 +51,7 @@ export const CAR_STATUS_ACTION: Partial<
 const EDIT_ACTION: OwnerAction = {
   id: 'edit',
   label: 'تعديل',
-  tone: 'neutral',
+  tone: 'primary',
   icon: 'create-outline',
   requiresConfirm: false,
 }

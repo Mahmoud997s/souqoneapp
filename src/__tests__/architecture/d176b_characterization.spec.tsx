@@ -18,8 +18,6 @@ import {
 } from '../../components/listing-detail/ContactActions'
 import {
   OwnerManageBar,
-  OWNER_MANAGE_BAR_HEIGHT,
-  OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y,
 } from '../../components/listing-detail/OwnerManageBar'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
@@ -337,14 +335,6 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(CONTACT_ACTIONS_HIDDEN_TRANSLATE_Y).toBe(100)
     })
 
-    it('(b) OwnerManageBar: hidden translateY (100) >= measured bar height (60.4) + max inset (34)', () => {
-      const maxBottomInset = 34
-      const requiredOffScreenDistance = OWNER_MANAGE_BAR_HEIGHT + maxBottomInset
-      expect(requiredOffScreenDistance).toBe(94.4)
-      expect(OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y).toBeGreaterThanOrEqual(requiredOffScreenDistance)
-      expect(OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y).toBe(100)
-    })
-
     it('(c1) ContactActions sticky reveal at progress 0 (scrollY <= threshold - 50)', async () => {
       const { getByTestId } = await render(
         <ContactActions
@@ -375,36 +365,6 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
         />
       )
       expect(getByTestId('btn-contact-call')).toBeTruthy()
-    })
-
-    it('(d1) OwnerManageBar sticky reveal at progress 0 (scrollY <= threshold - 50)', async () => {
-      const { getByTestId } = await render(
-        <OwnerManageBar
-          variant="sticky"
-          actions={defaultOwnerActions}
-          viewCount={10}
-          busy={false}
-          onAction={jest.fn()}
-          scrollY={{ value: 200 } as unknown as SharedValue<number>}
-          threshold={300}
-        />
-      )
-      expect(getByTestId('btn-owner-edit')).toBeTruthy()
-    })
-
-    it('(d2) OwnerManageBar sticky reveal at progress 1 (scrollY >= threshold)', async () => {
-      const { getByTestId } = await render(
-        <OwnerManageBar
-          variant="sticky"
-          actions={defaultOwnerActions}
-          viewCount={10}
-          busy={false}
-          onAction={jest.fn()}
-          scrollY={{ value: 350 } as unknown as SharedValue<number>}
-          threshold={300}
-        />
-      )
-      expect(getByTestId('btn-owner-edit')).toBeTruthy()
     })
   })
 

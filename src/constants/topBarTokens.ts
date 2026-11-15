@@ -106,3 +106,16 @@ export const TopBarTokens = {
   subTitleFontSize: 12,
   subTitleLineHeight: 16,
 } as const
+
+/**
+ * DetailLayoutTokens
+ * Shared layout constants for listing detail screens (cars, buses, equipment,
+ * parts, services, operators) to keep bottom scroll clearance aligned with
+ * sticky action / owner manage bars.
+ */
+export const DetailLayoutTokens = {
+  /** Base clearance above safe-area bottom inset for sticky action / owner manage bars. */
+  stickyBarContentPadding: 104,
+  /** Default bottom padding when no sticky bottom bar is rendered. */
+  noBarContentPadding: 40,
+} as const

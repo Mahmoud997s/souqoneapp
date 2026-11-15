@@ -279,4 +279,68 @@ describe('OwnerManageBar', () => {
     expect(onAction).not.toHaveBeenCalled()
     jest.useRealTimers()
   })
+
+  it('(i) D-333c: edit=primary, manage-status=neutral, delete=danger using named Colors.errorSoftBg (no literal danger rgba)', async () => {
+    const fs = require('fs')
+    const path = require('path')
+    const { StyleSheet } = require('react-native')
+    const { Colors } = require('../../constants/colors')
+
+    const actions = buildCarOwnerActions('ACTIVE', 'SALE')
+    await render(
+      <OwnerManageBar
+        variant="sticky"
+        viewCount={12}
+        busy={false}
+        actions={actions}
+        onAction={jest.fn()}
+      />
+    )
+
+    const editStyle = StyleSheet.flatten(screen.getByTestId('btn-owner-edit').props.style)
+    const statusStyle = StyleSheet.flatten(screen.getByTestId('btn-owner-manage-status').props.style)
+    const deleteStyle = StyleSheet.flatten(screen.getByTestId('btn-owner-delete').props.style)
+
+    expect(editStyle.backgroundColor).toBe(Colors.primary)
+    expect(statusStyle.backgroundColor).toBe(Colors.surface)
+    expect(deleteStyle.backgroundColor).toBe((Colors as Record<string, string>).errorSoftBg)
+    expect((Colors as Record<string, string>).errorSoftBg).toBeTruthy()
+
+    const src = fs.readFileSync(path.resolve(__dirname, './OwnerManageBar.tsx'), 'utf8')
+    expect(src).not.toContain('rgba(220, 38, 38, 0.08)')
+  })
+
+  it('(j) D-333c: all 6 detail screens render OwnerManageBar variant="sticky" from scrollY=0 with DetailLayoutTokens.stickyBarContentPadding + insets.bottom padding', () => {
+    const fs = require('fs')
+    const path = require('path')
+    const { DetailLayoutTokens } = require('../../constants/topBarTokens')
+    expect(DetailLayoutTokens.stickyBarContentPadding).toBeGreaterThanOrEqual(104)
+    expect(DetailLayoutTokens.noBarContentPadding).toBe(40)
+
+    const screens = [
+      '../../screens/cars/CarDetailScreen.tsx',
+      '../../screens/buses/BusDetailScreen.tsx',
+      '../../screens/equipment/EquipmentDetailScreen.tsx',
+      '../../screens/parts/PartDetailScreen.tsx',
+      '../../screens/services/ServiceDetailScreen.tsx',
+      '../../screens/operators/OperatorDetailScreen.tsx',
+    ]
+
+    for (const rel of screens) {
+      const content = fs.readFileSync(path.resolve(__dirname, rel), 'utf8')
+      const ownerBarMatch = content.match(/<OwnerManageBar[\s\S]*?\/>/)
+      expect(ownerBarMatch).toBeTruthy()
+      const ownerBarBlock = ownerBarMatch![0]
+      expect(ownerBarBlock).toContain('variant="sticky"')
+      expect(ownerBarBlock).not.toContain('scrollY={scrollY}')
+      expect(ownerBarBlock).not.toContain('threshold={320}')
+      expect(content).toContain('DetailLayoutTokens.stickyBarContentPadding + insets.bottom')
+    }
+
+    const ownerBarSrc = fs.readFileSync(path.resolve(__dirname, './OwnerManageBar.tsx'), 'utf8')
+    expect(ownerBarSrc).not.toContain('scrollY')
+    expect(ownerBarSrc).not.toContain('threshold')
+    expect(ownerBarSrc).not.toContain('OWNER_MANAGE_BAR_HIDDEN_TRANSLATE_Y')
+    expect(ownerBarSrc).not.toContain('interpolate')
+  })
 })

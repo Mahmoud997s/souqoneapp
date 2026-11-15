@@ -25,7 +25,7 @@ import { matchesArabicQuery } from '../../utils/arabicNormalize'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
-import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
@@ -322,7 +322,9 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           s.scrollContent,
           {
             paddingTop: insets.top + TopBarTokens.detailTopBarBodyHeight,
-            paddingBottom: hasBottomBar ? 90 : 40,
+            paddingBottom: hasBottomBar
+              ? DetailLayoutTokens.stickyBarContentPadding + insets.bottom
+              : DetailLayoutTokens.noBarContentPadding,
           },
         ]}
         testID="equipment-detail-scroll-view"
@@ -517,8 +519,6 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           busy={ownerActions.busy}
           actions={ownerActions.actions}
           onAction={handleOwnerAction}
-          scrollY={scrollY}
-          threshold={320}
         />
       ) : contactAvailability.mode !== 'hidden' ? (
         <ContactActions

@@ -185,7 +185,6 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
           viewCount={154}
           busy={false}
           onAction={onAction}
-          scrollY={{ value: 400 } as unknown as SharedValue<number>}
           support={{ kind: 'blur' }}
         />
       )

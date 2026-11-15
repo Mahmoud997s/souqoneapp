@@ -46,7 +46,7 @@ export function useOperatorOwnerActions(
       {
         id: 'edit',
         label: 'تعديل',
-        tone: 'neutral',
+        tone: 'primary',
         icon: 'create-outline',
         requiresConfirm: false,
       },

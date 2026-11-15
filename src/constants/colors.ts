@@ -45,6 +45,7 @@ export const Colors = {
   success:      '#009CB5',
   successDeep:  '#192435',
   error:        '#dc2626',
+  errorSoftBg:  'rgba(220, 38, 38, 0.08)', // خلفية خفيفة لأزرار الحذف والتحذير (Danger tint)
   warning:      '#f59e0b',
   warningBg:     '#FFFBEB',
   warningBorder: '#FDE68A',
