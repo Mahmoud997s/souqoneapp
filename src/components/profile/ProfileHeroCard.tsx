@@ -14,8 +14,8 @@ interface ProfileHeroCardProps {
   avatarUrl: string | null
   firstLetter: string
   isVerified?: boolean
-  listingsCount: number
-  favoritesCount: number
+  listingsCount: number | string
+  favoritesCount: number | string
   locationName: string
 }
 

@@ -40,10 +40,13 @@ jest.mock('../hooks/useListings', () => ({
     isRefetching: false,
     refetch: jest.fn(),
   }),
-  useFavorites: () => ({
-    data: [],
+}))
+
+jest.mock('../features/favorites/useFavoriteIds', () => ({
+  useFavoriteIds: () => ({
+    ids: new Set<string>(),
+    data: new Set<string>(),
     isError: false,
-    isRefetching: false,
     refetch: jest.fn(),
   }),
 }))
