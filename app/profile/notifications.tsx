@@ -279,11 +279,7 @@ export default function NotificationsScreen() {
     setNow(new Date())
   }, [])
 
-  if (typeof useFocusEffect === 'function') {
-    useFocusEffect(refreshNow)
-  } else {
-    useEffect(refreshNow, [refreshNow])
-  }
+  useFocusEffect(refreshNow)
 
   const {
     data: infiniteData,
