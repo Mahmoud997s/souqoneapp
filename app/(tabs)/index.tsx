@@ -10,7 +10,11 @@ import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { Gradients } from '../../src/constants/gradients'
-import { CardSystem } from '../../src/constants/cardSystem'
+import {
+  CardSystem,
+  getHomeStandardCardWidth,
+  getHomeStandardImageHeight,
+} from '../../src/constants/cardSystem'
 import { UnifiedCardItem } from '../../src/types/unified-card.types'
 import { EquipCard } from '../../src/components/cards/EquipCard'
 import { CarCard } from '../../src/components/cars/CarCard'
@@ -74,8 +78,8 @@ export {
 }
 
 const { width: SW } = Dimensions.get('window')
-export const CARD_WIDTH = Math.round(SW * 0.6)
-const IMG_H = CardSystem.aspectRatioHeight // 140px
+export const CARD_WIDTH = getHomeStandardCardWidth(SW)
+const IMG_H = getHomeStandardImageHeight() // 140px
 
 export interface HomeCustomCardProps {
   item: any

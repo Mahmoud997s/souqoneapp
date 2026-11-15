@@ -15,6 +15,7 @@ import { usePartWizardStore } from '../store/partWizardStore'
 import { useServiceWizardStore } from '../store/serviceWizardStore'
 import { logWarn, logError } from './safeLog'
 import { clearAllNotificationPrefs } from './notificationPrefsStorage'
+import { clearAllProfileCounts } from './profileCountsStorage'
 
 export const USER_LOCAL_DRAFT_AND_HISTORY_KEYS = [
   'part-wizard-draft',
@@ -66,11 +67,16 @@ export const clearLocalUserDraftsAndHistory = async (): Promise<void> => {
     logWarn('clearUserData:ClearAsyncStorage', error)
   }
 
-  // 2b. Wipe per-account notification prefs so switching accounts never leaks previous user's prefs
+  // 2b. Wipe per-account notification prefs & profile counts so switching accounts never leaks previous user's data
   try {
     await clearAllNotificationPrefs()
   } catch (error) {
     logWarn('clearUserData:ClearNotificationPrefs', error)
+  }
+  try {
+    await clearAllProfileCounts()
+  } catch (error) {
+    logWarn('clearUserData:ClearProfileCounts', error)
   }
 
   // 3. Clear React Query Cache

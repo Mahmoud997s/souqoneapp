@@ -3,10 +3,11 @@ import {
   Dimensions,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { CardSystem } from '../../constants/cardSystem'
+import { CardSystem, getHomeStandardCardWidth } from '../../constants/cardSystem'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
 import { formatLocation } from '../../utils/mappers'
@@ -21,6 +22,7 @@ export interface OperatorCardProps {
   onPress?: () => void
   maxChips?: number
   actionMenu?: React.ReactNode
+  ownerActions?: React.ReactNode
   fullWidth?: boolean
 }
 
@@ -34,6 +36,7 @@ function OperatorCardComponent({
   onPress,
   maxChips = 3,
   actionMenu,
+  ownerActions,
   fullWidth = true,
 }: OperatorCardProps) {
   if (!item) return null
@@ -93,7 +96,7 @@ function OperatorCardComponent({
   }
 
   // Contact actions (public mode only)
-  const isOwnerMode = Boolean(actionMenu)
+  const isOwnerMode = Boolean(actionMenu || ownerActions)
   const contact = useListingContact(
     'OPERATOR_LISTING',
     item.id || raw?.id || '',
@@ -147,6 +150,12 @@ function OperatorCardComponent({
           isWhatsappEnabled={isWhatsappEnabled}
         />
       )}
+
+      {ownerActions && (
+        <View testID="operator-card-owner-actions" style={s.ownerActionsWrap}>
+          {ownerActions}
+        </View>
+      )}
     </TouchableOpacity>
   )
 }
@@ -165,7 +174,10 @@ const s = StyleSheet.create({
     width: '100%',
   },
   cardFixed: {
-    width: Dimensions.get('window').width * 0.6,
+    width: getHomeStandardCardWidth(Dimensions.get('window').width),
     alignSelf: 'flex-start',
+  },
+  ownerActionsWrap: {
+    marginTop: Spacing.space2,
   },
 })

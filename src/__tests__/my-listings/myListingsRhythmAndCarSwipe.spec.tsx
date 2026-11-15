@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { render, cleanup } from '@testing-library/react-native'
-import { MyListingCardDispatcher } from '../../components/profile/my-listings/MyListingCardDispatcher'
+import { MyListingOwnerCard } from '../../components/profile/my-listings/MyListingOwnerCard'
 import { MyListingSectionSlider } from '../../components/profile/my-listings/MyListingSectionSlider'
 import { MyListingsVisualFilters } from '../../components/profile/MyListingsVisualFilters'
 import { Spacing } from '../../constants/spacing'
@@ -74,7 +74,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
   describe('1. CarCard in MyListings: disableImageSwipe', () => {
     it('passes disableImageSwipe=true to CarCard, preventing multi-image gesture swiper and pagination dots', async () => {
       const { getByTestId, queryByTestId } = await render(
-        <MyListingCardDispatcher
+        <MyListingOwnerCard
           item={mockCarItem}
           onView={jest.fn()}
           onEdit={jest.fn()}
@@ -93,7 +93,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
 
     it('TEETH PROOF: verifies static single-image container is active instead of gesture swiper', async () => {
       const { getByTestId, queryByTestId } = await render(
-        <MyListingCardDispatcher
+        <MyListingOwnerCard
           item={mockCarItem}
           onView={jest.fn()}
           onEdit={jest.fn()}
@@ -145,8 +145,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
       const config = {
         entityType: 'car' as const,
         title: 'إعلانات السيارات',
-        icon: 'car-sport-outline' as const,
-        gradient: ['#1e3a8a', '#3b82f6'] as const,
+        icon: 'car-sports' as const,
         categoryId: 'cars',
       }
 
@@ -185,8 +184,7 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
       const config = {
         entityType: 'car' as const,
         title: 'إعلانات السيارات',
-        icon: 'car-sport-outline' as const,
-        gradient: ['#1e3a8a', '#3b82f6'] as const,
+        icon: 'car-sports' as const,
         categoryId: 'cars',
       }
 

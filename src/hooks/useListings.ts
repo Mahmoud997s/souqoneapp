@@ -33,14 +33,19 @@ export function useListing(id: string) {
   })
 }
 
+export const MY_LISTINGS_QUERY_KEY = ['my-listings'] as const
+
+export async function fetchMyListings() {
+  const res = await listingsApi.getMy()
+  const { items } = parseListEnvelope(res.data)
+  return items.map(mapListingToCard)
+}
+
 export function useMyListings() {
   return useQuery({
-    queryKey: ['my-listings'],
-    queryFn: async () => {
-      const res = await listingsApi.getMy()
-      const { items } = parseListEnvelope(res.data)
-      return items.map(mapListingToCard)
-    },
+    queryKey: MY_LISTINGS_QUERY_KEY,
+    queryFn: fetchMyListings,
+    staleTime: 60_000,
   })
 }
 

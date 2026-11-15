@@ -41,6 +41,7 @@ export interface ServiceCardProps {
   imageHeight?: number
   compactBody?: boolean
   actionMenu?: React.ReactNode
+  ownerActions?: React.ReactNode
   liquidGlass?: boolean
   glassSupport?: GlassSupport
 }
@@ -56,6 +57,7 @@ const ServiceCardComponent = ({
   imageHeight,
   compactBody = false,
   actionMenu,
+  ownerActions,
   liquidGlass,
   glassSupport,
 }: ServiceCardProps) => {
@@ -164,6 +166,7 @@ const ServiceCardComponent = ({
       favoriteType="CAR_SERVICE"
       shareMessage={`شاهد هذه الخدمة على سوق ون: ${item.title}\nالمزود: ${providerName}\n${buildListingShareUrl('CAR_SERVICE', item.id)}`}
       actionMenu={actionMenu}
+      ownerActions={ownerActions}
     />
   )
 }

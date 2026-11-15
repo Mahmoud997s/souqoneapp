@@ -2,7 +2,15 @@ import React from 'react'
 import { router, useFocusEffect } from 'expo-router'
 import { loginRoute } from '../navigation/listingRoutes'
 import { useAuthStore } from '../store/authStore'
-import { useMyListings, useFavorites } from './useListings'
+import { useMyListings } from './useListings'
+import { useFavoriteIds } from '../features/favorites/useFavoriteIds'
+import { useMyOperators } from './useEquipment'
+import { useOperatorNavigation } from './useOperatorNavigation'
+import {
+  PersistedProfileCounts,
+  readProfileCounts,
+  writeProfileCounts,
+} from '../utils/profileCountsStorage'
 import { dialogService } from '../store/dialogStore'
 import { locationsApi } from '../api/locations'
 import { authApi } from '../api/auth'
@@ -19,11 +27,57 @@ export function useProfileOverview() {
     refetch: refetchMyListings,
   } = useMyListings()
   const {
-    data: favorites,
+    ids: favoriteIds,
+    data: favoriteIdsData,
     isError: favoritesIsError,
-    isRefetching: favoritesIsRefetching,
     refetch: refetchFavorites,
-  } = useFavorites()
+  } = useFavoriteIds()
+  const { data: myOperators, isLoading: loadingMyOperators } = useMyOperators(!!user)
+  const { navigateToAddOperator } = useOperatorNavigation()
+
+  const [persistedCounts, setPersistedCounts] = React.useState<{
+    userId: string
+    counts: PersistedProfileCounts
+  } | null>(null)
+
+  React.useEffect(() => {
+    const uid = user?.id
+    if (!uid) {
+      setPersistedCounts(null)
+      return
+    }
+    let cancelled = false
+    setPersistedCounts((prev) => (prev?.userId === uid ? prev : null))
+    void readProfileCounts(uid).then((counts) => {
+      if (!cancelled && counts) {
+        setPersistedCounts({ userId: uid, counts })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
+
+  const hasLiveListings = myListings !== undefined
+  const hasLiveFavorites = favoriteIdsData !== undefined
+
+  React.useEffect(() => {
+    const uid = user?.id
+    if (!uid || (!hasLiveListings && !hasLiveFavorites)) return
+    const nextCounts: PersistedProfileCounts = {
+      listingsCount: hasLiveListings
+        ? myListings.length
+        : persistedCounts?.userId === uid
+          ? persistedCounts.counts.listingsCount
+          : undefined,
+      favoritesCount: hasLiveFavorites
+        ? favoriteIds.size
+        : persistedCounts?.userId === uid
+          ? persistedCounts.counts.favoritesCount
+          : undefined,
+    }
+    void writeProfileCounts(uid, nextCounts)
+  }, [user?.id, hasLiveListings, hasLiveFavorites, myListings, favoriteIds.size])
 
   const [locationName, setLocationName] = React.useState('')
   const [isProfileRefreshError, setIsProfileRefreshError] = React.useState(false)
@@ -69,7 +123,7 @@ export function useProfileOverview() {
   )
 
   const isRefreshing = Boolean(
-    isRefreshingProfile || myListingsIsRefetching || favoritesIsRefetching
+    isRefreshingProfile || myListingsIsRefetching
   )
 
   const handleRetryProfile = React.useCallback(async () => {
@@ -140,6 +194,40 @@ export function useProfileOverview() {
   }
 
   // Group 1: النشاط التجاري والإعلانات
+  const operatorItem: MenuItem | null =
+    !user || loadingMyOperators
+      ? null
+      : myOperators && myOperators.length > 0
+        ? {
+            icon: 'construct-outline',
+            title: 'ملفي كمشغّل',
+            subTitle: 'عرض وتحديث بطاقتك المهنية',
+            route: `/equipment/operators/${myOperators[0].id}`,
+            iconColor: Colors.primary,
+          }
+        : {
+            icon: 'add-circle-outline',
+            title: 'سجّل كمشغّل الآن وتلقَّ عروض عمل',
+            subTitle: 'انضم إلى دليل مشغلي المعدات المعتمد',
+            onPress: navigateToAddOperator,
+            iconColor: Colors.primary,
+          }
+
+  const scopedPersisted =
+    user?.id && persistedCounts?.userId === user.id ? persistedCounts.counts : null
+
+  const listingsBadge: number | string = hasLiveListings
+    ? myListings.length
+    : scopedPersisted?.listingsCount !== undefined
+      ? scopedPersisted.listingsCount
+      : '—'
+
+  const favoritesBadge: number | string = hasLiveFavorites
+    ? favoriteIds.size
+    : scopedPersisted?.favoritesCount !== undefined
+      ? scopedPersisted.favoritesCount
+      : '—'
+
   const activitiesItems: MenuItem[] = [
     {
       icon: 'grid-outline',
@@ -147,16 +235,28 @@ export function useProfileOverview() {
       subTitle: 'إدارة وتعديل الإعلانات المنشورة',
       route: '/profile/my-listings',
       iconColor: Colors.primary,
-      badge: myListings?.length,
+      badge: listingsBadge,
     },
     {
       icon: 'bookmark-outline',
       title: 'المفضلة',
       subTitle: 'الإعلانات والخدمات المحفوظة',
       route: '/profile/favorites',
-      iconColor: '#0284C7',
-      badge: favorites?.length,
+      iconColor: Colors.primary,
+      badge: favoritesBadge,
     },
+    ...(user?.id
+      ? [
+          {
+            icon: 'storefront-outline',
+            title: 'ملفي العام كبائع',
+            subTitle: 'كما يراه المشترون',
+            route: `/profile/${user.id}`,
+            iconColor: Colors.primary,
+          } satisfies MenuItem,
+        ]
+      : []),
+    ...(operatorItem ? [operatorItem] : []),
   ]
 
   // Group 2: إعدادات الحساب والأمان
@@ -192,7 +292,8 @@ export function useProfileOverview() {
     avatarUrl,
     firstLetter,
     myListings,
-    favorites,
+    listingsCount: listingsBadge,
+    favoritesCount: favoritesBadge,
     handleBack,
     handleLogout,
     activitiesItems,

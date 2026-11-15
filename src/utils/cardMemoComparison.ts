@@ -120,6 +120,7 @@ export function areCardPropsEqual<
     showChips?: boolean
     maxChips?: number
     actionMenu?: unknown
+    ownerActions?: unknown
     disableImageSwipe?: boolean
     titleNumberOfLines?: number
     imageHeight?: number
@@ -135,6 +136,7 @@ export function areCardPropsEqual<
     prev.showChips === next.showChips &&
     prev.maxChips === next.maxChips &&
     prev.actionMenu === next.actionMenu &&
+    prev.ownerActions === next.ownerActions &&
     prev.disableImageSwipe === next.disableImageSwipe &&
     prev.titleNumberOfLines === next.titleNumberOfLines &&
     prev.imageHeight === next.imageHeight &&
@@ -166,6 +168,7 @@ export function areListingCardBasePropsEqual(
     prev.gridMode === next.gridMode &&
     prev.actionMenu === next.actionMenu &&
     prev.cardActions === next.cardActions &&
+    prev.ownerActions === next.ownerActions &&
     prev.disableImageSwipe === next.disableImageSwipe &&
     prev.shareMessage === next.shareMessage &&
     prev.titleNumberOfLines === next.titleNumberOfLines &&

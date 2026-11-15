@@ -73,6 +73,7 @@ export default function MyListingsScreen() {
           onDelete={screen.handleDelete}
           onStatusChange={screen.handleStatusChange}
           onCancelDeletionRequest={screen.handleCancelDeletionRequest}
+          getBusyAction={screen.getBusyAction}
           isEditSupported={screen.isEditSupported}
           bottomInset={insets.bottom}
           topInset={navBarHeight}
@@ -102,6 +103,7 @@ export default function MyListingsScreen() {
           onDelete={screen.handleDelete}
           onStatusChange={screen.handleStatusChange}
           onCancelDeletionRequest={screen.handleCancelDeletionRequest}
+          getBusyAction={screen.getBusyAction}
           isEditSupported={screen.isEditSupported}
           bottomInset={insets.bottom}
           topInset={navBarHeight}
@@ -149,7 +151,7 @@ export default function MyListingsScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.homeBg,
   },
   sharedBlur: {
     position: 'absolute',
@@ -162,7 +164,7 @@ const s = StyleSheet.create({
   },
   whiteWash: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     opacity: 0.08,
   },
   tintOverlay: {

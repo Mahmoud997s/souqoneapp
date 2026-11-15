@@ -27,6 +27,7 @@ import { GlobalToast } from '../src/components/ui/GlobalToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ChatSyncService } from '../src/services/ChatSyncService'
+import { MY_LISTINGS_QUERY_KEY, fetchMyListings } from '../src/hooks/useListings'
 
 export { queryClient }
 
@@ -77,6 +78,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isLoggedIn) return
+    void queryClient
+      .prefetchQuery({
+        queryKey: MY_LISTINGS_QUERY_KEY,
+        queryFn: fetchMyListings,
+        staleTime: 60_000,
+      })
+      .catch(() => {})
     registerForPushNotifications().then((token) => {
       if (token) {
         usersApi.updatePushToken(token).catch(() => {

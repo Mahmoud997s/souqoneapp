@@ -31,6 +31,7 @@ export interface BusCardProps {
   showChips?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
+  ownerActions?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
   imageHeight?: number
@@ -47,6 +48,7 @@ const BusCardComponent = ({
   showChips = false,
   maxChips = 3,
   actionMenu,
+  ownerActions,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
   imageHeight,
@@ -255,6 +257,7 @@ const BusCardComponent = ({
       fullWidth={fullWidth}
       gridMode={gridMode}
       actionMenu={actionMenu}
+      ownerActions={ownerActions}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
       imageHeight={imageHeight}

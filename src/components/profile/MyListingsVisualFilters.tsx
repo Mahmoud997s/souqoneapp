@@ -23,6 +23,20 @@ export interface CategoryTabItem {
 }
 
 /**
+ * Shared status sub-filters reused across My Listings category tabs.
+ */
+export const MY_LISTINGS_STATUS_FILTERS: readonly SubFilterItem[] = [
+  { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
+  { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
+  { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
+  { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+]
+
+const MY_LISTINGS_NO_DRAFT_STATUS_FILTERS = MY_LISTINGS_STATUS_FILTERS.filter(
+  (item) => item.id !== 'DRAFT'
+)
+
+/**
  * Main category tabs & sub-filters aligned with marketplace entities and status normalization
  */
 export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
@@ -32,10 +46,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'grid-outline',
     items: [
       { id: 'all_items', label: 'جميع الإعلانات', icon: 'apps-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_STATUS_FILTERS,
     ],
   },
   {
@@ -44,10 +55,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'car-sport-outline',
     items: [
       { id: 'all_cars', label: 'كل السيارات', icon: 'car-sport-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_STATUS_FILTERS,
       { id: 'SALE', label: 'للبيع', icon: 'pricetag-outline' },
       { id: 'RENTAL', label: 'تأجير سيارات', icon: 'key-outline' },
       { id: 'WANTED', label: 'مطلوب للشراء', icon: 'search-outline' },
@@ -59,10 +67,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'bus-outline',
     items: [
       { id: 'all_buses', label: 'كل الحافلات', icon: 'bus-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_STATUS_FILTERS,
       { id: 'BUS_SALE', label: 'بيع حافلات', icon: 'pricetag-outline' },
       { id: 'BUS_RENT', label: 'تأجير حافلات', icon: 'key-outline' },
       { id: 'BUS_SALE_WITH_CONTRACT', label: 'عقد تشغيل', icon: 'document-text-outline' },
@@ -74,10 +79,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'construct-outline',
     items: [
       { id: 'all_equipment', label: 'كل المعدات', icon: 'construct-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'DRAFT', label: 'مسودة', icon: 'document-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_STATUS_FILTERS,
       { id: 'EQUIPMENT_SALE', label: 'بيع معدات', icon: 'pricetag-outline' },
       { id: 'EQUIPMENT_RENT', label: 'تأجير معدات', icon: 'key-outline' },
       { id: 'EQUIPMENT_WANTED', label: 'مطلوب معدات', icon: 'search-outline' },
@@ -89,9 +91,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'settings-outline',
     items: [
       { id: 'all_parts', label: 'كل قطع الغيار', icon: 'settings-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_NO_DRAFT_STATUS_FILTERS,
       { id: 'ENGINE', label: 'المحرك وملحقاته', icon: 'hardware-chip-outline' },
       { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-outline' },
       { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'flash-outline' },
@@ -109,9 +109,7 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     icon: 'build-outline',
     items: [
       { id: 'all_services', label: 'كل الخدمات', icon: 'build-outline' },
-      { id: 'ACTIVE', label: 'نشط', icon: 'checkmark-circle-outline' },
-      { id: 'ARCHIVED', label: 'مؤرشف', icon: 'archive-outline' },
-      { id: 'EXPIRED', label: 'منتهي', icon: 'time-outline' },
+      ...MY_LISTINGS_NO_DRAFT_STATUS_FILTERS,
       { id: 'MAINTENANCE', label: 'صيانة وميكانيكا', icon: 'construct-outline' },
       { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water-outline' },
       { id: 'INSPECTION', label: 'فحص وبرمجة', icon: 'search-outline' },
@@ -167,7 +165,7 @@ export function MyListingsVisualFilters({
                 <Ionicons
                   name={item.icon}
                   size={11}
-                  color={highlighted ? Colors.white : '#475569'}
+                  color={highlighted ? Colors.white : Colors.textMuted}
                 />
               </View>
             ),

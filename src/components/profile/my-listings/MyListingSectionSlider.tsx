@@ -6,19 +6,24 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
-import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { MyListingOwnerCard } from './MyListingOwnerCard'
+import { type OwnerCardBusyAction } from './OwnerCardActions'
+import {
+  getHomeStandardCardWidth,
+  getHomeStandardImageHeight,
+} from '../../../constants/cardSystem'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const CARD_WIDTH = SCREEN_WIDTH * 0.6
+const CARD_WIDTH = getHomeStandardCardWidth(SCREEN_WIDTH)
+const SKELETON_CARD_HEIGHT = getHomeStandardImageHeight() + 110
 const GAP = Spacing.space3
 const PADDING_END = Spacing.space4
 
@@ -32,6 +37,7 @@ export interface MyListingSectionSliderProps {
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
   onCancelDeletionRequest?: (item: MyListingItem) => void
+  getBusyAction?: (item: MyListingItem) => OwnerCardBusyAction
   isEditSupported: (entityType: MyListingEntityType) => boolean
 }
 
@@ -45,6 +51,7 @@ export function MyListingSectionSlider({
   onDelete,
   onStatusChange,
   onCancelDeletionRequest,
+  getBusyAction,
   isEditSupported,
 }: MyListingSectionSliderProps) {
   if (!isLoading && (!items || items.length === 0)) return null
@@ -54,14 +61,9 @@ export function MyListingSectionSlider({
       {/* ── Section Header ── */}
       <View style={s.sectionHeader} testID="my-listing-section-header">
         <View style={s.titleRow}>
-          <LinearGradient
-            colors={config.gradient as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.iconWrap}
-          >
-            <Ionicons name={config.icon} size={15} color={Colors.white} />
-          </LinearGradient>
+          <View style={s.iconWrap} testID="my-listing-section-icon-box">
+            <MaterialCommunityIcons name={config.icon} size={16} color={Colors.primary} />
+          </View>
           <Text style={s.sectionTitle}>{config.title}</Text>
           
           {/* Count Badge */}
@@ -93,7 +95,7 @@ export function MyListingSectionSlider({
           paddingEnd={PADDING_END}
           keyExtractor={(item) => String(item)}
           renderItem={() => (
-            <SkeletonCard style={{ width: CARD_WIDTH, height: 180 }} />
+            <SkeletonCard style={{ width: CARD_WIDTH, height: SKELETON_CARD_HEIGHT }} />
           )}
         />
       ) : (
@@ -109,13 +111,14 @@ export function MyListingSectionSlider({
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`جميع إعلانات ${config.title}`}
           renderItem={({ item }) => (
-            <MyListingCardDispatcher
+            <MyListingOwnerCard
               item={item}
               onView={onView}
               onEdit={onEdit}
               onDelete={onDelete}
               onStatusChange={onStatusChange}
               onCancelDeletionRequest={onCancelDeletionRequest}
+              busyAction={getBusyAction ? getBusyAction(item) : null}
               isEditSupported={isEditSupported(item.entityType)}
               fullWidth={false}
             />
@@ -143,32 +146,30 @@ const s = StyleSheet.create({
     gap: 10,
   },
   iconWrap: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: Radius.md,
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
   },
   sectionTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
     lineHeight: 22,
-    color: '#1E293B',
+    color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   countBadge: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
   },
   countText: {
     fontFamily: 'Almarai_700Bold',

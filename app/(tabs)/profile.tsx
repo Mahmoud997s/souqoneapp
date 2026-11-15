@@ -22,8 +22,8 @@ export default function ProfileScreen() {
     handle,
     avatarUrl,
     firstLetter,
-    myListings,
-    favorites,
+    listingsCount,
+    favoritesCount,
     handleBack,
     handleLogout,
     activitiesItems,
@@ -77,8 +77,8 @@ export default function ProfileScreen() {
           avatarUrl={avatarUrl}
           firstLetter={firstLetter}
           isVerified={user?.isVerified}
-          listingsCount={myListings?.length ?? 0}
-          favoritesCount={favorites?.length ?? 0}
+          listingsCount={listingsCount}
+          favoritesCount={favoritesCount}
           locationName={locationName}
         />
 

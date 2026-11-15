@@ -146,6 +146,8 @@ const s = StyleSheet.create({
     gap: 8,
   },
   badgePill: {
+    minWidth: 28,
+    alignItems: 'center',
     backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 2,
