@@ -71,6 +71,7 @@ export interface ListingCardBaseProps {
   gridMode?: boolean
   actionMenu?: React.ReactNode
   cardActions?: React.ReactNode
+  ownerActions?: React.ReactNode
   disableImageSwipe?: boolean
   shareMessage?: string
   titleNumberOfLines?: number
@@ -166,6 +167,7 @@ const ListingCardBaseComponent = ({
   gridMode = false,
   actionMenu,
   cardActions,
+  ownerActions,
   disableImageSwipe = false,
   shareMessage,
   titleNumberOfLines = 1,
@@ -584,9 +586,9 @@ const ListingCardBaseComponent = ({
           </View>
         </View>
 
-        {cardActions && (
-          <View style={s.cardActionsRow}>
-            {cardActions}
+        {(ownerActions || cardActions) && (
+          <View testID="listing-card-owner-actions-row" style={s.cardActionsRow}>
+            {ownerActions ?? cardActions}
           </View>
         )}
       </Pressable>

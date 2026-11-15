@@ -23,6 +23,7 @@ export interface CarCardProps {
   showChips?: boolean
   maxChips?: number
   actionMenu?: React.ReactNode
+  ownerActions?: React.ReactNode
   disableImageSwipe?: boolean
   titleNumberOfLines?: number
   imageHeight?: number
@@ -39,6 +40,7 @@ const CarCardComponent = ({
   showChips = false,
   maxChips = 3,
   actionMenu,
+  ownerActions,
   disableImageSwipe = false,
   titleNumberOfLines = 1,
   imageHeight,
@@ -270,6 +272,7 @@ const CarCardComponent = ({
       fullWidth={fullWidth}
       gridMode={gridMode}
       actionMenu={actionMenu}
+      ownerActions={ownerActions}
       disableImageSwipe={disableImageSwipe}
       titleNumberOfLines={titleNumberOfLines}
       imageHeight={imageHeight}

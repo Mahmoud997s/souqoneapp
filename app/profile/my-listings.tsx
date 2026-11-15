@@ -73,6 +73,7 @@ export default function MyListingsScreen() {
           onDelete={screen.handleDelete}
           onStatusChange={screen.handleStatusChange}
           onCancelDeletionRequest={screen.handleCancelDeletionRequest}
+          getBusyAction={screen.getBusyAction}
           isEditSupported={screen.isEditSupported}
           bottomInset={insets.bottom}
           topInset={navBarHeight}
@@ -102,6 +103,7 @@ export default function MyListingsScreen() {
           onDelete={screen.handleDelete}
           onStatusChange={screen.handleStatusChange}
           onCancelDeletionRequest={screen.handleCancelDeletionRequest}
+          getBusyAction={screen.getBusyAction}
           isEditSupported={screen.isEditSupported}
           bottomInset={insets.bottom}
           topInset={navBarHeight}

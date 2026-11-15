@@ -1,16 +1,17 @@
 import React from 'react'
-import { View, StyleSheet, Text } from 'react-native'
-import { Colors } from '../../../constants/colors'
-import { MyListingItem } from '../../../types/my-listings.types'
-import { MyListingActionButtons } from './MyListingActionButtons'
+import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
+import { OwnerCardActions, OwnerCardBusyAction } from './OwnerCardActions'
 import { CarCard } from '../../cars/CarCard'
 import { BusCard } from '../../buses/BusCard'
 import { EquipCard } from '../../cards/EquipCard'
 import { PartCard } from '../../parts/PartCard'
 import { ServiceCard } from '../../services/ServiceCard'
+import { OperatorCard } from '../../cards/OperatorCard'
 import { type GlassSupport } from '../../navigation/glassSupport'
 
-export interface MyListingCardDispatcherProps {
+const STATUS_CHANGE_ENTITIES: readonly MyListingEntityType[] = ['car', 'bus', 'equipment']
+
+export interface MyListingOwnerCardProps {
   item: MyListingItem
   onView: (item: MyListingItem) => void
   onEdit: (item: MyListingItem) => void
@@ -18,11 +19,12 @@ export interface MyListingCardDispatcherProps {
   onStatusChange?: (item: MyListingItem) => void
   onCancelDeletionRequest?: (item: MyListingItem) => void
   isEditSupported: boolean
+  busyAction?: OwnerCardBusyAction
   fullWidth?: boolean
   glassSupport?: GlassSupport
 }
 
-export function MyListingCardDispatcher({
+export function MyListingOwnerCard({
   item,
   onView,
   onEdit,
@@ -30,30 +32,26 @@ export function MyListingCardDispatcher({
   onStatusChange,
   onCancelDeletionRequest,
   isEditSupported,
+  busyAction = null,
   fullWidth = false,
   glassSupport,
-}: MyListingCardDispatcherProps) {
-  const menu = (
-    <MyListingActionButtons
-      item={item}
-      onDelete={onDelete}
-      onEdit={onEdit}
-      onStatusChange={onStatusChange}
-      onCancelDeletionRequest={onCancelDeletionRequest}
+}: MyListingOwnerCardProps) {
+  const canChangeStatus = STATUS_CHANGE_ENTITIES.includes(item.entityType)
+
+  const ownerActions = (
+    <OwnerCardActions
       isEditSupported={isEditSupported}
+      canChangeStatus={canChangeStatus}
+      pendingDeletionRequest={item.pendingDeletionRequest}
+      busyAction={busyAction}
+      onEdit={() => onEdit(item)}
+      onDelete={() => onDelete(item)}
+      onStatusChange={onStatusChange ? () => onStatusChange(item) : undefined}
+      onCancelDeletionRequest={
+        onCancelDeletionRequest ? () => onCancelDeletionRequest(item) : undefined
+      }
     />
   )
-
-  const renderPendingBanner = () => {
-    if (item.pendingDeletionRequest && item.pendingDeletionRequest.status === 'PENDING') {
-      return (
-        <View style={s.pendingBanner}>
-          <Text style={s.pendingBannerText}>طلب حذف قيد المراجعة</Text>
-        </View>
-      )
-    }
-    return null
-  }
 
   switch (item.entityType) {
     case 'car':
@@ -64,7 +62,7 @@ export function MyListingCardDispatcher({
           fullWidth={fullWidth}
           showChips
           maxChips={3}
-          actionMenu={menu}
+          ownerActions={ownerActions}
           disableImageSwipe
           glassSupport={glassSupport}
         />
@@ -77,7 +75,8 @@ export function MyListingCardDispatcher({
           fullWidth={fullWidth}
           showChips
           maxChips={3}
-          actionMenu={menu}
+          ownerActions={ownerActions}
+          disableImageSwipe
           glassSupport={glassSupport}
         />
       )
@@ -89,7 +88,8 @@ export function MyListingCardDispatcher({
           fullWidth={fullWidth}
           showChips
           maxChips={3}
-          actionMenu={menu}
+          ownerActions={ownerActions}
+          disableImageSwipe
           glassSupport={glassSupport}
         />
       )
@@ -101,7 +101,8 @@ export function MyListingCardDispatcher({
           fullWidth={fullWidth}
           showChips
           maxChips={3}
-          actionMenu={menu}
+          ownerActions={ownerActions}
+          disableImageSwipe
           glassSupport={glassSupport}
         />
       )
@@ -111,38 +112,22 @@ export function MyListingCardDispatcher({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
-          actionMenu={menu}
+          ownerActions={ownerActions}
+          disableImageSwipe
           glassSupport={glassSupport}
         />
       )
+    case 'operator':
+      return (
+        <OperatorCard
+          item={item.mapped as any}
+          onPress={() => onView(item)}
+          fullWidth={fullWidth}
+          ownerActions={ownerActions}
+        />
+      )
     case 'job':
-      return null
     default:
       return null
   }
 }
-
-const s = StyleSheet.create({
-  pendingBannerWrap: {
-    position: 'relative',
-    width: '100%',
-  },
-  pendingBanner: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.error,
-    paddingVertical: 6,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  pendingBannerText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.white,
-  },
-})

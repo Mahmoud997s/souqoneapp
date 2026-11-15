@@ -15,6 +15,7 @@ import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
 import { MyListingSectionSlider } from './MyListingSectionSlider'
+import { type OwnerCardBusyAction } from './OwnerCardActions'
 import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 
 export interface GroupedSectionData {
@@ -35,6 +36,7 @@ export interface MyListingsAllViewProps {
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
   onCancelDeletionRequest?: (item: MyListingItem) => void
+  getBusyAction?: (item: MyListingItem) => OwnerCardBusyAction
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
   topInset: number
@@ -55,6 +57,7 @@ export function MyListingsAllView({
   onDelete,
   onStatusChange,
   onCancelDeletionRequest,
+  getBusyAction,
   isEditSupported,
   bottomInset,
   topInset,
@@ -153,6 +156,7 @@ export function MyListingsAllView({
           onDelete={onDelete}
           onStatusChange={onStatusChange}
           onCancelDeletionRequest={onCancelDeletionRequest}
+          getBusyAction={getBusyAction}
           isEditSupported={isEditSupported}
         />
       ))}

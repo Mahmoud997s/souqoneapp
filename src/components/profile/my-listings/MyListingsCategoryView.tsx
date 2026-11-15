@@ -14,7 +14,8 @@ import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
-import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { MyListingOwnerCard } from './MyListingOwnerCard'
+import { type OwnerCardBusyAction } from './OwnerCardActions'
 import { useGlassSupport } from '../../navigation/glassSupport'
 import { StaleDataBanner } from '../../listing-detail/StaleDataBanner'
 
@@ -33,6 +34,7 @@ export interface MyListingsCategoryViewProps {
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
   onCancelDeletionRequest?: (item: MyListingItem) => void
+  getBusyAction?: (item: MyListingItem) => OwnerCardBusyAction
   isEditSupported: (entityType: MyListingEntityType) => boolean
   bottomInset: number
   topInset: number
@@ -55,6 +57,7 @@ export function MyListingsCategoryView({
   onDelete,
   onStatusChange,
   onCancelDeletionRequest,
+  getBusyAction,
   isEditSupported,
   bottomInset,
   topInset,
@@ -74,13 +77,14 @@ export function MyListingsCategoryView({
   const renderItem = useCallback(
     ({ item }: { item: MyListingItem }) => (
       <View style={s.cardWrapper}>
-        <MyListingCardDispatcher
+        <MyListingOwnerCard
           item={item}
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}
           onStatusChange={onStatusChange}
           onCancelDeletionRequest={onCancelDeletionRequest}
+          busyAction={getBusyAction ? getBusyAction(item) : null}
           isEditSupported={isEditSupported(item.entityType)}
           fullWidth={true}
           glassSupport={glassSupport}
@@ -93,6 +97,7 @@ export function MyListingsCategoryView({
       onDelete,
       onStatusChange,
       onCancelDeletionRequest,
+      getBusyAction,
       isEditSupported,
       glassSupport,
     ]

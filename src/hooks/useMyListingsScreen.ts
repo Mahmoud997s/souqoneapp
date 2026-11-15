@@ -2,15 +2,17 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useListingNavigation } from '../navigation/useListingNavigation'
 import { useAllMyListings } from './useAllMyListings'
-import { listingsApi } from '../api/listings'
-import { busesApi } from '../api/buses'
-import { equipmentApi } from '../api/equipment'
-import { partsApi } from '../api/parts'
-import { servicesApi } from '../api/services'
+import {
+  useMyListingOwnerActions,
+  MY_LISTING_ENTITY_QUERY_KEYS,
+} from './useMyListingOwnerActions'
 import { dialogService } from '../store/dialogStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
-import { MyListingItem, MyListingEntityType } from '../types/my-listings.types'
+import { listingsApi } from '../api/listings'
+import { busesApi } from '../api/buses'
+import { equipmentApi } from '../api/equipment'
+import { MyListingEntityType, MyListingItem } from '../types/my-listings.types'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { GroupedSectionData } from '../components/profile/my-listings/MyListingsAllView'
 import type { OwnerAction } from '../components/listing-detail/OwnerManageBar'
@@ -32,15 +34,7 @@ import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
 
 const STATUS_OPTION_CONFIRM_DELAY_MS = 400
 
-const ENTITY_QUERY_KEYS: Record<MyListingEntityType, string[]> = {
-  car: ['my-cars'],
-  bus: ['my-buses'],
-  equipment: ['my-equipment'],
-  operator: ['my-operators'],
-  part: ['my-parts'],
-  service: ['my-services'],
-  job: ['my-jobs'],
-}
+const ENTITY_QUERY_KEYS = MY_LISTING_ENTITY_QUERY_KEYS
 
 interface RawListingTypeHolder {
   listingType?: string
@@ -168,66 +162,11 @@ export function useMyListingsScreen() {
     }
   }, [refetch])
 
-  const handleDelete = (item: MyListingItem) => {
-    // ════════════════════════════════════════════════════════════
-    // STANDARD DELETION FLOW (Immediate deletion)
-    // ════════════════════════════════════════════════════════════
-    dialogService.confirm(
-      'حذف الإعلان',
-      'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-      async () => {
-        try {
-          switch (item.entityType) {
-            case 'car':
-              await listingsApi.remove(item.id)
-              break
-            case 'bus':
-              await busesApi.remove(item.id)
-              break
-            case 'equipment':
-              await equipmentApi.delete(item.id)
-              break
-            case 'part':
-              await partsApi.remove(item.id)
-              break
-            case 'service':
-              await servicesApi.remove(item.id)
-              break
-          }
-
-          await queryClient.invalidateQueries({
-            queryKey: ENTITY_QUERY_KEYS[item.entityType],
-          })
-          dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
-        } catch (err: unknown) {
-          showErrorDialog(err, 'حدث خطأ أثناء الحذف')
-        }
-      },
-      'حذف',
-      'إلغاء',
-      true
-    )
-  }
-
-  const handleCancelDeletionRequest = (item: MyListingItem) => {
-    if (!item.pendingDeletionRequest) return
-
-    dialogService.confirm(
-      'إلغاء طلب الحذف',
-      'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
-      async () => {
-        try {
-          await equipmentApi.cancelOperatorDeletionRequest(item.pendingDeletionRequest!.id)
-          await queryClient.invalidateQueries({ queryKey: ENTITY_QUERY_KEYS['operator'] })
-          dialogService.alert('تم بنجاح', 'تم إلغاء طلب حذف البروفايل بنجاح.', 'success')
-        } catch (err: unknown) {
-          showErrorDialog(err, 'حدث خطأ أثناء إلغاء الطلب')
-        }
-      },
-      'تأكيد الإلغاء',
-      'تراجع'
-    )
-  }
+  const {
+    getBusyAction,
+    handleDelete,
+    handleCancelDeletionRequest,
+  } = useMyListingOwnerActions()
 
   const isEditSupported = (entityType: MyListingEntityType): boolean => {
     return (
@@ -414,6 +353,7 @@ export function useMyListingsScreen() {
     handleView,
     handleStatusChange,
     handleCancelDeletionRequest,
+    getBusyAction,
     isEditSupported,
   }
 }

@@ -13,12 +13,18 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { MyListingItem, MyListingEntityType } from '../../../types/my-listings.types'
 import { ListingSectionConfig } from './sections.config'
-import { MyListingCardDispatcher } from './MyListingCardDispatcher'
+import { MyListingOwnerCard } from './MyListingOwnerCard'
+import { type OwnerCardBusyAction } from './OwnerCardActions'
+import {
+  getHomeStandardCardWidth,
+  getHomeStandardImageHeight,
+} from '../../../constants/cardSystem'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const CARD_WIDTH = SCREEN_WIDTH * 0.6
+const CARD_WIDTH = getHomeStandardCardWidth(SCREEN_WIDTH)
+const SKELETON_CARD_HEIGHT = getHomeStandardImageHeight() + 110
 const GAP = Spacing.space3
 const PADDING_END = Spacing.space4
 
@@ -32,6 +38,7 @@ export interface MyListingSectionSliderProps {
   onDelete: (item: MyListingItem) => void
   onStatusChange?: (item: MyListingItem) => void
   onCancelDeletionRequest?: (item: MyListingItem) => void
+  getBusyAction?: (item: MyListingItem) => OwnerCardBusyAction
   isEditSupported: (entityType: MyListingEntityType) => boolean
 }
 
@@ -45,6 +52,7 @@ export function MyListingSectionSlider({
   onDelete,
   onStatusChange,
   onCancelDeletionRequest,
+  getBusyAction,
   isEditSupported,
 }: MyListingSectionSliderProps) {
   if (!isLoading && (!items || items.length === 0)) return null
@@ -93,7 +101,7 @@ export function MyListingSectionSlider({
           paddingEnd={PADDING_END}
           keyExtractor={(item) => String(item)}
           renderItem={() => (
-            <SkeletonCard style={{ width: CARD_WIDTH, height: 180 }} />
+            <SkeletonCard style={{ width: CARD_WIDTH, height: SKELETON_CARD_HEIGHT }} />
           )}
         />
       ) : (
@@ -109,13 +117,14 @@ export function MyListingSectionSlider({
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`جميع إعلانات ${config.title}`}
           renderItem={({ item }) => (
-            <MyListingCardDispatcher
+            <MyListingOwnerCard
               item={item}
               onView={onView}
               onEdit={onEdit}
               onDelete={onDelete}
               onStatusChange={onStatusChange}
               onCancelDeletionRequest={onCancelDeletionRequest}
+              busyAction={getBusyAction ? getBusyAction(item) : null}
               isEditSupported={isEditSupported(item.entityType)}
               fullWidth={false}
             />

@@ -103,3 +103,18 @@ export const CardSystem = {
     }
   }
 }
+
+/**
+ * Shared standard card width used by Home horizontal sliders and My Listings sliders.
+ * Matches Home's existing `Math.round(screenWidth * 0.6)` formula.
+ */
+export function getHomeStandardCardWidth(screenWidth: number): number {
+  return Math.round(screenWidth * 0.6)
+}
+
+/**
+ * Shared standard card image height (`CardSystem.aspectRatioHeight` = 140px).
+ */
+export function getHomeStandardImageHeight(): number {
+  return CardSystem.aspectRatioHeight
+}
