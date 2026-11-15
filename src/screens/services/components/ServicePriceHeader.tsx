@@ -19,9 +19,33 @@ export interface ServicePriceHeaderProps {
 }
 
 /**
+ * Extracts "من" and "إلى" labels for range prices, supporting both structured
+ * fromLabel/toLabel fields and legacy formattedRange strings like "15 - 45 ر.ع.".
+ */
+function resolveRangeParts(
+  price: ServicePriceViewModel,
+): { fromLabel: string; toLabel: string } | null {
+  if (!price.isRange) return null
+  if (price.fromLabel && price.toLabel) {
+    return { fromLabel: price.fromLabel, toLabel: price.toLabel }
+  }
+  const raw = (price.formattedRange ?? price.amountLabel ?? '').trim()
+  const parts = raw.split(/\s*-\s*/)
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null
+
+  const left = parts[0].trim()
+  const right = parts[1].trim()
+  const unitMatch = right.match(/[\d,.]+\s+(.+)$/)
+  const unit = unitMatch?.[1]?.trim()
+  const fromLabel = unit && !left.includes(unit) ? `${left} ${unit}` : left
+
+  return { fromLabel, toLabel: right }
+}
+
+/**
  * ServicePriceHeader
  * Specialized header adapter for car services rendering title, service/provider badges,
- * provider attribution, price range or starting price, and listing meta.
+ * provider attribution, Cars-style dual price badges ("من / إلى") or single badge, and listing meta.
  */
 export function ServicePriceHeader({
   title,
@@ -37,6 +61,7 @@ export function ServicePriceHeader({
   const showProviderTypeBadge =
     Boolean(providerTypeLabel) &&
     !(Boolean(isHomeService) && providerTypeLabel?.trim() === 'خدمة متنقلة')
+  const rangeParts = resolveRangeParts(price)
   return (
     <View style={s.container} testID="service-price-header">
       {/* Badges Row */}
@@ -73,12 +98,32 @@ export function ServicePriceHeader({
         </View>
       )}
 
-      {/* Price Box */}
+      {/* Price Box (Cars-style dual "من / إلى" or unified single badge) */}
       <View style={s.priceBox} testID="service-price-box">
-        {Boolean(price.typeLabel) && (
-          <Text style={s.priceTypeLabel}>{price.typeLabel}</Text>
+        {rangeParts ? (
+          <>
+            {Boolean(price.typeLabel) && (
+              <Text style={s.priceTypeLabel}>{price.typeLabel}</Text>
+            )}
+            <View style={s.rangeBadgesRow}>
+              <View style={s.priceBadgeChip} testID="service-price-from-badge">
+                <Text style={s.priceBadgeLabel}>من</Text>
+                <Text style={s.priceBadgeValue}>{rangeParts.fromLabel}</Text>
+              </View>
+              <View style={s.priceBadgeChip} testID="service-price-to-badge">
+                <Text style={s.priceBadgeLabel}>إلى</Text>
+                <Text style={s.priceBadgeValue}>{rangeParts.toLabel}</Text>
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={s.priceBadgeChip} testID="service-price-single-badge">
+            {Boolean(price.typeLabel) && (
+              <Text style={s.priceBadgeLabel}>{price.typeLabel}</Text>
+            )}
+            <Text style={s.priceBadgeValue}>{price.amountLabel}</Text>
+          </View>
         )}
-        <Text style={s.priceAmount}>{price.amountLabel}</Text>
       </View>
 
       {/* Meta Row: Posted at & Views */}
@@ -219,21 +264,47 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary + '25',
     padding: Spacing.space3,
-    borderRadius: Radius.md,
-    gap: 2,
+    borderRadius: Radius.lg,
+    gap: Spacing.space2,
   },
   priceTypeLabel: {
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: 17,
     fontFamily: 'Almarai_700Bold',
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  priceAmount: {
-    fontSize: 22,
-    lineHeight: 30,
-    fontFamily: 'Almarai_800ExtraBold',
+  rangeBadgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.space2,
+  },
+  priceBadgeChip: {
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: Spacing.space2,
+    borderRadius: Radius.md,
+  },
+  priceBadgeLabel: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  priceBadgeValue: {
+    fontSize: 16,
+    lineHeight: 23,
+    fontFamily: 'Almarai_700Bold',
     color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',

@@ -208,12 +208,16 @@ export function formatServicePrice(
 
   // 1. Range: both from and to exist and to > from
   if (pFrom !== null && pTo !== null && pTo > pFrom) {
+    const fromLabel = `${pFrom.toLocaleString('en-US')} ${curr}`
+    const toLabel = `${pTo.toLocaleString('en-US')} ${curr}`
     const formattedRange = `${pFrom.toLocaleString('en-US')} - ${pTo.toLocaleString('en-US')} ${curr}`
     return {
       amountLabel: formattedRange,
       typeLabel: 'نطاق السعر التقريبي',
       isRange: true,
       formattedRange,
+      fromLabel,
+      toLabel,
     }
   }
 

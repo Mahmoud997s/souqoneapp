@@ -51,23 +51,27 @@ export function OperatorRatesCard({ rates }: OperatorRatesCardProps) {
                   الأجر اليومي
                 </Text>
               </View>
-              <Text style={s.rateValuePrimary} maxFontSizeMultiplier={1.3} testID="operator-daily-rate-value">
-                {rates.dailyRateFormatted}
-              </Text>
+              <View style={s.rateBadge} testID="operator-daily-rate-badge">
+                <Text style={s.rateValuePrimary} maxFontSizeMultiplier={1.3} testID="operator-daily-rate-value">
+                  {rates.dailyRateFormatted}
+                </Text>
+              </View>
             </View>
           )}
 
           {hasHourly && (
             <View style={s.rateRow} testID="operator-hourly-rate-row">
               <View style={s.labelCol}>
-                <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
+                <Ionicons name="time-outline" size={18} color={Colors.primary} />
                 <Text style={s.rateTypeLabel} maxFontSizeMultiplier={1.3}>
                   الأجر بالساعة
                 </Text>
               </View>
-              <Text style={s.rateValueSecondary} maxFontSizeMultiplier={1.3} testID="operator-hourly-rate-value">
-                {rates.hourlyRateFormatted}
-              </Text>
+              <View style={s.rateBadge} testID="operator-hourly-rate-badge">
+                <Text style={s.rateValueSecondary} maxFontSizeMultiplier={1.3} testID="operator-hourly-rate-value">
+                  {rates.hourlyRateFormatted}
+                </Text>
+              </View>
             </View>
           )}
 
@@ -124,16 +128,26 @@ const s = StyleSheet.create({
     writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(14),
   },
+  rateBadge: {
+    backgroundColor: Colors.paleMint,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: Spacing.space1 + 2,
+  },
   rateValuePrimary: {
-    fontSize: 16,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.primary,
-    lineHeight: lineHeightFor(16),
+    lineHeight: lineHeightFor(15),
   },
   rateValueSecondary: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '600',
-    color: Colors.text,
+    fontWeight: '700',
+    color: Colors.primary,
     lineHeight: lineHeightFor(15),
   },
   negotiableNoteRow: {

@@ -76,4 +76,27 @@ describe('OperatorRatesCard', () => {
     expect(screen.queryByTestId('operator-hourly-rate-row')).toBeNull()
     expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
   })
+
+  it('styles daily and hourly rates with Cars-style paleMint + Radius.md badges (D-333b)', async () => {
+    const { StyleSheet } = require('react-native')
+    const { Colors } = require('../../../constants/colors')
+    const { Radius } = require('../../../constants/radius')
+    const rates: OperatorRatesView = {
+      dailyRate: 40,
+      dailyRateFormatted: '40 ر.ع',
+      hourlyRate: 6,
+      hourlyRateFormatted: '6 ر.ع',
+      currency: 'ر.ع',
+      isNegotiable: false,
+      primaryLabel: '40 ر.ع / يوم',
+      hasAnyRate: true,
+    }
+    await render(<OperatorRatesCard rates={rates} />)
+    const dailyBadge = StyleSheet.flatten(screen.getByTestId('operator-daily-rate-badge').props.style)
+    const hourlyBadge = StyleSheet.flatten(screen.getByTestId('operator-hourly-rate-badge').props.style)
+    expect(dailyBadge.backgroundColor).toBe(Colors.paleMint)
+    expect(dailyBadge.borderRadius).toBe(Radius.md)
+    expect(hourlyBadge.backgroundColor).toBe(Colors.paleMint)
+    expect(hourlyBadge.borderRadius).toBe(Radius.md)
+  })
 })

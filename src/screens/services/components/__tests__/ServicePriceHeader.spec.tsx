@@ -39,7 +39,13 @@ describe('ServicePriceHeader', () => {
     expect(screen.getByText('مقدم الخدمة:')).toBeTruthy()
 
     expect(screen.getByText('نطاق الأسعار المتوقع')).toBeTruthy()
-    expect(screen.getByText('15 - 45 ر.ع.')).toBeTruthy()
+    expect(screen.getByTestId('service-price-from-badge')).toBeTruthy()
+    expect(screen.getByTestId('service-price-to-badge')).toBeTruthy()
+    expect(screen.getByText('من')).toBeTruthy()
+    expect(screen.getByText('15 ر.ع.')).toBeTruthy()
+    expect(screen.getByText('إلى')).toBeTruthy()
+    expect(screen.getByText('45 ر.ع.')).toBeTruthy()
+    expect(screen.queryByText('15 - 45 ر.ع.')).toBeNull()
 
     expect(screen.getByText('منذ يومين')).toBeTruthy()
     expect(screen.getByText('1,250 مشاهدة')).toBeTruthy()
@@ -99,6 +105,31 @@ describe('ServicePriceHeader', () => {
       const providerBoxStyle = StyleSheet.flatten(providerBox.props.style)
       expect(providerBoxStyle.borderWidth).toBe(1)
       expect(providerBoxStyle.borderColor).toBe(Colors.border)
+
+      const fromBadge = StyleSheet.flatten(screen.getByTestId('service-price-from-badge').props.style)
+      const toBadge = StyleSheet.flatten(screen.getByTestId('service-price-to-badge').props.style)
+      expect(fromBadge.backgroundColor).toBe(Colors.surface)
+      expect(toBadge.backgroundColor).toBe(Colors.surface)
+      expect(fromBadge.borderWidth).toBe(1)
+      expect(toBadge.borderWidth).toBe(1)
+    })
+
+    it('renders unified single badge for starting/negotiable/contact prices (D-333b)', async () => {
+      const contactPrice: ServicePriceViewModel = {
+        amountLabel: 'السعر عند التواصل',
+        isRange: false,
+      }
+      await render(
+        <ServicePriceHeader
+          title="خدمة فحص"
+          price={contactPrice}
+          serviceTypeLabel="فحص"
+          postedAtLabel="اليوم"
+          viewCount={5}
+        />,
+      )
+      expect(screen.getByTestId('service-price-single-badge')).toBeTruthy()
+      expect(screen.getByText('السعر عند التواصل')).toBeTruthy()
     })
   })
 })

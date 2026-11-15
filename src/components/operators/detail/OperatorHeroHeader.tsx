@@ -79,11 +79,11 @@ export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
             </View>
           )}
 
-          {/* Rate Stat Chip */}
+          {/* Rate Stat Chip (Cars-style unified badge) */}
           {hasRate && (
-            <View style={s.statChip} testID="operator-stat-rate">
+            <View style={s.rateStatChip} testID="operator-stat-rate">
               <Ionicons name="cash-outline" size={14} color={Colors.primary} />
-              <Text style={s.statChipText} maxFontSizeMultiplier={1.3}>
+              <Text style={s.rateStatChipText} maxFontSizeMultiplier={1.3}>
                 {vm.rates.primaryLabel}
               </Text>
             </View>
@@ -183,6 +183,23 @@ const s = StyleSheet.create({
     fontSize: 13,
     lineHeight: lineHeightFor(13),
     color: Colors.text,
+  },
+  rateStatChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    backgroundColor: Colors.paleMint,
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: Spacing.space2,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  rateStatChipText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.primary,
   },
   negotiableBadge: {
     backgroundColor: Colors.paleMint,

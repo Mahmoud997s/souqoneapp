@@ -322,7 +322,10 @@ describe('ServiceDetailScreen', () => {
 
       // Service header elements
       expect(screen.getByText('كراج النخبة لصيانة وتعديل السيارات')).toBeTruthy()
-      expect(screen.getByText('15 - 45 ر.ع.')).toBeTruthy()
+      expect(screen.getByTestId('service-price-from-badge')).toBeTruthy()
+      expect(screen.getByTestId('service-price-to-badge')).toBeTruthy()
+      expect(screen.getByText('15 ر.ع.')).toBeTruthy()
+      expect(screen.getByText('45 ر.ع.')).toBeTruthy()
       expect(screen.getByText('صيانة وإصلاح')).toBeTruthy()
       expect(
         screen.getByText('مسقط، السيب، المعبيلة الصناعية - شارع 12 مبنى 45'),

@@ -3,6 +3,8 @@ export interface ServicePriceViewModel {
   typeLabel?: string
   isRange: boolean
   formattedRange?: string
+  fromLabel?: string
+  toLabel?: string
 }
 
 export interface ServiceScheduleViewModel {
