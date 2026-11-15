@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
@@ -9,38 +9,134 @@ import {
   Linking,
   Platform,
   StatusBar,
+  AppState,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import * as Notifications from 'expo-notifications'
 import { Colors } from '../../src/constants/colors'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
-import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
 import { SUPPORT_MAILTO } from '../../src/constants/support'
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '../../src/constants/legal'
+import {
+  DEFAULT_NOTIFICATION_PREFS,
+  loadNotificationPrefs,
+  saveNotificationPrefs,
+} from '../../src/utils/notificationPrefsStorage'
+import { logWarn } from '../../src/utils/safeLog'
+import type { User } from '../../src/types/auth.types'
+
+export function resolveHasPassword(user: User | null | undefined): boolean {
+  if (!user) return false
+  if (typeof user.hasPassword === 'boolean') return user.hasPassword
+  return user.deletionReauthMethod !== 'google' && user.deletionReauthMethod !== 'apple'
+}
+
+function getOAuthAccountNoteMeta(user: User): {
+  iconName: keyof typeof Ionicons.glyphMap
+  iconColor: string
+  title: string
+} {
+  const hasGoogle = Boolean(user.hasGoogle || user.deletionReauthMethod === 'google')
+  const hasApple = Boolean(user.hasApple || user.deletionReauthMethod === 'apple')
+  if (hasGoogle && hasApple) {
+    return {
+      iconName: 'shield-checkmark-outline',
+      iconColor: Colors.primary,
+      title: 'حسابك مرتبط بـ Google و Apple',
+    }
+  }
+  if (hasGoogle) {
+    return {
+      iconName: 'logo-google',
+      iconColor: Colors.primary,
+      title: 'حسابك مرتبط بـ Google',
+    }
+  }
+  if (hasApple) {
+    return {
+      iconName: 'logo-apple',
+      iconColor: Colors.text,
+      title: 'حسابك مرتبط بـ Apple',
+    }
+  }
+  return {
+    iconName: 'shield-checkmark-outline',
+    iconColor: Colors.primary,
+    title: 'حسابك مرتبط بتسجيل دخول سريع',
+  }
+}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
   const { logout, user, isGuest } = useAuthStore()
-  const [msgNotif, setMsgNotif] = useState((user as any)?.preferences?.msgNotif ?? true)
-  const [adNotif, setAdNotif] = useState((user as any)?.preferences?.adNotif ?? true)
+  const [msgNotif, setMsgNotif] = useState(DEFAULT_NOTIFICATION_PREFS.msgNotif)
+  const [adNotif, setAdNotif] = useState(DEFAULT_NOTIFICATION_PREFS.adNotif)
+  const [osNotifDenied, setOsNotifDenied] = useState(false)
+
+  const checkOsNotificationPermission = useCallback(async () => {
+    try {
+      const permission = await Notifications.getPermissionsAsync()
+      setOsNotifDenied(permission.status !== 'granted')
+    } catch (error) {
+      logWarn('SettingsScreen:CheckOsNotifPermission', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    loadNotificationPrefs(user?.id).then((prefs) => {
+      if (mounted) {
+        setMsgNotif(prefs.msgNotif)
+        setAdNotif(prefs.adNotif)
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    checkOsNotificationPermission()
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        checkOsNotificationPermission()
+      }
+    })
+    return () => {
+      subscription.remove()
+    }
+  }, [checkOsNotificationPermission])
 
   const handleToggleMsg = async (val: boolean) => {
+    const prevVal = msgNotif
     setMsgNotif(val)
+    if (!user?.id) return
     try {
-      await usersApi.updateProfile({ preferences: { msgNotif: val, adNotif } } as any)
-    } catch {}
+      await saveNotificationPrefs(user.id, { msgNotif: val, adNotif })
+    } catch (error) {
+      logWarn('SettingsScreen:SaveMsgNotif', error)
+      setMsgNotif(prevVal)
+      dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
+    }
   }
 
   const handleToggleAd = async (val: boolean) => {
+    const prevVal = adNotif
     setAdNotif(val)
+    if (!user?.id) return
     try {
-      await usersApi.updateProfile({ preferences: { msgNotif, adNotif: val } } as any)
-    } catch {}
+      await saveNotificationPrefs(user.id, { msgNotif, adNotif: val })
+    } catch (error) {
+      logWarn('SettingsScreen:SaveAdNotif', error)
+      setAdNotif(prevVal)
+      dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
+    }
   }
 
   const handleLogout = () => {
@@ -69,6 +165,8 @@ export default function SettingsScreen() {
     isLast,
     danger,
     accessibilityLabel,
+    testID,
+    switchTestID,
   }: {
     icon: keyof typeof Ionicons.glyphMap
     iconColor?: string
@@ -81,10 +179,13 @@ export default function SettingsScreen() {
     isLast?: boolean
     danger?: boolean
     accessibilityLabel?: string
+    testID?: string
+    switchTestID?: string
   }) => {
     const finalIconColor = danger ? '#DC2626' : iconColor
     return (
       <TouchableOpacity
+        testID={testID}
         style={s.optionRow}
         disabled={hasSwitch}
         onPress={onPress}
@@ -103,6 +204,7 @@ export default function SettingsScreen() {
 
         {hasSwitch ? (
           <Switch
+            testID={switchTestID}
             value={switchVal}
             onValueChange={onSwitch}
             trackColor={{ false: '#CBD5E1', true: Colors.primary }}
@@ -159,12 +261,37 @@ export default function SettingsScreen() {
               title="تعديل الملف الشخصي"
               onPress={() => router.push('/profile/edit-profile' as any)}
             />
-            <SettingItem
-              icon="lock-closed-outline"
-              iconColor="#2563EB"
-              title="تغيير كلمة المرور"
-              onPress={() => router.push('/profile/change-password' as any)}
-            />
+            {!isGuest && user && resolveHasPassword(user) && (
+              <SettingItem
+                testID="settings-change-password-row"
+                icon="lock-closed-outline"
+                iconColor="#2563EB"
+                title="تغيير كلمة المرور"
+                onPress={() => router.push('/profile/change-password' as any)}
+              />
+            )}
+            {!isGuest && user && !resolveHasPassword(user) && (() => {
+              const noteMeta = getOAuthAccountNoteMeta(user)
+              return (
+                <View testID="settings-oauth-account-note" style={s.optionRow}>
+                  <View style={s.optionRight}>
+                    <View style={s.optionIconWrap}>
+                      <Ionicons name={noteMeta.iconName} size={17} color={noteMeta.iconColor} />
+                    </View>
+                    <View style={s.oauthTextBlock}>
+                      <Text style={s.optionTitle}>{noteMeta.title}</Text>
+                      <Text style={s.oauthSubtitle}>
+                        تسجيل الدخول يتم عبر مزود الحساب دون كلمة مرور
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={s.oauthBadgePill}>
+                    <Text style={s.oauthBadgeText}>متصل</Text>
+                  </View>
+                  <View style={s.optionDivider} />
+                </View>
+              )
+            })()}
             <SettingItem
               icon="shield-checkmark-outline"
               iconColor="#059669"
@@ -189,7 +316,29 @@ export default function SettingsScreen() {
         <View style={s.sectionWrap}>
           <Text style={s.sectionHeaderTitle}>تفضيلات الإشعارات</Text>
           <View style={s.cardGroup}>
+            {osNotifDenied && (
+              <View testID="settings-os-notif-banner" style={s.osBannerRow}>
+                <View style={s.optionRight}>
+                  <View style={s.osBannerIconWrap}>
+                    <Ionicons name="notifications-off-outline" size={18} color={Colors.warning} />
+                  </View>
+                  <Text style={s.osBannerText}>الإشعارات متوقفة من إعدادات الجهاز</Text>
+                </View>
+                <TouchableOpacity
+                  testID="settings-open-os-settings-btn"
+                  style={s.osBannerBtn}
+                  onPress={() => {
+                    Linking.openSettings().catch((err) => logWarn('SettingsScreen:OpenOsSettings', err))
+                  }}
+                  activeOpacity={0.75}
+                >
+                  <Text style={s.osBannerBtnText}>فتح الإعدادات</Text>
+                </TouchableOpacity>
+                <View style={s.optionDivider} />
+              </View>
+            )}
             <SettingItem
+              switchTestID="settings-msg-notif-switch"
               icon="chatbubble-outline"
               iconColor="#7C3AED"
               title="إشعارات الرسائل والمحادثات"
@@ -198,6 +347,7 @@ export default function SettingsScreen() {
               onSwitch={handleToggleMsg}
             />
             <SettingItem
+              switchTestID="settings-ad-notif-switch"
               icon="notifications-outline"
               iconColor="#D97706"
               title="إشعارات الإعلانات والعروض"
@@ -365,6 +515,76 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     color: '#334155',
+    writingDirection: 'rtl',
+  },
+  oauthTextBlock: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  oauthSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    marginTop: 2,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  oauthBadgePill: {
+    backgroundColor: Colors.paleMint,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  oauthBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.primary,
+    writingDirection: 'rtl',
+  },
+  osBannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  osBannerIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  osBannerText: {
+    flex: 1,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  osBannerBtn: {
+    backgroundColor: Colors.paleMint,
+    borderColor: Colors.primary,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  osBannerBtnText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.primary,
     writingDirection: 'rtl',
   },
 

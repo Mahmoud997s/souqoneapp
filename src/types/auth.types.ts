@@ -20,6 +20,9 @@ export interface User {
   createdAt: string
   deletionScheduledAt?: string | null
   deletionReauthMethod?: 'password' | 'google' | 'apple' | 'confirmation'
+  hasPassword?: boolean
+  hasGoogle?: boolean
+  hasApple?: boolean
 }
 
 export interface AppleLoginPayload {
