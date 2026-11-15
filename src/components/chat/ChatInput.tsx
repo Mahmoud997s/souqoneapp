@@ -9,6 +9,15 @@ import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import { VoiceRecorder } from './VoiceRecorder'
+import {
+  CHAT_INPUT_BAR_HEIGHT,
+  CHAT_INPUT_PADDING_TOP,
+  CHAT_INPUT_PADDING_BOTTOM,
+  CHAT_INPUT_MIN_HEIGHT,
+  CHAT_INPUT_MARGIN_BOTTOM,
+} from '../../constants/bottomBarTokens'
+
+export { CHAT_INPUT_BAR_HEIGHT }
 
 export interface ChatFileInfo {
   name?: string
@@ -165,14 +174,14 @@ const s = StyleSheet.create({
   filePreviewName: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 16,
-    paddingTop: 10, paddingBottom: 10, backgroundColor: Colors.white,
+    paddingTop: CHAT_INPUT_PADDING_TOP, paddingBottom: CHAT_INPUT_PADDING_BOTTOM, backgroundColor: Colors.white,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)'
   },
   addBtn: { padding: 6, paddingBottom: 12 },
   inputWrap: {
     flex: 1, backgroundColor: '#f4f6f9', borderRadius: 24,
-    minHeight: 44, maxHeight: 120, marginHorizontal: 8,
-    justifyContent: 'center', marginBottom: 8,
+    minHeight: CHAT_INPUT_MIN_HEIGHT, maxHeight: 120, marginHorizontal: 8,
+    justifyContent: 'center', marginBottom: CHAT_INPUT_MARGIN_BOTTOM,
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)'
   },
   input: {

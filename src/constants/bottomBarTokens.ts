@@ -5,6 +5,17 @@ const BLUR_INTENSITY_IOS = 65
 const BLUR_INTENSITY_ANDROID = 45
 const COLLAPSED_RADIUS = 28
 
+export const CHAT_INPUT_PADDING_TOP = 10
+export const CHAT_INPUT_PADDING_BOTTOM = 10
+export const CHAT_INPUT_MIN_HEIGHT = 44
+export const CHAT_INPUT_MARGIN_BOTTOM = 8
+/** Minimum height of `ChatInput` bar above `insetsBottom` (`src/components/chat/ChatInput.tsx`). */
+export const CHAT_INPUT_BAR_HEIGHT =
+  CHAT_INPUT_PADDING_TOP +
+  CHAT_INPUT_MIN_HEIGHT +
+  CHAT_INPUT_MARGIN_BOTTOM +
+  CHAT_INPUT_PADDING_BOTTOM
+
 /**
  * BottomBarTokens
  * Single source of truth for the glassmorphic bottom navigation bar styling,

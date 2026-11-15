@@ -5,6 +5,13 @@ import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 
+const WIZARD_FOOTER_PADDING_TOP = 10
+/** Matches `AppButton` `size="sm"` height (`src/components/ui/AppButton.tsx:47`). */
+const WIZARD_FOOTER_BUTTON_HEIGHT = 38
+/** Content height above `paddingBottom` for `WizardStickyFooter`. */
+export const WIZARD_STICKY_FOOTER_CONTENT_HEIGHT =
+  WIZARD_FOOTER_PADDING_TOP + WIZARD_FOOTER_BUTTON_HEIGHT
+
 export interface WizardStickyFooterProps {
   paddingBottom: number
   children: React.ReactNode
@@ -51,7 +58,7 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BottomBarTokens.borderColor,
     paddingHorizontal: Spacing.space4,
-    paddingTop: 10,
+    paddingTop: WIZARD_FOOTER_PADDING_TOP,
     backgroundColor: 'transparent',
     ...Platform.select({
       ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },

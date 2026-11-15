@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
 import {
   View,
   Text,
@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  Keyboard,
 } from 'react-native'
+import { usePathname } from 'expo-router'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,11 +29,12 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { GlassSurface } from '../navigation/GlassSurface'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
+import { computeGlobalToastBottomOffset } from '../../constants/toastLayout'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const MAX_TOAST_WIDTH = Math.min(SCREEN_WIDTH - Spacing.space4 * 2, 360)
-const TOAST_ENTER_OFFSET_Y = -28
-const TOAST_EXIT_OFFSET_Y = -20
+export const TOAST_ENTER_OFFSET_Y = 28
+export const TOAST_EXIT_OFFSET_Y = 20
 const TOAST_EXIT_DURATION_MS = 180
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
@@ -65,7 +68,24 @@ function resolveIconColor(toast: ToastConfig): string {
 export function GlobalToast() {
   const insets = useSafeAreaInsets()
   const current = useToastStore((s) => s.current)
+  const pathname = usePathname()
   const shouldReduceMotion = useAppReducedMotion()
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height ?? 0)
+    })
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0)
+    })
+    return () => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
 
   const currentRef = useRef<ToastConfig | null>(current)
   currentRef.current = current
@@ -188,11 +208,18 @@ export function GlobalToast() {
     ? `${current.title}: ${current.message}`
     : current.title
 
+  const bottomOffset = computeGlobalToastBottomOffset({
+    pathname,
+    bottomInset: insets.bottom,
+    keyboardHeight,
+  })
+
   return (
     <View
+      testID="global-toast-host"
       style={[
         styles.host,
-        { top: insets.top + (Platform.OS === 'android' ? 12 : 8) },
+        { bottom: bottomOffset },
       ]}
       pointerEvents="box-none"
     >
