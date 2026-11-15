@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator, RefreshControl } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -49,6 +49,7 @@ import { useBuses } from '../../src/hooks/useBuses'
 import { useEquipment } from '../../src/hooks/useEquipment'
 import Animated, { interpolate, Extrapolation, useAnimatedStyle, FadeInDown } from 'react-native-reanimated'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
+import { usePullToRefresh } from '../../src/hooks/usePullToRefresh'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { useAuthStore } from '../../src/store/authStore'
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
@@ -436,6 +437,19 @@ export default function HomeScreen() {
   const { scrollHandler, scrollY } = useScrollAwareNav()
   const { navHidden } = useNavVisibility()
 
+  const handleHomeRefresh = useCallback(
+    () =>
+      Promise.all([
+        refetchListings(),
+        refetchServices(),
+        refetchParts(),
+        refetchBuses(),
+        refetchEquipment(),
+      ]),
+    [refetchListings, refetchServices, refetchParts, refetchBuses, refetchEquipment]
+  )
+  const { refreshing, onRefresh } = usePullToRefresh(handleHomeRefresh)
+
   // Actions
   const handlePost = useCallback(() => {
     if (!user) {
@@ -496,7 +510,7 @@ export default function HomeScreen() {
         glassSupport={glassSupport}
         rightElement={brandRightElement}
         title="ســوق ون"
-        titleAccent={`أهلاً بك، ${userName} 👋`}
+        titleAccent={`أهلاً بك، ${userName}`}
         heroSearchPlaceholder="عن ماذا تبحث اليوم؟ (سيارات، معدات، قطع غيار...)"
         onHeroSearchPress={handleSearch}
         navSearchPlaceholder="عن ماذا تبحث اليوم؟"
@@ -507,6 +521,7 @@ export default function HomeScreen() {
       />
 
       <Animated.ScrollView 
+        testID="home-scroll-view"
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={[s.content, { 
           paddingTop: insets.top + 114 + Spacing.space4, 
@@ -514,6 +529,14 @@ export default function HomeScreen() {
         }]}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
       >
         {/* ── Scheduled Deletion Banner ── */}
         <View style={{ paddingHorizontal: 16 }}>
