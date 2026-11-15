@@ -437,6 +437,8 @@ export default function NewEquipmentListingScreen() {
               onPickImages={formLogic.handlePickImages}
               onRemoveNewImage={formLogic.handleRemoveNewImage}
               onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
             />
           )}
 
