@@ -57,8 +57,8 @@ export const FilterGlassTokens = {
     inactiveBg: 'transparent',
     inactiveTextColor: Colors.textMuted,
     inactiveFontFamily: 'Almarai_700Bold',
-    activeBg: Colors.white,
-    activeTextColor: Colors.primary,
+    activeBg: Colors.primary,
+    activeTextColor: Colors.white,
     activeFontFamily: 'Almarai_800ExtraBold',
     activeShadow: Platform.select({
       ios: {

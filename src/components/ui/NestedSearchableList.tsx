@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
+import { matchesArabicQuery } from '../../utils/arabicNormalize';
 
 export interface SelectOption {
   id: string;
@@ -40,12 +41,9 @@ export function NestedSearchableList({
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
-    const query = searchQuery.toLowerCase().trim();
-    return data.filter((item) => {
-      const labelMatch = item.label ? item.label.toLowerCase().includes(query) : false;
-      const valueMatch = item.value ? String(item.value).toLowerCase().includes(query) : false;
-      return labelMatch || valueMatch;
-    });
+    return data.filter((item) =>
+      matchesArabicQuery(item.label, searchQuery, item.value != null ? String(item.value) : undefined)
+    );
   }, [data, searchQuery]);
 
   const renderItem = ({ item }: { item: SelectOption }) => {

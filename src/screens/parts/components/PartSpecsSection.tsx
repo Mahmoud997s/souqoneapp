@@ -7,6 +7,7 @@ import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
+import { normalizeArabic } from '../../../utils/arabicNormalize'
 import type { PartDetailViewModel } from '../../../types/partDetailViewModel.types'
 
 export interface PartSpecsSectionProps {
@@ -28,39 +29,39 @@ export function hasMatchingPartSpecs(
   searchQuery?: string
 ): boolean {
   if (!searchQuery || !searchQuery.trim()) return true
-  const q = searchQuery.trim().toLowerCase()
+  const q = normalizeArabic(searchQuery)
 
   const matchCategory =
     Boolean(vm.partCategoryLabel) &&
-    (vm.partCategoryLabel.toLowerCase().includes(q) || 'فئة القطعة'.includes(q))
+    (normalizeArabic(vm.partCategoryLabel).includes(q) || normalizeArabic('فئة القطعة').includes(q))
   const matchOriginality =
     Boolean(vm.originalityLabel) &&
-    (vm.originalityLabel.toLowerCase().includes(q) || 'النوع'.includes(q))
+    (normalizeArabic(vm.originalityLabel).includes(q) || normalizeArabic('النوع').includes(q))
   const matchPartNumber =
-    Boolean(vm.partNumber && (vm.partNumber.toLowerCase().includes(q) || 'رقم القطعة الأصلي'.includes(q)))
+    Boolean(vm.partNumber && (normalizeArabic(vm.partNumber).includes(q) || normalizeArabic('رقم القطعة الأصلي').includes(q)))
   const matchQuantity =
-    Boolean(vm.quantityLabel && (vm.quantityLabel.toLowerCase().includes(q) || 'الكمية المتوفرة'.includes(q)))
+    Boolean(vm.quantityLabel && (normalizeArabic(vm.quantityLabel).includes(q) || normalizeArabic('الكمية المتوفرة').includes(q)))
   const matchWarranty =
-    Boolean(vm.warrantyDurationLabel && (vm.warrantyDurationLabel.toLowerCase().includes(q) || 'الضمان'.includes(q)))
+    Boolean(vm.warrantyDurationLabel && (normalizeArabic(vm.warrantyDurationLabel).includes(q) || normalizeArabic('الضمان').includes(q)))
 
   const matchYearRange =
-    Boolean(vm.yearRangeLabel && (vm.yearRangeLabel.toLowerCase().includes(q) || 'سنوات الصنع'.includes(q)))
+    Boolean(vm.yearRangeLabel && (normalizeArabic(vm.yearRangeLabel).includes(q) || normalizeArabic('سنوات الصنع').includes(q)))
   const matchVehicleTypes =
     Boolean(vm.compatibleVehicleTypesLabels && vm.compatibleVehicleTypesLabels.length > 0) &&
-    (vm.compatibleVehicleTypesLabels.some((t) => t.toLowerCase().includes(q)) ||
-      'أنواع المركبات'.includes(q))
+    (vm.compatibleVehicleTypesLabels.some((t) => normalizeArabic(t).includes(q)) ||
+      normalizeArabic('أنواع المركبات').includes(q))
 
   const matchMakes =
     (Boolean(vm.compatibleMakesLabels && vm.compatibleMakesLabels.length > 0) ||
       Boolean(vm.compatibleMakes && vm.compatibleMakes.length > 0)) &&
-    ('الماركات المتوافقة'.includes(q) ||
-      (vm.compatibleMakesLabels || []).some((m) => m.toLowerCase().includes(q)) ||
-      (vm.compatibleMakes || []).some((m) => m.toLowerCase().includes(q)))
+    (normalizeArabic('الماركات المتوافقة').includes(q) ||
+      (vm.compatibleMakesLabels || []).some((m) => normalizeArabic(m).includes(q)) ||
+      (vm.compatibleMakes || []).some((m) => normalizeArabic(m).includes(q)))
 
   const matchModels =
     Boolean(vm.compatibleModels && vm.compatibleModels.length > 0) &&
-    ('الموديلات المتوافقة'.includes(q) ||
-      vm.compatibleModels.some((m) => m.toLowerCase().includes(q)))
+    (normalizeArabic('الموديلات المتوافقة').includes(q) ||
+      vm.compatibleModels.some((m) => normalizeArabic(m).includes(q)))
 
   return (
     matchCategory ||
@@ -88,22 +89,22 @@ export function PartSpecsSection({ vm, searchQuery }: PartSpecsSectionProps) {
   const [makesExpanded, setMakesExpanded] = useState(false)
   const [modelsExpanded, setModelsExpanded] = useState(false)
 
-  const q = searchQuery ? searchQuery.trim().toLowerCase() : ''
+  const q = searchQuery ? normalizeArabic(searchQuery) : ''
 
   // Row match checks for Card 1 (Basic Technical Specifications)
   // Per R2: condition and negotiable are canonical in header; removed here to prevent duplication.
   const showCategory =
     Boolean(vm.partCategoryLabel) &&
-    (!q || vm.partCategoryLabel.toLowerCase().includes(q) || 'فئة القطعة'.includes(q))
+    (!q || normalizeArabic(vm.partCategoryLabel).includes(q) || normalizeArabic('فئة القطعة').includes(q))
   const showOriginality =
     Boolean(vm.originalityLabel) &&
-    (!q || vm.originalityLabel.toLowerCase().includes(q) || 'النوع'.includes(q))
+    (!q || normalizeArabic(vm.originalityLabel).includes(q) || normalizeArabic('النوع').includes(q))
   const showPartNumber =
-    Boolean(vm.partNumber && (!q || vm.partNumber.toLowerCase().includes(q) || 'رقم القطعة الأصلي'.includes(q)))
+    Boolean(vm.partNumber && (!q || normalizeArabic(vm.partNumber).includes(q) || normalizeArabic('رقم القطعة الأصلي').includes(q)))
   const showQuantity =
-    Boolean(vm.quantityLabel && (!q || vm.quantityLabel.toLowerCase().includes(q) || 'الكمية المتوفرة'.includes(q)))
+    Boolean(vm.quantityLabel && (!q || normalizeArabic(vm.quantityLabel).includes(q) || normalizeArabic('الكمية المتوفرة').includes(q)))
   const showWarranty =
-    Boolean(vm.warrantyDurationLabel && (!q || vm.warrantyDurationLabel.toLowerCase().includes(q) || 'الضمان'.includes(q)))
+    Boolean(vm.warrantyDurationLabel && (!q || normalizeArabic(vm.warrantyDurationLabel).includes(q) || normalizeArabic('الضمان').includes(q)))
 
   const hasBasicSection =
     showCategory ||
@@ -114,28 +115,28 @@ export function PartSpecsSection({ vm, searchQuery }: PartSpecsSectionProps) {
 
   // Match checks for Card 2 (Vehicle Compatibility)
   const showYearRange =
-    Boolean(vm.yearRangeLabel && (!q || vm.yearRangeLabel.toLowerCase().includes(q) || 'سنوات الصنع'.includes(q)))
+    Boolean(vm.yearRangeLabel && (!q || normalizeArabic(vm.yearRangeLabel).includes(q) || normalizeArabic('سنوات الصنع').includes(q)))
   const showVehicleTypes =
     Boolean(vm.compatibleVehicleTypesLabels && vm.compatibleVehicleTypesLabels.length > 0) &&
     (!q ||
-      vm.compatibleVehicleTypesLabels.some((t) => t.toLowerCase().includes(q)) ||
-      'أنواع المركبات'.includes(q))
+      vm.compatibleVehicleTypesLabels.some((t) => normalizeArabic(t).includes(q)) ||
+      normalizeArabic('أنواع المركبات').includes(q))
 
   const allMakes = vm.compatibleMakesLabels || []
   const filteredMakes =
-    !q || 'الماركات المتوافقة'.includes(q)
+    !q || normalizeArabic('الماركات المتوافقة').includes(q)
       ? allMakes
       : allMakes.filter((m, i) => {
           const makeKey = vm.compatibleMakes?.[i] || ''
-          return m.toLowerCase().includes(q) || makeKey.toLowerCase().includes(q)
+          return normalizeArabic(m).includes(q) || normalizeArabic(makeKey).includes(q)
         })
   const hasMakes = filteredMakes.length > 0
 
   const allModels = vm.compatibleModels || []
   const filteredModels =
-    !q || 'الموديلات المتوافقة'.includes(q)
+    !q || normalizeArabic('الموديلات المتوافقة').includes(q)
       ? allModels
-      : allModels.filter((m) => m.toLowerCase().includes(q))
+      : allModels.filter((m) => normalizeArabic(m).includes(q))
   const hasModels = filteredModels.length > 0
 
   const hasCompatibilitySection =

@@ -24,15 +24,7 @@ import { invalidateProfileQueries } from '../utils/profileQueryInvalidation'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
 import { showErrorDialog } from '../utils/showErrorDialog'
 import { getPublishRateLimitErrorMessage } from '../utils/publishRateLimitError'
-
-function normalizeArabic(text: string): string {
-  return text
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي')
-    .toLowerCase()
-    .trim()
-}
+import { normalizeArabic } from '../utils/arabicNormalize'
 
 const profileMediaAdapter: PermissionAdapter = {
   kind: 'mediaLibrary',

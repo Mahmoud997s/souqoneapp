@@ -19,6 +19,7 @@ import { Radius } from '../../constants/radius'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 import { logWarn } from '../../utils/safeLog'
+import { normalizeArabic } from '../../utils/arabicNormalize'
 
 interface GovernorateWilayaSelectProps {
   governorateId?: number | null
@@ -31,15 +32,6 @@ interface GovernorateWilayaSelectProps {
   cityError?: string
   fallbackGovName?: string
   fallbackCityName?: string
-}
-
-function normalizeArabic(text: string): string {
-  return text
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي')
-    .toLowerCase()
-    .trim()
 }
 
 export function GovernorateWilayaSelect({

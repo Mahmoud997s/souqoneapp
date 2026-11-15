@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
+import { matchesArabicQuery } from '../../utils/arabicNormalize'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
@@ -227,14 +228,11 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const filteredSpecsSections = useMemo(() => {
     if (!vm) return []
     if (!searchQuery.trim()) return vm.specsSections
-    const q = searchQuery.trim().toLowerCase()
     return vm.specsSections
       .map((section) => ({
         ...section,
-        items: section.items.filter(
-          (item) =>
-            item.label.toLowerCase().includes(q) ||
-            item.value.toLowerCase().includes(q)
+        items: section.items.filter((item) =>
+          matchesArabicQuery(item.label, searchQuery, item.value)
         ),
       }))
       .filter((section) => section.items.length > 0)

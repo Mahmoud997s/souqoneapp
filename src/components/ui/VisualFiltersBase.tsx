@@ -285,7 +285,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
         style={[
           s.segmentTab,
           isFixedTabs && s.fixedSegmentTab,
-          isActive && s.segmentTabActive,
+          isActive && [s.segmentTabActive, { backgroundColor: activeColor }],
         ]}
         onPress={() => handleTabPress(tab.id)}
       >
@@ -293,14 +293,14 @@ export function VisualFiltersBase<TTabId extends string = string>({
           <Ionicons
             name={tab.icon}
             size={14}
-            color={isActive ? activeColor : FilterGlassTokens.tab.inactiveTextColor}
+            color={isActive ? FilterGlassTokens.tab.activeTextColor : FilterGlassTokens.tab.inactiveTextColor}
             style={s.tabIcon}
           />
         )}
         <Text
           style={[
             s.segmentTabText,
-            isActive && [s.segmentTabTextActive, { color: activeColor }],
+            isActive && [s.segmentTabTextActive, { color: FilterGlassTokens.tab.activeTextColor }],
           ]}
           numberOfLines={1}
         >

@@ -16,6 +16,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { OMAN_LOCATIONS, getWilayatsForGovernorate } from '../../constants/locations'
+import { normalizeArabic } from '../../utils/arabicNormalize'
 
 interface LocationPickerProps {
   governorate: string
@@ -27,16 +28,6 @@ interface LocationPickerProps {
   cityLabelText?: string
   govError?: string
   cityError?: string
-}
-
-// Normalize Arabic text for easier search matching
-function normalizeArabic(text: string): string {
-  return text
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي')
-    .toLowerCase()
-    .trim()
 }
 
 export function LocationPicker({

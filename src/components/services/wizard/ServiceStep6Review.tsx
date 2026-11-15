@@ -448,12 +448,12 @@ const s = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.paleMint,
   },
   badgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#1D4ED8',
+    color: Colors.primary,
   },
   homeServiceBadge: {
     flexDirection: 'row',
@@ -553,7 +553,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 18,
     lineHeight: 24,
-    color: Colors.text,
+    color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
