@@ -17,6 +17,7 @@ import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { ResetFilterButton } from './ResetFilterButton';
 import { AppButton } from './AppButton';
+import { matchesArabicQuery } from '../../utils/arabicNormalize';
 
 export interface MultiSelectOption {
   id: string;
@@ -56,10 +57,7 @@ export function MultiSelectSearchModal({
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
-    const query = searchQuery.toLowerCase().trim();
-    return data.filter((item) =>
-      item.label.toLowerCase().includes(query)
-    );
+    return data.filter((item) => matchesArabicQuery(item.label, searchQuery));
   }, [data, searchQuery]);
 
   const handleClose = () => {
