@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Linking, Dimensions, Platform, Modal, FlatList
+  ActivityIndicator, Linking, Dimensions, Platform
 } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, router } from 'expo-router'
@@ -21,6 +21,7 @@ import { formatOmanLocation } from '../../src/utils/omanLocationMapper';
 import { useCarWizardStore } from '../../src/store/carWizardStore';
 import { useListingContact } from '../../src/hooks/listing-detail/useListingContact';
 import { VerifiedBadge } from '../../src/components/ui/VerifiedBadge';
+import { ImageViewerModal } from '../../src/components/listing-detail/ImageViewerModal';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '../../src/components/ui/Map';
 
@@ -57,13 +58,6 @@ export default function ListingDetailScreen() {
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false)
   const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-
-  const viewConfigRef = useRef({ itemVisiblePercentThreshold: 50 }).current;
-  const onViewRef = useRef((info: any) => {
-    if (info.viewableItems.length > 0 && info.viewableItems[0].index != null) {
-      setImgIdx(info.viewableItems[0].index);
-    }
-  }).current;
 
   if (isLoading) {
     return (
@@ -666,38 +660,18 @@ export default function ListingDetailScreen() {
         )}
       </View>
 
-      {/* ── FULLSCREEN GALLERY MODAL ── */}
-      <Modal visible={isGalleryOpen} transparent={true} animationType="fade" onRequestClose={() => setIsGalleryOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
-          <TouchableOpacity style={{ position: 'absolute', top: insets.top + 16, start: 16, zIndex: 10, padding: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20 }} onPress={() => setIsGalleryOpen(false)}>
-            <Ionicons name="close" size={24} color="#fff" />
-          </TouchableOpacity>
-          <FlatList
-            data={images}
-            keyExtractor={(_, i) => String(i)}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            initialScrollIndex={imgIdx}
-            getItemLayout={(_, index) => ({
-              length: SW,
-              offset: SW * index,
-              index })}
-            onViewableItemsChanged={onViewRef}
-            viewabilityConfig={viewConfigRef}
-            renderItem={({ item }) => (
-              <View style={{ width: SW, height: '100%', justifyContent: 'center' }}>
-                <Image source={{ uri: item }} style={{ width: '100%', height: SW * 1.5 }} contentFit="contain" transition={200} />
-              </View>
-            )}
-          />
-          {images.length > 1 && (
-            <View style={{ position: 'absolute', bottom: insets.bottom + 40, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 }}>
-              <Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Almarai_700Bold',  }}>{imgIdx + 1} / {images.length}</Text>
-            </View>
-          )}
-        </View>
-      </Modal>
+      {/* ── FULLSCREEN GALLERY MODAL (Unified ImageViewerModal) ── */}
+      <ImageViewerModal
+        visible={isGalleryOpen}
+        images={images.map((url: string, idx: number) => ({
+          id: String(idx),
+          url,
+          order: idx,
+          isPrimary: idx === 0,
+        }))}
+        initialIndex={imgIdx}
+        onClose={() => setIsGalleryOpen(false)}
+      />
 
     </View>
   )

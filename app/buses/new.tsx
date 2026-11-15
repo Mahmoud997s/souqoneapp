@@ -33,6 +33,7 @@ import { useBusFormLogic } from '../../src/hooks/useBusFormLogic'
 import { validateStep } from '../../src/hooks/useBusValidation'
 import { buildBusPayload } from '../../src/utils/busPayload'
 import { logWarn } from '../../src/utils/safeLog'
+import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
 import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
@@ -276,14 +277,15 @@ export default function NewBusListingScreen() {
             submitLockRef.current = false
             let imagesSuccess = true
             try {
-              if (newImageUrls.length > 0) {
-                await busesApi.addImages(editListingId, newImageUrls)
-              }
-              if (data.removedImageIds && data.removedImageIds.length > 0) {
-                for (const imgId of data.removedImageIds) {
-                  await busesApi.removeImage(imgId)
-                }
-              }
+              await reconcileEditSectionImages({
+                listingId: editListingId,
+                newImageUrls,
+                existingImages: data.existingImages,
+                removedImageIds: data.removedImageIds,
+                attachNew: (id, urls) => busesApi.addImages(id, urls),
+                reorderExisting: (id, imageIds) => uploadsApi.reorderBusImages(id, imageIds),
+                removeExisting: (_id, imgId) => busesApi.removeImage(imgId),
+              })
             } catch (err) {
               imagesSuccess = false
               logWarn('BusesNew:UpdateImages', err)

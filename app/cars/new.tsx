@@ -33,6 +33,7 @@ import { invalidateCarListingQueries } from '../../src/utils/listing-detail/quer
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
 import { CarStep1Type } from '../../src/components/cars/wizard/CarStep1Type'
@@ -232,22 +233,21 @@ export default function NewCarListingScreen() {
             submitLockRef.current = false
             let imagesSuccess = true
             try {
-              if (newImageUrls.length > 0) {
-                for (const url of newImageUrls) {
-                  await uploadsApi.attachListingImageUrl(formData.editListingId!, url)
-                }
-              }
-              if (formData.removedImageIds && formData.removedImageIds.length > 0) {
-                for (const imgId of formData.removedImageIds) {
-                  await uploadsApi.removeListingImage(formData.editListingId!, imgId)
-                }
-              }
-              if (formData.existingImages && formData.existingImages.length > 0) {
-                const existingIds = formData.existingImages.map((img: any) => img.id).filter(Boolean)
-                if (existingIds.length > 0) {
-                  await uploadsApi.reorderImages(formData.editListingId!, existingIds)
-                }
-              }
+              await reconcileEditSectionImages({
+                listingId: formData.editListingId!,
+                newImageUrls,
+                existingImages: formData.existingImages,
+                removedImageIds: formData.removedImageIds,
+                attachNew: async (id, urls) => {
+                  const responses: unknown[] = []
+                  for (const url of urls) {
+                    responses.push(await uploadsApi.attachListingImageUrl(id, url))
+                  }
+                  return responses
+                },
+                reorderExisting: (id, imageIds) => uploadsApi.reorderImages(id, imageIds),
+                removeExisting: (id, imgId) => uploadsApi.removeListingImage(id, imgId),
+              })
             } catch (err) {
               imagesSuccess = false
               logWarn('CarsNew:UpdateImages', err)

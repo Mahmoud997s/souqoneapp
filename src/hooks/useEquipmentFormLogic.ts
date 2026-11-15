@@ -104,6 +104,20 @@ export function useEquipmentFormLogic({
     }
   }
 
+  const handleMakePrimaryNew = (index: number) => {
+    if (index <= 0 || index >= images.length) return
+    const selected = images[index]
+    const updated = [selected, ...images.filter((_, i) => i !== index)]
+    onUpdateImages(updated)
+  }
+
+  const handleMakePrimaryExisting = (index: number) => {
+    if (!onUpdateExistingImages || index <= 0 || index >= existingImages.length) return
+    const selected = existingImages[index]
+    const updated = [selected, ...existingImages.filter((_, i) => i !== index)]
+    onUpdateExistingImages(updated)
+  }
+
   // ── Features & Tags ──
   const handleToggleFeature = (feature: string) => {
     if (features.includes(feature)) {
@@ -133,6 +147,8 @@ export function useEquipmentFormLogic({
     handlePickImages,
     handleRemoveNewImage,
     handleRemoveExistingImage,
+    handleMakePrimaryNew,
+    handleMakePrimaryExisting,
     handleToggleFeature,
     handleAddCustomFeature,
     handleRemoveFeature,

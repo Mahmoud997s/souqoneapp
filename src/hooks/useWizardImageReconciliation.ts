@@ -350,6 +350,7 @@ export function useWizardImageReconciliation({
           }
 
           // ── 2. Attach Uploaded URLs (Edit Mode or Vertical-Specific URL Attach) ──
+          const attachedIds: string[] = []
           if (
             params.isEditMode &&
             workingLedger.listingId &&
@@ -406,12 +407,18 @@ export function useWizardImageReconciliation({
                 const opKey = makeOpKey.attach(rec.remoteUrl)
 
                 try {
-                  await adapter.attachImageUrl(
+                  const attachRes = await adapter.attachImageUrl(
                     listingId,
                     rec.remoteUrl,
                     rec.isPrimary,
                     signal
                   )
+                  const maybeId =
+                    (attachRes as { data?: { id?: unknown }; id?: unknown } | null | undefined)?.data?.id ??
+                    (attachRes as { id?: unknown } | null | undefined)?.id
+                  if (typeof maybeId === 'string' && maybeId.length > 0 && !attachedIds.includes(maybeId)) {
+                    attachedIds.push(maybeId)
+                  }
                   if (signal.aborted) {
                     const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
                     workingLedger.failedOperations[opKey] = {
@@ -451,8 +458,66 @@ export function useWizardImageReconciliation({
             }
           }
 
-          // ── 3. Delete Removed Images (Edit Mode) ──
+          // ── 2b. Reorder Existing Images (Edit Mode) ──
+          const hasUploadFailure = Object.values(workingLedger.failedOperations).some(
+            (op) => op.type === 'upload'
+          )
           if (
+            !hasUploadFailure &&
+            params.isEditMode &&
+            typeof adapter.reorderImages === 'function' &&
+            workingLedger.listingId &&
+            !signal.aborted
+          ) {
+            const existingIds = (params.existingImages ?? [])
+              .map((img) => (typeof img === 'string' ? undefined : img?.id))
+              .filter((id): id is string => typeof id === 'string' && id.length > 0)
+
+            if (existingIds.length > 0) {
+              const orderedIds = [
+                ...existingIds,
+                ...attachedIds.filter((id) => !existingIds.includes(id)),
+              ]
+              const opKey = `reorder:${workingLedger.listingId}`
+              try {
+                await adapter.reorderImages(workingLedger.listingId, orderedIds, signal)
+                if (signal.aborted) {
+                  const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                  workingLedger.failedOperations[opKey] = {
+                    key: opKey,
+                    type: 'reorder',
+                    error: 'تم إلغاء ترتيب الصور أثناء الاتصال، يرجى إعادة المحاولة',
+                    attempts: Math.min(priorAttempts + 1, 10),
+                    lastAttemptAt: Date.now(),
+                    meta: { listingId: workingLedger.listingId, imageIds: orderedIds },
+                  }
+                } else {
+                  delete workingLedger.failedOperations[opKey]
+                }
+              } catch (err: any) {
+                const isAbort = signal.aborted || err?.name === 'AbortError' || err?.name === 'CanceledError'
+                logWarn('useWizardImageReconciliation:reorder', err)
+                const priorAttempts = workingLedger.failedOperations[opKey]?.attempts || 0
+                workingLedger.failedOperations[opKey] = {
+                  key: opKey,
+                  type: 'reorder',
+                  error: isAbort
+                    ? 'تم إلغاء ترتيب الصور أثناء الاتصال، يرجى إعادة المحاولة'
+                    : sanitizeErrorMessage(err, 'فشل ترتيب الصور'),
+                  attempts: Math.min(priorAttempts + 1, 10),
+                  lastAttemptAt: Date.now(),
+                  meta: { listingId: workingLedger.listingId, imageIds: orderedIds },
+                }
+              }
+            }
+          }
+
+          // ── 3. Delete Removed Images (Edit Mode — only if upload & reorder succeeded) ──
+          const hasUploadOrReorderFailure = Object.values(workingLedger.failedOperations).some(
+            (op) => op.type === 'upload' || op.type === 'reorder'
+          )
+          if (
+            !hasUploadOrReorderFailure &&
             params.isEditMode &&
             typeof adapter.deleteImage === 'function' &&
             !signal.aborted
