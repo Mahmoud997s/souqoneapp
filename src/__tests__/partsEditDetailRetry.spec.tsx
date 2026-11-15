@@ -89,6 +89,7 @@ describe('Parts Edit Detail Retry & State Handling (D-236)', () => {
     // Wait for failure
     await waitFor(() => {
       expect(screen.getByTestId('detail-state-error')).toBeTruthy()
+      expect(screen.getByText('تعذر تحميل الإعلان')).toBeTruthy()
     })
 
     // Retry button must be present

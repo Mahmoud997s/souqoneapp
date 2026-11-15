@@ -78,6 +78,16 @@ function makeAxios404() {
   })
 }
 
+function makeAxios500() {
+  return new AxiosError('Server Error', 'ERR_BAD_RESPONSE', undefined, undefined, {
+    status: 500,
+    statusText: 'Internal Server Error',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+    data: {},
+  })
+}
+
 function makeAxiosOffline() {
   return new AxiosError('Network Error', 'ERR_NETWORK')
 }
@@ -104,6 +114,12 @@ describe('D-346 legacy redirect screens', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(expected)
       })
+      expect(listingsApi.getById).not.toHaveBeenCalled()
+      expect(busesApi.getById).not.toHaveBeenCalled()
+      expect(equipmentApi.getById).not.toHaveBeenCalled()
+      expect(equipmentApi.getOperatorById).not.toHaveBeenCalled()
+      expect(partsApi.getById).not.toHaveBeenCalled()
+      expect(servicesApi.getById).not.toHaveBeenCalled()
     })
 
     it('probes APIs on missing type and redirects to matching vertical', async () => {
@@ -157,12 +173,121 @@ describe('D-346 legacy redirect screens', () => {
       ['bus', '/buses/edit/e-1'],
       ['equipment', '/equipment/edit/e-1'],
       ['operator', '/equipment/operators/edit/e-1'],
-    ])('redirects directly for type=%s -> %s', async (type, expected) => {
+    ])('redirects directly for type=%s -> %s with ZERO api calls', async (type, expected) => {
       mockUseParams.mockReturnValue({ id: 'e-1', type })
       await render(<LegacyPostEditRedirect />)
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(expected)
       })
+      expect(listingsApi.getById).not.toHaveBeenCalled()
+      expect(busesApi.getById).not.toHaveBeenCalled()
+      expect(equipmentApi.getById).not.toHaveBeenCalled()
+      expect(equipmentApi.getOperatorById).not.toHaveBeenCalled()
+      expect(partsApi.getById).not.toHaveBeenCalled()
+      expect(servicesApi.getById).not.toHaveBeenCalled()
+    })
+
+    it.each(['jobs', 'transport'])(
+      'redirects parked type=%s -> /(tabs) with ZERO api calls',
+      async (type) => {
+        mockUseParams.mockReturnValue({ id: 'parked-1', type })
+        await render(<LegacyPostEditRedirect />)
+        await waitFor(() => {
+          expect(mockReplace).toHaveBeenCalledWith('/(tabs)')
+        })
+        expect(listingsApi.getById).not.toHaveBeenCalled()
+        expect(busesApi.getById).not.toHaveBeenCalled()
+        expect(equipmentApi.getById).not.toHaveBeenCalled()
+        expect(equipmentApi.getOperatorById).not.toHaveBeenCalled()
+        expect(partsApi.getById).not.toHaveBeenCalled()
+        expect(servicesApi.getById).not.toHaveBeenCalled()
+      }
+    )
+
+    it('shows notFound when /post/edit/:id receives 404', async () => {
+      mockUseParams.mockReturnValue({ id: 'missing-edit', type: 'parts' })
+      ;(partsApi.getById as jest.Mock).mockRejectedValueOnce(makeAxios404())
+
+      const screen = await render(<LegacyPostEditRedirect />)
+      await waitFor(() => {
+        expect(screen.getByTestId('detail-state-not-found')).toBeTruthy()
+      })
+      expect(mockReplace).not.toHaveBeenCalled()
+    })
+
+    it('shows serverError when /post/edit/:id receives 500', async () => {
+      mockUseParams.mockReturnValue({ id: 'srv-500', type: 'services' })
+      ;(servicesApi.getById as jest.Mock).mockRejectedValueOnce(makeAxios500())
+
+      const screen = await render(<LegacyPostEditRedirect />)
+      await waitFor(() => {
+        expect(screen.getByTestId('detail-state-serverError')).toBeTruthy()
+      })
+      expect(mockReplace).not.toHaveBeenCalled()
+    })
+
+    it('shows offline state on /post/edit/:id and recovers on retry', async () => {
+      mockUseParams.mockReturnValue({ id: 'part-retry', type: 'parts' })
+      ;(partsApi.getById as jest.Mock)
+        .mockRejectedValueOnce(makeAxiosOffline())
+        .mockResolvedValueOnce({ id: 'part-retry', title: 'Clutch', price: 45 })
+
+      const screen = await render(<LegacyPostEditRedirect />)
+      await waitFor(() => {
+        expect(screen.getByTestId('detail-state-offline')).toBeTruthy()
+      })
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('retry-btn'))
+      })
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith('/parts/new')
+      })
+    })
+
+    it('stale-request guard: ignores late resolution after unmount or id change', async () => {
+      let resolveFirst!: (val: unknown) => void
+      const firstPromise = new Promise((res) => {
+        resolveFirst = res
+      })
+      mockUseParams.mockReturnValue({ id: 'part-old', type: 'parts' })
+      ;(partsApi.getById as jest.Mock).mockReturnValueOnce(firstPromise)
+
+      const screen = await render(<LegacyPostEditRedirect />)
+      await screen.unmount()
+
+      await act(async () => {
+        resolveFirst({ id: 'part-old', title: 'Old Part', price: 10 })
+      })
+      expect(mockReplace).not.toHaveBeenCalled()
+
+      // Id change mid-flight supersedes the stale request
+      let resolveSecondOld!: (val: unknown) => void
+      mockUseParams.mockReturnValue({ id: 'part-a', type: 'parts' })
+      ;(partsApi.getById as jest.Mock).mockReturnValueOnce(
+        new Promise((res) => {
+          resolveSecondOld = res
+        })
+      )
+      const screen2 = await render(<LegacyPostEditRedirect />)
+
+      mockUseParams.mockReturnValue({ id: 'part-b', type: 'parts' })
+      ;(partsApi.getById as jest.Mock).mockResolvedValueOnce({
+        id: 'part-b',
+        title: 'Part B',
+        price: 20,
+      })
+      await screen2.rerender(<LegacyPostEditRedirect />)
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith('/parts/new')
+      })
+      expect(mockReplace).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        resolveSecondOld({ id: 'part-a', title: 'Part A', price: 15 })
+      })
+      expect(mockReplace).toHaveBeenCalledTimes(1)
     })
 
     it('fetches and hydrates car edit state before redirecting', async () => {

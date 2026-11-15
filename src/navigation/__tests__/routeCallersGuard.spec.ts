@@ -152,4 +152,130 @@ describe('D-346 route caller guards & edit identity', () => {
       expect(mockPush).toHaveBeenLastCalledWith(detailRouteTarget)
     }
   })
+
+  it('frozen-payload assertion: startEdit produces exact literal store payload for parts and services', () => {
+    const fixedPartRaw: Parameters<typeof startEdit>[1] = {
+      id: 'part-frozen-1',
+      listingType: 'SALE',
+      title: 'فلتر هواء أصلي',
+      description: 'مناسب لكامري 2020-2024',
+      partCategory: 'ENGINE',
+      condition: 'LIKE_NEW',
+      partNumber: 'AF-909',
+      compatibleMakes: ['Toyota'],
+      compatibleModels: ['Camry'],
+      yearFrom: 2020,
+      yearTo: 2024,
+      isOriginal: true,
+      hasWarranty: true,
+      warrantyDuration: 'SIX_MONTHS',
+      quantity: 'TWO_TO_FIVE',
+      compatibleVehicleTypes: ['CAR'],
+      price: 28,
+      currency: 'USD',
+      isPriceNegotiable: true,
+      whatsappEnabled: true,
+      governorateId: 1,
+      wilayaId: 10,
+      governorateRef: { nameAr: 'مسقط' },
+      wilayaRef: { nameAr: 'السيب' },
+      latitude: 23.6,
+      longitude: 58.2,
+      images: [{ id: 'img-1', url: 'https://cdn/part.jpg' }],
+    }
+
+    const partRoute = startEdit('SPARE_PART', fixedPartRaw)
+    expect(partRoute).toBe('/parts/new')
+    const partState = usePartWizardStore.getState().formData
+    expect(partState.editMode).toBe(true)
+    expect(partState.editListingId).toBe('part-frozen-1')
+    expect(partState).toMatchObject({
+      editMode: true,
+      editListingId: 'part-frozen-1',
+      listingType: 'SPARE_PART_SALE',
+      title: 'فلتر هواء أصلي',
+      description: 'مناسب لكامري 2020-2024',
+      partCategory: 'ENGINE',
+      condition: 'NEW',
+      partNumber: 'AF-909',
+      compatibleMakes: ['Toyota'],
+      compatibleModels: ['Camry'],
+      yearFrom: 2020,
+      yearTo: 2024,
+      isOriginal: true,
+      hasWarranty: true,
+      warrantyDuration: 'SIX_MONTHS',
+      quantity: 'TWO_TO_FIVE',
+      compatibleVehicleTypes: ['CAR'],
+      price: 28,
+      currency: 'OMR',
+      isPriceNegotiable: true,
+      whatsappEnabled: true,
+      governorateId: 1,
+      wilayaId: 10,
+      governorateNameAr: 'مسقط',
+      wilayaNameAr: 'السيب',
+      latitude: 23.6,
+      longitude: 58.2,
+      existingImages: [{ id: 'img-1', url: 'https://cdn/part.jpg' }],
+    })
+
+    const fixedServiceRaw = {
+      id: 'srv-frozen-1',
+      title: 'تبديل زيوت وفلاتر',
+      description: 'خدمة سريعة في الموقع',
+      serviceType: 'MAINTENANCE',
+      providerType: 'WORKSHOP',
+      providerName: 'ورشة النخبة',
+      specializations: ['TOYOTA', 'LEXUS'],
+      isHomeService: true,
+      workingHoursOpen: '08:00',
+      workingHoursClose: '20:00',
+      workingDays: ['SUN', 'MON'],
+      priceFrom: 12,
+      priceTo: 25,
+      currency: 'OMR',
+      whatsappEnabled: true,
+      website: 'https://elite.om',
+      governorateId: 2,
+      wilayaId: 20,
+      governorateRef: { nameAr: 'شمال الباطنة' },
+      wilayaRef: { nameAr: 'صحار' },
+      address: 'المنطقة الصناعية',
+      latitude: 24.3,
+      longitude: 56.7,
+      images: [{ id: 's-img-1', url: 'https://cdn/srv.jpg' }],
+    }
+
+    const serviceRoute = startEdit('CAR_SERVICE', fixedServiceRaw)
+    expect(serviceRoute).toBe('/services/new')
+    const serviceState = useServiceWizardStore.getState().formData
+    expect(serviceState).toMatchObject({
+      editMode: true,
+      editListingId: 'srv-frozen-1',
+      title: 'تبديل زيوت وفلاتر',
+      description: 'خدمة سريعة في الموقع',
+      serviceType: 'MAINTENANCE',
+      providerType: 'WORKSHOP',
+      providerName: 'ورشة النخبة',
+      specializations: ['TOYOTA', 'LEXUS'],
+      isHomeService: true,
+      workingHoursOpen: '08:00',
+      workingHoursClose: '20:00',
+      workingDays: ['SUN', 'MON'],
+      priceFrom: 12,
+      priceTo: 25,
+      currency: 'OMR',
+      whatsappEnabled: true,
+      website: 'https://elite.om',
+      governorateId: 2,
+      wilayaId: 20,
+      governorateNameAr: 'شمال الباطنة',
+      wilayaNameAr: 'صحار',
+      address: 'المنطقة الصناعية',
+      latitude: 24.3,
+      longitude: 56.7,
+      existingImages: [{ id: 's-img-1', url: 'https://cdn/srv.jpg' }],
+    })
+  })
 })
