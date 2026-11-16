@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
@@ -15,41 +16,99 @@ import { VerifiedBadge } from '../../ui/VerifiedBadge'
 export interface OperatorCardHeaderProps {
   name: string
   avatarUrl?: string | null
+  images?: string[]
   isVerified: boolean
+  isOnline?: boolean
+  operatorTypeLabel?: string | null
   locationDisplay: string
   isOwnerMode: boolean
   displayPrice: string
   actionMenu?: React.ReactNode
+  isFavorite?: boolean
+  onToggleFavorite?: (e: any) => void
 }
 
 /**
  * OperatorCardHeader
- * Top row of OperatorCard rendering circular avatar with fallback, verified badge,
- * name, location, and owner action menu or rate badge.
+ * Top row of OperatorCard rendering rounded photo/avatar with location pill,
+ * optional carousel arrows (>1 image), verified badge, name, specialty,
+ * live "متصل الآن" pill (only when isOnline===true), price badge, and favorite heart.
  */
 export function OperatorCardHeader({
   name,
   avatarUrl,
+  images = [],
   isVerified,
+  isOnline = false,
+  operatorTypeLabel,
   locationDisplay,
   isOwnerMode,
   displayPrice,
   actionMenu,
+  isFavorite = false,
+  onToggleFavorite,
 }: OperatorCardHeaderProps) {
+  const [imageIndex, setImageIndex] = useState(0)
+  const photoList = images.length > 0 ? images : avatarUrl ? [avatarUrl] : []
+  const hasMultiplePhotos = photoList.length > 1
+  const activePhoto = photoList[imageIndex] ?? avatarUrl ?? null
+
+  const handlePrevPhoto = (e: any) => {
+    e.stopPropagation?.()
+    setImageIndex((prev) => (prev - 1 + photoList.length) % photoList.length)
+  }
+
+  const handleNextPhoto = (e: any) => {
+    e.stopPropagation?.()
+    setImageIndex((prev) => (prev + 1) % photoList.length)
+  }
+
   return (
     <View style={s.topRow}>
-      <View style={s.avatarContainer}>
-        {avatarUrl ? (
+      <View style={s.photoContainer}>
+        {activePhoto ? (
           <Image
-            source={{ uri: avatarUrl }}
+            source={{ uri: activePhoto }}
             style={s.avatar}
             contentFit="cover"
             testID="operator-avatar"
           />
         ) : (
           <View style={s.avatarFallback} testID="operator-avatar-fallback">
-            <Ionicons name="person" size={22} color={Colors.textMuted} />
+            <Ionicons name="person" size={24} color={Colors.textMuted} />
           </View>
+        )}
+
+        <View style={s.locationPill} testID="operator-location-pill">
+          <Ionicons name="location-outline" size={11} color={Colors.white} />
+          <Text style={s.locationPillText} numberOfLines={1} ellipsizeMode="tail">
+            {locationDisplay}
+          </Text>
+        </View>
+
+        {hasMultiplePhotos && (
+          <>
+            <TouchableOpacity
+              testID="operator-photo-prev"
+              style={[s.carouselArrow, s.carouselArrowStart]}
+              onPress={handlePrevPhoto}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="الصورة السابقة"
+            >
+              <Ionicons name="chevron-forward" size={12} color={Colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="operator-photo-next"
+              style={[s.carouselArrow, s.carouselArrowEnd]}
+              onPress={handleNextPhoto}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="الصورة التالية"
+            >
+              <Ionicons name="chevron-back" size={12} color={Colors.white} />
+            </TouchableOpacity>
+          </>
         )}
 
         {isVerified && (
@@ -65,14 +124,33 @@ export function OperatorCardHeader({
       </View>
 
       <View style={s.nameCol}>
-        <Text style={s.nameText} numberOfLines={1} ellipsizeMode="tail">
-          {name}
-        </Text>
-        <View style={s.locationRow}>
-          <Ionicons name="location-outline" size={12} color={Colors.textMuted} />
-          <Text style={s.locationText} numberOfLines={1} ellipsizeMode="tail">
-            {locationDisplay}
+        <View style={s.nameRow}>
+          <Text style={s.nameText} numberOfLines={1} ellipsizeMode="tail">
+            {name}
           </Text>
+        </View>
+
+        <View style={s.metaRow}>
+          {isOnline === true && (
+            <View style={s.onlinePill} testID="operator-online-pill">
+              <View style={s.onlineDot} />
+              <Text style={s.onlineText} numberOfLines={1}>
+                متصل الآن
+              </Text>
+            </View>
+          )}
+          {!isOwnerMode && (
+            <View
+              style={s.priceBadge}
+              testID="operator-price-badge"
+              accessible
+              accessibilityLabel={`الأجر: ${displayPrice}`}
+            >
+              <Text style={s.priceText} numberOfLines={1} ellipsizeMode="tail">
+                {displayPrice}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -84,16 +162,22 @@ export function OperatorCardHeader({
           {actionMenu}
         </View>
       ) : (
-        <View
-          style={s.priceBadge}
-          testID="operator-price-badge"
-          accessible
-          accessibilityLabel={`الأجر: ${displayPrice}`}
-        >
-          <Text style={s.priceText} numberOfLines={1} ellipsizeMode="tail">
-            {displayPrice}
-          </Text>
-        </View>
+        onToggleFavorite && (
+          <TouchableOpacity
+            testID="operator-favorite-btn"
+            style={s.favoriteBtn}
+            onPress={onToggleFavorite}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+          >
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isFavorite ? Colors.error : Colors.textMuted}
+            />
+          </TouchableOpacity>
+        )
       )}
     </View>
   )
@@ -102,33 +186,78 @@ export function OperatorCardHeader({
 const s = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: Spacing.space2,
   },
-  avatarContainer: {
+  photoContainer: {
     position: 'relative',
+    width: 68,
+    height: 68,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.pill,
+    width: 68,
+    height: 68,
+    borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   avatarFallback: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.pill,
+    width: 68,
+    height: 68,
+    borderRadius: Radius.md,
     backgroundColor: Colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  locationPill: {
+    position: 'absolute',
+    bottom: 4,
+    start: 4,
+    end: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    backgroundColor: Colors.primaryDark,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    opacity: 0.9,
+  },
+  locationPillText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
+    color: Colors.white,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+    flexShrink: 1,
+  },
+  carouselArrow: {
+    position: 'absolute',
+    top: '35%',
+    width: 18,
+    height: 18,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primaryDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.85,
+  },
+  carouselArrowStart: {
+    start: 2,
+  },
+  carouselArrowEnd: {
+    end: 2,
+  },
   verifiedBadge: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
+    top: 2,
+    end: 2,
     backgroundColor: Colors.white,
     borderRadius: Radius.pill,
     padding: 1,
@@ -136,6 +265,12 @@ const s = StyleSheet.create({
   nameCol: {
     flex: 1,
     justifyContent: 'center',
+    gap: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
   },
   nameText: {
     fontFamily: 'Almarai_800ExtraBold',
@@ -144,18 +279,37 @@ const s = StyleSheet.create({
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
+    flexShrink: 1,
   },
-  locationRow: {
+  metaRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.space1,
     marginTop: 2,
   },
-  locationText: {
-    fontFamily: 'Almarai_400Regular',
+  onlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.paleMint,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primary,
+  },
+  onlineText: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: lineHeightFor(11),
-    color: Colors.textMuted,
+    color: Colors.primary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -164,11 +318,10 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Spacing.space2,
-    paddingVertical: Spacing.space1,
+    paddingVertical: 2,
     borderRadius: Radius.sm,
     maxWidth: '45%',
-    flexShrink: 0,
-    alignSelf: 'center',
+    flexShrink: 1,
   },
   priceText: {
     fontFamily: 'Almarai_700Bold',
@@ -177,6 +330,16 @@ const s = StyleSheet.create({
     color: Colors.primaryDark,
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  favoriteBtn: {
+    minWidth: Spacing.touch,
+    minHeight: Spacing.touch,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   actionMenuContainer: {
     minWidth: Spacing.touch,

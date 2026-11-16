@@ -401,7 +401,7 @@ describe('OperatorCard', () => {
       expect(StyleSheet.flatten(expNode.props.style).fontFamily).toBe('Almarai_400Regular')
       expect(StyleSheet.flatten(certNode.props.style).color).toBe(Colors.primaryDark)
       expect(StyleSheet.flatten(priceNode.props.style).fontFamily).toBe('Almarai_700Bold')
-      expect(StyleSheet.flatten(callTextNode.props.style).color).toBe(Colors.primaryDark)
+      expect(StyleSheet.flatten(callTextNode.props.style).color).toBe(Colors.white)
     })
 
     it('enforces single-line tail truncation on header texts, >= 44pt touch targets, and Arabic accessibility labels', async () => {
@@ -482,6 +482,160 @@ describe('OperatorCard', () => {
       const flatFixed = StyleSheet.flatten(cardFixed.props.style)
       expect(flatFixed.width).toBe(Dimensions.get('window').width * 0.6)
       expect(flatFixed.alignSelf).toBe('flex-start')
+    })
+  })
+
+  describe('D-339 Redesign (online pill, stats, favorite, chat fallback, watermark, tokens)', () => {
+    it('renders "متصل الآن" pill ONLY when isOnline === true and hides when false or omitted', async () => {
+      const { queryByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem, isOnline: true }} />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-online-pill')).toBeTruthy()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem, isOnline: false }} />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-online-pill')).toBeNull()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem }} />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-online-pill')).toBeNull()
+    })
+
+    it('renders "محادثة" secondary button when whatsappEnabled is false, and "واتساب" when true', async () => {
+      const { getByTestId, queryByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem, whatsappEnabled: false }} />
+        </QueryClientProvider>
+      )
+      expect(getByTestId('operator-chat-btn')).toBeTruthy()
+      expect(queryByTestId('operator-whatsapp-btn')).toBeNull()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem, whatsappEnabled: true }} />
+        </QueryClientProvider>
+      )
+      expect(getByTestId('operator-whatsapp-btn')).toBeTruthy()
+      expect(queryByTestId('operator-chat-btn')).toBeNull()
+    })
+
+    it('renders favorite heart button in public mode and hides it in owner mode', async () => {
+      const { getByTestId, queryByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} />
+        </QueryClientProvider>
+      )
+      expect(getByTestId('operator-favorite-btn')).toBeTruthy()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={baseItem} ownerActions={<View />} />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-favorite-btn')).toBeNull()
+    })
+
+    it('renders stats row for certs, experience, and rating while hiding missing stats', async () => {
+      const { getByTestId, queryByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard
+            item={{
+              ...baseItem,
+              certifications: ['C1', 'C2'],
+              experienceYears: 6,
+              averageRating: 4.8,
+              reviewCount: 12,
+            }}
+          />
+        </QueryClientProvider>
+      )
+      expect(getByTestId('operator-stat-certs')).toBeTruthy()
+      expect(getByTestId('operator-stat-exp')).toBeTruthy()
+      expect(getByTestId('operator-stat-rating')).toBeTruthy()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard
+            item={{
+              ...baseItem,
+              certifications: [],
+              experienceYears: 0,
+              averageRating: null,
+              reviewCount: 0,
+            }}
+          />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-stat-certs')).toBeNull()
+      expect(queryByTestId('operator-stat-exp')).toBeNull()
+      expect(queryByTestId('operator-stat-rating')).toBeNull()
+    })
+
+    it('renders carousel arrows ONLY when images.length > 1 and renders low-opacity watermark', async () => {
+      const { queryByTestId, getByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard item={{ ...baseItem, images: ['https://example.com/1.jpg'] }} />
+        </QueryClientProvider>
+      )
+      expect(queryByTestId('operator-photo-next')).toBeNull()
+      expect(queryByTestId('operator-photo-prev')).toBeNull()
+      expect(getByTestId('operator-watermark-icon')).toBeTruthy()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard
+            item={{
+              ...baseItem,
+              images: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
+            }}
+          />
+        </QueryClientProvider>
+      )
+      expect(getByTestId('operator-photo-next')).toBeTruthy()
+      expect(getByTestId('operator-photo-prev')).toBeTruthy()
+    })
+
+    it('contains zero hardcoded hex/rgba literals or alpha-suffix tricks in OperatorCard files', () => {
+      const files = [
+        'OperatorCard.tsx',
+        'operator/OperatorCardHeader.tsx',
+        'operator/OperatorCardChips.tsx',
+        'operator/OperatorCardActions.tsx',
+      ]
+      for (const rel of files) {
+        const src = fs.readFileSync(path.resolve(__dirname, rel), 'utf8')
+        expect(src.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g)).toBeNull()
+        expect(src.match(/Colors\.[a-zA-Z0-9_]+\s*\+\s*['"][0-9a-fA-F]{2}['"]/g)).toBeNull()
+      }
+    })
+
+    it('suppresses public contact/favorite actions and renders ownerActions + actionMenu cleanly in owner mode', async () => {
+      const { getByTestId, queryByTestId, getByText } = await render(
+        <QueryClientProvider client={queryClient}>
+          <OperatorCard
+            item={{ ...baseItem, whatsappEnabled: false }}
+            actionMenu={<Text>قائمة المالك</Text>}
+            ownerActions={<Text>طلب حذف معلق</Text>}
+          />
+        </QueryClientProvider>
+      )
+
+      expect(getByTestId('operator-action-menu-container')).toBeTruthy()
+      expect(getByTestId('operator-card-owner-actions')).toBeTruthy()
+      expect(getByText('قائمة المالك')).toBeTruthy()
+      expect(getByText('طلب حذف معلق')).toBeTruthy()
+      expect(queryByTestId('operator-favorite-btn')).toBeNull()
+      expect(queryByTestId('operator-call-btn')).toBeNull()
+      expect(queryByTestId('operator-whatsapp-btn')).toBeNull()
+      expect(queryByTestId('operator-chat-btn')).toBeNull()
     })
   })
 })

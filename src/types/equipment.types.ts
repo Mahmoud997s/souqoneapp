@@ -131,6 +131,7 @@ export interface OperatorListing {
   longitude?: number
 
   whatsappEnabled?: boolean
+  isOnline?: boolean
 
   status?: ListingStatus
   isPremium?: boolean

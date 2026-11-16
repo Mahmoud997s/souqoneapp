@@ -35,4 +35,22 @@ describe('OperatorCardActions', () => {
     fireEvent.press(waBtn)
     expect(onWhatsApp).toHaveBeenCalledTimes(1)
   })
+
+  it('renders chat fallback button and calls onChat when whatsapp is disabled', async () => {
+    const onChat = jest.fn()
+    await render(
+      <OperatorCardActions
+        onCall={jest.fn()}
+        onWhatsApp={jest.fn()}
+        onChat={onChat}
+        isWhatsappEnabled={false}
+      />
+    )
+
+    const chatBtn = screen.getByTestId('operator-chat-btn')
+    expect(chatBtn).toBeTruthy()
+    expect(screen.queryByTestId('operator-whatsapp-btn')).toBeNull()
+    fireEvent.press(chatBtn)
+    expect(onChat).toHaveBeenCalledTimes(1)
+  })
 })
