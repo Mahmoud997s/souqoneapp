@@ -30,6 +30,7 @@ export interface OperatorCardProps {
   actionMenu?: React.ReactNode
   ownerActions?: React.ReactNode
   fullWidth?: boolean
+  compactBody?: boolean
 }
 
 function getWatermarkIconName(operatorType?: string | null): React.ComponentProps<typeof Ionicons>['name'] {
@@ -49,6 +50,7 @@ function OperatorCardComponent({
   actionMenu,
   ownerActions,
   fullWidth = true,
+  compactBody = false,
 }: OperatorCardProps) {
   if (!item) return null
 
@@ -99,13 +101,14 @@ function OperatorCardComponent({
   const averageRating = Number(raw?.averageRating ?? item.averageRating ?? 0)
   const reviewCount = Number(raw?.reviewCount ?? item.reviewCount ?? 0)
 
-  // Assemble chip badges using strict total budget
+  // Assemble chip badges using strict total budget (tighter cap for narrow slider slots)
+  const effectiveMaxChips = compactBody ? Math.min(maxChips, 2) : maxChips
   const { chips: visibleChips, extraCount } = buildOperatorChips({
     operatorTypeLabel,
     experienceText,
     hasCertifications,
     equipmentTags,
-    maxChips,
+    maxChips: effectiveMaxChips,
   })
 
   // Price formatting: daily rate as primary, hourly rate as secondary, fallback to "السعر عند التواصل"
@@ -162,6 +165,9 @@ function OperatorCardComponent({
 
   const showStatsRow = certsCount > 0 || experienceYearsNum > 0 || averageRating > 0
 
+  const hasExplicitPrice = dailyRate > 0 || hourlyRate > 0 || Boolean(item.priceText || raw?.priceText)
+  const operatorTypeIcon = getWatermarkIconName(operatorType)
+
   return (
     <TouchableOpacity
       style={[
@@ -177,7 +183,7 @@ function OperatorCardComponent({
       <View style={s.watermarkWrap} pointerEvents="none">
         <Ionicons
           testID="operator-watermark-icon"
-          name={getWatermarkIconName(operatorType)}
+          name={operatorTypeIcon}
           size={72}
           color={Colors.primaryDark}
           style={s.watermarkIcon}
@@ -185,50 +191,39 @@ function OperatorCardComponent({
       </View>
 
       <OperatorCardHeader
+        operatorId={operatorId}
         name={name}
         avatarUrl={userAvatar}
         images={images}
         isVerified={isVerified}
         isOnline={isOnline}
         operatorTypeLabel={operatorTypeLabel}
+        operatorTypeIcon={operatorTypeIcon}
         locationDisplay={locationDisplay}
         isOwnerMode={isOwnerMode}
         displayPrice={displayPrice}
+        hasExplicitPrice={hasExplicitPrice}
+        averageRating={averageRating}
+        reviewCount={reviewCount}
         actionMenu={actionMenu}
         isFavorite={fav.isFavorite}
         onToggleFavorite={isOwnerMode ? undefined : handleToggleFavorite}
+        chipsNode={
+          <OperatorCardChips
+            chips={visibleChips}
+            extraCount={extraCount}
+          />
+        }
       />
 
-      {showStatsRow && (
+      {certsCount > 0 && (
         <View style={s.statsRow} testID="operator-stats-row">
-          {certsCount > 0 && (
-            <View style={s.statItem} testID="operator-stat-certs">
-              <Ionicons name="ribbon-outline" size={12} color={Colors.primary} />
-              <Text style={s.statText}>{certsCount} شهادة</Text>
-            </View>
-          )}
-          {experienceYearsNum > 0 && (
-            <View style={s.statItem} testID="operator-stat-exp">
-              <Ionicons name="briefcase-outline" size={12} color={Colors.primary} />
-              <Text style={s.statText}>{experienceYearsNum} سنوات</Text>
-            </View>
-          )}
-          {averageRating > 0 && (
-            <View style={s.statItem} testID="operator-stat-rating">
-              <Ionicons name="star" size={12} color={Colors.warning} />
-              <Text style={s.statText}>
-                {averageRating.toFixed(1)}
-                {reviewCount > 0 ? ` (${reviewCount})` : ''}
-              </Text>
-            </View>
-          )}
+          <View style={s.statItem} testID="operator-stat-certs">
+            <Ionicons name="ribbon-outline" size={12} color={Colors.primary} />
+            <Text style={s.statText}>{certsCount} شهادة</Text>
+          </View>
         </View>
       )}
-
-      <OperatorCardChips
-        chips={visibleChips}
-        extraCount={extraCount}
-      />
 
       {!isOwnerMode && (
         <OperatorCardActions
@@ -258,6 +253,7 @@ const s = StyleSheet.create({
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
     ...CardSystem.styles.border,
+    ...CardSystem.styles.softShadow,
     marginBottom: Spacing.space3,
   },
   cardFull: {

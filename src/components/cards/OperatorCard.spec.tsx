@@ -418,7 +418,7 @@ describe('OperatorCard', () => {
       const priceBadge = getByTestId('operator-price-badge')
       expect(priceBadge.props.accessible).toBe(true)
       expect(priceBadge.props.accessibilityLabel).toBe('الأجر: 40 ر.ع. / يوم')
-      expect(StyleSheet.flatten(priceBadge.props.style).maxWidth).toBe('45%')
+      expect(StyleSheet.flatten(priceBadge.props.style).width).toBe('100%')
 
       const extraChip = getByTestId('operator-chip-extra')
       expect(extraChip.props.accessible).toBe(true)
@@ -558,7 +558,7 @@ describe('OperatorCard', () => {
         </QueryClientProvider>
       )
       expect(getByTestId('operator-stat-certs')).toBeTruthy()
-      expect(getByTestId('operator-stat-exp')).toBeTruthy()
+      expect(getByTestId('operator-chip-exp')).toBeTruthy()
       expect(getByTestId('operator-stat-rating')).toBeTruthy()
 
       await rerender(
@@ -575,7 +575,7 @@ describe('OperatorCard', () => {
         </QueryClientProvider>
       )
       expect(queryByTestId('operator-stat-certs')).toBeNull()
-      expect(queryByTestId('operator-stat-exp')).toBeNull()
+      expect(queryByTestId('operator-chip-exp')).toBeNull()
       expect(queryByTestId('operator-stat-rating')).toBeNull()
     })
 
@@ -636,6 +636,67 @@ describe('OperatorCard', () => {
       expect(queryByTestId('operator-call-btn')).toBeNull()
       expect(queryByTestId('operator-whatsapp-btn')).toBeNull()
       expect(queryByTestId('operator-chat-btn')).toBeNull()
+    })
+
+    it('separates circular avatar from equipment image/placeholder, shows 3 dots (>1 image), and caps chips via MyListingOwnerCard compactBody (M-120)', async () => {
+      const { MyListingOwnerCard } = require('../profile/my-listings/MyListingOwnerCard')
+      const ownerItem = {
+        id: baseItem.id,
+        entityType: 'operator' as const,
+        title: baseItem.title,
+        status: 'ACTIVE',
+        raw: baseItem,
+        mapped: { ...baseItem, avatar: 'https://example.com/avatar.jpg', images: [] },
+      }
+
+      const { getByTestId, queryByTestId, rerender } = await render(
+        <QueryClientProvider client={queryClient}>
+          <MyListingOwnerCard
+            item={ownerItem}
+            onView={jest.fn()}
+            onEdit={jest.fn()}
+            onDelete={jest.fn()}
+            isEditSupported={true}
+            fullWidth={true}
+            compactBody={true}
+          />
+        </QueryClientProvider>
+      )
+
+      expect(getByTestId('operator-avatar')).toBeTruthy()
+      expect(getByTestId('operator-equipment-placeholder')).toBeTruthy()
+      expect(queryByTestId('operator-photo-dots')).toBeNull()
+      // Narrow slider slot (fullWidth=true + compactBody=true): capped at 2 chips
+      expect(getByTestId('operator-chip-type')).toBeTruthy()
+      expect(getByTestId('operator-chip-exp')).toBeTruthy()
+      expect(queryByTestId('operator-chip-cert')).toBeNull()
+
+      await rerender(
+        <QueryClientProvider client={queryClient}>
+          <MyListingOwnerCard
+            item={{
+              ...ownerItem,
+              mapped: {
+                ...baseItem,
+                avatar: null,
+                images: ['https://example.com/eq1.jpg', 'https://example.com/eq2.jpg'],
+              },
+            }}
+            onView={jest.fn()}
+            onEdit={jest.fn()}
+            onDelete={jest.fn()}
+            isEditSupported={true}
+            fullWidth={true}
+            compactBody={false}
+          />
+        </QueryClientProvider>
+      )
+
+      // Full-width vertical list (compactBody=false): full 3-chip budget shown
+      expect(getByTestId('operator-avatar-fallback')).toBeTruthy()
+      expect(getByTestId('operator-equipment-image')).toBeTruthy()
+      expect(getByTestId('operator-photo-dots')).toBeTruthy()
+      expect(getByTestId('operator-chip-cert')).toBeTruthy()
     })
   })
 })

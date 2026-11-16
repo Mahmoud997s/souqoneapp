@@ -140,6 +140,7 @@ export function MyListingOwnerCard({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          compactBody={compactBody}
           ownerActions={ownerActions}
         />
       )
