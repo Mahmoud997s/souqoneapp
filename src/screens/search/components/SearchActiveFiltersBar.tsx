@@ -95,10 +95,10 @@ export const SearchActiveFiltersBar = React.memo(function SearchActiveFiltersBar
 
 const s = StyleSheet.create({
   wrapper: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.slateSubtleBg,
   },
   container: {
     paddingHorizontal: Spacing.space4,
@@ -109,9 +109,9 @@ const s = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E6F7F9',
+    backgroundColor: Colors.primaryTintBg,
     borderWidth: 1,
-    borderColor: '#B3E7EE',
+    borderColor: Colors.primaryBorderLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.pill,

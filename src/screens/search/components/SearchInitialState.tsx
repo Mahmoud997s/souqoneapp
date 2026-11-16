@@ -99,7 +99,7 @@ export const SearchInitialState = React.memo(function SearchInitialState({
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <View style={s.sectionTitleRow}>
-            <Ionicons name="flame" size={18} color="#EA580C" />
+            <Ionicons name="flame" size={18} color={Colors.orangePrimary} />
             <Text style={s.sectionTitle}>الأكثر بحثاً في السوق</Text>
           </View>
         </View>
@@ -156,7 +156,7 @@ export const SearchInitialState = React.memo(function SearchInitialState({
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   content: {
     padding: Spacing.space4,
@@ -164,12 +164,12 @@ const s = StyleSheet.create({
     gap: 22,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
+    borderColor: Colors.slateSubtleBg,
+    shadowColor: Colors.shadowBlack,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 3,
@@ -206,7 +206,7 @@ const s = StyleSheet.create({
   historyChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     borderRadius: Radius.pill,
     paddingRight: 12,
     paddingLeft: 6,
@@ -228,9 +228,9 @@ const s = StyleSheet.create({
   trendingChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: Colors.emeraldSoftBg,
     borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -248,9 +248,9 @@ const s = StyleSheet.create({
   },
   categoryCard: {
     width: '31.3%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.lg,
     paddingVertical: 14,
     paddingHorizontal: 6,
@@ -262,7 +262,7 @@ const s = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     alignItems: 'center',
     justifyContent: 'center',
   },

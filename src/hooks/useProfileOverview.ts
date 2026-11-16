@@ -266,21 +266,21 @@ export function useProfileOverview() {
       title: 'تعديل الملف الشخصي',
       subTitle: 'الاسم، الصورة، والموقع الجغرافي',
       route: '/profile/edit-profile',
-      iconColor: '#334155',
+      iconColor: Colors.slateBody,
     },
     {
       icon: 'notifications-outline',
       title: 'الإشعارات والتنبيهات',
       subTitle: 'الرسائل، العروض، وحالة الطلبات',
       route: '/profile/notifications',
-      iconColor: '#334155',
+      iconColor: Colors.slateBody,
     },
     {
       icon: 'settings-outline',
       title: 'إعدادات الحساب وكلمة المرور',
       subTitle: 'الأمان، اللغة، وتفضيلات التطبيق',
       route: '/profile/settings',
-      iconColor: '#334155',
+      iconColor: Colors.slateBody,
     },
   ]
 

@@ -228,6 +228,8 @@ export const Colors = {
   warningYellow:     '#FFCC00',
   emeraldSoftBg:     '#D1FAE5',
   neutralBgLight:    '#FAFAFA',
+  primaryTintBg:     '#E6F7F9',
+  primaryBorderLight:'#B3E7EE',
 } as const
 
 export const BrandColors = {
