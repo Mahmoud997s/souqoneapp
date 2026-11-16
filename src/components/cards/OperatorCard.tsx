@@ -30,6 +30,7 @@ export interface OperatorCardProps {
   actionMenu?: React.ReactNode
   ownerActions?: React.ReactNode
   fullWidth?: boolean
+  compactBody?: boolean
 }
 
 function getWatermarkIconName(operatorType?: string | null): React.ComponentProps<typeof Ionicons>['name'] {
@@ -49,6 +50,7 @@ function OperatorCardComponent({
   actionMenu,
   ownerActions,
   fullWidth = true,
+  compactBody = false,
 }: OperatorCardProps) {
   if (!item) return null
 
@@ -99,8 +101,8 @@ function OperatorCardComponent({
   const averageRating = Number(raw?.averageRating ?? item.averageRating ?? 0)
   const reviewCount = Number(raw?.reviewCount ?? item.reviewCount ?? 0)
 
-  // Assemble chip badges using strict total budget (tighter cap for narrow 0.80 sliders)
-  const effectiveMaxChips = fullWidth ? maxChips : Math.min(maxChips, 2)
+  // Assemble chip badges using strict total budget (tighter cap for narrow slider slots)
+  const effectiveMaxChips = compactBody ? Math.min(maxChips, 2) : maxChips
   const { chips: visibleChips, extraCount } = buildOperatorChips({
     operatorTypeLabel,
     experienceText,

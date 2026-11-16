@@ -638,12 +638,27 @@ describe('OperatorCard', () => {
       expect(queryByTestId('operator-chat-btn')).toBeNull()
     })
 
-    it('separates circular avatar from equipment image/placeholder, shows 3 dots (>1 image), and caps chips in narrow mode (D-339b)', async () => {
+    it('separates circular avatar from equipment image/placeholder, shows 3 dots (>1 image), and caps chips via MyListingOwnerCard compactBody (M-120)', async () => {
+      const { MyListingOwnerCard } = require('../profile/my-listings/MyListingOwnerCard')
+      const ownerItem = {
+        id: baseItem.id,
+        entityType: 'operator' as const,
+        title: baseItem.title,
+        status: 'ACTIVE',
+        raw: baseItem,
+        mapped: { ...baseItem, avatar: 'https://example.com/avatar.jpg', images: [] },
+      }
+
       const { getByTestId, queryByTestId, rerender } = await render(
         <QueryClientProvider client={queryClient}>
-          <OperatorCard
-            item={{ ...baseItem, avatar: 'https://example.com/avatar.jpg', images: [] }}
-            fullWidth={false}
+          <MyListingOwnerCard
+            item={ownerItem}
+            onView={jest.fn()}
+            onEdit={jest.fn()}
+            onDelete={jest.fn()}
+            isEditSupported={true}
+            fullWidth={true}
+            compactBody={true}
           />
         </QueryClientProvider>
       )
@@ -651,27 +666,37 @@ describe('OperatorCard', () => {
       expect(getByTestId('operator-avatar')).toBeTruthy()
       expect(getByTestId('operator-equipment-placeholder')).toBeTruthy()
       expect(queryByTestId('operator-photo-dots')).toBeNull()
-      // In narrow slider mode (fullWidth=false), maxChips is capped at 2
+      // Narrow slider slot (fullWidth=true + compactBody=true): capped at 2 chips
       expect(getByTestId('operator-chip-type')).toBeTruthy()
       expect(getByTestId('operator-chip-exp')).toBeTruthy()
       expect(queryByTestId('operator-chip-cert')).toBeNull()
 
       await rerender(
         <QueryClientProvider client={queryClient}>
-          <OperatorCard
+          <MyListingOwnerCard
             item={{
-              ...baseItem,
-              avatar: null,
-              images: ['https://example.com/eq1.jpg', 'https://example.com/eq2.jpg'],
+              ...ownerItem,
+              mapped: {
+                ...baseItem,
+                avatar: null,
+                images: ['https://example.com/eq1.jpg', 'https://example.com/eq2.jpg'],
+              },
             }}
+            onView={jest.fn()}
+            onEdit={jest.fn()}
+            onDelete={jest.fn()}
+            isEditSupported={true}
             fullWidth={true}
+            compactBody={false}
           />
         </QueryClientProvider>
       )
 
+      // Full-width vertical list (compactBody=false): full 3-chip budget shown
       expect(getByTestId('operator-avatar-fallback')).toBeTruthy()
       expect(getByTestId('operator-equipment-image')).toBeTruthy()
       expect(getByTestId('operator-photo-dots')).toBeTruthy()
+      expect(getByTestId('operator-chip-cert')).toBeTruthy()
     })
   })
 })
