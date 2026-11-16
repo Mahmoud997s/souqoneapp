@@ -176,7 +176,7 @@ export function ImageViewerModal({
       navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.shadowBlack} />
       <View style={s.container}>
         {/* Top Bar with Close & Counter */}
         <View
@@ -259,7 +259,7 @@ export function ImageViewerModal({
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: Colors.shadowBlack,
     justifyContent: 'space-between',
   },
   topBar: {
@@ -284,9 +284,9 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
-    backgroundColor: 'rgba(25, 36, 53, 0.85)',
+    backgroundColor: Colors.navyDarkSoft85,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.45)',
+    borderColor: Colors.whiteAlpha45,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -333,6 +333,6 @@ const s = StyleSheet.create({
     fontFamily: Typography.caption.fontFamily,
     fontSize: Typography.caption.fontSize,
     lineHeight: lineHeightFor(Typography.caption.fontSize),
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: Colors.whiteAlpha85,
   },
 })

@@ -291,7 +291,7 @@ const s = StyleSheet.create({
   actionIconBox: {
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(0, 156, 181, 0.25)',
+    borderColor: Colors.primarySoft25,
   },
   labelBox: {
     height: 18,

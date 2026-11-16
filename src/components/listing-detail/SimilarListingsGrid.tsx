@@ -178,7 +178,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     marginTop: Spacing.space1,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
   },
   retryText: {
     ...RTLText,

@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '../../constants/colors';
+import { Colors, withAlpha } from '../../constants/colors';
 import { Gradients } from '../../constants/gradients';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
@@ -162,7 +162,7 @@ function TabItem({
             s.iconBg,
             {
               backgroundColor: activeBgColor,
-              borderColor: activeColor + '30',
+              borderColor: activeColor === Colors.primary ? Colors.primaryHex30 : withAlpha(activeColor, 48 / 255),
             },
             animatedBgStyle,
           ]}
@@ -407,7 +407,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -4,
-    backgroundColor: '#ef4444',
+    backgroundColor: Colors.dangerBright,
     minWidth: 14,
     height: 14,
     borderRadius: 7,
@@ -415,10 +415,10 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
     borderWidth: 1.5,
-    borderColor: '#ffffff',
+    borderColor: Colors.white,
   },
   badgeText: {
-    color: '#ffffff',
+    color: Colors.white,
     fontSize: 8.5,
     fontFamily: 'Almarai_800ExtraBold',
     lineHeight: 11,
@@ -441,7 +441,7 @@ const s = StyleSheet.create({
     height: 38,
     borderRadius: 13,
     borderWidth: 1.5,
-    borderColor: '#ffffff',
+    borderColor: Colors.white,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
