@@ -255,16 +255,6 @@ const ListingCardBaseComponent = ({
         style,
       ]}
     >
-      {liquidGlass && (
-        <GlassSurface
-          testID="listing-card-surface"
-          borderRadius={CardSystem.radius.outer}
-          glassEffectStyle="clear"
-          tintOverlayColor={CardSystem.glass.cardTint}
-          noBorder={true}
-          support={glass}
-        />
-      )}
       {/* ── IMAGE SECTION ── */}
       <View
         testID="listing-card-image-container"
@@ -612,7 +602,7 @@ const s = StyleSheet.create({
     ...CardSystem.styles.softShadow,
   },
   cardLiquidGlass: {
-    backgroundColor: 'transparent',
+    backgroundColor: CardSystem.glass.cardSolidBg,
     borderColor: CardSystem.glass.cardBorderColor,
   },
   cardFullWidth: {

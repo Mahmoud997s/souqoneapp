@@ -91,23 +91,24 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => originalOS })
   })
 
-  it('(a) Liquid branch (iOS 26): renders Liquid Glass card surface, spec capsules, price & negotiable capsules, and floating action buttons', async () => {
+  it('(a) Liquid branch (iOS 26): renders a solid card background (no glass surface), spec capsules, price & negotiable capsules, and floating action buttons', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(false)
 
-    const { getByTestId } = await render(
+    const { getByTestId, queryByTestId, queryAllByTestId } = await render(
       <CarCard item={sampleCarListing} onPress={jest.fn()} maxChips={4} />
     )
     await act(async () => {})
 
-    // 1. Card root is transparent with glass border color and 1-line title limit
+    // 1. Card root is a solid opaque colour with glass border color and 1-line title limit
     const cardRoot = getByTestId('listing-card-root')
     const rootStyle = StyleSheet.flatten(cardRoot.props.style)
-    expect(rootStyle.backgroundColor).toBe('transparent')
+    expect(rootStyle.backgroundColor).toBe(CardSystem.glass.cardSolidBg)
     expect(rootStyle.borderColor).toBe(CardSystem.glass.cardBorderColor)
     expect(getByTestId('listing-card-details')).toBeTruthy()
 
-    // 2. Card main surface renders liquid branch
-    expect(getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
+    // 2. Card mounts NO glass surface and no native GlassView
+    expect(queryByTestId('listing-card-surface-glass-liquid')).toBeNull()
+    expect(queryAllByTestId('mock-native-glass-view')).toHaveLength(0)
 
     // 3. Specification capsules render non-native layered wash (D-205 default CARD_PILL_NATIVE_GLASS = false) with capsule radius (6px)
     expect(CardSystem.glass.capsuleRadius).toBe(CardSystem.radius.inner)
@@ -135,23 +136,22 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(favIcon.props.color).toBe(Colors.primary)
   })
 
-  it('(b) Blur branch (Reduce Transparency / fallback): renders blur card surface and frosted capsule wash without nested BlurViews inside capsules', async () => {
+  it('(b) Blur branch (Reduce Transparency / fallback): renders no blur card surface and frosted capsule wash without any BlurView', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(true)
 
-    const { getByTestId, getAllByTestId } = await render(
+    const { getByTestId, queryByTestId, queryAllByTestId } = await render(
       <CarCard item={sampleCarListing} onPress={jest.fn()} maxChips={4} />
     )
     await act(async () => {})
 
-    expect(getByTestId('listing-card-surface-glass-blur')).toBeTruthy()
+    expect(queryByTestId('listing-card-surface-glass-blur')).toBeNull()
     expect(getByTestId('listing-card-pill-model-layered-wash')).toBeTruthy()
     expect(getByTestId('listing-card-pill-year-layered-wash')).toBeTruthy()
     expect(getByTestId('listing-card-price-pill-layered-wash')).toBeTruthy()
     expect(getByTestId('listing-card-negotiable-pill-layered-wash')).toBeTruthy()
 
-    // Only the card surface uses BlurView (1 total), avoiding GPU conflicts over image and nested BlurViews
-    const blurViews = getAllByTestId('mock-blur-view')
-    expect(blurViews.length).toBe(1)
+    // The card mounts ZERO BlurViews (no card surface blur, no nested BlurViews inside capsules)
+    expect(queryAllByTestId('mock-blur-view')).toHaveLength(0)
   })
 
   it('(c) Hook deduplication: registers at most 1 reduceTransparencyChanged listener per card (not per capsule), and 0 when glassSupport prop is provided', async () => {
@@ -166,7 +166,7 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     const reduceTransparencyListeners = addListenerSpy.mock.calls.filter(
       (call) => String(call[0]) === 'reduceTransparencyChanged'
     )
-    // Despite 8 GlassSurface instances inside the card, useGlassSupport subscribes only ONCE
+    // useGlassSupport subscribes only ONCE per card (shared by all capsules)
     expect(isReduceTransparencySpy).toHaveBeenCalledTimes(1)
     expect(reduceTransparencyListeners.length).toBe(1)
 
@@ -190,11 +190,11 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
     expect(reduceTransparencyListenersWithProp.length).toBe(0)
   })
 
-  it('(d) Global adoption & opt-out: all cards (EquipCard, BusCard, PartCard, ServiceCard, CarCard) adopt Liquid Glass by default, and liquidGlass={false} disables it', async () => {
+  it('(d) Global adoption & opt-out: all cards (EquipCard, BusCard, PartCard, ServiceCard, CarCard) adopt the Liquid Glass look by default without a glass surface, and liquidGlass={false} disables it', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockResolvedValue(false)
 
-    // 1. EquipCard adopts Liquid Glass by default
-    const { getByTestId: getEquip } = await render(
+    // 1. EquipCard adopts the Liquid Glass look by default (solid background, no glass surface)
+    const { getByTestId: getEquip, queryByTestId: queryEquip, unmount: unmountEquip } = await render(
       <EquipCard
         item={{
           ...sampleCarListing,
@@ -204,10 +204,14 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
         onPress={jest.fn()}
       />
     )
-    expect(getEquip('listing-card-surface-glass-liquid')).toBeTruthy()
+    expect(queryEquip('listing-card-surface-glass-liquid')).toBeNull()
+    expect(StyleSheet.flatten(getEquip('listing-card-root').props.style).backgroundColor).toBe(
+      CardSystem.glass.cardSolidBg
+    )
+    await unmountEquip()
 
-    // 2. BusCard adopts Liquid Glass by default
-    const { getByTestId: getBus } = await render(
+    // 2. BusCard adopts the Liquid Glass look by default (solid background, no glass surface)
+    const { getByTestId: getBus, queryByTestId: queryBus, unmount: unmountBus } = await render(
       <BusCard
         item={{
           ...sampleCarListing,
@@ -218,7 +222,11 @@ describe('CarCard & Capsules — Liquid Glass Stage 1', () => {
         onPress={jest.fn()}
       />
     )
-    expect(getBus('listing-card-surface-glass-liquid')).toBeTruthy()
+    expect(queryBus('listing-card-surface-glass-liquid')).toBeNull()
+    expect(StyleSheet.flatten(getBus('listing-card-root').props.style).backgroundColor).toBe(
+      CardSystem.glass.cardSolidBg
+    )
+    await unmountBus()
 
     // 3. Explicit liquidGlass={false} cleanly disables glass surface
     const { getByTestId: getDisabled, queryByTestId: queryDisabled } = await render(
