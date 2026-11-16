@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, withAlpha } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Gradients } from '../../constants/gradients';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
@@ -162,7 +162,7 @@ function TabItem({
             s.iconBg,
             {
               backgroundColor: activeBgColor,
-              borderColor: activeColor === Colors.primary ? Colors.primaryHex30 : withAlpha(activeColor, 48 / 255),
+              borderColor: activeColor + '30',
             },
             animatedBgStyle,
           ]}
