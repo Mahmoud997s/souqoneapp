@@ -23,6 +23,7 @@ import {
   mapChangePasswordBackendErrors,
   ChangePasswordFieldErrors,
 } from '../../src/utils/changePasswordErrors'
+import { Colors } from '../../src/constants/colors'
 
 export default function ChangePasswordScreen() {
   const insets = useSafeAreaInsets()
@@ -77,7 +78,7 @@ export default function ChangePasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#F8FAFC' }}
+      style={{ flex: 1, backgroundColor: Colors.slateSurface }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
@@ -195,7 +196,7 @@ export default function ChangePasswordScreen() {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -206,7 +207,7 @@ const softShadow = Platform.select({
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   content: {
     paddingHorizontal: 16,
@@ -219,30 +220,30 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     marginBottom: 7,
     paddingHorizontal: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   cardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 14,
     ...softShadow,
   },
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.slateBorder,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.04,
         shadowRadius: 6,

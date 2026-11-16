@@ -156,7 +156,7 @@ export default function SettingsScreen() {
 
   const SettingItem = ({
     icon,
-    iconColor = '#334155',
+    iconColor = Colors.slateBody,
     title,
     value,
     hasSwitch,
@@ -183,7 +183,7 @@ export default function SettingsScreen() {
     testID?: string
     switchTestID?: string
   }) => {
-    const finalIconColor = danger ? '#DC2626' : iconColor
+    const finalIconColor = danger ? Colors.error : iconColor
     return (
       <TouchableOpacity
         testID={testID}
@@ -208,18 +208,18 @@ export default function SettingsScreen() {
             testID={switchTestID}
             value={switchVal}
             onValueChange={onSwitch}
-            trackColor={{ false: '#CBD5E1', true: Colors.primary }}
-            thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : '#F1F5F9') : undefined}
+            trackColor={{ false: Colors.slateBorderStrong, true: Colors.primary }}
+            thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : Colors.slateSubtleBg) : undefined}
           />
         ) : value ? (
           <View style={s.valRow}>
             <View style={s.badgePill}>
               <Text style={s.badgeText}>{value}</Text>
             </View>
-            <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+            <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
           </View>
         ) : (
-          <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+          <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
         )}
 
         {!isLast && <View style={s.optionDivider} />}
@@ -266,7 +266,7 @@ export default function SettingsScreen() {
               <SettingItem
                 testID="settings-change-password-row"
                 icon="lock-closed-outline"
-                iconColor="#2563EB"
+                iconColor={Colors.infoPrimary}
                 title="تغيير كلمة المرور"
                 onPress={() => router.push('/profile/change-password' as any)}
               />
@@ -295,7 +295,7 @@ export default function SettingsScreen() {
             })()}
             <SettingItem
               icon="shield-checkmark-outline"
-              iconColor="#059669"
+              iconColor={Colors.emerald}
               title="التحقق من الهوية"
               onPress={() => dialogService.alert('قريباً', 'ميزة التحقق من الهوية ستكون متاحة قريباً', 'info')}
               isLast={isGuest || !user}
@@ -341,7 +341,7 @@ export default function SettingsScreen() {
             <SettingItem
               switchTestID="settings-msg-notif-switch"
               icon="chatbubble-outline"
-              iconColor="#7C3AED"
+              iconColor={Colors.violetPrimary}
               title="إشعارات الرسائل والمحادثات"
               hasSwitch
               switchVal={msgNotif}
@@ -350,7 +350,7 @@ export default function SettingsScreen() {
             <SettingItem
               switchTestID="settings-ad-notif-switch"
               icon="notifications-outline"
-              iconColor="#D97706"
+              iconColor={Colors.amberText}
               title="إشعارات الإعلانات والعروض"
               hasSwitch
               switchVal={adNotif}
@@ -366,26 +366,26 @@ export default function SettingsScreen() {
           <View style={s.cardGroup}>
             <SettingItem
               icon="globe-outline"
-              iconColor="#0284C7"
+              iconColor={Colors.skyPrimary}
               title="اللغة"
               value="العربية"
               onPress={() => dialogService.alert('اللغة', 'التطبيق متاح باللغة العربية حالياً', 'info')}
             />
             <SettingItem
               icon="headset-outline"
-              iconColor="#059669"
+              iconColor={Colors.emerald}
               title="الدعم الفني والمساعدة"
               onPress={() => Linking.openURL(SUPPORT_MAILTO).catch(() => {})}
             />
             <SettingItem
               icon="document-text-outline"
-              iconColor="#64748B"
+              iconColor={Colors.slateText}
               title="سياسة الخصوصية"
               onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}
             />
             <SettingItem
               icon="information-circle-outline"
-              iconColor="#64748B"
+              iconColor={Colors.slateText}
               title="شروط الاستخدام"
               onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL).catch(() => {})}
               isLast
@@ -399,7 +399,7 @@ export default function SettingsScreen() {
         {/* ── Logout Button ── */}
         <View style={s.logoutWrap}>
           <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.75}>
-            <Ionicons name="log-out-outline" size={19} color="#DC2626" style={{ marginEnd: 8 }} />
+            <Ionicons name="log-out-outline" size={19} color={Colors.error} style={{ marginEnd: 8 }} />
             <Text style={s.logoutTxt}>تسجيل الخروج</Text>
           </TouchableOpacity>
         </View>
@@ -413,7 +413,7 @@ export default function SettingsScreen() {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -424,7 +424,7 @@ const softShadow = Platform.select({
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   content: {
     paddingHorizontal: 16,
@@ -438,18 +438,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     marginBottom: 7,
     paddingHorizontal: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   cardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 18,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     ...softShadow,
   },
   optionRow: {
@@ -469,26 +469,26 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionIconWrapDanger: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
+    backgroundColor: Colors.dangerBg,
+    borderColor: Colors.dangerBorder,
   },
   optionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   optionTitleDanger: {
-    color: '#DC2626',
+    color: Colors.error,
   },
   optionDivider: {
     position: 'absolute',
@@ -496,7 +496,7 @@ const s = StyleSheet.create({
     end: 14,
     start: 60,
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
   },
   valRow: {
     flexDirection: 'row',
@@ -504,18 +504,18 @@ const s = StyleSheet.create({
     gap: 8,
   },
   badgePill: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   badgeText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#334155',
+    color: Colors.slateBody,
     writingDirection: 'rtl',
   },
   oauthTextBlock: {
@@ -558,9 +558,9 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: Colors.warningBg,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: Colors.warningBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -597,15 +597,15 @@ const s = StyleSheet.create({
   logoutBtn: {
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     borderWidth: 1.5,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#EF4444',
+        shadowColor: Colors.dangerBright,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 6,
@@ -617,7 +617,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: 20,
-    color: '#DC2626',
+    color: Colors.error,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
@@ -627,7 +627,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     textAlign: 'center',
     marginBottom: 4,
     writingDirection: 'rtl',

@@ -90,10 +90,10 @@ export function EditProfileForm({
                 size={18}
                 color={
                   errors.displayName
-                    ? '#DC2626'
+                    ? Colors.error
                     : focusedField === 'displayName'
                       ? Colors.primary
-                      : '#64748B'
+                      : Colors.slateText
                 }
                 style={s.fieldIconStart}
               />
@@ -101,7 +101,7 @@ export function EditProfileForm({
                 testID="edit-profile-display-name-input"
                 style={s.textInputRtl}
                 placeholder="اكتب اسمك ليظهر للآخرين"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={Colors.slateMuted}
                 value={displayName}
                 onChangeText={onDisplayNameChange}
                 onFocus={() => onFocusField('displayName')}
@@ -141,10 +141,10 @@ export function EditProfileForm({
                 size={18}
                 color={
                   errors.bio
-                    ? '#DC2626'
+                    ? Colors.error
                     : focusedField === 'bio'
                       ? Colors.primary
-                      : '#64748B'
+                      : Colors.slateText
                 }
                 style={s.fieldIconMultilineStart}
               />
@@ -152,7 +152,7 @@ export function EditProfileForm({
                 testID="edit-profile-bio-input"
                 style={s.textInputMultiline}
                 placeholder="اكتب نبذة مختصرة عن نفسك أو نشاطك التجاري..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={Colors.slateMuted}
                 value={bio}
                 onChangeText={onBioChange}
                 onFocus={() => onFocusField('bio')}
@@ -194,7 +194,7 @@ export function EditProfileForm({
             <View style={s.fieldLabelRow}>
               <Text style={s.label}>البريد الإلكتروني</Text>
               <View style={s.badgeLocked}>
-                <Ionicons name="lock-closed" size={10} color="#64748B" style={{ marginEnd: 3 }} />
+                <Ionicons name="lock-closed" size={10} color={Colors.slateText} style={{ marginEnd: 3 }} />
                 <Text style={s.badgeLockedText}>ثابت</Text>
               </View>
             </View>
@@ -202,14 +202,14 @@ export function EditProfileForm({
               <Ionicons
                 name="mail-outline"
                 size={18}
-                color="#94A3B8"
+                color={Colors.slateMuted}
                 style={s.fieldIconLtrStart}
               />
               <TextInput
                 testID="edit-profile-email-input"
                 style={s.textInputLtr}
                 placeholder="بريدك الإلكتروني"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={Colors.slateMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -241,7 +241,7 @@ export function EditProfileForm({
               <Ionicons
                 name="location-outline"
                 size={18}
-                color={governorateId ? Colors.primary : '#64748B'}
+                color={governorateId ? Colors.primary : Colors.slateText}
                 style={s.fieldIconStart}
               />
               <Text
@@ -253,7 +253,7 @@ export function EditProfileForm({
               <Ionicons
                 name="chevron-down"
                 size={16}
-                color={governorateId ? Colors.primary : '#94A3B8'}
+                color={governorateId ? Colors.primary : Colors.slateMuted}
                 style={s.fieldIconEnd}
               />
             </TouchableOpacity>
@@ -278,14 +278,14 @@ export function EditProfileForm({
               <Ionicons
                 name="business-outline"
                 size={18}
-                color={!governorateId ? '#CBD5E1' : wilayaId ? Colors.primary : '#64748B'}
+                color={!governorateId ? Colors.slateBorderStrong : wilayaId ? Colors.primary : Colors.slateText}
                 style={s.fieldIconStart}
               />
               <Text
                 style={[
                   s.inputTextDisplay,
                   !wilayaName && s.placeholderText,
-                  !governorateId && { color: '#94A3B8' },
+                  !governorateId && { color: Colors.slateMuted },
                 ]}
                 numberOfLines={1}
               >
@@ -294,7 +294,7 @@ export function EditProfileForm({
               <Ionicons
                 name="chevron-down"
                 size={16}
-                color={!governorateId ? '#CBD5E1' : wilayaId ? Colors.primary : '#94A3B8'}
+                color={!governorateId ? Colors.slateBorderStrong : wilayaId ? Colors.primary : Colors.slateMuted}
                 style={s.fieldIconEnd}
               />
             </TouchableOpacity>
@@ -307,7 +307,7 @@ export function EditProfileForm({
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -324,18 +324,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     marginBottom: 7,
     paddingHorizontal: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   cardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 12,
     ...softShadow,
   },
@@ -360,7 +360,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -368,26 +368,26 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     writingDirection: 'ltr',
   },
   badgeRequired: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
   },
   badgeRequiredText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
     lineHeight: 13,
-    color: '#DC2626',
+    color: Colors.error,
     writingDirection: 'rtl',
   },
   badgeOptional: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -396,13 +396,13 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 10,
     lineHeight: 13,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
   },
   badgeLocked: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -411,27 +411,27 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
     lineHeight: 13,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
   },
 
   /* Input Boxes */
   inputBox: {
     height: 48,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
   },
   inputBoxLtr: {
     height: 48,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -442,10 +442,10 @@ const s = StyleSheet.create({
   },
   inputBoxMultiline: {
     minHeight: 88,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 12,
@@ -453,19 +453,19 @@ const s = StyleSheet.create({
   },
   inputBoxFocused: {
     borderColor: Colors.primary,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   inputBoxActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   inputBoxError: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FFFBFB',
+    borderColor: Colors.error,
+    backgroundColor: Colors.dangerSurface,
   },
   inputBoxDisabled: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+    backgroundColor: Colors.slateSubtleBg,
+    borderColor: Colors.slateBorder,
   },
 
   /* Field Icons */
@@ -490,7 +490,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'right',
     writingDirection: 'rtl',
     textAlignVertical: 'center',
@@ -506,7 +506,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'ltr',
     textAlignVertical: 'center',
@@ -522,7 +522,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'right',
     writingDirection: 'rtl',
     textAlignVertical: 'top',
@@ -534,7 +534,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     textAlignVertical: 'center',
@@ -545,7 +545,7 @@ const s = StyleSheet.create({
   },
   placeholderText: {
     fontFamily: 'Almarai_400Regular',
-    color: '#94A3B8',
+    color: Colors.slateMuted,
   },
 
   /* Hints and Errors */
@@ -555,7 +555,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
-    color: '#DC2626',
+    color: Colors.error,
     textAlign: 'right',
     writingDirection: 'rtl',
     marginTop: 2,

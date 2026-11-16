@@ -21,7 +21,7 @@ interface ProfileHeroCardProps {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -63,7 +63,7 @@ export function ProfileHeroCard({
             activeOpacity={0.8}
             onPress={() => router.push('/profile/edit-profile' as any)}
           >
-            <Ionicons name="camera" size={11} color="#FFF" />
+            <Ionicons name="camera" size={11} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -103,11 +103,11 @@ export function ProfileHeroCard({
 const s = StyleSheet.create({
   /* User Hero Card */
   userHeroCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     marginBottom: 14,
     ...softShadow,
   },
@@ -128,7 +128,7 @@ const s = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   avatarFallback: {
     alignItems: 'center',
@@ -141,7 +141,7 @@ const s = StyleSheet.create({
     start: 0,
     end: 0,
     height: '55%',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.whiteAlpha08,
     borderTopStartRadius: 28,
     borderTopEndRadius: 28,
   },
@@ -149,7 +149,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 22,
     lineHeight: 32,
-    color: '#FFFFFF',
+    color: Colors.white,
     includeFontPadding: false,
     letterSpacing: 0.5,
   },
@@ -163,7 +163,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.primary,
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -181,7 +181,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
     lineHeight: 22,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -189,7 +189,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -198,10 +198,10 @@ const s = StyleSheet.create({
   statsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     paddingVertical: 9,
     paddingHorizontal: 8,
   },
@@ -214,7 +214,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 20,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'center',
     includeFontPadding: false,
   },
@@ -222,7 +222,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 10.5,
     lineHeight: 14,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'center',
     includeFontPadding: false,
     writingDirection: 'rtl',
@@ -230,6 +230,6 @@ const s = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 22,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
   },
 })

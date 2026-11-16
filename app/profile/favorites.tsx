@@ -185,7 +185,7 @@ export default function FavoritesScreen() {
   )
 }
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: Colors.slateTintBg },
   centerScroll: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -236,7 +236,7 @@ const s = StyleSheet.create({
   
   // Empty State
   emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 60, paddingHorizontal: 30 },
-  emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(56, 189, 248, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.skySoft10, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 18, color: Colors.text, marginBottom: 8, textAlign: 'center' },
   emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 13, color: Colors.text2, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.pill, gap: 8 },

@@ -74,7 +74,7 @@ export function ProfilePhoneInput({
           <Ionicons
             name="call-outline"
             size={18}
-            color={hasError ? '#DC2626' : isFocused ? Colors.primary : '#64748B'}
+            color={hasError ? Colors.error : isFocused ? Colors.primary : Colors.slateText}
           />
         </View>
 
@@ -88,7 +88,7 @@ export function ProfilePhoneInput({
           testID={testID}
           style={s.textInput}
           placeholder={placeholder}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={Colors.slateMuted}
           keyboardType="phone-pad"
           value={value}
           onChangeText={handleChangeText}
@@ -141,33 +141,33 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   badgeRequired: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
   },
   badgeRequiredText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
     lineHeight: 13,
-    color: '#DC2626',
+    color: Colors.error,
     writingDirection: 'rtl',
   },
 
   /* Physical LTR input row */
   inputBox: {
     height: 48,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
@@ -178,11 +178,11 @@ const s = StyleSheet.create({
   },
   inputBoxFocused: {
     borderColor: Colors.primary,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   inputBoxError: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FFFBFB',
+    borderColor: Colors.error,
+    backgroundColor: Colors.dangerSurface,
   },
 
   iconWrap: {
@@ -192,7 +192,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   prefixBadge: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -204,7 +204,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#334155',
+    color: Colors.slateBody,
     writingDirection: 'ltr',
     textAlignVertical: 'center',
     ...Platform.select({
@@ -218,7 +218,7 @@ const s = StyleSheet.create({
     height: '100%',
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'ltr',
     textAlignVertical: 'center',
@@ -242,7 +242,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
-    color: '#DC2626',
+    color: Colors.error,
     textAlign: 'left',
     marginTop: 2,
     paddingHorizontal: 2,

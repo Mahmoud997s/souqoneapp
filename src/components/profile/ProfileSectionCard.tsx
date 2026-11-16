@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { MenuItem } from '../../types/profile.types'
+import { Colors } from '../../constants/colors'
 
 interface ProfileSectionCardProps {
   title: string
@@ -11,7 +12,7 @@ interface ProfileSectionCardProps {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -34,7 +35,7 @@ export function ProfileSectionCard({ title, items }: ProfileSectionCardProps) {
             }
           }
 
-          const iconFg = item.iconColor || '#334155'
+          const iconFg = item.iconColor || Colors.slateBody
 
           return (
             <TouchableOpacity
@@ -61,7 +62,7 @@ export function ProfileSectionCard({ title, items }: ProfileSectionCardProps) {
                     <Text style={s.badgeText}>{item.badge}</Text>
                   </View>
                 ) : null}
-                <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+                <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
               </View>
 
               {!isLast && <View style={s.optionDivider} />}
@@ -82,18 +83,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     marginBottom: 7,
     paddingHorizontal: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   cardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 18,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     ...softShadow,
   },
   optionRow: {
@@ -113,9 +114,9 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -127,7 +128,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -135,7 +136,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     marginTop: 1,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -148,18 +149,18 @@ const s = StyleSheet.create({
   badgePill: {
     minWidth: 28,
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   badgeText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#334155',
+    color: Colors.slateBody,
   },
   optionDivider: {
     position: 'absolute',
@@ -167,6 +168,6 @@ const s = StyleSheet.create({
     end: 14,
     start: 60,
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
   },
 })

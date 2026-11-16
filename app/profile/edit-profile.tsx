@@ -164,7 +164,7 @@ export default function EditProfileScreen() {
                       end={{ x: 1, y: 1 }}
                       style={s.avatarSheetImg}
                     >
-                      <Ionicons name="person" size={22} color="rgba(255,255,255,0.85)" />
+                      <Ionicons name="person" size={22} color={Colors.whiteAlpha85} />
                     </LinearGradient>
                   )}
                 </View>
@@ -177,33 +177,33 @@ export default function EditProfileScreen() {
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   style={s.modalCloseBtn}
                 >
-                  <Ionicons name="close-circle" size={24} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={24} color={Colors.slateMuted} />
                 </TouchableOpacity>
               </View>
 
               <View style={s.avatarSheetOptions}>
                 <TouchableOpacity style={s.avatarOption} activeOpacity={0.7} onPress={pickFromCamera}>
-                  <View style={[s.avatarOptionIcon, { backgroundColor: '#EFF6FF' }]}>
+                  <View style={[s.avatarOptionIcon, { backgroundColor: Colors.infoSoftBg }]}>
                     <Ionicons name="camera" size={20} color={Colors.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.avatarOptionTitle}>التقاط صورة</Text>
                     <Text style={s.avatarOptionSub}>افتح الكاميرا والتقط صورة جديدة</Text>
                   </View>
-                  <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                  <Ionicons name="chevron-back" size={16} color={Colors.slateBorderStrong} />
                 </TouchableOpacity>
 
                 <View style={s.optionDivider} />
 
                 <TouchableOpacity style={s.avatarOption} activeOpacity={0.7} onPress={pickFromGallery}>
-                  <View style={[s.avatarOptionIcon, { backgroundColor: '#F0FDF4' }]}>
-                    <Ionicons name="images" size={20} color="#16A34A" />
+                  <View style={[s.avatarOptionIcon, { backgroundColor: Colors.greenSoftBg }]}>
+                    <Ionicons name="images" size={20} color={Colors.emeraldBright} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.avatarOptionTitle}>اختيار من المعرض</Text>
                     <Text style={s.avatarOptionSub}>اختر صورة من ألبوم الصور</Text>
                   </View>
-                  <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                  <Ionicons name="chevron-back" size={16} color={Colors.slateBorderStrong} />
                 </TouchableOpacity>
 
                 {displayAvatar ? (
@@ -214,14 +214,14 @@ export default function EditProfileScreen() {
                       activeOpacity={0.7}
                       onPress={handleDeleteAvatar}
                     >
-                      <View style={[s.avatarOptionIcon, { backgroundColor: '#FFF1F2' }]}>
-                        <Ionicons name="trash-outline" size={20} color="#E11D48" />
+                      <View style={[s.avatarOptionIcon, { backgroundColor: Colors.roseSoftBg }]}>
+                        <Ionicons name="trash-outline" size={20} color={Colors.rosePrimary} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={[s.avatarOptionTitle, { color: '#E11D48' }]}>حذف الصورة</Text>
+                        <Text style={[s.avatarOptionTitle, { color: Colors.rosePrimary }]}>حذف الصورة</Text>
                         <Text style={s.avatarOptionSub}>إزالة الصورة الشخصية الحالية</Text>
                       </View>
-                      <Ionicons name="chevron-back" size={16} color="#CBD5E1" />
+                      <Ionicons name="chevron-back" size={16} color={Colors.slateBorderStrong} />
                     </TouchableOpacity>
                   </>
                 ) : null}
@@ -251,7 +251,7 @@ export default function EditProfileScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   content: {
     paddingHorizontal: 16,
@@ -260,7 +260,7 @@ const s = StyleSheet.create({
   /* Bottom Sheet Modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    backgroundColor: Colors.scrimSlate55,
     justifyContent: 'flex-end',
   },
   modalBackdropTop: {
@@ -269,7 +269,7 @@ const s = StyleSheet.create({
   handleBar: {
     width: 36,
     height: 4,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 10,
@@ -281,7 +281,7 @@ const s = StyleSheet.create({
 
   /* Avatar Options Bottom Sheet */
   avatarSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopStartRadius: 22,
     borderTopEndRadius: 22,
   },
@@ -292,7 +292,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.slateSubtleBg,
   },
   avatarSheetPreview: {
     width: 44,
@@ -300,7 +300,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   avatarSheetImg: {
     width: 44,
@@ -313,7 +313,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 21,
-    color: '#1E293B',
+    color: Colors.slateDark,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -321,7 +321,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginTop: 2,
@@ -333,7 +333,7 @@ const s = StyleSheet.create({
   },
   optionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginHorizontal: 4,
   },
   avatarOption: {
@@ -354,7 +354,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -362,7 +362,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginTop: 1,

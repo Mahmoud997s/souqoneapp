@@ -25,7 +25,7 @@ export function EditProfileAvatar({ displayAvatar, onPress }: EditProfileAvatarP
             style={[s.avatar, s.avatarFallback]}
           >
             <View style={s.avatarGlassShimmer} />
-            <Ionicons name="person" size={30} color="rgba(255,255,255,0.85)" />
+            <Ionicons name="person" size={30} color={Colors.whiteAlpha85} />
           </LinearGradient>
         )}
         <View style={s.cameraBadge}>
@@ -50,7 +50,7 @@ const s = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   avatarFallback: {
     alignItems: 'center',
@@ -63,7 +63,7 @@ const s = StyleSheet.create({
     start: 0,
     end: 0,
     height: '50%',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.whiteAlpha08,
     borderTopStartRadius: 40,
     borderTopEndRadius: 40,
   },
@@ -78,14 +78,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
     zIndex: 5,
   },
   avatarHint: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#64748B',
+    color: Colors.slateText,
     marginTop: 8,
   },
 })
