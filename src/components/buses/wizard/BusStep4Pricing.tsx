@@ -80,7 +80,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                   onUpdateField('isPriceNegotiable', val)
                 }}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+                trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
                 testID="price-negotiable-switch"
               />
             </View>
@@ -163,7 +163,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 onUpdateField('withDriver', val)
               }}
-              trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+              trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
               testID="with-driver-switch"
             />
           </View>
@@ -199,7 +199,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                   onUpdateField('isPriceNegotiable', val)
                 }}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+                trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
                 testID="price-negotiable-switch"
               />
             </View>
@@ -346,7 +346,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
               cancelTextIOS="إلغاء"
               locale="ar"
               themeVariant="light"
-              textColor="#000000"
+              textColor={Colors.shadowBlack}
               buttonTextColorIOS={Colors.primary}
             />
           </WizardCard>
@@ -368,13 +368,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
   },
   switchTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -389,14 +389,14 @@ const s = StyleSheet.create({
   },
   sectionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginVertical: 4,
   },
   innerLabel: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 6,
@@ -414,19 +414,19 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: Radius.pill,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   chipText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
   },
   chipTextActive: {
     color: Colors.primary,
@@ -436,18 +436,18 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     padding: 10,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: Colors.blueSoftBg,
   },
   hintText: {
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
-    color: '#1E40AF',
+    color: Colors.infoText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -464,15 +464,15 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   dateBtnActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   dateBtnText: {
@@ -490,7 +490,7 @@ const s = StyleSheet.create({
   dateClearBtn: {
     padding: 10,
     borderRadius: Radius.md,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.dangerSoftBg,
   },
   errorTxt: {
     fontFamily: 'Almarai_400Regular',

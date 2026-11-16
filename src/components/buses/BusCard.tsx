@@ -156,7 +156,7 @@ const BusCardComponent = ({
       label: 'بيع مع عقد تشغيل',
       backgroundColor: Colors.primaryDark,
       textColor: Colors.white,
-      borderColor: 'rgba(255,255,255,0.3)',
+      borderColor: Colors.whiteAlpha30,
       iconName: 'document-text',
     })
   }

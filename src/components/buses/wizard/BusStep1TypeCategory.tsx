@@ -87,7 +87,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
       {/* Intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="bus" size={16} color="#2563EB" />
+          <Ionicons name="bus" size={16} color={Colors.infoPrimary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>سوق الحافلات</Text>
@@ -118,7 +118,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
                   <MaterialCommunityIcons
                     name={lt.icon}
                     size={20}
-                    color={isSel ? '#ffffff' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
@@ -159,7 +159,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
                 style={[
                   s.gridCard,
                   isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : '#E2E8F0' },
+                  { borderColor: isSel ? Colors.primary : Colors.slateBorder },
                 ]}
                 onPress={() => onUpdateField('busType', cat.id)}
                 activeOpacity={0.7}
@@ -168,7 +168,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
                   <MaterialCommunityIcons
                     name={cat.icon}
                     size={22}
-                    color={isSel ? '#FFFFFF' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text style={[s.gridCardTxt, isSel && s.gridCardTxtActive]} numberOfLines={2}>
@@ -250,16 +250,16 @@ const s = StyleSheet.create({
   },
   typeCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: Colors.whiteAlpha45,
     paddingVertical: 12,
     paddingHorizontal: 4,
     borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
     position: 'relative',
-    shadowColor: '#94A3B8',
+    shadowColor: Colors.slateMuted,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -268,13 +268,13 @@ const s = StyleSheet.create({
   },
   typeCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.whiteAlpha95,
   },
   typeIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e0f2fe',
+    backgroundColor: Colors.skyLightBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -285,7 +285,7 @@ const s = StyleSheet.create({
   typeTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
     lineHeight: 18,
     paddingTop: Platform.OS === 'android' ? 2 : 0,
@@ -319,7 +319,7 @@ const s = StyleSheet.create({
   },
   gridCard: {
     width: '31.3%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderRadius: Radius.md,
     paddingVertical: 10,
@@ -330,14 +330,14 @@ const s = StyleSheet.create({
     position: 'relative',
   },
   gridCardActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   gridIconWrap: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -348,7 +348,7 @@ const s = StyleSheet.create({
   gridCardTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'center',
     lineHeight: 16,
     writingDirection: 'rtl',

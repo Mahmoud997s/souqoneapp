@@ -59,7 +59,7 @@ export function EquipmentStep4Location({
               <Switch
                 value={formData.isPriceNegotiable}
                 onValueChange={(val) => onUpdateField('isPriceNegotiable', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+                trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
               />
             </View>
           </>
@@ -99,7 +99,7 @@ export function EquipmentStep4Location({
               <Switch
                 value={formData.withOperator}
                 onValueChange={(val) => onUpdateField('withOperator', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+                trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
               />
             </View>
 
@@ -111,7 +111,7 @@ export function EquipmentStep4Location({
               <Switch
                 value={formData.deliveryAvailable}
                 onValueChange={(val) => onUpdateField('deliveryAvailable', val)}
-                trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+                trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
               />
             </View>
           </>
@@ -188,7 +188,7 @@ export function EquipmentStep4Location({
           <View style={s.coordsBox}>
             <View style={s.coordsInfoRow}>
               <View style={s.coordsIconWrap}>
-                <Ionicons name="location" size={18} color="#059669" />
+                <Ionicons name="location" size={18} color={Colors.emerald} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
@@ -234,7 +234,7 @@ export function EquipmentStep4Location({
               <Text style={s.mapTriggerTitle}>تحديد الموقع بدقة على الخريطة 📍</Text>
               <Text style={s.mapTriggerSub}>اختياري — يساعد المشترين على حساب مسافة النقل بدقة</Text>
             </View>
-            <Ionicons name="chevron-back" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-back" size={18} color={Colors.slateMuted} />
           </TouchableOpacity>
         )}
       </WizardCard>
@@ -277,13 +277,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
   },
   switchTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -298,7 +298,7 @@ const s = StyleSheet.create({
   },
   mapSectionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginTop: 4,
     marginBottom: 4,
   },
@@ -306,9 +306,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -384,9 +384,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: CardSystem.radius.inner,
@@ -400,9 +400,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: CardSystem.radius.inner,

@@ -95,7 +95,7 @@ export function EquipmentStep3Details({
                 >
                   <View style={s.condCardTop}>
                     <View style={[s.radioCircle, isSel && s.radioCircleActive]}>
-                      {isSel && <Ionicons name="checkmark" size={12} color="#ffffff" />}
+                      {isSel && <Ionicons name="checkmark" size={12} color={Colors.white} />}
                     </View>
                     <Text style={[s.condLabel, isSel && s.condLabelActive]} numberOfLines={1}>
                       {cond.label}
@@ -164,7 +164,7 @@ export function EquipmentStep3Details({
                 <Ionicons
                   name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
                   size={15}
-                  color={isSel ? '#ffffff' : '#64748B'}
+                  color={isSel ? Colors.white : Colors.slateText}
                 />
                 <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{feat}</Text>
               </TouchableOpacity>
@@ -188,7 +188,7 @@ export function EquipmentStep3Details({
             disabled={!customFeatureInput.trim()}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color="#ffffff" />
+            <Ionicons name="add" size={22} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -204,7 +204,7 @@ export function EquipmentStep3Details({
                     onPress={() => onRemoveFeature(feat)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Ionicons name="close-circle" size={16} color="#1E40AF" />
+                    <Ionicons name="close-circle" size={16} color={Colors.infoText} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -242,15 +242,15 @@ const s = StyleSheet.create({
   },
   condCard: {
     width: '48.5%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   condCardActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   condCardTop: {
@@ -263,10 +263,10 @@ const s = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   radioCircleActive: {
     backgroundColor: Colors.primary,
@@ -276,7 +276,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
     flex: 1,
@@ -297,9 +297,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: CardSystem.radius.inner,
@@ -312,10 +312,10 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   chipTxtActive: {
-    color: '#ffffff',
+    color: Colors.white,
   },
   addCustomRow: {
     flexDirection: 'row',
@@ -333,20 +333,20 @@ const s = StyleSheet.create({
   },
   addBtnDisabled: {
     opacity: 0.5,
-    backgroundColor: '#94A3B8',
+    backgroundColor: Colors.slateMuted,
   },
   tagsSection: {
     marginTop: 4,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
     gap: 6,
   },
   tagsHeading: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -359,9 +359,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: CardSystem.radius.inner,
@@ -370,6 +370,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#1E40AF',
+    color: Colors.infoText,
   },
 })

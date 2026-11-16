@@ -59,6 +59,8 @@ export const Colors = {
   primarySoft15: 'rgba(0, 156, 181, 0.15)',
   primarySoft25: 'rgba(0, 156, 181, 0.25)',
   primarySoft30: 'rgba(0, 156, 181, 0.30)',
+  primaryHex25:  '#009CB525',
+  primaryHex30:  '#009CB530',
   errorSoft12:   'rgba(220, 38, 38, 0.12)',
   errorBorder40: 'rgba(220, 38, 38, 0.40)',
   scrimDark45:   'rgba(0, 0, 0, 0.45)',
@@ -205,6 +207,11 @@ export const Colors = {
   blueLightBorder:   '#93C5FD',
   blueIceTintBg:     '#F0F7FF',
   dangerSoftBg:      '#FEE2E2',
+  emeraldDeepText:   '#065F46',
+  emeraldBorder:     '#A7F3D0',
+  emeraldDark:       '#047857',
+  warningYellow:     '#FFCC00',
+  emeraldSoftBg:     '#D1FAE5',
 } as const
 
 export const BrandColors = {
@@ -217,6 +224,7 @@ export const BrandColors = {
   googleRed:    '#EA4335',
   appleBg:      '#000000',
   appleText:    '#FFFFFF',
+  whatsapp:     '#25D366',
 } as const
 
 /**
