@@ -22,6 +22,8 @@ export interface MyListingOwnerCardProps {
   isEditSupported: boolean
   busyAction?: OwnerCardBusyAction
   fullWidth?: boolean
+  imageHeight?: number
+  compactBody?: boolean
   glassSupport?: GlassSupport
 }
 
@@ -35,6 +37,8 @@ export function MyListingOwnerCard({
   isEditSupported,
   busyAction = null,
   fullWidth = false,
+  imageHeight,
+  compactBody = false,
   glassSupport,
 }: MyListingOwnerCardProps) {
   const canChangeStatus = STATUS_CHANGE_ENTITIES.includes(item.entityType)
@@ -63,6 +67,8 @@ export function MyListingOwnerCard({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          imageHeight={imageHeight}
+          compactBody={compactBody}
           showChips
           maxChips={3}
           ownerActions={ownerActions}
@@ -76,6 +82,8 @@ export function MyListingOwnerCard({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          imageHeight={imageHeight}
+          compactBody={compactBody}
           showChips
           maxChips={3}
           ownerActions={ownerActions}
@@ -89,6 +97,8 @@ export function MyListingOwnerCard({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          imageHeight={imageHeight}
+          compactBody={compactBody}
           showChips
           maxChips={3}
           ownerActions={ownerActions}
@@ -102,6 +112,8 @@ export function MyListingOwnerCard({
           item={item.raw as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          imageHeight={imageHeight}
+          compactBody={compactBody}
           showChips
           maxChips={3}
           ownerActions={ownerActions}
@@ -115,6 +127,8 @@ export function MyListingOwnerCard({
           item={item.mapped as any}
           onPress={() => onView(item)}
           fullWidth={fullWidth}
+          imageHeight={imageHeight}
+          compactBody={compactBody}
           ownerActions={ownerActions}
           disableImageSwipe
           glassSupport={glassSupport}
