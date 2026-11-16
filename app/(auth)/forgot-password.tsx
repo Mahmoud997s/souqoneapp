@@ -76,8 +76,8 @@ export default function ForgotPasswordScreen() {
         >
           <View style={s.card}>
             <View style={s.cardHero}>
-              <View style={[s.iconWrap, { backgroundColor: '#ECFDF5' }]}>
-                <Ionicons name="checkmark-circle-outline" size={36} color="#059669" />
+              <View style={[s.iconWrap, { backgroundColor: Colors.emeraldBg }]}>
+                <Ionicons name="checkmark-circle-outline" size={36} color={Colors.emerald} />
               </View>
               <Text style={s.cardTitle}>تحقق من بريدك الإلكتروني</Text>
               <Text style={s.cardSubtitle}>

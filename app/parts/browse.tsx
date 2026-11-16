@@ -661,7 +661,7 @@ export default function PartsBrowseScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   listContent: {
     paddingBottom: Spacing.space4,

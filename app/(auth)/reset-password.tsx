@@ -123,8 +123,8 @@ export default function ResetPasswordScreen() {
         >
           <View style={s.card}>
             <View style={s.cardHero}>
-              <View style={[s.iconWrap, { backgroundColor: '#ECFDF5' }]}>
-                <Ionicons name="checkmark-circle-outline" size={40} color="#059669" />
+              <View style={[s.iconWrap, { backgroundColor: Colors.emeraldBg }]}>
+                <Ionicons name="checkmark-circle-outline" size={40} color={Colors.emerald} />
               </View>
               <Text style={s.cardTitle}>تم تغيير كلمة المرور بنجاح!</Text>
               <Text style={s.cardSubtitle}>
@@ -243,7 +243,7 @@ export default function ResetPasswordScreen() {
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={14}
-                    color={hasMinLength ? '#16a34a' : '#c3c6d6'}
+                    color={hasMinLength ? Colors.emeraldBright : Colors.slateLavenderMuted}
                   />
                   <Text style={[s.hintTxt, hasMinLength && s.hintOk]}>
                     ٨ أحرف على الأقل
@@ -253,7 +253,7 @@ export default function ResetPasswordScreen() {
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={14}
-                    color={hasUpperAndDigit ? '#16a34a' : '#c3c6d6'}
+                    color={hasUpperAndDigit ? Colors.emeraldBright : Colors.slateLavenderMuted}
                   />
                   <Text style={[s.hintTxt, hasUpperAndDigit && s.hintOk]}>
                     حرف واحد كبير (A-Z) ورقم واحد (0-9) على الأقل
@@ -404,7 +404,7 @@ const s = StyleSheet.create({
     color: Colors.text2,
     writingDirection: 'rtl',
   },
-  hintOk: { color: '#16a34a' },
+  hintOk: { color: Colors.emeraldBright },
   divider: { height: 1, backgroundColor: Colors.border },
   errorTxt: {
     fontFamily: 'Almarai_400Regular',

@@ -95,7 +95,7 @@ export default function SplashScreen() {
   })
 
   return (
-    <LinearGradient colors={['#FFFFFF', '#F7F8FA']} locations={[0, 1]} style={s.container}>
+    <LinearGradient colors={[Colors.white, Colors.surfaceAlt]} locations={[0, 1]} style={s.container}>
       {/* Center Logo Section */}
       <View style={s.centerSection}>
         <Animated.View style={[s.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
@@ -125,7 +125,7 @@ export default function SplashScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface },
   centerSection: {
     position: 'absolute',
     top: 0, bottom: 0, left: 0, right: 0,
@@ -142,12 +142,12 @@ const s = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#009CB5',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
@@ -161,7 +161,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 22,
     lineHeight: 30,
-    color: '#11232E',
+    color: Colors.text,
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -169,7 +169,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold', 
     fontSize: 13,
     lineHeight: 20,
-    color: '#6B7280',
+    color: Colors.textMuted,
     textAlign: 'center',
     maxWidth: 260,
   },
@@ -191,7 +191,7 @@ const s = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 3,
-    borderColor: '#E5E7EB',
-    borderTopColor: '#009CB5',
+    borderColor: Colors.border,
+    borderTopColor: Colors.primary,
   },
 })

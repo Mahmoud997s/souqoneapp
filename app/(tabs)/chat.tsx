@@ -413,17 +413,17 @@ export default function ChatListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FB',
+    backgroundColor: Colors.homeBg,
   },
   filterBarWrapper: {
     position: 'absolute',
     left: 0,
     right: 0,
     zIndex: 90,
-    backgroundColor: '#F8F9FB',
+    backgroundColor: Colors.homeBg,
     paddingVertical: 2,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.03)',
+    borderBottomColor: Colors.scrimDark03,
   },
   contentContainer: {
     paddingBottom: 110,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(13, 48, 96, 0.06)',
+    backgroundColor: Colors.navySoft06,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
