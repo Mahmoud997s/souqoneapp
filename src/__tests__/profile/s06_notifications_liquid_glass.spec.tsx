@@ -11,6 +11,7 @@ import NotificationsScreen from '../../../app/profile/notifications'
 import { routeForNotification } from '../../utils/notificationRouter'
 import { notificationsApi } from '../../api/notifications'
 import { CardSystem } from '../../constants/cardSystem'
+import { Colors } from '../../constants/colors'
 import { TopBarTokens } from '../../constants/topBarTokens'
 
 jest.setTimeout(30000)
@@ -21,6 +22,7 @@ const capturedTopBarGlassProps: any[] = []
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
+  useFocusEffect: jest.fn(),
   router: { push: jest.fn(), back: jest.fn() },
 }))
 
@@ -125,26 +127,26 @@ describe('S-06 Notifications Liquid Glass, Icons, Title Cleanup & Router (D-326)
   describe('resolveNotificationVisualConfig', () => {
     it('maps all backend uppercase types and preserves lowercase compatibility', () => {
       const expected: Array<[string, string, string]> = [
-        ['LISTING_CREATED', 'add-circle-outline', '#10B981'],
-        ['LISTING_UPDATED', 'refresh-circle-outline', '#009CB5'],
-        ['LISTING_SOLD', 'bag-check-outline', '#10B981'],
-        ['LISTING_DELETED', 'trash-outline', '#EF4444'],
-        ['LISTING_STATUS_CHANGED', 'swap-horizontal-outline', '#D97706'],
-        ['LISTING_FAVORITED', 'heart-outline', '#EF4444'],
-        ['PRICE_DROP', 'pricetag-outline', '#F97316'],
-        ['MESSAGE', 'chatbubble-ellipses-outline', '#3B82F6'],
-        ['PAYMENT_SUCCESS', 'card-outline', '#10B981'],
-        ['SUBSCRIPTION_ACTIVATED', 'card-outline', '#10B981'],
-        ['REVIEW_RECEIVED', 'star-outline', '#D97706'],
-        ['REVIEW_REMINDER', 'star-outline', '#D97706'],
-        ['SYSTEM', 'notifications-outline', '#64748B'],
-        ['UNKNOWN_FUTURE_TYPE', 'notifications-outline', '#64748B'],
-        ['message', 'chatbubble-ellipses-outline', '#3B82F6'],
-        ['listing', 'megaphone-outline', '#8B5CF6'],
-        ['payment', 'card-outline', '#10B981'],
-        ['approval', 'checkmark-circle-outline', '#10B981'],
-        ['warning', 'warning-outline', '#EF4444'],
-        ['system', 'notifications-outline', '#64748B'],
+        ['LISTING_CREATED', 'add-circle-outline', Colors.primary],
+        ['LISTING_UPDATED', 'refresh-circle-outline', Colors.primary],
+        ['LISTING_SOLD', 'bag-check-outline', Colors.primary],
+        ['LISTING_DELETED', 'trash-outline', Colors.error],
+        ['LISTING_STATUS_CHANGED', 'swap-horizontal-outline', Colors.primary],
+        ['LISTING_FAVORITED', 'heart-outline', Colors.primary],
+        ['PRICE_DROP', 'pricetag-outline', Colors.primary],
+        ['MESSAGE', 'chatbubble-ellipses-outline', Colors.primary],
+        ['PAYMENT_SUCCESS', 'card-outline', Colors.primary],
+        ['SUBSCRIPTION_ACTIVATED', 'card-outline', Colors.primary],
+        ['REVIEW_RECEIVED', 'star-outline', Colors.primary],
+        ['REVIEW_REMINDER', 'star-outline', Colors.primary],
+        ['SYSTEM', 'notifications-outline', Colors.primary],
+        ['UNKNOWN_FUTURE_TYPE', 'notifications-outline', Colors.primary],
+        ['message', 'chatbubble-ellipses-outline', Colors.primary],
+        ['listing', 'megaphone-outline', Colors.primary],
+        ['payment', 'card-outline', Colors.primary],
+        ['approval', 'checkmark-circle-outline', Colors.primary],
+        ['warning', 'warning-outline', Colors.error],
+        ['system', 'notifications-outline', Colors.primary],
       ]
 
       for (const [type, icon, color] of expected) {
@@ -213,7 +215,7 @@ describe('S-06 Notifications Liquid Glass, Icons, Title Cleanup & Router (D-326)
       const cardGlass = capturedGlassSurfaceProps[0]
       expect(cardGlass.borderRadius).toBe(CardSystem.radius.outer)
       expect(cardGlass.glassEffectStyle).toBe('clear')
-      expect(cardGlass.tintOverlayColor).toBe(CardSystem.glass.cardTint)
+      expect(cardGlass.tintOverlayColor).toBe(CardSystem.glass.unreadTint)
 
       // TopBarGlassSurface for mark-all-read button
       const markAllBtn = screen.getByLabelText('تحديد الكل كمقروء')
