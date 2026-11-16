@@ -43,15 +43,15 @@ function fmtPrice(price?: number, currency?: string): string {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string }> = {
-  SALE:   { label: 'للبيع',    bg: '#3b82f6' },
-  RENTAL: { label: 'للإيجار', bg: '#d97706' },
-  WANTED: { label: 'مطلوب',   bg: '#64748b' },
+  SALE:   { label: 'للبيع',    bg: Colors.blueBright },
+  RENTAL: { label: 'للإيجار', bg: Colors.amberText },
+  WANTED: { label: 'مطلوب',   bg: Colors.slateText },
 }
 
 const COND_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  NEW:      { label: 'جديد',      bg: '#eff6ff', color: '#2563eb' },
-  LIKE_NEW: { label: 'شبه جديد', bg: '#ecfdf5', color: '#059669' },
-  USED:     { label: 'مستعمل',   bg: '#f1f5f9', color: '#475569' },
+  NEW:      { label: 'جديد',      bg: Colors.infoSoftBg, color: Colors.infoPrimary },
+  LIKE_NEW: { label: 'شبه جديد', bg: Colors.emeraldBg, color: Colors.emerald },
+  USED:     { label: 'مستعمل',   bg: Colors.slateSubtleBg, color: Colors.slateSecondary },
 }
 
 // ─────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ export const ListingBanner: React.FC<ListingBannerProps> = ({
             />
           ) : (
             <View style={s.thumbFallback}>
-              <Ionicons name="car-sport-outline" size={24} color="#94a3b8" />
+              <Ionicons name="car-sport-outline" size={24} color={Colors.slateMuted} />
             </View>
           )}
 
@@ -139,13 +139,13 @@ export const ListingBanner: React.FC<ListingBannerProps> = ({
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityLabel="إغلاق كرت الإعلان"
             >
-              <Ionicons name="close" size={13} color="#94a3b8" />
+              <Ionicons name="close" size={13} color={Colors.slateMuted} />
             </TouchableOpacity>
           )}
 
           <View style={s.ctaButton}>
             <Text style={s.ctaText}>عرض</Text>
-            <Ionicons name="chevron-back" size={12} color="#ffffff" />
+            <Ionicons name="chevron-back" size={12} color={Colors.white} />
           </View>
         </View>
       </TouchableOpacity>
@@ -160,21 +160,21 @@ const s = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.slateSurface,
     borderBottomWidth: 1,
-    borderBottomColor: '#edf2f7',
+    borderBottomColor: Colors.chatDivider,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.slateBorder,
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 6,
@@ -191,7 +191,7 @@ const s = StyleSheet.create({
     height: 62,
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.slateSubtleBg,
     position: 'relative',
   },
   thumbImg: {
@@ -202,7 +202,7 @@ const s = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.slateSubtleBg,
   },
   typeBadge: {
     position: 'absolute',
@@ -216,7 +216,7 @@ const s = StyleSheet.create({
   typeBadgeText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 8.5,
-    color: '#ffffff',
+    color: Colors.white,
     includeFontPadding: false,
   },
 
@@ -230,7 +230,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#0f172a',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     includeFontPadding: false,
@@ -253,7 +253,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
     lineHeight: 15,
-    color: '#64748b',
+    color: Colors.slateText,
     marginTop: 2,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -271,7 +271,7 @@ const s = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.slateSubtleBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -287,7 +287,7 @@ const s = StyleSheet.create({
   ctaText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10.5,
-    color: '#ffffff',
+    color: Colors.white,
     includeFontPadding: false,
   },
 })

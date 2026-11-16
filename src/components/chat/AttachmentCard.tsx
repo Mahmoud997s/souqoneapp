@@ -21,10 +21,10 @@ interface AttachmentTypeStyle {
 }
 
 const TYPE_STYLES: Record<string, AttachmentTypeStyle> = {
-  pdf: { bg: '#FFE5E5', text: '#FF4D4D', icon: 'document-text' },
-  doc: { bg: 'rgba(0, 74, 198, 0.1)', text: Colors.primary, icon: 'document' },
-  xls: { bg: '#E5F6E5', text: '#2E7D32', icon: 'stats-chart' },
-  default: { bg: 'rgba(0,0,0,0.05)', text: Colors.textMuted, icon: 'document-attach' },
+  pdf: { bg: Colors.iosRedSoftBg, text: Colors.coralDanger, icon: 'document-text' },
+  doc: { bg: Colors.blueSoft10, text: Colors.primary, icon: 'document' },
+  xls: { bg: Colors.mintSoftBg, text: Colors.forestBadgeText, icon: 'stats-chart' },
+  default: { bg: Colors.scrimDark05, text: Colors.textMuted, icon: 'document-attach' },
 }
 
 function getStyle(type: string) {
@@ -86,8 +86,8 @@ const s = StyleSheet.create({
     width: '100%',
     minWidth: 200,
   },
-  own: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  other: { backgroundColor: 'rgba(0, 0, 0, 0.03)' },
+  own: { backgroundColor: Colors.whiteAlpha10 },
+  other: { backgroundColor: Colors.scrimDark03 },
   iconBox: {
     width: 44,
     height: 44,
@@ -101,7 +101,7 @@ const s = StyleSheet.create({
   size: { fontFamily: 'Almarai_400Regular', fontSize: 11, writingDirection: 'rtl', textAlign: 'left' },
   txtWhite: { color: Colors.white },
   txtDark: { color: Colors.text },
-  txtWhiteMuted: { color: 'rgba(255,255,255,0.7)' },
+  txtWhiteMuted: { color: Colors.whiteAlpha70 },
   txtMuted: { color: Colors.textMuted },
   downloadBtn: { padding: 4 },
 })

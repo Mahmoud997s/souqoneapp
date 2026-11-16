@@ -130,10 +130,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.white,
     borderWidth: 1.1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: 1.5 },
         shadowOpacity: 0.04,
         shadowRadius: 3,
@@ -177,16 +177,16 @@ const styles = StyleSheet.create({
     height: 17,
     minWidth: 17,
     borderRadius: 8.5,
-    backgroundColor: '#EDF2F7',
+    backgroundColor: Colors.chatDivider,
     marginStart: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: Colors.whiteAlpha25,
   },
   badgeUnreadAlert: {
-    backgroundColor: 'rgba(254, 94, 0, 0.12)',
+    backgroundColor: Colors.flameSoft12,
   },
   badgeText: {
     fontFamily: 'Almarai_700Bold',

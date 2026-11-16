@@ -86,7 +86,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({
               <Path
                 d="M 40 0 L 0 0 0 40"
                 fill="none"
-                stroke="rgba(255,255,255,0.06)"
+                stroke={Colors.whiteAlpha06}
                 strokeWidth="1"
               />
             </Pattern>
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: Colors.whiteAlpha06,
   },
   row: {
     height: 58,
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: Colors.whiteAlpha12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: Colors.whiteAlpha18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -281,13 +281,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#34D399',
+    backgroundColor: Colors.emeraldLight,
   },
   typingText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#34D399',
+    color: Colors.emeraldLight,
     textAlign: 'left',
     writingDirection: 'rtl',
     includeFontPadding: false,
@@ -301,13 +301,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#34D399',
+    backgroundColor: Colors.emeraldLight,
   },
   statusOnlineText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: Colors.whiteAlpha85,
     textAlign: 'left',
     writingDirection: 'rtl',
     includeFontPadding: false,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: Colors.whiteAlpha60,
     textAlign: 'left',
     writingDirection: 'rtl',
     includeFontPadding: false,
@@ -331,10 +331,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
+    borderColor: Colors.whiteAlpha35,
   },
   avatarFallback: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: Colors.whiteAlpha18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     width: 11,
     height: 11,
     borderRadius: 5.5,
-    backgroundColor: '#34D399',
+    backgroundColor: Colors.emeraldLight,
     borderWidth: 2,
     borderColor: Colors.primaryDark,
   },
@@ -359,9 +359,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: Colors.whiteAlpha12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: Colors.whiteAlpha18,
     alignItems: 'center',
     justifyContent: 'center',
   },

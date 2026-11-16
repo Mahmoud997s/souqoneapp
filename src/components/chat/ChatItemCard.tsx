@@ -259,7 +259,7 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
                   <Ionicons
                     name={lastMessage?.isRead ? 'checkmark-done' : 'checkmark'}
                     size={14}
-                    color={lastMessage?.isRead ? Colors.primary : '#94A3B8'}
+                    color={lastMessage?.isRead ? Colors.primary : Colors.slateMuted}
                     style={styles.sentIcon}
                   />
                 )}
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   swipeContainer: {
     overflow: 'hidden',
     borderRadius: 14,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
   },
   container: {
     backgroundColor: Colors.white,
@@ -340,10 +340,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 13,
     borderWidth: 1,
-    borderColor: '#EBF0F6',
+    borderColor: Colors.slateSoftBorder,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 1.5 },
         shadowOpacity: 0.04,
         shadowRadius: 5,
@@ -354,16 +354,16 @@ const styles = StyleSheet.create({
     }),
   },
   containerUnread: {
-    backgroundColor: '#FAFBFD',
-    borderColor: 'rgba(13, 48, 96, 0.14)',
+    backgroundColor: Colors.chatSurfaceTint,
+    borderColor: Colors.navySoft14,
   },
   containerArchived: {
     opacity: 0.72,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray50Surface,
   },
   containerPinned: {
-    borderColor: 'rgba(13, 48, 96, 0.16)',
-    backgroundColor: '#FAFBFD',
+    borderColor: Colors.navySoft16,
+    backgroundColor: Colors.chatSurfaceTint,
   },
   mainRow: {
     flexDirection: 'row',
@@ -377,13 +377,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#EDF2F7',
+    backgroundColor: Colors.chatDivider,
   },
   avatarFallback: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(13, 48, 96, 0.08)',
+    backgroundColor: Colors.navySoft08,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   pinIconWrap: {
     paddingHorizontal: 4,
     paddingVertical: 1.5,
-    backgroundColor: 'rgba(13, 48, 96, 0.06)',
+    backgroundColor: Colors.navySoft06,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 15,
-    color: '#8E9BAE',
+    color: Colors.slateCoolMuted,
     writingDirection: 'rtl',
     textAlign: 'left',
     includeFontPadding: false,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
     textAlign: 'left',
     flex: 1,
@@ -495,26 +495,26 @@ const styles = StyleSheet.create({
   listingSnippet: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F7FB',
+    backgroundColor: Colors.chatHeaderBg,
     borderRadius: 8,
     paddingHorizontal: 9,
     paddingVertical: 5,
     marginTop: 8,
     gap: 7,
     borderWidth: 1,
-    borderColor: '#E6ECF3',
+    borderColor: Colors.chatInputBorder,
   },
   listingThumb: {
     width: 24,
     height: 24,
     borderRadius: 5,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   listingThumbFallback: {
     width: 24,
     height: 24,
     borderRadius: 5,
-    backgroundColor: 'rgba(13, 48, 96, 0.08)',
+    backgroundColor: Colors.navySoft08,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
     textAlign: 'left',
     flex: 1,
@@ -534,10 +534,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   roleTagSeller: {
-    backgroundColor: 'rgba(13, 48, 96, 0.08)',
+    backgroundColor: Colors.navySoft08,
   },
   roleTagBuyer: {
-    backgroundColor: 'rgba(232, 120, 30, 0.1)',
+    backgroundColor: Colors.amberDeepSoft10,
   },
   roleTagText: {
     fontFamily: 'Almarai_700Bold',
@@ -579,21 +579,21 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: Colors.whiteAlpha22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionBtnArchive: {
-    backgroundColor: '#334155',
+    backgroundColor: Colors.slateBody,
   },
   actionBtnUnarchive: {
-    backgroundColor: '#059669',
+    backgroundColor: Colors.emerald,
   },
   actionBtnPin: {
     backgroundColor: Colors.primary,
   },
   actionBtnDelete: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.dangerBright,
   },
   actionBtnText: {
     fontFamily: 'Almarai_700Bold',

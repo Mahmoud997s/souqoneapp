@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { View, StyleSheet, Animated } from 'react-native'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { Colors } from '../../constants/colors'
 
 export const ChatListSkeleton: React.FC = () => {
   const pulseAnim = useRef(new Animated.Value(0.4)).current
@@ -74,11 +75,11 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.space2,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
     padding: Spacing.space3 + 2,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.slateCoolBg,
   },
   mainRow: {
     flexDirection: 'row',
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   contentCol: {
     flex: 1,
@@ -104,24 +105,24 @@ const styles = StyleSheet.create({
     width: '40%',
     height: 14,
     borderRadius: 4,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   timeLine: {
     width: '15%',
     height: 12,
     borderRadius: 4,
-    backgroundColor: '#EDF2F7',
+    backgroundColor: Colors.chatDivider,
   },
   messageLine: {
     width: '70%',
     height: 12,
     borderRadius: 4,
-    backgroundColor: '#EDF2F7',
+    backgroundColor: Colors.chatDivider,
   },
   listingSnippet: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -132,12 +133,12 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 6,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   listingTitleLine: {
     width: '50%',
     height: 11,
     borderRadius: 4,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
 })
