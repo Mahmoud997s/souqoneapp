@@ -291,7 +291,7 @@ export default function RegisterScreen() {
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={13}
-                    color={hasMinLength ? '#16a34a' : '#94A3B8'}
+                    color={hasMinLength ? Colors.emeraldBright : Colors.slateMuted}
                   />
                   <Text style={[s.hintTxt, hasMinLength && s.hintOk]}>
                     ٨ أحرف على الأقل
@@ -301,7 +301,7 @@ export default function RegisterScreen() {
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={13}
-                    color={hasUpper && hasDigit ? '#16a34a' : '#94A3B8'}
+                    color={hasUpper && hasDigit ? Colors.emeraldBright : Colors.slateMuted}
                   />
                   <Text style={[s.hintTxt, hasUpper && hasDigit && s.hintOk]}>
                     حرف كبير واحد (A-Z) ورقم واحد (0-9) على الأقل
@@ -450,7 +450,7 @@ const s = StyleSheet.create({
   },
   phoneWrapError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   fieldErrorTxt: {
     fontFamily: 'Almarai_400Regular',
@@ -474,11 +474,11 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
   },
   hintOk: {
-    color: '#16a34a',
+    color: Colors.emeraldBright,
     fontFamily: 'Almarai_700Bold',
   },
   phonePrefix: {

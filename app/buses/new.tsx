@@ -482,7 +482,7 @@ export default function NewBusListingScreen() {
           <View style={s.draftBar}>
             <View style={s.draftBadge}>
               <View style={s.draftIconWrap}>
-                <Ionicons name="cloud-done-outline" size={13} color="#059669" />
+                <Ionicons name="cloud-done-outline" size={13} color={Colors.emerald} />
               </View>
               <Text style={s.draftBadgeTxt}>يتم حفظ مسودتك تلقائياً</Text>
             </View>
@@ -654,7 +654,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(220,38,38,0.06)',
+    backgroundColor: Colors.errorSoft06,
   },
   clearDraftTxt: {
     fontFamily: 'Almarai_700Bold',

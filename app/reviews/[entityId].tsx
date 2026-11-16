@@ -278,7 +278,7 @@ export default function ReviewsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: Colors.slateTintBg },
   loader: { marginTop: 60 },
   content: { padding: Spacing.space4, paddingBottom: 100, gap: Spacing.space4 },
   summaryCard: {
@@ -309,7 +309,7 @@ const s = StyleSheet.create({
   },
   revHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.space3 },
   userInfo: { flexDirection: 'row', gap: Spacing.space3 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f7f9fc', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.slateTintBg, alignItems: 'center', justifyContent: 'center' },
   avatarInit: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text },
   revName: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
   revTime: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Colors } from '../../src/constants/colors'
+import { Colors, BrandColors } from '../../src/constants/colors'
 import { Gradients } from '../../src/constants/gradients'
 import { Spacing } from '../../src/constants/spacing'
 import { Shadows } from '../../src/constants/shadows'
@@ -400,7 +400,7 @@ export default function LoginScreen() {
                 {Platform.OS === 'ios' && appleAvailable && (
                   appleLoading ? (
                     <View style={s.appleLoadingBox}>
-                      <ActivityIndicator size="small" color="#000000" />
+                      <ActivityIndicator size="small" color={Colors.shadowBlack} />
                     </View>
                   ) : (
                     <AppleAuthenticationButton
@@ -421,7 +421,7 @@ export default function LoginScreen() {
                   activeOpacity={0.8}
                 >
                   {googleLoading ? (
-                    <ActivityIndicator size="small" color="#3C4043" />
+                    <ActivityIndicator size="small" color={BrandColors.googleText} />
                   ) : (
                     <>
                       <GoogleIcon size={18} />
@@ -504,7 +504,7 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
   brandTitleOrange: {
-    color: '#F18B29',
+    color: Colors.amberBright,
   },
   brandSub: {
     fontFamily: 'Almarai_400Regular',
@@ -518,16 +518,16 @@ const s = StyleSheet.create({
 
   card: {
     overflow: 'hidden',
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.72)' : 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: Platform.OS === 'ios' ? Colors.whiteAlpha72 : Colors.whiteAlpha88,
     borderRadius: Radius.lg,
     marginHorizontal: Spacing.space4,
     marginTop: 4,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.85)',
+    borderColor: Colors.whiteAlpha85,
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.05,
         shadowRadius: 16,
@@ -538,7 +538,7 @@ const s = StyleSheet.create({
   },
   glassWash: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: Colors.whiteAlpha25,
   },
 
   form: { gap: 10 },
@@ -581,7 +581,7 @@ const s = StyleSheet.create({
     width: '100%',
     height: 40,
     borderRadius: Radius.md,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray100Surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -592,9 +592,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     height: 40,
     borderRadius: Radius.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#DADCE0',
+    borderColor: BrandColors.googleBorder,
     gap: 8,
     ...Shadows.sm,
   },
@@ -602,7 +602,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#3C4043',
+    color: BrandColors.googleText,
   },
 
   guestBtn: {

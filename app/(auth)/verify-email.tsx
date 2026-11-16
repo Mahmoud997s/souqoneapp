@@ -236,7 +236,7 @@ export default function VerifyEmailScreen() {
           <View style={s.resendBox}>
             {!canResend && (
               <View style={s.timerBadge}>
-                <Ionicons name="time-outline" size={14} color="#D97706" />
+                <Ionicons name="time-outline" size={14} color={Colors.amberText} />
                 <Text style={s.timerTxt}>{timerStr}</Text>
               </View>
             )}
@@ -251,7 +251,7 @@ export default function VerifyEmailScreen() {
                 <ActivityIndicator size="small" color={Colors.primary} />
               ) : (
                 <>
-                  <Ionicons name="refresh-outline" size={18} color={canResend ? Colors.primary : '#94A3B8'} />
+                  <Ionicons name="refresh-outline" size={18} color={canResend ? Colors.primary : Colors.slateMuted} />
                   <Text style={[s.resendTxt, !canResend && s.resendDisabled]}>
                     إعادة الإرسال
                   </Text>
@@ -428,12 +428,12 @@ const s = StyleSheet.create({
     color: Colors.primary,
     writingDirection: 'rtl',
   },
-  resendDisabled: { color: '#94A3B8' },
+  resendDisabled: { color: Colors.slateMuted },
   timerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.space1,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.amberSoftBg,
     paddingHorizontal: Spacing.space2,
     paddingVertical: Spacing.space1,
     borderRadius: 6,
@@ -442,7 +442,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#D97706',
+    color: Colors.amberText,
   },
   changeEmailBtn: {
     flexDirection: 'row',

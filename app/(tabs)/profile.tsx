@@ -12,6 +12,7 @@ import { ProfileSectionCard } from '../../src/components/profile/ProfileSectionC
 import { ProfileLogoutSection } from '../../src/components/profile/ProfileLogoutSection'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { FEATURES } from '../../src/constants/features'
+import { Colors } from '../../src/constants/colors'
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
@@ -104,7 +105,7 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   content: {
     paddingHorizontal: 16,

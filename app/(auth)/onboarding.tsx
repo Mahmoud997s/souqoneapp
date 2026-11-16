@@ -129,7 +129,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: 'rgba(0, 156, 181, 0.25)',
+    borderColor: Colors.primarySoft25,
   },
   guestPillTxt: {
     fontFamily: 'Almarai_700Bold',

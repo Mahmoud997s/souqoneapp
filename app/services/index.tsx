@@ -259,6 +259,6 @@ export default function ServicesLandingScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FB' },
+  root: { flex: 1, backgroundColor: Colors.homeBg },
   content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: Spacing.space4 },
 });

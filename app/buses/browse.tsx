@@ -526,7 +526,7 @@ export default function BusesBrowseScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.neutralSurface,
   },
   listContent: {
     paddingBottom: Spacing.space6,

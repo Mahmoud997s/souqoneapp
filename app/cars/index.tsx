@@ -106,7 +106,7 @@ export default function CarsLandingScreen() {
           label: 'اعرض سيارتك',
           icon: 'add',
           onPress: handleAddCar,
-          bgColor: 'rgba(255,255,255,0.2)',
+          bgColor: Colors.whiteAlpha20,
           textColor: Colors.white
         }}
         outlineCta={{
@@ -202,6 +202,6 @@ export default function CarsLandingScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FB' },
+  root: { flex: 1, backgroundColor: Colors.homeBg },
   content: { paddingHorizontal: Spacing.space5, gap: 20, paddingBottom: 0 },
 });
