@@ -5,11 +5,17 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { lineHeightFor } from '../../../constants/typography'
+import { PublicProfileTokens } from '../../../constants/publicProfileTokens'
+import { BottomBarTokens } from '../../../constants/bottomBarTokens'
+import { CardSystem } from '../../../constants/cardSystem'
 import type { OperatorDetailViewModel } from '../../../types/operatorDetailViewModel.types'
+import { GlassSurface } from '../../navigation/GlassSurface'
+import type { GlassSupport } from '../../navigation/glassCapability'
 import { OperatorAvatarBlock } from './OperatorAvatarBlock'
 
 export interface OperatorHeroHeaderProps {
   vm: OperatorDetailViewModel
+  support?: GlassSupport
 }
 
 /**
@@ -22,7 +28,7 @@ export interface OperatorHeroHeaderProps {
  * - 2-3 real stat chips in ONE row (experience, rate, equipment)
  * - Strict absence of listing-style price box and ad badges
  */
-export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
+export function OperatorHeroHeader({ vm, support }: OperatorHeroHeaderProps) {
   const avatarUrl = vm.profileImageUrl || vm.seller.avatarUrl
   const hasExperience = Boolean(vm.experienceYearsLabel)
   const hasRate = Boolean(vm.rates?.hasAnyRate)
@@ -31,6 +37,13 @@ export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
 
   return (
     <View style={s.container} testID="operator-hero-header">
+      <GlassSurface
+        testID="operator-hero-surface"
+        support={support}
+        borderRadius={PublicProfileTokens.heroRadius}
+        washOpacity={PublicProfileTokens.heroWashOpacity}
+        noBorder
+      />
       {/* Avatar with Verified Badge */}
       <OperatorAvatarBlock
         avatarUrl={avatarUrl}
@@ -115,13 +128,18 @@ export function OperatorHeroHeader({ vm }: OperatorHeroHeaderProps) {
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
+    position: 'relative',
+    overflow: 'hidden',
+    marginHorizontal: Spacing.space4,
+    marginTop: Spacing.space3,
+    borderRadius: PublicProfileTokens.heroRadius,
+    borderWidth: 1,
+    borderColor: BottomBarTokens.borderColor,
+    ...BottomBarTokens.shadow,
     paddingTop: Spacing.space5,
     paddingBottom: Spacing.space4,
     paddingHorizontal: Spacing.space4,
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
   },
   name: {
     fontFamily: 'Almarai_700Bold',
@@ -193,7 +211,7 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: CardSystem.glass.negotiableBorderColor,
   },
   rateStatChipText: {
     fontFamily: 'Almarai_700Bold',

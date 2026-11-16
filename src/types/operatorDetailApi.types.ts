@@ -12,6 +12,7 @@ export interface OperatorDetailApiSeller {
   displayName?: string | null
   avatarUrl?: string | null
   isVerified?: boolean
+  isOnline?: boolean
   governorate?: string | null
   createdAt: string
 }
@@ -52,6 +53,7 @@ export interface OperatorDetailApi {
   profileImageUrl?: string | null
 
   whatsappEnabled?: boolean | null
+  isOnline?: boolean | null
 
   status: string
   hiddenByOwnerStatus?: boolean | null

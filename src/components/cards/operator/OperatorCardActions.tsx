@@ -9,43 +9,61 @@ import { lineHeightFor } from '../../../constants/typography'
 export interface OperatorCardActionsProps {
   onCall: (e: any) => void
   onWhatsApp: (e: any) => void
+  onChat?: (e: any) => void
   isWhatsappEnabled: boolean
 }
 
 /**
  * OperatorCardActions
- * Contact action buttons row (Call & WhatsApp) with 44pt touch targets
- * and clean semantic tokens.
+ * Contact action buttons row: primary "اتصال" and secondary "واتساب" (when enabled)
+ * or "محادثة" fallback with 44pt touch targets and clean semantic tokens.
  */
 export function OperatorCardActions({
   onCall,
   onWhatsApp,
+  onChat,
   isWhatsappEnabled,
 }: OperatorCardActionsProps) {
   return (
     <View style={s.actionRow}>
       <TouchableOpacity
+        testID="operator-call-btn"
         style={s.callBtn}
         onPress={onCall}
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel="اتصال بالمشغل"
       >
-        <Ionicons name="call" size={14} color={Colors.primary} />
+        <Ionicons name="call" size={14} color={Colors.white} />
         <Text style={s.callBtnTxt}>اتصال</Text>
       </TouchableOpacity>
 
-      {isWhatsappEnabled && (
+      {isWhatsappEnabled ? (
         <TouchableOpacity
-          style={s.whatsappBtn}
+          testID="operator-whatsapp-btn"
+          style={s.secondaryBtn}
           onPress={onWhatsApp}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel="تواصل عبر واتساب"
         >
           <Ionicons name="logo-whatsapp" size={15} color={Colors.primary} />
-          <Text style={s.whatsappBtnTxt}>واتساب</Text>
+          <Text style={s.secondaryBtnTxt}>واتساب</Text>
         </TouchableOpacity>
+      ) : (
+        onChat && (
+          <TouchableOpacity
+            testID="operator-chat-btn"
+            style={s.secondaryBtn}
+            onPress={onChat}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="محادثة المشغل"
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={15} color={Colors.primary} />
+            <Text style={s.secondaryBtnTxt}>محادثة</Text>
+          </TouchableOpacity>
+        )
       )}
     </View>
   )
@@ -68,18 +86,18 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.space1,
-    backgroundColor: Colors.paleMint,
+    backgroundColor: Colors.primary,
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
   },
   callBtnTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
-    color: Colors.primaryDark,
+    color: Colors.white,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
-  whatsappBtn: {
+  secondaryBtn: {
     flex: 1,
     minHeight: Spacing.touch,
     flexDirection: 'row',
@@ -91,10 +109,12 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  whatsappBtnTxt: {
+  secondaryBtnTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: lineHeightFor(12),
     color: Colors.primaryDark,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
 })

@@ -546,4 +546,21 @@ describe('OperatorDetailScreen', () => {
     const favBtn = view.getByTestId('operator-top-favorite-btn')
     expect(favBtn.props.accessibilityLabel).toBe('إزالة من المفضلة')
   })
+
+  it('renders top-glow RadialGradient with pointerEvents="none" and preserves floating/sticky bars (D-334)', async () => {
+    cleanup()
+    const fs = require('fs')
+    const path = require('path')
+
+    const view = await render(<OperatorDetailScreen id="op-100" />)
+    const glow = view.getByTestId('operator-detail-top-glow')
+    expect(glow).toBeTruthy()
+    expect(glow.props.pointerEvents).toBe('none')
+    expect(view.getByTestId('operator-top-back-btn')).toBeTruthy()
+    expect(view.getAllByTestId('btn-contact-call').length).toBe(2)
+
+    const screenSrc = fs.readFileSync(path.resolve(__dirname, 'OperatorDetailScreen.tsx'), 'utf8')
+    expect(screenSrc.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g)).toBeNull()
+    expect(screenSrc.match(/Colors\.[a-zA-Z0-9_]+\s*\+\s*['"][0-9a-fA-F]{2}['"]/g)).toBeNull()
+  })
 })

@@ -2,13 +2,19 @@ import React from 'react'
 import {
   Dimensions,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { lineHeightFor } from '../../constants/typography'
+import { OPERATOR_ROLES } from '../../constants/operators'
 import { CardSystem, getHomeStandardCardWidth } from '../../constants/cardSystem'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
+import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { getOperatorTypeLabel, getEquipmentTypeLabel } from '../../utils/equipment-mappers'
 import { formatLocation } from '../../utils/mappers'
 import { OperatorCardHeader } from './operator/OperatorCardHeader'
@@ -26,10 +32,15 @@ export interface OperatorCardProps {
   fullWidth?: boolean
 }
 
+function getWatermarkIconName(operatorType?: string | null): React.ComponentProps<typeof Ionicons>['name'] {
+  const matched = OPERATOR_ROLES.find((role) => role.id === operatorType)
+  return (matched?.icon as React.ComponentProps<typeof Ionicons>['name']) ?? 'construct-outline'
+}
+
 /**
  * OperatorCard
  * Unified operator card component serving all contexts (browse, landing, search, my-listings).
- * Designed following the Impeccable method with strict token-only styling (zero raw hex).
+ * Strict token-only styling (zero raw hex/rgba) with lightweight list performance (no GlassSurface/Svg).
  */
 function OperatorCardComponent({
   item,
@@ -43,6 +54,7 @@ function OperatorCardComponent({
 
   const raw = item.raw || item
   const user = item.user || raw.user
+  const operatorId = String(item.id || raw?.id || '')
 
   const name =
     user?.displayName ||
@@ -51,18 +63,24 @@ function OperatorCardComponent({
     raw.title ||
     'مشغل في سوق ون'
 
-  const userAvatar = item.avatar || user?.avatarUrl || raw?.user?.avatarUrl || item.avatarUrl
+  const userAvatar = item.avatar || item.profileImageUrl || raw?.profileImageUrl || user?.avatarUrl || raw?.user?.avatarUrl || item.avatarUrl
+  const images: string[] = Array.isArray(item.images)
+    ? item.images
+    : Array.isArray(raw?.images)
+    ? raw.images
+    : []
   const isVerified = Boolean(item.isVerified ?? raw?.isVerified ?? user?.isVerified ?? false)
+  const isOnline = Boolean((raw?.isOnline ?? item.isOnline ?? user?.isOnline) === true)
 
   const locationDisplay = item.governorate || formatLocation(raw) || 'سلطنة عمان'
 
   const operatorType = raw?.operatorType || item.operatorType
   const operatorTypeLabel = operatorType ? getOperatorTypeLabel(operatorType) : null
 
-  const experienceYears = raw?.experienceYears ?? item.experienceYears
+  const experienceYearsNum = Number(raw?.experienceYears ?? item.experienceYears ?? 0)
   const experienceText =
-    experienceYears != null && Number(experienceYears) > 0
-      ? `${experienceYears} سنوات خبرة`
+    experienceYearsNum > 0
+      ? `${experienceYearsNum} سنوات خبرة`
       : null
 
   const rawEquip: string[] = raw?.equipmentTypes || item.equipmentTypes || []
@@ -70,7 +88,16 @@ function OperatorCardComponent({
     ? rawEquip.map((t) => getEquipmentTypeLabel(t))
     : []
 
-  const hasCertifications = Boolean(raw?.certifications && raw.certifications.length > 0)
+  const certificationsList: unknown[] = Array.isArray(raw?.certifications)
+    ? raw.certifications
+    : Array.isArray(item.certifications)
+    ? item.certifications
+    : []
+  const certsCount = certificationsList.length
+  const hasCertifications = certsCount > 0
+
+  const averageRating = Number(raw?.averageRating ?? item.averageRating ?? 0)
+  const reviewCount = Number(raw?.reviewCount ?? item.reviewCount ?? 0)
 
   // Assemble chip badges using strict total budget
   const { chips: visibleChips, extraCount } = buildOperatorChips({
@@ -95,14 +122,19 @@ function OperatorCardComponent({
     displayPrice = item.priceText || raw.priceText
   }
 
-  // Contact actions (public mode only)
+  // Contact & Favorite actions (public mode only)
   const isOwnerMode = Boolean(actionMenu || ownerActions)
   const contact = useListingContact(
     'OPERATOR_LISTING',
-    item.id || raw?.id || '',
-    `/equipment/operators/${item.id || raw?.id || ''}`,
+    operatorId,
+    `/equipment/operators/${operatorId}`,
     name
   )
+
+  const fav = useFavoriteToggle('OPERATOR_LISTING', operatorId, Boolean(item.isFavorite ?? raw?.isFavorite), {
+    redirectPath: `/equipment/operators/${operatorId}`,
+    title: name,
+  })
 
   const handleCall = (e: any) => {
     e.stopPropagation?.()
@@ -114,7 +146,21 @@ function OperatorCardComponent({
     contact.whatsApp()
   }
 
-  const isWhatsappEnabled = Boolean(item.whatsappEnabled || raw?.whatsappEnabled)
+  const handleChat = (e: any) => {
+    e.stopPropagation?.()
+    contact.chat()
+  }
+
+  const handleToggleFavorite = (e: any) => {
+    e.stopPropagation?.()
+    fav.toggle()
+  }
+
+  const isWhatsappEnabled = Boolean(
+    item.whatsappEnabled || raw?.whatsappEnabled || raw?.whatsapp || item.whatsapp
+  )
+
+  const showStatsRow = certsCount > 0 || experienceYearsNum > 0 || averageRating > 0
 
   return (
     <TouchableOpacity
@@ -128,15 +174,56 @@ function OperatorCardComponent({
       accessibilityLabel={`${name}، ${locationDisplay}، ${displayPrice}`}
       testID="operator-card"
     >
+      <View style={s.watermarkWrap} pointerEvents="none">
+        <Ionicons
+          testID="operator-watermark-icon"
+          name={getWatermarkIconName(operatorType)}
+          size={72}
+          color={Colors.primaryDark}
+          style={s.watermarkIcon}
+        />
+      </View>
+
       <OperatorCardHeader
         name={name}
         avatarUrl={userAvatar}
+        images={images}
         isVerified={isVerified}
+        isOnline={isOnline}
+        operatorTypeLabel={operatorTypeLabel}
         locationDisplay={locationDisplay}
         isOwnerMode={isOwnerMode}
         displayPrice={displayPrice}
         actionMenu={actionMenu}
+        isFavorite={fav.isFavorite}
+        onToggleFavorite={isOwnerMode ? undefined : handleToggleFavorite}
       />
+
+      {showStatsRow && (
+        <View style={s.statsRow} testID="operator-stats-row">
+          {certsCount > 0 && (
+            <View style={s.statItem} testID="operator-stat-certs">
+              <Ionicons name="ribbon-outline" size={12} color={Colors.primary} />
+              <Text style={s.statText}>{certsCount} شهادة</Text>
+            </View>
+          )}
+          {experienceYearsNum > 0 && (
+            <View style={s.statItem} testID="operator-stat-exp">
+              <Ionicons name="briefcase-outline" size={12} color={Colors.primary} />
+              <Text style={s.statText}>{experienceYearsNum} سنوات</Text>
+            </View>
+          )}
+          {averageRating > 0 && (
+            <View style={s.statItem} testID="operator-stat-rating">
+              <Ionicons name="star" size={12} color={Colors.warning} />
+              <Text style={s.statText}>
+                {averageRating.toFixed(1)}
+                {reviewCount > 0 ? ` (${reviewCount})` : ''}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <OperatorCardChips
         chips={visibleChips}
@@ -147,6 +234,7 @@ function OperatorCardComponent({
         <OperatorCardActions
           onCall={handleCall}
           onWhatsApp={handleWhatsApp}
+          onChat={handleChat}
           isWhatsappEnabled={isWhatsappEnabled}
         />
       )}
@@ -164,6 +252,8 @@ export const OperatorCard = React.memo(OperatorCardComponent, areCardPropsEqual)
 
 const s = StyleSheet.create({
   card: {
+    position: 'relative',
+    overflow: 'hidden',
     backgroundColor: Colors.white,
     borderRadius: CardSystem.radius.outer,
     padding: CardSystem.padding.dense,
@@ -176,6 +266,38 @@ const s = StyleSheet.create({
   cardFixed: {
     width: getHomeStandardCardWidth(Dimensions.get('window').width),
     alignSelf: 'flex-start',
+  },
+  watermarkWrap: {
+    position: 'absolute',
+    bottom: 6,
+    end: 8,
+  },
+  watermarkIcon: {
+    opacity: 0.05,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing.space3,
+    marginTop: Spacing.space2,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: 2,
+  },
+  statText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   ownerActionsWrap: {
     marginTop: Spacing.space2,

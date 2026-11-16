@@ -7,7 +7,9 @@ import {
   Linking,
   Share,
   RefreshControl,
+  I18nManager,
 } from 'react-native'
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg'
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -18,6 +20,7 @@ import { editRoute, loginRoute } from '../../navigation/listingRoutes'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
+import { PublicProfileTokens } from '../../constants/publicProfileTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
@@ -216,6 +219,28 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   return (
     <View style={s.container} testID="operator-detail-screen">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <Svg
+        testID="operator-detail-top-glow"
+        width="100%"
+        height={PublicProfileTokens.pageTopGlowHeight}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={s.topGlow}
+        pointerEvents="none"
+      >
+        <Defs>
+          <RadialGradient
+            id="operator-detail-top-glow-gradient"
+            cx={I18nManager.isRTL ? '94%' : '6%'}
+            cy="0%"
+            r="85%"
+          >
+            <Stop offset="0%" stopColor={Colors.primary} stopOpacity={0.12} />
+            <Stop offset="100%" stopColor={Colors.surfaceAlt} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill="url(#operator-detail-top-glow-gradient)" />
+      </Svg>
 
       <Animated.ScrollView
         testID="operator-detail-scroll-view"
@@ -249,7 +274,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         )}
 
         {/* Profile Hero Header */}
-        <OperatorHeroHeader vm={vm} />
+        <OperatorHeroHeader vm={vm} support={glassSupport} />
 
         {/* Primary Action Row: Contact Actions for visitors (Owner uses sticky bottom bar) */}
         {!isOwner ? (
@@ -367,6 +392,12 @@ const s = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.surfaceAlt,
+  },
+  topGlow: {
+    position: 'absolute',
+    top: 0,
+    start: 0,
+    end: 0,
   },
   scrollContent: {
     paddingBottom: Spacing.space6,
