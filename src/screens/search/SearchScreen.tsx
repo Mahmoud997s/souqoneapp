@@ -306,7 +306,7 @@ export function SearchScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   mainBody: {
     flex: 1,
@@ -337,9 +337,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#E6F7F9',
+    backgroundColor: Colors.primaryTintBg,
     borderWidth: 1,
-    borderColor: '#B3E7EE',
+    borderColor: Colors.primaryBorderLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: Radius.pill,
@@ -410,7 +410,7 @@ const s = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: Colors.scrimDark45,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -418,7 +418,7 @@ const s = StyleSheet.create({
   sortModalContent: {
     width: '100%',
     maxWidth: 320,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
     padding: 20,
     gap: 12,
@@ -438,12 +438,12 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: Radius.lg,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   sortOptionSelected: {
-    backgroundColor: '#E6F7F9',
+    backgroundColor: Colors.primaryTintBg,
     borderColor: Colors.primary,
   },
   sortOptionText: {

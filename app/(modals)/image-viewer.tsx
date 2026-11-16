@@ -27,7 +27,7 @@ export default function ImageViewerModal() {
   if (!images.length) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={Colors.shadowBlack} />
         <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="إغلاق">
           <Ionicons name="close" size={32} color={Colors.white} />
         </TouchableOpacity>
@@ -37,7 +37,7 @@ export default function ImageViewerModal() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.shadowBlack} />
       <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="إغلاق">
         <Ionicons name="close" size={32} color={Colors.white} />
       </TouchableOpacity>
@@ -73,7 +73,7 @@ export default function ImageViewerModal() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: Colors.shadowBlack, justifyContent: 'center' },
   closeBtn: { position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 8 },
   navRow: { position: 'absolute', bottom: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40 },
 })

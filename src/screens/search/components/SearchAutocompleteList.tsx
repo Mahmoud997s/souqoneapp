@@ -101,11 +101,11 @@ export const SearchAutocompleteList = React.memo(function SearchAutocompleteList
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: Colors.slateBorder,
     maxHeight: 260,
-    shadowColor: '#000',
+    shadowColor: Colors.shadowBlack,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 5,
@@ -119,7 +119,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Colors.slateSurface,
   },
   textRow: {
     flexDirection: 'row',

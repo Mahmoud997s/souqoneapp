@@ -76,7 +76,6 @@ describe('PostCategoryModal behavior', () => {
     const imageViewerOptions = layout.match(
       /name="image-viewer"\s+options=\{\{([\s\S]*?)\}\}/,
     )?.[1]
-    const opaqueBlack = `${String.fromCharCode(35)}000`
 
     expect(presentingOptions).toContain("presentation: 'transparentModal'")
     expect(presentingOptions).toContain("animation: 'slide_from_bottom'")
@@ -88,7 +87,7 @@ describe('PostCategoryModal behavior', () => {
     expect(filtersOptions).toContain('backgroundColor: Colors.surface')
     expect(filtersScreen).toMatch(/container:\s*\{[\s\S]*?backgroundColor:\s*Colors\.surface/)
     expect(imageViewerOptions).toContain("presentation: 'fullScreenModal'")
-    expect(imageViewerScreen).toContain(`backgroundColor: '${opaqueBlack}'`)
+    expect(imageViewerScreen).toContain('backgroundColor: Colors.shadowBlack')
     expect(sheetStyles).toMatch(/container:\s*\{[\s\S]*?backgroundColor:\s*'transparent'/)
   })
 

@@ -262,7 +262,7 @@ const s = StyleSheet.create({
   priceBox: {
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '25',
+    borderColor: Colors.primaryHex25,
     padding: Spacing.space3,
     borderRadius: Radius.lg,
     gap: Spacing.space2,
@@ -288,7 +288,7 @@ const s = StyleSheet.create({
     gap: Spacing.space2,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space2,
     borderRadius: Radius.md,
