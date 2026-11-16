@@ -453,7 +453,7 @@ export default function PostStep5Screen() {
                 <Text style={s.categoryBadgeTxt}>{categoryLabel}</Text>
               </View>
               {listingTypeLabel && (
-                <View style={[s.categoryBadge, { backgroundColor: '#F1F5F9' }]}>
+                <View style={[s.categoryBadge, { backgroundColor: Colors.slateSubtleBg }]}>
                   <Text style={[s.categoryBadgeTxt, { color: Colors.text2 }]}>{listingTypeLabel}</Text>
                 </View>
               )}
@@ -523,15 +523,15 @@ export default function PostStep5Screen() {
           <View style={s.card}>
             <View style={s.cardHeader}>
               <View style={s.headerIconWrap}>
-                <Ionicons name="logo-whatsapp" size={14} color="#16A34A" />
+                <Ionicons name="logo-whatsapp" size={14} color={Colors.emeraldBright} />
               </View>
               <Text style={s.cardTitle}>التواصل عبر واتساب</Text>
             </View>
 
             <View style={s.contactRow}>
               <View style={[s.contactItem, s.whatsappItem]}>
-                <Ionicons name="logo-whatsapp" size={14} color="#16A34A" />
-                <Text style={[s.contactTxt, { color: '#16A34A' }]}>
+                <Ionicons name="logo-whatsapp" size={14} color={Colors.emeraldBright} />
+                <Text style={[s.contactTxt, { color: Colors.emeraldBright }]}>
                   {whatsappEnabled ? 'مفعّل للمشتري' : 'معطّل'}
                 </Text>
               </View>
@@ -573,7 +573,7 @@ export default function PostStep5Screen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FA' },
+  root: { flex: 1, backgroundColor: Colors.neutralSurface },
   flex1: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.space3,
@@ -593,7 +593,7 @@ const s = StyleSheet.create({
     height: 195,
     borderRadius: Radius.lg,
     overflow: 'hidden',
-    backgroundColor: '#0F172A',
+    backgroundColor: Colors.slateHeading,
     position: 'relative',
     marginBottom: Spacing.space3,
   },
@@ -601,7 +601,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     start: 10,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: Colors.scrimSlate75,
     paddingHorizontal: 8,
     paddingVertical: 3.5,
     borderRadius: Radius.pill,
@@ -619,12 +619,12 @@ const s = StyleSheet.create({
     width: '100%',
     height: 90,
     borderRadius: Radius.lg,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: Colors.blueSoftBg,
     borderStyle: 'dashed',
     marginBottom: Spacing.space3,
   },
@@ -640,10 +640,10 @@ const s = StyleSheet.create({
     padding: Spacing.space3,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.slateCoolBg,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.03,
         shadowRadius: 4,
@@ -658,13 +658,13 @@ const s = StyleSheet.create({
     marginBottom: 10,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Colors.slateSurface,
   },
   headerIconWrap: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -693,7 +693,7 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
   },
   categoryBadge: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     paddingHorizontal: 8,
     paddingVertical: 2.5,
     borderRadius: Radius.pill,
@@ -705,7 +705,7 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
   negotiableBadge: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     paddingHorizontal: 8,
     paddingVertical: 2.5,
     borderRadius: Radius.pill,
@@ -714,7 +714,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 14,
-    color: '#059669',
+    color: Colors.emerald,
   },
   mainTitle: {
     fontFamily: 'Almarai_800ExtraBold',
@@ -738,7 +738,7 @@ const s = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginVertical: 6,
   },
   locationRow: {
@@ -761,12 +761,12 @@ const s = StyleSheet.create({
   },
   specItem: {
     width: '31.8%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     paddingVertical: 8,
     paddingHorizontal: 5,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Colors.slateSubtleBg,
     justifyContent: 'center',
     minHeight: 56,
   },
@@ -797,9 +797,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     paddingHorizontal: 9,
     paddingVertical: 5,
     borderRadius: Radius.md,
@@ -828,13 +828,13 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: Radius.md,
   },
   whatsappItem: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: Colors.greenSoftBg,
   },
   contactTxt: {
     fontFamily: 'Almarai_700Bold',
@@ -846,10 +846,10 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.slateCoolBg,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.03,
         shadowRadius: 6,

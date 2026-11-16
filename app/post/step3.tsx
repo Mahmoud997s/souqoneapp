@@ -145,7 +145,7 @@ export default function PostStep3Screen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FA' },
+  root: { flex: 1, backgroundColor: Colors.neutralSurface },
   flex1: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.space3,
@@ -164,10 +164,10 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.slateCoolBg,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.04,
         shadowRadius: 10,

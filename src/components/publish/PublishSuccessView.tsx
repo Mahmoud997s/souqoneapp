@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: Radius.pill,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: Colors.skyLightBg,
     borderWidth: 2,
     borderColor: Colors.primary,
     alignItems: 'center',
