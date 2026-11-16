@@ -51,14 +51,14 @@ interface AppDialogProps {
 // ─── Icon config per type ────────────────────────────────────────────────────
 
 const ICON_CONFIG: Record<string, { name: string; color: string; bgColor: string; borderColor: string }> = {
-  success:     { name: 'checkmark-circle-outline', color: '#16A34A', bgColor: '#F0FDF4', borderColor: '#BBF7D0' },
-  error:       { name: 'close-circle-outline',     color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
-  warning:     { name: 'alert-circle-outline',     color: '#D97706', bgColor: '#FEF3C7', borderColor: '#FDE68A' },
-  offline:     { name: 'cloud-offline-outline',    color: '#D97706', bgColor: '#FFFBEB', borderColor: '#FDE68A' },
-  info:        { name: 'information-circle-outline', color: '#0284C7', bgColor: '#F0F9FF', borderColor: '#BAE6FD' },
+  success:     { name: 'checkmark-circle-outline', color: Colors.emeraldBright, bgColor: Colors.greenSoftBg, borderColor: Colors.greenBorder },
+  error:       { name: 'close-circle-outline',     color: Colors.error, bgColor: Colors.dangerBg, borderColor: Colors.dangerBorder },
+  warning:     { name: 'alert-circle-outline',     color: Colors.amberText, bgColor: Colors.amberSoftBg, borderColor: Colors.warningBorder },
+  offline:     { name: 'cloud-offline-outline',    color: Colors.amberText, bgColor: Colors.warningBg, borderColor: Colors.warningBorder },
+  info:        { name: 'information-circle-outline', color: Colors.skyPrimary, bgColor: Colors.skySoftBg, borderColor: Colors.skyBorder },
   confirm:     { name: 'help-circle-outline',      color: Colors.primaryDark, bgColor: Colors.paleMint, borderColor: Colors.border },
-  destructive: { name: 'trash-outline',              color: '#DC2626', bgColor: '#FEF2F2', borderColor: '#FECACA' },
-  options:     { name: 'ellipsis-horizontal',     color: Colors.primary, bgColor: '#F1F5F9', borderColor: '#E2E8F0' },
+  destructive: { name: 'trash-outline',              color: Colors.error, bgColor: Colors.dangerBg, borderColor: Colors.dangerBorder },
+  options:     { name: 'ellipsis-horizontal',     color: Colors.primary, bgColor: Colors.slateSubtleBg, borderColor: Colors.slateBorder },
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -163,14 +163,14 @@ export function AppDialog({
                         <Ionicons
                           name={opt.icon as any}
                           size={18}
-                          color={isDestructive ? '#DC2626' : Colors.primary}
+                          color={isDestructive ? Colors.error : Colors.primary}
                         />
                       </View>
                     )}
                     <Text style={[s.optionText, isDestructive && s.optionTextDestructive]}>
                       {opt.text}
                     </Text>
-                    <Ionicons name="chevron-back" size={15} color="#94A3B8" />
+                    <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
                   </TouchableOpacity>
                 );
               })}
@@ -359,7 +359,7 @@ export function useAppDialog() {
 const s = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    backgroundColor: Colors.scrimSlate55,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -368,7 +368,7 @@ const s = StyleSheet.create({
   // ── Centered Dialog ──
   dialogCard: {
     width: Math.min(SW * 0.82, 300),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     paddingTop: 18,
     paddingBottom: 16,
@@ -376,7 +376,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.16,
         shadowRadius: 18,
@@ -399,7 +399,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15.5,
     lineHeight: 22,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
     marginBottom: 4,
     writingDirection: 'rtl',
@@ -409,7 +409,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 19,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'center',
     writingDirection: 'rtl',
     paddingHorizontal: 4,
@@ -442,31 +442,31 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#FFFFFF',
+    color: Colors.white,
     writingDirection: 'rtl',
   },
   actionBtnCancel: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   actionBtnCancelTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
   },
   actionBtnDestructive: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     borderWidth: 1.5,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
   },
   actionBtnDestructiveTxt: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#DC2626',
+    color: Colors.error,
     writingDirection: 'rtl',
   },
 
@@ -476,7 +476,7 @@ const s = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
@@ -484,7 +484,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: -6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
@@ -496,14 +496,14 @@ const s = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
     alignSelf: 'center',
     marginBottom: 14,
   },
   sheetTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     marginBottom: 12,
     writingDirection: 'rtl',
@@ -511,10 +511,10 @@ const s = StyleSheet.create({
   optionsList: {
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   optionRow: {
     flexDirection: 'row',
@@ -522,47 +522,47 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   optionRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.slateSubtleBg,
   },
   optionIconWrap: {
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: '#EEF3FF',
+    backgroundColor: Colors.indigoTintBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionIconDestructive: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   optionText: {
     flex: 1,
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   optionTextDestructive: {
-    color: '#DC2626',
+    color: Colors.error,
   },
   cancelBtn: {
     height: 44,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelBtnTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
   },
 });

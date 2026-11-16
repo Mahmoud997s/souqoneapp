@@ -153,7 +153,7 @@ export function RangeSlider({
           backgroundColor: Colors.primary,
         }}
         unselectedStyle={{
-          backgroundColor: '#F1F5F9',
+          backgroundColor: Colors.slateSubtleBg,
         }}
         trackStyle={{
           height: 6,
@@ -182,17 +182,17 @@ const s = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     paddingHorizontal: 12,
     height: 40,
   },
   inputLabel: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: '#64748B',
+    color: Colors.slateText,
     marginEnd: 8,
   },
   input: {
@@ -210,7 +210,7 @@ const s = StyleSheet.create({
     marginStart: 4,
   },
   dash: {
-    color: '#64748B',
+    color: Colors.slateText,
     fontFamily: 'Almarai_700Bold',
   },
   marker: {
@@ -219,8 +219,8 @@ const s = StyleSheet.create({
     borderRadius: 13,
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
+    borderColor: Colors.slateBorder,
+    shadowColor: Colors.shadowBlack,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 5,

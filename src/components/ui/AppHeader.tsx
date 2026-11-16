@@ -61,7 +61,7 @@ export function AppHeader({
         isLight && !glassBackground && {
           backgroundColor: Colors.white,
           borderBottomWidth: 1,
-          borderBottomColor: '#F1F5F9',
+          borderBottomColor: Colors.slateSubtleBg,
           ...Platform.select({ ios: { shadowOpacity: 0.03, shadowRadius: 3 }, android: { elevation: 1 } }) 
         }
       ]}
@@ -85,7 +85,7 @@ export function AppHeader({
             <Svg width="100%" height="100%">
               <Defs>
                 <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  <Path d="M 40 0 L 0 0 0 40" fill="none" stroke={Colors.whiteAlpha05} strokeWidth="1" />
                 </Pattern>
               </Defs>
               <Rect width="100%" height="100%" fill="url(#grid)" />
@@ -210,7 +210,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: APP_HEADER_BUTTON_RADIUS,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: Colors.whiteAlpha15,
   },
   title: {
     flex: 1,
@@ -226,9 +226,9 @@ const s = StyleSheet.create({
     color: Colors.text,
   },
   iconBtnLight: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderColor: Colors.scrimDark06,
   },
   iconBtnGlass: {
     backgroundColor: TopBarTokens.iceGlass,

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 import { useNavVisibility } from '../../context/NavVisibilityContext';
+import { Colors } from '../../constants/colors'
 
 export interface CollapsibleSubHeaderProps {
   children: React.ReactNode;
@@ -32,9 +33,9 @@ export function CollapsibleSubHeader({ children, height = 85, isTransparent = fa
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: '#fff', 
+    backgroundColor: Colors.surface, 
     borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9'
+    borderBottomColor: Colors.slateSubtleBg
   },
   transparentContainer: {
     backgroundColor: 'transparent',

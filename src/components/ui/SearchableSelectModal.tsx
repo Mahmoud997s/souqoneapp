@@ -179,7 +179,7 @@ export function SearchableSelectModal({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Colors.scrimDark40,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -221,7 +221,7 @@ const s = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     margin: Spacing.space4,
     paddingHorizontal: Spacing.space3,
     height: 50,
@@ -258,7 +258,7 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   itemRowSelected: {
-    backgroundColor: '#F0F9FF', // subtle primary tint
+    backgroundColor: Colors.skySoftBg, // subtle primary tint
     marginHorizontal: -Spacing.space4,
     paddingHorizontal: Spacing.space4,
   },

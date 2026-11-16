@@ -58,7 +58,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
           rest.multiline && { minHeight: 92, paddingVertical: Platform.OS === 'ios' ? 10 : 6 },
           focused && s.inputFocused, 
           error ? s.inputError : null,
-          rest.editable === false && { opacity: 0.6, backgroundColor: '#e2e4e8' },
+          rest.editable === false && { opacity: 0.6, backgroundColor: Colors.neutralBorder },
           inputWrapStyle,
         ]}>
           {/* Leading icon – physical RIGHT */}
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
   },
   inputError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   iconRight: {
     position: 'absolute',

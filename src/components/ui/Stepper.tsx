@@ -95,7 +95,7 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
         <Svg width="100%" height="100%">
           <Defs>
             <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke={Colors.whiteAlpha05} strokeWidth="1" />
             </Pattern>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#grid)" />
@@ -114,10 +114,10 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space5,
     marginBottom: Spacing.space2,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: Colors.whiteAlpha10,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
     borderRadius: 17,
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: Colors.whiteAlpha15,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
@@ -168,7 +168,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 19,
-    color: 'rgba(255,255,255,0.4)',
+    color: Colors.whiteAlpha40,
     textAlign: 'center',
   },
   stepTextActive: {
@@ -177,7 +177,7 @@ const s = StyleSheet.create({
   line: {
     flex: 1,
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: Colors.whiteAlpha10,
     marginHorizontal: -2,
     zIndex: 1,
     borderRadius: 2,
@@ -190,10 +190,10 @@ const s = StyleSheet.create({
   bannerLight: {
     backgroundColor: 'transparent',
     overflow: 'hidden',
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: Colors.whiteAlpha60,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.04,
         shadowRadius: 8,
@@ -210,8 +210,8 @@ const s = StyleSheet.create({
     color: Colors.text,
   },
   circleLight: {
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderColor: Colors.slateBorder,
+    backgroundColor: Colors.slateSurface,
   },
   circleActiveLight: {
     backgroundColor: Colors.primary,
@@ -227,10 +227,10 @@ const s = StyleSheet.create({
     }),
   },
   stepTextLight: {
-    color: '#94A3B8',
+    color: Colors.slateMuted,
   },
   lineLight: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   lineActiveLight: {
     backgroundColor: Colors.primary,

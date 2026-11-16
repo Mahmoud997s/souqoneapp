@@ -86,7 +86,7 @@ export function NestedSearchableList({
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={s.clearSearchBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close-circle" size={18} color="#94A3B8" />
+              <Ionicons name="close-circle" size={18} color={Colors.slateMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -121,19 +121,19 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     marginBottom: Spacing.space4,
     paddingHorizontal: Spacing.space3,
     height: 48,
     borderRadius: 12,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
+      ios: { shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1 },
     }),
   },
   searchIcon: {
     marginRight: Spacing.space2,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
   },
   searchInput: {
     flex: 1,
@@ -163,7 +163,7 @@ const s = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   itemRowSelected: {
-    backgroundColor: '#F0F9FF',
+    backgroundColor: Colors.skySoftBg,
     marginHorizontal: -Spacing.space4,
     paddingHorizontal: Spacing.space4,
   },

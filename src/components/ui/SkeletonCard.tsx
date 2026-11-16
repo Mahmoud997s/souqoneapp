@@ -87,7 +87,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   placeholder: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
   },
   image: {
     width: '100%',
@@ -132,7 +132,7 @@ const s = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.slateSubtleBg,
     marginTop: 1,
     marginBottom: 5,
   },

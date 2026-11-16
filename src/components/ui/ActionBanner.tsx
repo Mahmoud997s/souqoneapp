@@ -48,7 +48,7 @@ export function ActionBanner({
           <Svg width="100%" height="100%">
             <Defs>
               <Pattern id="pgrid" width="36" height="36" patternUnits="userSpaceOnUse">
-                <Path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <Path d="M 36 0 L 0 0 0 36" fill="none" stroke={Colors.whiteAlpha06} strokeWidth="1" />
               </Pattern>
             </Defs>
             <Rect width="100%" height="100%" fill="url(#pgrid)" />
@@ -69,7 +69,7 @@ export function ActionBanner({
           </View>
         ) : iconName ? (
           <View style={styles.iconBox} testID="action-banner-icon-box">
-            <Ionicons name={iconName} size={22} color="rgba(255,255,255,0.75)" />
+            <Ionicons name={iconName} size={22} color={Colors.whiteAlpha75} />
           </View>
         ) : null}
 
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#0f172a',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -115,12 +115,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: Colors.whiteAlpha12,
     justifyContent: 'center',
     alignItems: 'center',
     marginEnd: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: Colors.whiteAlpha15,
   },
   imageContainer: {
     width: 44,
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
-    color: 'rgba(255,255,255,0.88)',
+    color: Colors.whiteAlpha88,
     textAlign: 'left',
     writingDirection: 'rtl',
     paddingTop: Platform.OS === 'android' ? 1 : 0,

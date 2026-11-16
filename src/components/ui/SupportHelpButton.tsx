@@ -43,7 +43,7 @@ export function SupportHelpButton({
   const isOutline = variant === 'outline';
   const isSubtle = variant === 'subtle';
 
-  let iconColor = '#ffffff';
+  let iconColor: string = Colors.white;
   if (isOutline || isSubtle) {
     iconColor = Colors.primary;
   }
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: Colors.slateHeading,
     paddingVertical: 13,
     paddingHorizontal: 16,
     borderRadius: Radius.lg || 14,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.space2,
     marginBottom: Spacing.space3,
     gap: 8,
-    shadowColor: '#0f172a',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -98,17 +98,17 @@ const styles = StyleSheet.create({
   buttonOutline: {
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#0f172a',
+    borderColor: Colors.slateBorder,
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
   },
   buttonSubtle: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.slateSubtleBg,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.slateBorder,
     elevation: 0,
     shadowOpacity: 0,
   },
@@ -116,14 +116,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#ffffff',
+    color: Colors.white,
     textAlign: 'center',
     writingDirection: 'rtl',
     paddingTop: Platform.OS === 'android' ? 2 : 1,
     includeFontPadding: false,
   },
   textOutline: {
-    color: '#1e293b',
+    color: Colors.slateDark,
   },
   textSubtle: {
     color: Colors.text2,

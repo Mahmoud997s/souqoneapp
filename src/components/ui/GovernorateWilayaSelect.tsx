@@ -162,7 +162,7 @@ export function GovernorateWilayaSelect({
               <Ionicons
                 name="location-outline"
                 size={18}
-                color={govError ? Colors.error : activeGov ? Colors.primary : '#94A3B8'}
+                color={govError ? Colors.error : activeGov ? Colors.primary : Colors.slateMuted}
               />
             )}
           </View>
@@ -175,7 +175,7 @@ export function GovernorateWilayaSelect({
             <Ionicons
               name="chevron-down"
               size={16}
-              color={govError ? Colors.error : activeGov ? Colors.primary : '#94A3B8'}
+              color={govError ? Colors.error : activeGov ? Colors.primary : Colors.slateMuted}
             />
           </View>
         </TouchableOpacity>
@@ -207,10 +207,10 @@ export function GovernorateWilayaSelect({
                     cityError
                       ? Colors.error
                       : !activeGov
-                      ? '#CBD5E1'
+                      ? Colors.slateBorderStrong
                       : activeCity
                       ? Colors.primary
-                      : '#94A3B8'
+                      : Colors.slateMuted
                   }
                 />
               )}
@@ -220,7 +220,7 @@ export function GovernorateWilayaSelect({
                 style={[
                   s.inputText,
                   !wilayaId && s.placeholder,
-                  !activeGov && { color: '#94A3B8' },
+                  !activeGov && { color: Colors.slateMuted },
                 ]}
                 numberOfLines={1}
               >
@@ -235,10 +235,10 @@ export function GovernorateWilayaSelect({
                   cityError
                     ? Colors.error
                     : !activeGov
-                    ? '#CBD5E1'
+                    ? Colors.slateBorderStrong
                     : activeCity
                     ? Colors.primary
-                    : '#94A3B8'
+                    : Colors.slateMuted
                 }
               />
             </View>
@@ -279,19 +279,19 @@ export function GovernorateWilayaSelect({
                 onPress={() => setModalType(null)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close-circle" size={24} color="#94A3B8" />
+                <Ionicons name="close-circle" size={24} color={Colors.slateMuted} />
               </TouchableOpacity>
             </View>
 
             {/* Search Input */}
             <View style={s.searchBox}>
-              <Ionicons name="search" size={17} color="#94A3B8" style={{ marginEnd: 8 }} />
+              <Ionicons name="search" size={17} color={Colors.slateMuted} style={{ marginEnd: 8 }} />
               <TextInput
                 style={s.searchInput}
                 placeholder={
                   modalType === 'governorate' ? 'ابحث عن اسم المحافظة...' : 'ابحث عن اسم الولاية...'
                 }
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={Colors.slateMuted}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 textAlign="right"
@@ -299,7 +299,7 @@ export function GovernorateWilayaSelect({
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close" size={16} color="#94A3B8" />
+                  <Ionicons name="close" size={16} color={Colors.slateMuted} />
                 </TouchableOpacity>
               )}
             </View>
@@ -326,7 +326,7 @@ export function GovernorateWilayaSelect({
                   >
                     <View style={s.listItemLeft}>
                       <View style={[s.radioCircle, isSelected && s.radioCircleSelected]}>
-                        {isSelected && <Ionicons name="checkmark" size={12} color="#ffffff" />}
+                        {isSelected && <Ionicons name="checkmark" size={12} color={Colors.white} />}
                       </View>
                     </View>
 
@@ -343,7 +343,7 @@ export function GovernorateWilayaSelect({
               }}
               ListEmptyComponent={
                 <View style={s.emptyBox}>
-                  <Ionicons name="search-outline" size={32} color="#94A3B8" />
+                  <Ionicons name="search-outline" size={32} color={Colors.slateMuted} />
                   <Text style={s.emptyText}>لم يتم العثور على نتائج مطابقة</Text>
                 </View>
               }
@@ -366,16 +366,16 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 17,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   inputBox: {
     height: 46,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -386,11 +386,11 @@ const s = StyleSheet.create({
   },
   inputBoxError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   inputBoxDisabled: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+    backgroundColor: Colors.slateSubtleBg,
+    borderColor: Colors.slateBorder,
     opacity: 0.6,
   },
   errorTxt: {
@@ -421,7 +421,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -429,17 +429,17 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
   },
 
   /* ── Bottom Sheet Styles (Matching Profile Location Modal) ── */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: Colors.scrimDark45,
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopStartRadius: 20,
     borderTopEndRadius: 20,
     maxHeight: '80%',
@@ -447,7 +447,7 @@ const s = StyleSheet.create({
   handleBar: {
     width: 38,
     height: 4,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 10,
@@ -460,13 +460,13 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.slateSubtleBg,
   },
   modalTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 21,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -474,7 +474,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginTop: 2,
@@ -487,9 +487,9 @@ const s = StyleSheet.create({
     marginVertical: 8,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
@@ -500,7 +500,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -514,10 +514,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 11,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Colors.slateSurface,
   },
   listItemSelected: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
   },
   listItemLeft: {
     width: 26,
@@ -532,7 +532,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -544,7 +544,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
     lineHeight: 14,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     writingDirection: 'ltr',
     textAlign: 'left',
     marginTop: 1,
@@ -554,10 +554,10 @@ const s = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   radioCircleSelected: {
     backgroundColor: Colors.primary,
@@ -573,7 +573,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     writingDirection: 'rtl',
   },
 })

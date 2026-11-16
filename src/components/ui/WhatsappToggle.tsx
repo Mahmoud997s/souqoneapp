@@ -42,7 +42,7 @@ export function WhatsappToggle({
   const rowContent = (
     <View style={s.switchRow}>
       <View style={s.iconWrap}>
-        <Ionicons name="logo-whatsapp" size={22} color="#16A34A" />
+        <Ionicons name="logo-whatsapp" size={22} color={Colors.emeraldBright} />
       </View>
       <View style={s.textCol}>
         <Text style={s.title}>التواصل عبر واتساب</Text>
@@ -52,8 +52,8 @@ export function WhatsappToggle({
         value={value === true}
         onValueChange={handleChange}
         disabled={disabled}
-        trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-        thumbColor={value ? '#FFFFFF' : '#FFFFFF'}
+        trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
+        thumbColor={value ? Colors.white : Colors.white}
         testID={testID}
       />
     </View>
@@ -71,7 +71,7 @@ export function WhatsappToggle({
     >
       <View style={s.cardInnerRow}>
         <View style={s.iconWrap}>
-          <Ionicons name="logo-whatsapp" size={22} color="#16A34A" />
+          <Ionicons name="logo-whatsapp" size={22} color={Colors.emeraldBright} />
         </View>
         <View style={s.textCol}>
           <Text style={s.title}>التواصل عبر واتساب</Text>
@@ -81,8 +81,8 @@ export function WhatsappToggle({
           value={value === true}
           onValueChange={handleChange}
           disabled={disabled}
-          trackColor={{ false: '#E2E8F0', true: Colors.primary }}
-          thumbColor={value ? '#FFFFFF' : '#FFFFFF'}
+          trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
+          thumbColor={value ? Colors.white : Colors.white}
           testID={testID}
         />
       </View>
@@ -110,7 +110,7 @@ const s = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: Radius.md,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: Colors.greenMintBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
