@@ -26,7 +26,7 @@ export function PartSkeletonCard({ style, fullWidth = false }: PartSkeletonCardP
 
   const bg = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#F1F5F9', '#E2E8F0'],
+    outputRange: [Colors.slateSubtleBg, Colors.slateBorder],
   });
 
   return (
@@ -82,7 +82,7 @@ export function PartSkeletonCard({ style, fullWidth = false }: PartSkeletonCardP
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0f172a',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -97,7 +97,7 @@ const s = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    borderColor: Colors.scrimDark04,
     overflow: 'hidden',
     ...softShadow,
   },

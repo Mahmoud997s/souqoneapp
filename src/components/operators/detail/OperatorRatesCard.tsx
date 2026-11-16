@@ -131,7 +131,7 @@ const s = StyleSheet.create({
   rateBadge: {
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.space3,
     paddingVertical: Spacing.space1 + 2,

@@ -33,7 +33,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
       {/* Intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="construct" size={16} color="#2563EB" />
+          <Ionicons name="construct" size={16} color={Colors.infoPrimary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>سوق خدمات السيارات</Text>
@@ -62,7 +62,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                   s.gridCard,
                   isOther && s.gridCardFull,
                   isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : '#E2E8F0' },
+                  { borderColor: isSel ? Colors.primary : Colors.slateBorder },
                 ]}
                 onPress={() => onUpdateField('serviceType', st.id)}
                 activeOpacity={0.7}
@@ -77,7 +77,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
                   <MaterialCommunityIcons
                     name={iconName}
                     size={isOther ? 18 : 20}
-                    color={isSel ? '#FFFFFF' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text
@@ -200,7 +200,7 @@ const s = StyleSheet.create({
   },
   gridCard: {
     width: '23.2%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderRadius: Radius.md,
     paddingVertical: 8,
@@ -221,14 +221,14 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
   gridCardActive: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors.neutralBgLight,
     borderColor: Colors.primary,
   },
   gridIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -245,7 +245,7 @@ const s = StyleSheet.create({
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 10,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'center',
     lineHeight: 14,
     minHeight: 28,
@@ -269,9 +269,9 @@ const s = StyleSheet.create({
   },
   chip: {
     width: '48.5%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingVertical: 10,
     paddingHorizontal: 6,
@@ -280,14 +280,14 @@ const s = StyleSheet.create({
     minHeight: 48,
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   chipTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
     textAlign: 'center',
   },

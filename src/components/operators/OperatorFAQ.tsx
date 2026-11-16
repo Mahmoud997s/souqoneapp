@@ -42,7 +42,7 @@ const s = StyleSheet.create({
     marginTop: Spacing.space3,
     marginBottom: Spacing.space3,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.slateCoolBg,
   },
   faqHeader: {
     flexDirection: 'row',
@@ -54,7 +54,7 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -78,11 +78,11 @@ const s = StyleSheet.create({
     gap: 8,
   },
   faqCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     padding: Spacing.space3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Colors.slateSubtleBg,
   },
   faqQRow: {
     flexDirection: 'row',

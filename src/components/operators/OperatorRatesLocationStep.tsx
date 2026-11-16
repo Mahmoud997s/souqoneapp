@@ -62,7 +62,7 @@ export function OperatorRatesLocationStep({
           <Switch
             value={formData.isPriceNegotiable}
             onValueChange={(val) => onUpdateField('isPriceNegotiable', val)}
-            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
           />
         </View>
       </WizardCard>
@@ -96,10 +96,10 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: Spacing.space3,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
   },
@@ -107,7 +107,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -131,13 +131,13 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: Spacing.space2,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
   },
   switchTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

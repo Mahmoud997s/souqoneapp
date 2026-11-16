@@ -212,6 +212,7 @@ export const Colors = {
   emeraldDark:       '#047857',
   warningYellow:     '#FFCC00',
   emeraldSoftBg:     '#D1FAE5',
+  neutralBgLight:    '#FAFAFA',
 } as const
 
 export const BrandColors = {
