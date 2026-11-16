@@ -67,13 +67,18 @@ describe('D-346 route caller guards & edit identity', () => {
       ...collectSourceFiles(path.join(ROOT, 'app')),
     ]
     const forbidden = [
-      /router\.(push|replace)\(\s*['"`]\/login['"`]/,
-      /router\.(push|replace)\(\s*\{\s*pathname:\s*['"`]\/login['"`]/,
-      /router\.(push|replace)\(\s*['"`]\/\(auth\)\/login/,
-      /router\.(push|replace)\(\s*['"`]\/\(modals\)\/post-category['"`]/,
-      /router\.(push|replace)\(\s*['"`]\/post['"`]/,
-      /router\.(push|replace)\(\s*['"`]\/post\/edit\//,
-      /router\.(push|replace)\(\s*`\/listings\//,
+      /router\.(push|replace|navigate)\(\s*['"`]\/login['"`]/,
+      /router\.(push|replace|navigate)\(\s*\{\s*pathname:\s*['"`]\/login['"`]/,
+      /router\.(push|replace|navigate)\(\s*['"`]\/\(auth\)\/login/,
+      /router\.(push|replace|navigate)\(\s*['"`]\/\(modals\)\/post-category['"`]/,
+      /router\.(push|replace|navigate)\(\s*['"`]\/post['"`]/,
+      /router\.(push|replace|navigate)\(\s*['"`]\/post\/edit\//,
+      /router\.(push|replace|navigate)\(\s*`\/listings\//,
+      /router\.(push|replace|navigate)\(\s*['"`]\/chat\//,
+      /router\.(push|replace|navigate)\(\s*['"`]\/(?:cars|buses|equipment|parts|services)\/edit\//,
+    ]
+    const authOnlyForbidden = [
+      /router\.(push|replace|navigate)\(\s*['"`]\/\(auth\)\/(register|forgot-password|reset-password|verify-email|onboarding)/,
     ]
     const violations: string[] = []
     for (const file of files) {
@@ -92,6 +97,13 @@ describe('D-346 route caller guards & edit identity', () => {
       for (const rx of forbidden) {
         if (rx.test(content)) {
           violations.push(`${rel} matched ${rx}`)
+        }
+      }
+      if (rel !== 'app/index.tsx') {
+        for (const rx of authOnlyForbidden) {
+          if (rx.test(content)) {
+            violations.push(`${rel} matched ${rx}`)
+          }
         }
       }
     }
