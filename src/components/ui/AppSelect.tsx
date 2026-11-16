@@ -126,7 +126,7 @@ const s = StyleSheet.create({
   },
   disabled: {
     opacity: 0.6,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.slateSurface,
   },
   iconWrapRight: {
     width: 48,
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: Colors.scrimDark40,
     justifyContent: 'flex-end',
   },
   modalSheet: {

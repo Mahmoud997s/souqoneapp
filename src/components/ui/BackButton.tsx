@@ -13,7 +13,7 @@ interface BackButtonProps {
 export function BackButton({
   onPress,
   color = Colors.white,
-  bgColor = 'rgba(255,255,255,0.15)',
+  bgColor = Colors.whiteAlpha15,
   style,
 }: BackButtonProps) {
   return (

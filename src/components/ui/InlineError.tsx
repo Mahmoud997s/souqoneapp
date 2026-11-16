@@ -28,7 +28,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: Colors.error + '12',
+    backgroundColor: Colors.errorSoft12,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Radius.pill,

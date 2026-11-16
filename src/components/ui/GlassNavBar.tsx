@@ -35,7 +35,7 @@ export interface GlassNavBarProps {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -197,10 +197,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.5)',
+    borderBottomColor: Colors.whiteAlpha50,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.04,
         shadowRadius: 6,
@@ -234,9 +234,9 @@ const s = StyleSheet.create({
     width: NAV_BUTTON_SIZE,
     height: NAV_BUTTON_SIZE,
     borderRadius: NAV_BUTTON_RADIUS,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: Colors.whiteAlpha70,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: Colors.whiteAlpha80,
     alignItems: 'center',
     justifyContent: 'center',
     ...softShadow,
@@ -257,10 +257,10 @@ const s = StyleSheet.create({
   navTitleBadge: {
     flex: 1,
     height: 38,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: Colors.whiteAlpha70,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: Colors.whiteAlpha80,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -276,7 +276,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'center',
     writingDirection: 'rtl',
   },

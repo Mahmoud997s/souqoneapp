@@ -162,7 +162,7 @@ const s = StyleSheet.create({
     borderTopRightRadius: 24,
     borderWidth: 0,
     paddingTop: Spacing.space3,
-    shadowColor: '#000',
+    shadowColor: Colors.shadowBlack,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,

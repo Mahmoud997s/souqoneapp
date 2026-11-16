@@ -65,7 +65,7 @@ export function YearSelect({
             <Ionicons
               name="calendar-outline"
               size={18}
-              color={error ? Colors.error : value ? Colors.primary : '#94A3B8'}
+              color={error ? Colors.error : value ? Colors.primary : Colors.slateMuted}
             />
           </View>
           <View style={s.inputContent}>
@@ -77,7 +77,7 @@ export function YearSelect({
             <Ionicons
               name="chevron-down"
               size={16}
-              color={error ? Colors.error : value ? Colors.primary : '#94A3B8'}
+              color={error ? Colors.error : value ? Colors.primary : Colors.slateMuted}
             />
           </View>
         </TouchableOpacity>
@@ -109,7 +109,7 @@ export function YearSelect({
                 onPress={() => setModalVisible(false)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close-circle" size={24} color="#94A3B8" />
+                <Ionicons name="close-circle" size={24} color={Colors.slateMuted} />
               </TouchableOpacity>
             </View>
 
@@ -130,7 +130,7 @@ export function YearSelect({
                   >
                     <View style={s.listItemLeft}>
                       <View style={[s.radioCircle, isSelected && s.radioCircleSelected]}>
-                        {isSelected && <Ionicons name="checkmark" size={12} color="#ffffff" />}
+                        {isSelected && <Ionicons name="checkmark" size={12} color={Colors.white} />}
                       </View>
                     </View>
 
@@ -161,17 +161,17 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 1,
   },
   inputBox: {
     height: 48,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -182,7 +182,7 @@ const s = StyleSheet.create({
   },
   inputBoxError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   errorTxt: {
     fontFamily: 'Almarai_400Regular',
@@ -212,7 +212,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -220,17 +220,17 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13.5,
     lineHeight: 18,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
   },
 
   /* ── Bottom Sheet Styles ── */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: Colors.scrimDark45,
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopStartRadius: 20,
     borderTopEndRadius: 20,
     maxHeight: '70%',
@@ -238,7 +238,7 @@ const s = StyleSheet.create({
   handleBar: {
     width: 38,
     height: 4,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 10,
@@ -251,13 +251,13 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.slateSubtleBg,
   },
   modalTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 15,
     lineHeight: 21,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -265,7 +265,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 15,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginTop: 2,
@@ -283,10 +283,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 11,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Colors.slateSurface,
   },
   listItemSelected: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
   },
   listItemLeft: {
     width: 26,
@@ -301,7 +301,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -314,10 +314,10 @@ const s = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   radioCircleSelected: {
     backgroundColor: Colors.primary,

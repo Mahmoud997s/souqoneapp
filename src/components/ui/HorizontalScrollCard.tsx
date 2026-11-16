@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: Colors.slateBorderStrong,
   },
   activeDot: {
     width: 16,

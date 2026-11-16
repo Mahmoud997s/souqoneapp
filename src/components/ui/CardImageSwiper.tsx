@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     height: '100%',
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
   },
   track: {
     ...StyleSheet.absoluteFill,
@@ -274,10 +274,10 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: Colors.whiteAlpha50,
   },
   activeDot: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.surface,
     width: 14,
   },
   imageCountBadge: {
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     bottom: 8,
     left: 8,
     zIndex: 5,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: Colors.scrimDark65,
     borderRadius: Radius.sm,
     paddingHorizontal: 6,
     paddingVertical: 2.5,

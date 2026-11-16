@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.72)',
+    borderColor: Colors.whiteAlpha72,
     ...Shadows.card,
   },
   touchable: {
@@ -297,13 +297,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconChipSuccess: {
-    backgroundColor: 'rgba(0, 156, 181, 0.12)',
+    backgroundColor: Colors.primarySoft12,
   },
   iconChipNeutral: {
-    backgroundColor: 'rgba(107, 114, 128, 0.12)',
+    backgroundColor: Colors.mutedSoft12,
   },
   iconChipAlert: {
-    backgroundColor: 'rgba(220, 38, 38, 0.12)',
+    backgroundColor: Colors.errorSoft12,
   },
   textContainer: {
     flexShrink: 1,

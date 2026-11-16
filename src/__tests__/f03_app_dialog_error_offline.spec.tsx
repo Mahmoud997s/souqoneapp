@@ -5,6 +5,7 @@ import { AppDialog } from '../components/ui/AppDialog';
 import { GlobalDialog } from '../components/ui/GlobalDialog';
 import { dialogService, useDialogStore } from '../store/dialogStore';
 import { showErrorDialog } from '../utils/showErrorDialog';
+import { Colors } from '../constants/colors';
 
 jest.mock('@expo/vector-icons', () => {
   const ReactMock = require('react');
@@ -96,7 +97,7 @@ describe('F-03 M-035: AppDialog, GlobalDialog & showErrorDialog', () => {
 
     const { unmount } = await render(<GlobalDialog />);
     const icon = screen.getByTestId('mock-dialog-ionicon');
-    expect(icon.props.accessibilityLabel).toBe('close-circle-outline|#DC2626');
+    expect(icon.props.accessibilityLabel).toBe(`close-circle-outline|${Colors.error}`);
 
     const badReqErr = makeAxiosError('ERR_BAD_REQUEST', 400, {
       message: 'Validation failed',
@@ -179,7 +180,7 @@ describe('F-03 M-035: AppDialog, GlobalDialog & showErrorDialog', () => {
     const flatStyle = Array.isArray(discardText.props.style)
       ? Object.assign({}, ...discardText.props.style)
       : discardText.props.style;
-    expect(flatStyle.color).toBe('#DC2626');
+    expect(flatStyle.color).toBe(Colors.error);
     await unmount();
   });
 
@@ -198,7 +199,7 @@ describe('F-03 M-035: AppDialog, GlobalDialog & showErrorDialog', () => {
 
     const { unmount } = await render(<GlobalDialog />);
     const icon = screen.getByTestId('mock-dialog-ionicon');
-    expect(icon.props.accessibilityLabel).toBe('trash-outline|#DC2626');
+    expect(icon.props.accessibilityLabel).toBe(`trash-outline|${Colors.error}`);
     await unmount();
   });
 });
