@@ -9,6 +9,7 @@ import { router } from 'expo-router'
 import { postEntryRoute } from '../../../navigation/listingRoutes'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
+import { getMyListingsBottomPadding } from '../../../constants/peekCarousel'
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../../constants/listVirtualization'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
@@ -134,7 +135,7 @@ export function MyListingsCategoryView({
       }
       data={data}
       keyExtractor={keyExtractor}
-      contentContainerStyle={[s.list, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.list, { paddingTop: topInset, paddingBottom: getMyListingsBottomPadding(bottomInset) }]}
       refreshing={isRefreshing}
       onRefresh={onRefresh}
       onEndReached={handleEndReached}

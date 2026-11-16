@@ -10,6 +10,7 @@ import { MyListingsVisualFilters } from '../../src/components/profile/MyListings
 import { MyListingsAllView } from '../../src/components/profile/my-listings/MyListingsAllView'
 import { MyListingsCategoryView } from '../../src/components/profile/my-listings/MyListingsCategoryView'
 import { Colors } from '../../src/constants/colors'
+import { MY_LISTINGS_FAB_SIZE, MY_LISTINGS_FAB_BOTTOM_OFFSET } from '../../src/constants/peekCarousel'
 import { useMyListingsScreen } from '../../src/hooks/useMyListingsScreen'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
@@ -138,7 +139,8 @@ export default function MyListingsScreen() {
 
       {/* Floating Action Button (FAB) */}
       <TouchableOpacity
-        style={[s.fab, { bottom: insets.bottom + 20 }]}
+        testID="my-listings-fab"
+        style={[s.fab, { bottom: insets.bottom + MY_LISTINGS_FAB_BOTTOM_OFFSET }]}
         activeOpacity={0.8}
         onPress={() => router.push(postEntryRoute())}
       >
@@ -178,9 +180,9 @@ const s = StyleSheet.create({
   fab: {
     position: 'absolute',
     left: 20, // Bottom-left in RTL
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: MY_LISTINGS_FAB_SIZE,
+    height: MY_LISTINGS_FAB_SIZE,
+    borderRadius: MY_LISTINGS_FAB_SIZE / 2,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

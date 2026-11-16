@@ -15,17 +15,15 @@ import { ListingSectionConfig } from './sections.config'
 import { MyListingOwnerCard } from './MyListingOwnerCard'
 import { type OwnerCardBusyAction } from './OwnerCardActions'
 import {
-  getHomeStandardCardWidth,
-  getHomeStandardImageHeight,
-} from '../../../constants/cardSystem'
+  getPeekSliderConfig,
+  getMyListingsOwnerPeekHeight,
+} from '../../../constants/peekCarousel'
 import { HorizontalScrollCard } from '../../ui/HorizontalScrollCard'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const CARD_WIDTH = getHomeStandardCardWidth(SCREEN_WIDTH)
-const SKELETON_CARD_HEIGHT = getHomeStandardImageHeight() + 110
-const GAP = Spacing.space3
-const PADDING_END = Spacing.space4
+const PEEK_CONFIG = getPeekSliderConfig(SCREEN_WIDTH)
+const SKELETON_CARD_HEIGHT = getMyListingsOwnerPeekHeight()
 
 export interface MyListingSectionSliderProps {
   config: ListingSectionConfig
@@ -90,12 +88,19 @@ export function MyListingSectionSlider({
           key="loading-skeleton"
           data={[1, 2, 3]}
           trackPendingIndex
-          cardWidth={CARD_WIDTH}
-          gap={GAP}
-          paddingEnd={PADDING_END}
+          cardWidth={PEEK_CONFIG.cardWidth}
+          gap={PEEK_CONFIG.gap}
+          paddingEnd={PEEK_CONFIG.paddingEnd}
+          paging={PEEK_CONFIG.paging}
+          depthEffect={PEEK_CONFIG.depthEffect}
           keyExtractor={(item) => String(item)}
           renderItem={() => (
-            <SkeletonCard style={{ width: CARD_WIDTH, height: SKELETON_CARD_HEIGHT }} />
+            <SkeletonCard
+              fullWidth={PEEK_CONFIG.fullWidth}
+              imageHeight={PEEK_CONFIG.imageHeight}
+              compactBody={PEEK_CONFIG.compactBody}
+              style={{ width: PEEK_CONFIG.cardWidth, minHeight: SKELETON_CARD_HEIGHT }}
+            />
           )}
         />
       ) : (
@@ -103,25 +108,32 @@ export function MyListingSectionSlider({
           key="loaded-cards"
           data={items}
           trackPendingIndex
-          cardWidth={CARD_WIDTH}
-          gap={GAP}
-          paddingEnd={PADDING_END}
+          cardWidth={PEEK_CONFIG.cardWidth}
+          gap={PEEK_CONFIG.gap}
+          paddingEnd={PEEK_CONFIG.paddingEnd}
+          paging={PEEK_CONFIG.paging}
+          showDots={PEEK_CONFIG.showDots}
+          depthEffect={PEEK_CONFIG.depthEffect}
           keyExtractor={(item) => `${item.entityType}-${item.id}`}
           onSeeAll={() => onSelectCategory(config.categoryId)}
           seeAllTitle="عرض الكل"
           seeAllSubtitle={`جميع إعلانات ${config.title}`}
           renderItem={({ item }) => (
-            <MyListingOwnerCard
-              item={item}
-              onView={onView}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onStatusChange={onStatusChange}
-              onCancelDeletionRequest={onCancelDeletionRequest}
-              busyAction={getBusyAction ? getBusyAction(item) : null}
-              isEditSupported={isEditSupported(item.entityType)}
-              fullWidth={false}
-            />
+            <View style={{ width: PEEK_CONFIG.cardWidth }}>
+              <MyListingOwnerCard
+                item={item}
+                onView={onView}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onStatusChange={onStatusChange}
+                onCancelDeletionRequest={onCancelDeletionRequest}
+                busyAction={getBusyAction ? getBusyAction(item) : null}
+                isEditSupported={isEditSupported(item.entityType)}
+                fullWidth={PEEK_CONFIG.fullWidth}
+                imageHeight={PEEK_CONFIG.imageHeight}
+                compactBody={PEEK_CONFIG.compactBody}
+              />
+            </View>
           )}
         />
       )}

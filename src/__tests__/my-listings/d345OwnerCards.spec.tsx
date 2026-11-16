@@ -2,10 +2,19 @@ import React from 'react'
 import { act, cleanup, fireEvent, render, renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
-  CardSystem,
-  getHomeStandardCardWidth,
-  getHomeStandardImageHeight,
-} from '../../constants/cardSystem'
+  CARS_PEEK_GAP,
+  CARS_PEEK_IMAGE_HEIGHT,
+  CARS_PEEK_WIDTH_RATIO,
+  MY_LISTINGS_FAB_BOTTOM_OFFSET,
+  MY_LISTINGS_FAB_SIZE,
+  getMyListingsBottomPadding,
+  getMyListingsOwnerPeekHeight,
+  getPeekCardWidth,
+  getPeekLeadingInset,
+  getPeekSliderConfig,
+} from '../../constants/peekCarousel'
+import { MyListingSectionSlider } from '../../components/profile/my-listings/MyListingSectionSlider'
+import { MyListingsAllView } from '../../components/profile/my-listings/MyListingsAllView'
 import { OwnerCardActions } from '../../components/profile/my-listings/OwnerCardActions'
 import { MyListingOwnerCard } from '../../components/profile/my-listings/MyListingOwnerCard'
 import { useMyListingOwnerActions } from '../../hooks/useMyListingOwnerActions'
@@ -20,6 +29,7 @@ jest.mock('../../components/navigation/glassSupport', () => ({
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
 }))
 
 jest.mock('expo-router', () => ({
@@ -90,13 +100,24 @@ describe('D-345 Commit 3: Shared Home dimensions, OwnerCardActions, & useMyListi
     await cleanup()
   })
 
-  it('matches exact Home card width & image height for multiple screen widths', () => {
-    expect(getHomeStandardCardWidth(375)).toBe(Math.round(375 * 0.6))
-    expect(getHomeStandardCardWidth(375)).toBe(225)
-    expect(getHomeStandardCardWidth(430)).toBe(Math.round(430 * 0.6))
-    expect(getHomeStandardCardWidth(430)).toBe(258)
-    expect(getHomeStandardImageHeight()).toBe(CardSystem.aspectRatioHeight)
-    expect(getHomeStandardImageHeight()).toBe(140)
+  it('matches exact Home peek card width (0.80) and image height (133) via peekCarousel helpers (D-350)', () => {
+    expect(getPeekCardWidth(375)).toBe(Math.round(375 * CARS_PEEK_WIDTH_RATIO))
+    expect(getPeekCardWidth(375)).toBe(300)
+    expect(getPeekCardWidth(430)).toBe(Math.round(430 * CARS_PEEK_WIDTH_RATIO))
+    expect(getPeekCardWidth(430)).toBe(344)
+    expect(CARS_PEEK_IMAGE_HEIGHT).toBe(133)
+    expect(CARS_PEEK_GAP).toBe(6)
+    expect(getPeekSliderConfig(375)).toEqual({
+      cardWidth: 300,
+      gap: 6,
+      paddingEnd: getPeekLeadingInset(),
+      imageHeight: 133,
+      fullWidth: true,
+      compactBody: true,
+      paging: true,
+      showDots: true,
+      depthEffect: true,
+    })
   })
 
   it('renders OwnerCardActions in ownerActions slot off the image while keeping photo count badge visible', async () => {
@@ -235,5 +256,104 @@ describe('D-345 Commit 3: Shared Home dimensions, OwnerCardActions, & useMyListi
       const data: any = qc.getQueryData(['my-cars'])
       expect(data.pages[0].map((x: any) => x.id)).toEqual(['car-11'])
     })
+  })
+})
+
+describe('D-350: My Listings Peek-Style Slider, Skeleton Height, RTL Paging, & FAB Clearance', () => {
+  const sectionConfig = {
+    entityType: 'car' as const,
+    categoryId: 'cars',
+    title: 'السيارات',
+    icon: 'car-sports' as const,
+  }
+
+  afterEach(async () => {
+    await cleanup()
+  })
+
+  it('uses Home peek dimensions and matching skeleton minHeight in MyListingSectionSlider (zero layout jump)', async () => {
+    const { Dimensions, StyleSheet } = require('react-native')
+    const sw = Dimensions.get('window').width
+    const expected = getPeekSliderConfig(sw)
+
+    const view = await render(
+      <MyListingSectionSlider
+        config={sectionConfig}
+        items={[]}
+        isLoading={true}
+        onSelectCategory={jest.fn()}
+        onView={jest.fn()}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+        isEditSupported={() => true}
+      />
+    )
+
+    const slot0Depth = view.getByTestId('card-slot-0-depth')
+    const skeletonNode = slot0Depth.props.children
+    const firstStyle = StyleSheet.flatten(skeletonNode.props.style)
+    expect(firstStyle.width).toBe(expected.cardWidth)
+    expect(firstStyle.minHeight).toBe(getMyListingsOwnerPeekHeight())
+  })
+
+  it('renders RTL card 0 on the physical right and card 1 at peek step (cardWidth + gap) with dots', async () => {
+    const { Dimensions, StyleSheet } = require('react-native')
+    const sw = Dimensions.get('window').width
+    const expected = getPeekSliderConfig(sw)
+    const item2 = { ...baseCarItem, id: 'car-2', title: 'نيسان باترول' }
+
+    const view = await render(
+      <MyListingSectionSlider
+        config={sectionConfig}
+        items={[baseCarItem, item2]}
+        isLoading={false}
+        onSelectCategory={jest.fn()}
+        onView={jest.fn()}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+        isEditSupported={() => true}
+      />
+    )
+
+    const slot0 = view.getByTestId('card-slot-0')
+    const slot1 = view.getByTestId('card-slot-1')
+    expect(StyleSheet.flatten(slot0.props.style).right).toBe(expected.paddingEnd)
+    expect(StyleSheet.flatten(slot1.props.style).right).toBe(
+      expected.paddingEnd + expected.cardWidth + expected.gap
+    )
+    const container = view.getByTestId('horizontal-scroll-card')
+    const dotsRow = container.props.children[1]
+    expect(dotsRow).toBeTruthy()
+    expect(dotsRow.props.children).toHaveLength(3)
+  })
+
+  it('adds FAB clearance bottom padding (FAB size + offset + safe-area + spacing) to MyListingsAllView', async () => {
+    const { StyleSheet } = require('react-native')
+    const bottomInset = 34
+    const expectedPadding = getMyListingsBottomPadding(bottomInset)
+    expect(expectedPadding).toBeGreaterThanOrEqual(
+      bottomInset + MY_LISTINGS_FAB_SIZE + MY_LISTINGS_FAB_BOTTOM_OFFSET
+    )
+
+    const view = await render(
+      <MyListingsAllView
+        groupedSections={[]}
+        isLoading={false}
+        isRefreshing={false}
+        onRefresh={jest.fn()}
+        onSelectCategory={jest.fn()}
+        onView={jest.fn()}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+        isEditSupported={() => true}
+        bottomInset={bottomInset}
+        topInset={64}
+      />
+    )
+
+    const scroll = view.getByTestId('my-listings-empty-scroll')
+    expect(StyleSheet.flatten(scroll.props.contentContainerStyle).paddingBottom).toBe(
+      expectedPadding
+    )
   })
 })
