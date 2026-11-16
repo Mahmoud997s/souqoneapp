@@ -24,9 +24,9 @@ export interface ListingHeaderBlockProps {
 }
 
 const TONE_COLORS = {
-  success: { bg: 'rgba(22, 163, 74, 0.10)', border: 'rgba(22, 163, 74, 0.25)', text: Colors.success },
-  warning: { bg: 'rgba(217, 119, 6, 0.10)', border: 'rgba(217, 119, 6, 0.25)', text: Colors.warning },
-  danger:  { bg: 'rgba(220, 38, 38, 0.10)',  border: 'rgba(220, 38, 38, 0.25)',  text: Colors.error   },
+  success: { bg: Colors.emeraldBrightSoft10, border: Colors.emeraldBrightSoft25, text: Colors.success },
+  warning: { bg: Colors.amberTextSoft10, border: Colors.amberTextSoft25, text: Colors.warning },
+  danger:  { bg: Colors.errorSoft10,  border: Colors.errorSoft25,  text: Colors.error   },
   neutral: { bg: Colors.surface,             border: Colors.border,              text: Colors.text2   },
 }
 
@@ -170,7 +170,7 @@ const s = StyleSheet.create({
   kindBadge: {
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     paddingHorizontal: Spacing.space2 + 2,
     paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
@@ -225,7 +225,7 @@ const s = StyleSheet.create({
   priceSection: {
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '25',
+    borderColor: Colors.primaryHex25,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space3,
@@ -243,7 +243,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     paddingHorizontal: Spacing.space2 + 2,
     paddingVertical: Spacing.space1,
     borderRadius: Radius.pill,
@@ -268,7 +268,7 @@ const s = StyleSheet.create({
     gap: 6,
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.primary + '25',
+    borderColor: Colors.primaryHex25,
     paddingHorizontal: Spacing.space2,
     paddingVertical: Spacing.space2,
     borderRadius: Radius.md,

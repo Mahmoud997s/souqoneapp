@@ -351,7 +351,7 @@ export function OperatorsFilterBottomSheet({
               <Text style={s.toggleSub}>عرض المشغلين المستعدين للتفاوض على الأجر والعقود</Text>
             </View>
             <View style={[s.checkboxCircle, filters.isPriceNegotiable && s.checkboxCircleActive]}>
-              {filters.isPriceNegotiable && <Ionicons name="checkmark" size={14} color="#ffffff" />}
+              {filters.isPriceNegotiable && <Ionicons name="checkmark" size={14} color={Colors.white} />}
             </View>
           </TouchableOpacity>
         </>
@@ -393,9 +393,9 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     marginTop: 4,
   },
   showMoreTxt: {
@@ -413,12 +413,12 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     marginTop: 6,
   },
   toggleCardActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#93C5FD',
+    backgroundColor: Colors.infoSoftBg,
+    borderColor: Colors.blueLightBorder,
   },
   toggleInfo: {
     flex: 1,
@@ -427,7 +427,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -445,7 +445,7 @@ const s = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.white,

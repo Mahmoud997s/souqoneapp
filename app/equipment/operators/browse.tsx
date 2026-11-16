@@ -490,7 +490,7 @@ export default function BrowseOperatorsScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.neutralSurface,
   },
   listContent: {
     paddingHorizontal: Spacing.space4,
@@ -508,7 +508,7 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.space2,
@@ -535,12 +535,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     marginTop: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: Colors.blueSoftBg,
   },
   resetBtnTxt: {
     fontFamily: 'Almarai_700Bold',

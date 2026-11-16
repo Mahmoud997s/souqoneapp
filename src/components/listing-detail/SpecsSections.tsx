@@ -108,7 +108,7 @@ const s = StyleSheet.create({
     gap: Spacing.space1,
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     paddingHorizontal: Spacing.space3,
     paddingVertical: 6,
     borderRadius: Radius.pill,

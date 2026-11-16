@@ -425,7 +425,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#ffffff',
+    color: Colors.white,
   },
   footerBtnGroup: {
     flexDirection: 'row',

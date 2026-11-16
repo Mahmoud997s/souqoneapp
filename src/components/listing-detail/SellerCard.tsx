@@ -175,7 +175,7 @@ const s = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: Colors.paleMint,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primaryHex30,
     paddingHorizontal: Spacing.space2,
     paddingVertical: 3,
     borderRadius: Radius.pill,

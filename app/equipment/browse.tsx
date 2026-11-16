@@ -574,7 +574,7 @@ export default function EquipmentBrowseScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.slateSurface,
   },
   listHeader: {
     paddingBottom: Spacing.space1,

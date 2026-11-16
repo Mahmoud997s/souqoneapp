@@ -479,10 +479,10 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     gap: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   moreBtnText: {
     fontFamily: 'Almarai_700Bold',

@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../constants/colors'
+import { Colors, BrandColors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
@@ -226,7 +226,7 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2 + 2,
     borderRadius: Radius.xl,
     borderWidth: 1.2,
-    borderColor: 'rgba(255, 255, 255, 0.75)',
+    borderColor: Colors.whiteAlpha75,
     overflow: 'hidden',
     ...Shadows.floating,
   },
@@ -260,7 +260,7 @@ const s = StyleSheet.create({
     color: Colors.white,
   },
   whatsappButton: {
-    backgroundColor: '#25D366',
+    backgroundColor: BrandColors.whatsapp,
   },
   whatsappButtonText: {
     fontFamily: 'Almarai_700Bold',
@@ -269,9 +269,9 @@ const s = StyleSheet.create({
     color: Colors.white,
   },
   chatButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    backgroundColor: Colors.whiteAlpha82,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: Colors.scrimDark08,
   },
   chatButtonText: {
     fontFamily: 'Almarai_700Bold',

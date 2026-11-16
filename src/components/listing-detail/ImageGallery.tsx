@@ -308,7 +308,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: Spacing.space3,
     left: Spacing.space4,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: Colors.scrimDark65,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
@@ -327,7 +327,7 @@ const s = StyleSheet.create({
     bottom: Spacing.space3,
     alignSelf: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: Colors.scrimDark35,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: Radius.pill,
@@ -343,6 +343,6 @@ const s = StyleSheet.create({
   },
   dotInactive: {
     width: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: Colors.whiteAlpha50,
   },
 })
