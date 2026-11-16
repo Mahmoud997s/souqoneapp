@@ -214,7 +214,7 @@ export function PartStep4Compatibility({
                 <Ionicons
                   name={opt.icon}
                   size={18}
-                  color={isActive ? Colors.primary : '#64748B'}
+                  color={isActive ? Colors.primary : Colors.slateText}
                 />
                 <Text style={[s.chipTxt, isActive && s.chipTxtActive]}>
                   {opt.label}
@@ -238,7 +238,7 @@ export function PartStep4Compatibility({
               <Ionicons
                 name={isAllMakes ? 'checkmark-circle' : 'radio-button-off'}
                 size={16}
-                color={isAllMakes ? Colors.primary : '#64748B'}
+                color={isAllMakes ? Colors.primary : Colors.slateText}
               />
               <Text style={[s.allMakesChipTxt, isAllMakes && s.allMakesChipTxtActive]}>
                 متوافق مع جميع الماركات
@@ -433,9 +433,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -445,7 +445,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 18,
-    color: '#1E40AF',
+    color: Colors.infoText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -456,9 +456,9 @@ const s = StyleSheet.create({
   chip: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingVertical: 11,
     paddingHorizontal: 8,
@@ -467,14 +467,14 @@ const s = StyleSheet.create({
     gap: 6,
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   chipTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   chipTxtActive: {
     color: Colors.primary,
@@ -487,23 +487,23 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
     gap: 6,
   },
   allMakesChipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   allMakesChipTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   allMakesChipTxtActive: {
     color: Colors.primary,
@@ -515,9 +515,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     overflow: 'hidden',
     height: 48,
   },
@@ -526,7 +526,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     paddingHorizontal: 12,
     height: '100%',
     textAlign: 'right',
@@ -538,7 +538,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#E2E8F0',
+    borderRightColor: Colors.slateBorder,
   },
   pillsWrap: {
     flexDirection: 'row',
@@ -549,9 +549,9 @@ const s = StyleSheet.create({
   pillItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: Radius.pill,
@@ -575,23 +575,23 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   selectorButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     height: 48,
   },
   selectorError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   selectorContent: {
     flex: 1,
@@ -601,7 +601,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

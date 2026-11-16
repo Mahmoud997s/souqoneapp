@@ -252,7 +252,7 @@ export function ServicesFilterBottomSheet({
 
       <FilterSection title="الموقع">
         {filters.latitude && filters.longitude ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', padding: Spacing.space3, borderRadius: Radius.md, marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.infoSoftBg, padding: Spacing.space3, borderRadius: Radius.md, marginBottom: 8 }}>
             <Ionicons name="location" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
             <Text style={{ fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.primary, flex: 1, textAlign: 'left', writingDirection: 'rtl' }}>
               بحث في الأقرب لي (نطاق {filters.radiusKm || 10} كم)
@@ -319,8 +319,8 @@ export function ServicesFilterBottomSheet({
             <Switch
               value={filters.isOpenNow || false}
               onValueChange={(val) => updateFilter('isOpenNow', val ? true : undefined)}
-              trackColor={{ false: '#e2e8f0', true: Colors.primary }}
-              thumbColor={'#ffffff'}
+              trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
+              thumbColor={Colors.white}
             />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing.space2 }}>
@@ -328,8 +328,8 @@ export function ServicesFilterBottomSheet({
             <Switch
               value={filters.isHomeService || false}
               onValueChange={(val) => updateFilter('isHomeService', val ? true : undefined)}
-              trackColor={{ false: '#e2e8f0', true: Colors.primary }}
-              thumbColor={'#ffffff'}
+              trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
+              thumbColor={Colors.white}
             />
           </View>
         </View>

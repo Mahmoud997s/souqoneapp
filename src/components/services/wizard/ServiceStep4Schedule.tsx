@@ -102,7 +102,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
             <Ionicons
               name={isAllDaysSelected ? 'checkmark-circle' : 'calendar-outline'}
               size={15}
-              color={isAllDaysSelected ? Colors.primary : '#475569'}
+              color={isAllDaysSelected ? Colors.primary : Colors.slateSecondary}
             />
             <Text style={[s.presetBtnTxt, isAllDaysSelected && s.presetBtnTxtActive]}>
               طوال أيام الأسبوع
@@ -118,7 +118,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
             <Ionicons
               name={isSatToThuSelected ? 'checkmark-circle' : 'calendar-outline'}
               size={15}
-              color={isSatToThuSelected ? Colors.primary : '#475569'}
+              color={isSatToThuSelected ? Colors.primary : Colors.slateSecondary}
             />
             <Text style={[s.presetBtnTxt, isSatToThuSelected && s.presetBtnTxtActive]}>
               من السبت للخميس
@@ -141,7 +141,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
                 <Ionicons
                   name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={isSelected ? Colors.primary : '#94A3B8'}
+                  color={isSelected ? Colors.primary : Colors.slateMuted}
                 />
                 <Text style={[s.dayChipTxt, isSelected && s.dayChipTxtActive]}>{day}</Text>
               </TouchableOpacity>
@@ -156,12 +156,12 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
             onPress={() => applyPreset([])}
             activeOpacity={0.7}
           >
-            <Ionicons name="close-circle-outline" size={14} color="#64748B" />
+            <Ionicons name="close-circle-outline" size={14} color={Colors.slateText} />
             <Text style={s.clearDaysBtnTxt}>إلغاء التحديد (غير محدد)</Text>
           </TouchableOpacity>
         ) : (
           <View style={s.unspecifiedNotice} testID="unspecified-days-notice">
-            <Ionicons name="information-circle-outline" size={14} color="#64748B" />
+            <Ionicons name="information-circle-outline" size={14} color={Colors.slateText} />
             <Text style={s.unspecifiedNoticeTxt}>
               أيام وساعات العمل اختيارية ومستقلة — ترك الأيام فارغة يعني "غير محدد" للمشتري
             </Text>
@@ -207,7 +207,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
                   onPress={() => clearTime('workingHoursOpen')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={16} color={Colors.slateMuted} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -239,7 +239,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
                   onPress={() => clearTime('workingHoursClose')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={16} color={Colors.slateMuted} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -270,7 +270,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
         cancelTextIOS="إلغاء"
         locale="ar"
         themeVariant="light"
-        textColor="#000000"
+        textColor={Colors.shadowBlack}
         buttonTextColorIOS={Colors.primary}
       />
     </View>
@@ -290,22 +290,22 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   presetBtnActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   presetBtnTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   presetBtnTxtActive: {
     color: Colors.primary,
@@ -319,9 +319,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 9,
@@ -329,14 +329,14 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   dayChipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   dayChipTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 12,
     lineHeight: 17,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
   },
   dayChipTxtActive: {
@@ -355,7 +355,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -367,9 +367,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     height: 48,
@@ -378,7 +378,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -412,7 +412,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 18,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -420,7 +420,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     borderRadius: Radius.sm,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -430,7 +430,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
     flex: 1,

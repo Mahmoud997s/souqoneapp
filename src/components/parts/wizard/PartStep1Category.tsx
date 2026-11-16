@@ -77,7 +77,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
                 <MaterialCommunityIcons
                   name={lt.icon}
                   size={20}
-                  color={isSel ? '#ffffff' : Colors.primary}
+                  color={isSel ? Colors.white : Colors.primary}
                 />
               </View>
               <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
@@ -100,7 +100,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
                 style={[
                   s.gridCard,
                   isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : '#E2E8F0' }
+                  { borderColor: isSel ? Colors.primary : Colors.slateBorder }
                 ]}
                 onPress={() => onUpdateField('partCategory', cat.id)}
                 activeOpacity={0.7}
@@ -109,7 +109,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
                   <MaterialCommunityIcons
                     name={cat.icon}
                     size={20}
-                    color={isSel ? '#FFFFFF' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text
@@ -210,7 +210,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 3,
@@ -241,14 +241,14 @@ const s = StyleSheet.create({
   },
   typeCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: Colors.whiteAlpha45,
     paddingVertical: 10,
     borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-    shadowColor: '#94A3B8',
+    borderColor: Colors.white,
+    shadowColor: Colors.slateMuted,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -256,13 +256,13 @@ const s = StyleSheet.create({
   },
   typeCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.whiteAlpha95,
   },
   typeIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e0f2fe',
+    backgroundColor: Colors.skyLightBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -273,7 +273,7 @@ const s = StyleSheet.create({
   typeTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
     lineHeight: 18,
     paddingTop: Platform.OS === 'android' ? 2 : 0,
@@ -289,7 +289,7 @@ const s = StyleSheet.create({
   },
   gridCard: {
     width: '23.2%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderRadius: Radius.md,
     paddingVertical: 8,
@@ -299,14 +299,14 @@ const s = StyleSheet.create({
     minHeight: 88,
   },
   gridCardActive: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors.neutralBgLight,
     borderColor: Colors.primary,
   },
   gridIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -317,7 +317,7 @@ const s = StyleSheet.create({
   gridCardTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 10,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'center',
     lineHeight: 14,
     minHeight: 28,
@@ -332,22 +332,22 @@ const s = StyleSheet.create({
   chip: {
     flex: 1,
     minWidth: 80,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   chipTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 12,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
   },
   chipTxtActive: {

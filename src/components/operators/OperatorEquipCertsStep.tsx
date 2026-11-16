@@ -82,7 +82,7 @@ export function OperatorEquipCertsStep({
                 <Ionicons
                   name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
                   size={14}
-                  color={isSel ? '#ffffff' : '#64748B'}
+                  color={isSel ? Colors.white : Colors.slateText}
                   style={{ marginEnd: 4 }}
                 />
                 <Text style={[s.equipChipTxt, isSel && s.equipChipTxtActive]}>{eq.label}</Text>
@@ -142,7 +142,7 @@ export function OperatorEquipCertsStep({
                     onPress={() => onRemoveCertificate(i)}
                     activeOpacity={0.8}
                   >
-                    <Ionicons name="close" size={13} color="#ffffff" />
+                    <Ionicons name="close" size={13} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
               )
@@ -163,7 +163,7 @@ export function OperatorEquipCertsStep({
             />
           </View>
           <TouchableOpacity style={s.addBtn} onPress={handleAddCert} activeOpacity={0.8}>
-            <Ionicons name="add" size={20} color="#ffffff" />
+            <Ionicons name="add" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -175,14 +175,14 @@ export function OperatorEquipCertsStep({
               if (isImg) return null
               return (
                 <View key={i} style={s.certTag}>
-                  <Ionicons name="ribbon" size={13} color="#92400E" style={{ marginEnd: 4 }} />
+                  <Ionicons name="ribbon" size={13} color={Colors.warningText} style={{ marginEnd: 4 }} />
                   <Text style={s.certTagTxt}>{c}</Text>
                   <TouchableOpacity
                     onPress={() => onRemoveCertificate(i)}
                     style={s.removeTagBtn}
                     hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
                   >
-                    <Ionicons name="close-circle" size={15} color="#92400E" />
+                    <Ionicons name="close-circle" size={15} color={Colors.warningText} />
                   </TouchableOpacity>
                 </View>
               )
@@ -206,7 +206,7 @@ export function OperatorEquipCertsStep({
             />
           </View>
           <TouchableOpacity style={s.addBtn} onPress={handleAddSpec} activeOpacity={0.8}>
-            <Ionicons name="add" size={20} color="#ffffff" />
+            <Ionicons name="add" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -214,14 +214,14 @@ export function OperatorEquipCertsStep({
           <View style={s.tagsList}>
             {formData.specializations.map((sp, i) => (
               <View key={i} style={s.specTag}>
-                <Ionicons name="checkmark-done" size={13} color="#1E40AF" style={{ marginEnd: 4 }} />
+                <Ionicons name="checkmark-done" size={13} color={Colors.infoText} style={{ marginEnd: 4 }} />
                 <Text style={s.specTagTxt}>{sp}</Text>
                 <TouchableOpacity
                   onPress={() => onRemoveSpecialization?.(i)}
                   style={s.removeTagBtn}
                   hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
                 >
-                  <Ionicons name="close-circle" size={15} color="#1E40AF" />
+                  <Ionicons name="close-circle" size={15} color={Colors.infoText} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -241,10 +241,10 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: Spacing.space3,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
   },
@@ -252,7 +252,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -287,7 +287,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: CardSystem.radius.inner,
@@ -300,10 +300,10 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   equipChipTxtActive: {
-    color: '#ffffff',
+    color: Colors.white,
   },
   uploadBox: {
     backgroundColor: Colors.surface,
@@ -380,7 +380,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     position: 'relative',
   },
   certImgThumb: {
@@ -394,7 +394,7 @@ const s = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: Colors.scrimSlate75,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -420,9 +420,9 @@ const s = StyleSheet.create({
   certTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.amberSoftBg,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: Colors.warningBorder,
     borderRadius: Radius.pill,
     paddingStart: 8,
     paddingEnd: 6,
@@ -432,7 +432,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#92400E',
+    color: Colors.warningText,
     marginEnd: 4,
   },
   specTag: {

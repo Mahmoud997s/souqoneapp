@@ -97,7 +97,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
             <Text style={formData.quantity ? s.dropdownVal : s.dropdownPlaceholder}>
               {formData.quantity ? getQuantityLabel() : 'اختر الكمية المتوفرة'}
             </Text>
-            <Ionicons name="chevron-down" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-down" size={18} color={Colors.slateMuted} />
           </TouchableOpacity>
         </View>
       </WizardCard>
@@ -112,7 +112,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
             testID="warranty-switch"
             value={formData.hasWarranty}
             onValueChange={handleToggleWarranty}
-            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
           />
         </View>
 
@@ -123,7 +123,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
               <Text style={formData.warrantyDuration ? s.dropdownVal : s.dropdownPlaceholder}>
                 {formData.warrantyDuration ? getWarrantyDurationLabel() : 'اختر مدة الضمان'}
               </Text>
-              <Ionicons name="chevron-down" size={18} color="#94A3B8" />
+              <Ionicons name="chevron-down" size={18} color={Colors.slateMuted} />
             </TouchableOpacity>
             {errors.warrantyDuration ? <Text style={s.inlineErrorTxt}>{errors.warrantyDuration}</Text> : null}
           </View>
@@ -149,7 +149,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 1,
@@ -167,9 +167,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     height: 48,
@@ -177,14 +177,14 @@ const s = StyleSheet.create({
   dropdownPlaceholder: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
   dropdownVal: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 13,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -192,16 +192,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     padding: 12,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   switchTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 2,

@@ -72,7 +72,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
     <View style={s.stepWrap}>
       {/* ── Top Notice ── */}
       <View style={s.noticeBox}>
-        <Ionicons name="checkmark-circle" size={20} color="#059669" />
+        <Ionicons name="checkmark-circle" size={20} color={Colors.emerald} />
         <Text style={s.noticeTxt}>
           راجع تفاصيل الخدمة بعناية قبل الضغط على تأكيد ونشر الإعلان.
         </Text>
@@ -198,7 +198,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
             <View style={s.row} testID="home-service-review-badge">
               <Text style={s.label}>طبيعة الخدمة</Text>
               <View style={s.homeServiceBadge}>
-                <Ionicons name="checkmark-circle" size={14} color="#059669" />
+                <Ionicons name="checkmark-circle" size={14} color={Colors.emerald} />
                 <Text style={s.homeServiceBadgeTxt}>خدمة متنقلة / في موقع العميل</Text>
               </View>
             </View>
@@ -280,7 +280,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
         <View style={s.rowsList}>
           <View style={s.row}>
             <View style={s.rowIconLabel}>
-              <Ionicons name="location-outline" size={16} color="#64748B" />
+              <Ionicons name="location-outline" size={16} color={Colors.slateText} />
               <Text style={s.label}>الموقع الجغرافي</Text>
             </View>
             <Text style={s.value}>{locationText}</Text>
@@ -289,7 +289,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
           {formData.address ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="navigate-outline" size={16} color="#64748B" />
+                <Ionicons name="navigate-outline" size={16} color={Colors.slateText} />
                 <Text style={s.label}>العنوان</Text>
               </View>
               <Text style={s.value}>{formData.address}</Text>
@@ -299,11 +299,11 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
           {formData.latitude != null && formData.longitude != null ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="map-outline" size={16} color="#059669" />
+                <Ionicons name="map-outline" size={16} color={Colors.emerald} />
                 <Text style={s.label}>موقع الخريطة</Text>
               </View>
               <View style={s.gpsBadge}>
-                <Ionicons name="location" size={12} color="#059669" />
+                <Ionicons name="location" size={12} color={Colors.emerald} />
                 <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
@@ -311,7 +311,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
 
           <View style={s.row}>
             <View style={s.rowIconLabel}>
-              <Ionicons name="logo-whatsapp" size={16} color="#059669" />
+              <Ionicons name="logo-whatsapp" size={16} color={Colors.emerald} />
               <Text style={s.label}>التواصل عبر واتساب</Text>
             </View>
             <Text style={s.value}>{formData.whatsappEnabled ? 'مفعّل' : 'معطّل'}</Text>
@@ -320,7 +320,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
           {formData.website ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="globe-outline" size={16} color="#64748B" />
+                <Ionicons name="globe-outline" size={16} color={Colors.slateText} />
                 <Text style={s.label}>الموقع الإلكتروني</Text>
               </View>
               <Text style={s.value}>{formData.website}</Text>
@@ -386,7 +386,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -424,7 +424,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -432,14 +432,14 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   valueBold: {
     fontFamily: 'Almarai_800ExtraBold',
-    color: '#0F172A',
+    color: Colors.slateHeading,
     fontSize: 13,
   },
   badge: {
@@ -457,7 +457,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -465,14 +465,14 @@ const s = StyleSheet.create({
   homeServiceBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#047857',
+    color: Colors.emeraldDark,
   },
   descBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 4,
     marginTop: 2,
   },
@@ -480,7 +480,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -488,7 +488,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17.5,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -503,7 +503,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     position: 'relative',
   },
   thumbImg: {
@@ -514,7 +514,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 3,
     start: 3,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: Colors.scrimSlate85,
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
@@ -522,12 +522,12 @@ const s = StyleSheet.create({
   primaryBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 8.5,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   emptyTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     textAlign: 'center',
     paddingVertical: 10,
   },

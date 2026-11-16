@@ -79,7 +79,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
       {/* Value proposition intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="sparkles" size={16} color="#2563EB" />
+          <Ionicons name="sparkles" size={16} color={Colors.infoPrimary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>انضم لدليل المشغلين المعتمدين</Text>
@@ -117,7 +117,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
                 <Ionicons
                   name={r.icon as React.ComponentProps<typeof Ionicons>['name']}
                   size={20}
-                  color={isSel ? '#ffffff' : Colors.primary}
+                  color={isSel ? Colors.white : Colors.primary}
                 />
               </View>
               <View style={s.roleTextWrap}>
@@ -213,7 +213,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 3,
@@ -250,24 +250,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 11,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
       android: { elevation: 1 },
     }),
   },
   roleCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
   },
   roleIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -281,7 +281,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 1,
@@ -302,10 +302,10 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: Spacing.space3,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
   },

@@ -55,7 +55,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
       >
         {!formData.serviceType ? (
           <View style={s.infoBanner} testID="empty-service-type-msg">
-            <Ionicons name="information-circle-outline" size={20} color="#1E40AF" />
+            <Ionicons name="information-circle-outline" size={20} color={Colors.infoText} />
             <Text style={s.infoBannerTxt}>
               اختر نوع الخدمة أولاً في الخطوة السابقة لتحديد التخصصات المتاحة
             </Text>
@@ -75,7 +75,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
                   <Ionicons
                     name={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
                     size={16}
-                    color={isSelected ? Colors.primary : '#64748B'}
+                    color={isSelected ? Colors.primary : Colors.slateText}
                   />
                   <Text style={[s.specChipTxt, isSelected && s.specChipTxtActive]}>
                     {spec}
@@ -101,7 +101,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
             testID="home-service-switch"
             value={formData.isHomeService}
             onValueChange={(val) => onUpdateField('isHomeService', val)}
-            trackColor={{ false: '#E2E8F0', true: Colors.primary }}
+            trackColor={{ false: Colors.slateBorder, true: Colors.primary }}
           />
         </View>
       </WizardCard>
@@ -117,9 +117,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -129,7 +129,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 18,
-    color: '#1E40AF',
+    color: Colors.infoText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -142,22 +142,22 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   specChipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   specChipTxt: {
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 12,
     lineHeight: 17,
-    color: '#475569',
+    color: Colors.slateSecondary,
     writingDirection: 'rtl',
   },
   specChipTxtActive: {
@@ -168,16 +168,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     padding: 12,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   switchTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 2,
