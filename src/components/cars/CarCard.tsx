@@ -138,8 +138,8 @@ const CarCardComponent = ({
     badges.push({
       key: 'rental',
       label: 'إيجار',
-      backgroundColor: '#FFCC00',
-      textColor: '#000000',
+      backgroundColor: Colors.warningYellow,
+      textColor: Colors.shadowBlack,
     })
   }
   if (isRental && item.withDriver) {

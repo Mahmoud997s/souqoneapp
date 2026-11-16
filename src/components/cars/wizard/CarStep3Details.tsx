@@ -415,7 +415,7 @@ export function CarStep3Details({
                       borderRadius: 8,
                       backgroundColor: CAR_COLORS.find((c) => c.value === formData.exteriorColor)?.hex,
                       borderWidth: 1,
-                      borderColor: '#E2E8F0',
+                      borderColor: Colors.slateBorder,
                     }}
                   />
                 ) : (
@@ -443,7 +443,7 @@ export function CarStep3Details({
                       borderRadius: 8,
                       backgroundColor: CAR_COLORS.find((c) => c.value === formData.interior)?.hex,
                       borderWidth: 1,
-                      borderColor: '#E2E8F0',
+                      borderColor: Colors.slateBorder,
                     }}
                   />
                 ) : (
@@ -515,7 +515,7 @@ export function CarStep3Details({
                 <Ionicons
                   name={feat.icon as keyof typeof Ionicons.glyphMap}
                   size={15}
-                  color={isActive ? '#ffffff' : '#64748B'}
+                  color={isActive ? Colors.white : Colors.slateText}
                 />
                 <Text
                   style={[s.featureTxt, isActive && s.featureTxtActive]}
@@ -585,7 +585,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 1,
@@ -605,23 +605,23 @@ const s = StyleSheet.create({
   chip: {
     flex: 1,
     minWidth: 80,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     borderColor: Colors.primary,
   },
   chipTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   chipTxtActive: {
     color: Colors.primary,
@@ -630,20 +630,20 @@ const s = StyleSheet.create({
   selectorButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     height: 48,
   },
   selectorButtonDisabled: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     opacity: 0.6,
   },
   selectorError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   selectorContent: {
     flex: 1,
@@ -653,7 +653,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 14,
     lineHeight: 21,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -677,9 +677,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: CardSystem.radius.inner,
@@ -692,18 +692,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
   },
   featureTxtActive: {
-    color: '#ffffff',
+    color: Colors.white,
   },
   addFeatureWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     borderRadius: Radius.md,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     overflow: 'hidden',
     height: 48,
   },
@@ -712,7 +712,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     paddingHorizontal: 14,
     height: '100%',
     textAlign: 'right',
@@ -724,15 +724,15 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#E2E8F0',
+    borderRightColor: Colors.slateBorder,
   },
   customFeaturePill: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: Radius.pill,
@@ -742,6 +742,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_600SemiBold',
     fontSize: 11,
     lineHeight: 16,
-    color: '#991B1B',
+    color: Colors.dangerDarkText,
   },
 })

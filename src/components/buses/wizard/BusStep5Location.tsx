@@ -64,7 +64,7 @@ export function BusStep5Location({
           <View style={s.coordsBox} testID="coords-box">
             <View style={s.coordsInfoRow}>
               <View style={s.coordsIconWrap}>
-                <Ionicons name="location" size={18} color="#059669" />
+                <Ionicons name="location" size={18} color={Colors.emerald} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.coordsTitle}>تم تثبيت الموقع على الخريطة بنجاح ✓</Text>
@@ -116,7 +116,7 @@ export function BusStep5Location({
               <Text style={s.mapTriggerTitle}>تحديد الموقع بدقة على الخريطة 📍</Text>
               <Text style={s.mapTriggerSub}>اختياري — يساعد المشترين على الوصول لموقع الحافلة</Text>
             </View>
-            <Ionicons name="chevron-back" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-back" size={18} color={Colors.slateMuted} />
           </TouchableOpacity>
         )}
       </WizardCard>
@@ -160,7 +160,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 20,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -175,7 +175,7 @@ const s = StyleSheet.create({
   },
   mapSectionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginTop: 4,
     marginBottom: 4,
   },
@@ -183,9 +183,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -194,7 +194,7 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -202,7 +202,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -261,9 +261,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -277,9 +277,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

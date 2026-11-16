@@ -10,7 +10,7 @@ import {
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardReviewCard } from '../../ui/WizardReviewCard'
-import { Colors } from '../../../constants/colors'
+import { Colors, BrandColors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
@@ -44,7 +44,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
     <View style={s.stepWrap}>
       {/* ── Top Notice ── */}
       <View style={s.noticeBox}>
-        <Ionicons name="checkmark-circle" size={20} color="#059669" />
+        <Ionicons name="checkmark-circle" size={20} color={Colors.emerald} />
         <Text style={s.noticeTxt}>
           راجع تفاصيل الإعلان بعناية قبل الضغط على تأكيد ونشر الإعلان.
         </Text>
@@ -251,7 +251,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
             <View style={s.featuresList}>
               {formData.features.map((feat) => (
                 <View key={feat} style={s.featureChip}>
-                  <Ionicons name="checkmark-circle" size={13} color="#059669" />
+                  <Ionicons name="checkmark-circle" size={13} color={Colors.emerald} />
                   <Text style={s.featureChipTxt}>{feat}</Text>
                 </View>
               ))}
@@ -287,7 +287,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
               <Text style={s.priceBoxTitle}>سعر البيع المطلوب</Text>
               {formData.isPriceNegotiable ? (
                 <View style={s.negoBadge}>
-                  <Ionicons name="checkmark-circle" size={12} color="#059669" />
+                  <Ionicons name="checkmark-circle" size={12} color={Colors.emerald} />
                   <Text style={s.negoBadgeTxt}>قابل للتفاوض</Text>
                 </View>
               ) : null}
@@ -303,7 +303,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
           <View style={s.rentPriceBox}>
             <View style={s.rentHeaderRow}>
               <View style={s.rentIconCircle}>
-                <Ionicons name="calendar-outline" size={14} color="#059669" />
+                <Ionicons name="calendar-outline" size={14} color={Colors.emerald} />
               </View>
               <Text style={s.rentPriceBoxTitle}>أسعار الإيجار الاسترشادية</Text>
             </View>
@@ -332,13 +332,13 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
               <View style={s.rentTermsRow}>
                 {formData.withOperator ? (
                   <View style={s.termBadge}>
-                    <Ionicons name="person" size={12} color="#065F46" />
+                    <Ionicons name="person" size={12} color={Colors.emeraldDeepText} />
                     <Text style={s.termBadgeTxt}>مع مشغل / سائق</Text>
                   </View>
                 ) : null}
                 {formData.deliveryAvailable ? (
                   <View style={s.termBadge}>
-                    <Ionicons name="car" size={12} color="#065F46" />
+                    <Ionicons name="car" size={12} color={Colors.emeraldDeepText} />
                     <Text style={s.termBadgeTxt}>توصيل لموقع العمل</Text>
                   </View>
                 ) : null}
@@ -374,7 +374,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
         <View style={s.rowsList}>
           <View style={s.row}>
             <View style={s.rowIconLabel}>
-              <Ionicons name="location-outline" size={16} color="#64748B" />
+              <Ionicons name="location-outline" size={16} color={Colors.slateText} />
               <Text style={s.label}>الموقع الجغرافي</Text>
             </View>
             <Text style={s.value}>{locationText}</Text>
@@ -383,11 +383,11 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
           {formData.latitude != null && formData.longitude != null ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="map-outline" size={16} color="#059669" />
+                <Ionicons name="map-outline" size={16} color={Colors.emerald} />
                 <Text style={s.label}>موقع الخريطة</Text>
               </View>
               <View style={s.gpsBadge}>
-                <Ionicons name="location" size={12} color="#059669" />
+                <Ionicons name="location" size={12} color={Colors.emerald} />
                 <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
@@ -395,10 +395,10 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
 
           <View style={s.row}>
             <View style={s.rowIconLabel}>
-              <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+              <Ionicons name="logo-whatsapp" size={16} color={BrandColors.whatsapp} />
               <Text style={s.label}>التواصل عبر واتساب</Text>
             </View>
-            <Text style={[s.value, { color: formData.whatsappEnabled ? '#16A34A' : Colors.textMuted }]}>
+            <Text style={[s.value, { color: formData.whatsappEnabled ? Colors.emeraldBright : Colors.textMuted }]}>
               {formData.whatsappEnabled ? 'مفعّل' : 'غير مفعّل'}
             </Text>
           </View>
@@ -463,7 +463,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -503,7 +503,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -511,13 +511,13 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   valueBold: {
     fontFamily: 'Almarai_800ExtraBold',
-    color: '#0F172A',
+    color: Colors.slateHeading,
     fontSize: 13,
   },
   phoneValue: {
@@ -532,7 +532,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#16A34A',
+    color: Colors.emeraldBright,
     writingDirection: 'ltr',
     textAlign: 'left',
   },
@@ -567,9 +567,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: Colors.emeraldBorder,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
@@ -577,17 +577,17 @@ const s = StyleSheet.create({
   gpsBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#047857',
+    color: Colors.emeraldDark,
     writingDirection: 'ltr',
   },
 
   /* ── Description Box ── */
   descBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 4,
     marginTop: 2,
   },
@@ -595,7 +595,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -603,7 +603,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17.5,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -620,7 +620,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     position: 'relative',
   },
   thumbImg: {
@@ -631,7 +631,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 3,
     start: 3,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: Colors.scrimSlate85,
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
@@ -639,12 +639,12 @@ const s = StyleSheet.create({
   primaryBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 8.5,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   emptyTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     textAlign: 'center',
     paddingVertical: 10,
   },
@@ -657,19 +657,19 @@ const s = StyleSheet.create({
   },
   gridItemBox: {
     width: '48.5%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Colors.slateSubtleBg,
     gap: 2,
   },
   gridLabel: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
     lineHeight: 14,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -677,7 +677,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -685,14 +685,14 @@ const s = StyleSheet.create({
     marginTop: 2,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
     gap: 6,
   },
   featuresTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -805,7 +805,7 @@ const s = StyleSheet.create({
   },
   rentRateCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     padding: 10,
     borderWidth: 1,
@@ -817,7 +817,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
     lineHeight: 14,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },

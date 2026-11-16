@@ -66,7 +66,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
     <View style={s.stepWrap}>
       {/* ── 1. Top Notice Banner ── */}
       <View style={s.noticeBox}>
-        <Ionicons name="checkmark-circle" size={20} color="#059669" />
+        <Ionicons name="checkmark-circle" size={20} color={Colors.emerald} />
         <Text style={s.noticeTxt}>
           راجع تفاصيل الإعلان بعناية قبل الضغط على تأكيد ونشر الإعلان.
         </Text>
@@ -312,7 +312,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
               <Text style={s.priceBoxTitle}>سعر البيع المطلوب</Text>
               {data.isPriceNegotiable ? (
                 <View style={s.negoBadge}>
-                  <Ionicons name="checkmark-circle" size={12} color="#059669" />
+                  <Ionicons name="checkmark-circle" size={12} color={Colors.emerald} />
                   <Text style={s.negoBadgeTxt}>قابل للتفاوض</Text>
                 </View>
               ) : null}
@@ -390,7 +390,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
 
                 <View style={s.gridItemBox}>
                   <Text style={s.gridLabel}>الدخل الشهري</Text>
-                  <Text style={[s.gridVal, { color: '#059669' }]} numberOfLines={1}>
+                  <Text style={[s.gridVal, { color: Colors.emerald }]} numberOfLines={1}>
                     {data.contractMonthly
                       ? `${Number(data.contractMonthly).toLocaleString('en-US')} ر.ع`
                       : '—'}
@@ -442,7 +442,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
         <View style={s.rowsList}>
           <View style={s.row}>
             <View style={s.rowIconLabel}>
-              <Ionicons name="location-outline" size={16} color="#64748B" />
+              <Ionicons name="location-outline" size={16} color={Colors.slateText} />
               <Text style={s.label}>الموقع الجغرافي</Text>
             </View>
             <Text style={s.value}>{locationText}</Text>
@@ -451,11 +451,11 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
           {data.latitude != null && data.longitude != null ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="map-outline" size={16} color="#059669" />
+                <Ionicons name="map-outline" size={16} color={Colors.emerald} />
                 <Text style={s.label}>موقع الخريطة</Text>
               </View>
               <View style={s.gpsBadge}>
-                <Ionicons name="location" size={12} color="#059669" />
+                <Ionicons name="location" size={12} color={Colors.emerald} />
                 <Text style={s.gpsBadgeTxt}>تم التحديد على الخريطة ✓</Text>
               </View>
             </View>
@@ -464,7 +464,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
           {data.whatsappEnabled ? (
             <View style={s.row}>
               <View style={s.rowIconLabel}>
-                <Ionicons name="logo-whatsapp" size={16} color="#059669" />
+                <Ionicons name="logo-whatsapp" size={16} color={Colors.emerald} />
                 <Text style={s.label}>التواصل عبر الواتساب</Text>
               </View>
               <Text style={s.value}>مفعّل</Text>
@@ -530,7 +530,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -568,7 +568,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -576,18 +576,18 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   valueBold: {
     fontFamily: 'Almarai_800ExtraBold',
-    color: '#0F172A',
+    color: Colors.slateHeading,
     fontSize: 13,
   },
   valueHighlight: {
-    color: '#059669',
+    color: Colors.emerald,
     fontSize: 13,
   },
   badge: {
@@ -637,11 +637,11 @@ const s = StyleSheet.create({
     color: Colors.text,
   },
   descBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 4,
     marginTop: 2,
   },
@@ -649,7 +649,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -657,7 +657,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17.5,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -672,7 +672,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     position: 'relative',
   },
   thumbImg: {
@@ -683,7 +683,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 3,
     start: 3,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: Colors.scrimSlate85,
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
@@ -691,12 +691,12 @@ const s = StyleSheet.create({
   primaryBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 8.5,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   emptyTxt: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     textAlign: 'center',
     paddingVertical: 10,
   },
@@ -707,19 +707,19 @@ const s = StyleSheet.create({
   },
   gridItemBox: {
     width: '48.5%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Colors.slateSubtleBg,
     gap: 2,
   },
   gridLabel: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 10.5,
     lineHeight: 14,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -727,7 +727,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -738,14 +738,14 @@ const s = StyleSheet.create({
   subSectionBorder: {
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.slateSubtleBg,
     gap: 8,
   },
   subSectionTitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
     lineHeight: 16,
-    color: '#475569',
+    color: Colors.slateSecondary,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -758,12 +758,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Colors.infoBorder,
   },
   featureBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
@@ -819,11 +819,11 @@ const s = StyleSheet.create({
     color: Colors.primary,
   },
   rentalBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
   },
   contractBox: {
     gap: 10,
@@ -832,9 +832,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.emeraldBg,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: Colors.emeraldBorder,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
@@ -842,7 +842,7 @@ const s = StyleSheet.create({
   gpsBadgeTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
-    color: '#047857',
+    color: Colors.emeraldDark,
     writingDirection: 'ltr',
   },
 })

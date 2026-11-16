@@ -37,7 +37,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
       {/* Value proposition intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="car-sport" size={16} color="#2563EB" />
+          <Ionicons name="car-sport" size={16} color={Colors.infoPrimary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>سوق السيارات</Text>
@@ -65,7 +65,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
                 <MaterialCommunityIcons
                   name={lt.icon as any}
                   size={20}
-                  color={isSel ? '#ffffff' : Colors.primary}
+                  color={isSel ? Colors.white : Colors.primary}
                 />
               </View>
               <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
@@ -146,7 +146,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 3,
@@ -177,14 +177,14 @@ const s = StyleSheet.create({
   },
   typeCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Glass transparency
+    backgroundColor: Colors.whiteAlpha45, // Glass transparency
     paddingVertical: 10, 
     borderRadius: Radius.lg,
     alignItems: 'center', 
     justifyContent: 'center',
     borderWidth: 1.5, 
-    borderColor: '#FFFFFF', // 3D edge light reflection
-    shadowColor: '#94A3B8', 
+    borderColor: Colors.white, // 3D edge light reflection
+    shadowColor: Colors.slateMuted, 
     shadowOffset: { width: 0, height: 6 }, 
     shadowOpacity: 0.15, 
     shadowRadius: 12, 
@@ -192,13 +192,13 @@ const s = StyleSheet.create({
   },
   typeCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.whiteAlpha95,
   },
   typeIconWrap: {
     width: 36, 
     height: 36, 
     borderRadius: 18, 
-    backgroundColor: '#e0f2fe',
+    backgroundColor: Colors.skyLightBg,
     alignItems: 'center', 
     justifyContent: 'center',
     marginBottom: 6,
@@ -209,7 +209,7 @@ const s = StyleSheet.create({
   typeTitle: {
     fontFamily: 'Almarai_700Bold', 
     fontSize: 12, 
-    color: '#0F172A', 
+    color: Colors.slateHeading, 
     textAlign: 'center',
     lineHeight: 18, 
     paddingTop: Platform.OS === 'android' ? 2 : 0, 

@@ -15,7 +15,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
       {/* Value proposition intro banner */}
       <View style={s.introCard}>
         <View style={s.introIconWrap}>
-          <Ionicons name="sparkles" size={16} color="#2563EB" />
+          <Ionicons name="sparkles" size={16} color={Colors.infoPrimary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.introTitle}>سوق المعدات الثقيلة والشاحنات</Text>
@@ -44,7 +44,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
                   <MaterialCommunityIcons
                     name={lt.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
                     size={20}
-                    color={isSel ? '#ffffff' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
@@ -80,7 +80,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
                   <MaterialCommunityIcons
                     name={cat.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
                     size={18}
-                    color={isSel ? '#ffffff' : Colors.primary}
+                    color={isSel ? Colors.white : Colors.primary}
                   />
                 </View>
                 <Text style={[s.catTitle, isSel && s.catTitleActive]} numberOfLines={2}>
@@ -182,23 +182,23 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: 11,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     gap: 5,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
       android: { elevation: 1 },
     }),
   },
   typeCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
   },
   typeIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -209,7 +209,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12,
     lineHeight: 17,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
   },
   typeTitleActive: {
@@ -236,24 +236,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 10,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3 },
       android: { elevation: 1 },
     }),
   },
   catCardActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
   },
   catIconWrap: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -264,7 +264,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 15,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'center',
   },
   catTitleActive: {
