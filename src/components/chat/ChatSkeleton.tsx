@@ -23,7 +23,7 @@ export function ChatSkeleton() {
     return () => animation.stop()
   }, [anim])
 
-  const bgOwn = anim.interpolate({ inputRange: [0, 1], outputRange: ['#E0F2FE', '#BAE6FD'] }) // Light blue shades
+  const bgOwn = anim.interpolate({ inputRange: [0, 1], outputRange: [Colors.skyLightBg, Colors.skyBorder] }) // Light blue shades
   const bgOther = anim.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface, Colors.border] })
 
   const bubbles: SkeletonBubble[] = [

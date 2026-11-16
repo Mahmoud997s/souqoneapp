@@ -204,7 +204,7 @@ export default function ChatRoomScreen() {
           const errorProps = getListErrorProps(error, 'تعذر تحميل الرسائل')
           return (
             <View style={s.emptyState} testID="chat-room-error-state">
-              <View style={[s.emptyIconCircle, { backgroundColor: '#FEF2F2' }]}>
+              <View style={[s.emptyIconCircle, { backgroundColor: Colors.dangerBg }]}>
                 <Ionicons
                   name={errorProps.icon as keyof typeof Ionicons.glyphMap}
                   size={40}
@@ -344,28 +344,28 @@ export default function ChatRoomScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: Colors.slateTintBg },
   listingBanner: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, gap: 12,
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.scrimDark05,
   },
   listingThumb: { width: 44, height: 44, borderRadius: Radius.md },
   listingBannerTxt: { flex: 1, fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, textAlign: 'left' },
   content: { paddingVertical: 16 },
   loader: { marginTop: 40 },
   emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 120, paddingHorizontal: 40 },
-  emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(52, 183, 241, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: Colors.readReceiptSoft10, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, marginBottom: 8 },
   emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 },
   dateDivider: { alignItems: 'center', marginVertical: 20 },
   dateDividerTxt: {
-    backgroundColor: 'rgba(0,0,0,0.05)', color: Colors.textMuted,
+    backgroundColor: Colors.scrimDark05, color: Colors.textMuted,
     fontFamily: 'Almarai_700Bold',  fontSize: 11,
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
   },
   replyPreviewContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.neutralLightBg,
     padding: 10,
     marginHorizontal: 10,
     marginTop: 8,

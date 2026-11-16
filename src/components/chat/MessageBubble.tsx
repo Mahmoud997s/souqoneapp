@@ -28,14 +28,14 @@ function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: 
   }
   
   if (error) {
-    return <Ionicons name="alert-circle" size={14} color="#FF6B6B" />
+    return <Ionicons name="alert-circle" size={14} color={Colors.coralLight} />
   }
   
   if (isRead) {
     return (
       <View style={{ flexDirection: 'row', marginStart: -4, alignItems: 'center' }}>
-        <Ionicons name="checkmark" size={13} color="#34B7F1" />
-        <Ionicons name="checkmark" size={13} color="#34B7F1" style={{ marginLeft: -6 }} />
+        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} />
+        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} style={{ marginLeft: -6 }} />
       </View>
     )
   }
@@ -223,7 +223,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
             accessibilityLabel="فشل الإرسال — اضغط للخيارات"
             testID="chat-message-error-indicator"
           >
-            <Ionicons name="alert-circle" size={22} color="#EF4444" />
+            <Ionicons name="alert-circle" size={22} color={Colors.dangerBright} />
           </TouchableOpacity>
         )}
       </View>
@@ -240,7 +240,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
             accessibilityLabel="إغلاق الصورة"
           >
-            <Ionicons name="close" size={26} color="#fff" />
+            <Ionicons name="close" size={26} color={Colors.white} />
           </TouchableOpacity>
           {msg.mediaUrl && (
             <ScrollView
@@ -275,16 +275,16 @@ const s = StyleSheet.create({
   msgBubble: {
     paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, flexShrink: 1,
     minWidth: 64,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2,
+    shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2,
   },
   msgBubbleExtended: {
     minWidth: 190,
   },
-  msgBubbleError: { opacity: 0.85, borderWidth: 1, borderColor: '#FCA5A5' },
+  msgBubbleError: { opacity: 0.85, borderWidth: 1, borderColor: Colors.dangerLightBorder },
   // borderBottomRightRadius maps to physical LEFT in RTL. Tail for own message points left.
   msgBubbleOwn: { backgroundColor: Colors.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 4 },
   // borderBottomLeftRadius maps to physical RIGHT in RTL. Tail for other message points right.
-  msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' },
+  msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: Colors.scrimDark03 },
   msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as ImageResizeMode },
   msgImageOnly: { marginBottom: 0 },
   msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
@@ -294,20 +294,20 @@ const s = StyleSheet.create({
   reactionsBadge: {
     position: 'absolute', bottom: -16, flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.white, borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 4,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)'
+    shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 4,
+    borderWidth: 1, borderColor: Colors.scrimDark04
   },
   reactionsBadgeOwn: { left: 16 },
   reactionsBadgeOther: { right: 16 },
   reactionsBadgeTxt: { fontSize: 13, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 18 },
-  fullScreenContainer: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  fullScreenContainer: { flex: 1, backgroundColor: Colors.shadowBlack, justifyContent: 'center', alignItems: 'center' },
   zoomScroll: { flex: 1, width: '100%' },
   zoomScrollContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   fullScreenImage: { width: '100%', height: '100%' },
   closeFsBtn: {
     position: 'absolute', top: 50, right: 20, zIndex: 10,
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: Colors.scrimDark60,
     alignItems: 'center', justifyContent: 'center',
   },
   swipeActionContainer: {
@@ -328,10 +328,10 @@ const s = StyleSheet.create({
     width: '100%',
   },
   replyBoxOwn: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: Colors.whiteAlpha18,
   },
   replyBoxOther: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: Colors.scrimDark05,
   },
   replyLine: {
     width: 3.5,
@@ -369,10 +369,10 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   replySnippetOwn: {
-    color: 'rgba(255,255,255,0.85)',
+    color: Colors.whiteAlpha85,
   },
   replySnippetOther: {
-    color: 'rgba(0,0,0,0.6)',
+    color: Colors.scrimDark60,
   },
 })
 

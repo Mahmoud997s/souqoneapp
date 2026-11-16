@@ -166,23 +166,23 @@ export function ChatInput({ msgText, onChangeText, onSend, insetsBottom }: Props
 
 const s = StyleSheet.create({
   container: { backgroundColor: Colors.white },
-  previewContainer: { padding: 12, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', position: 'relative', width: '100%' },
+  previewContainer: { padding: 12, borderTopWidth: 1, borderTopColor: Colors.scrimDark05, position: 'relative', width: '100%' },
   previewImage: { width: '100%', height: 240, borderRadius: 12 },
-  removePreviewBtn: { position: 'absolute', top: 20, right: 20, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: 2 },
-  filePreviewBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F6F9', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  removePreviewBtn: { position: 'absolute', top: 20, right: 20, backgroundColor: Colors.scrimDark60, borderRadius: 16, padding: 2 },
+  filePreviewBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.chatBubbleMutedBg, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: Colors.scrimDark05 },
   filePreviewInfo: { flex: 1, paddingHorizontal: 12 },
   filePreviewName: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 16,
     paddingTop: CHAT_INPUT_PADDING_TOP, paddingBottom: CHAT_INPUT_PADDING_BOTTOM, backgroundColor: Colors.white,
-    borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)'
+    borderTopWidth: 1, borderTopColor: Colors.scrimDark04
   },
   addBtn: { padding: 6, paddingBottom: 12 },
   inputWrap: {
-    flex: 1, backgroundColor: '#f4f6f9', borderRadius: 24,
+    flex: 1, backgroundColor: Colors.chatBubbleMutedBg, borderRadius: 24,
     minHeight: CHAT_INPUT_MIN_HEIGHT, maxHeight: 120, marginHorizontal: 8,
     justifyContent: 'center', marginBottom: CHAT_INPUT_MARGIN_BOTTOM,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)'
+    borderWidth: 1, borderColor: Colors.scrimDark05
   },
   input: {
     fontFamily: 'Almarai_400Regular', 
@@ -195,7 +195,7 @@ const s = StyleSheet.create({
     shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4
   },
   micBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0, 74, 198, 0.1)',
+    width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.blueSoft10,
     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
   },
   sendIcon: { transform: [{ scaleX: -1 }] }, // In RTL, send icon points left

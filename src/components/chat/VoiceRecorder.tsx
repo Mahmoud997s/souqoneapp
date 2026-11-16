@@ -91,7 +91,7 @@ export function VoiceRecorder({ onSend, onCancel }: Props) {
   return (
     <View style={s.container}>
       <TouchableOpacity onPress={() => stopRecording(false)} style={s.btnCancel}>
-        <Ionicons name="trash" size={20} color="#FF3B30" />
+        <Ionicons name="trash" size={20} color={Colors.iosRed} />
       </TouchableOpacity>
 
       <View style={s.center}>
@@ -111,7 +111,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFE5E5',
+    backgroundColor: Colors.iosRedSoftBg,
     borderRadius: 24,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -121,12 +121,12 @@ const s = StyleSheet.create({
   },
   btnCancel: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: Colors.iosRedSoft10,
     alignItems: 'center', justifyContent: 'center'
   },
   center: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30' },
-  timeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: '#FF3B30' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.iosRed },
+  timeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 15, color: Colors.iosRed },
   btnSend: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: Colors.primary,

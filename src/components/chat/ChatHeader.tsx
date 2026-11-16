@@ -150,7 +150,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <Path
                 d="M 40 0 L 0 0 0 40"
                 fill="none"
-                stroke="rgba(255,255,255,0.06)"
+                stroke={Colors.whiteAlpha06}
                 strokeWidth="1"
               />
             </Pattern>
@@ -195,7 +195,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <TextInput
                 style={styles.navSearchInput}
                 placeholder="بحث في الرسائل..."
-                placeholderTextColor="rgba(255,255,255,0.7)"
+                placeholderTextColor={Colors.whiteAlpha70}
                 value={searchText}
                 onChangeText={onSearchChange}
                 textAlign="right"
@@ -207,7 +207,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   onPress={handleClear}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.8)" />
+                  <Ionicons name="close-circle" size={16} color={Colors.whiteAlpha80} />
                 </TouchableOpacity>
               )}
             </View>
@@ -242,7 +242,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <TextInput
             style={styles.searchInput}
             placeholder="ابحث بالاسم، الإعلان أو محتوى الرسالة..."
-            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+            placeholderTextColor={Colors.whiteAlpha70}
             value={searchText}
             onChangeText={onSearchChange}
             textAlign="right"
@@ -255,7 +255,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               style={styles.clearBtn}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close-circle" size={18} color="rgba(255, 255, 255, 0.8)" />
+              <Ionicons name="close-circle" size={18} color={Colors.whiteAlpha80} />
             </TouchableOpacity>
           )}
         </View>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: Colors.whiteAlpha05,
   },
   topRow: {
     flexDirection: 'row',
@@ -347,27 +347,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5.5,
     marginTop: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    backgroundColor: Colors.whiteAlpha14,
     paddingHorizontal: 8.5,
     paddingVertical: 2,
     borderRadius: 11,
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    borderColor: Colors.whiteAlpha22,
   },
   statusDot: {
     width: 5.5,
     height: 5.5,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: Colors.whiteAlpha45,
   },
   statusDotActive: {
-    backgroundColor: '#34D399',
+    backgroundColor: Colors.emeraldLight,
   },
   subtitle: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 10.5,
     lineHeight: 14,
-    color: 'rgba(255, 255, 255, 0.92)',
+    color: Colors.whiteAlpha92,
     writingDirection: 'rtl',
     includeFontPadding: false,
   },
@@ -378,13 +378,13 @@ const styles = StyleSheet.create({
   navSearchInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: Colors.whiteAlpha16,
     height: 38,
     borderRadius: 19,
     paddingHorizontal: 12,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: Colors.whiteAlpha15,
   },
   navSearchInput: {
     flex: 1,
@@ -403,9 +403,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    backgroundColor: Colors.whiteAlpha14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.whiteAlpha20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: Colors.whiteAlpha16,
     height: 42,
     borderRadius: 14,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: Colors.whiteAlpha15,
   },
   searchIcon: {
     marginEnd: Spacing.space2,
