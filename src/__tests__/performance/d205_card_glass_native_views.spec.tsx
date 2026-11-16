@@ -55,7 +55,7 @@ jest.mock('../../features/favorites/useFavoriteToggle', () => ({
   }),
 }))
 
-describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)', () => {
+describe('D-205 — Card Glass Native View Reduction (0 GlassSurface per Card)', () => {
   const originalOS = Platform.OS
 
   const samplePills: ListingCardPill[] = [
@@ -89,7 +89,7 @@ describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)',
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => originalOS })
   })
 
-  it('(a) with CARD_PILL_NATIVE_GLASS = false (default), rendered card contains exactly 1 GlassSurface (1 native GlassView) and renders non-native layered wash inside all pills', async () => {
+  it('(a) with CARD_PILL_NATIVE_GLASS = false (default), rendered card contains ZERO GlassSurface / GlassView / BlurView, a solid opaque background, and renders non-native layered wash inside all pills', async () => {
     expect(CARD_PILL_NATIVE_GLASS).toBe(false)
 
     const rendered = await render(
@@ -106,10 +106,17 @@ describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)',
     )
     await act(async () => {})
 
-    // 1. Exactly 1 native GlassView in the entire card (the card-level GlassSurface)
-    const nativeGlassViews = rendered.getAllByTestId('mock-native-glass-view')
-    expect(nativeGlassViews).toHaveLength(1)
-    expect(rendered.getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
+    // 1. ZERO native GlassView / BlurView in the entire card (no card-level GlassSurface)
+    expect(rendered.queryAllByTestId('mock-native-glass-view')).toHaveLength(0)
+    expect(rendered.queryAllByTestId('mock-blur-view')).toHaveLength(0)
+    expect(rendered.queryByTestId('listing-card-surface-glass-liquid')).toBeNull()
+    expect(rendered.queryByTestId('listing-card-surface-glass-blur')).toBeNull()
+
+    // 1b. The card root paints a solid opaque background instead of the glass surface
+    const rootStyle = StyleSheet.flatten(rendered.getByTestId('listing-card-root').props.style)
+    expect(rootStyle.backgroundColor).toBe(CardSystem.glass.cardSolidBg)
+    expect(CardSystem.glass.cardSolidBg).toMatch(/^#[0-9A-Fa-f]{6}$/)
+    expect(rootStyle.borderColor).toBe(CardSystem.glass.cardBorderColor)
 
     // 2. None of the pills mount a native GlassSurface
     for (const key of ['model', 'year', 'trans', 'mileage']) {
@@ -144,7 +151,7 @@ describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)',
     expect(priceWashStyle.borderColor).toBe(CardSystem.glass.negotiableBorderColor)
   })
 
-  it('(b) with constant true (via pillNativeGlass={true} prop override AND via CARD_PILL_NATIVE_GLASS = true), restores the old native GlassSurface count (8 total)', async () => {
+  it('(b) with constant true (via pillNativeGlass={true} prop override AND via CARD_PILL_NATIVE_GLASS = true), restores per-pill native GlassSurface (7 total, still no card surface)', async () => {
     // 1. Prop override verification
     const renderedProp = await render(
       <ListingCardBase
@@ -161,9 +168,9 @@ describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)',
     )
     await act(async () => {})
 
-    // 1 card surface + 4 spec pills + 1 remaining pill + 1 negotiable pill + 1 price pill = 8 native GlassViews
-    expect(renderedProp.getAllByTestId('mock-native-glass-view')).toHaveLength(8)
-    expect(renderedProp.getByTestId('listing-card-surface-glass-liquid')).toBeTruthy()
+    // 0 card surface + 4 spec pills + 1 remaining pill + 1 negotiable pill + 1 price pill = 7 native GlassViews
+    expect(renderedProp.getAllByTestId('mock-native-glass-view')).toHaveLength(7)
+    expect(renderedProp.queryByTestId('listing-card-surface-glass-liquid')).toBeNull()
     expect(renderedProp.getByTestId('listing-card-pill-model-glass-liquid')).toBeTruthy()
     expect(renderedProp.getByTestId('listing-card-pill-remaining-glass-liquid')).toBeTruthy()
     expect(renderedProp.getByTestId('listing-card-negotiable-pill-glass-liquid')).toBeTruthy()
@@ -187,7 +194,7 @@ describe('D-205 — Card Glass Native View Reduction (1 GlassSurface per Card)',
       )
       await act(async () => {})
 
-      expect(renderedConst.getAllByTestId('mock-native-glass-view')).toHaveLength(8)
+      expect(renderedConst.getAllByTestId('mock-native-glass-view')).toHaveLength(7)
     } finally {
       ;(CardSystemModule as { CARD_PILL_NATIVE_GLASS: boolean }).CARD_PILL_NATIVE_GLASS = false
     }

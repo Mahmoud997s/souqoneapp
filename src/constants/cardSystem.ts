@@ -24,6 +24,10 @@ export const CardSystem = {
   glass: {
     capsuleRadius: 6, // Restored to match original CardSystem.radius.inner (6)
     cardTint: 'rgba(255, 255, 255, 0.81)',
+    // Opaque card background: cardTint (white @ 0.81) composited over the flat page
+    // backgrounds cards sit on (homeBg / neutralSurface / slateSurface ≈ #F8F9FB).
+    // Replaces the live per-card GlassSurface (no BlurView / GlassView per card).
+    cardSolidBg: '#FEFEFE',
     unreadTint: 'rgba(0, 156, 181, 0.06)', // Subtle primary tint for unread notification cards
     cardBorderColor: Colors.border,
     capsuleTint: 'rgba(238, 242, 245, 0.55)',
