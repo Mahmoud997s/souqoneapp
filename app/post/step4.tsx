@@ -112,7 +112,7 @@ export default function PostStep4Screen() {
 
             <View style={s.mapContainer}>
               {Platform.OS === 'web' ? (
-                <View style={[s.map, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#e5e5e5' }]}>
+                <View style={[s.map, { justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.neutralBorderLight }]}>
                   <Text style={{ fontFamily: 'Almarai_700Bold', color: Colors.textMuted }}>الخريطة غير مدعومة على الويب</Text>
                 </View>
               ) : (
@@ -130,7 +130,7 @@ export default function PostStep4Screen() {
               )}
               {/* Center Pin Overlay */}
               <View style={s.mapPinOverlay} pointerEvents="none">
-                <Ionicons name="location" size={40} color={'#E11D48'} style={{ marginTop: -36, textShadowColor: 'rgba(0,0,0,0.2)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }} />
+                <Ionicons name="location" size={40} color={Colors.rosePrimary} style={{ marginTop: -36, textShadowColor: Colors.scrimDark20, textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }} />
                 <View style={s.pinShadow} />
               </View>
             </View>
@@ -188,7 +188,7 @@ export default function PostStep4Screen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FA' },
+  root: { flex: 1, backgroundColor: Colors.neutralSurface },
   content: { 
     paddingHorizontal: Spacing.space3, 
     paddingTop: Spacing.space3, 
@@ -212,23 +212,23 @@ const s = StyleSheet.create({
     padding: Spacing.space3,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.slateCoolBg,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+      ios: { shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
       android: { elevation: 1 },
     }),
   },
   
   mapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   title: { fontFamily: 'Almarai_700Bold', fontSize: 13.5, lineHeight: 18, color: Colors.text, writingDirection: 'rtl', textAlign: 'left', marginBottom: 4 },
-  myLocBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EFF6FF', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
+  myLocBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Colors.infoSoftBg, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
   myLocTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.primary, writingDirection: 'rtl' },
   infoTxt: { fontFamily: 'Almarai_400Regular', fontSize: 11.5, lineHeight: 16, color: Colors.textMuted, writingDirection: 'rtl', textAlign: 'left', marginBottom: 8 },
   
-  mapContainer: { width: '100%', height: 180, borderRadius: 12, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: '#E5E7EB' },
+  mapContainer: { width: '100%', height: 180, borderRadius: 12, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: Colors.border },
   map: { width: '100%', height: '100%' },
   mapPinOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
-  pinShadow: { width: 14, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.15)', marginTop: 2 },
+  pinShadow: { width: 14, height: 4, borderRadius: 2, backgroundColor: Colors.scrimDark15, marginTop: 2 },
   
   bottomBarWrap: { 
     position: 'absolute',
@@ -238,9 +238,9 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.slateCoolBg,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 10 },
+      ios: { shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 10 },
       android: { elevation: 6 },
     }),
   },

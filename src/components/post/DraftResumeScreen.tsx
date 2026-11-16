@@ -22,7 +22,7 @@ interface DraftResumeScreenProps {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 14,
@@ -131,7 +131,7 @@ export function DraftResumeScreen({
                     cx={26}
                     cy={26}
                     r={RING_RADIUS}
-                    stroke="rgba(15,23,42,0.08)"
+                    stroke={Colors.scrimSlate08}
                     strokeWidth={5}
                     fill="none"
                   />
@@ -156,7 +156,7 @@ export function DraftResumeScreen({
             <View style={styles.divider} />
 
             <View style={styles.metaRow}>
-              <Ionicons name="time-outline" size={14} color="#64748B" />
+              <Ionicons name="time-outline" size={14} color={Colors.slateText} />
               <Text style={styles.metaText}>{lastSavedText}</Text>
             </View>
           </View>
@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 12,
-    color: '#64748B',
+    color: Colors.slateText,
     letterSpacing: 0.2,
   },
   heroTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 20,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
     lineHeight: 28,
   },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: Colors.whiteAlpha60,
     overflow: 'hidden',
     gap: Spacing.space4,
   },
@@ -255,10 +255,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: Radius.md,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.9)',
-    shadowColor: '#0F172A',
+    borderColor: Colors.whiteAlpha90,
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -272,18 +272,18 @@ const styles = StyleSheet.create({
   remainingImagesWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(15,23,42,0.06)',
+    backgroundColor: Colors.scrimSlate06,
   },
   remainingImagesText: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 12,
-    color: '#64748B',
+    color: Colors.slateText,
   },
   photoCaption: {
     marginStart: 'auto',
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
-    color: '#8791A3',
+    color: Colors.slateMutedCool,
   },
 
   titleRow: {
@@ -299,14 +299,14 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
     lineHeight: 24,
   },
   categoryPill: {
     marginTop: 6,
-    backgroundColor: 'rgba(13,48,96,0.08)',
+    backgroundColor: Colors.navySoft08,
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: Radius.pill,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
 
   divider: {
     height: 1,
-    backgroundColor: 'rgba(15,23,42,0.08)',
+    backgroundColor: Colors.scrimSlate08,
     width: '100%',
   },
 
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   metaText: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    color: '#64748B',
+    color: Colors.slateText,
   },
 
   /* Fixed Bottom Actions */
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.space4,
     paddingTop: Spacing.space3,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.5)',
+    borderTopColor: Colors.whiteAlpha50,
   },
   primaryBtn: {
     width: '100%',
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(220,38,38,0.35)',
+    borderColor: Colors.errorSoft35,
   },
   secondaryBtn: {
     flexDirection: 'row',

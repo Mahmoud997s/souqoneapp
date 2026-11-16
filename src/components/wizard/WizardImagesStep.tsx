@@ -142,7 +142,7 @@ export function WizardImagesStep({
                       onPress={() => onRemoveExistingImage(idOrUrl)}
                       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
-                      <Ionicons name="close" size={14} color="#fff" />
+                      <Ionicons name="close" size={14} color={Colors.white} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -183,7 +183,7 @@ export function WizardImagesStep({
                     onPress={() => onRemoveNewImage(idx)}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                   >
-                    <Ionicons name="close" size={14} color="#fff" />
+                    <Ionicons name="close" size={14} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
               )
@@ -201,17 +201,17 @@ const s = StyleSheet.create({
   },
   uploadBox: {
     borderWidth: 1.5,
-    borderColor: '#93C5FD',
+    borderColor: Colors.blueLightBorder,
     borderStyle: 'dashed',
     borderRadius: Radius.lg,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: Colors.blueIceTintBg,
     padding: Spacing.space4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   uploadBoxError: {
     borderColor: Colors.error,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
   },
   uploadContent: {
     flexDirection: 'row',
@@ -243,12 +243,12 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     lineHeight: 18,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   requiredBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.dangerSoftBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -290,13 +290,13 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 6,
     left: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: Colors.scrimDark65,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: Radius.sm,
   },
   makePrimaryTxt: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 10,
     lineHeight: 14,
     fontFamily: 'Almarai_700Bold',
@@ -321,7 +321,7 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Colors.slateBorderStrong,
     position: 'relative',
   },
   imgThumb: {
@@ -332,7 +332,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 3,
     start: 3,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: Colors.scrimSlate85,
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 3,
@@ -341,7 +341,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 8.5,
     lineHeight: 12,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   removeImgBtn: {
     position: 'absolute',
@@ -350,7 +350,7 @@ const s = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: Colors.scrimDark65,
     alignItems: 'center',
     justifyContent: 'center',
   },

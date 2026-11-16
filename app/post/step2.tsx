@@ -194,11 +194,11 @@ export default function PostStep2Screen() {
               <View style={s.mainImageWrap}>
                 <Image source={{ uri: allDisplayImages[0] }} style={s.mainImage} contentFit="cover" />
                 <View style={s.mainBadgeOverlay}>
-                  <Ionicons name="star" size={14} color="#FFF" />
+                  <Ionicons name="star" size={14} color={Colors.white} />
                   <Text style={s.mainBadgeTxt}>الصورة الرئيسية</Text>
                 </View>
                 <TouchableOpacity style={s.glassRemoveBtn} onPress={() => removeImage(0)} activeOpacity={0.7}>
-                  <Ionicons name="trash" size={20} color="#FFF" />
+                  <Ionicons name="trash" size={20} color={Colors.white} />
                 </TouchableOpacity>
               </View>
 
@@ -211,11 +211,11 @@ export default function PostStep2Screen() {
                       <Image source={{ uri }} style={s.thumbImage} contentFit="cover" />
                       
                       <TouchableOpacity style={s.glassMainBtnSmall} onPress={() => makeMain(realIndex)} activeOpacity={0.7}>
-                        <Ionicons name="star" size={12} color="#FFF" />
+                        <Ionicons name="star" size={12} color={Colors.white} />
                       </TouchableOpacity>
 
                       <TouchableOpacity style={s.glassRemoveBtnSmall} onPress={() => removeImage(realIndex)} activeOpacity={0.7}>
-                        <Ionicons name="trash" size={14} color="#FFF" />
+                        <Ionicons name="trash" size={14} color={Colors.white} />
                       </TouchableOpacity>
                     </View>
                   )
@@ -272,7 +272,7 @@ export default function PostStep2Screen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F9FA' },
+  root: { flex: 1, backgroundColor: Colors.neutralSurface },
   content: { 
     paddingHorizontal: Spacing.space3, 
     paddingTop: Spacing.space3, 
@@ -294,20 +294,20 @@ const s = StyleSheet.create({
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     padding: Spacing.space4,
     borderRadius: Radius.xl,
     gap: Spacing.space3,
   },
   iconCircle: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center'
+    backgroundColor: Colors.blueSoftBg, alignItems: 'center', justifyContent: 'center'
   },
-  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular', fontSize: 13, color: '#1E3A8A', writingDirection: 'rtl', textAlign: 'left', lineHeight: 20 },
+  infoTxt: { flex: 1, fontFamily: 'Almarai_400Regular', fontSize: 13, color: Colors.blueDeepText, writingDirection: 'rtl', textAlign: 'left', lineHeight: 20 },
   
   heroUploadBtn: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 2, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    backgroundColor: Colors.slateSurface,
+    borderWidth: 2, borderColor: Colors.slateBorderStrong, borderStyle: 'dashed',
     borderRadius: 24,
     padding: Spacing.space6,
     alignItems: 'center', justifyContent: 'center',
@@ -315,7 +315,7 @@ const s = StyleSheet.create({
   },
   heroIconWrap: {
     width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: Spacing.space3,
   },
@@ -329,10 +329,10 @@ const s = StyleSheet.create({
     width: '100%', aspectRatio: 16/10,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.slateBorder,
     position: 'relative',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 24 },
+      ios: { shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 24 },
       android: { elevation: 8 },
     }),
   },
@@ -340,46 +340,46 @@ const s = StyleSheet.create({
   mainBadgeOverlay: {
     position: 'absolute', bottom: 12, start: 12,
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: Colors.scrimDark60,
     paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: 100,
   },
-  mainBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: '#FFF', writingDirection: 'rtl' },
+  mainBadgeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 12, color: Colors.white, writingDirection: 'rtl' },
   glassRemoveBtn: {
     position: 'absolute', top: 12, end: 12,
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Colors.scrimDark50,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1, borderColor: Colors.whiteAlpha20,
   },
   
   thumbnailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   thumbWrap: {
     width: '31%', aspectRatio: 1,
     borderRadius: Radius.xl, overflow: 'hidden',
-    backgroundColor: '#E2E8F0', position: 'relative',
+    backgroundColor: Colors.slateBorder, position: 'relative',
   },
   thumbImage: { width: '100%', height: '100%' },
   glassRemoveBtnSmall: {
     position: 'absolute', top: 6, end: 6,
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Colors.scrimDark50,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1, borderColor: Colors.whiteAlpha20,
   },
   glassMainBtnSmall: {
     position: 'absolute', bottom: 6, start: 6,
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Colors.scrimDark50,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1, borderColor: Colors.whiteAlpha20,
   },
   
   addThumbBtn: {
     width: '31%', aspectRatio: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    borderWidth: 1, borderColor: Colors.slateBorderStrong, borderStyle: 'dashed',
     alignItems: 'center', justifyContent: 'center',
   },
   addThumbTxt: { fontFamily: 'Almarai_700Bold', fontSize: 11, color: Colors.primary, writingDirection: 'rtl', marginTop: 4 },
@@ -391,9 +391,9 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.slateCoolBg,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 10 },
+      ios: { shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 10 },
       android: { elevation: 6 },
     }),
   },
