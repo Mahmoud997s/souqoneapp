@@ -105,7 +105,7 @@ export default function SubscriptionScreen() {
             { text: 'تمييز الإعلانات', disabled: true },
           ]}
           btnText="الباقة الحالية"
-          bgColors={{ bg: Colors.white, border: Colors.border, text: Colors.text, btnBg: '#f7f9fc', btnTxt: Colors.text }}
+          bgColors={{ bg: Colors.white, border: Colors.border, text: Colors.text, btnBg: Colors.slateTintBg, btnTxt: Colors.text }}
         />
 
         <PlanCard 
@@ -142,7 +142,7 @@ export default function SubscriptionScreen() {
   )
 }
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f7f9fc' },
+  root: { flex: 1, backgroundColor: Colors.slateTintBg },
   content: { padding: Spacing.space4, paddingBottom: 60, alignItems: 'center' },
   headerBox: { alignItems: 'center', marginBottom: Spacing.space6 },
   title: { fontFamily: 'Almarai_700Bold',  fontSize: 24, color: Colors.primary, marginBottom: 8, writingDirection: 'rtl' },

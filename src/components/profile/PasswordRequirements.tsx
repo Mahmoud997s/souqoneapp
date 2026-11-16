@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { Colors } from '../../constants/colors'
 
 interface PasswordRequirementsProps {
   newPassword: string
@@ -29,7 +30,7 @@ export function PasswordRequirements({ newPassword, confirmPassword }: PasswordR
             <Ionicons
               name={req.met ? 'checkmark-circle' : 'ellipse-outline'}
               size={15}
-              color={req.met ? '#16A34A' : '#94A3B8'}
+              color={req.met ? Colors.emeraldBright : Colors.slateMuted}
               style={s.icon}
             />
             <Text style={[s.label, req.met && s.labelMet]}>
@@ -44,10 +45,10 @@ export function PasswordRequirements({ newPassword, confirmPassword }: PasswordR
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     padding: 12,
     marginVertical: 4,
     gap: 8,
@@ -56,7 +57,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -74,12 +75,12 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#64748B',
+    color: Colors.slateText,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
   labelMet: {
     fontFamily: 'Almarai_700Bold',
-    color: '#16A34A',
+    color: Colors.emeraldBright,
   },
 })

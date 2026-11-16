@@ -88,7 +88,7 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
         <LinearGradient
-          colors={['#EAF2FF', '#F3EEFF', '#FFF6EE']}
+          colors={[Colors.blueTintBg, Colors.violetSoftBg, Colors.peachTintBg]}
           locations={[0, 0.55, 1]}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
@@ -161,11 +161,11 @@ const s = StyleSheet.create({
   flex: { flex: 1 },
   glassRoot: {
     flex: 1,
-    backgroundColor: '#F3EEFF',
+    backgroundColor: Colors.violetSoftBg,
   },
   appRoot: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.neutralSurface,
   },
   orb: {
     position: 'absolute',
@@ -199,9 +199,9 @@ const s = StyleSheet.create({
     ...cardBase,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: Colors.whiteAlpha60,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
+      ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
   },
@@ -220,7 +220,7 @@ const s = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.infoSoftBg,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: Spacing.space2,
@@ -230,7 +230,7 @@ const s = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     paddingVertical: 2,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'center',
     writingDirection: 'rtl',
   },

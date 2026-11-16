@@ -321,7 +321,7 @@ export default function DeleteAccountScreen() {
               {/* Orange Scheduled Card */}
               <View style={s.scheduledCard}>
                 <View style={s.scheduledIconWrap}>
-                  <Ionicons name="time-outline" size={22} color="#EA580C" />
+                  <Ionicons name="time-outline" size={22} color={Colors.orangePrimary} />
                 </View>
                 <View style={s.scheduledTextWrap}>
                   <Text style={s.scheduledTitle}>حسابك مجدول للحذف</Text>
@@ -341,7 +341,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 3 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="person-remove-outline" size={18} color="#334155" />
+                      <Ionicons name="person-remove-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       بعد انتهاء المهلة تُحذف بياناتك الشخصية (الاسم والإيميل ورقم الهاتف والصور وبيانات التواصل والموقع) ولا يمكن استرجاعها.
@@ -352,7 +352,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 4 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="chatbubbles-outline" size={18} color="#334155" />
+                      <Ionicons name="chatbubbles-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       الرسائل التي أرسلتها تبقى ظاهرة للطرف الآخر باسم «مستخدم محذوف».
@@ -363,7 +363,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 5 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="card-outline" size={18} color="#334155" />
+                      <Ionicons name="card-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       لن يتم استرداد قيمة أي اشتراك أو خدمة مدفوعة، وتُحفظ سجلات الدفع وفق المتطلبات المحاسبية والقانونية في سلطنة عُمان.
@@ -378,7 +378,7 @@ export default function DeleteAccountScreen() {
               {/* Red Warning Banner */}
               <View style={s.warningBanner}>
                 <View style={s.warningIconWrap}>
-                  <Ionicons name="warning" size={22} color="#DC2626" />
+                  <Ionicons name="warning" size={22} color={Colors.error} />
                 </View>
                 <View style={s.warningTextWrap}>
                   <Text style={s.warningTitle}>
@@ -397,7 +397,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 1 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="eye-off-outline" size={18} color="#334155" />
+                      <Ionicons name="eye-off-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       عند تأكيد الطلب يتم إخفاء إعلاناتك وملفاتك الشخصية فوراً، وتسجيل خروجك من كل الأجهزة، وإيقاف التجديد التلقائي لاشتراكك.
@@ -408,7 +408,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 2 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="time-outline" size={18} color="#334155" />
+                      <Ionicons name="time-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       لديك 5 أيام لإلغاء الطلب من الإعدادات ثم حذف الحساب ثم الضغط على «إلغاء طلب الحذف».
@@ -419,7 +419,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 3 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="person-remove-outline" size={18} color="#334155" />
+                      <Ionicons name="person-remove-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       بعد انتهاء المهلة تُحذف بياناتك الشخصية (الاسم والإيميل ورقم الهاتف والصور وبيانات التواصل والموقع) ولا يمكن استرجاعها.
@@ -430,7 +430,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 4 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="chatbubbles-outline" size={18} color="#334155" />
+                      <Ionicons name="chatbubbles-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       الرسائل التي أرسلتها تبقى ظاهرة للطرف الآخر باسم «مستخدم محذوف».
@@ -441,7 +441,7 @@ export default function DeleteAccountScreen() {
                   {/* Row 5 */}
                   <View style={s.rowItem}>
                     <View style={s.rowIconWrap}>
-                      <Ionicons name="card-outline" size={18} color="#334155" />
+                      <Ionicons name="card-outline" size={18} color={Colors.slateBody} />
                     </View>
                     <Text style={s.rowText}>
                       لن يتم استرداد قيمة أي اشتراك أو خدمة مدفوعة، وتُحفظ سجلات الدفع وفق المتطلبات المحاسبية والقانونية في سلطنة عُمان.
@@ -472,14 +472,14 @@ export default function DeleteAccountScreen() {
                         <Ionicons
                           name="lock-closed-outline"
                           size={18}
-                          color={focusedField === 'password' ? Colors.primary : '#64748B'}
+                          color={focusedField === 'password' ? Colors.primary : Colors.slateText}
                           style={s.fieldIconStart}
                         />
                         <TextInput
                           testID="delete-account-password-input"
                           style={s.textInput}
                           placeholder="أدخل كلمة المرور"
-                          placeholderTextColor="#94A3B8"
+                          placeholderTextColor={Colors.slateMuted}
                           value={password}
                           onChangeText={setPassword}
                           onFocus={() => setFocusedField('password')}
@@ -497,7 +497,7 @@ export default function DeleteAccountScreen() {
                           <Ionicons
                             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                             size={18}
-                            color="#64748B"
+                            color={Colors.slateText}
                           />
                         </TouchableOpacity>
                       </View>
@@ -514,7 +514,7 @@ export default function DeleteAccountScreen() {
                       </View>
                       {googleIdToken ? (
                         <View style={s.googleConfirmedRow}>
-                          <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+                          <Ionicons name="checkmark-circle" size={20} color={Colors.emeraldBright} />
                           <Text style={s.googleConfirmedText}>تم التأكيد بحساب Google</Text>
                         </View>
                       ) : (
@@ -532,7 +532,7 @@ export default function DeleteAccountScreen() {
                             accessibilityLabel="تأكيد بحساب Google"
                           >
                             {googleLoading ? (
-                              <ActivityIndicator size="small" color="#1E293B" />
+                              <ActivityIndicator size="small" color={Colors.slateDark} />
                             ) : (
                               <>
                                 <GoogleIcon size={20} />
@@ -560,12 +560,12 @@ export default function DeleteAccountScreen() {
                       </View>
                       {appleCredentials ? (
                         <View style={s.googleConfirmedRow}>
-                          <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+                          <Ionicons name="checkmark-circle" size={20} color={Colors.emeraldBright} />
                           <Text style={s.googleConfirmedText}>تم التأكيد بحساب Apple</Text>
                         </View>
                       ) : Platform.OS !== 'ios' || appleAvailable === false ? (
                         <View style={s.unsupportedCard}>
-                          <Ionicons name="information-circle-outline" size={22} color="#D97706" />
+                          <Ionicons name="information-circle-outline" size={22} color={Colors.amberText} />
                           <Text style={s.unsupportedText} testID="apple-unsupported-message">
                             حسابك مسجل باستخدام Apple. لإتمام حذف الحساب، يرجى المتابعة من جهاز iOS أو تعيين كلمة مرور لحسابك أولاً.
                           </Text>
@@ -581,10 +581,10 @@ export default function DeleteAccountScreen() {
                           accessibilityLabel="تأكيد بحساب Apple"
                         >
                           {appleLoading ? (
-                            <ActivityIndicator size="small" color="#FFFFFF" />
+                            <ActivityIndicator size="small" color={Colors.white} />
                           ) : (
                             <>
-                              <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
+                              <Ionicons name="logo-apple" size={20} color={Colors.white} />
                               <Text style={s.appleConfirmBtnText}>تأكيد بحساب Apple</Text>
                             </>
                           )}
@@ -613,10 +613,10 @@ export default function DeleteAccountScreen() {
                         size={18}
                         color={
                           showPhraseError
-                            ? '#DC2626'
+                            ? Colors.error
                             : focusedField === 'confirmation'
                               ? Colors.primary
-                              : '#64748B'
+                              : Colors.slateText
                         }
                         style={s.fieldIconStart}
                       />
@@ -624,7 +624,7 @@ export default function DeleteAccountScreen() {
                         testID="delete-account-confirm-input"
                         style={s.textInput}
                         placeholder="حذف حسابي"
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor={Colors.slateMuted}
                         value={confirmation}
                         onChangeText={setConfirmation}
                         onFocus={() => setFocusedField('confirmation')}
@@ -676,10 +676,10 @@ export default function DeleteAccountScreen() {
                 accessibilityState={{ disabled: isSubmitDisabled }}
               >
                 {submitting ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={Colors.white} />
                 ) : (
                   <>
-                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                    <Ionicons name="trash-outline" size={18} color={Colors.white} />
                     <Text style={s.deleteBtnText}>حذف حسابي</Text>
                   </>
                 )}
@@ -694,7 +694,7 @@ export default function DeleteAccountScreen() {
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: '#0F172A',
+    shadowColor: Colors.slateHeading,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -705,11 +705,11 @@ const softShadow = Platform.select({
 const s = StyleSheet.create({
   keyboardAvoid: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   root: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
   },
   scrollView: {
     flex: 1,
@@ -726,7 +726,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -734,7 +734,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -750,27 +750,27 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#64748B',
+    color: Colors.slateText,
     marginBottom: 7,
     paddingHorizontal: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   cardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     gap: 14,
     ...softShadow,
   },
   listCardGroup: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     paddingVertical: 3,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     ...softShadow,
   },
 
@@ -778,10 +778,10 @@ const s = StyleSheet.create({
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.dangerBg,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     padding: 14,
     marginBottom: 14,
     gap: 12,
@@ -790,9 +790,9 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.dangerBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -804,7 +804,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#991B1B',
+    color: Colors.dangerDarkText,
     marginBottom: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -813,7 +813,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17,
-    color: '#B91C1C',
+    color: Colors.dangerDeep,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -822,10 +822,10 @@ const s = StyleSheet.create({
   scheduledCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FFF7ED',
+    backgroundColor: Colors.orangeBg,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: Colors.orangeBorder,
     padding: 14,
     marginBottom: 14,
     gap: 12,
@@ -834,9 +834,9 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: Colors.orangeBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -848,7 +848,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#9A3412',
+    color: Colors.orangeDarkText,
     marginBottom: 2,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -857,7 +857,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 19,
-    color: '#9A3412',
+    color: Colors.orangeDarkText,
     marginBottom: 4,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -866,7 +866,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17,
-    color: '#C2410C',
+    color: Colors.orangeDeep,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -883,9 +883,9 @@ const s = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -894,13 +894,13 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 19,
-    color: '#334155',
+    color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   rowDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.slateSubtleBg,
     marginHorizontal: 14,
   },
 
@@ -919,13 +919,13 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#1E293B',
+    color: Colors.slateDark,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   badgeRequired: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
+    backgroundColor: Colors.dangerBg,
+    borderColor: Colors.dangerBorder,
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 6,
@@ -935,25 +935,25 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 10,
     lineHeight: 13,
-    color: '#DC2626',
+    color: Colors.error,
   },
   inputBox: {
     height: 48,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slateSurface,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.slateBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
   },
   inputBoxFocused: {
     borderColor: Colors.primary,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
   },
   inputBoxError: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FFFBFB',
+    borderColor: Colors.error,
+    backgroundColor: Colors.dangerSurface,
   },
   fieldIconStart: {
     marginEnd: 10,
@@ -967,7 +967,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#0F172A',
+    color: Colors.slateHeading,
     textAlign: 'right',
     writingDirection: 'rtl',
     paddingVertical: 0,
@@ -981,7 +981,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#94A3B8',
+    color: Colors.slateMuted,
     paddingHorizontal: 2,
     marginTop: 4,
     textAlign: 'left',
@@ -993,7 +993,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
-    color: '#DC2626',
+    color: Colors.error,
     textAlign: 'right',
     writingDirection: 'rtl',
     marginTop: 2,
@@ -1005,8 +1005,8 @@ const s = StyleSheet.create({
     height: 48,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    borderColor: Colors.slateBorder,
+    backgroundColor: Colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1018,14 +1018,14 @@ const s = StyleSheet.create({
   googleBtnText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
-    color: '#1E293B',
+    color: Colors.slateDark,
   },
   googleConfirmedRow: {
     height: 48,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
-    backgroundColor: '#F0FDF4',
+    borderColor: Colors.greenBorder,
+    backgroundColor: Colors.greenSoftBg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1034,13 +1034,13 @@ const s = StyleSheet.create({
   googleConfirmedText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
-    color: '#166534',
+    color: Colors.greenDarkText,
   },
   /* Apple Button & Unsupported Card */
   appleConfirmBtn: {
     height: 48,
     borderRadius: 13,
-    backgroundColor: '#000000',
+    backgroundColor: Colors.shadowBlack,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1049,12 +1049,12 @@ const s = StyleSheet.create({
   appleConfirmBtnText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   unsupportedCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.amberSoftBg,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: Colors.warningBorder,
     borderRadius: 13,
     padding: 12,
     flexDirection: 'row',
@@ -1066,7 +1066,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 13,
     lineHeight: 18,
-    color: '#92400E',
+    color: Colors.warningText,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -1075,12 +1075,12 @@ const s = StyleSheet.create({
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.slateBorder,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: Colors.slateHeading,
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.04,
         shadowRadius: 6,
@@ -1095,7 +1095,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#DC2626',
+    backgroundColor: Colors.error,
   },
   deleteBtnDisabled: {
     opacity: 0.45,
@@ -1104,7 +1104,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 14.5,
     lineHeight: 20,
-    color: '#FFFFFF',
+    color: Colors.white,
     writingDirection: 'rtl',
   },
 })

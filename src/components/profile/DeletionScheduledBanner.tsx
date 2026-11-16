@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { useAccountDeletion } from '../../hooks/useAccountDeletion'
 import { formatDeletionDate } from '../../utils/formatDeletionDate'
+import { Colors } from '../../constants/colors'
 
 interface DeletionScheduledBannerProps {
   style?: StyleProp<ViewStyle>
@@ -29,7 +30,7 @@ export function DeletionScheduledBanner({ style }: DeletionScheduledBannerProps)
   return (
     <View style={[s.banner, style]} testID="deletion-scheduled-banner">
       <View style={s.iconWrap}>
-        <Ionicons name="time-outline" size={22} color="#EA580C" />
+        <Ionicons name="time-outline" size={22} color={Colors.orangePrimary} />
       </View>
       <View style={s.textWrap}>
         <Text style={s.title}>حسابك مجدول للحذف</Text>
@@ -46,7 +47,7 @@ export function DeletionScheduledBanner({ style }: DeletionScheduledBannerProps)
           accessibilityLabel="إلغاء طلب الحذف"
         >
           {cancelling ? (
-            <ActivityIndicator size="small" color="#9A3412" />
+            <ActivityIndicator size="small" color={Colors.orangeDarkText} />
           ) : (
             <Text style={s.cancelBtnText}>إلغاء طلب الحذف</Text>
           )}
@@ -60,10 +61,10 @@ const s = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FFF7ED',
+    backgroundColor: Colors.orangeBg,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: Colors.orangeBorder,
     padding: 14,
     marginBottom: 14,
     gap: 12,
@@ -72,9 +73,9 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: Colors.orangeBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -86,7 +87,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#9A3412',
+    color: Colors.orangeDarkText,
     writingDirection: 'rtl',
     textAlign: 'left',
     marginBottom: 4,
@@ -95,7 +96,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 17,
-    color: '#C2410C',
+    color: Colors.orangeDeep,
     writingDirection: 'rtl',
     textAlign: 'left',
   },
@@ -105,9 +106,9 @@ const s = StyleSheet.create({
     height: 36,
     paddingHorizontal: 14,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: Colors.orangeBorder,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -116,7 +117,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 12.5,
     lineHeight: 17,
-    color: '#9A3412',
+    color: Colors.orangeDarkText,
     writingDirection: 'rtl',
   },
 })

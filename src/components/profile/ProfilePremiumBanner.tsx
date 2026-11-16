@@ -26,7 +26,7 @@ export function ProfilePremiumBanner() {
           <Svg width="100%" height="100%">
             <Defs>
               <Pattern id="premiumGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                <Path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <Path d="M 32 0 L 0 0 0 32" fill="none" stroke={Colors.whiteAlpha06} strokeWidth="1" />
               </Pattern>
             </Defs>
             <Rect width="100%" height="100%" fill="url(#premiumGrid)" />
@@ -37,7 +37,7 @@ export function ProfilePremiumBanner() {
         
         <View style={s.premiumRight}>
           <View style={s.premiumIconBox}>
-            <Ionicons name="sparkles" size={17} color="#FBBF24" />
+            <Ionicons name="sparkles" size={17} color={Colors.amberGold} />
           </View>
           <View style={s.premiumTextWrap}>
             <Text style={s.premiumTitle}>عضوية سوق ون الذهبية</Text>
@@ -49,7 +49,7 @@ export function ProfilePremiumBanner() {
 
         <View style={s.premiumActionBtn}>
           <Text style={s.premiumActionText}>ترقية</Text>
-          <Ionicons name="chevron-back" size={13} color="#FBBF24" />
+          <Ionicons name="chevron-back" size={13} color={Colors.amberGold} />
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -79,7 +79,7 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: Colors.whiteAlpha12,
     borderRadius: 18,
     position: 'relative',
     overflow: 'hidden',
@@ -91,7 +91,7 @@ const s = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: Colors.warningSoft15,
   },
   premiumRight: {
     flexDirection: 'row',
@@ -103,9 +103,9 @@ const s = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 11,
-    backgroundColor: 'rgba(245, 158, 11, 0.16)',
+    backgroundColor: Colors.warningSoft16,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.38)',
+    borderColor: Colors.warningBorder38,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -117,7 +117,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 14,
     lineHeight: 20,
-    color: '#FFFFFF',
+    color: Colors.white,
     textAlign: 'left',
     writingDirection: 'rtl',
     marginBottom: 2,
@@ -126,7 +126,7 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#CBD5E1',
+    color: Colors.slateBorderStrong,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
@@ -134,18 +134,18 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(245, 158, 11, 0.18)',
+    backgroundColor: Colors.warningSoft18,
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.45)',
+    borderColor: Colors.warningBorder45,
   },
   premiumActionText: {
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 11.5,
     lineHeight: 16,
-    color: '#FBBF24',
+    color: Colors.amberGold,
     writingDirection: 'rtl',
   },
 })
