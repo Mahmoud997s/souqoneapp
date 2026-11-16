@@ -9,6 +9,7 @@ import { router } from 'expo-router'
 import { postEntryRoute } from '../../../navigation/listingRoutes'
 import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
+import { getMyListingsBottomPadding } from '../../../constants/peekCarousel'
 import { SkeletonCard } from '../../ui/SkeletonCard'
 import { EmptyState } from '../../ui/EmptyState'
 import { getListErrorProps } from '../../../utils/getListErrorProps'
@@ -84,7 +85,7 @@ export function MyListingsAllView({
         testID="my-listings-empty-scroll"
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={[s.emptyScroll, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
+        contentContainerStyle={[s.emptyScroll, { paddingTop: topInset, paddingBottom: getMyListingsBottomPadding(bottomInset) }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -128,7 +129,7 @@ export function MyListingsAllView({
       onScroll={onScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[s.contentContainer, { paddingTop: topInset, paddingBottom: bottomInset + 80 }]}
+      contentContainerStyle={[s.contentContainer, { paddingTop: topInset, paddingBottom: getMyListingsBottomPadding(bottomInset) }]}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
