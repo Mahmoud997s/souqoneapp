@@ -110,4 +110,21 @@ describe('OperatorHeroHeader', () => {
     expect(rateChip.borderRadius).toBe(Radius.md)
     expect(rateChip.borderWidth).toBe(1)
   })
+
+  it('renders GlassSurface hero container with PublicProfileTokens and zero hex/rgba/alpha-suffix tricks (D-334)', async () => {
+    const fs = require('fs')
+    const path = require('path')
+    const { StyleSheet } = require('react-native')
+    const { PublicProfileTokens } = require('../../../constants/publicProfileTokens')
+
+    await render(<OperatorHeroHeader vm={baseMockVm} />)
+    const hero = screen.getByTestId('operator-hero-header')
+    const glass = screen.getByTestId(/operator-hero-surface-glass-(blur|liquid|solid)/)
+    expect(glass).toBeTruthy()
+    expect(StyleSheet.flatten(hero.props.style).borderRadius).toBe(PublicProfileTokens.heroRadius)
+
+    const src = fs.readFileSync(path.resolve(__dirname, 'OperatorHeroHeader.tsx'), 'utf8')
+    expect(src.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g)).toBeNull()
+    expect(src.match(/Colors\.[a-zA-Z0-9_]+\s*\+\s*['"][0-9a-fA-F]{2}['"]/g)).toBeNull()
+  })
 })

@@ -21,4 +21,19 @@ describe('OperatorAvatarBlock', () => {
     expect(badge.props.accessible).toBe(true)
     expect(badge.props.accessibilityLabel).toBe('حساب موثق')
   })
+
+  it('renders LinearGradient avatar ring using PublicProfileTokens.actionGradient and avatarSize (D-334)', async () => {
+    const { StyleSheet, processColor } = require('react-native')
+    const { PublicProfileTokens } = require('../../../constants/publicProfileTokens')
+
+    await render(<OperatorAvatarBlock avatarUrl="https://example.com/pic.jpg" isVerified={false} />)
+    const ring = screen.getByTestId('operator-avatar-ring')
+    expect(ring).toBeTruthy()
+    expect(ring.props.colors).toEqual(
+      PublicProfileTokens.actionGradient.map((c: string) => processColor(c))
+    )
+    const imgStyle = StyleSheet.flatten(screen.getByTestId('operator-avatar-image').props.style)
+    expect(imgStyle.width).toBe(PublicProfileTokens.avatarSize)
+    expect(imgStyle.height).toBe(PublicProfileTokens.avatarSize)
+  })
 })
