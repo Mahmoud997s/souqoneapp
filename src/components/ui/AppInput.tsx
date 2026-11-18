@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef, useCallback, useRef, useState } from 'react'
 import { Spacing } from '../../constants/spacing'
 import { Shadows } from '../../constants/shadows'
 import {
@@ -17,6 +17,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { TopBarTokens } from '../../constants/topBarTokens'
 import { TopBarGlassSurface } from './TopBarGlassSurface'
+import { useWizardKeyboardScroll } from '../wizard/WizardKeyboardScrollView'
 
 interface AppInputProps extends TextInputProps {
   label?: string
@@ -43,6 +44,19 @@ const NUMERIC_KEYBOARD_TYPES = ['numeric', 'phone-pad', 'number-pad', 'decimal-p
 export const AppInput = forwardRef<TextInput, AppInputProps>(
   ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', glass = false, containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
+    const innerInputRef = useRef<TextInput | null>(null)
+    const wizardScroll = useWizardKeyboardScroll()
+    const setMergedRef = useCallback(
+      (node: TextInput | null) => {
+        innerInputRef.current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ref.current = node
+        }
+      },
+      [ref]
+    )
     const isSm = size === 'sm'
     const inputHeight = isSm ? 38 : 44
     const isNumericField = Boolean(rest.keyboardType && NUMERIC_KEYBOARD_TYPES.includes(rest.keyboardType))
@@ -80,7 +94,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
           ) : null}
 
           <TextInput
-            ref={ref}
+            ref={setMergedRef}
             style={[
               s.input,
               { 
@@ -101,9 +115,19 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             ]}
             placeholderTextColor={Colors.placeholder}
             textAlign={ltr ? "left" : "right"}
-            onFocus={(e) => { setFocused(true); rest.onFocus?.(e) }}
-            onBlur={(e) => { setFocused(false); rest.onBlur?.(e) }}
             {...rest}
+            onFocus={(e) => {
+              setFocused(true)
+              wizardScroll?.notifyInputFocus(innerInputRef.current)
+              rest.onFocus?.(e)
+            }}
+            onBlur={(e) => { setFocused(false); rest.onBlur?.(e) }}
+            onContentSizeChange={(e) => {
+              if (focused && rest.multiline) {
+                wizardScroll?.notifyInputFocus(innerInputRef.current)
+              }
+              rest.onContentSizeChange?.(e)
+            }}
             onChangeText={handleChangeText}
           />
 

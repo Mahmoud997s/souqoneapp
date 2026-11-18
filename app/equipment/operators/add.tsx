@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
 import { WizardStickyFooter } from '../../../src/components/ui/WizardStickyFooter'
+import { WizardKeyboardScrollView } from '../../../src/components/wizard/WizardKeyboardScrollView'
 import { Colors } from '../../../src/constants/colors'
 import { Radius } from '../../../src/constants/radius'
 import { Spacing } from '../../../src/constants/spacing'
@@ -230,7 +230,7 @@ export default function AddOperatorScreen() {
 
         <GlassNavBar title="إضافة بطاقة مهنية" paddingTop={insets.top} onBackPress={handlePrev} />
 
-        <ScrollView
+        <WizardKeyboardScrollView
           style={s.scrollView}
           contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
           showsVerticalScrollIndicator={false}
@@ -299,7 +299,7 @@ export default function AddOperatorScreen() {
               onClearFieldError={clearFieldError}
             />
           )}
-        </ScrollView>
+        </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>

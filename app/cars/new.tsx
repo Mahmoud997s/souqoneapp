@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -417,7 +418,7 @@ export default function NewCarListingScreen() {
           ]}
         />
 
-        <ScrollView
+        <WizardKeyboardScrollView
           ref={scrollViewRef}
           style={s.scrollView}
           contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
@@ -498,7 +499,7 @@ export default function NewCarListingScreen() {
               onEditStep={setStep}
             />
           )}
-        </ScrollView>
+        </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>

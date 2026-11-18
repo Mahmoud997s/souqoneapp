@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -412,7 +413,7 @@ export default function NewEquipmentListingScreen() {
           ]}
         />
 
-        <ScrollView
+        <WizardKeyboardScrollView
           ref={scrollViewRef}
           style={s.scrollView}
           contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
@@ -502,7 +503,7 @@ export default function NewEquipmentListingScreen() {
               onEditStep={goToStep}
             />
           )}
-        </ScrollView>
+        </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>

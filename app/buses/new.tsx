@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
+import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
 import { invalidateBusListingQueries } from '../../src/utils/listing-detail/busQueryKeys'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
@@ -476,7 +477,7 @@ export default function NewBusListingScreen() {
           ]}
         />
 
-        <ScrollView
+        <WizardKeyboardScrollView
           ref={scrollViewRef}
           style={s.scrollView}
           contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
@@ -565,7 +566,7 @@ export default function NewBusListingScreen() {
               onEditStep={(step) => setStep(step)}
             />
           )}
-        </ScrollView>
+        </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>
