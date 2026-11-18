@@ -6,6 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
@@ -88,26 +89,15 @@ export function EquipmentStep3Details({
           {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
 
           <View style={s.conditionsGrid}>
-            {EQUIPMENT_CONDITIONS.map((cond) => {
-              const isSel = formData.condition === cond.id
-              return (
-                <TouchableOpacity
-                  key={cond.id}
-                  style={[s.condCard, isSel && s.condCardActive]}
-                  onPress={() => onUpdateField('condition', cond.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={s.condCardTop}>
-                    <View style={[s.radioCircle, isSel && s.radioCircleActive]}>
-                      {isSel && <Ionicons name="checkmark" size={12} color={Colors.white} />}
-                    </View>
-                    <Text style={[s.condLabel, isSel && s.condLabelActive]} numberOfLines={1}>
-                      {cond.label}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )
-            })}
+            {EQUIPMENT_CONDITIONS.map((cond) => (
+              <WizardOptionChip
+                key={cond.id}
+                label={cond.label}
+                selected={formData.condition === cond.id}
+                onPress={() => onUpdateField('condition', cond.id)}
+                error={Boolean(errors.condition)}
+              />
+            ))}
           </View>
         </WizardCard>
       )}
@@ -162,19 +152,13 @@ export function EquipmentStep3Details({
           {POPULAR_EQUIPMENT_FEATURES.map((feat) => {
             const isSel = formData.features.includes(feat)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={feat}
-                style={[s.chip, isSel && s.chipActive]}
+                label={feat}
+                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
+                selected={isSel}
                 onPress={() => onToggleFeature(feat)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                  size={15}
-                  color={isSel ? Colors.white : Colors.slateText}
-                />
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{feat}</Text>
-              </TouchableOpacity>
+              />
             )
           })}
         </View>
@@ -248,51 +232,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  condCard: {
-    width: '48.5%',
-    backgroundColor: Colors.slateSurface,
-    borderRadius: Radius.md,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: Colors.slateBorder,
-  },
-  condCardActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  condCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-  },
-  radioCircleActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  condLabel: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.slateBody,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flex: 1,
-  },
-  condLabelActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
-  },
 
   /* ── Chips ── */
   chipsWrap: {
@@ -300,30 +239,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
     marginTop: 2,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: CardSystem.radius.inner,
-  },
-  chipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.slateSecondary,
-  },
-  chipTxtActive: {
-    color: Colors.white,
   },
   addCustomRow: {
     flexDirection: 'row',

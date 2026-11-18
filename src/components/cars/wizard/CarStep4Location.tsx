@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
@@ -136,28 +137,16 @@ export function CarStep4Location({
 
             <View>
               <Text style={[s.switchTitle, { marginBottom: 8 }]}>سياسة الإلغاء</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+              <View style={s.chipRow}>
                 {CANCELLATION_POLICIES.map((opt) => (
-                  <TouchableOpacity
+                  <WizardOptionChip
                     key={opt.value}
-                    style={[
-                      s.chip,
-                      formData.cancellationPolicy === opt.value && s.chipActive,
-                      { flex: 0 },
-                    ]}
+                    label={opt.label}
+                    selected={formData.cancellationPolicy === opt.value}
                     onPress={() => onUpdateField('cancellationPolicy', opt.value)}
-                  >
-                    <Text
-                      style={[
-                        s.chipTxt,
-                        formData.cancellationPolicy === opt.value && s.chipTxtActive,
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
+                  />
                 ))}
-              </ScrollView>
+              </View>
             </View>
           </>
         )}
@@ -341,31 +330,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  chip: {
-    flex: 1,
-    minWidth: 80,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    color: Colors.slateSecondary,
-  },
-  chipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
   },
   mapSectionDivider: {
     height: 1,

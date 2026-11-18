@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
 
@@ -127,40 +128,32 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
       <WizardCard title="حالة القطعة *" subtitle="حدد حالة القطعة الحالية">
         {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
         <View style={s.chipRow}>
-          {PART_CONDITIONS.map((c) => {
-            const isSel = formData.condition === c.id
-            return (
-              <TouchableOpacity
-                key={c.id}
-                testID={`condition-${c.id}`}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('condition', c.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{c.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {PART_CONDITIONS.map((c) => (
+            <WizardOptionChip
+              key={c.id}
+              testID={`condition-${c.id}`}
+              label={c.label}
+              selected={formData.condition === c.id}
+              onPress={() => onUpdateField('condition', c.id)}
+              error={Boolean(errors.condition)}
+            />
+          ))}
         </View>
       </WizardCard>
 
       <WizardCard title="أصالة القطعة *" subtitle="هل القطعة أصلية أم تجارية؟">
         {errors.isOriginal ? <Text style={s.inlineErrorTxt}>{errors.isOriginal}</Text> : null}
         <View style={s.chipRow}>
-          {PART_ORIGINALITY_OPTIONS.map((c) => {
-            const isSel = formData.isOriginal === c.value
-            return (
-              <TouchableOpacity
-                key={c.value.toString()}
-                testID={`originality-${c.value.toString()}`}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('isOriginal', c.value)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{c.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {PART_ORIGINALITY_OPTIONS.map((c) => (
+            <WizardOptionChip
+              key={c.value.toString()}
+              testID={`originality-${c.value.toString()}`}
+              label={c.label}
+              selected={formData.isOriginal === c.value}
+              onPress={() => onUpdateField('isOriginal', c.value)}
+              error={Boolean(errors.isOriginal)}
+            />
+          ))}
         </View>
       </WizardCard>
 
@@ -315,7 +308,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   gridCardTxt: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_400Regular',
     fontSize: 10,
     color: Colors.slateBody,
     textAlign: 'center',
@@ -329,29 +322,4 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    flex: 1,
-    minWidth: 80,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 12,
-    color: Colors.slateSecondary,
-    writingDirection: 'rtl',
-  },
-  chipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
-  },
 })

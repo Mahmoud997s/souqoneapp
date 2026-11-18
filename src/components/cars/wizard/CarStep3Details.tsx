@@ -16,6 +16,7 @@ import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { CarStep3Props } from '../../../types/carForm.types'
 import {
@@ -381,15 +382,13 @@ export function CarStep3Details({
           <Text style={s.label}>ناقل الحركة *</Text>
           <View style={s.chipRow}>
             {TRANSMISSION_TYPES.map((opt) => (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={opt.value}
-                style={[s.chip, formData.transmission === opt.value && s.chipActive]}
+                label={opt.label}
+                selected={formData.transmission === opt.value}
                 onPress={() => onUpdateField('transmission', opt.value)}
-              >
-                <Text style={[s.chipTxt, formData.transmission === opt.value && s.chipTxtActive]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
+                error={Boolean(errors.transmission)}
+              />
             ))}
           </View>
           {errors.transmission ? <Text style={s.inlineErrorTxt}>{errors.transmission}</Text> : null}
@@ -512,24 +511,13 @@ export function CarStep3Details({
           {CAR_FEATURE_KEYS.map((feat) => {
             const isActive = formData.features.includes(feat.id)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={feat.id}
-                style={[s.featureItem, isActive && s.featureItemActive]}
+                label={feat.label}
+                icon={feat.icon as keyof typeof Ionicons.glyphMap}
+                selected={isActive}
                 onPress={() => onToggleFeature(feat.id)}
-              >
-                <Ionicons
-                  name={feat.icon as keyof typeof Ionicons.glyphMap}
-                  size={15}
-                  color={isActive ? Colors.white : Colors.slateText}
-                />
-                <Text
-                  style={[s.featureTxt, isActive && s.featureTxtActive]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {feat.label}
-                </Text>
-              </TouchableOpacity>
+              />
             )
           })}
         </View>
@@ -678,30 +666,6 @@ const s = StyleSheet.create({
     gap: 6,
     marginTop: 2,
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: CardSystem.radius.inner,
-  },
-  featureItemActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  featureTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.slateSecondary,
-  },
-  featureTxtActive: {
-    color: Colors.white,
-  },
   addFeatureWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -744,7 +708,7 @@ const s = StyleSheet.create({
     gap: 6,
   },
   customFeaturePillTxt: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     lineHeight: 16,
     color: Colors.dangerDarkText,

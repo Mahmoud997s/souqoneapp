@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../../constants/services'
 import { ServiceFormData } from '../../../store/serviceWizardStore'
@@ -104,22 +105,16 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
           </Text>
         ) : null}
         <View style={s.chipRow}>
-          {PROVIDER_TYPES.map((pt) => {
-            const isSel = formData.providerType === pt.id
-            return (
-              <TouchableOpacity
-                key={pt.id}
-                testID={`provider-type-${pt.id}`}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('providerType', pt.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]} numberOfLines={2}>
-                  {pt.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
+          {PROVIDER_TYPES.map((pt) => (
+            <WizardOptionChip
+              key={pt.id}
+              testID={`provider-type-${pt.id}`}
+              label={pt.label}
+              selected={formData.providerType === pt.id}
+              onPress={() => onUpdateField('providerType', pt.id)}
+              error={Boolean(errors.providerType)}
+            />
+          ))}
         </View>
       </WizardCard>
 
@@ -244,7 +239,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   gridCardTxt: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_400Regular',
     fontSize: 10,
     color: Colors.slateBody,
     textAlign: 'center',
@@ -267,33 +262,5 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  chip: {
-    width: '48.5%',
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  chipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.slateSecondary,
-    writingDirection: 'rtl',
-    textAlign: 'center',
-  },
-  chipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
   },
 })

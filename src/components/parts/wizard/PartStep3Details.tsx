@@ -185,7 +185,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   dropdownVal: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_700Bold',
     fontSize: 13,
     color: Colors.slateHeading,
     textAlign: 'right',

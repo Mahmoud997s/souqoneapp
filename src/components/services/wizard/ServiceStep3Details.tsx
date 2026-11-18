@@ -1,10 +1,11 @@
 import React from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Switch } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { COMMON_SPECIALIZATIONS } from '../../../constants/services'
 import { ServiceStep3Props } from '../../../types/serviceForm.types'
@@ -67,22 +68,14 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
             {availableSpecs.map((spec) => {
               const isSelected = (formData.specializations || []).includes(spec)
               return (
-                <TouchableOpacity
+                <WizardOptionChip
                   key={spec}
                   testID={`spec-chip-${spec}`}
-                  style={[s.specChip, isSelected && s.specChipActive]}
+                  label={spec}
+                  icon={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
+                  selected={isSelected}
                   onPress={() => toggleSpecialization(spec)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
-                    size={16}
-                    color={isSelected ? Colors.primary : Colors.slateText}
-                  />
-                  <Text style={[s.specChipTxt, isSelected && s.specChipTxtActive]}>
-                    {spec}
-                  </Text>
-                </TouchableOpacity>
+                />
               )
             })}
           </View>
@@ -139,32 +132,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  specChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  specChipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  specChipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 12,
-    lineHeight: 17,
-    color: Colors.slateSecondary,
-    writingDirection: 'rtl',
-  },
-  specChipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
   },
   switchRow: {
     flexDirection: 'row',
