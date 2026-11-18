@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
+import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 import {
   View,
   Text,
@@ -79,6 +79,97 @@ function getOAuthAccountNoteMeta(user: User): {
   }
 }
 
+interface SettingItemProps {
+  icon: keyof typeof Ionicons.glyphMap
+  iconColor?: string
+  title: string
+  subtitle?: string
+  value?: string
+  hasSwitch?: boolean
+  switchVal?: boolean
+  switchDisabled?: boolean
+  onSwitch?: (val: boolean) => void
+  onPress?: () => void
+  isLast?: boolean
+  danger?: boolean
+  accessibilityLabel?: string
+  testID?: string
+  switchTestID?: string
+}
+
+const SettingItem = React.memo(function SettingItem({
+  icon,
+  iconColor = Colors.slateBody,
+  title,
+  subtitle,
+  value,
+  hasSwitch,
+  switchVal,
+  switchDisabled,
+  onSwitch,
+  onPress,
+  isLast,
+  danger,
+  accessibilityLabel,
+  testID,
+  switchTestID,
+}: SettingItemProps) {
+  const finalIconColor = danger ? Colors.error : iconColor
+  return (
+    <TouchableOpacity
+      testID={testID}
+      style={[s.optionRow, switchDisabled && s.optionRowDisabled]}
+      disabled={hasSwitch}
+      onPress={onPress}
+      activeOpacity={0.6}
+      accessibilityRole={hasSwitch ? undefined : 'button'}
+      accessibilityLabel={accessibilityLabel || title}
+    >
+      <View style={s.optionRight}>
+        <View style={[s.optionIconWrap, danger && s.optionIconWrapDanger]}>
+          <Ionicons name={icon} size={18} color={finalIconColor} />
+        </View>
+        {subtitle ? (
+          <View style={s.optionTextBlock}>
+            <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={2}>
+              {title}
+            </Text>
+            <Text style={s.optionSubtitle} numberOfLines={2}>
+              {subtitle}
+            </Text>
+          </View>
+        ) : (
+          <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={1}>
+            {title}
+          </Text>
+        )}
+      </View>
+
+      {hasSwitch ? (
+        <Switch
+          testID={switchTestID}
+          value={switchVal}
+          disabled={switchDisabled}
+          onValueChange={onSwitch}
+          trackColor={{ false: Colors.slateBorderStrong, true: Colors.primary }}
+          thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : Colors.slateSubtleBg) : undefined}
+        />
+      ) : value ? (
+        <View style={s.valRow}>
+          <View style={s.badgePill}>
+            <Text style={s.badgeText}>{value}</Text>
+          </View>
+          <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
+        </View>
+      ) : (
+        <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
+      )}
+
+      {!isLast && <View style={s.optionDivider} />}
+    </TouchableOpacity>
+  )
+})
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
   const contextQueryClient = useContext(QueryClientContext)
@@ -87,6 +178,8 @@ export default function SettingsScreen() {
   const typedUser = user as UserWithContactVisibility | null
   const [msgNotif, setMsgNotif] = useState(DEFAULT_NOTIFICATION_PREFS.msgNotif)
   const [adNotif, setAdNotif] = useState(DEFAULT_NOTIFICATION_PREFS.adNotif)
+  const msgNotifRef = useRef(msgNotif)
+  const adNotifRef = useRef(adNotif)
   const [osNotifDenied, setOsNotifDenied] = useState(false)
   const [showPhoneOnProfile, setShowPhoneOnProfile] = useState(
     Boolean(typedUser?.showPhoneOnProfile)
@@ -114,6 +207,8 @@ export default function SettingsScreen() {
     let mounted = true
     loadNotificationPrefs(user?.id).then((prefs) => {
       if (mounted) {
+        msgNotifRef.current = prefs.msgNotif
+        adNotifRef.current = prefs.adNotif
         setMsgNotif(prefs.msgNotif)
         setAdNotif(prefs.adNotif)
       }
@@ -136,26 +231,30 @@ export default function SettingsScreen() {
   }, [checkOsNotificationPermission])
 
   const handleToggleMsg = async (val: boolean) => {
-    const prevVal = msgNotif
+    const prevVal = msgNotifRef.current
+    msgNotifRef.current = val
     setMsgNotif(val)
     if (!user?.id) return
     try {
-      await saveNotificationPrefs(user.id, { msgNotif: val, adNotif })
+      await saveNotificationPrefs(user.id, { msgNotif: val, adNotif: adNotifRef.current })
     } catch (error) {
       logWarn('SettingsScreen:SaveMsgNotif', error)
+      msgNotifRef.current = prevVal
       setMsgNotif(prevVal)
       dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
     }
   }
 
   const handleToggleAd = async (val: boolean) => {
-    const prevVal = adNotif
+    const prevVal = adNotifRef.current
+    adNotifRef.current = val
     setAdNotif(val)
     if (!user?.id) return
     try {
-      await saveNotificationPrefs(user.id, { msgNotif, adNotif: val })
+      await saveNotificationPrefs(user.id, { msgNotif: msgNotifRef.current, adNotif: val })
     } catch (error) {
       logWarn('SettingsScreen:SaveAdNotif', error)
+      adNotifRef.current = prevVal
       setAdNotif(prevVal)
       dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
     }
@@ -202,95 +301,6 @@ export default function SettingsScreen() {
       'تسجيل الخروج',
       'إلغاء',
       true
-    )
-  }
-
-  const SettingItem = ({
-    icon,
-    iconColor = Colors.slateBody,
-    title,
-    subtitle,
-    value,
-    hasSwitch,
-    switchVal,
-    switchDisabled,
-    onSwitch,
-    onPress,
-    isLast,
-    danger,
-    accessibilityLabel,
-    testID,
-    switchTestID,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap
-    iconColor?: string
-    title: string
-    subtitle?: string
-    value?: string
-    hasSwitch?: boolean
-    switchVal?: boolean
-    switchDisabled?: boolean
-    onSwitch?: (val: boolean) => void
-    onPress?: () => void
-    isLast?: boolean
-    danger?: boolean
-    accessibilityLabel?: string
-    testID?: string
-    switchTestID?: string
-  }) => {
-    const finalIconColor = danger ? Colors.error : iconColor
-    return (
-      <TouchableOpacity
-        testID={testID}
-        style={[s.optionRow, switchDisabled && s.optionRowDisabled]}
-        disabled={hasSwitch}
-        onPress={onPress}
-        activeOpacity={0.6}
-        accessibilityRole={hasSwitch ? undefined : 'button'}
-        accessibilityLabel={accessibilityLabel || title}
-      >
-        <View style={s.optionRight}>
-          <View style={[s.optionIconWrap, danger && s.optionIconWrapDanger]}>
-            <Ionicons name={icon} size={18} color={finalIconColor} />
-          </View>
-          {subtitle ? (
-            <View style={s.optionTextBlock}>
-              <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={2}>
-                {title}
-              </Text>
-              <Text style={s.optionSubtitle} numberOfLines={2}>
-                {subtitle}
-              </Text>
-            </View>
-          ) : (
-            <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={1}>
-              {title}
-            </Text>
-          )}
-        </View>
-
-        {hasSwitch ? (
-          <Switch
-            testID={switchTestID}
-            value={switchVal}
-            disabled={switchDisabled}
-            onValueChange={onSwitch}
-            trackColor={{ false: Colors.slateBorderStrong, true: Colors.primary }}
-            thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : Colors.slateSubtleBg) : undefined}
-          />
-        ) : value ? (
-          <View style={s.valRow}>
-            <View style={s.badgePill}>
-              <Text style={s.badgeText}>{value}</Text>
-            </View>
-            <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
-          </View>
-        ) : (
-          <Ionicons name="chevron-back" size={15} color={Colors.slateMuted} />
-        )}
-
-        {!isLast && <View style={s.optionDivider} />}
-      </TouchableOpacity>
     )
   }
 
