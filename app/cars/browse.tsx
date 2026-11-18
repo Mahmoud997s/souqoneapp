@@ -370,7 +370,6 @@ export default function CarsBrowseScreen() {
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as any)}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 

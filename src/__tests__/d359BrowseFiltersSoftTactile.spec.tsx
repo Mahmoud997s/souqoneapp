@@ -19,8 +19,14 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
       />
     );
 
-    const containerStyle = StyleSheet.flatten(getByTestId('quick-filters-container').props.style);
+    const container = getByTestId('quick-filters-container');
+    const containerStyle = StyleSheet.flatten(container.props.style);
     expect(containerStyle.backgroundColor).toBe(Colors.inputBg);
+    expect(containerStyle.marginVertical).toBe(4);
+    const trackStyle = StyleSheet.flatten(
+      (container.children[0] as { props?: { style?: Record<string, unknown> } })?.props?.style as Record<string, unknown>
+    ) as { minHeight?: number };
+    expect(trackStyle.minHeight).toBe(34);
 
     expect(queryByTestId('quick-filter-glass-brand-layers')).toBeNull();
     expect(queryByTestId('quick-filter-glass-loc-layers')).toBeNull();
@@ -70,9 +76,10 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
     // Segmented tab bar stays glass
     expect(getByTestId('visual-filters-track-glass-layers')).toBeTruthy();
 
-    // Content area uses calm grey
+    // Content area uses calm grey & preserves original minHeight (42 single-row)
     const contentAreaStyle = StyleSheet.flatten(getByTestId('visual-filters-content-area').props.style);
     expect(contentAreaStyle.backgroundColor).toBe(Colors.inputBg);
+    expect(contentAreaStyle.minHeight).toBe(42);
 
     // Cards no longer use FilterGlassSurface
     expect(queryByTestId('visual-filter-item-glass-toyota-layers')).toBeNull();

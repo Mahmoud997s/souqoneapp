@@ -208,7 +208,7 @@ export function VisualFiltersBase<TTabId extends string = string>({
       <PhysicalHorizontalTrack
         resetKey={currentTab.id}
         dataLength={items.length}
-        minHeight={rows === 1 ? 44 : 88}
+        minHeight={rows === 1 ? 42 : 86}
         contentContainerStyle={s.scrollContainer}
       >
         {columns.map((col, colIdx) => {
@@ -441,17 +441,15 @@ const s = StyleSheet.create({
   contentArea: {
     backgroundColor: SoftTactileTokens.surfaceBg,
     paddingTop: Spacing.space2,
-    paddingBottom: Spacing.space2,
   },
   contentAreaDoubleRow: {
-    minHeight: 88,
+    minHeight: 86,
   },
   contentAreaSingleRow: {
-    minHeight: 44,
+    minHeight: 42,
   },
   scrollContainer: {
     paddingHorizontal: Spacing.space4,
-    paddingVertical: 3,
     gap: 6,
   },
   column: {

@@ -32,15 +32,10 @@ export const FilterGlassTokens = {
 
   // QuickFilters chips tokens
   chip: {
-    bg: TopBarTokens.iceGlass,
-    borderColor: TopBarTokens.buttonBorderColor,
-    borderWidth: 1,
     borderRadius: 20,
-    shadow: TopBarTokens.buttonShadow,
     textColor: Colors.text,
     iconColor: Colors.textMuted,
     activeBg: Colors.primary,
-    activeBorderColor: Colors.primary,
     activeTextColor: Colors.white,
     activeIconColor: Colors.white,
     fontFamily: 'Almarai_700Bold',
@@ -83,14 +78,9 @@ export const FilterGlassTokens = {
 
   // Visual filter items and cards tokens
   card: {
-    bg: TopBarTokens.iceGlass,
     borderColor: TopBarTokens.buttonBorderColor,
-    borderWidth: 1,
     borderRadius: 8,
-    shadow: TopBarTokens.buttonShadow,
     textColor: Colors.text,
-    selectedBg: Colors.paleMint,
-    selectedBorderColor: Colors.primary,
     selectedTextColor: Colors.primary,
     viewAllBg: Colors.surfaceAlt,
     viewAllIconBg: Colors.paleMint,

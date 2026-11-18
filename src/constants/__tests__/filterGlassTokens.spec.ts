@@ -1,4 +1,4 @@
-import { FilterGlassTokens, MODAL_BACKDROP_OVERLAY, BOTTOM_SHEET_BACKDROP_OVERLAY } from '../filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens, MODAL_BACKDROP_OVERLAY, BOTTOM_SHEET_BACKDROP_OVERLAY } from '../filterGlassTokens';
 import { TopBarTokens } from '../topBarTokens';
 import { Colors } from '../colors';
 
@@ -15,7 +15,7 @@ describe('FilterGlassTokens', () => {
   it('guarantees geometry parity with master 7353e69 (no size/radius drift)', () => {
     // QuickFilters chip typography & radius strictly equal to master 7353e69
     expect(FilterGlassTokens.chip.borderRadius).toBe(20);
-    expect(FilterGlassTokens.chip.borderWidth).toBe(1);
+    expect(SoftTactileTokens.raised.borderWidth).toBe(1);
     expect(FilterGlassTokens.chip.fontFamily).toBe('Almarai_700Bold');
     expect(FilterGlassTokens.chip.fontSize).toBe(11); // per M-034
     expect(FilterGlassTokens.chip.lineHeight).toBe(15); // per M-034
@@ -30,7 +30,7 @@ describe('FilterGlassTokens', () => {
 
     // VisualFiltersBase item cards equal to master 7353e69
     expect(FilterGlassTokens.card.borderRadius).toBe(8);
-    expect(FilterGlassTokens.card.borderWidth).toBe(1);
+    expect(SoftTactileTokens.raised.borderWidth).toBe(1);
     expect(FilterGlassTokens.card.fontSize).toBe(11);
     expect(FilterGlassTokens.card.lineHeight).toBe(15);
 
@@ -57,7 +57,7 @@ describe('FilterGlassTokens', () => {
   it('preserves semantic state colors across active and selected items', () => {
     expect(FilterGlassTokens.chip.activeBg).toBe(Colors.primary);
     expect(FilterGlassTokens.chip.activeTextColor).toBe(Colors.white);
-    expect(FilterGlassTokens.card.selectedBg).toBe(Colors.paleMint);
+    expect(SoftTactileTokens.insetCard.bg).toBe(Colors.paleMint);
     expect(FilterGlassTokens.card.selectedTextColor).toBe(Colors.primary);
     expect(FilterGlassTokens.resultsBar.clearTextColor).toBe(Colors.error);
   });

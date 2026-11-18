@@ -458,7 +458,6 @@ export default function BusesBrowseScreen() {
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as string)}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 

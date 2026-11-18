@@ -504,7 +504,6 @@ export default function EquipmentBrowseScreen() {
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as EquipmentDropdownKind)}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 

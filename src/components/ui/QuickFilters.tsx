@@ -5,7 +5,6 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { FilterGlassTokens, SoftTactileTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
-import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface QuickFilterItem {
   id: string;
@@ -18,7 +17,6 @@ export interface QuickFiltersProps {
   filters: QuickFilterItem[];
   onFilterPress: (id: string) => void;
   onClearFilter: (id: string) => void;
-  glassSupport?: GlassSupport;
 }
 
 export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFiltersProps) {
@@ -27,7 +25,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
   return (
     <View testID="quick-filters-container" style={s.quickFiltersContainer}>
       <PhysicalHorizontalTrack
-        minHeight={36}
+        minHeight={34}
         contentContainerStyle={s.quickFiltersContent}
       >
         {filters.map((qf) => {
@@ -93,11 +91,11 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
 const s = StyleSheet.create({
   quickFiltersContainer: {
     backgroundColor: SoftTactileTokens.surfaceBg,
-    paddingVertical: 4,
+    marginVertical: 4,
   },
   quickFiltersContent: {
     paddingHorizontal: Spacing.space4,
-    paddingVertical: 3,
+    paddingVertical: 2,
     gap: 6,
     alignItems: 'center',
   },

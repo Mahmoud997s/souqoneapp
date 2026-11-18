@@ -7,6 +7,7 @@ import {
   isSegmentedTabsFixed,
 } from '../VisualFiltersBase';
 import { FilterGlassTokens, SoftTactileTokens } from '../../../constants/filterGlassTokens';
+import { Colors } from '../../../constants/colors';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -181,7 +182,7 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
           backgroundColor: SoftTactileTokens.insetCard.bg,
         }),
         expect.objectContaining({
-          borderColor: FilterGlassTokens.card.selectedBorderColor,
+          borderColor: Colors.primary,
         }),
       ])
     );

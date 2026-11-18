@@ -388,7 +388,6 @@ describe('D-197 Scroll Performance Safe Fixes', () => {
               ]}
               onFilterPress={noop}
               onClearFilter={noop}
-              glassSupport={glassSupport}
             />
             <VisualFiltersBase
               tabs={[

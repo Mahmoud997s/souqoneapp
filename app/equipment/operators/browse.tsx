@@ -428,7 +428,6 @@ export default function BrowseOperatorsScreen() {
           filters={quickFilterItems}
           onFilterPress={() => setIsFilterVisible(true)}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 
