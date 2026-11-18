@@ -232,51 +232,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  condCard: {
-    width: '48.5%',
-    backgroundColor: Colors.slateSurface,
-    borderRadius: Radius.md,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: Colors.slateBorder,
-  },
-  condCardActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  condCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-  },
-  radioCircleActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  condLabel: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.slateBody,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flex: 1,
-  },
-  condLabelActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
-  },
 
   /* ── Chips ── */
   chipsWrap: {
@@ -284,30 +239,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
     marginTop: 2,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: CardSystem.radius.inner,
-  },
-  chipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.slateSecondary,
-  },
-  chipTxtActive: {
-    color: Colors.white,
   },
   addCustomRow: {
     flexDirection: 'row',

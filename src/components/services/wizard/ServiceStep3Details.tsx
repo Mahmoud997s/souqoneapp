@@ -133,32 +133,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  specChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  specChipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  specChipTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 17,
-    color: Colors.slateSecondary,
-    writingDirection: 'rtl',
-  },
-  specChipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
-  },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',

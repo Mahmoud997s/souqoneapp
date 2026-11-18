@@ -278,29 +278,6 @@ const s = StyleSheet.create({
     gap: 7,
     marginBottom: Spacing.space2,
   },
-  equipChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.slateBorder,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: CardSystem.radius.inner,
-  },
-  equipChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  equipChipTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.slateSecondary,
-  },
-  equipChipTxtActive: {
-    color: Colors.white,
-  },
   uploadBox: {
     backgroundColor: Colors.surface,
     borderWidth: 1.5,

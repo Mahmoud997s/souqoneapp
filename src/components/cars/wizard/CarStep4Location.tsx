@@ -331,31 +331,6 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  chip: {
-    flex: 1,
-    minWidth: 80,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    color: Colors.slateSecondary,
-  },
-  chipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_800ExtraBold',
-  },
   mapSectionDivider: {
     height: 1,
     backgroundColor: Colors.slateSubtleBg,

@@ -666,30 +666,6 @@ const s = StyleSheet.create({
     gap: 6,
     marginTop: 2,
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: CardSystem.radius.inner,
-  },
-  featureItemActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  featureTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.slateSecondary,
-  },
-  featureTxtActive: {
-    color: Colors.white,
-  },
   addFeatureWrap: {
     flexDirection: 'row',
     alignItems: 'center',
