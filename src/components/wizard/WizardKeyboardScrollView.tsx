@@ -94,7 +94,7 @@ export const WizardKeyboardScrollView = forwardRef<ScrollView, WizardKeyboardScr
       footerClearance = WIZARD_STICKY_FOOTER_CONTENT_HEIGHT,
       extraGap = WIZARD_FOCUSED_INPUT_GAP,
       keyboardShouldPersistTaps = 'handled',
-      automaticallyAdjustKeyboardInsets = Platform.OS === 'ios',
+      automaticallyAdjustKeyboardInsets = false,
       onScroll,
       scrollEventThrottle = 16,
       ...rest

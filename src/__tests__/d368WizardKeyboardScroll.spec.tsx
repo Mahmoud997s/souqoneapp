@@ -87,6 +87,7 @@ describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky
         <FocusTrigger />
       </WizardKeyboardScrollView>
     );
+    expect(getByTestId('wizard-ksv').props.automaticallyAdjustKeyboardInsets).toBe(false);
 
     if (scrollRef.current) {
       (scrollRef.current as unknown as { scrollTo: jest.Mock }).scrollTo = scrollToMock;

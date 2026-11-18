@@ -44,6 +44,7 @@ const NUMERIC_KEYBOARD_TYPES = ['numeric', 'phone-pad', 'number-pad', 'decimal-p
 export const AppInput = forwardRef<TextInput, AppInputProps>(
   ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', glass = false, containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
+    const focusedRef = useRef(false)
     const innerInputRef = useRef<TextInput | null>(null)
     const wizardScroll = useWizardKeyboardScroll()
     const setMergedRef = useCallback(
@@ -117,13 +118,24 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             textAlign={ltr ? "left" : "right"}
             {...rest}
             onFocus={(e) => {
-              setFocused(true)
+              focusedRef.current = true
               wizardScroll?.notifyInputFocus(innerInputRef.current)
-              rest.onFocus?.(e)
+              if (rest.onFocus) {
+                rest.onFocus(e)
+              } else {
+                setFocused(true)
+              }
             }}
-            onBlur={(e) => { setFocused(false); rest.onBlur?.(e) }}
+            onBlur={(e) => {
+              focusedRef.current = false
+              if (rest.onBlur) {
+                rest.onBlur(e)
+              } else {
+                setFocused(false)
+              }
+            }}
             onContentSizeChange={(e) => {
-              if (focused && rest.multiline) {
+              if (focusedRef.current && rest.multiline) {
                 wizardScroll?.notifyInputFocus(innerInputRef.current)
               }
               rest.onContentSizeChange?.(e)
