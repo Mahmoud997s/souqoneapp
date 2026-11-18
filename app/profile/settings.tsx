@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 import {
   View,
   Text,
@@ -15,9 +15,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import * as Notifications from 'expo-notifications'
+import { QueryClientContext } from '@tanstack/react-query'
+import { queryClient as appQueryClient } from '../../src/api/queryClient'
 import { Colors } from '../../src/constants/colors'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
+import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { DeletionScheduledBanner } from '../../src/components/profile/DeletionScheduledBanner'
@@ -30,6 +33,10 @@ import {
 } from '../../src/utils/notificationPrefsStorage'
 import { logWarn } from '../../src/utils/safeLog'
 import type { User } from '../../src/types/auth.types'
+import type {
+  ProfileContactVisibilityFields,
+  UserWithContactVisibility,
+} from '../../src/types/profile.types'
 
 export function resolveHasPassword(user: User | null | undefined): boolean {
   if (!user) return false
@@ -74,10 +81,25 @@ function getOAuthAccountNoteMeta(user: User): {
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
-  const { logout, user, isGuest } = useAuthStore()
+  const contextQueryClient = useContext(QueryClientContext)
+  const queryClient = contextQueryClient ?? appQueryClient
+  const { logout, user, isGuest, updateUser } = useAuthStore()
+  const typedUser = user as UserWithContactVisibility | null
   const [msgNotif, setMsgNotif] = useState(DEFAULT_NOTIFICATION_PREFS.msgNotif)
   const [adNotif, setAdNotif] = useState(DEFAULT_NOTIFICATION_PREFS.adNotif)
   const [osNotifDenied, setOsNotifDenied] = useState(false)
+  const [showPhoneOnProfile, setShowPhoneOnProfile] = useState(
+    Boolean(typedUser?.showPhoneOnProfile)
+  )
+  const [showWhatsappOnProfile, setShowWhatsappOnProfile] = useState(
+    Boolean(typedUser?.showWhatsappOnProfile)
+  )
+  const hasPhone = Boolean(user?.phone?.trim())
+
+  useEffect(() => {
+    setShowPhoneOnProfile(Boolean(typedUser?.showPhoneOnProfile))
+    setShowWhatsappOnProfile(Boolean(typedUser?.showWhatsappOnProfile))
+  }, [typedUser?.showPhoneOnProfile, typedUser?.showWhatsappOnProfile])
 
   const checkOsNotificationPermission = useCallback(async () => {
     try {
@@ -139,6 +161,35 @@ export default function SettingsScreen() {
     }
   }
 
+  const handleToggleVisibility = async (
+    field: keyof ProfileContactVisibilityFields,
+    val: boolean
+  ) => {
+    if (!user || !hasPhone) return
+    const prevVal =
+      field === 'showPhoneOnProfile' ? showPhoneOnProfile : showWhatsappOnProfile
+    const setLocal =
+      field === 'showPhoneOnProfile' ? setShowPhoneOnProfile : setShowWhatsappOnProfile
+
+    setLocal(val)
+    updateUser({ [field]: val } as Partial<User>)
+
+    try {
+      const payload = { [field]: val } as Parameters<typeof usersApi.updateProfile>[0]
+      const response = await usersApi.updateProfile(payload)
+      const updatedUser = response?.data
+      if (updatedUser && typeof updatedUser === 'object') {
+        updateUser(updatedUser)
+      }
+      await queryClient.invalidateQueries({ queryKey: ['me'] })
+    } catch (error) {
+      logWarn('SettingsScreen:ToggleContactVisibility', error)
+      setLocal(prevVal)
+      updateUser({ [field]: prevVal } as Partial<User>)
+      dialogService.alert('خطأ', 'تعذر تحديث إعدادات الظهور. حاول مرة أخرى.', 'error')
+    }
+  }
+
   const handleLogout = () => {
     dialogService.confirm(
       'تسجيل الخروج',
@@ -158,9 +209,11 @@ export default function SettingsScreen() {
     icon,
     iconColor = Colors.slateBody,
     title,
+    subtitle,
     value,
     hasSwitch,
     switchVal,
+    switchDisabled,
     onSwitch,
     onPress,
     isLast,
@@ -172,9 +225,11 @@ export default function SettingsScreen() {
     icon: keyof typeof Ionicons.glyphMap
     iconColor?: string
     title: string
+    subtitle?: string
     value?: string
     hasSwitch?: boolean
     switchVal?: boolean
+    switchDisabled?: boolean
     onSwitch?: (val: boolean) => void
     onPress?: () => void
     isLast?: boolean
@@ -187,7 +242,7 @@ export default function SettingsScreen() {
     return (
       <TouchableOpacity
         testID={testID}
-        style={s.optionRow}
+        style={[s.optionRow, switchDisabled && s.optionRowDisabled]}
         disabled={hasSwitch}
         onPress={onPress}
         activeOpacity={0.6}
@@ -198,15 +253,27 @@ export default function SettingsScreen() {
           <View style={[s.optionIconWrap, danger && s.optionIconWrapDanger]}>
             <Ionicons name={icon} size={18} color={finalIconColor} />
           </View>
-          <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={1}>
-            {title}
-          </Text>
+          {subtitle ? (
+            <View style={s.optionTextBlock}>
+              <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={2}>
+                {title}
+              </Text>
+              <Text style={s.optionSubtitle} numberOfLines={2}>
+                {subtitle}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[s.optionTitle, danger && s.optionTitleDanger]} numberOfLines={1}>
+              {title}
+            </Text>
+          )}
         </View>
 
         {hasSwitch ? (
           <Switch
             testID={switchTestID}
             value={switchVal}
+            disabled={switchDisabled}
             onValueChange={onSwitch}
             trackColor={{ false: Colors.slateBorderStrong, true: Colors.primary }}
             thumbColor={Platform.OS === 'android' ? (switchVal ? Colors.white : Colors.slateSubtleBg) : undefined}
@@ -312,6 +379,46 @@ export default function SettingsScreen() {
             )}
           </View>
         </View>
+
+        {/* ── Section 1.5: Profile Contact Visibility ── */}
+        {!isGuest && user && (
+          <View style={s.sectionWrap}>
+            <Text style={s.sectionHeaderTitle}>الظهور في الملف الشخصي</Text>
+            <View style={s.cardGroup}>
+              <SettingItem
+                switchTestID="settings-show-phone-switch"
+                icon="call-outline"
+                iconColor={Colors.primary}
+                title="إظهار رقم الاتصال"
+                subtitle="يظهر رقمك لزوار ملفك الشخصي"
+                hasSwitch
+                switchVal={showPhoneOnProfile}
+                switchDisabled={!hasPhone}
+                onSwitch={(val) => handleToggleVisibility('showPhoneOnProfile', val)}
+              />
+              <SettingItem
+                switchTestID="settings-show-whatsapp-switch"
+                icon="logo-whatsapp"
+                iconColor={Colors.emerald}
+                title="إظهار الواتساب"
+                subtitle="يظهر زر واتساب على رقمك"
+                hasSwitch
+                switchVal={showWhatsappOnProfile}
+                switchDisabled={!hasPhone}
+                onSwitch={(val) => handleToggleVisibility('showWhatsappOnProfile', val)}
+                isLast={hasPhone}
+              />
+              {!hasPhone && (
+                <View style={s.noPhoneHintRow}>
+                  <Ionicons name="information-circle-outline" size={16} color={Colors.textMuted} />
+                  <Text style={s.noPhoneHintText}>
+                    أضف رقم هاتف في ملفك الشخصي لتفعيل هذه الخيارات
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* ── Section 2: Notifications ── */}
         <View style={s.sectionWrap}>
@@ -458,6 +565,38 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 11,
     paddingHorizontal: 14,
+  },
+  optionRowDisabled: {
+    opacity: 0.6,
+  },
+  optionTextBlock: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  optionSubtitle: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    marginTop: 2,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  noPhoneHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  noPhoneHintText: {
+    flex: 1,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   optionRight: {
     flexDirection: 'row',

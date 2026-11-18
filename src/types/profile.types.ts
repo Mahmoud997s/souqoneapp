@@ -24,3 +24,10 @@ export interface MenuItem {
   iconColor?: string
   badge?: string | number
 }
+
+export interface ProfileContactVisibilityFields {
+  showPhoneOnProfile?: boolean
+  showWhatsappOnProfile?: boolean
+}
+
+export type UserWithContactVisibility = User & ProfileContactVisibilityFields
