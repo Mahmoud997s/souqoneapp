@@ -39,6 +39,8 @@ import {
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
+import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
 
 import { ServiceStep1Type } from '../../src/components/services/wizard/ServiceStep1Type'
 import { ServiceStep2Images } from '../../src/components/services/wizard/ServiceStep2Images'
@@ -137,6 +139,8 @@ export default function NewServiceListingScreen() {
       return next
     })
   }
+
+  const scrollViewRef = useWizardScrollToTop(currentStep)
 
   const validateCurrentStep = () => {
     const result = validateStep(currentStep, formData)
@@ -413,7 +417,7 @@ export default function NewServiceListingScreen() {
 
   if (publishSuccess) {
     return (
-      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={s.successRoot}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <PublishSuccessView
@@ -498,8 +502,9 @@ export default function NewServiceListingScreen() {
         />
 
         <ScrollView
+          ref={scrollViewRef}
           style={s.scrollView}
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -634,6 +639,10 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.homeBg,
+  },
+  successRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
   },
   scrollView: {
     flex: 1,

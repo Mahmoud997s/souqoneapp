@@ -16,6 +16,7 @@ import { WizardCard } from '../ui/WizardCard'
 import { logError } from '../../utils/safeLog'
 import { requestPermission, operatorAvatarPermissionAdapter } from '../../utils/requestPermission'
 import { getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
+import { formatRtlPlaceholder } from '../../utils/wizardHelpers'
 
 export interface OperatorRoleStepProps {
   formData: OperatorWizardFormData
@@ -138,7 +139,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
       <WizardCard title="التفاصيل المهنية *" subtitle="عنوان الإعلان ونبذة عن خبراتك">
         <AppInput
           label="عنوان الإعلان / المسمى المهني *"
-          placeholder="مثال: مشغل معدات ثقيلة وبلدوزر خبرة 10 سنوات"
+          placeholder={formatRtlPlaceholder('مثال: مشغل معدات ثقيلة وبلدوزر خبرة 10 سنوات')}
           value={formData.title}
           onChangeText={(val) => onUpdateField('title', val)}
           maxLength={100}
@@ -147,7 +148,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
 
         <AppInput
           label="سنوات الخبرة الإجمالية *"
-          placeholder="مثال: 8"
+          placeholder={formatRtlPlaceholder('مثال: 8')}
           keyboardType="numeric"
           value={formData.experienceYears}
           onChangeText={(val) => onUpdateField('experienceYears', val)}

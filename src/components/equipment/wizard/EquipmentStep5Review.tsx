@@ -10,6 +10,7 @@ import {
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardReviewCard } from '../../ui/WizardReviewCard'
+import { formatEquipmentPower } from '../../../utils/wizardHelpers'
 import { Colors, BrandColors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -229,7 +230,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
             <View style={s.gridItemBox}>
               <Text style={s.gridLabel}>القوة</Text>
               <Text style={s.gridVal} numberOfLines={1}>
-                {formData.power}
+                {formatEquipmentPower(formData.power)}
               </Text>
             </View>
           ) : null}

@@ -22,6 +22,7 @@ import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { PartsFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
+import { formatRtlPlaceholder } from '../../utils/wizardHelpers';
 
 interface PartsFilterBottomSheetProps {
   visible: boolean;
@@ -363,7 +364,7 @@ export function PartsFilterBottomSheet({
               <Ionicons name="barcode-outline" size={18} color={Colors.textMuted} />
               <TextInput
                 style={s.input}
-                placeholder="مثال: 90915-YZZD2"
+                placeholder={formatRtlPlaceholder('مثال: 90915-YZZD2')}
                 placeholderTextColor={Colors.textMuted}
                 value={filters.partNumber || ''}
                 onChangeText={(val) => updateFilter('partNumber', val || undefined)}

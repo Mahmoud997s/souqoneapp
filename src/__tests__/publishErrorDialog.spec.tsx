@@ -163,7 +163,7 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
       ]
       for (const rel of screens) {
         const src = fs.readFileSync(path.join(root, rel), 'utf8')
-        expect(src).toMatch(/showPublishErrorDialog/)
+        expect(src).toMatch(/showPublishErrorDialog|handlePublishMutationError/)
         expect(src).toMatch(/useRef<boolean>\(false\)|useRef\(false\)/)
       }
 

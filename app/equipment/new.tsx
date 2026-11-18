@@ -31,11 +31,11 @@ import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
 import { useEquipmentFormLogic } from '../../src/hooks/useEquipmentFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
-import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
-import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { mapEquipmentBackendErrors } from '../../src/utils/wizardBackendErrors'
+import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
+import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 import {
   uploadAndReconcileEquipmentImages,
@@ -79,6 +79,7 @@ export default function NewEquipmentListingScreen() {
     resetDraft,
   } = useEquipmentWizardStore()
 
+  const scrollViewRef = useWizardScrollToTop(currentStep)
   const [isUploadingImages, setIsUploadingImages] = useState(false)
 
 
@@ -318,7 +319,7 @@ export default function NewEquipmentListingScreen() {
 
   if (publishSuccess) {
     return (
-      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={s.successRoot}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <PublishSuccessView
@@ -412,8 +413,9 @@ export default function NewEquipmentListingScreen() {
         />
 
         <ScrollView
+          ref={scrollViewRef}
           style={s.scrollView}
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -543,6 +545,10 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.homeBg,
+  },
+  successRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
   },
   scrollView: {
     flex: 1,
