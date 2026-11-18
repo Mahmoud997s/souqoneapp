@@ -587,6 +587,7 @@ const s = StyleSheet.create({
     fontSize: 13,
   },
   valueHighlight: {
+    fontFamily: 'Almarai_700Bold',
     color: Colors.emerald,
     fontSize: 13,
   },

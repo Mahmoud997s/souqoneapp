@@ -157,20 +157,18 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(flatStyle.backgroundColor).toBe(BottomBarTokens.whiteWashBg)
     })
 
-    it('(c) WizardReviewCard uses intensity=50 and light wash (0.08 opacity on white)', async () => {
-      const { getByTestId } = await render(
+    it('(c) WizardReviewCard renders solid Colors.surface without BlurView or wash overlay (D-370)', async () => {
+      const { getByTestId, queryByTestId } = await render(
         <WizardReviewCard testID="test-review-card">
           <Text>محتوى المراجعة</Text>
         </WizardReviewCard>
       )
 
-      const blurView = getByTestId('mock-blur-view')
-      expect(blurView.props.intensity).toBe(50)
-
-      const washOverlay = getByTestId('test-review-card-surface-wash-overlay')
-      const flatStyle = StyleSheet.flatten(washOverlay.props.style)
-      expect(flatStyle.backgroundColor).toBe(Colors.white)
-      expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
+      expect(queryByTestId('mock-blur-view')).toBeNull()
+      expect(queryByTestId('test-review-card-surface-wash-overlay')).toBeNull()
+      const flatStyle = StyleSheet.flatten(getByTestId('test-review-card').props.style)
+      expect(flatStyle.backgroundColor).toBe(Colors.surface)
+      expect(flatStyle.borderColor).toBe(Colors.border)
     })
 
     it('(d) Stepper uses intensity=50 and light wash (0.08 opacity on white)', async () => {

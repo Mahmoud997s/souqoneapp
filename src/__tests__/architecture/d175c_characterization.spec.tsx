@@ -195,16 +195,16 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
   })
 
   describe('3. WizardReviewCard Component', () => {
-    it('renders liquid GlassView on liquid branch and has no opacity in ancestry', async () => {
-      const { getByTestId } = await render(
+    it('renders solid app-colour container without glass overlay (D-370)', async () => {
+      const { getByTestId, queryByTestId } = await render(
         <WizardReviewCard testID="test-review-card">
           <Text>Review Card Content</Text>
         </WizardReviewCard>
       )
 
-      const innerGlass = getByTestId('test-review-card-surface-glass-liquid')
-      expect(innerGlass).toBeTruthy()
-      assertNoOpacityInAncestry(innerGlass)
+      const card = getByTestId('test-review-card')
+      expect(card).toBeTruthy()
+      expect(queryByTestId('test-review-card-surface-glass-liquid')).toBeNull()
     })
   })
 
