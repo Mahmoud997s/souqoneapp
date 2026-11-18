@@ -159,20 +159,47 @@ describe('D-354: Wizard phone-test fixes', () => {
     expect(partsSrc).toContain("'إضافة إعلان آخر'")
     expect(partsSrc).toContain("label: 'العودة للرئيسية'")
 
-    // No wizard success wrapper may apply insets.top/insets.bottom on top of PublishSuccessView
-    for (const rel of [
-      'app/cars/new.tsx',
-      'app/buses/new.tsx',
-      'app/equipment/new.tsx',
-      'app/parts/new.tsx',
-      'app/services/new.tsx',
-      'app/equipment/operators/add.tsx',
-    ]) {
-      const src = fs.readFileSync(path.join(ROOT, rel), 'utf8')
+    // Generic walk: EVERY file under app/ and src/ that renders <PublishSuccessView must NOT apply insets on its wrapper
+    const walkTsxFiles = (dir: string): string[] => {
+      const results: string[] = []
+      if (!fs.existsSync(dir)) return results
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          if (entry.name === '__tests__' || entry.name === '_parked') continue
+          results.push(...walkTsxFiles(full))
+        } else if (
+          /\.(tsx|ts)$/.test(entry.name) &&
+          !/\.(spec|test)\.(tsx|ts)$/.test(entry.name)
+        ) {
+          results.push(full)
+        }
+      }
+      return results
+    }
+
+    const callers = [
+      ...walkTsxFiles(path.join(ROOT, 'app')),
+      ...walkTsxFiles(path.join(ROOT, 'src')),
+    ].filter((filePath) => {
+      const content = fs.readFileSync(filePath, 'utf8')
+      return /<PublishSuccessView\b/.test(content)
+    })
+
+    expect(callers.length).toBeGreaterThanOrEqual(7)
+    for (const filePath of callers) {
+      const rel = path.relative(ROOT, filePath).replace(/\\/g, '/')
+      const src = fs.readFileSync(filePath, 'utf8')
       const blockMatch = src.match(/if\s*\(\s*publishSuccess\s*\)\s*\{[\s\S]*?<PublishSuccessView/)
-      expect(blockMatch).not.toBeNull()
-      expect(blockMatch![0]).not.toMatch(/insets\.top|insets\.bottom/)
-      expect(blockMatch![0]).toMatch(/s\.successRoot/)
+      expect({ rel, hasBlock: Boolean(blockMatch) }).toEqual({ rel, hasBlock: true })
+      expect({ rel, hasDoubleInsets: /insets\.top|insets\.bottom/.test(blockMatch![0]) }).toEqual({
+        rel,
+        hasDoubleInsets: false,
+      })
+      expect({ rel, usesSuccessRoot: /s\.successRoot/.test(blockMatch![0]) }).toEqual({
+        rel,
+        usesSuccessRoot: true,
+      })
     }
   })
 

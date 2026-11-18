@@ -217,7 +217,7 @@ export default function EditOperatorScreen() {
 
   if (publishSuccess) {
     return (
-      <View style={[s.root, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+      <View style={s.successRoot}>
         <Stack.Screen options={{ headerShown: false }} />
         <PublishSuccessView
           title="تم تحديث بطاقتك المهنية بنجاح!"
@@ -386,6 +386,10 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.homeBg,
+  },
+  successRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
   },
   center: {
     alignItems: 'center',
