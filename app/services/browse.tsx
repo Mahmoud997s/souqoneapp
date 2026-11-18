@@ -522,7 +522,6 @@ export default function ServicesBrowseScreen() {
           filters={quickFilterItems}
           onFilterPress={handleFilterPress}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 

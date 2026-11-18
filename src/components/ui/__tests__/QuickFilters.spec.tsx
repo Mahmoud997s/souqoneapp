@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilters, QuickFilterItem } from '../QuickFilters';
-import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -133,9 +133,10 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     expect(inactiveChipContainer?.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: FilterGlassTokens.chip.bg,
-          borderColor: FilterGlassTokens.chip.borderColor,
-          borderWidth: FilterGlassTokens.chip.borderWidth,
+          backgroundColor: SoftTactileTokens.raised.bg,
+          borderTopColor: SoftTactileTokens.raised.borderTopColor,
+          borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+          borderWidth: SoftTactileTokens.raised.borderWidth,
           borderRadius: FilterGlassTokens.chip.borderRadius,
         }),
       ])
@@ -154,7 +155,7 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
       expect.arrayContaining([
         expect.objectContaining({
           backgroundColor: FilterGlassTokens.chip.activeBg,
-          borderColor: FilterGlassTokens.chip.activeBorderColor,
+          borderTopColor: SoftTactileTokens.insetActiveChip.borderTopColor,
         }),
       ])
     );

@@ -575,7 +575,6 @@ export default function PartsBrowseScreen() {
           filters={quickFilterItems}
           onFilterPress={(id) => setActiveDropdown(id as PartsDropdownKind)}
           onClearFilter={handleClearQuickFilter}
-          glassSupport={glassSupport}
         />
       </CollapsibleSubHeader>
 

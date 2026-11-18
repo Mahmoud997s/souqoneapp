@@ -32,15 +32,10 @@ export const FilterGlassTokens = {
 
   // QuickFilters chips tokens
   chip: {
-    bg: TopBarTokens.iceGlass,
-    borderColor: TopBarTokens.buttonBorderColor,
-    borderWidth: 1,
     borderRadius: 20,
-    shadow: TopBarTokens.buttonShadow,
     textColor: Colors.text,
     iconColor: Colors.textMuted,
     activeBg: Colors.primary,
-    activeBorderColor: Colors.primary,
     activeTextColor: Colors.white,
     activeIconColor: Colors.white,
     fontFamily: 'Almarai_700Bold',
@@ -83,14 +78,9 @@ export const FilterGlassTokens = {
 
   // Visual filter items and cards tokens
   card: {
-    bg: TopBarTokens.iceGlass,
     borderColor: TopBarTokens.buttonBorderColor,
-    borderWidth: 1,
     borderRadius: 8,
-    shadow: TopBarTokens.buttonShadow,
     textColor: Colors.text,
-    selectedBg: Colors.paleMint,
-    selectedBorderColor: Colors.primary,
     selectedTextColor: Colors.primary,
     viewAllBg: Colors.surfaceAlt,
     viewAllIconBg: Colors.paleMint,
@@ -166,5 +156,55 @@ export const FilterGlassTokens = {
     optionFontFamily: 'Almarai_700Bold',
     optionFontSize: 15,
     optionLineHeight: 21,
+  },
+} as const;
+
+/**
+ * SoftTactileTokens (D-359)
+ * Neumorphic raised / inset tokens for browse QuickFilters chips & VisualFilters item cards.
+ * Uses existing app palette tokens only; sizes/radii remain owned by FilterGlassTokens.
+ */
+export const SoftTactileTokens = {
+  surfaceBg: Colors.inputBg,
+  raised: {
+    bg: Colors.inputBg,
+    borderWidth: 1,
+    borderTopColor: Colors.whiteAlpha85,
+    borderLeftColor: Colors.whiteAlpha85,
+    borderRightColor: Colors.border,
+    borderBottomColor: Colors.slateBorderStrong,
+    shadow: Platform.select({
+      ios: {
+        shadowColor: Colors.slateHeading,
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      default: {
+        shadowColor: Colors.slateHeading,
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  insetCard: {
+    bg: Colors.paleMint,
+    borderWidth: 1,
+    borderTopColor: Colors.slateBorderStrong,
+    borderLeftColor: Colors.slateBorderStrong,
+    borderRightColor: Colors.whiteAlpha85,
+    borderBottomColor: Colors.whiteAlpha85,
+    innerTopLeftColor: Colors.primarySoft25,
+  },
+  insetActiveChip: {
+    borderTopColor: Colors.primaryDark,
+    borderLeftColor: Colors.primaryDark,
+    borderRightColor: Colors.whiteAlpha45,
+    borderBottomColor: Colors.whiteAlpha45,
+    innerTopLeftColor: Colors.primarySoft30,
   },
 } as const;
