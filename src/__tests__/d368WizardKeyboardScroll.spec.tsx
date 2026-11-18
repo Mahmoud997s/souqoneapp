@@ -21,10 +21,6 @@ const WIZARD_ENTRY_FILES = [
 ];
 
 describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky footer', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
@@ -60,6 +56,7 @@ describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky
   });
 
   it('WizardKeyboardScrollView scrolls ScrollView above keyboard + footer when input focuses and keyboard opens', async () => {
+    jest.useFakeTimers();
     const scrollToMock = jest.fn();
     jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
 
@@ -138,7 +135,6 @@ describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky
       keyboardDidShowCb?.({ endCoordinates: { height: 300 } });
       fireEvent(input, 'focus', { nativeEvent: {} });
       fireEvent(input, 'contentSizeChange', { nativeEvent: { contentSize: { width: 300, height: 120 } } });
-      jest.advanceTimersByTime(100);
     });
 
     expect(onFocusMock).toHaveBeenCalledTimes(1);
