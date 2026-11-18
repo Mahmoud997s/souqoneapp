@@ -241,11 +241,23 @@ function FABItem({ onPress, isHovered }: { onPress: () => void; isHovered?: bool
         <View style={s.fabCenterWrapper}>
           <Animated.View style={[s.fabSquircleWrap, fabAnimStyle]}>
             <LinearGradient
-              colors={Gradients.hero}
+              colors={Gradients.button}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 0, y: 1 }}
               style={s.fabSquircle}
             >
+              <LinearGradient
+                pointerEvents="none"
+                colors={BottomBarTokens.addButtonFaceSheenColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View
+                testID="section-bottom-bar-add-button-emboss"
+                pointerEvents="none"
+                style={s.fabEmbossRim}
+              />
               <Ionicons name="add" size={20} color={Colors.white} />
             </LinearGradient>
           </Animated.View>
@@ -437,21 +449,21 @@ const s = StyleSheet.create({
     position: 'relative',
   },
   fabSquircleWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
+    width: BottomBarTokens.addButtonSize,
+    height: BottomBarTokens.addButtonSize,
+    borderRadius: BottomBarTokens.addButtonRadius,
     borderWidth: 1.5,
     borderColor: Colors.white,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-      },
-      android: { elevation: 4 },
-    }),
+    ...BottomBarTokens.addButtonShadow,
+  },
+  fabEmbossRim: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: BottomBarTokens.addButtonRadius - 1.5,
+    borderTopWidth: 1,
+    borderTopColor: BottomBarTokens.addButtonTopRimColor,
+    borderBottomWidth: 1,
+    borderBottomColor: BottomBarTokens.addButtonBottomEdgeColor,
   },
   fabSquircle: {
     width: '100%',

@@ -33,7 +33,11 @@ export const BottomBarTokens = {
   collapsedSize: 56,
   collapsedIconSize: 24,
   minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
-  addButtonSize: 38,
+  addButtonSize: 40,
+  addButtonRadius: 13.7,
+  addButtonTopRimColor: Colors.whiteAlpha85,
+  addButtonBottomEdgeColor: Colors.primaryDark,
+  addButtonFaceSheenColors: [Colors.whiteAlpha20, Colors.transparent] as const,
 
   // ── Glass Background Layers ──
   blurIntensity: Platform.OS === 'ios' ? BLUR_INTENSITY_IOS : BLUR_INTENSITY_ANDROID,
