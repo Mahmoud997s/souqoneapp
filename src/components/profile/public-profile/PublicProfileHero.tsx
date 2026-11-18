@@ -12,9 +12,19 @@ import { Spacing } from '../../../constants/spacing'
 import { PublicProfileTokens } from '../../../constants/publicProfileTokens'
 import { PublicProfile } from '../../../types/profile.types'
 
+export type PublicProfileWithOptionalContact = PublicProfile & {
+  whatsapp?: string | null
+  whatsappAvailable?: boolean | null
+}
+
 export interface PublicProfileHeroProps {
-  profile: PublicProfile
-  action?: { kind: 'owner' | 'visitor'; onPress: () => void }
+  profile: PublicProfileWithOptionalContact
+  action?: {
+    kind: 'owner' | 'visitor'
+    onPress: () => void
+    onCall?: (phone: string) => void
+    onWhatsApp?: (phone: string) => void
+  }
   support?: GlassSupport
 }
 
@@ -25,6 +35,14 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
   const activeCount = counts.reduce((sum, count) => sum + count, 0)
   const sectionCount = counts.filter((count) => count > 0).length
   const joinYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : '—'
+
+  const exposedPhone = typeof profile.phone === 'string' ? profile.phone.trim() : ''
+  const exposedWhatsapp =
+    typeof profile.whatsapp === 'string' && profile.whatsapp.trim()
+      ? profile.whatsapp.trim()
+      : profile.whatsappAvailable && exposedPhone
+        ? exposedPhone
+        : ''
 
   return (
     <View testID="public-profile-hero" style={s.hero}>
@@ -50,12 +68,16 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
         <View style={s.identityText}>
           <View style={s.nameRow}>
             <Text style={s.name} numberOfLines={1} ellipsizeMode="tail">{displayName}</Text>
-            {profile.isVerified && <VerifiedBadge testID="public-profile-verified" size={20} />}
+            {profile.isVerified && <VerifiedBadge testID="public-profile-verified" size={18} />}
           </View>
-          {profile.username ? <Text style={s.username} numberOfLines={1}>@{profile.username}</Text> : null}
+          {profile.username ? (
+            <Text testID="public-profile-handle" style={s.username} numberOfLines={1}>
+              {`\u2066@${profile.username}\u2069`}
+            </Text>
+          ) : null}
           {location ? (
             <View style={s.locationRow}>
-              <Ionicons name="location-outline" size={15} color={Colors.textMuted} />
+              <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
               <Text style={s.location} numberOfLines={1}>{location}</Text>
             </View>
           ) : null}
@@ -81,13 +103,13 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
         <Stat value={String(joinYear)} label="عضو منذ" testID="public-profile-join-year" />
       </View>
 
-      {action ? (
+      {action?.kind === 'owner' ? (
         <Pressable
           testID="public-profile-action"
           style={s.action}
           onPress={action.onPress}
           accessibilityRole="button"
-          accessibilityLabel={action.kind === 'owner' ? 'تعديل ملفي الشخصي' : 'راسل البائع'}
+          accessibilityLabel="تعديل ملفي الشخصي"
         >
           <GlassSurface
             testID="public-profile-action-surface"
@@ -99,11 +121,88 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
             tintOverlayColor={Colors.primary}
             support={support}
           />
-          <Ionicons name={action.kind === 'owner' ? 'create-outline' : 'chatbubble-ellipses-outline'} size={20} color={Colors.white} />
-          <Text style={s.actionText}>{action.kind === 'owner' ? 'تعديل ملفي الشخصي' : 'راسل البائع'}</Text>
+          <Ionicons name="create-outline" size={18} color={Colors.white} />
+          <Text style={s.actionText}>تعديل ملفي الشخصي</Text>
         </Pressable>
       ) : null}
+
+      {action?.kind === 'visitor' ? (
+        <View testID="public-profile-contact-row" style={s.contactRow}>
+          <ContactIconButton
+            testID="public-profile-chat-btn"
+            icon="chatbubble-ellipses-outline"
+            label="محادثة"
+            variant="primary"
+            onPress={action.onPress}
+            support={support}
+          />
+          {exposedPhone ? (
+            <ContactIconButton
+              testID="public-profile-call-btn"
+              icon="call-outline"
+              label="اتصال"
+              variant="outline"
+              onPress={() => action.onCall?.(exposedPhone)}
+              support={support}
+            />
+          ) : null}
+          {exposedWhatsapp ? (
+            <ContactIconButton
+              testID="public-profile-whatsapp-btn"
+              icon="logo-whatsapp"
+              label="واتساب"
+              variant="outline"
+              onPress={() => action.onWhatsApp?.(exposedWhatsapp)}
+              support={support}
+            />
+          ) : null}
+        </View>
+      ) : null}
     </View>
+  )
+}
+
+function ContactIconButton({
+  testID,
+  icon,
+  label,
+  variant,
+  onPress,
+  support,
+}: {
+  testID: string
+  icon: keyof typeof Ionicons.glyphMap
+  label: string
+  variant: 'primary' | 'outline'
+  onPress: () => void
+  support?: GlassSupport
+}) {
+  const isPrimary = variant === 'primary'
+  return (
+    <Pressable
+      testID={testID}
+      style={[s.contactBtn, isPrimary ? s.contactBtnPrimary : s.contactBtnOutline]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      {isPrimary ? (
+        <GlassSurface
+          testID="public-profile-action-surface"
+          variant="surface"
+          borderRadius={Radius.md}
+          noBorder
+          washColor={Colors.primary}
+          washOpacity={PublicProfileTokens.actionWashOpacity}
+          tintOverlayColor={Colors.primary}
+          support={support}
+        />
+      ) : null}
+      <Ionicons name={icon} size={18} color={isPrimary ? Colors.white : Colors.primary} />
+      <Text style={[s.contactBtnLabel, isPrimary ? s.contactBtnLabelPrimary : s.contactBtnLabelOutline]}>
+        {label}
+      </Text>
+    </Pressable>
   )
 }
 
@@ -126,10 +225,10 @@ const s = StyleSheet.create({
     paddingBottom: PublicProfileTokens.heroPaddingBottom,
     borderWidth: 1,
     borderColor: BottomBarTokens.borderColor,
-    gap: Spacing.space4,
+    gap: PublicProfileTokens.heroGap,
     ...BottomBarTokens.shadow,
   },
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space3 },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2 + 2 },
   avatarRing: {
     width: PublicProfileTokens.avatarSize + PublicProfileTokens.avatarRingWidth * 2,
     height: PublicProfileTokens.avatarSize + PublicProfileTokens.avatarRingWidth * 2,
@@ -146,39 +245,40 @@ const s = StyleSheet.create({
     lineHeight: PublicProfileTokens.avatarFallbackLineHeight,
     color: Colors.primaryDark,
   },
-  identityText: { flex: 1, minWidth: 0, gap: Spacing.space1 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space2 },
+  identityText: { flex: 1, minWidth: 0, gap: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space1 + 2 },
   name: {
     flexShrink: 1,
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 20,
-    lineHeight: 30,
+    fontSize: 17,
+    lineHeight: 24,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   username: {
+    alignSelf: 'flex-start',
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
     color: Colors.textMuted,
     textAlign: 'left',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.space1 },
   location: {
     flexShrink: 1,
     fontFamily: 'Almarai_400Regular',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
     color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   bio: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 14,
-    lineHeight: 24,
+    fontSize: 13,
+    lineHeight: 20,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
@@ -186,27 +286,27 @@ const s = StyleSheet.create({
   stats: {
     position: 'relative',
     overflow: 'hidden',
-    minHeight: 76,
+    minHeight: PublicProfileTokens.statsMinHeight,
     borderRadius: PublicProfileTokens.statsRadius,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  stat: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.space1, paddingVertical: Spacing.space2 },
-  divider: { width: 1, height: 36, backgroundColor: Colors.border },
+  stat: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: Spacing.space1 + 2 },
+  divider: { width: 1, height: PublicProfileTokens.statsDividerHeight, backgroundColor: Colors.border },
   statValue: {
     fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 16,
+    lineHeight: 22,
     color: Colors.primaryDark,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   statLabel: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 16,
     color: Colors.textMuted,
     textAlign: 'center',
     writingDirection: 'rtl',
@@ -223,10 +323,48 @@ const s = StyleSheet.create({
   },
   actionText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 20,
     color: Colors.white,
     textAlign: 'left',
     writingDirection: 'rtl',
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space2,
+  },
+  contactBtn: {
+    position: 'relative',
+    overflow: 'hidden',
+    flex: 1,
+    minHeight: PublicProfileTokens.actionHeight,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.space1 + 2,
+    paddingHorizontal: Spacing.space2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  contactBtnPrimary: {
+    backgroundColor: Colors.primary,
+  },
+  contactBtnOutline: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  contactBtnLabel: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  contactBtnLabelPrimary: {
+    color: Colors.white,
+  },
+  contactBtnLabelOutline: {
+    color: Colors.text,
   },
 })

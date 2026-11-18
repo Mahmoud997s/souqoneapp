@@ -131,7 +131,7 @@ describe('public profile route states', () => {
     await render(<PublicProfileScreen />)
 
     expect(screen.queryByRole('button', { name: 'تعديل ملفي الشخصي' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'راسل البائع' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
   })
 
   it('shows the edit action and no chat action for the profile owner', async () => {
@@ -142,7 +142,7 @@ describe('public profile route states', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'تعديل ملفي الشخصي' }))
     expect(mockedRouter.push).toHaveBeenCalledWith('/profile/edit-profile')
-    expect(screen.queryByRole('button', { name: 'راسل البائع' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
   })
 
   it('uses the glass seller title bar back action and places visitor contact inside the hero', async () => {
@@ -155,8 +155,8 @@ describe('public profile route states', () => {
     expect(screen.getByText('ملف البائع')).toBeTruthy()
     fireEvent.press(screen.getByRole('button', { name: 'رجوع' }))
     expect(mockedRouter.back).toHaveBeenCalledTimes(1)
-    expect(screen.getByTestId('public-profile-action').parent?.props.testID).toBe('public-profile-hero')
-    expect(screen.queryByText('محادثة')).toBeNull()
+    expect(screen.getByTestId('public-profile-contact-row').parent?.props.testID).toBe('public-profile-hero')
+    expect(screen.queryByText('راسل البائع')).toBeNull()
   })
 
   it.each([
@@ -168,7 +168,7 @@ describe('public profile route states', () => {
 
     await render(<PublicProfileScreen />)
 
-    expect(screen.getByRole('button', { name: 'راسل البائع' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'محادثة' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'تعديل ملفي الشخصي' })).toBeNull()
   })
   it('opens chat for the newest supported listing target', async () => {
@@ -178,7 +178,7 @@ describe('public profile route states', () => {
     jest.mocked(chatApi.createRoom).mockResolvedValue({ data: { id: 'room-1' } } as never)
 
     await render(<PublicProfileScreen />)
-    await fireEvent.press(screen.getByRole('button', { name: 'راسل البائع' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(findNewestPublicProfileChatTarget).toHaveBeenCalledWith('seller-1')
     expect(chatApi.createRoom).toHaveBeenCalledWith({ entityId: 'service-1', entityType: 'CAR_SERVICE' })
@@ -191,7 +191,7 @@ describe('public profile route states', () => {
 
     await render(<PublicProfileScreen />)
 
-    expect(screen.queryByRole('button', { name: 'راسل البائع' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'محادثة' })).toBeNull()
   })
 
   it('shows the transient retry message when every listing lookup fails', async () => {
@@ -200,7 +200,7 @@ describe('public profile route states', () => {
     jest.mocked(findNewestPublicProfileChatTarget).mockRejectedValue(new Error('All public profile listing queries failed'))
 
     await render(<PublicProfileScreen />)
-    await fireEvent.press(screen.getByRole('button', { name: 'راسل البائع' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(chatApi.createRoom).not.toHaveBeenCalled()
     expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
@@ -211,7 +211,7 @@ describe('public profile route states', () => {
     jest.mocked(findNewestPublicProfileChatTarget).mockResolvedValue(null)
 
     await render(<PublicProfileScreen />)
-    await fireEvent.press(screen.getByRole('button', { name: 'راسل البائع' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(chatApi.createRoom).not.toHaveBeenCalled()
     expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'لم نعثر على إعلان نشط. أعد المحاولة.')
@@ -224,7 +224,7 @@ describe('public profile route states', () => {
     jest.mocked(chatApi.createRoom).mockRejectedValue(new Error('temporary failure'))
 
     await render(<PublicProfileScreen />)
-    await fireEvent.press(screen.getByRole('button', { name: 'راسل البائع' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
   })
@@ -234,7 +234,7 @@ describe('public profile route states', () => {
     mockedUseAuthStore.mockReturnValue({ user: null, isLoading: false } as never)
 
     await render(<PublicProfileScreen />)
-    await fireEvent.press(screen.getByRole('button', { name: 'راسل البائع' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(router.push).toHaveBeenCalledWith({ pathname: '/(auth)/login' })
     expect(findNewestPublicProfileChatTarget).not.toHaveBeenCalled()

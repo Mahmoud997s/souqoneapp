@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Defs, RadialGradient, Rect, Stop, Svg } from 'react-native-svg'
-import { I18nManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { I18nManager, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { chatApi } from '../../src/api/chat'
 import { Colors } from '../../src/constants/colors'
@@ -11,6 +11,7 @@ import { PublicProfileHero } from '../../src/components/profile/public-profile/P
 import { PublicProfileTabs } from '../../src/components/profile/public-profile/PublicProfileTabs'
 import { PublicProfileSectionList } from '../../src/components/profile/public-profile/PublicProfileSectionList'
 import { PublicProfileTopBar } from '../../src/components/profile/public-profile/PublicProfileTopBar'
+import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { SkeletonCard } from '../../src/components/ui/SkeletonCard'
 import { usePublicProfileCars } from '../../src/hooks/public-profile/usePublicProfileCars'
 import { usePublicProfileBuses } from '../../src/hooks/public-profile/usePublicProfileBuses'
@@ -131,6 +132,20 @@ export default function PublicProfileScreen() {
     }
   }
 
+  const handleCall = (phone: string) => {
+    const cleaned = phone.replace(/[^\d+]/g, '')
+    if (cleaned) {
+      Linking.openURL(`tel:${cleaned}`).catch(() => {})
+    }
+  }
+
+  const handleWhatsApp = (phone: string) => {
+    const digits = phone.replace(/\D/g, '')
+    if (digits) {
+      Linking.openURL(`https://wa.me/${digits}`).catch(() => {})
+    }
+  }
+
   const inventoryHeader = (
     <>
       {profileError && (
@@ -143,7 +158,16 @@ export default function PublicProfileScreen() {
       )}
       <PublicProfileHero
         profile={profile}
-        action={action ? { kind: action, onPress: action === 'owner' ? () => router.push('/profile/edit-profile') : handleChat } : undefined}
+        action={
+          action
+            ? {
+                kind: action,
+                onPress: action === 'owner' ? () => router.push('/profile/edit-profile') : handleChat,
+                onCall: handleCall,
+                onWhatsApp: handleWhatsApp,
+              }
+            : undefined
+        }
       />
       <PublicProfileTabs counts={profile._count} selected={activeTab} onSelect={setActiveTab} />
     </>
@@ -179,6 +203,7 @@ export default function PublicProfileScreen() {
           if (activeTab === 'part') router.push({ pathname: '/parts/[id]', params: { id: item.id } })
           if (activeTab === 'service') router.push({ pathname: '/services/[id]', params: { id: item.id } })
         }}
+        footer={<SupportHelpButton variant="outline" style={s.supportButton} />}
       />
     </View>
   )
@@ -203,4 +228,5 @@ const s = StyleSheet.create({
   refreshError: { marginBottom: Spacing.space3, padding: Spacing.space3, borderRadius: PublicProfileTokens.statsRadius, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, gap: Spacing.space2 },
   refreshErrorText: { fontFamily: 'Almarai_400Regular', fontSize: 13, lineHeight: 20, color: Colors.textMuted, textAlign: 'center', writingDirection: 'rtl' },
   refreshRetryText: { fontFamily: 'Almarai_700Bold', fontSize: 14, lineHeight: 20, color: Colors.primary, textAlign: 'center', writingDirection: 'rtl' },
+  supportButton: { marginHorizontal: 0, marginTop: Spacing.space2 },
 })
