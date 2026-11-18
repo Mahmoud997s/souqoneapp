@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Switch } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
