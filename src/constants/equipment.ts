@@ -82,3 +82,45 @@ export const POPULAR_EQUIPMENT_FEATURES = [
 ]
 
 export const MAX_EQUIPMENT_IMAGES = 10
+
+export interface EquipmentCategoryGroup {
+  title: string
+  items: EquipmentTypeOption[]
+}
+
+const EQUIPMENT_CATEGORY_BY_KEY = new Map<EquipmentType, EquipmentTypeOption>(
+  EQUIPMENT_CATEGORIES.map((item) => [item.key, item])
+)
+
+const pickEquipmentCategories = (keys: EquipmentType[]): EquipmentTypeOption[] =>
+  keys
+    .map((key) => EQUIPMENT_CATEGORY_BY_KEY.get(key))
+    .filter((item): item is EquipmentTypeOption => Boolean(item))
+
+export const EQUIPMENT_CATEGORY_GROUPS: EquipmentCategoryGroup[] = [
+  {
+    title: 'الحفر والتحميل',
+    items: pickEquipmentCategories(['EXCAVATOR', 'LOADER', 'BULLDOZER']),
+  },
+  {
+    title: 'الرفع',
+    items: pickEquipmentCategories(['CRANE', 'FORKLIFT']),
+  },
+  {
+    title: 'الشاحنات والنقل',
+    items: pickEquipmentCategories(['TRUCK', 'DUMP_TRUCK', 'WATER_TANKER']),
+  },
+  {
+    title: 'الخرسانة والطاقة والورش',
+    items: pickEquipmentCategories([
+      'CONCRETE_MIXER',
+      'GENERATOR',
+      'COMPRESSOR',
+      'WELDING_MACHINE',
+    ]),
+  },
+  {
+    title: 'الموقع وأخرى',
+    items: pickEquipmentCategories(['SCAFFOLDING', 'LIGHT_EQUIPMENT', 'OTHER_EQUIPMENT']),
+  },
+]

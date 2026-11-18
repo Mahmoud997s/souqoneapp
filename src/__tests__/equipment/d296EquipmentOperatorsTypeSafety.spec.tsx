@@ -283,7 +283,7 @@ describe('D-296 Equipment & Operators Strict Type Safety & Behavioral Parity', (
 
   it('EquipmentStep1Type selects listing types and equipment categories cleanly', async () => {
     const onUpdateField = jest.fn()
-    const { getByText } = await render(
+    const { getByTestId, getByText } = await render(
       <EquipmentStep1Type
         formData={createBaseEquipmentForm()}
         errors={{}}
@@ -291,9 +291,11 @@ describe('D-296 Equipment & Operators Strict Type Safety & Behavioral Parity', (
       />
     )
 
+    await fireEvent.press(getByTestId('equipment-listing-type-select'))
     await fireEvent.press(getByText('معدة للإيجار'))
     expect(onUpdateField).toHaveBeenCalledWith('listingType', 'EQUIPMENT_RENT')
 
+    await fireEvent.press(getByTestId('equipment-category-select'))
     await fireEvent.press(getByText('رافعة / كرين'))
     expect(onUpdateField).toHaveBeenCalledWith('equipmentType', 'CRANE')
   })
