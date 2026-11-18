@@ -21,7 +21,6 @@ import { partsImageReconciliationAdapter } from '../../src/utils/imageReconcilia
 import { logWarn } from '../../src/utils/safeLog'
 
 import { Colors } from '../../src/constants/colors'
-import { Radius } from '../../src/constants/radius'
 import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
@@ -530,81 +529,90 @@ export default function NewPartListingScreen() {
           ]}
         />
 
-        <View style={[s.topBar, { paddingTop: getWizardContentPaddingTop(insets.top) }]}>
-          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-          <View style={s.stepHeaderRow}>
-            <Text style={s.stepTitle}>{getStepTitle()}</Text>
-            {!formData.editMode && (
-              <TouchableOpacity onPress={handleClearDraft} style={s.clearBtn}>
-                <Ionicons name="trash-outline" size={16} color={Colors.error} />
-                <Text style={s.clearBtnText}>مسح</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
         <ScrollView
           ref={scrollViewRef}
           style={s.scrollView}
-          contentContainerStyle={[s.scrollContent, { paddingBottom: Spacing.space8 + 80 }]}
+          contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={s.cardWrapper}>
-            {currentStep === 1 && (
-              <PartStep1Category
-                formData={formData}
-                errors={errors}
-                onUpdateField={setFormFieldAndClearError}
-              />
-            )}
+          {/* Stepper Header */}
+          <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} title={getStepTitle()} variant="light" />
 
-            {currentStep === 2 && (
-              <PartStep2Images
-                images={formData.images}
-                existingImages={formData.existingImages || []}
-                errors={errors}
-                isUploading={formLogic.isUploading}
-                onPickImages={formLogic.handlePickImages}
-                onRemoveNewImage={formLogic.handleRemoveNewImage}
-                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-              />
-            )}
-
-            {currentStep === 3 && (
-              <PartStep3Details
-                formData={formData}
-                errors={errors}
-                onUpdateField={setFormFieldAndClearError}
-              />
-            )}
-
-            {currentStep === 4 && (
-              <PartStep4Compatibility
-                formData={formData}
-                errors={errors}
-                onUpdateField={setFormFieldAndClearError}
-              />
-            )}
-
-            {currentStep === 5 && (
-              <PartStep5Pricing
-                formData={formData}
-                errors={errors}
-                onUpdateField={setFormFieldAndClearError}
-                onLocationChange={formLogic.handleLocationChange}
-              />
-            )}
-
-            {currentStep === 6 && (
-              <PartStep6Review
-                formData={formData}
-                onEditStep={goToStep}
-                brands={brands}
-              />
+          {/* Draft Auto-Save Bar */}
+          <View style={s.draftBar}>
+            <View style={s.draftBadge}>
+              <View style={s.draftIconWrap}>
+                <Ionicons name="cloud-done-outline" size={13} color={Colors.emerald} />
+              </View>
+              <Text style={s.draftBadgeTxt}>يتم حفظ مسودتك تلقائياً</Text>
+            </View>
+            {!formData.editMode && (
+              <TouchableOpacity
+                style={s.clearDraftBtn}
+                onPress={handleClearDraft}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={s.clearDraftTxt}>مسح والبدء من جديد</Text>
+              </TouchableOpacity>
             )}
           </View>
+
+          {currentStep === 1 && (
+            <PartStep1Category
+              formData={formData}
+              errors={errors}
+              onUpdateField={setFormFieldAndClearError}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <PartStep2Images
+              images={formData.images}
+              existingImages={formData.existingImages || []}
+              errors={errors}
+              isUploading={formLogic.isUploading}
+              onPickImages={formLogic.handlePickImages}
+              onRemoveNewImage={formLogic.handleRemoveNewImage}
+              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <PartStep3Details
+              formData={formData}
+              errors={errors}
+              onUpdateField={setFormFieldAndClearError}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <PartStep4Compatibility
+              formData={formData}
+              errors={errors}
+              onUpdateField={setFormFieldAndClearError}
+            />
+          )}
+
+          {currentStep === 5 && (
+            <PartStep5Pricing
+              formData={formData}
+              errors={errors}
+              onUpdateField={setFormFieldAndClearError}
+              onLocationChange={formLogic.handleLocationChange}
+            />
+          )}
+
+          {currentStep === 6 && (
+            <PartStep6Review
+              formData={formData}
+              onEditStep={goToStep}
+              brands={brands}
+            />
+          )}
         </ScrollView>
 
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>
@@ -658,53 +666,66 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.surface,
   },
-  topBar: {
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: Spacing.space2,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderColor: Colors.slateBorder,
+  scrollView: {
+    flex: 1,
   },
-  stepHeaderRow: {
+  content: {
+    paddingHorizontal: Spacing.space4 - 4,
+    paddingBottom: 120,
+  },
+  draftBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.space2,
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: Spacing.space3,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primaryDark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: { elevation: 1 },
+    }),
   },
-  stepTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+  draftBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  draftIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.inputBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  draftBadgeTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
     color: Colors.text,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  clearBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  clearDraftBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.errorSoft06,
   },
-  clearBtnText: {
-    fontSize: 13,
+  clearDraftTxt: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 15,
     color: Colors.error,
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.space4,
-  },
-  cardWrapper: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: Colors.slateBorder,
-    shadowColor: Colors.shadowBlack,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   footerBtnGroup: {
     flexDirection: 'row',
