@@ -208,7 +208,7 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
         <Svg width="100%" height="100%">
           <Defs>
             <Pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke={Colors.whiteAlpha20} strokeWidth="1" />
+              <Path d="M 40 0 L 0 0 0 40" fill="none" stroke={Colors.whiteAlpha05} strokeWidth="1" />
             </Pattern>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#grid)" />
@@ -222,15 +222,15 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
 const s = StyleSheet.create({
   banner: {
     backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
+    borderRadius: 16,
     paddingVertical: Spacing.space4,
     paddingHorizontal: Spacing.space5,
     marginBottom: Spacing.space2,
     borderWidth: 1,
-    borderColor: Colors.whiteAlpha20,
+    borderColor: Colors.whiteAlpha10,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.primaryDark,
+        shadowColor: Colors.shadowBlack,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
