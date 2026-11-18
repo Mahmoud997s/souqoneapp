@@ -34,7 +34,8 @@ import { logWarn } from '../../src/utils/safeLog'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
-import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { mapEquipmentBackendErrors } from '../../src/utils/wizardBackendErrors'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 import {
   uploadAndReconcileEquipmentImages,
@@ -50,23 +51,6 @@ import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
 
 const TOTAL_STEPS = 5
-
-function handleEquipmentMutationError(
-  err: unknown,
-  fallbackMessage: string,
-  onRetry?: () => void
-) {
-  const status = (err as { response?: { status?: number } })?.response?.status
-  if (status === 429) {
-    dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-    return
-  }
-  showPublishErrorDialog({
-    error: err,
-    fallbackMessage,
-    onRetry,
-  })
-}
 
 export default function NewEquipmentListingScreen() {
   const insets = useSafeAreaInsets()
@@ -269,7 +253,28 @@ export default function NewEquipmentListingScreen() {
           },
           onError: (err: unknown) => {
             submitLockRef.current = false
-            handleEquipmentMutationError(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات', executeSubmit)
+            handlePublishMutationError({
+              error: err,
+              isEdit: true,
+              fallbackMessage: 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات',
+              onRetry: executeSubmit,
+              onRefetchVersion: async () => {
+                const res = await equipmentApi.getById(formData.editListingId!)
+                const listing = ((res as { data?: { version?: number } })?.data ?? res) as { version?: number }
+                if (typeof listing?.version === 'number') {
+                  setFormData({ version: listing.version } as Partial<typeof formData>)
+                }
+              },
+              mapBackendErrors: mapEquipmentBackendErrors,
+              onFieldErrors: (fieldErrors, firstInvalidStep) => {
+                useEquipmentWizardStore.setState((state) => ({
+                  errors: { ...state.errors, ...fieldErrors },
+                }))
+                if (firstInvalidStep !== null) {
+                  goToStep(firstInvalidStep)
+                }
+              },
+            })
           },
         }
       )
@@ -289,7 +294,21 @@ export default function NewEquipmentListingScreen() {
         },
         onError: (err: unknown) => {
           submitLockRef.current = false
-          handleEquipmentMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات', executeSubmit)
+          handlePublishMutationError({
+            error: err,
+            isEdit: false,
+            fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+            onRetry: executeSubmit,
+            mapBackendErrors: mapEquipmentBackendErrors,
+            onFieldErrors: (fieldErrors, firstInvalidStep) => {
+              useEquipmentWizardStore.setState((state) => ({
+                errors: { ...state.errors, ...fieldErrors },
+              }))
+              if (firstInvalidStep !== null) {
+                goToStep(firstInvalidStep)
+              }
+            },
+          })
         },
       })
     }

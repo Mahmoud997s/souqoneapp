@@ -42,7 +42,8 @@ import { PartStep5Pricing } from '../../src/components/parts/wizard/PartStep5Pri
 import { PartStep6Review } from '../../src/components/parts/wizard/PartStep6Review'
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
-import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { mapPartBackendErrors } from '../../src/utils/wizardBackendErrors'
 
 const TOTAL_STEPS = 6
 
@@ -264,37 +265,46 @@ export default function NewPartListingScreen() {
               listingSaved: true,
             })
 
-            void invalidatePartListingQueries(queryClient, String(editId))
+            const targetId = String(editId)
+            void invalidatePartListingQueries(queryClient, targetId)
 
             if (reconRes.imagesComplete) {
               setPublishSuccess({
-                partId: String(editId),
+                partId: targetId,
                 isEdit: true,
                 isPartial: false,
               })
             } else {
               setPublishSuccess({
-                partId: String(editId),
+                partId: targetId,
                 isEdit: true,
                 isPartial: true,
                 failedCount: reconRes.failedOperations.length,
               })
             }
           },
-          onError: (err: any) => {
+          onError: (err: unknown) => {
             submitLockRef.current = false
-            if (err?.response?.status === 409) {
-              dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
-            } else if (err?.response?.status === 429) {
-              const msg = getPublishRateLimitErrorMessage(err)
-              dialogService.alert('خطأ', msg)
-            } else {
-              showPublishErrorDialog({
-                error: err,
-                fallbackMessage: 'تعذر تحديث بيانات القطعة، يرجى التحقق من المدخلات',
-                onRetry: handleSubmit,
-              })
-            }
+            handlePublishMutationError({
+              error: err,
+              isEdit: true,
+              fallbackMessage: 'تعذر تحديث بيانات القطعة، يرجى التحقق من المدخلات',
+              onRetry: handleSubmit,
+              onRefetchVersion: async () => {
+                const res = await partsApi.getById(editId)
+                const listing = ((res as { data?: { version?: number } })?.data ?? res) as { version?: number }
+                if (typeof listing?.version === 'number') {
+                  setField('version', listing.version)
+                }
+              },
+              mapBackendErrors: mapPartBackendErrors,
+              onFieldErrors: (fieldErrors, firstInvalidStep) => {
+                setErrors((prev) => ({ ...prev, ...fieldErrors }))
+                if (firstInvalidStep !== null) {
+                  goToStep(firstInvalidStep)
+                }
+              },
+            })
           },
         }
       )
@@ -342,20 +352,21 @@ export default function NewPartListingScreen() {
             })
           }
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           submitLockRef.current = false
-          if (err?.response?.status === 409) {
-            dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
-          } else if (err?.response?.status === 429) {
-            const msg = getPublishRateLimitErrorMessage(err)
-            dialogService.alert('خطأ', msg)
-          } else {
-            showPublishErrorDialog({
-              error: err,
-              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
-              onRetry: handleSubmit,
-            })
-          }
+          handlePublishMutationError({
+            error: err,
+            isEdit: false,
+            fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+            onRetry: handleSubmit,
+            mapBackendErrors: mapPartBackendErrors,
+            onFieldErrors: (fieldErrors, firstInvalidStep) => {
+              setErrors((prev) => ({ ...prev, ...fieldErrors }))
+              if (firstInvalidStep !== null) {
+                goToStep(firstInvalidStep)
+              }
+            },
+          })
         },
       })
     }

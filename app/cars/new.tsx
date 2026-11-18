@@ -32,7 +32,7 @@ import { logWarn } from '../../src/utils/safeLog'
 import { invalidateCarListingQueries } from '../../src/utils/listing-detail/queryKeys'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
-import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
@@ -253,56 +253,40 @@ export default function NewCarListingScreen() {
               logWarn('CarsNew:UpdateImages', err)
             }
 
-            await invalidateCarListingQueries(queryClient, formData.editListingId)
+            const targetId = formData.editListingId!
+            await invalidateCarListingQueries(queryClient, targetId)
+            resetForm()
 
             setPublishSuccess({
-              listingId: formData.editListingId!,
+              listingId: targetId,
               isEdit: true,
               subtitle: imagesSuccess
                 ? 'تم تحديث بيانات السيارة بنجاح في سوق ون.'
                 : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يمكنك مراجعتها من شاشة الإعلان.',
             })
           },
-          onError: (err: any) => {
+          onError: (err: unknown) => {
             submitLockRef.current = false
-            if (err?.response?.status === 409) {
-              dialogService.confirm(
-                'تحديث مطلوب',
-                'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
-                async () => {
-                  try {
-                    const res = await listingsApi.getById(formData.editListingId!)
-                    const listing: any = res.data ?? res
-                    updateField('version', listing.version)
-                    dialogService.alert('تم', 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.', 'success')
-                  } catch (e) {
-                    dialogService.alert('خطأ', 'تعذر جلب البيانات.')
-                  }
-                },
-                'تحديث الآن',
-                'إلغاء'
-              )
-            } else if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-            } else if (err?.response?.status === 400) {
-              const mapped = mapCarBackendErrors(err?.response?.data)
-              if (Object.keys(mapped.fieldErrors).length > 0) {
-                setErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
-                if (mapped.firstInvalidStep !== null) {
-                  setStep(mapped.firstInvalidStep)
+            handlePublishMutationError({
+              error: err,
+              isEdit: true,
+              fallbackMessage: 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات',
+              onRetry: handleSubmit,
+              onRefetchVersion: async () => {
+                const res = await listingsApi.getById(formData.editListingId!)
+                const listing = ((res as { data?: { version?: number } })?.data ?? res) as { version?: number }
+                if (typeof listing?.version === 'number') {
+                  updateField('version', listing.version)
                 }
-                const firstMsg = Object.values(mapped.fieldErrors)[0]
-                dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
-              } else {
-                dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات'))
-              }
-            } else {
-              showPublishErrorDialog({
-                error: err,
-                fallbackMessage: 'تعذر تحديث الإعلان، يرجى التحقق من المدخلات',
-                onRetry: handleSubmit,
-              })
-            }
+              },
+              mapBackendErrors: mapCarBackendErrors,
+              onFieldErrors: (fieldErrors, firstInvalidStep) => {
+                setErrors((prev) => ({ ...prev, ...fieldErrors }))
+                if (firstInvalidStep !== null) {
+                  setStep(firstInvalidStep)
+                }
+              },
+            })
           },
         }
       )
@@ -312,36 +296,27 @@ export default function NewCarListingScreen() {
           submitLockRef.current = false
           const createdId = res?.data?.id || res?.id || ''
           await invalidateCarListingQueries(queryClient, createdId || undefined)
+          resetForm()
           setPublishSuccess({
             listingId: createdId,
             isEdit: false,
           })
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           submitLockRef.current = false
-          if (err?.response?.status === 409) {
-            dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
-          } else if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-          } else if (err?.response?.status === 400) {
-            const mapped = mapCarBackendErrors(err?.response?.data)
-            if (Object.keys(mapped.fieldErrors).length > 0) {
-              setErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
-              if (mapped.firstInvalidStep !== null) {
-                setStep(mapped.firstInvalidStep)
+          handlePublishMutationError({
+            error: err,
+            isEdit: false,
+            fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+            onRetry: handleSubmit,
+            mapBackendErrors: mapCarBackendErrors,
+            onFieldErrors: (fieldErrors, firstInvalidStep) => {
+              setErrors((prev) => ({ ...prev, ...fieldErrors }))
+              if (firstInvalidStep !== null) {
+                setStep(firstInvalidStep)
               }
-              const firstMsg = Object.values(mapped.fieldErrors)[0]
-              dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
-            } else {
-              dialogService.alert('خطأ', getMutationErrorMessage(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'))
-            }
-          } else {
-            showPublishErrorDialog({
-              error: err,
-              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
-              onRetry: handleSubmit,
-            })
-          }
+            },
+          })
         },
       })
     }
