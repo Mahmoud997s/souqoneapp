@@ -360,6 +360,7 @@ export default function NewServiceListingScreen() {
             } else {
               void invalidateServiceListingQueries(queryClient)
             }
+            reset()
             setPublishSuccess({
               serviceId: targetId,
               isEdit: true,
@@ -383,6 +384,7 @@ export default function NewServiceListingScreen() {
           } else {
             void invalidateServiceListingQueries(queryClient)
           }
+          reset()
           setPublishSuccess({
             serviceId,
             isEdit: false,

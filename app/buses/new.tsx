@@ -36,7 +36,8 @@ import { logWarn } from '../../src/utils/safeLog'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
-import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
+import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { mapBusBackendErrors } from '../../src/utils/wizardBackendErrors'
 
 import { BusStep1TypeCategory } from '../../src/components/buses/wizard/BusStep1TypeCategory'
 import { BusStep2Images } from '../../src/components/buses/wizard/BusStep2Images'
@@ -302,22 +303,28 @@ export default function NewBusListingScreen() {
                 : 'تم حفظ التعديلات ولكن تعذر تحديث بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
             })
           },
-          onError: (err: any) => {
+          onError: (err: unknown) => {
             submitLockRef.current = false
-            if (isOptimisticLockError(err)) {
-              dialogService.alert(
-                'تعارض في البيانات',
-                'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-              )
-            } else if (err?.response?.status === 429) {
-              dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-            } else {
-              showPublishErrorDialog({
-                error: err,
-                fallbackMessage: 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات',
-                onRetry: executeSubmit,
-              })
-            }
+            handlePublishMutationError({
+              error: err,
+              isEdit: true,
+              fallbackMessage: 'تعذر تحديث بيانات الحافلة، يرجى التحقق من المدخلات',
+              onRetry: executeSubmit,
+              onRefetchVersion: async () => {
+                const res = await busesApi.getById(editListingId)
+                const listing = ((res as { data?: { version?: number } })?.data ?? res) as { version?: number }
+                if (typeof listing?.version === 'number') {
+                  useBusWizardStore.setState({ editVersion: listing.version })
+                }
+              },
+              mapBackendErrors: mapBusBackendErrors,
+              onFieldErrors: (fieldErrors, firstInvalidStep) => {
+                setErrors({ ...useBusWizardStore.getState().errors, ...fieldErrors })
+                if (firstInvalidStep !== null) {
+                  setStep(firstInvalidStep)
+                }
+              },
+            })
           },
         }
       )
@@ -347,19 +354,21 @@ export default function NewBusListingScreen() {
               : 'تم نشر الحافلة ولكن تعذر ربط بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
           })
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           submitLockRef.current = false
-          if (err?.response?.status === 409) {
-            dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
-          } else if (err?.response?.status === 429) {
-            dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
-          } else {
-            showPublishErrorDialog({
-              error: err,
-              fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
-              onRetry: executeSubmit,
-            })
-          }
+          handlePublishMutationError({
+            error: err,
+            isEdit: false,
+            fallbackMessage: 'تعذر نشر الإعلان، يرجى التحقق من المدخلات',
+            onRetry: executeSubmit,
+            mapBackendErrors: mapBusBackendErrors,
+            onFieldErrors: (fieldErrors, firstInvalidStep) => {
+              setErrors({ ...useBusWizardStore.getState().errors, ...fieldErrors })
+              if (firstInvalidStep !== null) {
+                setStep(firstInvalidStep)
+              }
+            },
+          })
         },
       })
     }

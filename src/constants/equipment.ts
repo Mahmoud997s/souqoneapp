@@ -80,3 +80,5 @@ export const POPULAR_EQUIPMENT_FEATURES = [
   'نظام إطفاء ذاتي',
   'توصيل متوفر',
 ]
+
+export const MAX_EQUIPMENT_IMAGES = 10

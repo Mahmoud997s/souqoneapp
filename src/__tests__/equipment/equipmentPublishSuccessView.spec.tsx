@@ -308,10 +308,11 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await fireEvent.press(conflictSubmitBtn)
 
     await waitFor(() => {
+      expect(equipmentApi.getById).toHaveBeenCalledWith('eq-edit-789')
       expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
-        'error'
+        'تم',
+        'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.',
+        'success'
       )
     })
 
