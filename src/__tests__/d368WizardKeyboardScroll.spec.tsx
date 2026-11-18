@@ -56,7 +56,6 @@ describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky
   });
 
   it('WizardKeyboardScrollView scrolls ScrollView above keyboard + footer when input focuses and keyboard opens', async () => {
-    jest.useFakeTimers();
     const scrollToMock = jest.fn();
     jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
 
@@ -94,10 +93,10 @@ describe('D-368: Wizard keyboard scroll to focused field above keyboard + sticky
       (scrollRef.current as unknown as { measureInWindow: (cb: (x: number, y: number, w: number, h: number) => void) => void }).measureInWindow = (cb) => cb(0, 100, 390, 700);
     }
 
-    act(() => {
+    await act(async () => {
       fireEvent.press(getByTestId('trigger-focus'));
       keyboardDidShowCb?.({ endCoordinates: { height: 336 } });
-      jest.advanceTimersByTime(100);
+      await new Promise((resolve) => setTimeout(resolve, 80));
     });
 
     expect(scrollToMock).toHaveBeenCalledWith(
