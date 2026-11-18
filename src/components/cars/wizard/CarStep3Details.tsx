@@ -317,6 +317,7 @@ export function CarStep3Details({
 
         {formData.listingType !== 'WANTED' && formData.condition !== 'NEW' && (
           <AppInput
+            glass
             label="الممشى (كم) *"
             placeholder="أدخل المسافة المقطوعة"
             value={formData.mileage}
@@ -457,6 +458,7 @@ export function CarStep3Details({
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <AppInput
+              glass
               label="سعة المحرك (CC)"
               placeholder="مثال: 1600"
               value={formData.engineSize}
@@ -467,6 +469,7 @@ export function CarStep3Details({
           </View>
           <View style={s.flex1}>
             <AppInput
+              glass
               label="الأحصنة"
               placeholder="مثال: 150"
               value={formData.horsepower}
@@ -480,6 +483,7 @@ export function CarStep3Details({
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <AppInput
+              glass
               label="الأبواب"
               placeholder="مثال: 4"
               value={formData.doors}
@@ -490,6 +494,7 @@ export function CarStep3Details({
           </View>
           <View style={s.flex1}>
             <AppInput
+              glass
               label="المقاعد"
               placeholder="مثال: 5"
               value={formData.seats}

@@ -43,6 +43,7 @@ export function EquipmentStep4Location({
         {isSale && (
           <>
             <AppInput
+              glass
               label="سعر البيع الإجمالي (ر.ع) *"
               placeholder="مثال: 18500"
               keyboardType="numeric"
@@ -71,6 +72,7 @@ export function EquipmentStep4Location({
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الأجر اليومي (ر.ع)"
                   placeholder="مثال: 45"
                   keyboardType="numeric"
@@ -81,6 +83,7 @@ export function EquipmentStep4Location({
               </View>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الأجر الشهري (ر.ع)"
                   placeholder="مثال: 950"
                   keyboardType="numeric"
@@ -123,6 +126,7 @@ export function EquipmentStep4Location({
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الميزانية كحد أدنى (ر.ع)"
                   placeholder="مثال: 200"
                   keyboardType="numeric"
@@ -133,6 +137,7 @@ export function EquipmentStep4Location({
               </View>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الميزانية كحد أقصى (ر.ع) *"
                   placeholder="مثال: 800"
                   keyboardType="numeric"
@@ -146,6 +151,7 @@ export function EquipmentStep4Location({
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="العدد / الكمية المطلوبة *"
                   placeholder="مثال: 2"
                   keyboardType="numeric"
@@ -156,6 +162,7 @@ export function EquipmentStep4Location({
               </View>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="مدة العمل المطلوبة"
                   placeholder="مثال: 3 أشهر"
                   value={formData.rentalDuration}

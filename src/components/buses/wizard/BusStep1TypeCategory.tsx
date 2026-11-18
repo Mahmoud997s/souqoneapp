@@ -119,6 +119,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
       {/* 1. Listing Type */}
       <WizardCard title="نوع الإعلان *" subtitle="حدد الغرض من الإعلان">
         <WizardSelectField
+          glass
           testID="bus-listing-type-select"
           value={data.busListingType}
           placeholder="اختر نوع الإعلان"
@@ -132,6 +133,7 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
       {/* 2. Bus Type (Category) */}
       <WizardCard title="فئة الحافلة *" subtitle="اختر السعة والحجم المناسب للحافلة">
         <WizardSelectField
+          glass
           testID="bus-type-select"
           value={data.busType}
           placeholder="اختر فئة الحافلة"

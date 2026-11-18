@@ -29,6 +29,7 @@ export function PartStep5Pricing({
         subtitle="أدخل سعر البيع المطلوب بالريال العماني"
       >
         <AppInput
+          glass
           label="السعر المطلوب (ر.ع) *"
           placeholder="أدخل السعر بالريال"
           keyboardType="numeric"

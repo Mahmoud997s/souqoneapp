@@ -59,6 +59,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
           >
             <View style={s.priceInputWrap}>
               <AppInput
+                glass
                 label="السعر المطلوب (ر.ع) *"
                 placeholder="أدخل السعر بالريال"
                 keyboardType="numeric"
@@ -125,6 +126,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
           subtitle="أدخل السعر اليومي أو الشهري كقيمة استرشادية للمستأجرين"
         >
           <AppInput
+            glass
             label="سعر الإيجار اليومي (ر.ع)"
             placeholder="مثال: 50 (اختياري)"
             keyboardType="numeric"
@@ -136,6 +138,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
           />
 
           <AppInput
+            glass
             label="سعر الإيجار الشهري (ر.ع)"
             placeholder="مثال: 800 (اختياري)"
             keyboardType="numeric"
@@ -179,6 +182,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
             subtitle="أدخل سعر بيع الحافلة متضمنة عقد التشغيل القائم"
           >
             <AppInput
+              glass
               label="سعر البيع المطلوب (ر.ع) *"
               placeholder="أدخل السعر الإجمالي بالريال"
               keyboardType="numeric"
@@ -239,6 +243,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
           >
             <View>
               <WizardSelectField
+                glass
                 testID="bus-contract-type-select"
                 label="نوع العقد *"
                 value={data.contractType}
@@ -257,6 +262,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
             </View>
 
             <AppInput
+              glass
               label="الجهة المتعاقد معها *"
               placeholder="مثال: مدرسة الشروق / شركة النقل"
               value={data.contractClient}
@@ -267,6 +273,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
             />
 
             <AppInput
+              glass
               label="الدخل الشهري للعقد (ر.ع) *"
               placeholder="مثال: 450"
               keyboardType="numeric"
@@ -278,6 +285,7 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
             />
 
             <AppInput
+              glass
               label="المدة المتبقية للعقد (بالأشهر) *"
               placeholder="مثال: 12"
               keyboardType="numeric"

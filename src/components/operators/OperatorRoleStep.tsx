@@ -138,6 +138,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
       {/* Grouped Info Card */}
       <WizardCard title="التفاصيل المهنية *" subtitle="عنوان الإعلان ونبذة عن خبراتك">
         <AppInput
+          glass
           label="عنوان الإعلان / المسمى المهني *"
           placeholder={formatRtlPlaceholder('مثال: مشغل معدات ثقيلة وبلدوزر خبرة 10 سنوات')}
           value={formData.title}
@@ -147,6 +148,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
         />
 
         <AppInput
+          glass
           label="سنوات الخبرة الإجمالية *"
           placeholder={formatRtlPlaceholder('مثال: 8')}
           keyboardType="numeric"
@@ -156,6 +158,7 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
         />
 
         <AppInput
+          glass
           label="نبذة عن الخبرات والمهام السابقة *"
           placeholder="اكتب نبذة توضح المشاريع السابقة، ساعات التوفر..."
           value={formData.description}

@@ -43,6 +43,7 @@ export function CarStep4Location({
         {(isSale || isWanted) && (
           <>
             <AppInput
+              glass
               label={isWanted ? "الميزانية المتوقعة (ر.ع) *" : "سعر البيع (ر.ع) *"}
               placeholder="أدخل المبلغ بالريال"
               keyboardType="numeric"
@@ -72,6 +73,7 @@ export function CarStep4Location({
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الإيجار اليومي (ر.ع)"
                   placeholder="أدخل الإيجار اليومي"
                   keyboardType="numeric"
@@ -83,6 +85,7 @@ export function CarStep4Location({
               </View>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="الإيجار الشهري (ر.ع)"
                   placeholder="أدخل الإيجار الشهري"
                   keyboardType="numeric"
@@ -97,6 +100,7 @@ export function CarStep4Location({
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="أقل عدد أيام للإيجار"
                   placeholder="أدخل عدد الأيام"
                   keyboardType="numeric"
@@ -107,6 +111,7 @@ export function CarStep4Location({
               </View>
               <View style={{ flex: 1 }}>
                 <AppInput
+                  glass
                   label="مبلغ التأمين المسترد (ر.ع)"
                   placeholder="أدخل مبلغ التأمين"
                   keyboardType="numeric"
@@ -119,6 +124,7 @@ export function CarStep4Location({
             
             <View style={{ marginBottom: Spacing.space3 }}>
               <AppInput
+                glass
                 label="الحد اليومي المسموح (كم)"
                 placeholder="أدخل المسافة بالكيلومتر"
                 keyboardType="numeric"

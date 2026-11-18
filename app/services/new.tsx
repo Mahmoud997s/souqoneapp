@@ -599,7 +599,7 @@ export default function NewServiceListingScreen() {
             <View style={s.footerBtnGroup}>
               <AppButton
                 title="السابق"
-                variant="outline"
+                variant="glass"
                 size="sm"
                 onPress={handlePrev}
                 style={s.prevBtn}
@@ -649,13 +649,13 @@ const s = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.space4 - 4,
-    paddingBottom: 120,
+    paddingBottom: 136,
   },
   draftBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.inputBg,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 14,
@@ -681,7 +681,7 @@ const s = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: Colors.inputBg,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },

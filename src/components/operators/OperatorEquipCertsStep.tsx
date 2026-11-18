@@ -154,6 +154,7 @@ export function OperatorEquipCertsStep({
         <View style={s.addInputRow}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               placeholder="مثال: رخصة قيادة ثقيلة (عمان)"
               value={tempCert}
               onChangeText={setTempCert}
@@ -197,6 +198,7 @@ export function OperatorEquipCertsStep({
         <View style={s.addInputRow}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               placeholder="مثال: حفر الخنادق العميقة"
               value={tempSpec}
               onChangeText={setTempSpec}

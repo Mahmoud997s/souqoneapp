@@ -34,6 +34,7 @@ export function EquipmentStep3Details({
         <View style={s.row}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="الماركة / الشركة *"
               placeholder="مثال: CAT / Komatsu"
               value={formData.make}
@@ -44,6 +45,7 @@ export function EquipmentStep3Details({
           </View>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="الموديل / الطراز *"
               placeholder="مثال: PC200-8 / WA900"
               value={formData.model}
@@ -65,6 +67,7 @@ export function EquipmentStep3Details({
           </View>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="ساعات التشغيل (ساعة)"
               placeholder={formatRtlPlaceholder('مثال: 4500')}
               keyboardType="numeric"
@@ -117,6 +120,7 @@ export function EquipmentStep3Details({
         <View style={s.row}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="سعة الحفر / الحمولة"
               placeholder="مثال: 1.2 م³ أو 25 طن"
               value={formData.capacity}
@@ -127,6 +131,7 @@ export function EquipmentStep3Details({
           </View>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="القوة الحصانية / المحرك"
               placeholder={formatRtlPlaceholder('مثال: 160 HP')}
               value={formData.power}
@@ -138,6 +143,7 @@ export function EquipmentStep3Details({
         </View>
 
         <AppInput
+          glass
           label="الوزن التشغيلي الإجمالي"
           placeholder={formatRtlPlaceholder('مثال: 21,500 كجم')}
           value={formData.weight}
@@ -177,6 +183,7 @@ export function EquipmentStep3Details({
         <View style={s.addCustomRow}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               placeholder="أو اكتب ميزة إضافية (مثال: جاك همر، بوم طويل)"
               value={customFeatureInput}
               onChangeText={onChangeCustomFeatureInput}

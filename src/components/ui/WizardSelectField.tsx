@@ -19,6 +19,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
+import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 
 export interface WizardSelectOption {
@@ -42,6 +44,7 @@ export interface WizardSelectFieldProps {
   error?: string
   errorTestID?: string
   disabled?: boolean
+  glass?: boolean
   testID?: string
 }
 
@@ -61,6 +64,7 @@ export function WizardSelectField({
   error,
   errorTestID,
   disabled = false,
+  glass = false,
   testID,
 }: WizardSelectFieldProps) {
   const reducedMotion = useAppReducedMotion()
@@ -181,7 +185,7 @@ export function WizardSelectField({
       <TouchableOpacity
         key={opt.value}
         testID={opt.testID}
-        style={[s.optionRow, isSelected && s.optionRowSelected]}
+        style={[s.optionRow, glass && s.optionRowGlass, isSelected && s.optionRowSelected]}
         onPress={() => handleSelectOption(opt.value)}
         activeOpacity={0.75}
         accessibilityRole="radio"
@@ -208,11 +212,19 @@ export function WizardSelectField({
       <View
         style={[
           s.container,
+          glass && s.containerGlass,
           error && !isOpen ? s.containerError : null,
           isOpen ? s.containerOpen : null,
           disabled ? s.containerDisabled : null,
         ]}
       >
+        {glass ? (
+          <TopBarGlassSurface
+            testID={testID ? `${testID}-glass` : 'wizard-select-glass'}
+            kind="ice-control"
+            borderRadius={Radius.md}
+          />
+        ) : null}
         <TouchableOpacity
           testID={testID}
           style={s.headerRow}
@@ -285,6 +297,10 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     overflow: 'hidden',
   },
+  containerGlass: {
+    backgroundColor: Colors.transparent,
+    borderColor: TopBarTokens.buttonBorderColor,
+  },
   containerOpen: {
     borderColor: Colors.primary,
   },
@@ -344,6 +360,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.space2,
+  },
+  optionRowGlass: {
+    backgroundColor: Colors.transparent,
   },
   optionRowSelected: {
     backgroundColor: Colors.paleMint,

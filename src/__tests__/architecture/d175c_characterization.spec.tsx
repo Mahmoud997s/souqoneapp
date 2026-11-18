@@ -170,7 +170,7 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </WizardStickyFooter>
       )
 
-      const innerGlass = getByTestId('test-sticky-footer-surface-glass-liquid')
+      const innerGlass = getByTestId('test-sticky-footer-glass-glass-glass-liquid')
       expect(innerGlass).toBeTruthy()
       assertNoOpacityInAncestry(innerGlass)
     })
@@ -187,7 +187,7 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </View>
       )
 
-      const innerGlass = getByTestId('test-sticky-footer-teeth-surface-glass-liquid')
+      const innerGlass = getByTestId('test-sticky-footer-teeth-glass-glass-glass-liquid')
       expect(() => assertNoOpacityInAncestry(innerGlass)).toThrow(
         /Detected opacity: 0.5 in ancestry/
       )
@@ -209,8 +209,8 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
   })
 
   describe('4. WizardCard Component', () => {
-    it('renders liquid GlassView on liquid branch and has no opacity in ancestry', async () => {
-      const { getByTestId } = await render(
+    it('renders solid app-colour container without glass overlay (D-358)', async () => {
+      const { getByTestId, queryByTestId } = await render(
         <WizardCard
           testID="test-wizard-card"
           title="بيانات الإعلان"
@@ -220,9 +220,9 @@ describe('D-175c Characterization & Architectural Guard Tests', () => {
         </WizardCard>
       )
 
-      const innerGlass = getByTestId('test-wizard-card-surface-glass-liquid')
-      expect(innerGlass).toBeTruthy()
-      assertNoOpacityInAncestry(innerGlass)
+      const card = getByTestId('test-wizard-card')
+      expect(card).toBeTruthy()
+      expect(queryByTestId('test-wizard-card-surface-glass-liquid')).toBeNull()
     })
   })
 

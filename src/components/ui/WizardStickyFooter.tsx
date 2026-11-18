@@ -1,16 +1,18 @@
 import React from 'react'
 import { StyleSheet, View, Platform, type StyleProp, type ViewStyle } from 'react-native'
-import { GlassSurface } from '../navigation/glassSupport'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { Colors } from '../../constants/colors'
+import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 
-const WIZARD_FOOTER_PADDING_TOP = 10
+const WIZARD_FOOTER_PADDING_VERTICAL = Spacing.space2 + 2
 /** Matches `AppButton` `size="sm"` height (`src/components/ui/AppButton.tsx:47`). */
 const WIZARD_FOOTER_BUTTON_HEIGHT = 38
-/** Content height above `paddingBottom` for `WizardStickyFooter`. */
+const WIZARD_FOOTER_BOTTOM_LIFT = Spacing.space3
+/** Content height above `paddingBottom` for floating `WizardStickyFooter`. */
 export const WIZARD_STICKY_FOOTER_CONTENT_HEIGHT =
-  WIZARD_FOOTER_PADDING_TOP + WIZARD_FOOTER_BUTTON_HEIGHT
+  WIZARD_FOOTER_PADDING_VERTICAL * 2 + WIZARD_FOOTER_BUTTON_HEIGHT + WIZARD_FOOTER_BOTTOM_LIFT
 
 export interface WizardStickyFooterProps {
   paddingBottom: number
@@ -25,24 +27,21 @@ export function WizardStickyFooter({
   testID = 'wizard-sticky-footer',
   style,
 }: WizardStickyFooterProps) {
+  const bottomOffset = Math.max(paddingBottom, Spacing.space3)
   return (
     <View
       testID={testID}
       style={[
         s.footer,
-        { paddingBottom },
+        { bottom: bottomOffset },
         style,
       ]}
     >
-      <GlassSurface
-        testID={`${testID}-surface`}
-        variant="surface"
-        noBorder
-        intensity={60}
-        washColor={Colors.white}
-        washOpacity={BottomBarTokens.lightWashOpacity}
+      <TopBarGlassSurface
+        testID={`${testID}-glass`}
+        kind="background"
+        borderRadius={Radius.lg}
       />
-      <View style={s.footerTint} pointerEvents="none" />
       {children}
     </View>
   )
@@ -51,23 +50,18 @@ export function WizardStickyFooter({
 const s = StyleSheet.create({
   footer: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: Spacing.space3,
+    right: Spacing.space3,
     overflow: 'hidden',
-    borderTopWidth: 1,
-    borderTopColor: BottomBarTokens.borderColor,
-    paddingHorizontal: Spacing.space4,
-    paddingTop: WIZARD_FOOTER_PADDING_TOP,
-    backgroundColor: 'transparent',
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: BottomBarTokens.borderColor,
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: WIZARD_FOOTER_PADDING_VERTICAL,
+    backgroundColor: Colors.transparent,
     ...Platform.select({
-      ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.05, shadowRadius: 6 },
+      ios: { shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10 },
       android: { elevation: 8 },
     }),
-  },
-  footerTint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
 })

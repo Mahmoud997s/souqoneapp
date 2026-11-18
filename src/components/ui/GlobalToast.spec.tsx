@@ -154,7 +154,7 @@ describe('GlobalToast', () => {
     expect(computeGlobalToastBottomOffset({ pathname: '/', bottomInset: 34 })).toBe(102)
     expect(computeGlobalToastBottomOffset({ pathname: '/cars/browse', bottomInset: 34 })).toBe(102)
     expect(computeGlobalToastBottomOffset({ pathname: '/cars/abc', bottomInset: 34 })).toBe(111)
-    expect(computeGlobalToastBottomOffset({ pathname: '/cars/new', bottomInset: 34 })).toBe(94)
+    expect(computeGlobalToastBottomOffset({ pathname: '/cars/new', bottomInset: 34 })).toBe(116)
     expect(computeGlobalToastBottomOffset({ pathname: '/chat/r1', bottomInset: 34 })).toBe(118)
     expect(computeGlobalToastBottomOffset({ pathname: '/profile/settings', bottomInset: 34 })).toBe(50)
 
@@ -162,7 +162,7 @@ describe('GlobalToast', () => {
     expect(computeGlobalToastBottomOffset({ pathname: '/', bottomInset: 0 })).toBe(84)
     expect(computeGlobalToastBottomOffset({ pathname: '/cars/browse', bottomInset: 0 })).toBe(80)
     expect(computeGlobalToastBottomOffset({ pathname: '/cars/abc', bottomInset: 0 })).toBe(89)
-    expect(computeGlobalToastBottomOffset({ pathname: '/cars/new', bottomInset: 0 })).toBe(72)
+    expect(computeGlobalToastBottomOffset({ pathname: '/cars/new', bottomInset: 0 })).toBe(94)
     expect(computeGlobalToastBottomOffset({ pathname: '/chat/r1', bottomInset: 0 })).toBe(96)
     expect(computeGlobalToastBottomOffset({ pathname: '/profile/settings', bottomInset: 0 })).toBe(28)
 
