@@ -27,6 +27,6 @@ export const PublicProfileTokens = {
   avatarFallbackLineHeight: 30,
   actionHeight: 44,
   actionRadius: 22,
-  tabsMinHeight: 36,
+  tabsMinHeight: 34,
   actionGradient: [Colors.primary, Colors.primaryDark] as const,
 } as const
