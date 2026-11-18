@@ -6,7 +6,7 @@ import {
   VisualFilterTab,
   isSegmentedTabsFixed,
 } from '../VisualFiltersBase';
-import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens } from '../../../constants/filterGlassTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -164,9 +164,10 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     expect(unselectedContainer?.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: FilterGlassTokens.card.bg,
-          borderColor: FilterGlassTokens.card.borderColor,
-          borderWidth: FilterGlassTokens.card.borderWidth,
+          backgroundColor: SoftTactileTokens.raised.bg,
+          borderTopColor: SoftTactileTokens.raised.borderTopColor,
+          borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+          borderWidth: SoftTactileTokens.raised.borderWidth,
           borderRadius: FilterGlassTokens.card.borderRadius,
         }),
       ])
@@ -177,7 +178,7 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     expect(selectedContainer?.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: FilterGlassTokens.card.selectedBg,
+          backgroundColor: SoftTactileTokens.insetCard.bg,
           borderColor: FilterGlassTokens.card.selectedBorderColor,
         }),
       ])

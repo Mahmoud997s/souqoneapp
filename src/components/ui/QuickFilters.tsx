@@ -3,9 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
-import { FilterGlassSurface } from './FilterGlassSurface';
 import { type GlassSupport } from '../navigation/glassSupport';
 
 export interface QuickFilterItem {
@@ -22,13 +21,13 @@ export interface QuickFiltersProps {
   glassSupport?: GlassSupport;
 }
 
-export function QuickFilters({ filters, onFilterPress, onClearFilter, glassSupport }: QuickFiltersProps) {
+export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFiltersProps) {
   if (!filters || filters.length === 0) return null;
 
   return (
-    <View style={s.quickFiltersContainer}>
+    <View testID="quick-filters-container" style={s.quickFiltersContainer}>
       <PhysicalHorizontalTrack
-        minHeight={34}
+        minHeight={36}
         contentContainerStyle={s.quickFiltersContent}
       >
         {filters.map((qf) => {
@@ -39,11 +38,11 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter, glassSuppo
               key={qf.id}
               style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
             >
-              {!isActive && (
-                <FilterGlassSurface
-                  testID={`quick-filter-glass-${qf.id}`}
-                  borderRadius={FilterGlassTokens.chip.borderRadius}
-                  support={glassSupport}
+              {isActive && (
+                <View
+                  testID={`quick-filter-inset-${qf.id}`}
+                  pointerEvents="none"
+                  style={s.chipInsetOverlay}
                 />
               )}
               <TouchableOpacity
@@ -93,11 +92,12 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter, glassSuppo
 
 const s = StyleSheet.create({
   quickFiltersContainer: {
-    marginVertical: 4,
+    backgroundColor: SoftTactileTokens.surfaceBg,
+    paddingVertical: 4,
   },
   quickFiltersContent: {
     paddingHorizontal: Spacing.space4,
-    paddingVertical: 2,
+    paddingVertical: 3,
     gap: 6,
     alignItems: 'center',
   },
@@ -106,10 +106,21 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: FilterGlassTokens.chip.borderRadius,
-    backgroundColor: FilterGlassTokens.chip.bg,
-    borderWidth: FilterGlassTokens.chip.borderWidth,
-    borderColor: FilterGlassTokens.chip.borderColor,
-    ...FilterGlassTokens.chip.shadow,
+    backgroundColor: SoftTactileTokens.raised.bg,
+    borderWidth: SoftTactileTokens.raised.borderWidth,
+    borderTopColor: SoftTactileTokens.raised.borderTopColor,
+    borderLeftColor: SoftTactileTokens.raised.borderLeftColor,
+    borderRightColor: SoftTactileTokens.raised.borderRightColor,
+    borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+    ...SoftTactileTokens.raised.shadow,
+  },
+  chipInsetOverlay: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: FilterGlassTokens.chip.borderRadius,
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+    borderTopColor: SoftTactileTokens.insetActiveChip.innerTopLeftColor,
+    borderLeftColor: SoftTactileTokens.insetActiveChip.innerTopLeftColor,
   },
   chipPressableArea: {
     flexDirection: 'row',
@@ -131,18 +142,12 @@ const s = StyleSheet.create({
   },
   quickFilterChipActive: {
     backgroundColor: FilterGlassTokens.chip.activeBg,
-    borderColor: FilterGlassTokens.chip.activeBorderColor,
-    ...Platform.select({
-      ios: { 
-        shadowColor: Colors.primary, 
-        shadowOffset: { width: 0, height: 1 }, 
-        shadowOpacity: 0.15, 
-        shadowRadius: 3 
-      },
-      android: { 
-        elevation: 1 
-      },
-    }),
+    borderTopColor: SoftTactileTokens.insetActiveChip.borderTopColor,
+    borderLeftColor: SoftTactileTokens.insetActiveChip.borderLeftColor,
+    borderRightColor: SoftTactileTokens.insetActiveChip.borderRightColor,
+    borderBottomColor: SoftTactileTokens.insetActiveChip.borderBottomColor,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   quickFilterTxt: {
     fontFamily: FilterGlassTokens.chip.fontFamily,  

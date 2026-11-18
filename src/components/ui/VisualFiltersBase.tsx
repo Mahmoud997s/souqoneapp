@@ -1,26 +1,19 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
-  LayoutAnimation,
-  UIManager,
   StyleProp,
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { FilterGlassTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 import { FilterGlassSurface } from './FilterGlassSurface';
 import { type GlassSupport } from '../navigation/glassSupport';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export interface VisualFilterItemConfig {
   id: string;
@@ -88,6 +81,52 @@ export function isSegmentedTabsFixed(tabsCount: number): boolean {
   return tabsCount <= 3;
 }
 
+const VisualFilterItemCard = React.memo(function VisualFilterItemCard({
+  config,
+  activeColor,
+}: {
+  config: VisualFilterItemConfig;
+  activeColor: string;
+}) {
+  return (
+    <View
+      style={[
+        s.itemCard,
+        config.isSelected && s.itemCardSelected,
+        config.isSelected && { borderColor: activeColor },
+      ]}
+    >
+      {config.isSelected && (
+        <View
+          testID={`visual-filter-item-inset-${config.id}`}
+          pointerEvents="none"
+          style={s.itemInsetOverlay}
+        />
+      )}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={config.label}
+        accessibilityState={{ selected: Boolean(config.isSelected) }}
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+        style={s.itemCardInner}
+        onPress={config.onPress}
+      >
+        {config.icon}
+        <Text
+          style={[
+            s.itemLabel,
+            config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+          ]}
+          numberOfLines={1}
+        >
+          {config.label}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+});
+
 export function VisualFiltersBase<TTabId extends string = string>({
   tabs,
   activeTab: controlledActiveTab,
@@ -112,12 +151,21 @@ export function VisualFiltersBase<TTabId extends string = string>({
   const activeRows = currentTab?.rows ?? (currentItems.length >= 10 ? 2 : 1);
 
   const handleTabPress = (tabId: TTabId) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (controlledActiveTab === undefined) {
       setInternalActiveTab(tabId);
     }
     onTabChange?.(tabId);
   };
+
+  const columns = useMemo(() => {
+    if (!currentTab || currentItems.length === 0) return [];
+    const chunkSize = activeRows === 1 ? 1 : 2;
+    const result: (readonly VisualFilterItemLike[])[] = [];
+    for (let i = 0; i < currentItems.length; i += chunkSize) {
+      result.push(currentItems.slice(i, i + chunkSize));
+    }
+    return result;
+  }, [currentTab, currentItems, activeRows]);
 
   const renderSkeletonGrid = (rows: 1 | 2 = 2) => (
     <PhysicalHorizontalTrack minHeight={rows === 1 ? 42 : 86} contentContainerStyle={s.scrollContainer}>
@@ -156,17 +204,11 @@ export function VisualFiltersBase<TTabId extends string = string>({
 
     if (items.length === 0) return null;
 
-    const chunkSize = rows === 1 ? 1 : 2;
-    const columns = [];
-    for (let i = 0; i < items.length; i += chunkSize) {
-      columns.push(items.slice(i, i + chunkSize));
-    }
-
     return (
       <PhysicalHorizontalTrack
         resetKey={currentTab.id}
         dataLength={items.length}
-        minHeight={rows === 1 ? 42 : 86}
+        minHeight={rows === 1 ? 44 : 88}
         contentContainerStyle={s.scrollContainer}
       >
         {columns.map((col, colIdx) => {
@@ -190,44 +232,11 @@ export function VisualFiltersBase<TTabId extends string = string>({
                     };
 
                 return (
-                  <View
+                  <VisualFilterItemCard
                     key={config.id}
-                    style={[
-                      s.itemCard,
-                      config.isSelected && s.itemCardSelected,
-                      config.isSelected && { borderColor: activeColor },
-                    ]}
-                  >
-                    {!config.isSelected && (
-                      <FilterGlassSurface
-                        testID={`visual-filter-item-glass-${config.id}`}
-                        borderRadius={FilterGlassTokens.card.borderRadius}
-                        support={glassSupport}
-                      />
-                    )}
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel={config.label}
-                      accessibilityState={{ selected: Boolean(config.isSelected) }}
-                      // Effective itemCard target: visible height is 28pt (text-only) to 39pt (icon box).
-                      // hitSlop 8 top/bottom reaches 44pt to 55pt within PhysicalHorizontalTrack (minHeight 42/86pt).
-                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                      style={s.itemCardInner}
-                      onPress={config.onPress}
-                    >
-                      {config.icon}
-                      <Text
-                        style={[
-                          s.itemLabel,
-                          config.isSelected && [s.itemLabelSelected, { color: activeColor }],
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {config.label}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                    config={config}
+                    activeColor={activeColor}
+                  />
                 );
               })}
             </View>
@@ -239,11 +248,6 @@ export function VisualFiltersBase<TTabId extends string = string>({
             <View
               style={[s.itemCard, s.viewAllCard, rows === 1 && { height: 38 }]}
             >
-              <FilterGlassSurface
-                testID="visual-filter-view-all-glass"
-                borderRadius={FilterGlassTokens.card.borderRadius}
-                support={glassSupport}
-              />
               <TouchableOpacity
                 style={s.viewAllInner}
                 onPress={() => onViewAll(currentTab.id)}
@@ -435,27 +439,33 @@ const s = StyleSheet.create({
     fontFamily: FilterGlassTokens.tab.activeFontFamily,
   },
   contentArea: {
+    backgroundColor: SoftTactileTokens.surfaceBg,
     paddingTop: Spacing.space2,
+    paddingBottom: Spacing.space2,
   },
   contentAreaDoubleRow: {
-    minHeight: 86,
+    minHeight: 88,
   },
   contentAreaSingleRow: {
-    minHeight: 42,
+    minHeight: 44,
   },
   scrollContainer: {
     paddingHorizontal: Spacing.space4,
+    paddingVertical: 3,
     gap: 6,
   },
   column: {
     gap: 6,
   },
   itemCard: {
-    backgroundColor: FilterGlassTokens.card.bg,
+    backgroundColor: SoftTactileTokens.raised.bg,
     borderRadius: FilterGlassTokens.card.borderRadius,
-    borderWidth: FilterGlassTokens.card.borderWidth,
-    borderColor: FilterGlassTokens.card.borderColor,
-    ...FilterGlassTokens.card.shadow,
+    borderWidth: SoftTactileTokens.raised.borderWidth,
+    borderTopColor: SoftTactileTokens.raised.borderTopColor,
+    borderLeftColor: SoftTactileTokens.raised.borderLeftColor,
+    borderRightColor: SoftTactileTokens.raised.borderRightColor,
+    borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+    ...SoftTactileTokens.raised.shadow,
     minWidth: 95,
   },
   itemCardInner: {
@@ -466,8 +476,21 @@ const s = StyleSheet.create({
     gap: 6,
   },
   itemCardSelected: {
-    backgroundColor: FilterGlassTokens.card.selectedBg,
-    borderColor: FilterGlassTokens.card.selectedBorderColor,
+    backgroundColor: SoftTactileTokens.insetCard.bg,
+    borderTopColor: SoftTactileTokens.insetCard.borderTopColor,
+    borderLeftColor: SoftTactileTokens.insetCard.borderLeftColor,
+    borderRightColor: SoftTactileTokens.insetCard.borderRightColor,
+    borderBottomColor: SoftTactileTokens.insetCard.borderBottomColor,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  itemInsetOverlay: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: FilterGlassTokens.card.borderRadius,
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+    borderTopColor: SoftTactileTokens.insetCard.innerTopLeftColor,
+    borderLeftColor: SoftTactileTokens.insetCard.innerTopLeftColor,
   },
   itemLabel: {
     fontFamily: FilterGlassTokens.card.fontFamily,
