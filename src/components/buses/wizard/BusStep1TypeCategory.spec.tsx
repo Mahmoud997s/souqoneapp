@@ -74,6 +74,7 @@ describe('BusStep1TypeCategory', () => {
 
   it('renders all 3 listing type options', async () => {
     await render(<BusStep1TypeCategory {...defaultProps} />);
+    await fireEvent.press(screen.getByTestId('bus-listing-type-select'));
     expect(screen.getByTestId('listing-type-BUS_SALE')).toBeTruthy();
     expect(screen.getByTestId('listing-type-BUS_SALE_WITH_CONTRACT')).toBeTruthy();
     expect(screen.getByTestId('listing-type-BUS_RENT')).toBeTruthy();
@@ -81,6 +82,7 @@ describe('BusStep1TypeCategory', () => {
 
   it('renders all 5 bus type category options', async () => {
     await render(<BusStep1TypeCategory {...defaultProps} />);
+    await fireEvent.press(screen.getByTestId('bus-type-select'));
     expect(screen.getByTestId('bus-type-MINI_BUS')).toBeTruthy();
     expect(screen.getByTestId('bus-type-MEDIUM_BUS')).toBeTruthy();
     expect(screen.getByTestId('bus-type-LARGE_BUS')).toBeTruthy();
@@ -90,17 +92,19 @@ describe('BusStep1TypeCategory', () => {
 
   it('calls onUpdateField with correct key and value when a listing type is pressed', async () => {
     await render(<BusStep1TypeCategory {...defaultProps} />);
+    await fireEvent.press(screen.getByTestId('bus-listing-type-select'));
     const saleWithContractOption = screen.getByTestId('listing-type-BUS_SALE_WITH_CONTRACT');
-    
-    fireEvent.press(saleWithContractOption);
+
+    await fireEvent.press(saleWithContractOption);
     expect(mockOnUpdateField).toHaveBeenCalledWith('busListingType', 'BUS_SALE_WITH_CONTRACT');
   });
 
   it('calls onUpdateField with correct key and value when a bus category is pressed', async () => {
     await render(<BusStep1TypeCategory {...defaultProps} />);
+    await fireEvent.press(screen.getByTestId('bus-type-select'));
     const coasterOption = screen.getByTestId('bus-type-COASTER');
 
-    fireEvent.press(coasterOption);
+    await fireEvent.press(coasterOption);
     expect(mockOnUpdateField).toHaveBeenCalledWith('busType', 'COASTER');
   });
 

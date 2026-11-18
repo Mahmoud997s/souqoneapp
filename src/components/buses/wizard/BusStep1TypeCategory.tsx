@@ -1,10 +1,11 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import React, { useMemo } from 'react'
+import { View, Text, StyleSheet, Platform } from 'react-native'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { BusWizardData } from '../../../store/busWizardStore'
 
 export interface BusStep1Props {
@@ -82,6 +83,26 @@ export const BUS_TYPE_OPTIONS: BusTypeOption[] = [
 ]
 
 export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Props) {
+  const listingTypeOptions = useMemo(
+    () =>
+      BUS_LISTING_TYPE_OPTIONS.map((lt) => ({
+        value: lt.key,
+        label: lt.label,
+        testID: `listing-type-${lt.key}`,
+      })),
+    []
+  )
+
+  const busTypeOptions = useMemo(
+    () =>
+      BUS_TYPE_OPTIONS.map((cat) => ({
+        value: cat.id,
+        label: cat.label,
+        testID: `bus-type-${cat.id}`,
+      })),
+    []
+  )
+
   return (
     <View style={s.stepWrap}>
       {/* Intro banner */}
@@ -97,98 +118,28 @@ export function BusStep1TypeCategory({ data, errors, onUpdateField }: BusStep1Pr
 
       {/* 1. Listing Type */}
       <WizardCard title="نوع الإعلان *" subtitle="حدد الغرض من الإعلان">
-        {errors.busListingType ? (
-          <Text style={s.inlineErrorTxt} testID="error-bus-listing-type">
-            {errors.busListingType}
-          </Text>
-        ) : null}
-
-        <View style={s.listingTypesRow}>
-          {BUS_LISTING_TYPE_OPTIONS.map((lt) => {
-            const isSel = data.busListingType === lt.key
-            return (
-              <TouchableOpacity
-                key={lt.key}
-                testID={`listing-type-${lt.key}`}
-                style={[s.typeCard, isSel && s.typeCardActive]}
-                onPress={() => onUpdateField('busListingType', lt.key)}
-                activeOpacity={0.85}
-              >
-                <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
-                  <MaterialCommunityIcons
-                    name={lt.icon}
-                    size={20}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
-                  {lt.label}
-                </Text>
-                <Text style={[s.typeDesc, isSel && s.typeDescActive]} numberOfLines={2}>
-                  {lt.desc}
-                </Text>
-                {isSel && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={Colors.primary}
-                    style={s.typeCheckIcon}
-                  />
-                )}
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="bus-listing-type-select"
+          value={data.busListingType}
+          placeholder="اختر نوع الإعلان"
+          options={listingTypeOptions}
+          error={errors.busListingType}
+          errorTestID="error-bus-listing-type"
+          onSelect={(val) => onUpdateField('busListingType', val)}
+        />
       </WizardCard>
 
       {/* 2. Bus Type (Category) */}
       <WizardCard title="فئة الحافلة *" subtitle="اختر السعة والحجم المناسب للحافلة">
-        {errors.busType ? (
-          <Text style={s.inlineErrorTxt} testID="error-bus-type">
-            {errors.busType}
-          </Text>
-        ) : null}
-
-        <View style={s.gridWrap}>
-          {BUS_TYPE_OPTIONS.map((cat) => {
-            const isSel = data.busType === cat.id
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                testID={`bus-type-${cat.id}`}
-                style={[
-                  s.gridCard,
-                  isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : Colors.slateBorder },
-                ]}
-                onPress={() => onUpdateField('busType', cat.id)}
-                activeOpacity={0.7}
-              >
-                <View style={[s.gridIconWrap, isSel && s.gridIconWrapActive]}>
-                  <MaterialCommunityIcons
-                    name={cat.icon}
-                    size={22}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text style={[s.gridCardTxt, isSel && s.gridCardTxtActive]} numberOfLines={2}>
-                  {cat.label}
-                </Text>
-                <Text style={[s.gridCardSub, isSel && s.gridCardSubActive]} numberOfLines={1}>
-                  {cat.desc}
-                </Text>
-                {isSel && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={14}
-                    color={Colors.primary}
-                    style={s.gridCheckIcon}
-                  />
-                )}
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="bus-type-select"
+          value={data.busType}
+          placeholder="اختر فئة الحافلة"
+          options={busTypeOptions}
+          error={errors.busType}
+          errorTestID="error-bus-type"
+          onSelect={(val) => onUpdateField('busType', val)}
+        />
       </WizardCard>
     </View>
   )

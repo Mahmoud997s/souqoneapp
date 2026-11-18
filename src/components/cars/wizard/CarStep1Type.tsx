@@ -1,13 +1,13 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useMemo } from 'react'
+import { View, Text, StyleSheet, Platform } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
-import { CAR_LISTING_TYPES } from '../../../constants/cars'
-import { CarStep1Props } from '../../../types/carForm.types'
+import { WizardSelectField } from '../../ui/WizardSelectField'
+import { CarFormData, CarStep1Props } from '../../../types/carForm.types'
 
 export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props) {
   // Enhanced listing types with icons and descriptions
@@ -32,6 +32,16 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
     },
   ]
 
+  const listingTypeOptions = useMemo(
+    () =>
+      enrichedTypes.map((lt) => ({
+        value: lt.key,
+        label: lt.label,
+        testID: `listing-type-${lt.key}`,
+      })),
+    []
+  )
+
   return (
     <View style={s.stepWrap}>
       {/* Value proposition intro banner */}
@@ -46,35 +56,16 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
       </View>
 
       {/* 1. Listing Type Selection */}
-      <Text style={s.sectionLabel}>نوع الإعلان *</Text>
-      <Text style={s.sectionSub}>حدد الغرض من الإعلان لتخصيص الخيارات اللاحقة</Text>
-
-      {errors.listingType ? <Text style={s.inlineErrorTxt}>{errors.listingType}</Text> : null}
-
-      <View style={s.listingTypesRow}>
-        {enrichedTypes.map((lt) => {
-          const isSel = formData.listingType === lt.key
-          return (
-            <TouchableOpacity
-              key={lt.key}
-              style={[s.typeCard, isSel && s.typeCardActive]}
-              onPress={() => onUpdateField('listingType', lt.key)}
-              activeOpacity={0.85}
-            >
-              <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
-                <MaterialCommunityIcons
-                  name={lt.icon as any}
-                  size={20}
-                  color={isSel ? Colors.white : Colors.primary}
-                />
-              </View>
-              <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
-                {lt.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+      <WizardCard title="نوع الإعلان *" subtitle="حدد الغرض من الإعلان لتخصيص الخيارات اللاحقة">
+        <WizardSelectField
+          testID="car-listing-type-select"
+          value={formData.listingType}
+          placeholder="اختر نوع الإعلان"
+          options={listingTypeOptions}
+          error={errors.listingType}
+          onSelect={(val) => onUpdateField('listingType', val as CarFormData['listingType'])}
+        />
+      </WizardCard>
 
       {/* 2. Basic Information Card */}
       <WizardCard title="بيانات الإعلان الأساسية *" subtitle="اكتب عنواناً ووصفاً وافياً يجذب الانتباه">

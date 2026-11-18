@@ -229,6 +229,9 @@ describe('BusStep4Pricing', () => {
 
       expect(screen.getByTestId('price-input')).toBeTruthy()
       expect(screen.getByTestId('condition-chip-USED')).toBeTruthy()
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('bus-contract-type-select'))
+      })
       expect(screen.getByTestId('contract-type-chip-SCHOOL')).toBeTruthy()
       expect(screen.getByTestId('contract-type-chip-COMPANY')).toBeTruthy()
       expect(screen.getByTestId('contract-type-chip-GOVERNMENT')).toBeTruthy()
@@ -249,6 +252,9 @@ describe('BusStep4Pricing', () => {
         />
       )
 
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('bus-contract-type-select'))
+      })
       await act(async () => {
         fireEvent.press(screen.getByTestId('contract-type-chip-COMPANY'))
       })

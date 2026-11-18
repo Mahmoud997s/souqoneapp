@@ -40,6 +40,7 @@ export interface WizardSelectFieldProps {
   groups?: WizardSelectGroup[]
   onSelect: (value: string) => void
   error?: string
+  errorTestID?: string
   disabled?: boolean
   testID?: string
 }
@@ -58,6 +59,7 @@ export function WizardSelectField({
   groups,
   onSelect,
   error,
+  errorTestID,
   disabled = false,
   testID,
 }: WizardSelectFieldProps) {
@@ -258,7 +260,7 @@ export function WizardSelectField({
         ) : null}
       </View>
 
-      {error ? <Text style={s.errorText}>{error}</Text> : null}
+      {error ? <Text testID={errorTestID} style={s.errorText}>{error}</Text> : null}
     </View>
   )
 }
