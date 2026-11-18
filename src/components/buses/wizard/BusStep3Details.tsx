@@ -183,6 +183,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
       {/* 1. Basic Title & Description */}
       <WizardCard title="البيانات الأساسية *" subtitle="اكتب عنواناً ووصفاً جذاباً للحافلة">
         <AppInput
+          glass
           label="عنوان الإعلان *"
           placeholder="مثال: حافلة تويوتا كوستر 30 راكب بحالة ممتازة"
           value={data.title}
@@ -192,6 +193,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           maxLength={100}
         />
         <AppInput
+          glass
           label="تفاصيل الإعلان *"
           placeholder="اكتب وصفاً مفصلاً عن الحافلة، حالة المحرك، التكييف، الفحص الدوري..."
           value={data.description}
@@ -268,10 +270,12 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
             ) : null}
 
             <AppButton
-              variant="outline"
+              variant="glass"
               size="sm"
+              icon="create-outline"
               title="الماركة غير موجودة؟ اكتبها يدوياً"
               style={s.manualBrandBtn}
+              textStyle={s.manualBrandBtnTxt}
               onPress={() => {
                 setIsCustomMake(true)
                 onUpdateField('manufacturerId', null)
@@ -355,10 +359,12 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
 
               {data.manufacturerId ? (
                 <AppButton
-                  variant="outline"
+                  variant="glass"
                   size="sm"
+                  icon="create-outline"
                   title="الموديل غير موجود؟ اكتبه يدوياً"
                   style={s.manualBrandBtn}
+                  textStyle={s.manualBrandBtnTxt}
                   onPress={() => {
                     setIsCustomModel(true)
                     onUpdateField('modelId', null)
@@ -394,6 +400,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           {/* Capacity */}
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="عدد المقاعد *"
               placeholder="مثال: 30"
               value={data.capacity}
@@ -408,6 +415,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
 
         <View style={{ marginTop: 12 }}>
           <AppInput
+            glass
             label="الممشى (كم) *"
             placeholder="مثال: 120000"
             value={data.mileage}
@@ -444,6 +452,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         {/* Fuel Type */}
         <View style={{ marginTop: 14 }}>
           <WizardSelectField
+            glass
             testID="bus-fuel-type-select"
             label="نوع الوقود"
             value={data.fuelType}
@@ -506,6 +515,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
 
         <View style={{ marginTop: 14 }}>
           <AppInput
+            glass
             label="رقم اللوحة (اختياري)"
             placeholder="مثال: 1234 أ ب"
             value={data.plateNumber}
@@ -588,7 +598,15 @@ const s = StyleSheet.create({
   manualBrandBtn: {
     marginTop: Spacing.space2,
     minHeight: 44,
+    paddingHorizontal: Spacing.space3,
     alignSelf: 'flex-start',
+  },
+  manualBrandBtnTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   customInputWrap: {
     flexDirection: 'row',

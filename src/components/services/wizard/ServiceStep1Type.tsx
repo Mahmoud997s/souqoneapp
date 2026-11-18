@@ -129,6 +129,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
         subtitle="الاسم التجاري للورشة، الشركة، أو اسم الفني المستقل"
       >
         <AppInput
+          glass
           label="اسم مقدم الخدمة *"
           placeholder="مثال: كراج النجوم لصيانة المحركات أو الفني خالد"
           value={formData.providerName}

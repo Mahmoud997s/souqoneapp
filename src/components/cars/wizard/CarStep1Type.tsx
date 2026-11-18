@@ -58,6 +58,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
       {/* 1. Listing Type Selection */}
       <WizardCard title="نوع الإعلان *" subtitle="حدد الغرض من الإعلان لتخصيص الخيارات اللاحقة">
         <WizardSelectField
+          glass
           testID="car-listing-type-select"
           value={formData.listingType}
           placeholder="اختر نوع الإعلان"
@@ -70,6 +71,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
       {/* 2. Basic Information Card */}
       <WizardCard title="بيانات الإعلان الأساسية *" subtitle="اكتب عنواناً ووصفاً وافياً يجذب الانتباه">
         <AppInput
+          glass
           label="عنوان الإعلان *"
           placeholder="اكتب عنواناً جذاباً يصف سيارتك (مثل الماركة والموديل)"
           value={formData.title}
@@ -79,6 +81,7 @@ export function CarStep1Type({ formData, errors, onUpdateField }: CarStep1Props)
         />
 
         <AppInput
+          glass
           label="تفاصيل الإعلان *"
           placeholder="اكتب وصفاً تفصيلياً يشمل: حالة السيارة، الصيانة، المميزات الإضافية..."
           value={formData.description}

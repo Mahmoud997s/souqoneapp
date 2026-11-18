@@ -54,6 +54,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         subtitle="حدد الغرض من الإعلان لتخصيص خيارات التسعير والمواصفات"
       >
         <WizardSelectField
+          glass
           testID="equipment-listing-type-select"
           value={formData.listingType}
           placeholder="اختر نوع الإعلان"
@@ -69,6 +70,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         subtitle="اختر الفئة المناسبة لتسهيل عثور الباحثين عليها"
       >
         <WizardSelectField
+          glass
           testID="equipment-category-select"
           value={formData.equipmentType}
           placeholder="اختر فئة المعدة"
@@ -84,6 +86,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         subtitle="اكتب عنواناً جذاباً ووصفاً وافياً للمعدة وحالتها"
       >
         <AppInput
+          glass
           label="عنوان الإعلان *"
           placeholder="مثال: حفار كوماتسو PC200 بحالة ممتازة للبيع أو الإيجار"
           value={formData.title}
@@ -93,6 +96,7 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         />
 
         <AppInput
+          glass
           label="تفاصيل ووصف المعدة *"
           placeholder="اكتب وصفاً تفصيلياً يشمل: سجل الصيانة، مكان تواجد المعدة، شروط التأجير، وساعات التشغيل..."
           value={formData.description}

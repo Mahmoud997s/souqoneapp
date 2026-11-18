@@ -35,6 +35,7 @@ export function OperatorRatesLocationStep({
         <View style={s.ratesRow}>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="الأجر اليومي (ر.ع)"
               placeholder={formatRtlPlaceholder('مثال: 30')}
               keyboardType="numeric"
@@ -45,6 +46,7 @@ export function OperatorRatesLocationStep({
           </View>
           <View style={{ flex: 1 }}>
             <AppInput
+              glass
               label="الأجر بالساعة (ر.ع)"
               placeholder={formatRtlPlaceholder('مثال: 5')}
               keyboardType="numeric"

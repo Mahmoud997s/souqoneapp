@@ -26,6 +26,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
       {/* 1. Basic Information */}
       <WizardCard title="المعلومات الأساسية *" subtitle="أضف عنواناً ووصفاً دقيقاً ومفصلاً للخدمة">
         <AppInput
+          glass
           label="عنوان الإعلان *"
           placeholder="مثال: صيانة وفحص شامل للسيارات اليابانية وبرمجة كمبيوتر"
           value={formData.title}
@@ -36,6 +37,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
         />
 
         <AppInput
+          glass
           label="الوصف *"
           placeholder="تفاصيل الخدمة المقدمة، الأجهزة المستخدمة، الخبرة، وأي ملاحظات إضافية تهم العميل..."
           value={formData.description}

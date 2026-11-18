@@ -62,6 +62,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
     <View style={s.stepWrap}>
       <WizardCard title="المعلومات الأساسية *" subtitle="أضف عنواناً ووصفاً دقيقاً يساعد المشتري">
         <AppInput
+          glass
           label="عنوان الإعلان *"
           placeholder="مثال: مكينة كامري 2020 أصلية"
           value={formData.title}
@@ -71,6 +72,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
         />
 
         <AppInput
+          glass
           label="الوصف *"
           placeholder="تفاصيل حالة القطعة، توافقها مع الموديلات، وأي ملاحظات أخرى..."
           value={formData.description}
@@ -82,6 +84,7 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
         />
 
         <AppInput
+          glass
           label="رقم القطعة (اختياري)"
           placeholder="مثال: 04465-33320"
           value={formData.partNumber}

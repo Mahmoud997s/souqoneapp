@@ -139,7 +139,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
     })
 
-    it('(b) WizardStickyFooter uses intensity=60 and light wash (0.08 opacity on white)', async () => {
+    it('(b) WizardStickyFooter uses intensity=65 (TopBarTokens) and whiteWashBg', async () => {
       const { getByTestId } = await render(
         <WizardStickyFooter
           testID="test-wizard-footer"
@@ -150,12 +150,11 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       )
 
       const blurView = getByTestId('mock-blur-view')
-      expect(blurView.props.intensity).toBe(60)
+      expect(blurView.props.intensity).toBe(65)
 
-      const washOverlay = getByTestId('test-wizard-footer-surface-wash-overlay')
+      const washOverlay = getByTestId('test-wizard-footer-glass-glass-wash-overlay')
       const flatStyle = StyleSheet.flatten(washOverlay.props.style)
-      expect(flatStyle.backgroundColor).toBe(Colors.white)
-      expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
+      expect(flatStyle.backgroundColor).toBe(BottomBarTokens.whiteWashBg)
     })
 
     it('(c) WizardReviewCard uses intensity=50 and light wash (0.08 opacity on white)', async () => {
@@ -193,24 +192,21 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
     })
 
-    it('(e) WizardCard uses intensity=50 and light wash (0.08 opacity on white)', async () => {
-      const { getByTestId } = await render(
+    it('(e) WizardCard uses solid Colors.inputBg container without BlurView (D-358)', async () => {
+      const { getByTestId, queryByTestId } = await render(
         <WizardCard
           testID="test-wizard-card"
           title="بيانات الإعلان"
-          support={fallbackSupport}
         >
           <Text>حقول</Text>
         </WizardCard>
       )
 
-      const blurView = getByTestId('mock-blur-view')
-      expect(blurView.props.intensity).toBe(50)
-
-      const washOverlay = getByTestId('test-wizard-card-surface-wash-overlay')
-      const flatStyle = StyleSheet.flatten(washOverlay.props.style)
-      expect(flatStyle.backgroundColor).toBe(Colors.white)
-      expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
+      expect(queryByTestId('mock-blur-view')).toBeNull()
+      const card = getByTestId('test-wizard-card')
+      const flatStyle = StyleSheet.flatten(card.props.style)
+      expect(flatStyle.backgroundColor).toBe(Colors.inputBg)
+      expect(flatStyle.borderColor).toBe(Colors.border)
     })
 
     it('(f) ProfilePhoneGuardView uses intensity=50 and light wash (0.08 opacity on white)', async () => {

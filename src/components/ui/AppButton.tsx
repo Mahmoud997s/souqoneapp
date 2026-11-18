@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Gradients } from '../../constants/gradients'
+import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
 
-type Variant = 'primary' | 'outline' | 'ghost'
+type Variant = 'primary' | 'outline' | 'ghost' | 'glass'
 
 interface AppButtonProps {
   title: string
@@ -99,6 +101,34 @@ export function AppButton({
     )
   }
 
+  if (variant === 'glass') {
+    return (
+      <TouchableOpacity
+        testID={testID}
+        onPress={onPress}
+        activeOpacity={0.8}
+        disabled={loading || disabled}
+        style={[s.glassBtn, { height }, style]}
+      >
+        <TopBarGlassSurface
+          testID={testID ? `${testID}-glass` : 'app-button-glass'}
+          kind="ice-control"
+          borderRadius={Radius.md}
+        />
+        {loading ? (
+          <ActivityIndicator color={Colors.primary} />
+        ) : (
+          <>
+            <Text style={[s.glassTxt, textStyle]}>{title}</Text>
+            {icon ? (
+              <Ionicons name={icon as any} size={18} color={TopBarTokens.legacyNavIconColor} />
+            ) : null}
+          </>
+        )}
+      </TouchableOpacity>
+    )
+  }
+
   // ghost
   return (
     <TouchableOpacity
@@ -153,6 +183,25 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 14.5,
     lineHeight: 20,
+    color: Colors.text,
+    writingDirection: 'rtl',
+  },
+  glassBtn: {
+    overflow: 'hidden',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: TopBarTokens.buttonBorderColor,
+    backgroundColor: Colors.transparent,
+    paddingHorizontal: Spacing.space3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+  },
+  glassTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13.5,
+    lineHeight: 19,
     color: Colors.text,
     writingDirection: 'rtl',
   },

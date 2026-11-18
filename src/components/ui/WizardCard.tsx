@@ -1,8 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, Platform, StyleProp, ViewStyle } from 'react-native'
-import { GlassSurface } from '../navigation/glassSupport'
-import type { GlassSupport } from '../navigation/glassCapability'
-import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
@@ -12,25 +9,12 @@ interface WizardCardProps {
   subtitle?: string
   children: React.ReactNode
   style?: StyleProp<ViewStyle>
-  support?: GlassSupport
   testID?: string
 }
 
-export function WizardCard({ title, subtitle, children, style, support, testID = 'wizard-card' }: WizardCardProps) {
+export function WizardCard({ title, subtitle, children, style, testID = 'wizard-card' }: WizardCardProps) {
   return (
     <View testID={testID} style={[s.card, style]}>
-      <GlassSurface
-        testID={`${testID}-surface`}
-        variant="surface"
-        borderRadius={Radius.lg}
-        noBorder
-        intensity={50}
-        washColor={Colors.white}
-        washOpacity={BottomBarTokens.lightWashOpacity}
-        support={support}
-      />
-      <View style={s.tint} pointerEvents="none" />
-
       <Text style={s.title}>{title}</Text>
       {subtitle ? <Text style={s.subtitle}>{subtitle}</Text> : null}
       {children}
@@ -44,18 +28,13 @@ const s = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.space4,
     borderWidth: 1,
-    borderColor: Colors.whiteAlpha60,
-    backgroundColor: 'transparent',
+    borderColor: Colors.border,
+    backgroundColor: Colors.inputBg,
     gap: Spacing.space3,
     ...Platform.select({
       ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
-  },
-  tint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
   title: {
     fontFamily: 'Almarai_800ExtraBold',

@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import { TopBarTokens } from '../../constants/topBarTokens'
+import { TopBarGlassSurface } from './TopBarGlassSurface'
 
 interface AppInputProps extends TextInputProps {
   label?: string
@@ -24,6 +26,7 @@ interface AppInputProps extends TextInputProps {
   error?: string
   ltr?: boolean
   size?: 'default' | 'sm'
+  glass?: boolean
   containerStyle?: StyleProp<ViewStyle>
   inputWrapStyle?: StyleProp<ViewStyle>
 }
@@ -38,7 +41,7 @@ export function normalizeDigits(value: string): string {
 const NUMERIC_KEYBOARD_TYPES = ['numeric', 'phone-pad', 'number-pad', 'decimal-pad']
 
 export const AppInput = forwardRef<TextInput, AppInputProps>(
-  ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', containerStyle, inputWrapStyle, ...rest }, ref) => {
+  ({ label, iconRight, iconLeft, onIconLeftPress, error, style, ltr, size = 'default', glass = false, containerStyle, inputWrapStyle, ...rest }, ref) => {
     const [focused, setFocused] = useState(false)
     const isSm = size === 'sm'
     const inputHeight = isSm ? 38 : 44
@@ -53,14 +56,22 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
       <View style={[s.container, containerStyle]}>
         {label ? <Text style={s.label}>{label}</Text> : null}
         <View style={[
-          s.inputWrap, 
+          s.inputWrap,
+          glass && s.inputWrapGlass,
           { minHeight: inputHeight, height: rest.multiline ? 'auto' : inputHeight },
           rest.multiline && { minHeight: 92, paddingVertical: Platform.OS === 'ios' ? 10 : 6 },
-          focused && s.inputFocused, 
+          focused && (glass ? s.inputFocusedGlass : s.inputFocused),
           error ? s.inputError : null,
           rest.editable === false && { opacity: 0.6, backgroundColor: Colors.neutralBorder },
           inputWrapStyle,
         ]}>
+          {glass ? (
+            <TopBarGlassSurface
+              testID={rest.testID ? `${rest.testID}-glass` : 'app-input-glass'}
+              kind="ice-control"
+              borderRadius={Radius.md}
+            />
+          ) : null}
           {/* Leading icon – physical RIGHT */}
           {iconRight ? (
             <View style={[s.iconRight, { height: inputHeight, width: isSm ? 30 : 34 }]}>
@@ -138,9 +149,17 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  inputWrapGlass: {
+    overflow: 'hidden',
+    backgroundColor: Colors.transparent,
+    borderColor: TopBarTokens.buttonBorderColor,
+  },
   inputFocused: {
     borderColor: Colors.primary,
     backgroundColor: Colors.white,
+  },
+  inputFocusedGlass: {
+    borderColor: Colors.primary,
   },
   inputError: {
     borderColor: Colors.error,

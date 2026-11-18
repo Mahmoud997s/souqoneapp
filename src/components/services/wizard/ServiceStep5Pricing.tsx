@@ -29,6 +29,7 @@ export function ServiceStep5Pricing({
         subtitle="حدد تكلفة أو نطاق أسعار تقديم الخدمة بالريال العماني"
       >
         <AppInput
+          glass
           label="سعر الخدمة (يبدأ من) (ر.ع) *"
           placeholder="أدخل السعر بالريال العماني"
           keyboardType="numeric"
@@ -43,6 +44,7 @@ export function ServiceStep5Pricing({
         />
 
         <AppInput
+          glass
           label="السعر الأعلى (ر.ع) (اختياري)"
           placeholder="السعر الأعلى، اختياري"
           keyboardType="numeric"
@@ -74,6 +76,7 @@ export function ServiceStep5Pricing({
 
         {/* Address Input */}
         <AppInput
+          glass
           label="العنوان التفصيلي / الشارع (اختياري)"
           placeholder="مثال: شارع رقم 8، المنطقة الصناعية"
           value={formData.address}
@@ -158,6 +161,7 @@ export function ServiceStep5Pricing({
         subtitle="وسائل التواصل المباشرة المتاحة للعملاء"
       >
         <AppInput
+          glass
           label="الموقع الإلكتروني / رابط الحساب (اختياري)"
           placeholder="مثال: https://instagram.com/mygarage أو mygarage.om"
           keyboardType="url"
