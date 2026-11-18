@@ -813,7 +813,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   rentRateLabel: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_700Bold',
     fontSize: 11,
     color: Colors.textMuted,
     marginBottom: 2,

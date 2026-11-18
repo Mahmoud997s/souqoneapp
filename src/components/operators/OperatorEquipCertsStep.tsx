@@ -17,6 +17,7 @@ import { AppInput } from '../ui/AppInput'
 import { AVAILABLE_EQUIPMENT } from '../../constants/operators'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import { WizardCard } from '../ui/WizardCard'
+import { WizardOptionChip } from '../wizard/WizardOptionChip'
 
 export interface OperatorEquipCertsStepProps {
   formData: OperatorWizardFormData
@@ -73,20 +74,13 @@ export function OperatorEquipCertsStep({
           {AVAILABLE_EQUIPMENT.map((eq) => {
             const isSel = formData.equipmentTypes.includes(eq.id)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={eq.id}
-                style={[s.equipChip, isSel && s.equipChipActive]}
+                label={eq.label}
+                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
+                selected={isSel}
                 onPress={() => onToggleEquipment(eq.id)}
-                activeOpacity={0.8}
-              >
-                <Ionicons
-                  name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                  size={14}
-                  color={isSel ? Colors.white : Colors.slateText}
-                  style={{ marginEnd: 4 }}
-                />
-                <Text style={[s.equipChipTxt, isSel && s.equipChipTxtActive]}>{eq.label}</Text>
-              </TouchableOpacity>
+              />
             )
           })}
         </View>

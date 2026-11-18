@@ -6,6 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
@@ -136,28 +137,16 @@ export function CarStep4Location({
 
             <View>
               <Text style={[s.switchTitle, { marginBottom: 8 }]}>سياسة الإلغاء</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+              <View style={s.chipRow}>
                 {CANCELLATION_POLICIES.map((opt) => (
-                  <TouchableOpacity
+                  <WizardOptionChip
                     key={opt.value}
-                    style={[
-                      s.chip,
-                      formData.cancellationPolicy === opt.value && s.chipActive,
-                      { flex: 0 },
-                    ]}
+                    label={opt.label}
+                    selected={formData.cancellationPolicy === opt.value}
                     onPress={() => onUpdateField('cancellationPolicy', opt.value)}
-                  >
-                    <Text
-                      style={[
-                        s.chipTxt,
-                        formData.cancellationPolicy === opt.value && s.chipTxtActive,
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
+                  />
                 ))}
-              </ScrollView>
+              </View>
             </View>
           </>
         )}

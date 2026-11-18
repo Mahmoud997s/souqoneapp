@@ -5,6 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { COMMON_SPECIALIZATIONS } from '../../../constants/services'
 import { ServiceStep3Props } from '../../../types/serviceForm.types'
@@ -67,22 +68,14 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
             {availableSpecs.map((spec) => {
               const isSelected = (formData.specializations || []).includes(spec)
               return (
-                <TouchableOpacity
+                <WizardOptionChip
                   key={spec}
                   testID={`spec-chip-${spec}`}
-                  style={[s.specChip, isSelected && s.specChipActive]}
+                  label={spec}
+                  icon={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
+                  selected={isSelected}
                   onPress={() => toggleSpecialization(spec)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
-                    size={16}
-                    color={isSelected ? Colors.primary : Colors.slateText}
-                  />
-                  <Text style={[s.specChipTxt, isSelected && s.specChipTxtActive]}>
-                    {spec}
-                  </Text>
-                </TouchableOpacity>
+                />
               )
             })}
           </View>
@@ -156,7 +149,7 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   specChipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 17,
     color: Colors.slateSecondary,

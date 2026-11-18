@@ -16,6 +16,7 @@ import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { AppButton } from '../../ui/AppButton'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WizardSelectField } from '../../ui/WizardSelectField'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { BusWizardData } from '../../../store/busWizardStore'
@@ -433,20 +434,15 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         {/* Transmission */}
         <Text style={s.fieldLabel}>ناقل الحركة</Text>
         <View style={s.chipRow}>
-          {BUS_TRANSMISSIONS.map((t) => {
-            const isSel = data.transmission === t.id
-            return (
-              <TouchableOpacity
-                key={t.id}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('transmission', t.id)}
-                activeOpacity={0.7}
-                testID={`transmission-${t.id}`}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{t.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {BUS_TRANSMISSIONS.map((t) => (
+            <WizardOptionChip
+              key={t.id}
+              testID={`transmission-${t.id}`}
+              label={t.label}
+              selected={data.transmission === t.id}
+              onPress={() => onUpdateField('transmission', t.id)}
+            />
+          ))}
         </View>
 
         {/* Fuel Type */}
@@ -469,20 +465,15 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         {/* Condition */}
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>حالة الحافلة</Text>
         <View style={s.chipRow}>
-          {BUS_CONDITIONS.map((c) => {
-            const isSel = data.condition === c.id
-            return (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('condition', c.id)}
-                activeOpacity={0.7}
-                testID={`condition-${c.id}`}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{c.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {BUS_CONDITIONS.map((c) => (
+            <WizardOptionChip
+              key={c.id}
+              testID={`condition-${c.id}`}
+              label={c.label}
+              selected={data.condition === c.id}
+              onPress={() => onUpdateField('condition', c.id)}
+            />
+          ))}
         </View>
       </WizardCard>
 
@@ -493,22 +484,14 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           {BUS_FEATURES.map((feat) => {
             const isSel = (data.features || []).includes(feat.id)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={feat.id}
-                style={[s.featureChip, isSel && s.featureChipActive]}
-                onPress={() => toggleFeature(feat.id)}
-                activeOpacity={0.7}
                 testID={`feature-${feat.id}`}
-              >
-                <Ionicons
-                  name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                  size={16}
-                  color={isSel ? Colors.primary : Colors.textMuted}
-                />
-                <Text style={[s.featureTxt, isSel && s.featureTxtActive]}>
-                  {feat.label}
-                </Text>
-              </TouchableOpacity>
+                label={feat.label}
+                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
+                selected={isSel}
+                onPress={() => toggleFeature(feat.id)}
+              />
             )
           })}
         </View>
@@ -669,60 +652,9 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  chip: {
-    flex: 1,
-    minWidth: 70,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  chipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 11.5,
-    color: Colors.slateSecondary,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  chipTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
-  },
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  featureChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  featureChipActive: {
-    backgroundColor: Colors.infoSoftBg,
-    borderColor: Colors.primary,
-  },
-  featureTxt: {
-    fontFamily: 'Almarai_600SemiBold',
-    fontSize: 11,
-    color: Colors.slateSecondary,
-    writingDirection: 'rtl',
-  },
-  featureTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
   },
 })

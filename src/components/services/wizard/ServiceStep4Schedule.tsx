@@ -13,6 +13,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WORKING_DAYS_AR } from '../../../constants/services'
 import { ServiceStep4Props } from '../../../types/serviceForm.types'
 
@@ -93,37 +94,20 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
       >
         {/* Quick Presets */}
         <View style={s.presetRow}>
-          <TouchableOpacity
+          <WizardOptionChip
             testID="preset-all-days"
-            style={[s.presetBtn, isAllDaysSelected && s.presetBtnActive]}
+            label="طوال أيام الأسبوع"
+            icon={isAllDaysSelected ? 'checkmark-circle' : 'calendar-outline'}
+            selected={isAllDaysSelected}
             onPress={() => applyPreset(ALL_DAYS)}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isAllDaysSelected ? 'checkmark-circle' : 'calendar-outline'}
-              size={15}
-              color={isAllDaysSelected ? Colors.primary : Colors.slateSecondary}
-            />
-            <Text style={[s.presetBtnTxt, isAllDaysSelected && s.presetBtnTxtActive]}>
-              طوال أيام الأسبوع
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+          />
+          <WizardOptionChip
             testID="preset-sat-to-thu"
-            style={[s.presetBtn, isSatToThuSelected && s.presetBtnActive]}
+            label="من السبت للخميس"
+            icon={isSatToThuSelected ? 'checkmark-circle' : 'calendar-outline'}
+            selected={isSatToThuSelected}
             onPress={() => applyPreset(SAT_TO_THU_DAYS)}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isSatToThuSelected ? 'checkmark-circle' : 'calendar-outline'}
-              size={15}
-              color={isSatToThuSelected ? Colors.primary : Colors.slateSecondary}
-            />
-            <Text style={[s.presetBtnTxt, isSatToThuSelected && s.presetBtnTxtActive]}>
-              من السبت للخميس
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
 
         {/* Individual Day Chips */}
@@ -131,20 +115,14 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
           {WORKING_DAYS_AR.map((day) => {
             const isSelected = (formData.workingDays || []).includes(day)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={day}
                 testID={`day-chip-${day}`}
-                style={[s.dayChip, isSelected && s.dayChipActive]}
+                label={day}
+                icon={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                selected={isSelected}
                 onPress={() => toggleDay(day)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={16}
-                  color={isSelected ? Colors.primary : Colors.slateMuted}
-                />
-                <Text style={[s.dayChipTxt, isSelected && s.dayChipTxtActive]}>{day}</Text>
-              </TouchableOpacity>
+              />
             )
           })}
         </View>
@@ -333,7 +311,7 @@ const s = StyleSheet.create({
     borderColor: Colors.primary,
   },
   dayChipTxt: {
-    fontFamily: 'Almarai_600SemiBold',
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 17,
     color: Colors.slateSecondary,

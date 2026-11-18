@@ -6,6 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
@@ -88,26 +89,15 @@ export function EquipmentStep3Details({
           {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
 
           <View style={s.conditionsGrid}>
-            {EQUIPMENT_CONDITIONS.map((cond) => {
-              const isSel = formData.condition === cond.id
-              return (
-                <TouchableOpacity
-                  key={cond.id}
-                  style={[s.condCard, isSel && s.condCardActive]}
-                  onPress={() => onUpdateField('condition', cond.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={s.condCardTop}>
-                    <View style={[s.radioCircle, isSel && s.radioCircleActive]}>
-                      {isSel && <Ionicons name="checkmark" size={12} color={Colors.white} />}
-                    </View>
-                    <Text style={[s.condLabel, isSel && s.condLabelActive]} numberOfLines={1}>
-                      {cond.label}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )
-            })}
+            {EQUIPMENT_CONDITIONS.map((cond) => (
+              <WizardOptionChip
+                key={cond.id}
+                label={cond.label}
+                selected={formData.condition === cond.id}
+                onPress={() => onUpdateField('condition', cond.id)}
+                error={Boolean(errors.condition)}
+              />
+            ))}
           </View>
         </WizardCard>
       )}
@@ -162,19 +152,13 @@ export function EquipmentStep3Details({
           {POPULAR_EQUIPMENT_FEATURES.map((feat) => {
             const isSel = formData.features.includes(feat)
             return (
-              <TouchableOpacity
+              <WizardOptionChip
                 key={feat}
-                style={[s.chip, isSel && s.chipActive]}
+                label={feat}
+                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
+                selected={isSel}
                 onPress={() => onToggleFeature(feat)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                  size={15}
-                  color={isSel ? Colors.white : Colors.slateText}
-                />
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{feat}</Text>
-              </TouchableOpacity>
+              />
             )
           })}
         </View>

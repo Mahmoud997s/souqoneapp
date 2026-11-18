@@ -13,6 +13,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { MultiSelectSearchModal, MultiSelectOption } from '../../ui/MultiSelectSearchModal'
 import { PartStep4Props } from '../../../types/partForm.types'
@@ -201,27 +202,16 @@ export function PartStep4Compatibility({
       {/* 2. Vehicle Types */}
       <WizardCard title="نوع المركبة المتوافقة">
         <View style={s.chipRow}>
-          {VEHICLE_TYPE_OPTIONS.map((opt) => {
-            const isActive = formData.compatibleVehicleTypes.includes(opt.id)
-            return (
-              <TouchableOpacity
-                key={opt.id}
-                style={[s.chip, isActive && s.chipActive]}
-                onPress={() => toggleVehicleType(opt.id)}
-                activeOpacity={0.7}
-                testID={`vehicle-type-${opt.id}`}
-              >
-                <Ionicons
-                  name={opt.icon}
-                  size={18}
-                  color={isActive ? Colors.primary : Colors.slateText}
-                />
-                <Text style={[s.chipTxt, isActive && s.chipTxtActive]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
+          {VEHICLE_TYPE_OPTIONS.map((opt) => (
+            <WizardOptionChip
+              key={opt.id}
+              testID={`vehicle-type-${opt.id}`}
+              label={opt.label}
+              icon={opt.icon as keyof typeof Ionicons.glyphMap}
+              selected={formData.compatibleVehicleTypes.includes(opt.id)}
+              onPress={() => toggleVehicleType(opt.id)}
+            />
+          ))}
         </View>
       </WizardCard>
 
@@ -229,21 +219,13 @@ export function PartStep4Compatibility({
       {isCarSelected && (
         <WizardCard title="الماركات المتوافقة">
           <View style={s.makesWrapper}>
-            <TouchableOpacity
-              style={[s.allMakesChip, isAllMakes && s.allMakesChipActive]}
-              onPress={toggleAllMakes}
-              activeOpacity={0.7}
+            <WizardOptionChip
               testID="all-makes-chip"
-            >
-              <Ionicons
-                name={isAllMakes ? 'checkmark-circle' : 'radio-button-off'}
-                size={16}
-                color={isAllMakes ? Colors.primary : Colors.slateText}
-              />
-              <Text style={[s.allMakesChipTxt, isAllMakes && s.allMakesChipTxtActive]}>
-                متوافق مع جميع الماركات
-              </Text>
-            </TouchableOpacity>
+              label="متوافق مع جميع الماركات"
+              icon={isAllMakes ? 'checkmark-circle' : 'radio-button-off'}
+              selected={isAllMakes}
+              onPress={toggleAllMakes}
+            />
 
             {!isAllMakes && (
               <>
