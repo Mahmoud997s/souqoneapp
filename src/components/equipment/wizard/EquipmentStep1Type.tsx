@@ -1,15 +1,40 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useMemo } from 'react'
+import { View, Text, StyleSheet, Platform } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { AppInput } from '../../ui/AppInput'
-import { LISTING_TYPES, EQUIPMENT_CATEGORIES } from '../../../constants/equipment'
+import { WizardSelectField } from '../../ui/WizardSelectField'
+import { LISTING_TYPES, EQUIPMENT_CATEGORY_GROUPS } from '../../../constants/equipment'
 import { EquipmentStep1Props } from '../../../types/equipmentForm.types'
+import { EquipmentListingType, EquipmentType } from '../../../types/equipment.types'
 
 export function EquipmentStep1Type({ formData, errors, onUpdateField }: EquipmentStep1Props) {
+  const listingTypeOptions = useMemo(
+    () =>
+      LISTING_TYPES.map((lt) => ({
+        value: lt.key,
+        label: lt.label,
+        testID: `listing-type-${lt.key}`,
+      })),
+    []
+  )
+
+  const categoryGroups = useMemo(
+    () =>
+      EQUIPMENT_CATEGORY_GROUPS.map((group) => ({
+        title: group.title,
+        options: group.items.map((cat) => ({
+          value: cat.key,
+          label: cat.label,
+          testID: `category-${cat.key}`,
+        })),
+      })),
+    []
+  )
+
   return (
     <View style={s.stepWrap}>
       {/* Value proposition intro banner */}
@@ -28,35 +53,14 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         title="نوع الإعلان *"
         subtitle="حدد الغرض من الإعلان لتخصيص خيارات التسعير والمواصفات"
       >
-        {errors.listingType ? <Text style={s.inlineErrorTxt}>{errors.listingType}</Text> : null}
-
-        <View style={s.listingTypesRow}>
-          {LISTING_TYPES.map((lt) => {
-            const isSel = formData.listingType === lt.key
-            return (
-              <TouchableOpacity
-                key={lt.key}
-                style={[s.typeCard, isSel && s.typeCardActive]}
-                onPress={() => onUpdateField('listingType', lt.key)}
-                activeOpacity={0.85}
-              >
-                <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
-                  <MaterialCommunityIcons
-                    name={lt.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
-                    size={20}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
-                  {lt.label}
-                </Text>
-                <Text style={s.typeDesc} numberOfLines={2}>
-                  {lt.desc}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="equipment-listing-type-select"
+          value={formData.listingType}
+          placeholder="اختر نوع الإعلان"
+          options={listingTypeOptions}
+          error={errors.listingType}
+          onSelect={(val) => onUpdateField('listingType', val as EquipmentListingType)}
+        />
       </WizardCard>
 
       {/* 2. Equipment Category Selection */}
@@ -64,32 +68,14 @@ export function EquipmentStep1Type({ formData, errors, onUpdateField }: Equipmen
         title="فئة المعدة *"
         subtitle="اختر الفئة المناسبة لتسهيل عثور الباحثين عليها"
       >
-        {errors.equipmentType ? <Text style={s.inlineErrorTxt}>{errors.equipmentType}</Text> : null}
-
-        <View style={s.categoriesGrid}>
-          {EQUIPMENT_CATEGORIES.map((cat) => {
-            const isSel = formData.equipmentType === cat.key
-            return (
-              <TouchableOpacity
-                key={cat.key}
-                style={[s.catCard, isSel && s.catCardActive]}
-                onPress={() => onUpdateField('equipmentType', cat.key)}
-                activeOpacity={0.85}
-              >
-                <View style={[s.catIconWrap, isSel && s.catIconWrapActive]}>
-                  <MaterialCommunityIcons
-                    name={cat.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
-                    size={18}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text style={[s.catTitle, isSel && s.catTitleActive]} numberOfLines={2}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="equipment-category-select"
+          value={formData.equipmentType}
+          placeholder="اختر فئة المعدة"
+          groups={categoryGroups}
+          error={errors.equipmentType}
+          onSelect={(val) => onUpdateField('equipmentType', val as EquipmentType)}
+        />
       </WizardCard>
 
       {/* 3. Basic Information Card */}
