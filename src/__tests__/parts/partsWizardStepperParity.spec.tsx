@@ -16,8 +16,8 @@ describe('D-356: Parts wizard stepper & layout parity with cars/equipment', () =
     expect(partsSrc).not.toMatch(/s\.cardWrapper/)
     expect(partsSrc).not.toMatch(/cardWrapper:/)
 
-    // Stepper must be inside ScrollView with title={getStepTitle()} and variant="light"
-    const scrollBlock = partsSrc.match(/<ScrollView[\s\S]*?<\/ScrollView>/)
+    // Stepper must be inside ScrollView / WizardKeyboardScrollView with title={getStepTitle()} and variant="light"
+    const scrollBlock = partsSrc.match(/<(?:ScrollView|WizardKeyboardScrollView)[\s\S]*?<\/(?:ScrollView|WizardKeyboardScrollView)>/)
     expect(scrollBlock).not.toBeNull()
     expect(scrollBlock![0]).toMatch(/getWizardContentPaddingTop\(insets\.top\)/)
     expect(scrollBlock![0]).toMatch(/<Stepper[\s\S]*?title=\{getStepTitle\(\)\}[\s\S]*?variant="light"/)
