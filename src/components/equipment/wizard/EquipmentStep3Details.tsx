@@ -10,6 +10,7 @@ import { AppInput } from '../../ui/AppInput'
 import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
 import { EquipmentStep3Props } from '../../../types/equipmentForm.types'
+import { formatRtlPlaceholder } from '../../../utils/wizardHelpers'
 
 export function EquipmentStep3Details({
   formData,
@@ -65,7 +66,7 @@ export function EquipmentStep3Details({
           <View style={{ flex: 1 }}>
             <AppInput
               label="ساعات التشغيل (ساعة)"
-              placeholder="مثال: 4500"
+              placeholder={formatRtlPlaceholder('مثال: 4500')}
               keyboardType="numeric"
               value={formData.hoursUsed}
               onChangeText={(val) => onUpdateField('hoursUsed', val)}
@@ -127,7 +128,7 @@ export function EquipmentStep3Details({
           <View style={{ flex: 1 }}>
             <AppInput
               label="القوة الحصانية / المحرك"
-              placeholder="مثال: 160 HP"
+              placeholder={formatRtlPlaceholder('مثال: 160 HP')}
               value={formData.power}
               onChangeText={(val) => onUpdateField('power', val)}
               maxLength={50}
@@ -138,7 +139,7 @@ export function EquipmentStep3Details({
 
         <AppInput
           label="الوزن التشغيلي الإجمالي"
-          placeholder="مثال: 21,500 كجم"
+          placeholder={formatRtlPlaceholder('مثال: 21,500 كجم')}
           value={formData.weight}
           onChangeText={(val) => onUpdateField('weight', val)}
           maxLength={50}

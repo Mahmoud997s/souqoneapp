@@ -158,6 +158,22 @@ describe('D-354: Wizard phone-test fixes', () => {
     expect(partsSrc).toContain("label: 'عرض الإعلان'")
     expect(partsSrc).toContain("'إضافة إعلان آخر'")
     expect(partsSrc).toContain("label: 'العودة للرئيسية'")
+
+    // No wizard success wrapper may apply insets.top/insets.bottom on top of PublishSuccessView
+    for (const rel of [
+      'app/cars/new.tsx',
+      'app/buses/new.tsx',
+      'app/equipment/new.tsx',
+      'app/parts/new.tsx',
+      'app/services/new.tsx',
+      'app/equipment/operators/add.tsx',
+    ]) {
+      const src = fs.readFileSync(path.join(ROOT, rel), 'utf8')
+      const blockMatch = src.match(/if\s*\(\s*publishSuccess\s*\)\s*\{[\s\S]*?<PublishSuccessView/)
+      expect(blockMatch).not.toBeNull()
+      expect(blockMatch![0]).not.toMatch(/insets\.top|insets\.bottom/)
+      expect(blockMatch![0]).toMatch(/s\.successRoot/)
+    }
   })
 
   it('6. BiDi helpers isolate numbers/Latin in placeholders and review titles set writingDirection rtl', () => {
@@ -171,6 +187,12 @@ describe('D-354: Wizard phone-test fixes', () => {
       'utf8'
     )
     expect(busReviewSrc).toMatch(/writingDirection:\s*'rtl'/)
+
+    const eqStep3Src = fs.readFileSync(
+      path.join(ROOT, 'src/components/equipment/wizard/EquipmentStep3Details.tsx'),
+      'utf8'
+    )
+    expect(eqStep3Src).toMatch(/formatRtlPlaceholder\(['"]مثال: 160 HP['"]\)/)
   })
 
   it('7. CarStep5Review formats CC unit in LTR isolation and EquipmentStep5Review shows power unit', async () => {

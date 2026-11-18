@@ -319,7 +319,7 @@ export default function NewEquipmentListingScreen() {
 
   if (publishSuccess) {
     return (
-      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={s.successRoot}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <PublishSuccessView
@@ -545,6 +545,10 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.homeBg,
+  },
+  successRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
   },
   scrollView: {
     flex: 1,
