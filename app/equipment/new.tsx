@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
+import { WizardStepTransition } from '../../src/components/wizard/WizardStepTransition'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -444,65 +445,67 @@ export default function NewEquipmentListingScreen() {
           </View>
 
           {/* ═══════════════ STEP COMPONENTS ═══════════════ */}
-          {currentStep === 1 && (
-            <EquipmentStep1Type
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormField}
-            />
-          )}
+          <WizardStepTransition stepKey={currentStep}>
+            {currentStep === 1 && (
+              <EquipmentStep1Type
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormField}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <EquipmentStep2Images
-              images={formData.images}
-              existingImages={formData.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <EquipmentStep2Images
+                images={formData.images}
+                existingImages={formData.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={formLogic.handlePickImages}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <EquipmentStep3Details
-              formData={formData}
-              errors={errors}
-              customFeatureInput={formLogic.customFeatureInput}
-              onChangeCustomFeatureInput={formLogic.setCustomFeatureInput}
-              onToggleFeature={formLogic.handleToggleFeature}
-              onAddCustomFeature={formLogic.handleAddCustomFeature}
-              onRemoveFeature={formLogic.handleRemoveFeature}
-              onUpdateField={setFormField}
-            />
-          )}
+            {currentStep === 3 && (
+              <EquipmentStep3Details
+                formData={formData}
+                errors={errors}
+                customFeatureInput={formLogic.customFeatureInput}
+                onChangeCustomFeatureInput={formLogic.setCustomFeatureInput}
+                onToggleFeature={formLogic.handleToggleFeature}
+                onAddCustomFeature={formLogic.handleAddCustomFeature}
+                onRemoveFeature={formLogic.handleRemoveFeature}
+                onUpdateField={setFormField}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <EquipmentStep4Location
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormField}
-              onLocationChange={(govId, wilId, govName, wilName) => {
-                setFormData({
-                  governorateId: govId,
-                  wilayaId: wilId,
-                  governorate: govName,
-                  city: wilName,
-                })
-                clearFieldError('governorate')
-                clearFieldError('city')
-              }}
-            />
-          )}
+            {currentStep === 4 && (
+              <EquipmentStep4Location
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormField}
+                onLocationChange={(govId, wilId, govName, wilName) => {
+                  setFormData({
+                    governorateId: govId,
+                    wilayaId: wilId,
+                    governorate: govName,
+                    city: wilName,
+                  })
+                  clearFieldError('governorate')
+                  clearFieldError('city')
+                }}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <EquipmentStep5Review
-              formData={formData}
-              onEditStep={goToStep}
-            />
-          )}
+            {currentStep === 5 && (
+              <EquipmentStep5Review
+                formData={formData}
+                onEditStep={goToStep}
+              />
+            )}
+          </WizardStepTransition>
         </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
+import { WizardStepTransition } from '../../src/components/wizard/WizardStepTransition'
 import { invalidateServiceListingQueries } from '../../src/screens/services/hooks/serviceQueryKeys'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
@@ -539,59 +540,61 @@ export default function NewServiceListingScreen() {
           </View>
 
           {/* ═══════════════ STEP COMPONENTS ═══════════════ */}
-          {currentStep === 1 && (
-            <ServiceStep1Type
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+          <WizardStepTransition stepKey={currentStep}>
+            {currentStep === 1 && (
+              <ServiceStep1Type
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <ServiceStep2Images
-              images={formData.images}
-              existingImages={formData.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={handlePickImagesAndClearError}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <ServiceStep2Images
+                images={formData.images}
+                existingImages={formData.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={handlePickImagesAndClearError}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <ServiceStep3Details
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 3 && (
+              <ServiceStep3Details
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <ServiceStep4Schedule
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 4 && (
+              <ServiceStep4Schedule
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <ServiceStep5Pricing
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-              onLocationChange={handleLocationAndClearErrors}
-            />
-          )}
+            {currentStep === 5 && (
+              <ServiceStep5Pricing
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+                onLocationChange={handleLocationAndClearErrors}
+              />
+            )}
 
-          {currentStep === 6 && (
-            <ServiceStep6Review
-              formData={formData}
-              onEditStep={goToStep}
-            />
-          )}
+            {currentStep === 6 && (
+              <ServiceStep6Review
+                formData={formData}
+                onEditStep={goToStep}
+              />
+            )}
+          </WizardStepTransition>
         </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}

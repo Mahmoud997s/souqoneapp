@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
+import { WizardStepTransition } from '../../src/components/wizard/WizardStepTransition'
 import { invalidatePartListingQueries } from '../../src/screens/parts/hooks/partQueryKeys'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { useWizardImageReconciliation } from '../../src/hooks/useWizardImageReconciliation'
@@ -560,60 +561,62 @@ export default function NewPartListingScreen() {
             )}
           </View>
 
-          {currentStep === 1 && (
-            <PartStep1Category
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+          <WizardStepTransition stepKey={currentStep}>
+            {currentStep === 1 && (
+              <PartStep1Category
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <PartStep2Images
-              images={formData.images}
-              existingImages={formData.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <PartStep2Images
+                images={formData.images}
+                existingImages={formData.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={formLogic.handlePickImages}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <PartStep3Details
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 3 && (
+              <PartStep3Details
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <PartStep4Compatibility
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 4 && (
+              <PartStep4Compatibility
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <PartStep5Pricing
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-              onLocationChange={formLogic.handleLocationChange}
-            />
-          )}
+            {currentStep === 5 && (
+              <PartStep5Pricing
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+                onLocationChange={formLogic.handleLocationChange}
+              />
+            )}
 
-          {currentStep === 6 && (
-            <PartStep6Review
-              formData={formData}
-              onEditStep={goToStep}
-              brands={brands}
-            />
-          )}
+            {currentStep === 6 && (
+              <PartStep6Review
+                formData={formData}
+                onEditStep={goToStep}
+                brands={brands}
+              />
+            )}
+          </WizardStepTransition>
         </WizardKeyboardScrollView>
 
         <WizardStickyFooter paddingBottom={Math.max(insets.bottom, 12)}>

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
+import { WizardStepTransition } from '../../src/components/wizard/WizardStepTransition'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -449,56 +450,58 @@ export default function NewCarListingScreen() {
           </View>
 
           {/* ═══════════════ STEP COMPONENTS ═══════════════ */}
-          {currentStep === 1 && (
-            <CarStep1Type
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+          <WizardStepTransition stepKey={currentStep}>
+            {currentStep === 1 && (
+              <CarStep1Type
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <CarStep2Images
-              images={formData.images}
-              existingImages={formData.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <CarStep2Images
+                images={formData.images}
+                existingImages={formData.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={formLogic.handlePickImages}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <CarStep3Details
-              formData={formData}
-              errors={errors}
-              customFeatureInput={formLogic.customFeatureInput}
-              onChangeCustomFeatureInput={formLogic.setCustomFeatureInput}
-              onToggleFeature={formLogic.handleToggleFeature}
-              onAddCustomFeature={formLogic.handleAddCustomFeature}
-              onRemoveFeature={formLogic.handleRemoveFeature}
-              onUpdateField={setFormFieldAndClearError}
-            />
-          )}
+            {currentStep === 3 && (
+              <CarStep3Details
+                formData={formData}
+                errors={errors}
+                customFeatureInput={formLogic.customFeatureInput}
+                onChangeCustomFeatureInput={formLogic.setCustomFeatureInput}
+                onToggleFeature={formLogic.handleToggleFeature}
+                onAddCustomFeature={formLogic.handleAddCustomFeature}
+                onRemoveFeature={formLogic.handleRemoveFeature}
+                onUpdateField={setFormFieldAndClearError}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <CarStep4Location
-              formData={formData}
-              errors={errors}
-              onUpdateField={setFormFieldAndClearError}
-              onLocationChange={formLogic.handleLocationChange}
-            />
-          )}
+            {currentStep === 4 && (
+              <CarStep4Location
+                formData={formData}
+                errors={errors}
+                onUpdateField={setFormFieldAndClearError}
+                onLocationChange={formLogic.handleLocationChange}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <CarStep5Review
-              formData={formData}
-              onEditStep={setStep}
-            />
-          )}
+            {currentStep === 5 && (
+              <CarStep5Review
+                formData={formData}
+                onEditStep={setStep}
+              />
+            )}
+          </WizardStepTransition>
         </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}

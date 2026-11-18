@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { WizardKeyboardScrollView } from '../../src/components/wizard/WizardKeyboardScrollView'
+import { WizardStepTransition } from '../../src/components/wizard/WizardStepTransition'
 import { invalidateBusListingQueries } from '../../src/utils/listing-detail/busQueryKeys'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
@@ -513,59 +514,61 @@ export default function NewBusListingScreen() {
           </View>
 
           {/* ═══════════════ STEP COMPONENTS ═══════════════ */}
-          {currentStep === 1 && (
-            <BusStep1TypeCategory
-              data={data}
-              errors={errors}
-              onUpdateField={handleUpdateField}
-            />
-          )}
+          <WizardStepTransition stepKey={currentStep}>
+            {currentStep === 1 && (
+              <BusStep1TypeCategory
+                data={data}
+                errors={errors}
+                onUpdateField={handleUpdateField}
+              />
+            )}
 
-          {currentStep === 2 && (
-            <BusStep2Images
-              images={data.images}
-              existingImages={data.existingImages || []}
-              errors={errors}
-              isUploading={formLogic.isUploading}
-              onPickImages={formLogic.handlePickImages}
-              onRemoveNewImage={formLogic.handleRemoveNewImage}
-              onRemoveExistingImage={formLogic.handleRemoveExistingImage}
-              onMakePrimaryNew={formLogic.handleMakePrimaryNew}
-              onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
-            />
-          )}
+            {currentStep === 2 && (
+              <BusStep2Images
+                images={data.images}
+                existingImages={data.existingImages || []}
+                errors={errors}
+                isUploading={formLogic.isUploading}
+                onPickImages={formLogic.handlePickImages}
+                onRemoveNewImage={formLogic.handleRemoveNewImage}
+                onRemoveExistingImage={formLogic.handleRemoveExistingImage}
+                onMakePrimaryNew={formLogic.handleMakePrimaryNew}
+                onMakePrimaryExisting={formLogic.handleMakePrimaryExisting}
+              />
+            )}
 
-          {currentStep === 3 && (
-            <BusStep3Details
-              data={data}
-              errors={errors}
-              onUpdateField={handleUpdateField}
-            />
-          )}
+            {currentStep === 3 && (
+              <BusStep3Details
+                data={data}
+                errors={errors}
+                onUpdateField={handleUpdateField}
+              />
+            )}
 
-          {currentStep === 4 && (
-            <BusStep4Pricing
-              data={data}
-              errors={errors}
-              onUpdateField={handleUpdateField}
-            />
-          )}
+            {currentStep === 4 && (
+              <BusStep4Pricing
+                data={data}
+                errors={errors}
+                onUpdateField={handleUpdateField}
+              />
+            )}
 
-          {currentStep === 5 && (
-            <BusStep5Location
-              data={data}
-              errors={errors}
-              onUpdateField={handleUpdateField}
-              onLocationChange={setLocation}
-            />
-          )}
+            {currentStep === 5 && (
+              <BusStep5Location
+                data={data}
+                errors={errors}
+                onUpdateField={handleUpdateField}
+                onLocationChange={setLocation}
+              />
+            )}
 
-          {currentStep === 6 && (
-            <BusStep6Review
-              data={data}
-              onEditStep={(step) => setStep(step)}
-            />
-          )}
+            {currentStep === 6 && (
+              <BusStep6Review
+                data={data}
+                onEditStep={(step) => setStep(step)}
+              />
+            )}
+          </WizardStepTransition>
         </WizardKeyboardScrollView>
 
         {/* ── STICKY FOOTER NAVIGATION ── */}
