@@ -179,6 +179,8 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
       expect.arrayContaining([
         expect.objectContaining({
           backgroundColor: SoftTactileTokens.insetCard.bg,
+        }),
+        expect.objectContaining({
           borderColor: FilterGlassTokens.card.selectedBorderColor,
         }),
       ])
