@@ -192,7 +192,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
     })
 
-    it('(e) WizardCard uses solid Colors.inputBg container without BlurView (D-358)', async () => {
+    it('(e) WizardCard uses solid Colors.surface container without BlurView (D-367)', async () => {
       const { getByTestId, queryByTestId } = await render(
         <WizardCard
           testID="test-wizard-card"
@@ -205,7 +205,7 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(queryByTestId('mock-blur-view')).toBeNull()
       const card = getByTestId('test-wizard-card')
       const flatStyle = StyleSheet.flatten(card.props.style)
-      expect(flatStyle.backgroundColor).toBe(Colors.inputBg)
+      expect(flatStyle.backgroundColor).toBe(Colors.surface)
       expect(flatStyle.borderColor).toBe(Colors.border)
     })
 

@@ -20,7 +20,7 @@ jest.mock('../api/buses', () => ({
 }))
 
 describe('D-358: Wizard solid cards, glass controls, and floating bottom bar', () => {
-  it('WizardCard renders solid calm app colour (Colors.inputBg) without GlassSurface', async () => {
+  it('WizardCard renders solid white card colour (Colors.surface) without GlassSurface (D-367)', async () => {
     const { getByTestId, queryByTestId } = await render(
       <WizardCard testID="d358-card" title="بيانات">
         <Text>محتوى</Text>
@@ -29,7 +29,7 @@ describe('D-358: Wizard solid cards, glass controls, and floating bottom bar', (
 
     const card = getByTestId('d358-card')
     const cardStyle = StyleSheet.flatten(card.props.style)
-    expect(cardStyle.backgroundColor).toBe(Colors.inputBg)
+    expect(cardStyle.backgroundColor).toBe(Colors.surface)
     expect(cardStyle.borderColor).toBe(Colors.border)
     expect(cardStyle.borderWidth).toBe(1)
     expect(queryByTestId('d358-card-surface')).toBeNull()
