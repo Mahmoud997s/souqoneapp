@@ -17,7 +17,9 @@ import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { invalidateBusListingQueries } from '../../src/utils/listing-detail/busQueryKeys'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
-import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
+import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -36,7 +38,6 @@ import { logWarn } from '../../src/utils/safeLog'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { isOptimisticLockError } from '../../src/hooks/listing-detail/useUpdateCarListing'
-import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { mapBusBackendErrors } from '../../src/utils/wizardBackendErrors'
 
 import { BusStep1TypeCategory } from '../../src/components/buses/wizard/BusStep1TypeCategory'
@@ -93,6 +94,8 @@ export default function NewBusListingScreen() {
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: any }) => busesApi.update(id, payload),
   })
+
+  const scrollViewRef = useWizardScrollToTop(currentStep)
 
   const validateCurrentStep = () => {
     const result = validateStep(currentStep, data)
@@ -474,8 +477,9 @@ export default function NewBusListingScreen() {
         />
 
         <ScrollView
+          ref={scrollViewRef}
           style={s.scrollView}
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

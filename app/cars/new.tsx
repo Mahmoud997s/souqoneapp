@@ -30,9 +30,9 @@ import { useCarFormLogic } from '../../src/hooks/useCarFormLogic'
 import { buildUploadFilePayload } from '../../src/utils/fileUploadHelper'
 import { logWarn } from '../../src/utils/safeLog'
 import { invalidateCarListingQueries } from '../../src/utils/listing-detail/queryKeys'
-import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
-import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
 import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
+import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
@@ -104,6 +104,8 @@ export default function NewCarListingScreen() {
     updateField(field, value)
     clearFieldError(field)
   }
+
+  const scrollViewRef = useWizardScrollToTop(currentStep)
 
   const validateCurrentStep = () => {
     const result = validateCarStep(currentStep, formData)
@@ -416,8 +418,9 @@ export default function NewCarListingScreen() {
         />
 
         <ScrollView
+          ref={scrollViewRef}
           style={s.scrollView}
-          contentContainerStyle={[s.content, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          contentContainerStyle={[s.content, { paddingTop: getWizardContentPaddingTop(insets.top) }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

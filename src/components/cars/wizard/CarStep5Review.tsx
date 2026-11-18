@@ -10,6 +10,7 @@ import {
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
 import { WizardReviewCard } from '../../ui/WizardReviewCard'
+import { formatRtlUnit } from '../../../utils/wizardHelpers'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -275,7 +276,7 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
             <View style={s.gridItemBox}>
               <Text style={s.gridLabel}>سعة المحرك</Text>
               <Text style={s.gridVal} numberOfLines={1}>
-                {formData.engineSize} CC
+                {formatRtlUnit(formData.engineSize, 'CC')}
               </Text>
             </View>
           ) : null}

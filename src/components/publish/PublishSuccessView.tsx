@@ -7,6 +7,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -44,6 +45,8 @@ export function PublishSuccessView({
   style,
   testID = 'publish-success-view',
 }: PublishSuccessViewProps) {
+  const insets = useSafeAreaInsets()
+
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -68,7 +71,14 @@ export function PublishSuccessView({
   }, [onHardwareBack, primaryAction, secondaryAction])
 
   return (
-    <View style={[styles.container, style]} testID={testID}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        style,
+      ]}
+      testID={testID}
+    >
       <View style={styles.content}>
         <View style={styles.iconCircle} testID="publish-success-icon">
           <Ionicons name="checkmark-sharp" size={48} color={Colors.primary} />

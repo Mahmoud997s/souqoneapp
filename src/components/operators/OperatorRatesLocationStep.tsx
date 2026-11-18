@@ -7,6 +7,7 @@ import { AppInput } from '../ui/AppInput'
 import { GovernorateWilayaSelect } from '../ui/GovernorateWilayaSelect'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import { WizardCard } from '../ui/WizardCard'
+import { formatRtlPlaceholder } from '../../utils/wizardHelpers'
 import { WhatsappToggle } from '../ui/WhatsappToggle'
 
 export interface OperatorRatesLocationStepProps {
@@ -35,7 +36,7 @@ export function OperatorRatesLocationStep({
           <View style={{ flex: 1 }}>
             <AppInput
               label="الأجر اليومي (ر.ع)"
-              placeholder="مثال: 30"
+              placeholder={formatRtlPlaceholder('مثال: 30')}
               keyboardType="numeric"
               value={formData.dailyRate}
               onChangeText={(val) => onUpdateField('dailyRate', val)}
@@ -45,7 +46,7 @@ export function OperatorRatesLocationStep({
           <View style={{ flex: 1 }}>
             <AppInput
               label="الأجر بالساعة (ر.ع)"
-              placeholder="مثال: 5"
+              placeholder={formatRtlPlaceholder('مثال: 5')}
               keyboardType="numeric"
               value={formData.hourlyRate}
               onChangeText={(val) => onUpdateField('hourlyRate', val)}

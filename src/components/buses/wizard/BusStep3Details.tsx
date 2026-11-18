@@ -14,6 +14,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
+import { AppButton } from '../../ui/AppButton'
 import { WizardCard } from '../../ui/WizardCard'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { BusWizardData } from '../../../store/busWizardStore'
@@ -265,8 +266,11 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
               </View>
             ) : null}
 
-            <TouchableOpacity
-              style={s.manualLink}
+            <AppButton
+              variant="outline"
+              size="sm"
+              title="الماركة غير موجودة؟ اكتبها يدوياً"
+              style={s.manualBrandBtn}
               onPress={() => {
                 setIsCustomMake(true)
                 onUpdateField('manufacturerId', null)
@@ -275,9 +279,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
                 onUpdateField('model', '')
               }}
               testID="enable-custom-make-btn"
-            >
-              <Text style={s.manualLinkTxt}>الماركة غير موجودة؟ اكتبها يدوياً</Text>
-            </TouchableOpacity>
+            />
           </View>
         )}
 
@@ -351,17 +353,18 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
               ) : null}
 
               {data.manufacturerId ? (
-                <TouchableOpacity
-                  style={s.manualLink}
+                <AppButton
+                  variant="outline"
+                  size="sm"
+                  title="الموديل غير موجود؟ اكتبه يدوياً"
+                  style={s.manualBrandBtn}
                   onPress={() => {
                     setIsCustomModel(true)
                     onUpdateField('modelId', null)
                     onUpdateField('model', '')
                   }}
                   testID="enable-custom-model-btn"
-                >
-                  <Text style={s.manualLinkTxt}>الموديل غير موجود؟ اكتبه يدوياً</Text>
-                </TouchableOpacity>
+                />
               ) : null}
             </View>
           )}
@@ -584,16 +587,10 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_400Regular',
     color: Colors.textMuted,
   },
-  manualLink: {
-    marginTop: 6,
-    paddingVertical: 4,
-  },
-  manualLinkTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    color: Colors.primary,
-    textAlign: 'left',
-    writingDirection: 'rtl',
+  manualBrandBtn: {
+    marginTop: Spacing.space2,
+    minHeight: 44,
+    alignSelf: 'flex-start',
   },
   customInputWrap: {
     flexDirection: 'row',

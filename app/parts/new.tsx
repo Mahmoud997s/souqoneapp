@@ -15,7 +15,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WizardStickyFooter } from '../../src/components/ui/WizardStickyFooter'
 import { invalidatePartListingQueries } from '../../src/screens/parts/hooks/partQueryKeys'
-import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 import { useWizardImageReconciliation } from '../../src/hooks/useWizardImageReconciliation'
 import { partsImageReconciliationAdapter } from '../../src/utils/imageReconciliation'
@@ -42,8 +41,10 @@ import { PartStep5Pricing } from '../../src/components/parts/wizard/PartStep5Pri
 import { PartStep6Review } from '../../src/components/parts/wizard/PartStep6Review'
 import { useProfilePhoneGuard } from '../../src/hooks/useProfilePhoneGuard'
 import { ProfilePhoneGuardView } from '../../src/components/profile/ProfilePhoneGuardView'
-import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
+import { handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { mapPartBackendErrors } from '../../src/utils/wizardBackendErrors'
+import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
+import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
 
 const TOTAL_STEPS = 6
 
@@ -124,6 +125,8 @@ export default function NewPartListingScreen() {
     setField(field, value)
     clearFieldError(field as string)
   }
+
+  const scrollViewRef = useWizardScrollToTop(currentStep)
 
   const validateCurrentStep = () => {
     const result = validateStep(currentStep, formData)
@@ -405,7 +408,7 @@ export default function NewPartListingScreen() {
           : 'إعلانك متاح الآن للمشترين في سوق ون بسلطنة عُمان. يمكنك متابعة المشاهدات والرسائل من لوحة تحكمك.')
 
     return (
-      <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={s.successRoot}>
         <Stack.Screen options={{ headerShown: false }} />
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <PublishSuccessView
@@ -421,7 +424,7 @@ export default function NewPartListingScreen() {
                   testID: 'publish-retry-failed-images-btn',
                 }
               : {
-                  label: 'عرض إعلانك',
+                  label: 'عرض الإعلان',
                   onPress: () => {
                     const targetId = publishSuccess.partId
                     reset()
@@ -437,7 +440,7 @@ export default function NewPartListingScreen() {
           secondaryAction={
             isPartial
               ? {
-                  label: 'عرض إعلانك',
+                  label: 'عرض الإعلان',
                   onPress: () => {
                     const targetId = publishSuccess.partId
                     reset()
@@ -476,7 +479,15 @@ export default function NewPartListingScreen() {
                   },
                   testID: 'publish-success-secondary-btn',
                 }
-              : undefined
+              : {
+                  label: 'العودة للرئيسية',
+                  onPress: () => {
+                    reset()
+                    setPublishSuccess(null)
+                    router.replace('/')
+                  },
+                  testID: 'publish-success-tertiary-btn',
+                }
           }
           onHardwareBack={() => {
             reset()
@@ -519,7 +530,7 @@ export default function NewPartListingScreen() {
           ]}
         />
 
-        <View style={s.topBar}>
+        <View style={[s.topBar, { paddingTop: getWizardContentPaddingTop(insets.top) }]}>
           <Stepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
           <View style={s.stepHeaderRow}>
             <Text style={s.stepTitle}>{getStepTitle()}</Text>
@@ -533,6 +544,7 @@ export default function NewPartListingScreen() {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           style={s.scrollView}
           contentContainerStyle={[s.scrollContent, { paddingBottom: Spacing.space8 + 80 }]}
           keyboardShouldPersistTaps="handled"
@@ -641,6 +653,10 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.homeBg,
+  },
+  successRoot: {
+    flex: 1,
+    backgroundColor: Colors.surface,
   },
   topBar: {
     paddingHorizontal: Spacing.space4,
