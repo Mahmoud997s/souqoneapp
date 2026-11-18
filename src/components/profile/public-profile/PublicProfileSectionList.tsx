@@ -30,11 +30,12 @@ export interface PublicProfileSectionListProps {
   onRetry: () => void
   onLoadMore: () => void
   onPressItem: (item: UnifiedCardItem) => void
+  footer?: ReactNode
 }
 
 export function PublicProfileSectionList({
   vertical, header, items, isLoading, isError, isRefreshing, isFetchingNextPage, hasNextPage, contentContainerStyle,
-  onRefresh, onRetry, onLoadMore, onPressItem,
+  onRefresh, onRetry, onLoadMore, onPressItem, footer,
 }: PublicProfileSectionListProps) {
   return (
     <ScrollView
@@ -64,6 +65,7 @@ export function PublicProfileSectionList({
           {isFetchingNextPage ? <ActivityIndicator color={Colors.white} /> : <Text style={s.actionText}>تحميل المزيد</Text>}
         </TouchableOpacity>
       )}
+      {footer}
     </ScrollView>
   )
 }

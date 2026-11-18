@@ -31,9 +31,9 @@ export function PublicProfileTopBar({ topInset, onBack, support }: PublicProfile
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel="رجوع"
-        hitSlop={0}
+        hitSlop={3}
       >
-        <Ionicons name="arrow-forward-outline" size={20} color={Colors.text} />
+        <Ionicons name="arrow-forward-outline" size={18} color={Colors.text} />
       </Pressable>
       <Text style={s.title} numberOfLines={1}>ملف البائع</Text>
       <View style={s.spacer} testID="public-profile-top-bar-spacer" />
@@ -56,8 +56,8 @@ const s = StyleSheet.create({
     ...BottomBarTokens.shadow,
   },
   backButton: {
-    width: PublicProfileTokens.topBarSize - Spacing.space2,
-    height: PublicProfileTokens.topBarSize - Spacing.space2,
+    width: PublicProfileTokens.topBarBackVisualSize,
+    height: PublicProfileTokens.topBarBackVisualSize,
     borderRadius: PublicProfileTokens.topBarRadius,
     alignItems: 'center',
     justifyContent: 'center',
@@ -69,13 +69,13 @@ const s = StyleSheet.create({
     end: 0,
     textAlign: 'center',
     fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
     color: Colors.text,
     writingDirection: 'rtl',
   },
   spacer: {
-    width: PublicProfileTokens.topBarSize - Spacing.space2,
-    height: PublicProfileTokens.topBarSize - Spacing.space2,
+    width: PublicProfileTokens.topBarBackVisualSize,
+    height: PublicProfileTokens.topBarBackVisualSize,
   },
 })

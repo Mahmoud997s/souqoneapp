@@ -25,7 +25,7 @@ describe('PublicProfileHero', () => {
 
     expect(screen.getByText('بائع السوق')).toBeTruthy()
     expect(screen.getByTestId('public-profile-verified')).toBeTruthy()
-    expect(screen.getByText('@seller-one')).toBeTruthy()
+    expect(screen.getByText('\u2066@seller-one\u2069')).toBeTruthy()
     expect(screen.getByText('مسقط')).toBeTruthy()
     expect(screen.getByText('منتجات مختارة بعناية')).toBeTruthy()
     expect(screen.getByTestId('public-profile-active-count').props.children).toBe('10')
@@ -67,9 +67,9 @@ describe('PublicProfileTabs glass and top bar', () => {
 
     expect(screen.getByText('ملف البائع')).toBeTruthy()
     expect(screen.getByTestId('public-profile-top-bar-spacer')).toBeTruthy()
-    expect(StyleSheet.flatten(screen.getByTestId('public-profile-top-bar').props.style).top).toBe(36)
-    expect(StyleSheet.flatten(screen.getByTestId('public-profile-back').props.style).width).toBe(44)
-    expect(StyleSheet.flatten(screen.getByTestId('public-profile-back').props.style).height).toBe(44)
+    expect(StyleSheet.flatten(screen.getByTestId('public-profile-top-bar').props.style).top).toBe(24 + PublicProfileTokens.topBarTopOffset)
+    expect(StyleSheet.flatten(screen.getByTestId('public-profile-back').props.style).width).toBe(PublicProfileTokens.topBarBackVisualSize)
+    expect(StyleSheet.flatten(screen.getByTestId('public-profile-back').props.style).height).toBe(PublicProfileTokens.topBarBackVisualSize)
     fireEvent.press(screen.getByRole('button', { name: 'رجوع' }))
     expect(onBack).toHaveBeenCalledTimes(1)
     expect(StyleSheet.flatten(screen.getByTestId('public-profile-top-bar-surface-wash-overlay').props.style).opacity).toBe(PublicProfileTokens.topBarWashOpacity)

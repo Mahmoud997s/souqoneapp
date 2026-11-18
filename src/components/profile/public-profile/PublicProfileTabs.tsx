@@ -50,6 +50,7 @@ export function PublicProfileTabs({ counts, selected, onSelect, support }: Publi
             key={tab.key}
             onPress={() => onSelect(tab.key)}
             style={[s.tab, isSelected && s.tabSelected]}
+            hitSlop={{ top: 4, bottom: 4 }}
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={`${tab.label}، ${count}`}
@@ -69,14 +70,14 @@ const s = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     borderRadius: PublicProfileTokens.topBarRadius,
-    padding: Spacing.space2 - 2,
+    padding: Spacing.space1,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  row: { flexDirection: 'row', gap: Spacing.space2 },
-  tab: { minHeight: Spacing.touch, flexDirection: 'row', alignItems: 'center', gap: Spacing.space2, paddingHorizontal: 14, borderRadius: Radius.pill },
+  row: { flexDirection: 'row', gap: Spacing.space1 + 2 },
+  tab: { minHeight: PublicProfileTokens.tabsMinHeight, flexDirection: 'row', alignItems: 'center', gap: Spacing.space1 + 2, paddingHorizontal: 12, borderRadius: Radius.pill },
   tabSelected: { backgroundColor: Colors.primary },
-  label: { fontFamily: 'Almarai_700Bold', fontSize: 13, lineHeight: 20, color: Colors.text },
+  label: { fontFamily: 'Almarai_700Bold', fontSize: 12, lineHeight: 18, color: Colors.text },
   labelSelected: { color: Colors.white },
   count: { minWidth: Spacing.space4, textAlign: 'center', fontFamily: 'Almarai_700Bold', fontSize: 12, lineHeight: 18, color: Colors.textMuted },
   countSelected: { color: Colors.white },
