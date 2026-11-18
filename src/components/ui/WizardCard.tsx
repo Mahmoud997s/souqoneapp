@@ -29,7 +29,7 @@ const s = StyleSheet.create({
     padding: Spacing.space4,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.inputBg,
+    backgroundColor: Colors.surface,
     gap: Spacing.space3,
     ...Platform.select({
       ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
