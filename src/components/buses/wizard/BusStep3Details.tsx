@@ -16,6 +16,7 @@ import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { AppButton } from '../../ui/AppButton'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { BusWizardData } from '../../../store/busWizardStore'
 import { busesApi, BusManufacturer, BusModel } from '../../../api/buses'
@@ -441,22 +442,19 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         </View>
 
         {/* Fuel Type */}
-        <Text style={[s.fieldLabel, { marginTop: 14 }]}>نوع الوقود</Text>
-        <View style={s.chipRow}>
-          {BUS_FUEL_TYPES.map((f) => {
-            const isSel = data.fuelType === f.id
-            return (
-              <TouchableOpacity
-                key={f.id}
-                style={[s.chip, isSel && s.chipActive]}
-                onPress={() => onUpdateField('fuelType', f.id)}
-                activeOpacity={0.7}
-                testID={`fuel-${f.id}`}
-              >
-                <Text style={[s.chipTxt, isSel && s.chipTxtActive]}>{f.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+        <View style={{ marginTop: 14 }}>
+          <WizardSelectField
+            testID="bus-fuel-type-select"
+            label="نوع الوقود"
+            value={data.fuelType}
+            placeholder="اختر نوع الوقود"
+            options={BUS_FUEL_TYPES.map((f) => ({
+              value: f.id,
+              label: f.label,
+              testID: `fuel-${f.id}`,
+            }))}
+            onSelect={(val) => onUpdateField('fuelType', val)}
+          />
         </View>
 
         {/* Condition */}

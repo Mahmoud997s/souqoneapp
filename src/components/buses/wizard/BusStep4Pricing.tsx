@@ -15,6 +15,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { BusWizardData } from '../../../store/busWizardStore'
 import { BUS_CONDITIONS, BUS_CONTRACT_TYPES } from '../../../constants/buses'
 
@@ -237,30 +238,22 @@ export function BusStep4Pricing({ data, errors, onUpdateField }: BusStep4Props) 
             subtitle="بيانات العقد القائم ومردوده الشهري لتوضيح الجدوى للمشتري"
           >
             <View>
-              <Text style={s.innerLabel}>نوع العقد *</Text>
-              <View style={s.chipsWrap}>
-                {BUS_CONTRACT_TYPES.map((type) => {
-                  const isSelected = data.contractType === type.id
-                  return (
-                    <Pressable
-                      key={type.id}
-                      style={[s.chip, isSelected && s.chipActive]}
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                        onUpdateField('contractType', type.id)
-                      }}
-                      testID={`contract-type-chip-${type.id}`}
-                    >
-                      <Text style={[s.chipText, isSelected && s.chipTextActive]}>
-                        {type.label}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-              </View>
-              {errors.contractType ? (
-                <Text style={s.errorTxt}>{errors.contractType}</Text>
-              ) : null}
+              <WizardSelectField
+                testID="bus-contract-type-select"
+                label="نوع العقد *"
+                value={data.contractType}
+                placeholder="اختر نوع العقد"
+                options={BUS_CONTRACT_TYPES.map((type) => ({
+                  value: type.id,
+                  label: type.label,
+                  testID: `contract-type-chip-${type.id}`,
+                }))}
+                error={errors.contractType}
+                onSelect={(val) => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                  onUpdateField('contractType', val)
+                }}
+              />
             </View>
 
             <AppInput

@@ -181,6 +181,9 @@ describe('BusStep3Details', () => {
     expect(mockOnUpdateField).toHaveBeenCalledWith('transmission', 'AUTOMATIC');
 
     await act(async () => {
+      fireEvent.press(screen.getByTestId('bus-fuel-type-select'));
+    });
+    await act(async () => {
       fireEvent.press(screen.getByTestId('fuel-PETROL'));
     });
     expect(mockOnUpdateField).toHaveBeenCalledWith('fuelType', 'PETROL');
