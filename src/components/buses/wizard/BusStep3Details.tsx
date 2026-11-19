@@ -10,10 +10,10 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../../constants/colors'
-import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { AppButton } from '../../ui/AppButton'
+import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
@@ -215,19 +215,25 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
 
         {isCustomMake ? (
           <View style={s.customInputWrap}>
-            <TextInput
-              style={s.customTextInput}
-              placeholder="اكتب اسم الماركة..."
-              placeholderTextColor={Colors.textMuted}
-              value={data.make}
-              onChangeText={(val) => {
-                onUpdateField('make', val)
-                onUpdateField('manufacturerId', null)
-              }}
-              textAlign="right"
-              testID="custom-make-input"
-            />
-            <TouchableOpacity
+            <GlassInputShell
+              borderWidth={1.5}
+              borderColor={Colors.primary}
+              style={s.customTextInputShell}
+            >
+              <TextInput
+                style={s.customTextInput}
+                placeholder="اكتب اسم الماركة..."
+                placeholderTextColor={Colors.textMuted}
+                value={data.make}
+                onChangeText={(val) => {
+                  onUpdateField('make', val)
+                  onUpdateField('manufacturerId', null)
+                }}
+                textAlign="right"
+                testID="custom-make-input"
+              />
+            </GlassInputShell>
+            <GlassPickerButton
               style={s.switchModeBtn}
               onPress={() => {
                 setIsCustomMake(false)
@@ -236,7 +242,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
               }}
             >
               <Text style={s.switchModeTxt}>اختيار من القائمة</Text>
-            </TouchableOpacity>
+            </GlassPickerButton>
           </View>
         ) : (
           <View>
@@ -295,20 +301,26 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
 
           {isCustomModel || isCustomMake ? (
             <View style={s.customInputWrap}>
-              <TextInput
-                style={s.customTextInput}
-                placeholder="اكتب اسم الموديل..."
-                placeholderTextColor={Colors.textMuted}
-                value={data.model}
-                onChangeText={(val) => {
-                  onUpdateField('model', val)
-                  onUpdateField('modelId', null)
-                }}
-                textAlign="right"
-                testID="custom-model-input"
-              />
+              <GlassInputShell
+                borderWidth={1.5}
+                borderColor={Colors.primary}
+                style={s.customTextInputShell}
+              >
+                <TextInput
+                  style={s.customTextInput}
+                  placeholder="اكتب اسم الموديل..."
+                  placeholderTextColor={Colors.textMuted}
+                  value={data.model}
+                  onChangeText={(val) => {
+                    onUpdateField('model', val)
+                    onUpdateField('modelId', null)
+                  }}
+                  textAlign="right"
+                  testID="custom-model-input"
+                />
+              </GlassInputShell>
               {!isCustomMake && (
-                <TouchableOpacity
+                <GlassPickerButton
                   style={s.switchModeBtn}
                   onPress={() => {
                     setIsCustomModel(false)
@@ -317,7 +329,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
                   }}
                 >
                   <Text style={s.switchModeTxt}>اختيار من القائمة</Text>
-                </TouchableOpacity>
+                </GlassPickerButton>
               )}
             </View>
           ) : (
@@ -574,12 +586,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  customTextInput: {
+  customTextInputShell: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    borderRadius: Radius.md,
+  },
+  customTextInput: {
+    backgroundColor: Colors.transparent,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: 'Almarai_700Bold',
@@ -588,12 +599,8 @@ const s = StyleSheet.create({
     minHeight: 48,
   },
   switchModeBtn: {
-    backgroundColor: Colors.infoSoftBg,
-    borderWidth: 1,
-    borderColor: Colors.infoBorder,
     paddingHorizontal: 10,
     paddingVertical: 12,
-    borderRadius: Radius.md,
     minHeight: 48,
     justifyContent: 'center',
   },

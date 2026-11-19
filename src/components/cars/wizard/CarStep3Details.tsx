@@ -14,6 +14,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
+import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
@@ -514,7 +515,7 @@ export function CarStep3Details({
           })}
         </View>
 
-        <View style={s.addFeatureWrap}>
+        <GlassInputShell style={s.addFeatureWrap}>
           <TextInput
             style={s.featureInput}
             placeholder="إضافة ميزة أخرى..."
@@ -536,7 +537,7 @@ export function CarStep3Details({
               color={customFeatureInput.trim() ? Colors.primary : Colors.border}
             />
           </TouchableOpacity>
-        </View>
+        </GlassInputShell>
 
         {/* Custom features (those not in the constant list) */}
         {formData.features
@@ -643,11 +644,6 @@ const s = StyleSheet.create({
   addFeatureWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    overflow: 'hidden',
     height: 48,
   },
   featureInput: {
