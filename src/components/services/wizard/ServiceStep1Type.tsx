@@ -1,10 +1,11 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useMemo } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../../constants/services'
@@ -16,19 +17,17 @@ export interface ServiceStep1Props {
   onUpdateField: <K extends keyof ServiceFormData>(field: K, value: ServiceFormData[K]) => void
 }
 
-const SERVICE_TYPE_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  MAINTENANCE: 'wrench',
-  CLEANING: 'water',
-  INSPECTION: 'magnify',
-  BODYWORK: 'spray',
-  MODIFICATION: 'tune',
-  TOWING: 'tow-truck',
-  KEYS_LOCKS: 'key',
-  ACCESSORIES_INSTALL: 'car-shift-pattern',
-  OTHER_SERVICE: 'dots-horizontal',
-}
-
 export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceStep1Props) {
+  const serviceTypeOptions = useMemo(
+    () =>
+      SERVICE_TYPES.map((st) => ({
+        value: st.id,
+        label: st.label,
+        testID: `service-type-${st.id}`,
+      })),
+    []
+  )
+
   return (
     <View style={s.stepWrap}>
       {/* Intro banner */}
@@ -42,59 +41,18 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
         </View>
       </View>
 
-      {/* 1. Service Type Grid */}
+      {/* 1. Service Type */}
       <WizardCard title="نوع الخدمة *" subtitle="اختر التصنيف الأساسي للخدمة المقدمة">
-        {errors.serviceType ? (
-          <Text style={s.inlineErrorTxt} testID="error-service-type">
-            {errors.serviceType}
-          </Text>
-        ) : null}
-        <View style={s.gridWrap}>
-          {SERVICE_TYPES.map((st) => {
-            const isSel = formData.serviceType === st.id
-            const isOther = st.id === 'OTHER_SERVICE'
-            const iconName = SERVICE_TYPE_ICONS[st.id] || 'wrench'
-
-            return (
-              <TouchableOpacity
-                key={st.id}
-                testID={`service-type-${st.id}`}
-                style={[
-                  s.gridCard,
-                  isOther && s.gridCardFull,
-                  isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : Colors.slateBorder },
-                ]}
-                onPress={() => onUpdateField('serviceType', st.id)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    s.gridIconWrap,
-                    isOther && s.gridIconWrapFull,
-                    isSel ? s.gridIconWrapActive : null,
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={iconName}
-                    size={isOther ? 18 : 20}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text
-                  style={[
-                    s.gridCardTxt,
-                    isOther && s.gridCardTxtFull,
-                    isSel && s.gridCardTxtActive,
-                  ]}
-                  numberOfLines={isOther ? 1 : 2}
-                >
-                  {st.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          glass
+          testID="service-type-select"
+          value={formData.serviceType}
+          placeholder="اختر نوع الخدمة"
+          options={serviceTypeOptions}
+          error={errors.serviceType}
+          errorTestID="error-service-type"
+          onSelect={(val) => onUpdateField('serviceType', val)}
+        />
       </WizardCard>
 
       {/* 2. Provider Type */}
@@ -188,75 +146,6 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     marginTop: -4,
     marginBottom: 8,
-  },
-  gridWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  gridCard: {
-    width: '23.2%',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderRadius: Radius.md,
-    paddingVertical: 8,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 88,
-  },
-  gridCardFull: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    minHeight: 46,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 2,
-  },
-  gridCardActive: {
-    backgroundColor: Colors.neutralBgLight,
-    borderColor: Colors.primary,
-  },
-  gridIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.infoSoftBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  gridIconWrapFull: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginBottom: 0,
-  },
-  gridIconWrapActive: {
-    backgroundColor: Colors.primary,
-  },
-  gridCardTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    color: Colors.slateBody,
-    textAlign: 'center',
-    lineHeight: 14,
-    minHeight: 28,
-    paddingHorizontal: 1,
-    writingDirection: 'rtl',
-  },
-  gridCardTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
-  },
-  gridCardTxtFull: {
-    fontSize: 11.5,
-    lineHeight: 16,
-    minHeight: 0,
-    textAlign: 'center',
   },
   chipRow: {
     flexDirection: 'row',

@@ -26,26 +26,30 @@ describe('PartStep1Category', () => {
     jest.clearAllMocks()
   })
 
-  it('renders listing types correctly and updates store on select', async () => {
+  it('renders listing types dropdown and updates store on select', async () => {
     await render(<PartStep1Category {...defaultProps} />)
-    
+
+    await fireEvent.press(screen.getByTestId('part-listing-type-select'))
+
     const saleOption = screen.getByTestId('listing-type-SPARE_PART_SALE')
     const wantedOption = screen.getByTestId('listing-type-SPARE_PART_WANTED')
-    
+
     expect(saleOption).toBeTruthy()
     expect(wantedOption).toBeTruthy()
 
-    fireEvent.press(saleOption)
+    await fireEvent.press(saleOption)
     expect(mockOnUpdateField).toHaveBeenCalledWith('listingType', 'SPARE_PART_SALE')
   })
 
-  it('renders categories grid and updates store on select', async () => {
+  it('renders categories dropdown and updates store on select', async () => {
     await render(<PartStep1Category {...defaultProps} />)
-    
+
+    await fireEvent.press(screen.getByTestId('part-category-select'))
+
     const engineCategory = screen.getByTestId('category-ENGINE')
     expect(engineCategory).toBeTruthy()
 
-    fireEvent.press(engineCategory)
+    await fireEvent.press(engineCategory)
     expect(mockOnUpdateField).toHaveBeenCalledWith('partCategory', 'ENGINE')
   })
 
@@ -75,11 +79,11 @@ describe('PartStep1Category', () => {
       errors: {
         listingType: 'اختر نوع الإعلان',
         partCategory: 'اختر فئة القطعة',
-      }
+      },
     }
     await render(<PartStep1Category {...propsWithError} />)
-    
-    expect(screen.getByText(/اختر نوع الإعلان/i)).toBeTruthy()
-    expect(screen.getByText(/اختر فئة القطعة/i)).toBeTruthy()
+
+    expect(screen.getByTestId('error-part-listing-type').props.children).toBe('اختر نوع الإعلان')
+    expect(screen.getByTestId('error-part-category').props.children).toBe('اختر فئة القطعة')
   })
 })
