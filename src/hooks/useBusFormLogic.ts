@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { BusWizardData, useBusWizardStore } from '../store/busWizardStore'
 import { MAX_BUS_IMAGES } from '../constants/buses'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
@@ -33,7 +33,7 @@ export function useBusFormLogic(
       const currentCount = (data.images?.length || 0) + (data.existingImages?.length || 0)
 
       if (currentCount >= MAX_BUS_IMAGES) {
-        dialogService.alert('تنبيه', `لا يمكن تجاوز ${MAX_BUS_IMAGES} صور كحد أقصى.`)
+        toastService.show({ kind: 'warning', title: `الحد الأقصى ${MAX_BUS_IMAGES} صور` })
         setIsUploading(false)
         return
       }

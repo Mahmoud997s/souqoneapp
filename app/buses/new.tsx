@@ -193,11 +193,10 @@ export default function NewBusListingScreen() {
     // 0. Edit needs the listing's `version` (the API rejects PATCH without it). A draft restored
     //    from storage by an older app build has none -> ask the user to reopen the listing.
     if (editMode && editVersion == null) {
-      dialogService.alert(
-        'تحديث مطلوب',
-        'تعذر تحديد نسخة الإعلان الحالية. يرجى فتح الإعلان من جديد والضغط على تعديل.',
-        'warning'
-      )
+      toastService.show({
+        kind: 'warning',
+        title: 'تعذر تحديد نسخة الإعلان الحالية، يرجى فتح الإعلان من جديد والضغط على تعديل',
+      })
       return
     }
 
@@ -252,7 +251,7 @@ export default function NewBusListingScreen() {
       logWarn('BusesNew:UploadImages', uploadErr)
       submitLockRef.current = false
       if (uploadErr?.response?.status === 429) {
-        dialogService.alert('خطأ في رفع الصور', getPublishRateLimitErrorMessage(uploadErr), 'error')
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(uploadErr) })
       } else {
         showPublishErrorDialog({
           error: uploadErr,

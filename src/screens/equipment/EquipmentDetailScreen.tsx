@@ -168,7 +168,10 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const goBackSafely = () => (router.canGoBack() ? router.back() : router.push('/'))
   const handleSearchSubmit = (text: string) => router.push({ pathname: '/equipment/browse', params: { search: text } })
   const handleProfilePress = (sellerId: string) => sellerId && router.push(`/profile/${sellerId}`)
-  const handleSupportPress = () => Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+  const handleSupportPress = () =>
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
@@ -195,9 +198,9 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
         })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert('تعارض في البيانات', translateEquipmentOwnerError(err))
+          toastService.show({ kind: 'error', title: translateEquipmentOwnerError(err) })
         } else {
-          dialogService.alert('خطأ', translateEquipmentOwnerError(err))
+          toastService.show({ kind: 'error', title: translateEquipmentOwnerError(err) })
         }
       }
     }

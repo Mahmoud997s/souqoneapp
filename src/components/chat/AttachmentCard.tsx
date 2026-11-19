@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 interface Props {
   fileName: string
@@ -45,11 +45,11 @@ export function AttachmentCard({ fileName, fileSize, fileType, url, isOwn }: Pro
         if (supported) {
           await Linking.openURL(url)
         } else {
-          dialogService.alert('خطأ', 'لا يمكن فتح هذا الملف.')
+          toastService.show({ kind: 'error', title: 'لا يمكن فتح هذا الملف' })
         }
       }
     } catch (e) {
-      dialogService.alert('خطأ', 'حدث خطأ أثناء فتح الملف.')
+      toastService.show({ kind: 'error', title: 'حدث خطأ أثناء فتح الملف' })
     }
   }
 

@@ -13,7 +13,6 @@ import { AppInput } from '../../src/components/ui/AppInput'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { usersApi } from '../../src/api/users'
 import { storeRotatedTokens } from '../../src/utils/storeRotatedTokens'
-import { dialogService } from '../../src/store/dialogStore'
 import { toastService } from '../../src/store/toastStore'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
@@ -70,7 +69,7 @@ export default function ChangePasswordScreen() {
         setFieldErrors(backendErrors)
       }
       if (generalMessage) {
-        dialogService.alert('خطأ', generalMessage)
+        toastService.show({ kind: 'error', title: generalMessage })
       }
     } finally {
       setLoading(false)

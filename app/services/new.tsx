@@ -310,7 +310,7 @@ export default function NewServiceListingScreen() {
     const handleServiceMutationError = (err: any, fallbackMessage: string) => {
       submitLockRef.current = false
       if (err?.response?.status === 429) {
-        dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(err) })
         return
       }
 

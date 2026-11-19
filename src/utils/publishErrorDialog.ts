@@ -1,4 +1,5 @@
 import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { getDetailErrorKind, getMutationErrorMessage } from './listing-detail/getDetailErrorKind'
 import { getPublishRateLimitErrorMessage } from './publishRateLimitError'
 import { showErrorDialog } from './showErrorDialog'
@@ -36,17 +37,17 @@ export function showPublishErrorDialog({
         ],
       })
     } else {
-      dialogService.alert('لا يوجد اتصال', message, 'offline')
+      toastService.show({ kind: 'error', title: message, dedupeKey: 'network-offline' })
     }
     return
   }
 
   if (kind === 'timeout') {
-    dialogService.alert(
-      'انتهت مهلة الاتصال',
-      'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
-      'offline'
-    )
+    toastService.show({
+      kind: 'error',
+      title: 'انتهت مهلة الاتصال بالخادم، يرجى التحقق من اتصالك قبل المحاولة مجدداً',
+      dedupeKey: 'network-offline',
+    })
     return
   }
 
@@ -97,25 +98,34 @@ export function handlePublishMutationError({
           async () => {
             try {
               await onRefetchVersion()
-              dialogService.alert('تم', 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.', 'success')
+              toastService.show({
+                kind: 'success',
+                title: 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً',
+              })
             } catch {
-              dialogService.alert('خطأ', 'تعذر جلب البيانات.')
+              toastService.show({ kind: 'error', title: 'تعذر جلب البيانات' })
             }
           },
           'تحديث الآن',
           'إلغاء'
         )
       } else {
-        dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
+        toastService.show({
+          kind: 'error',
+          title: 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات',
+        })
       }
     } else {
-      dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
+      toastService.show({
+        kind: 'error',
+        title: 'تم نشر إعلان مشابه جداً مؤخراً، يرجى الانتظار قليلاً',
+      })
     }
     return
   }
 
   if (status === 429) {
-    dialogService.alert('خطأ', getPublishRateLimitErrorMessage(error))
+    toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(error) })
     return
   }
 
@@ -125,11 +135,14 @@ export function handlePublishMutationError({
       if (Object.keys(mapped.fieldErrors).length > 0) {
         onFieldErrors(mapped.fieldErrors, mapped.firstInvalidStep)
         const firstMsg = Object.values(mapped.fieldErrors)[0]
-        dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
+        toastService.show({
+          kind: 'warning',
+          title: firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر',
+        })
         return
       }
     }
-    dialogService.alert('خطأ', getMutationErrorMessage(error, fallbackMessage))
+    toastService.show({ kind: 'error', title: getMutationErrorMessage(error, fallbackMessage) })
     return
   }
 

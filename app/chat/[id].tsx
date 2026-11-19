@@ -150,14 +150,14 @@ export default function ChatRoomScreen() {
       {
         text: '🔔 كتم الإشعارات',
         onPress: () => {
-          dialogService.alert('تم', 'تم كتم إشعارات المحادثة')
+          toastService.show({ kind: 'info', title: 'تم كتم إشعارات المحادثة' })
         },
         style: 'default',
       },
       {
         text: '🚩 إبلاغ عن مستخدم',
         onPress: () => {
-          dialogService.alert('شكراً لك', 'تم إرسال البلاغ للإدارة للمراجعة')
+          toastService.show({ kind: 'success', title: 'تم إرسال البلاغ للإدارة للمراجعة' })
         },
         style: 'default',
       },
@@ -168,7 +168,7 @@ export default function ChatRoomScreen() {
             'حظر المستخدم',
             'هل أنت متأكد من حظر هذا المستخدم؟',
             () => {
-              dialogService.alert('تم', 'تم حظر المستخدم')
+              toastService.show({ kind: 'info', title: 'تم حظر المستخدم' })
             },
             'حظر',
             'إلغاء'

@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { favoritesApi } from '../../api/favorites'
 import { useRequireAuth } from '../../hooks/listing-detail/useRequireAuth'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 import { favoriteKey } from './favoriteEntityTypes'
 import { useFavoriteIds, FAVORITE_IDS_QUERY_KEY } from './useFavoriteIds'
@@ -179,7 +178,7 @@ export function useFavoriteToggle(
             return
           }
           const message = getMutationErrorMessage(err, 'تعذّر تحديث المفضلة، حاول مرة أخرى')
-          dialogService.alert('خطأ', message)
+          toastService.show({ kind: 'error', title: message })
         })
         .finally(() => {
           inFlightKeys.delete(activeKey)

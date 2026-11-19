@@ -185,7 +185,10 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
     })
   }
   const handleProfilePress = (sellerId: string) => sellerId && router.push(`/profile/${sellerId}`)
-  const handleSupportPress = () => Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+  const handleSupportPress = () =>
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
@@ -220,7 +223,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             } else if (e instanceof Error && e.message) {
               msg = e.message
             }
-            dialogService.alert('خطأ', msg, 'error')
+            toastService.show({ kind: 'error', title: msg })
           } finally {
             ownerBusyRef.current = null
             setOwnerBusyAction(null)

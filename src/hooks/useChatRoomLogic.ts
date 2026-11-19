@@ -14,6 +14,7 @@ import { ChatFileInfo } from '../components/chat/ChatInput'
 import { logError } from '../utils/safeLog'
 import { showErrorDialog } from '../utils/showErrorDialog'
 import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 
 export interface LocalMessage {
   id: string
@@ -325,7 +326,10 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
 
     const socket = getSocket()
     if (!socket || !socket.connected) {
-      dialogService.alert('تنبيه', 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري', 'offline')
+      toastService.show({
+        kind: 'error',
+        title: 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري',
+      })
       return
     }
 

@@ -211,7 +211,9 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   }
 
   const handleSupportPress = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
@@ -240,16 +242,16 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert(
-            'تعارض في البيانات',
-            'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-          )
+          toastService.show({
+            kind: 'error',
+            title: 'تم تعديل الإعلان من جهاز آخر، يرجى التحديث والمحاولة مجدداً',
+          })
         } else {
           const errorMsg = getMutationErrorMessage(
             err,
             'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
           )
-          dialogService.alert('خطأ', errorMsg)
+          toastService.show({ kind: 'error', title: errorMsg })
         }
       }
     }
@@ -462,7 +464,9 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
               onPress={() => {
                 Linking.openURL(
                   `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
-                )
+                ).catch(() => {
+                  toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق الخرائط' })
+                })
               }}
             >
               <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />

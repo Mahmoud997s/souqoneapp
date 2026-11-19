@@ -94,7 +94,7 @@ export function useMyListingOwnerActions() {
   const handleDelete = useCallback(
     (item: MyListingItem) => {
       if (item.pendingDeletionRequest?.status === 'PENDING') {
-        dialogService.alert('تنبيه', 'يوجد طلب حذف قيد المراجعة بالفعل.', 'warning')
+        toastService.show({ kind: 'warning', title: 'يوجد طلب حذف قيد المراجعة بالفعل' })
         return
       }
 

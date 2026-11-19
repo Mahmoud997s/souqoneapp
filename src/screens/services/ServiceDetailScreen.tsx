@@ -227,7 +227,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
 
   const handleSupportPress = () => {
     Linking.openURL(SUPPORT_MAILTO).catch(() => {
-      dialogService.alert('تنبيه', 'تعذر فتح تطبيق البريد الإلكتروني', 'error')
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
     })
   }
 
@@ -276,7 +276,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             goBackSafely()
           } catch (err: unknown) {
             const errorMsg = getMutationErrorMessage(err, 'فشل حذف الإعلان')
-            dialogService.alert('خطأ', errorMsg, 'error')
+            toastService.show({ kind: 'error', title: errorMsg })
           } finally {
             ownerBusyRef.current = null
             setOwnerBusyAction(null)

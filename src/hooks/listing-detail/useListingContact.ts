@@ -3,6 +3,7 @@ import { Linking } from 'react-native'
 import { router, useRouter } from 'expo-router'
 import { contactApi, ContactInfo } from '../../api/contact'
 import { chatApi } from '../../api/chat'
+import { toastService } from '../../store/toastStore'
 import { useRequireAuth } from './useRequireAuth'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
 import type { ContactActionType } from '../../components/listing-detail/ContactActions'
@@ -154,6 +155,7 @@ export function useListingContact(
               await Linking.openURL(`tel:${cleanPhone}`)
             } catch {
               setError('تعذر فتح تطبيق الهاتف')
+              toastService.show({ kind: 'error', title: 'تعذر إجراء المكالمة' })
             }
           } else {
             // Fall back to chat when phone is absent
@@ -192,6 +194,7 @@ export function useListingContact(
               await Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`)
             } catch {
               setError('تعذر فتح تطبيق واتساب')
+              toastService.show({ kind: 'error', title: 'تعذر فتح واتساب' })
             }
           } else {
             // Fall back to chat when WhatsApp is disabled / absent

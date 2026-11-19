@@ -1,22 +1,24 @@
-import { dialogService } from '../store/dialogStore';
+import { toastService } from '../store/toastStore';
 import {
   getDetailErrorKind,
   getMutationErrorMessage,
 } from './listing-detail/getDetailErrorKind';
 
-const DEFAULT_ERROR_TITLE = 'خطأ';
-
 /**
- * Displays a unified error or offline dialog based on the normalized error kind
+ * Displays a unified error or offline toast based on the normalized error kind
  * without inferring icons from Arabic message text.
  */
 export function showErrorDialog(
   err: unknown,
   fallbackMessage: string,
-  title?: string
+  _title?: string
 ): void {
   const kind = getDetailErrorKind(err);
-  const dialogType = kind === 'offline' || kind === 'timeout' ? 'offline' : 'error';
+  const isOffline = kind === 'offline' || kind === 'timeout';
   const message = getMutationErrorMessage(err, fallbackMessage);
-  dialogService.alert(title ?? DEFAULT_ERROR_TITLE, message, dialogType);
+  toastService.show({
+    kind: 'error',
+    title: message,
+    dedupeKey: isOffline ? 'network-offline' : undefined,
+  });
 }

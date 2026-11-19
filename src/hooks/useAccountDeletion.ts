@@ -35,11 +35,10 @@ export function useAccountDeletion() {
           ) {
             updateUser({ deletionScheduledAt: null })
             queryClient.invalidateQueries()
-            dialogService.alert(
-              'تنبيه',
-              'الحساب غير مجدول للحذف حالياً.',
-              'info',
-            )
+            toastService.show({
+              kind: 'info',
+              title: 'الحساب غير مجدول للحذف حالياً',
+            })
           } else {
             showErrorDialog(err, 'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.')
           }

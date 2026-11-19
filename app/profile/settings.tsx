@@ -243,7 +243,7 @@ export default function SettingsScreen() {
       logWarn('SettingsScreen:SaveMsgNotif', error)
       msgNotifRef.current = prevVal
       setMsgNotif(prevVal)
-      dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
+      toastService.show({ kind: 'error', title: 'تعذر حفظ تفضيلات الإشعارات، حاول مرة أخرى' })
     }
   }
 
@@ -259,7 +259,7 @@ export default function SettingsScreen() {
       logWarn('SettingsScreen:SaveAdNotif', error)
       adNotifRef.current = prevVal
       setAdNotif(prevVal)
-      dialogService.alert('خطأ', 'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.', 'error')
+      toastService.show({ kind: 'error', title: 'تعذر حفظ تفضيلات الإشعارات، حاول مرة أخرى' })
     }
   }
 
@@ -289,7 +289,7 @@ export default function SettingsScreen() {
       logWarn('SettingsScreen:ToggleContactVisibility', error)
       setLocal(prevVal)
       updateUser({ [field]: prevVal } as Partial<User>)
-      dialogService.alert('خطأ', 'تعذر تحديث إعدادات الظهور. حاول مرة أخرى.', 'error')
+      toastService.show({ kind: 'error', title: 'تعذر تحديث إعدادات الظهور، حاول مرة أخرى' })
     }
   }
 
@@ -379,7 +379,9 @@ export default function SettingsScreen() {
               icon="shield-checkmark-outline"
               iconColor={Colors.emerald}
               title="التحقق من الهوية"
-              onPress={() => dialogService.alert('قريباً', 'ميزة التحقق من الهوية ستكون متاحة قريباً', 'info')}
+              onPress={() =>
+                toastService.show({ kind: 'info', title: 'ميزة التحقق من الهوية قريباً' })
+              }
               isLast={isGuest || !user}
             />
             {!isGuest && user && (
@@ -491,25 +493,39 @@ export default function SettingsScreen() {
               iconColor={Colors.skyPrimary}
               title="اللغة"
               value="العربية"
-              onPress={() => dialogService.alert('اللغة', 'التطبيق متاح باللغة العربية حالياً', 'info')}
+              onPress={() =>
+                toastService.show({ kind: 'info', title: 'التطبيق متاح باللغة العربية حالياً' })
+              }
             />
             <SettingItem
               icon="headset-outline"
               iconColor={Colors.emerald}
               title="الدعم الفني والمساعدة"
-              onPress={() => Linking.openURL(SUPPORT_MAILTO).catch(() => {})}
+              onPress={() =>
+                Linking.openURL(SUPPORT_MAILTO).catch(() => {
+                  toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+                })
+              }
             />
             <SettingItem
               icon="document-text-outline"
               iconColor={Colors.slateText}
               title="سياسة الخصوصية"
-              onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}
+              onPress={() =>
+                Linking.openURL(PRIVACY_POLICY_URL).catch(() => {
+                  toastService.show({ kind: 'error', title: 'تعذر فتح الرابط' })
+                })
+              }
             />
             <SettingItem
               icon="information-circle-outline"
               iconColor={Colors.slateText}
               title="شروط الاستخدام"
-              onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL).catch(() => {})}
+              onPress={() =>
+                Linking.openURL(TERMS_OF_SERVICE_URL).catch(() => {
+                  toastService.show({ kind: 'error', title: 'تعذر فتح الرابط' })
+                })
+              }
               isLast
             />
           </View>

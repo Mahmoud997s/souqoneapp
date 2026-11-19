@@ -147,7 +147,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
             })
           } catch (err) {
             const msg = translateOperatorOwnerError(err)
-            dialogService.alert('خطأ', msg)
+            toastService.show({ kind: 'error', title: msg })
           }
         },
         actionDef.confirmLabel ?? 'تأكيد',
@@ -160,7 +160,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
       await ownerActions.run(actionId)
     } catch (err) {
       const msg = translateOperatorOwnerError(err)
-      dialogService.alert('خطأ', msg)
+      toastService.show({ kind: 'error', title: msg })
     }
   }
 
@@ -183,7 +183,9 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   }
 
   const handleOpenSupport = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleShare = async () => {

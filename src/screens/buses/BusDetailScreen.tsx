@@ -216,7 +216,9 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   }
 
   const handleSupportPress = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleRequireLogin = () => {
@@ -250,9 +252,9 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
         })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert('تعارض في البيانات', translateBusOwnerError(err))
+          toastService.show({ kind: 'error', title: translateBusOwnerError(err) })
         } else {
-          dialogService.alert('خطأ', translateBusOwnerError(err))
+          toastService.show({ kind: 'error', title: translateBusOwnerError(err) })
         }
       }
     }

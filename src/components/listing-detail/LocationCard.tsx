@@ -15,6 +15,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
+import { toastService } from '../../store/toastStore'
 
 export interface LocationCardProps {
   locationText: string
@@ -51,7 +52,9 @@ export function LocationCard({
   const handleOpenDirections = () => {
     if (!hasCoordinates) return
     const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
-    Linking.openURL(url).catch(() => {})
+    Linking.openURL(url).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق الخرائط' })
+    })
   }
 
   return (

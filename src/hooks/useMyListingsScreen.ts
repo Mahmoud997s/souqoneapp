@@ -184,11 +184,10 @@ export function useMyListingsScreen() {
       (item.entityType === 'car' || item.entityType === 'bus') &&
       (item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED')
     ) {
-      dialogService.alert(
-        'تنبيه',
-        'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً.',
-        'warning'
-      )
+      toastService.show({
+        kind: 'warning',
+        title: 'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً',
+      })
       return
     }
 
@@ -232,7 +231,7 @@ export function useMyListingsScreen() {
     )
 
     if (statusActions.length === 0) {
-      dialogService.alert('تنبيه', 'لا يوجد إجراءات متاحة لهذه الحالة', 'warning')
+      toastService.show({ kind: 'warning', title: 'لا يوجد إجراءات متاحة لهذه الحالة' })
       return
     }
 
@@ -312,18 +311,21 @@ export function useMyListingsScreen() {
                 'خطأ في الاتصال'
               )
             } else if (status === 403) {
-              dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
+              toastService.show({
+                kind: 'error',
+                title: 'لا يمكن استعادة إعلان تم بيعه بالفعل',
+              })
             } else if (status === 409) {
-              dialogService.alert(
-                'تحديث مطلوب',
-                'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-              )
+              toastService.show({
+                kind: 'error',
+                title: 'تم تعديل الإعلان من جهاز آخر، يرجى التحديث والمحاولة مجدداً',
+              })
               handleRefresh()
             } else if (status === 429) {
-              dialogService.alert(
-                'محاولات كثيرة',
-                getPublishRateLimitErrorMessage(err)
-              )
+              toastService.show({
+                kind: 'error',
+                title: getPublishRateLimitErrorMessage(err),
+              })
             } else {
               showErrorDialog(err, 'حدث خطأ أثناء تغيير الحالة')
             }

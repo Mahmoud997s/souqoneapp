@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { ModalToastHost } from './ModalToastHost'
 
 interface AppSelectProps {
@@ -39,7 +39,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
         activeOpacity={0.7}
         onPress={() => {
           if (disabled) {
-            dialogService.alert('تنبيه', 'الرجاء تحديد الخيار السابق أولاً')
+            toastService.show({ kind: 'info', title: 'الرجاء تحديد الخيار السابق أولاً' })
             return
           }
           setModalVisible(true)

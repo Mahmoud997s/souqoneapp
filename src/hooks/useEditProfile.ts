@@ -218,7 +218,7 @@ export function useEditProfile() {
 
   const openWilayaPicker = async () => {
     if (!governorateId) {
-      dialogService.alert('تنبيه', 'يرجى اختيار المحافظة أولاً')
+      toastService.show({ kind: 'info', title: 'يرجى اختيار المحافظة أولاً' })
       return
     }
     setSearchQuery('')
@@ -320,7 +320,7 @@ export function useEditProfile() {
 
       // If avatar upload was attempted but failed or produced no URL, abort save immediately
       if (shouldBlockForFailedAvatarUpload(avatarAction, uploadedAvatarUrl)) {
-        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى', 'error')
+        toastService.show({ kind: 'error', title: 'تعذر رفع الصورة، حاول مرة أخرى' })
         return
       }
 
@@ -337,7 +337,7 @@ export function useEditProfile() {
 
       // If no fields changed, inform user and exit
       if (Object.keys(patch).length === 0) {
-        dialogService.alert('تنبيه', 'لم يتم تغيير أي بيانات', 'info')
+        toastService.show({ kind: 'info', title: 'لم يتم تغيير أي بيانات' })
         return
       }
 
@@ -366,7 +366,7 @@ export function useEditProfile() {
 
       // 429 Rate Limit
       if (status === 429) {
-        dialogService.alert('محاولات كثيرة', getPublishRateLimitErrorMessage(err), 'error')
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(err) })
         return
       }
 
@@ -377,7 +377,7 @@ export function useEditProfile() {
           setErrors((prev) => ({ ...prev, ...fieldErrors }))
         }
         if (nonFieldErrors.length > 0) {
-          dialogService.alert('خطأ في البيانات', nonFieldErrors.join('\n'), 'error')
+          toastService.show({ kind: 'error', title: nonFieldErrors.join(' - ') })
         } else if (Object.keys(fieldErrors).length === 0) {
           showErrorDialog(err, 'البيانات المدخلة غير صحيحة', 'خطأ في البيانات')
         }
