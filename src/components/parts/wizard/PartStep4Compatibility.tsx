@@ -12,6 +12,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
@@ -294,7 +295,7 @@ export function PartStep4Compatibility({
             )}
 
             {/* Free-text custom model input */}
-            <View style={s.addModelWrap}>
+            <GlassInputShell style={s.addModelWrap}>
               <TextInput
                 style={s.modelInput}
                 placeholder="إضافة موديل يدوي..."
@@ -318,7 +319,7 @@ export function PartStep4Compatibility({
                   color={customModelInput.trim() ? Colors.primary : Colors.border}
                 />
               </TouchableOpacity>
-            </View>
+            </GlassInputShell>
 
             {formData.compatibleModels.length > 0 && (
               <View style={s.pillsWrap} testID="selected-models-pills">
@@ -441,11 +442,6 @@ const s = StyleSheet.create({
   addModelWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    overflow: 'hidden',
     height: 48,
   },
   modelInput: {

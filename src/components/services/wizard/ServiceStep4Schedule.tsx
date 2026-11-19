@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
@@ -13,6 +12,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WORKING_DAYS_AR } from '../../../constants/services'
 import { ServiceStep4Props } from '../../../types/serviceForm.types'
@@ -163,7 +163,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
           <View style={s.hourBox}>
             <Text style={s.hourLabel}>وقت الفتح / البدء</Text>
             <View style={s.selectorWrap}>
-              <Pressable
+              <GlassPickerButton
                 testID="open-time-btn"
                 style={s.timeBtn}
                 onPress={() => setActiveTimePicker('open')}
@@ -177,7 +177,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
                 >
                   {formatTimeDisplay(formData.workingHoursOpen)}
                 </Text>
-              </Pressable>
+              </GlassPickerButton>
               {formData.workingHoursOpen ? (
                 <TouchableOpacity
                   testID="clear-open-time"
@@ -195,7 +195,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
           <View style={s.hourBox}>
             <Text style={s.hourLabel}>وقت الإغلاق / الانتهاء</Text>
             <View style={s.selectorWrap}>
-              <Pressable
+              <GlassPickerButton
                 testID="close-time-btn"
                 style={s.timeBtn}
                 onPress={() => setActiveTimePicker('close')}
@@ -209,7 +209,7 @@ export function ServiceStep4Schedule({ formData, errors, onUpdateField }: Servic
                 >
                   {formatTimeDisplay(formData.workingHoursClose)}
                 </Text>
-              </Pressable>
+              </GlassPickerButton>
               {formData.workingHoursClose ? (
                 <TouchableOpacity
                   testID="clear-close-time"
@@ -292,11 +292,8 @@ const s = StyleSheet.create({
   timeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: 8,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
     paddingHorizontal: 12,
     height: 48,
   },

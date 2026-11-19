@@ -2,12 +2,12 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
-import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { YearSelect } from '../../ui/YearSelect'
 import { EQUIPMENT_CONDITIONS, POPULAR_EQUIPMENT_FEATURES } from '../../../constants/equipment'
 import { EquipmentStep3Props } from '../../../types/equipmentForm.types'
@@ -174,14 +174,17 @@ export function EquipmentStep3Details({
               maxLength={50}
             />
           </View>
-          <TouchableOpacity
-            style={[s.addBtn, !customFeatureInput.trim() && s.addBtnDisabled]}
+          <GlassPickerButton
+            style={s.addBtn}
             onPress={onAddCustomFeature}
             disabled={!customFeatureInput.trim()}
-            activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.white} />
-          </TouchableOpacity>
+            <Ionicons
+              name="add"
+              size={22}
+              color={customFeatureInput.trim() ? Colors.primary : Colors.border}
+            />
+          </GlassPickerButton>
         </View>
 
         {/* Selected Features Tags */}
@@ -249,14 +252,9 @@ const s = StyleSheet.create({
   addBtn: {
     width: 46,
     height: 46,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
+    minHeight: 0,
+    paddingHorizontal: 0,
     justifyContent: 'center',
-  },
-  addBtnDisabled: {
-    opacity: 0.5,
-    backgroundColor: Colors.slateMuted,
   },
   tagsSection: {
     marginTop: 4,
