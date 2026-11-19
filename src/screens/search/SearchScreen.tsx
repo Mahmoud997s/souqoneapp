@@ -18,6 +18,7 @@ import { SkeletonCard } from '../../components/ui/SkeletonCard'
 import { StaleDataBanner } from '../../components/listing-detail/StaleDataBanner'
 import { useSearchLogic } from '../../hooks/useSearchLogic'
 import { getListErrorProps } from '../../utils/getListErrorProps'
+import { ModalToastHost } from '../../components/ui/GlobalToast'
 import { SearchHeaderBar } from './components/SearchHeaderBar'
 import { SearchCategoryTabs } from './components/SearchCategoryTabs'
 import { SearchActiveFiltersBar } from './components/SearchActiveFiltersBar'
@@ -298,6 +299,7 @@ export function SearchScreen() {
             })}
           </View>
         </Pressable>
+        {sortModalVisible && <ModalToastHost />}
       </Modal>
     </View>
   )

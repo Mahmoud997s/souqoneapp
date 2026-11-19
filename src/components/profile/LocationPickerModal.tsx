@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
+import { ModalToastHost } from '../ui/GlobalToast'
 
 interface LocationPickerModalProps {
   visible: boolean
@@ -152,6 +153,7 @@ export function LocationPickerModal({
           )}
         </View>
       </KeyboardAvoidingView>
+      {visible && <ModalToastHost />}
     </Modal>
   )
 }

@@ -19,8 +19,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import {
   useToastStore,
-  TOAST_DURATION_MS,
-  type ToastConfig,
+  resolveToastDuration,
+  type ToastItem,
   type ToastKind,
 } from '../../store/toastStore'
 import { Colors } from '../../constants/colors'
@@ -28,6 +28,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { GlassSurface } from '../navigation/GlassSurface'
+import { DecisionToastCard } from './DecisionToastCard'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import { computeGlobalToastBottomOffset } from '../../constants/toastLayout'
 
@@ -41,34 +42,104 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
 const DEFAULT_ICON_BY_KIND: Record<ToastKind, IoniconName> = {
   success: 'checkmark-circle-outline',
+  info: 'information-circle-outline',
+  warning: 'warning-outline',
   neutral: 'information-circle-outline',
   error: 'alert-circle-outline',
 }
 
-function getIconChipStyle(toast: ToastConfig) {
-  if (toast.icon === 'heart' || toast.kind === 'error') {
-    return styles.iconChipAlert
-  }
-  if (toast.kind === 'success') {
-    return styles.iconChipSuccess
-  }
-  return styles.iconChipNeutral
+interface ToastVisualTheme {
+  tintOverlayColor?: string
+  borderColor: string
+  borderWidth: number
+  iconBgColor: string
+  iconColor: string
+  titleColor: string
+  messageColor: string
 }
 
-function resolveIconColor(toast: ToastConfig): string {
-  if (toast.icon === 'heart' || toast.kind === 'error') {
-    return Colors.error
-  }
-  if (toast.kind === 'success') {
-    return Colors.primary
-  }
-  return Colors.textMuted
+function isFavoriteToast(toast: ToastItem): boolean {
+  return (
+    toast.icon === 'heart' ||
+    toast.icon === 'heart-dislike-outline' ||
+    toast.title === 'تمت إضافة الإعلان إلى المفضلة' ||
+    toast.title === 'تمت إزالة الإعلان من المفضلة'
+  )
 }
 
-export function GlobalToast() {
+function resolveToastVisualTheme(toast: ToastItem): ToastVisualTheme {
+  if (isFavoriteToast(toast)) {
+    const isAlert = toast.icon === 'heart'
+    return {
+      tintOverlayColor: undefined,
+      borderColor: Colors.whiteAlpha72,
+      borderWidth: StyleSheet.hairlineWidth,
+      iconBgColor: isAlert ? Colors.errorSoft12 : Colors.mutedSoft12,
+      iconColor: isAlert ? Colors.error : Colors.textMuted,
+      titleColor: Colors.text,
+      messageColor: Colors.textMuted,
+    }
+  }
+
+  switch (toast.kind) {
+    case 'success':
+      return {
+        tintOverlayColor: Colors.emeraldBrightSoft10,
+        borderColor: Colors.emeraldBrightSoft25,
+        borderWidth: 0.5,
+        iconBgColor: Colors.emeraldBright,
+        iconColor: Colors.white,
+        titleColor: Colors.emeraldDeepText,
+        messageColor: Colors.emeraldDeepText,
+      }
+    case 'error':
+      return {
+        tintOverlayColor: Colors.errorSoft10,
+        borderColor: Colors.errorBorder40,
+        borderWidth: 0.5,
+        iconBgColor: Colors.error,
+        iconColor: Colors.white,
+        titleColor: Colors.dangerDarkText,
+        messageColor: Colors.dangerDarkText,
+      }
+    case 'warning':
+      return {
+        tintOverlayColor: Colors.warningSoft16,
+        borderColor: Colors.warningBorder45,
+        borderWidth: 0.5,
+        iconBgColor: Colors.warning,
+        iconColor: Colors.white,
+        titleColor: Colors.warningText,
+        messageColor: Colors.warningText,
+      }
+    case 'info':
+      return {
+        tintOverlayColor: Colors.primarySoft12,
+        borderColor: Colors.primarySoft30,
+        borderWidth: 0.5,
+        iconBgColor: Colors.primary,
+        iconColor: Colors.white,
+        titleColor: Colors.primaryDeep,
+        messageColor: Colors.primaryDeep,
+      }
+    case 'neutral':
+    default:
+      return {
+        tintOverlayColor: Colors.mutedSoft12,
+        borderColor: Colors.slateBorder,
+        borderWidth: 0.5,
+        iconBgColor: Colors.slateSecondary,
+        iconColor: Colors.white,
+        titleColor: Colors.text,
+        messageColor: Colors.textMuted,
+      }
+  }
+}
+
+function ToastNoticeBanner() {
   const insets = useSafeAreaInsets()
   const current = useToastStore((s) => s.current)
-  const pathname = usePathname()
+  const pathname = typeof usePathname === 'function' ? usePathname() : ''
   const shouldReduceMotion = useAppReducedMotion()
   const [keyboardHeight, setKeyboardHeight] = useState(0)
 
@@ -87,7 +158,7 @@ export function GlobalToast() {
     }
   }, [])
 
-  const currentRef = useRef<ToastConfig | null>(current)
+  const currentRef = useRef<ToastItem | null>(current)
   currentRef.current = current
 
   const isExitingRef = useRef(false)
@@ -108,6 +179,13 @@ export function GlobalToast() {
     }
   }, [])
 
+  const clearAutoDismissTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }, [])
+
   const finalizeHide = useCallback((dismissId?: string) => {
     isExitingRef.current = false
     const activeStoreToast = useToastStore.getState().current
@@ -117,10 +195,7 @@ export function GlobalToast() {
   }, [])
 
   const dismiss = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
+    clearAutoDismissTimer()
 
     const active = useToastStore.getState().current ?? currentRef.current
     if (!active) {
@@ -153,10 +228,17 @@ export function GlobalToast() {
       exitTimerRef.current = null
       finalizeHide(dismissId)
     }, TOAST_EXIT_DURATION_MS)
-  }, [finalizeHide, opacity, shouldReduceMotion, translateY])
+  }, [clearAutoDismissTimer, finalizeHide, opacity, shouldReduceMotion, translateY])
 
   const toastId = current?.id
+  const toastRevision = current?.revision ?? 0
+  const resolvedDuration = current
+    ? current.durationMs !== undefined
+      ? current.durationMs
+      : resolveToastDuration(current)
+    : null
 
+  // Run entry animation only when toastId changes (coalesced updates keep id & skip re-animation)
   useEffect(() => {
     clearTimers()
     isExitingRef.current = false
@@ -175,11 +257,6 @@ export function GlobalToast() {
         })
         opacity.value = withTiming(1, { duration: 220 })
       }
-
-      const duration = activeToast.durationMs ?? TOAST_DURATION_MS
-      timerRef.current = setTimeout(() => {
-        dismiss()
-      }, duration)
     } else {
       translateY.value = TOAST_ENTER_OFFSET_Y
       opacity.value = 0
@@ -188,7 +265,22 @@ export function GlobalToast() {
     return () => {
       clearTimers()
     }
-  }, [clearTimers, dismiss, opacity, shouldReduceMotion, toastId, translateY])
+  }, [clearTimers, opacity, shouldReduceMotion, toastId, translateY])
+
+  // Refresh auto-dismiss timer when toastId, coalesced revision, or durationMs changes
+  useEffect(() => {
+    clearAutoDismissTimer()
+    if (!toastId || resolvedDuration === null || resolvedDuration <= 0) {
+      return
+    }
+    timerRef.current = setTimeout(() => {
+      dismiss()
+    }, resolvedDuration)
+
+    return () => {
+      clearAutoDismissTimer()
+    }
+  }, [clearAutoDismissTimer, dismiss, resolvedDuration, toastId, toastRevision])
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -201,8 +293,9 @@ export function GlobalToast() {
     return null
   }
 
-  const iconName = (current.icon ?? DEFAULT_ICON_BY_KIND[current.kind]) as IoniconName
-  const iconColor = resolveIconColor(current)
+  const iconName = (current.icon ?? DEFAULT_ICON_BY_KIND[current.kind] ?? 'information-circle-outline') as IoniconName
+  const visual = resolveToastVisualTheme(current)
+  const isErrorSticky = current.kind === 'error' && !isFavoriteToast(current)
 
   const fullAccessibilityLabel = current.message
     ? `${current.title}: ${current.message}`
@@ -224,7 +317,14 @@ export function GlobalToast() {
       pointerEvents="box-none"
     >
       <Animated.View
-        style={[styles.card, animatedStyle]}
+        style={[
+          styles.card,
+          {
+            borderColor: visual.borderColor,
+            borderWidth: visual.borderWidth,
+          },
+          animatedStyle,
+        ]}
         testID="global-toast-container"
       >
         <GlassSurface
@@ -232,7 +332,11 @@ export function GlobalToast() {
           variant="capsule"
           borderRadius={Radius.pill}
           noBorder
+          tintOverlayColor={visual.tintOverlayColor}
         />
+        {!isFavoriteToast(current) && (
+          <View pointerEvents="none" style={styles.innerTopHighlight} />
+        )}
         <TouchableOpacity
           style={styles.touchable}
           activeOpacity={0.85}
@@ -243,26 +347,90 @@ export function GlobalToast() {
           accessibilityLabel={fullAccessibilityLabel}
         >
           <View
-            style={[styles.iconChip, getIconChipStyle(current)]}
+            style={[styles.iconChip, { backgroundColor: visual.iconBgColor }]}
             testID="global-toast-icon-chip"
           >
-            <Ionicons name={iconName} size={17} color={iconColor} />
+            <Ionicons name={iconName} size={17} color={visual.iconColor} />
           </View>
 
           <View style={styles.textContainer}>
-            <Text style={styles.title} numberOfLines={2}>
+            <Text
+              style={[styles.title, { color: visual.titleColor }]}
+              numberOfLines={2}
+            >
               {current.title}
             </Text>
             {Boolean(current.message) && (
-              <Text style={styles.message} numberOfLines={2}>
+              <Text
+                style={[styles.message, { color: visual.messageColor }]}
+                numberOfLines={2}
+              >
                 {current.message}
               </Text>
             )}
           </View>
+
+          {isErrorSticky && (
+            <TouchableOpacity
+              testID="global-toast-close-btn"
+              onPress={dismiss}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel="إغلاق التنبيه"
+              style={styles.closeAffordance}
+            >
+              <Text style={[styles.closeAffordanceTxt, { color: visual.titleColor }]}>
+                {'\u00D7'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
       </Animated.View>
     </View>
   )
+}
+
+function FeedbackOverlayHost() {
+  return (
+    <>
+      <ToastNoticeBanner />
+      <DecisionToastCard />
+    </>
+  )
+}
+
+export function GlobalToast() {
+  const hasModalHost = useToastStore((s) => s.modalHostIds.length > 0)
+  if (hasModalHost) {
+    return null
+  }
+  return <FeedbackOverlayHost />
+}
+
+let modalHostCounter = 0
+
+export function ModalToastHost() {
+  const hostIdRef = useRef<string | null>(null)
+  if (!hostIdRef.current) {
+    hostIdRef.current = `modal-toast-host-${++modalHostCounter}`
+  }
+  const hostId = hostIdRef.current
+
+  useEffect(() => {
+    const store = useToastStore.getState()
+    store.registerModalHost(hostId)
+    return () => {
+      useToastStore.getState().unregisterModalHost(hostId)
+    }
+  }, [hostId])
+
+  const isTopModalHost = useToastStore(
+    (s) => s.modalHostIds[s.modalHostIds.length - 1] === hostId
+  )
+  if (!isTopModalHost) {
+    return null
+  }
+  return <FeedbackOverlayHost />
 }
 
 const styles = StyleSheet.create({
@@ -282,6 +450,14 @@ const styles = StyleSheet.create({
     borderColor: Colors.whiteAlpha72,
     ...Shadows.card,
   },
+  innerTopHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: Spacing.space4,
+    right: Spacing.space4,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.whiteAlpha75,
+  },
   touchable: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -295,15 +471,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconChipSuccess: {
-    backgroundColor: Colors.primarySoft12,
-  },
-  iconChipNeutral: {
-    backgroundColor: Colors.mutedSoft12,
-  },
-  iconChipAlert: {
-    backgroundColor: Colors.errorSoft12,
   },
   textContainer: {
     flexShrink: 1,
@@ -324,5 +491,18 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
     marginTop: 1,
+  },
+  closeAffordance: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeAffordanceTxt: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: 'Almarai_700Bold',
+    textAlign: 'center',
   },
 })

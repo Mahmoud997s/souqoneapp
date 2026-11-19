@@ -13,6 +13,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { dialogService } from '../../store/dialogStore'
+import { ModalToastHost } from './GlobalToast'
 
 interface AppSelectProps {
   label?: string
@@ -103,6 +104,7 @@ export function AppSelect({ label, value, onValueChange, items, placeholder, ico
             />
           </SafeAreaView>
         </View>
+        {modalVisible && <ModalToastHost />}
       </Modal>
     </View>
   )

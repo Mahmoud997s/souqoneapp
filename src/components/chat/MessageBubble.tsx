@@ -7,6 +7,7 @@ import { LocalMessage } from '../../hooks/useChatRoomLogic'
 import { AttachmentCard } from './AttachmentCard'
 import { AudioPlayer } from './AudioPlayer'
 import { dialogService } from '../../store/dialogStore'
+import { ModalToastHost } from '../ui/GlobalToast'
 import { Swipeable } from 'react-native-gesture-handler'
 
 const screenWidth = Dimensions.get('window').width
@@ -260,6 +261,7 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
             </ScrollView>
           )}
         </View>
+        {fullScreenImage && <ModalToastHost />}
       </Modal>
     </View>
     </Swipeable>
