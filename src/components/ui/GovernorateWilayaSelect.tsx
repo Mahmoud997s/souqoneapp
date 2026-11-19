@@ -20,6 +20,7 @@ import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 import { logWarn } from '../../utils/safeLog'
 import { normalizeArabic } from '../../utils/arabicNormalize'
+import { GlassPickerButton } from './GlassPickerButton'
 
 interface GovernorateWilayaSelectProps {
   governorateId?: number | null
@@ -146,13 +147,11 @@ export function GovernorateWilayaSelect({
       {/* ── 1. Governorate Field ── */}
       <View style={s.fieldWrapper}>
         <Text style={s.label}>{govLabelText} *</Text>
-        <TouchableOpacity
-          style={[
-            s.inputBox,
-            activeGov && s.inputBoxActive,
-            govError ? s.inputBoxError : null,
-          ]}
-          activeOpacity={0.7}
+        <GlassPickerButton
+          testID="gov-picker-btn"
+          active={Boolean(activeGov)}
+          error={Boolean(govError)}
+          style={s.compactBox}
           onPress={handleOpenGovernorate}
         >
           <View style={s.iconWrapStart}>
@@ -178,7 +177,7 @@ export function GovernorateWilayaSelect({
               color={govError ? Colors.error : activeGov ? Colors.primary : Colors.slateMuted}
             />
           </View>
-        </TouchableOpacity>
+        </GlassPickerButton>
         {govError ? <Text style={s.errorTxt}>{govError}</Text> : null}
       </View>
 
@@ -186,14 +185,11 @@ export function GovernorateWilayaSelect({
       {showCity && (
         <View style={s.fieldWrapper}>
           <Text style={s.label}>{cityLabelText} *</Text>
-          <TouchableOpacity
-            style={[
-              s.inputBox,
-              !activeGov && s.inputBoxDisabled,
-              activeCity && s.inputBoxActive,
-              cityError ? s.inputBoxError : null,
-            ]}
-            activeOpacity={0.7}
+          <GlassPickerButton
+            testID="wilaya-picker-btn"
+            active={Boolean(activeCity)}
+            error={Boolean(cityError)}
+            style={[s.compactBox, !activeGov && s.dimmedBox]}
             onPress={handleOpenCity}
           >
             <View style={s.iconWrapStart}>
@@ -242,7 +238,7 @@ export function GovernorateWilayaSelect({
                 }
               />
             </View>
-          </TouchableOpacity>
+          </GlassPickerButton>
           {cityError ? <Text style={s.errorTxt}>{cityError}</Text> : null}
         </View>
       )}
@@ -370,27 +366,11 @@ const s = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'rtl',
   },
-  inputBox: {
+  compactBox: {
     height: 46,
-    backgroundColor: Colors.slateSurface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.slateBorder,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
+    minHeight: 46,
   },
-  inputBoxActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.white,
-  },
-  inputBoxError: {
-    borderColor: Colors.error,
-    backgroundColor: Colors.dangerBg,
-  },
-  inputBoxDisabled: {
-    backgroundColor: Colors.slateSubtleBg,
-    borderColor: Colors.slateBorder,
+  dimmedBox: {
     opacity: 0.6,
   },
   errorTxt: {
