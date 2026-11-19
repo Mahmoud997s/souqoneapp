@@ -1,48 +1,54 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useMemo } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
 
-const CATEGORIES_DATA: { id: string; label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }[] = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine' },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side' },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp' },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert' },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat' },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire' },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery' },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog' },
-  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal' },
+const CATEGORIES_DATA: { id: string; label: string }[] = [
+  { id: 'ENGINE', label: 'المحرك' },
+  { id: 'BODY', label: 'الهيكل' },
+  { id: 'ELECTRICAL', label: 'الكهرباء' },
+  { id: 'SUSPENSION', label: 'المساعدات والتعليق' },
+  { id: 'BRAKES', label: 'الفرامل' },
+  { id: 'INTERIOR', label: 'الداخلية' },
+  { id: 'TIRES', label: 'الإطارات' },
+  { id: 'BATTERIES', label: 'البطاريات' },
+  { id: 'OILS', label: 'الزيوت' },
+  { id: 'ACCESSORIES', label: 'إكسسوارات' },
+  { id: 'OTHER', label: 'أخرى' },
+]
+
+const LISTING_TYPES_DATA: { key: string; label: string }[] = [
+  { key: 'SPARE_PART_SALE', label: 'للبيع' },
+  { key: 'SPARE_PART_WANTED', label: 'مطلوب' },
 ]
 
 export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1Props) {
-  const enrichedTypes: {
-    key: string
-    label: string
-    icon: keyof typeof MaterialCommunityIcons.glyphMap
-    desc: string
-  }[] = [
-    {
-      key: 'SPARE_PART_SALE',
-      label: 'للبيع',
-      icon: 'car-wrench',
-      desc: 'عرض قطع غيار للبيع',
-    },
-    {
-      key: 'SPARE_PART_WANTED',
-      label: 'مطلوب',
-      icon: 'magnify',
-      desc: 'البحث عن قطع غيار معينة',
-    },
-  ]
+  const listingTypeOptions = useMemo(
+    () =>
+      LISTING_TYPES_DATA.map((lt) => ({
+        value: lt.key,
+        label: lt.label,
+        testID: `listing-type-${lt.key}`,
+      })),
+    []
+  )
+
+  const categoryOptions = useMemo(
+    () =>
+      CATEGORIES_DATA.map((cat) => ({
+        value: cat.id,
+        label: cat.label,
+        testID: `category-${cat.id}`,
+      })),
+    []
+  )
 
   return (
     <View style={s.stepWrap}>
@@ -58,71 +64,33 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
       </View>
 
       {/* 1. Listing Type */}
-      <Text style={s.sectionLabel}>نوع الإعلان *</Text>
-      <Text style={s.sectionSub}>حدد الغرض من الإعلان لتخصيص الخيارات اللاحقة</Text>
-
-      {errors.listingType ? <Text style={s.inlineErrorTxt}>{errors.listingType}</Text> : null}
-
-      <View style={s.listingTypesRow}>
-        {enrichedTypes.map((lt) => {
-          const isSel = formData.listingType === lt.key
-          return (
-            <TouchableOpacity
-              key={lt.key}
-              testID={`listing-type-${lt.key}`}
-              style={[s.typeCard, isSel && s.typeCardActive]}
-              onPress={() => onUpdateField('listingType', lt.key)}
-              activeOpacity={0.85}
-            >
-              <View style={[s.typeIconWrap, isSel && s.typeIconWrapActive]}>
-                <MaterialCommunityIcons
-                  name={lt.icon}
-                  size={20}
-                  color={isSel ? Colors.white : Colors.primary}
-                />
-              </View>
-              <Text style={[s.typeTitle, isSel && s.typeTitleActive]} numberOfLines={1}>
-                {lt.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+      <WizardCard
+        title="نوع الإعلان *"
+        subtitle="حدد الغرض من الإعلان لتخصيص الخيارات اللاحقة"
+      >
+        <WizardSelectField
+          glass
+          testID="part-listing-type-select"
+          value={formData.listingType}
+          placeholder="اختر نوع الإعلان"
+          options={listingTypeOptions}
+          error={errors.listingType}
+          errorTestID="error-part-listing-type"
+          onSelect={(val) => onUpdateField('listingType', val)}
+        />
+      </WizardCard>
 
       <WizardCard title="فئة القطعة *" subtitle="اختر التصنيف المناسب للقطعة">
-        {errors.partCategory ? <Text style={s.inlineErrorTxt}>{errors.partCategory}</Text> : null}
-        <View style={s.gridWrap}>
-          {CATEGORIES_DATA.map((cat) => {
-            const isSel = formData.partCategory === cat.id
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                testID={`category-${cat.id}`}
-                style={[
-                  s.gridCard,
-                  isSel ? s.gridCardActive : null,
-                  { borderColor: isSel ? Colors.primary : Colors.slateBorder }
-                ]}
-                onPress={() => onUpdateField('partCategory', cat.id)}
-                activeOpacity={0.7}
-              >
-                <View style={[s.gridIconWrap, isSel && s.gridIconWrapActive]}>
-                  <MaterialCommunityIcons
-                    name={cat.icon}
-                    size={20}
-                    color={isSel ? Colors.white : Colors.primary}
-                  />
-                </View>
-                <Text
-                  style={[s.gridCardTxt, isSel && s.gridCardTxtActive]}
-                  numberOfLines={2}
-                >
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        <WizardSelectField
+          glass
+          testID="part-category-select"
+          value={formData.partCategory}
+          placeholder="اختر فئة القطعة"
+          options={categoryOptions}
+          error={errors.partCategory}
+          errorTestID="error-part-category"
+          onSelect={(val) => onUpdateField('partCategory', val)}
+        />
       </WizardCard>
 
       <WizardCard title="حالة القطعة *" subtitle="حدد حالة القطعة الحالية">
@@ -199,24 +167,6 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     marginTop: 1,
   },
-  sectionLabel: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 13.5,
-    lineHeight: 19,
-    color: Colors.slateHeading,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginBottom: 3,
-  },
-  sectionSub: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11,
-    lineHeight: 15,
-    color: Colors.textMuted,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginBottom: Spacing.space3,
-  },
   inlineErrorTxt: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 11.5,
@@ -226,100 +176,6 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     marginTop: -4,
     marginBottom: 6,
-  },
-  listingTypesRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: Spacing.space3,
-  },
-  typeCard: {
-    flex: 1,
-    backgroundColor: Colors.whiteAlpha45,
-    paddingVertical: 10,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.white,
-    shadowColor: Colors.slateMuted,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  typeCardActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.whiteAlpha95,
-  },
-  typeIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.skyLightBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  typeIconWrapActive: {
-    backgroundColor: Colors.primary,
-  },
-  typeTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    color: Colors.slateHeading,
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingTop: Platform.OS === 'android' ? 2 : 0,
-    writingDirection: 'rtl'
-  },
-  typeTitleActive: {
-    color: Colors.primary,
-  },
-  gridWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  gridCard: {
-    width: '23.2%',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderRadius: Radius.md,
-    paddingVertical: 8,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 88,
-  },
-  gridCardActive: {
-    backgroundColor: Colors.neutralBgLight,
-    borderColor: Colors.primary,
-  },
-  gridIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.infoSoftBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  gridIconWrapActive: {
-    backgroundColor: Colors.primary,
-  },
-  gridCardTxt: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 10,
-    color: Colors.slateBody,
-    textAlign: 'center',
-    lineHeight: 14,
-    minHeight: 28,
-    paddingHorizontal: 1,
-    writingDirection: 'rtl',
-  },
-  gridCardTxtActive: {
-    color: Colors.primary,
-    fontFamily: 'Almarai_700Bold',
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 })

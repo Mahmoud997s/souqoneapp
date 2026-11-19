@@ -109,7 +109,7 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
 
     // Current step stays at 1 because fields are missing
     expect(useServiceWizardStore.getState().currentStep).toBe(1)
-    expect(screen.getByText('اختر نوع الخدمة')).toBeTruthy()
+    expect(screen.getByTestId('error-service-type').props.children).toBe('اختر نوع الخدمة')
   })
 
   it('advances to Step 2 when Step 1 is valid', async () => {

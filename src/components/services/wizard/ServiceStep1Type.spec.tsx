@@ -26,8 +26,10 @@ describe('ServiceStep1Type', () => {
     jest.clearAllMocks()
   })
 
-  it('renders all service type options and calls onUpdateField when pressed', async () => {
+  it('renders all service type options inside dropdown and calls onUpdateField when pressed', async () => {
     await render(<ServiceStep1Type {...defaultProps} />)
+
+    await fireEvent.press(screen.getByTestId('service-type-select'))
 
     SERVICE_TYPES.forEach((st) => {
       const option = screen.getByTestId(`service-type-${st.id}`)
@@ -35,7 +37,7 @@ describe('ServiceStep1Type', () => {
     })
 
     const maintenanceOption = screen.getByTestId('service-type-MAINTENANCE')
-    fireEvent.press(maintenanceOption)
+    await fireEvent.press(maintenanceOption)
     expect(mockOnUpdateField).toHaveBeenCalledWith('serviceType', 'MAINTENANCE')
   })
 
@@ -74,7 +76,7 @@ describe('ServiceStep1Type', () => {
 
     await render(<ServiceStep1Type {...propsWithErrors} />)
 
-    expect(screen.getByText('اختر نوع الخدمة')).toBeTruthy()
+    expect(screen.getByTestId('error-service-type').props.children).toBe('اختر نوع الخدمة')
     expect(screen.getByText('اختر صفة مقدم الخدمة')).toBeTruthy()
     expect(screen.getByText('اسم مقدم الخدمة لازم يكون 3 أحرف على الأقل')).toBeTruthy()
   })
