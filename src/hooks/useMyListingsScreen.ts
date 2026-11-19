@@ -7,6 +7,7 @@ import {
   MY_LISTING_ENTITY_QUERY_KEYS,
 } from './useMyListingOwnerActions'
 import { dialogService } from '../store/dialogStore'
+import { toastService, type ActionSheetOption } from '../store/toastStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { listingsApi } from '../api/listings'
@@ -16,7 +17,6 @@ import { MyListingEntityType, MyListingItem } from '../types/my-listings.types'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { GroupedSectionData } from '../components/profile/my-listings/MyListingsAllView'
 import type { OwnerAction } from '../components/listing-detail/OwnerManageBar'
-import type { DialogOption } from '../components/ui/AppDialog'
 import type { BusListingType } from '../types/bus.types'
 import type { EquipmentListingType } from '../types/equipment.types'
 import {
@@ -235,13 +235,13 @@ export function useMyListingsScreen() {
       return
     }
 
-    const options: DialogOption[] = statusActions.map((action) => ({
+    const options: ActionSheetOption[] = statusActions.map((action) => ({
       text: action.label,
       icon: action.icon,
       onPress: () => confirmStatusChange(item, action),
     }))
 
-    dialogService.showOptions('تغيير الحالة', options)
+    toastService.showActionSheet({ title: 'تغيير الحالة', options })
   }
 
   const confirmStatusChange = (item: MyListingItem, action: OwnerAction) => {

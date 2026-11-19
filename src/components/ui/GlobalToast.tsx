@@ -29,6 +29,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { GlassSurface } from '../navigation/GlassSurface'
 import { DecisionToastCard } from './DecisionToastCard'
+import { GlassActionSheetHost } from './GlassActionSheet'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import { computeGlobalToastBottomOffset } from '../../constants/toastLayout'
 
@@ -395,6 +396,7 @@ function FeedbackOverlayHost() {
     <>
       <ToastNoticeBanner />
       <DecisionToastCard />
+      <GlassActionSheetHost />
     </>
   )
 }

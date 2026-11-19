@@ -27,6 +27,7 @@ import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBa
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 
 function getDateLabel(iso: string) {
   if (!iso) return ''
@@ -98,7 +99,7 @@ export default function ChatRoomScreen() {
     if (!msg) return
     const isOwn = msg.senderId === user?.id
 
-    const options: import('../../src/components/ui/AppDialog').DialogOption[] = [
+    const options: ActionSheetOption[] = [
       { text: '💬 رد', onPress: () => setReplyingToMessage(msg), style: 'default' },
       { text: '😂 إضافة تفاعل', onPress: () => { setSelectedMsgId(msgId); setShowReactionPicker(true); }, style: 'default' },
     ]
@@ -117,7 +118,7 @@ export default function ChatRoomScreen() {
       })
     }
 
-    dialogService.showOptions('خيارات الرسالة', options)
+    toastService.showActionSheet({ title: 'خيارات الرسالة', options })
   }, [messages, user, setReplyingToMessage, handleDeleteMessage])
 
   const handleReactFromPicker = React.useCallback((msgId: string, emoji: string) => {
@@ -127,7 +128,7 @@ export default function ChatRoomScreen() {
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
   const handleRoomOptions = React.useCallback(() => {
-    const options: import('../../src/components/ui/AppDialog').DialogOption[] = []
+    const options: ActionSheetOption[] = []
 
     if (room?.listing) {
       options.push({
@@ -168,7 +169,7 @@ export default function ChatRoomScreen() {
       }
     )
 
-    dialogService.showOptions('خيارات المحادثة', options)
+    toastService.showActionSheet({ title: 'خيارات المحادثة', options })
   }, [room?.listing, room?.entityType])
 
   return (

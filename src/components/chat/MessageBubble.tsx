@@ -6,7 +6,7 @@ import { Colors } from '../../constants/colors'
 import { LocalMessage } from '../../hooks/useChatRoomLogic'
 import { AttachmentCard } from './AttachmentCard'
 import { AudioPlayer } from './AudioPlayer'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { ModalToastHost } from '../ui/GlobalToast'
 import { Swipeable } from 'react-native-gesture-handler'
 
@@ -89,9 +89,9 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
   const parsed = parseMessageText(msg.content)
   
   const handleFailedMessagePress = () => {
-    dialogService.showOptions(
-      'لم يتم إرسال الرسالة',
-      [
+    toastService.showActionSheet({
+      title: 'لم يتم إرسال الرسالة',
+      options: [
         {
           text: '🔄 إعادة الإرسال',
           onPress: () => onRetry?.(msg.id),
@@ -102,8 +102,8 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
           onPress: () => onRemoveFailed?.(msg.id),
           style: 'destructive',
         },
-      ]
-    )
+      ],
+    })
   }
 
   const renderLeftActions = () => {
