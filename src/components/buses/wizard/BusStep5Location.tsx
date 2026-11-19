@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Switch,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +13,7 @@ import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { BusWizardData } from '../../../store/busWizardStore'
 
@@ -76,37 +76,36 @@ export function BusStep5Location({
               </View>
             </View>
             <View style={s.coordsActionsRow}>
-              <TouchableOpacity
+              <GlassPickerButton
                 style={s.coordsEditBtn}
+                borderRadius={6}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                   setMapVisible(true)
                 }}
-                activeOpacity={0.8}
                 testID="edit-map-coords-btn"
               >
                 <Ionicons name="map-outline" size={14} color={Colors.primary} />
                 <Text style={s.coordsEditBtnTxt}>تعديل على الخريطة</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </GlassPickerButton>
+              <GlassPickerButton
                 style={s.coordsClearBtn}
+                borderRadius={6}
                 onPress={handleClearCoords}
-                activeOpacity={0.8}
                 testID="clear-map-coords-btn"
               >
                 <Ionicons name="close-circle-outline" size={14} color={Colors.error} />
                 <Text style={s.coordsClearBtnTxt}>إلغاء الإحداثيات</Text>
-              </TouchableOpacity>
+              </GlassPickerButton>
             </View>
           </View>
         ) : (
-          <TouchableOpacity
+          <GlassPickerButton
             style={s.mapTriggerBtn}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               setMapVisible(true)
             }}
-            activeOpacity={0.8}
             testID="open-map-picker-btn"
           >
             <View style={s.mapTriggerIconCircle}>
@@ -117,7 +116,7 @@ export function BusStep5Location({
               <Text style={s.mapTriggerSub}>اختياري — يساعد المشترين على الوصول لموقع الحافلة</Text>
             </View>
             <Ionicons name="chevron-back" size={18} color={Colors.slateMuted} />
-          </TouchableOpacity>
+          </GlassPickerButton>
         )}
       </WizardCard>
 
@@ -183,9 +182,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -261,9 +257,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.infoBorder,
+    minHeight: 0,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -277,9 +271,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.dangerBorder,
+    minHeight: 0,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
