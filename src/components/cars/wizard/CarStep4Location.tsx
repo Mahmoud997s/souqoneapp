@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet, Switch, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
@@ -9,6 +9,7 @@ import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { MapLocationPicker } from '../../ui/MapLocationPicker'
 import { CarStep4Props } from '../../../types/carForm.types'
 import { CANCELLATION_POLICIES } from '../../../constants/cars'
@@ -225,32 +226,31 @@ export function CarStep4Location({
               </View>
             </View>
             <View style={s.coordsActionsRow}>
-              <TouchableOpacity
+              <GlassPickerButton
                 style={s.coordsEditBtn}
+                borderRadius={6}
                 onPress={() => setMapVisible(true)}
-                activeOpacity={0.8}
               >
                 <Ionicons name="map-outline" size={14} color={Colors.primary} />
                 <Text style={s.coordsEditBtnTxt}>تعديل على الخريطة</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </GlassPickerButton>
+              <GlassPickerButton
                 style={s.coordsClearBtn}
+                borderRadius={6}
                 onPress={() => {
                   onUpdateField('latitude', null)
                   onUpdateField('longitude', null)
                 }}
-                activeOpacity={0.8}
               >
                 <Ionicons name="close-circle-outline" size={14} color={Colors.error} />
                 <Text style={s.coordsClearBtnTxt}>إلغاء الإحداثيات</Text>
-              </TouchableOpacity>
+              </GlassPickerButton>
             </View>
           </View>
         ) : (
-          <TouchableOpacity
+          <GlassPickerButton
             style={s.mapTriggerBtn}
             onPress={() => setMapVisible(true)}
-            activeOpacity={0.8}
           >
             <View style={s.mapTriggerIconCircle}>
               <Ionicons name="map-outline" size={18} color={Colors.primary} />
@@ -260,7 +260,7 @@ export function CarStep4Location({
               <Text style={s.mapTriggerSub}>اختياري — يساعد المشترين على الوصول إليك</Text>
             </View>
             <Ionicons name="chevron-back" size={18} color={Colors.slateMuted} />
-          </TouchableOpacity>
+          </GlassPickerButton>
         )}
       </WizardCard>
 
@@ -341,9 +341,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1,
-    borderColor: Colors.slateBorderStrong,
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -419,9 +416,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.infoBorder,
+    minHeight: 0,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -435,9 +430,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.dangerBorder,
+    minHeight: 0,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
