@@ -2,7 +2,7 @@ import React from 'react'
 import { View } from 'react-native'
 import { Stack } from 'expo-router'
 import { Colors } from '../../src/constants/colors'
-import { ModalToastHost } from '../../src/components/ui/GlobalToast'
+import { ModalToastHost } from '../../src/components/ui/ModalToastHost'
 
 export default function ModalsLayout() {
   return (

@@ -7,7 +7,7 @@ import { LocalMessage } from '../../hooks/useChatRoomLogic'
 import { AttachmentCard } from './AttachmentCard'
 import { AudioPlayer } from './AudioPlayer'
 import { toastService } from '../../store/toastStore'
-import { ModalToastHost } from '../ui/GlobalToast'
+import { ModalToastHost } from '../ui/ModalToastHost'
 import { Swipeable } from 'react-native-gesture-handler'
 
 const screenWidth = Dimensions.get('window').width

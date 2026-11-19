@@ -18,7 +18,7 @@ import { Radius } from '../../constants/radius';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { TopBarTokens } from '../../constants/topBarTokens';
 import { FilterGlassSurface } from './FilterGlassSurface';
-import { ModalToastHost } from './GlobalToast';
+import { ModalToastHost } from './ModalToastHost';
 import { ResetFilterButton } from './ResetFilterButton';
 
 interface FilterBottomSheetLayoutProps {

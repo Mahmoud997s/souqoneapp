@@ -13,7 +13,7 @@ import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { dialogService } from '../../store/dialogStore'
-import { ModalToastHost } from './GlobalToast'
+import { ModalToastHost } from './ModalToastHost'
 
 interface AppSelectProps {
   label?: string

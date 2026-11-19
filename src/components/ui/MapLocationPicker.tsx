@@ -18,7 +18,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppButton } from './AppButton'
-import { ModalToastHost } from './GlobalToast'
+import { ModalToastHost } from './ModalToastHost'
 import { logWarn } from '../../utils/safeLog'
 import { getLocationCenterCoords } from '../../constants/locations'
 

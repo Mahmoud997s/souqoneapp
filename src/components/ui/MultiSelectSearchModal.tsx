@@ -17,7 +17,7 @@ import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { ResetFilterButton } from './ResetFilterButton';
 import { AppButton } from './AppButton';
-import { ModalToastHost } from './GlobalToast';
+import { ModalToastHost } from './ModalToastHost';
 import { matchesArabicQuery } from '../../utils/arabicNormalize';
 
 export interface MultiSelectOption {

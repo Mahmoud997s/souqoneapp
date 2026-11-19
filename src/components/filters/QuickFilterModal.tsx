@@ -5,7 +5,7 @@ import { Colors } from '../../constants/colors';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { FilterGlassSurface } from '../ui/FilterGlassSurface';
 import { quickFilterModalStyles } from './quickFilterModalStyles';
-import { ModalToastHost } from '../ui/GlobalToast';
+import { ModalToastHost } from '../ui/ModalToastHost';
 
 export interface QuickFilterOption {
   id: string;

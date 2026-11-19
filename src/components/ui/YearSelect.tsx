@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
-import { ModalToastHost } from './GlobalToast'
+import { ModalToastHost } from './ModalToastHost'
 
 interface YearSelectProps {
   value?: string
