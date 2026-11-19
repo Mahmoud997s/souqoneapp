@@ -9,6 +9,7 @@ export interface GlassPickerButtonProps {
   children: React.ReactNode
   onPress?: () => void
   disabled?: boolean
+  active?: boolean
   error?: boolean
   style?: StyleProp<ViewStyle>
   testID?: string
@@ -17,15 +18,16 @@ export interface GlassPickerButtonProps {
 }
 
 /**
- * Shared glass-skinned button wrapper for wizard modal pickers (D-371).
+ * Shared glass-skinned button wrapper for wizard modal pickers (D-371 / D-372).
  * Matches `WizardSelectField glass` (`TopBarGlassSurface` kind="ice-control", `Radius.md`,
  * `TopBarTokens.buttonBorderColor`) while preserving exact picker height, children,
- * error border (`Colors.error`), and disabled dimming (`opacity: 0.6`).
+ * active border (`Colors.primary`), error border (`Colors.error`), and disabled dimming (`opacity: 0.6`).
  */
 export function GlassPickerButton({
   children,
   onPress,
   disabled = false,
+  active = false,
   error = false,
   style,
   testID,
@@ -42,6 +44,7 @@ export function GlassPickerButton({
       onPress={onPress}
       style={({ pressed }) => [
         s.button,
+        active && !error && s.buttonActive,
         error && s.buttonError,
         disabled && s.buttonDisabled,
         pressed && !disabled && s.buttonPressed,
@@ -70,6 +73,9 @@ const s = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: 12,
     minHeight: 48,
+  },
+  buttonActive: {
+    borderColor: Colors.primary,
   },
   buttonError: {
     borderColor: Colors.error,
