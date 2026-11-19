@@ -5,7 +5,7 @@ import { useMyListingsScreen } from './useMyListingsScreen'
 import { listingsApi } from '../api/listings'
 import { busesApi } from '../api/buses'
 import { equipmentApi } from '../api/equipment'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { invalidateBusListingQueries } from '../utils/listing-detail/busQueryKeys'
@@ -52,11 +52,11 @@ jest.mock('../api/equipment', () => ({
   },
 }))
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
-    showOptions: jest.fn(),
+jest.mock('../store/toastStore', () => ({
+  toastService: {
+    showActionSheet: jest.fn(),
     confirm: jest.fn(),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -223,9 +223,9 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
 
         result.current.handleStatusChange(item)
 
-        expect(dialogService.showOptions).toHaveBeenCalledTimes(1)
-        const [title, options] = (dialogService.showOptions as jest.Mock).mock
-          .calls[0]
+        expect(toastService.showActionSheet).toHaveBeenCalledTimes(1)
+        const { title, options } = (toastService.showActionSheet as jest.Mock).mock
+          .calls[0][0]
         expect(title).toBe('تغيير الحالة')
         expect(options.map((o: { text: string }) => o.text)).toEqual(
           expectedTexts
@@ -252,7 +252,7 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
       const archiveOption = options.find(
         (o: { text: string }) => o.text === 'أرشفة'
       )
@@ -262,8 +262,8 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      expect(dialogService.confirm).toHaveBeenCalledTimes(1)
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      expect(toastService.confirm).toHaveBeenCalledTimes(1)
+      const { onConfirm } = (toastService.confirm as jest.Mock).mock.calls[0][0]
 
       await act(async () => {
         await onConfirm()
@@ -292,14 +292,14 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
       jest.useFakeTimers()
       options[0].onPress()
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const { onConfirm } = (toastService.confirm as jest.Mock).mock.calls[0][0]
       await act(async () => {
         await onConfirm()
       })
@@ -330,7 +330,7 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
       const markRentedOpt = options.find(
         (o: { text: string }) => o.text === 'تعليم كمؤجر'
       )
@@ -340,7 +340,7 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const { onConfirm } = (toastService.confirm as jest.Mock).mock.calls[0][0]
       await act(async () => {
         await onConfirm()
       })
@@ -378,12 +378,12 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
       options[0].onPress()
 
       expect(promptProfilePhoneRequired).toHaveBeenCalledTimes(1)
-      expect(dialogService.confirm).not.toHaveBeenCalled()
+      expect(toastService.confirm).not.toHaveBeenCalled()
       expect(busesApi.update).not.toHaveBeenCalled()
     })
 
@@ -404,22 +404,22 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
       jest.useFakeTimers()
       options[0].onPress()
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const { onConfirm } = (toastService.confirm as jest.Mock).mock.calls[0][0]
       await act(async () => {
         await onConfirm()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'تحديث مطلوب',
-        'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'تم تعديل الإعلان من جهاز آخر، يرجى التحديث والمحاولة مجدداً',
+      })
       expect(mockRefetch).toHaveBeenCalled()
     })
 
@@ -437,7 +437,7 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       rendered.result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
       jest.useFakeTimers()
       options[0].onPress()
@@ -447,12 +447,12 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       await unmountPromise
 
       jest.advanceTimersByTime(400)
-      expect(dialogService.confirm).not.toHaveBeenCalled()
+      expect(toastService.confirm).not.toHaveBeenCalled()
 
       // Also verify pressing an option AFTER unmount is ignored
       options[1].onPress()
       jest.advanceTimersByTime(400)
-      expect(dialogService.confirm).not.toHaveBeenCalled()
+      expect(toastService.confirm).not.toHaveBeenCalled()
       jest.useRealTimers()
     })
 
@@ -470,7 +470,7 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       })
 
       result.current.handleStatusChange(item)
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
       jest.useFakeTimers()
       options[0].onPress() // markSold ("تأكيد البيع")
@@ -479,8 +479,8 @@ describe('useMyListingsScreen — status actions from shared matrix', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      expect(dialogService.confirm).toHaveBeenCalledTimes(1)
-      expect((dialogService.confirm as jest.Mock).mock.calls[0][0]).toBe(
+      expect(toastService.confirm).toHaveBeenCalledTimes(1)
+      expect((toastService.confirm as jest.Mock).mock.calls[0][0].title).toBe(
         'تأكيد الإجراء'
       )
     })

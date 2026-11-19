@@ -27,7 +27,8 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
 import { servicesApi } from '../../src/api/services'
 import { useServiceWizardStore, ServiceFormData } from '../../src/store/serviceWizardStore'
@@ -177,37 +178,31 @@ export default function NewServiceListingScreen() {
 
   const handleExit = () => {
     if (formData.editMode) {
-      dialogService.confirm(
-        'إلغاء التعديل',
-        'هل تريد الخروج؟ لن يتم حفظ التعديلات غير المنشورة.',
-        () => router.back(),
-        'خروج',
-        'متابعة التعديل',
-        true
-      )
+      toastService.confirm({
+        title: 'إلغاء التعديل',
+        message: 'هل تريد الخروج؟ لن يتم حفظ التعديلات غير المنشورة.',
+        intent: 'danger',
+        confirmLabel: 'خروج',
+        cancelLabel: 'متابعة التعديل',
+        onConfirm: () => router.back(),
+      })
     } else {
-      dialogService.confirm(
-        'الخروج من النموذج',
-        'هل تريد الخروج؟ تم حفظ مسودتك تلقائياً ويمكنك استكمالها في أي وقت.',
-        () => router.back(),
-        'خروج',
-        'متابعة الإعلان'
-      )
+      toastService.confirm({
+        title: 'الخروج من النموذج',
+        message: 'هل تريد الخروج؟ تم حفظ مسودتك تلقائياً ويمكنك استكمالها في أي وقت.',
+        intent: 'primary',
+        confirmLabel: 'خروج',
+        cancelLabel: 'متابعة الإعلان',
+        onConfirm: () => router.back(),
+      })
     }
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm(
-      'مسح المسودة',
-      'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟',
-      () => {
-        reset()
-        setErrors({})
-      },
-      'مسح الكل',
-      'تراجع',
-      true
-    )
+    confirmClearDraft(() => {
+      reset()
+      setErrors({})
+    })
   }
 
   const getStepTitle = () => {
@@ -231,15 +226,16 @@ export default function NewServiceListingScreen() {
 
   const promptPublishConfirmation = () => {
     const isEdit = Boolean(formData.editMode)
-    dialogService.confirm(
-      isEdit ? 'تأكيد حفظ التعديلات' : 'تأكيد نشر الإعلان',
-      isEdit
+    toastService.confirm({
+      title: isEdit ? 'تأكيد حفظ التعديلات' : 'تأكيد نشر الإعلان',
+      message: isEdit
         ? 'هل أنت متأكد من رغبتك في حفظ التعديلات وتحديث بيانات الخدمة؟'
         : 'هل راجعت كافة تفاصيل الخدمة وترغب في نشر الإعلان الآن؟',
-      () => handleSubmit(),
-      isEdit ? 'حفظ التعديلات' : 'نشر الآن',
-      'مراجعة البيانات'
-    )
+      intent: 'primary',
+      confirmLabel: isEdit ? 'حفظ التعديلات' : 'نشر الآن',
+      cancelLabel: 'مراجعة البيانات',
+      onConfirm: () => handleSubmit(),
+    })
   }
 
   const submitLockRef = useRef<boolean>(false)
@@ -315,7 +311,7 @@ export default function NewServiceListingScreen() {
     const handleServiceMutationError = (err: any, fallbackMessage: string) => {
       submitLockRef.current = false
       if (err?.response?.status === 429) {
-        dialogService.alert('خطأ', getPublishRateLimitErrorMessage(err))
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(err) })
         return
       }
 
@@ -374,6 +370,7 @@ export default function NewServiceListingScreen() {
                 ? 'تم تحديث بيانات الخدمة بنجاح في سوق ون.'
                 : 'تم حفظ التعديلات بنجاح، لكن واجهنا مشكلة في تحديث بعض الصور.',
             })
+            toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
           },
           onError: (err: any) =>
             handleServiceMutationError(err, 'تعذر تحديث بيانات الخدمة، يرجى التحقق من المدخلات'),
@@ -395,6 +392,7 @@ export default function NewServiceListingScreen() {
             serviceId,
             isEdit: false,
           })
+          toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
         },
         onError: (err: any) =>
           handleServiceMutationError(err, 'تعذر نشر الإعلان، يرجى التحقق من المدخلات'),

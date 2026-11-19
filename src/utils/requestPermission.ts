@@ -1,6 +1,6 @@
 import { Linking } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 
 export interface PermissionResponse {
   status?: string
@@ -76,7 +76,7 @@ export const operatorAvatarPermissionAdapter: PermissionAdapter = {
 
 /**
  * Standardized permission requester with unified Arabic presentation and settings redirection.
- * Reuses dialogService.confirm / dialogService.alert without creating new UI components.
+ * Reuses toastService.confirm / toastService.show without creating new UI components.
  */
 export async function requestPermission(
   adapter: PermissionAdapter
@@ -104,15 +104,16 @@ export async function requestPermission(
 
     if (isBlocked) {
       const blockedMessage = adapter.blockedMessageAr ?? adapter.deniedMessageAr
-      dialogService.confirm(
+      toastService.confirm({
         title,
-        blockedMessage,
-        () => {
+        message: blockedMessage,
+        intent: 'primary',
+        confirmLabel: 'فتح الإعدادات',
+        cancelLabel: 'إلغاء',
+        onConfirm: () => {
           Linking.openSettings().catch(() => {})
         },
-        'فتح الإعدادات',
-        'إلغاء'
-      )
+      })
 
       return {
         status: 'denied-blocked',
@@ -121,14 +122,14 @@ export async function requestPermission(
       }
     }
 
-    dialogService.alert(title, adapter.deniedMessageAr)
+    toastService.show({ kind: 'error', title: adapter.deniedMessageAr })
     return {
       status: 'denied-can-ask-again',
       granted: false,
       canAskAgain: true,
     }
   } catch (_err) {
-    dialogService.alert(title, adapter.deniedMessageAr)
+    toastService.show({ kind: 'error', title: adapter.deniedMessageAr })
     return {
       status: 'denied-can-ask-again',
       granted: false,

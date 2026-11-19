@@ -7,7 +7,7 @@ import { usePart } from '../hooks/useParts'
 import { usePartDetail } from '../screens/parts/hooks/usePartDetail'
 import { mapPartDetailViewModel } from '../screens/parts/mappers/partDetailViewModel'
 import { partsApi } from '../api/parts'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { router } from 'expo-router'
 
 jest.mock('../../src/hooks/useParts')
@@ -73,10 +73,10 @@ jest.mock('expo-router', () => ({
   router: mockRouter,
   useRouter: () => mockRouter,
 }))
-jest.mock('../../src/store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../../src/store/toastStore', () => ({
+  toastService: {
     confirm: jest.fn(),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -211,27 +211,26 @@ describe('PartDetailScreen Ownership & Actions', () => {
     const deleteBtn = screen.getByText('حذف')
     await fireEvent.press(deleteBtn)
 
-    expect(dialogService.confirm).toHaveBeenCalledWith(
-      'حذف الإعلان',
-      expect.stringContaining('هل أنت متأكد من حذف هذا الإعلان؟'),
-      expect.any(Function),
-      'نعم، احذف',
-      'تراجع',
-      true
-    )
+    expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'حذف الإعلان',
+      message: expect.stringContaining('هل أنت متأكد من حذف هذا الإعلان؟'),
+      onConfirm: expect.any(Function),
+      confirmLabel: 'حذف',
+      cancelLabel: 'إلغاء',
+      intent: 'danger',
+    }))
 
     // Execute the onConfirm callback
-    const confirmCallback = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+    const confirmCallback = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
     await act(async () => {
       await confirmCallback()
     })
 
     expect(partsApi.remove).toHaveBeenCalledWith('part-123')
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'تم',
-      'تم حذف إعلان القطعة بنجاح',
-      'success'
-    )
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم حذف الإعلان',
+    }))
     expect(mockRouter.back).toHaveBeenCalled()
   })
 })

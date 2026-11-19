@@ -9,7 +9,7 @@ import { busesApi } from '../../api/buses'
 import { listingsApi } from '../../api/listings'
 import { favoritesApi } from '../../api/favorites'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as phoneGuard from '../../utils/profilePhoneGuard'
 import type { EquipmentDetailApi } from '../../types/equipmentDetailApi.types'
 import type { BusDetailApi } from '../../types/busDetailApi.types'
@@ -202,9 +202,9 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       })
       ;(equipmentApi.update as jest.Mock).mockResolvedValue({ data: mockActiveEquipment })
 
-      const alertSpy = jest.spyOn(dialogService, 'alert')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
+      const alertSpy = jest.spyOn(toastService, 'show')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
 
       const { findByTestId, queryByTestId } = await renderWithClient(
         <EquipmentDetailScreen id="eq-archived-1" />
@@ -214,40 +214,40 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       const manageStatusBtn = await findByTestId('btn-owner-manage-status')
       expect(manageStatusBtn).toBeTruthy()
 
-      // 2. Press "إدارة الحالة" -> dialogService.showOptions called with "استعادة"
+      // 2. Press "إدارة الحالة" -> toastService.showActionSheet called with "استعادة"
       await act(async () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      expect(showOptionsSpy).toHaveBeenCalledWith(
-        'إدارة حالة الإعلان',
-        expect.arrayContaining([
+      expect(showOptionsSpy).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'إدارة حالة الإعلان',
+        options: expect.arrayContaining([
           expect.objectContaining({ text: 'استعادة' }),
-        ])
-      )
+        ]),
+      }))
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
       expect(restoreOption).toBeTruthy()
 
-      // 3. Select "استعادة" -> 400ms delay -> dialogService.confirm triggers
+      // 3. Select "استعادة" -> 400ms delay -> toastService.confirm triggers
       jest.useFakeTimers()
       restoreOption?.onPress?.()
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      expect(confirmSpy).toHaveBeenCalledWith(
-        'تأكيد الإجراء',
-        'هل أنت متأكد من تغيير حالة الإعلان؟',
-        expect.any(Function),
-        'تأكيد',
-        'إلغاء',
-        false
-      )
+      expect(confirmSpy).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'تأكيد الإجراء',
+        message: 'هل أنت متأكد من تغيير حالة الإعلان؟',
+        onConfirm: expect.any(Function),
+        confirmLabel: 'تأكيد',
+        cancelLabel: 'إلغاء',
+        intent: 'primary',
+      }))
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
       // 4. Assert update API was called with exact target payload
@@ -256,12 +256,11 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         status: 'ACTIVE',
       })
 
-      // 5. Assert success feedback dialog was shown to the user
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/تم/i),
-        expect.stringMatching(/استعاد|تغيير/i),
-        'success'
-      )
+      // 5. Assert success feedback toast was shown to the user
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'success',
+        title: expect.stringMatching(/استعاد|تغيير|تفعيل/i),
+      }))
 
       // 6. Assert screen re-rendered with ACTIVE status actions
       await waitFor(() => {
@@ -277,8 +276,8 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       })
       ;(equipmentApi.getById as jest.Mock).mockResolvedValue({ data: mockArchivedEquipment })
       const phonePromptSpy = jest.spyOn(phoneGuard, 'promptProfilePhoneRequired')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
 
       const { findByTestId } = await renderWithClient(
         <EquipmentDetailScreen id="eq-archived-1" />
@@ -289,7 +288,7 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
 
       jest.useFakeTimers()
@@ -297,21 +296,21 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
       expect(phonePromptSpy).toHaveBeenCalled()
       expect(equipmentApi.update).not.toHaveBeenCalled()
     })
 
-    it('surfaces 409 conflict error in Arabic dialog when listing was modified elsewhere', async () => {
+    it('surfaces 409 conflict error in Arabic toast when listing was modified elsewhere', async () => {
       ;(equipmentApi.getById as jest.Mock).mockResolvedValue({ data: mockArchivedEquipment })
       ;(equipmentApi.update as jest.Mock).mockRejectedValueOnce({ response: { status: 409 } })
-      const alertSpy = jest.spyOn(dialogService, 'alert')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
+      const alertSpy = jest.spyOn(toastService, 'show')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
 
       const { findByTestId } = await renderWithClient(
         <EquipmentDetailScreen id="eq-archived-1" />
@@ -322,7 +321,7 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
 
       jest.useFakeTimers()
@@ -330,18 +329,18 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        'تعارض في البيانات',
-        'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-      )
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
+      }))
     })
 
-    it('surfaces Arabic error dialog when active listing limit is reached and keeps ARCHIVED status', async () => {
+    it('surfaces Arabic error toast when active listing limit is reached and keeps ARCHIVED status', async () => {
       ;(equipmentApi.getById as jest.Mock).mockResolvedValue({ data: mockArchivedEquipment })
       ;(equipmentApi.update as jest.Mock).mockRejectedValueOnce({
         response: {
@@ -352,9 +351,9 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
           },
         },
       })
-      const alertSpy = jest.spyOn(dialogService, 'alert')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
+      const alertSpy = jest.spyOn(toastService, 'show')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
 
       const { findByTestId } = await renderWithClient(
         <EquipmentDetailScreen id="eq-archived-1" />
@@ -365,7 +364,7 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
 
       jest.useFakeTimers()
@@ -373,15 +372,15 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        'خطأ',
-        expect.stringMatching(/الحد الأقصى للإعلانات النشطة/)
-      )
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: expect.stringMatching(/الحد الأقصى للإعلانات النشطة/),
+      }))
     })
   })
 
@@ -397,9 +396,9 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       })
       ;(busesApi.update as jest.Mock).mockResolvedValue({ data: mockActiveBus })
 
-      const alertSpy = jest.spyOn(dialogService, 'alert')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
+      const alertSpy = jest.spyOn(toastService, 'show')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
 
       const { findByTestId } = await renderWithClient(
         <BusDetailScreen id="bus-archived-1" />
@@ -412,7 +411,7 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
 
       jest.useFakeTimers()
@@ -420,9 +419,9 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
       expect(busesApi.update).toHaveBeenCalledWith('bus-archived-1', {
@@ -430,11 +429,10 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         status: 'ACTIVE',
       })
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/تم/i),
-        expect.stringMatching(/استعاد|تغيير/i),
-        'success'
-      )
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'success',
+        title: expect.stringMatching(/استعاد|تغيير|تفعيل/i),
+      }))
     })
   })
 
@@ -450,9 +448,9 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       })
       ;(listingsApi.updateStatus as jest.Mock).mockResolvedValue({ data: mockActiveCar })
 
-      const alertSpy = jest.spyOn(dialogService, 'alert')
-      const showOptionsSpy = jest.spyOn(dialogService, 'showOptions')
-      const confirmSpy = jest.spyOn(dialogService, 'confirm')
+      const alertSpy = jest.spyOn(toastService, 'show')
+      const showOptionsSpy = jest.spyOn(toastService, 'showActionSheet')
+      const confirmSpy = jest.spyOn(toastService, 'confirm')
 
       const { findByTestId } = await renderWithClient(
         <CarDetailScreen id="car-archived-1" />
@@ -465,7 +463,7 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
         fireEvent.press(manageStatusBtn)
       })
 
-      const options = showOptionsSpy.mock.calls[0][1]
+      const options = showOptionsSpy.mock.calls[0][0].options
       const restoreOption = options.find((o) => o.text === 'استعادة')!
 
       jest.useFakeTimers()
@@ -473,18 +471,17 @@ describe('Owner Restore Flow & Status Changes Integration', () => {
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = confirmSpy.mock.calls[0][2]
+      const onConfirm = confirmSpy.mock.calls[0][0].onConfirm
       await act(async () => {
-        await onConfirm()
+        await onConfirm?.()
       })
 
       expect(listingsApi.updateStatus).toHaveBeenCalledWith('car-archived-1', 'restore', 1)
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/تم/i),
-        expect.stringMatching(/استعاد|تغيير/i),
-        'success'
-      )
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'success',
+        title: expect.stringMatching(/استعاد|تغيير|تفعيل/i),
+      }))
     })
   })
 })

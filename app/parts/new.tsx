@@ -27,7 +27,8 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { partsApi } from '../../src/api/parts'
 import { carsApi, CarBrand } from '../../src/api/cars'
 import { usePartWizardStore, PartFormData } from '../../src/store/partWizardStore'
@@ -154,7 +155,7 @@ export default function NewPartListingScreen() {
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm('مسح المسودة', 'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟', () => {
+    confirmClearDraft(() => {
       reset()
       setErrors({})
     })
@@ -193,6 +194,10 @@ export default function NewPartListingScreen() {
         ...publishSuccess,
         isPartial: false,
         failedCount: 0,
+      })
+      toastService.show({
+        kind: 'success',
+        title: publishSuccess.isEdit ? 'تم حفظ التعديلات' : 'تم نشر إعلانك',
       })
     } else {
       setPublishSuccess({
@@ -286,6 +291,7 @@ export default function NewPartListingScreen() {
                 failedCount: reconRes.failedOperations.length,
               })
             }
+            toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
           },
           onError: (err: unknown) => {
             submitLockRef.current = false
@@ -355,6 +361,7 @@ export default function NewPartListingScreen() {
               isPartial: false,
             })
           }
+          toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
         },
         onError: (err: unknown) => {
           submitLockRef.current = false

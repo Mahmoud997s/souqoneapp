@@ -5,6 +5,7 @@ import { Colors } from '../../constants/colors';
 import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 import { FilterGlassSurface } from '../ui/FilterGlassSurface';
 import { quickFilterModalStyles } from './quickFilterModalStyles';
+import { ModalToastHost } from '../ui/ModalToastHost';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef } from '../../types/location.types';
 import { PRICE_RANGES, SORT_OPTIONS, YEARS, CAR_TYPES } from '../../constants/browseFilters';
@@ -471,6 +472,7 @@ export function LegacyQuickFilterModal<TFilters extends object = { [key: string]
           )}
         </View>
       </TouchableOpacity>
+      {visible && <ModalToastHost />}
     </Modal>
   );
 }

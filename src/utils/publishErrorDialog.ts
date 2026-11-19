@@ -1,4 +1,4 @@
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { getDetailErrorKind, getMutationErrorMessage } from './listing-detail/getDetailErrorKind'
 import { getPublishRateLimitErrorMessage } from './publishRateLimitError'
 import { showErrorDialog } from './showErrorDialog'
@@ -26,27 +26,26 @@ export function showPublishErrorDialog({
   if (kind === 'offline') {
     const message = 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.'
     if (onRetry) {
-      dialogService.show({
-        type: 'offline',
+      toastService.confirm({
         title: 'لا يوجد اتصال',
         message,
-        actions: [
-          { text: 'إغلاق', style: 'cancel' },
-          { text: 'إعادة المحاولة', style: 'default', onPress: onRetry },
-        ],
+        intent: 'primary',
+        confirmLabel: 'إعادة المحاولة',
+        cancelLabel: 'إغلاق',
+        onConfirm: onRetry,
       })
     } else {
-      dialogService.alert('لا يوجد اتصال', message, 'offline')
+      toastService.show({ kind: 'error', title: message, dedupeKey: 'network-offline' })
     }
     return
   }
 
   if (kind === 'timeout') {
-    dialogService.alert(
-      'انتهت مهلة الاتصال',
-      'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
-      'offline'
-    )
+    toastService.show({
+      kind: 'error',
+      title: 'انتهت مهلة الاتصال بالخادم، يرجى التحقق من اتصالك قبل المحاولة مجدداً',
+      dedupeKey: 'network-offline',
+    })
     return
   }
 
@@ -91,31 +90,42 @@ export function handlePublishMutationError({
   if (status === 409) {
     if (isEdit) {
       if (onRefetchVersion) {
-        dialogService.confirm(
-          'تحديث مطلوب',
-          'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
-          async () => {
+        toastService.confirm({
+          title: 'تحديث مطلوب',
+          message:
+            'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
+          intent: 'primary',
+          confirmLabel: 'تحديث الآن',
+          cancelLabel: 'إلغاء',
+          onConfirm: async () => {
             try {
               await onRefetchVersion()
-              dialogService.alert('تم', 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.', 'success')
+              toastService.show({
+                kind: 'success',
+                title: 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً',
+              })
             } catch {
-              dialogService.alert('خطأ', 'تعذر جلب البيانات.')
+              toastService.show({ kind: 'error', title: 'تعذر جلب البيانات' })
             }
           },
-          'تحديث الآن',
-          'إلغاء'
-        )
+        })
       } else {
-        dialogService.alert('خطأ', 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات.')
+        toastService.show({
+          kind: 'error',
+          title: 'تم تعديل هذا الإعلان مؤخراً أو يوجد تعارض في البيانات',
+        })
       }
     } else {
-      dialogService.alert('خطأ', 'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.')
+      toastService.show({
+        kind: 'error',
+        title: 'تم نشر إعلان مشابه جداً مؤخراً، يرجى الانتظار قليلاً',
+      })
     }
     return
   }
 
   if (status === 429) {
-    dialogService.alert('خطأ', getPublishRateLimitErrorMessage(error))
+    toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(error) })
     return
   }
 
@@ -125,11 +135,14 @@ export function handlePublishMutationError({
       if (Object.keys(mapped.fieldErrors).length > 0) {
         onFieldErrors(mapped.fieldErrors, mapped.firstInvalidStep)
         const firstMsg = Object.values(mapped.fieldErrors)[0]
-        dialogService.alert('تنبيه في المدخلات', firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر')
+        toastService.show({
+          kind: 'warning',
+          title: firstMsg || 'يرجى مراجعة الحقول المشار إليها بالأحمر',
+        })
         return
       }
     }
-    dialogService.alert('خطأ', getMutationErrorMessage(error, fallbackMessage))
+    toastService.show({ kind: 'error', title: getMutationErrorMessage(error, fallbackMessage) })
     return
   }
 

@@ -31,7 +31,8 @@ import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useEquipmentDetail } from '../../hooks/listing-detail/useEquipmentDetail'
@@ -48,7 +49,6 @@ import {
   type SimilarEquipmentItem,
 } from '../../hooks/listing-detail/useEquipmentSimilarListings'
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -167,7 +167,10 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const goBackSafely = () => (router.canGoBack() ? router.back() : router.push('/'))
   const handleSearchSubmit = (text: string) => router.push({ pathname: '/equipment/browse', params: { search: text } })
   const handleProfilePress = (sellerId: string) => sellerId && router.push(`/profile/${sellerId}`)
-  const handleSupportPress = () => Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+  const handleSupportPress = () =>
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
@@ -183,30 +186,33 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert('تعارض في البيانات', translateEquipmentOwnerError(err))
+          toastService.show({ kind: 'error', title: translateEquipmentOwnerError(err) })
         } else {
-          dialogService.alert('خطأ', translateEquipmentOwnerError(err))
+          toastService.show({ kind: 'error', title: translateEquipmentOwnerError(err) })
         }
       }
     }
 
     if (action.requiresConfirm) {
-      dialogService.confirm(
-        action.confirmTitle ?? 'تأكيد الإجراء',
-        action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        execute,
-        action.confirmLabel ?? 'تأكيد',
-        'إلغاء',
-        action.tone === 'danger'
-      )
+      toastService.confirm({
+        title: action.confirmTitle ?? 'تأكيد الإجراء',
+        message: action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: action.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: execute,
+      })
     } else {
       await execute()
     }

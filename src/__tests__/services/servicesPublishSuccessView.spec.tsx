@@ -7,7 +7,7 @@ import { servicesApi } from '../../api/services'
 import { router } from 'expo-router'
 import { useServiceWizardStore, defaultServiceFormData } from '../../store/serviceWizardStore'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as serviceQueryKeysModule from '../../screens/services/hooks/serviceQueryKeys'
 import { getPublishRateLimitErrorMessage } from '../../utils/publishRateLimitError'
 
@@ -53,11 +53,11 @@ jest.mock('expo-router', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
-    alert: jest.fn(),
-    confirm: jest.fn((_title, _msg, onConfirm) => {
+    dismissByDedupeKey: jest.fn(),
+    confirm: jest.fn(({ onConfirm }: { onConfirm?: () => void }) => {
       if (onConfirm) onConfirm()
     }),
   },
@@ -150,7 +150,10 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
       expect(screen.getByTestId('publish-success-view')).toBeTruthy()
     })
 
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم نشر إعلانك',
+    }))
     expect(router.replace).not.toHaveBeenCalled()
     expect(invalidateSpy).toHaveBeenCalledWith(queryClient, 'srv-created-123')
 
@@ -250,7 +253,10 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
     })
 
     expect(screen.getByText('تم حفظ التعديلات بنجاح!')).toBeTruthy()
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم حفظ التعديلات',
+    }))
     expect(invalidateSpy).toHaveBeenCalledWith(queryClient, 'srv-edit-789')
 
     const secondaryBtn = await screen.findByTestId('publish-success-secondary-btn')
@@ -289,10 +295,10 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        getPublishRateLimitErrorMessage(error429)
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: getPublishRateLimitErrorMessage(error429),
+      }))
     })
     expect(screen.queryByTestId('publish-success-view')).toBeNull()
   })
@@ -312,10 +318,10 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.',
+      }))
     })
 
     await unmount()
@@ -347,10 +353,10 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        getPublishRateLimitErrorMessage(monthly429)
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: getPublishRateLimitErrorMessage(monthly429),
+      }))
     })
   })
 
@@ -366,7 +372,7 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
         label: 'timeout',
         err: { isAxiosError: true, code: 'ECONNABORTED' },
         kind: 'timeout',
-        expectedMsg: 'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
+        expectedMsg: 'انتهت مهلة الاتصال بالخادم، يرجى التحقق من اتصالك قبل المحاولة مجدداً',
       },
       {
         label: 'conflict-409',
@@ -394,6 +400,13 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
       },
     ]
 
+    ;(toastService.confirm as jest.Mock).mockImplementation(
+      ({ title, onConfirm }: { title?: string; onConfirm?: () => void }) => {
+        if (title === 'تأكيد نشر الإعلان' && onConfirm) {
+          onConfirm()
+        }
+      }
+    )
     for (const c of cases) {
       jest.clearAllMocks()
       ;(servicesApi.create as jest.Mock).mockRejectedValueOnce(c.err)
@@ -408,21 +421,18 @@ describe('Services PublishSuccessView, 429 Rate Limit, and Unified Error Handlin
 
       await waitFor(() => {
         if (c.kind === 'offline') {
-          expect(dialogService.show).toHaveBeenCalledWith(
+          expect(toastService.confirm).toHaveBeenCalledWith(
             expect.objectContaining({
-              type: 'offline',
               title: 'لا يوجد اتصال',
               message: c.expectedMsg,
+              confirmLabel: 'إعادة المحاولة',
             })
           )
-        } else if (c.kind === 'timeout') {
-          expect(dialogService.alert).toHaveBeenCalledWith(
-            'انتهت مهلة الاتصال',
-            c.expectedMsg,
-            'offline'
-          )
         } else {
-          expect(dialogService.alert).toHaveBeenCalledWith('خطأ', c.expectedMsg, 'error')
+          expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+            kind: 'error',
+            title: c.expectedMsg,
+          }))
         }
       })
       await unmount()

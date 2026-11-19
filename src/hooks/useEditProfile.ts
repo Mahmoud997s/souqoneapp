@@ -10,7 +10,7 @@ import { locationsApi } from '../api/locations'
 import { queryClient } from '../api/queryClient'
 import { GovernorateRef, WilayaRef } from '../types/location.types'
 import { Config } from '../constants/config'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 import {
   validateProfileForm,
@@ -217,7 +217,7 @@ export function useEditProfile() {
 
   const openWilayaPicker = async () => {
     if (!governorateId) {
-      dialogService.alert('تنبيه', 'يرجى اختيار المحافظة أولاً')
+      toastService.show({ kind: 'info', title: 'يرجى اختيار المحافظة أولاً' })
       return
     }
     setSearchQuery('')
@@ -319,7 +319,7 @@ export function useEditProfile() {
 
       // If avatar upload was attempted but failed or produced no URL, abort save immediately
       if (shouldBlockForFailedAvatarUpload(avatarAction, uploadedAvatarUrl)) {
-        dialogService.alert('خطأ', 'تعذر رفع الصورة، حاول مرة أخرى', 'error')
+        toastService.show({ kind: 'error', title: 'تعذر رفع الصورة، حاول مرة أخرى' })
         return
       }
 
@@ -336,7 +336,7 @@ export function useEditProfile() {
 
       // If no fields changed, inform user and exit
       if (Object.keys(patch).length === 0) {
-        dialogService.alert('تنبيه', 'لم يتم تغيير أي بيانات', 'info')
+        toastService.show({ kind: 'info', title: 'لم يتم تغيير أي بيانات' })
         return
       }
 
@@ -357,7 +357,7 @@ export function useEditProfile() {
 
         // 7. Mark saved and return
         isSaveSuccessfulRef.current = true
-        dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')
+        toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
         router.back()
       }
     } catch (err: unknown) {
@@ -365,7 +365,7 @@ export function useEditProfile() {
 
       // 429 Rate Limit
       if (status === 429) {
-        dialogService.alert('محاولات كثيرة', getPublishRateLimitErrorMessage(err), 'error')
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(err) })
         return
       }
 
@@ -376,7 +376,7 @@ export function useEditProfile() {
           setErrors((prev) => ({ ...prev, ...fieldErrors }))
         }
         if (nonFieldErrors.length > 0) {
-          dialogService.alert('خطأ في البيانات', nonFieldErrors.join('\n'), 'error')
+          toastService.show({ kind: 'error', title: nonFieldErrors.join(' - ') })
         } else if (Object.keys(fieldErrors).length === 0) {
           showErrorDialog(err, 'البيانات المدخلة غير صحيحة', 'خطأ في البيانات')
         }
@@ -407,28 +407,19 @@ export function useEditProfile() {
       if (isShowingConfirmRef.current) return
       isShowingConfirmRef.current = true
 
-      dialogService.show({
-        type: 'confirm',
-        iconVariant: 'warning',
+      toastService.confirm({
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
-        actions: [
-          {
-            text: 'متابعة التعديل',
-            style: 'cancel',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-            },
-          },
-          {
-            text: 'تجاهل والخروج',
-            style: 'destructive',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-              navigation.dispatch(e.data.action)
-            },
-          },
-        ],
+        intent: 'danger',
+        confirmLabel: 'تجاهل والخروج',
+        cancelLabel: 'متابعة التعديل',
+        onCancel: () => {
+          isShowingConfirmRef.current = false
+        },
+        onConfirm: () => {
+          isShowingConfirmRef.current = false
+          navigation.dispatch(e.data.action)
+        },
       })
     })
 
@@ -445,28 +436,19 @@ export function useEditProfile() {
       if (isShowingConfirmRef.current) return true
       isShowingConfirmRef.current = true
 
-      dialogService.show({
-        type: 'confirm',
-        iconVariant: 'warning',
+      toastService.confirm({
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
-        actions: [
-          {
-            text: 'متابعة التعديل',
-            style: 'cancel',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-            },
-          },
-          {
-            text: 'تجاهل والخروج',
-            style: 'destructive',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-              router.back()
-            },
-          },
-        ],
+        intent: 'danger',
+        confirmLabel: 'تجاهل والخروج',
+        cancelLabel: 'متابعة التعديل',
+        onCancel: () => {
+          isShowingConfirmRef.current = false
+        },
+        onConfirm: () => {
+          isShowingConfirmRef.current = false
+          router.back()
+        },
       })
       return true
     }

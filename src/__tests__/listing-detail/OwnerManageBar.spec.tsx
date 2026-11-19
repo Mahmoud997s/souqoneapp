@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native'
 import type { GlassViewProps } from 'expo-glass-effect'
 import { OwnerManageBar, type OwnerActionId } from '../../components/listing-detail/OwnerManageBar'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
@@ -31,9 +31,9 @@ jest.mock('@expo/vector-icons', () => {
   }
 })
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    showOptions: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -137,6 +137,6 @@ describe('OwnerManageBar Glass Conversion Specification', () => {
 
     const statusBtn = screen.getByTestId('btn-owner-manage-status')
     fireEvent.press(statusBtn)
-    expect(dialogService.showOptions).toHaveBeenCalled()
+    expect(toastService.showActionSheet).toHaveBeenCalled()
   })
 })

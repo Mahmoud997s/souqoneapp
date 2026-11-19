@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import { ModalToastHost } from './ModalToastHost'
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 import { logWarn } from '../../utils/safeLog'
@@ -346,6 +347,7 @@ export function GovernorateWilayaSelect({
             />
           </View>
         </KeyboardAvoidingView>
+        {modalType !== null && <ModalToastHost />}
       </Modal>
     </View>
   )

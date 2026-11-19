@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { requestPermission, type PermissionAdapter } from '../utils/requestPermission'
 import { showErrorDialog } from '../utils/showErrorDialog'
 
@@ -58,11 +58,18 @@ export function useEquipmentFormLogic({
       }
 
       setIsUploading(true)
+      const currentCount = images.length + existingImages.length
+      if (currentCount >= 10) {
+        toastService.show({ kind: 'warning', title: 'الحد الأقصى 10 صور' })
+        setIsUploading(false)
+        return
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: 10 - (images.length + existingImages.length),
+        selectionLimit: 10 - currentCount,
       })
 
       if (!result.canceled && result.assets && result.assets.length > 0) {

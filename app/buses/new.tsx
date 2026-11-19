@@ -29,7 +29,8 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
 import { busesApi } from '../../src/api/buses'
 import { useBusWizardStore, BusWizardData } from '../../src/store/busWizardStore'
@@ -123,38 +124,32 @@ export default function NewBusListingScreen() {
       prevStep()
     } else {
       if (editMode) {
-        dialogService.confirm(
-          'الخروج من التعديل',
-          'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
-          () => router.back(),
-          'خروج',
-          'إلغاء',
-          true
-        )
+        toastService.confirm({
+          title: 'الخروج من التعديل',
+          message: 'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
+          intent: 'danger',
+          confirmLabel: 'خروج',
+          cancelLabel: 'إلغاء',
+          onConfirm: () => router.back(),
+        })
       } else {
-        dialogService.confirm(
-          'الخروج',
-          'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
-          () => router.back(),
-          'خروج',
-          'إلغاء'
-        )
+        toastService.confirm({
+          title: 'الخروج',
+          message: 'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
+          intent: 'primary',
+          confirmLabel: 'خروج',
+          cancelLabel: 'إلغاء',
+          onConfirm: () => router.back(),
+        })
       }
     }
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm(
-      'مسح المسودة',
-      'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟',
-      () => {
-        reset()
-        setErrors({})
-      },
-      'نعم، مسح',
-      'تراجع',
-      true
-    )
+    confirmClearDraft(() => {
+      reset()
+      setErrors({})
+    })
   }
 
   const getStepTitle = () => {
@@ -180,13 +175,14 @@ export default function NewBusListingScreen() {
     if (editMode) {
       executeSubmit()
     } else {
-      dialogService.confirm(
-        'تأكيد النشر',
-        'هل أنت متأكد من صحة كافة البيانات وترغب في نشر الإعلان الآن؟',
-        () => executeSubmit(),
-        'نعم، نشر الإعلان',
-        'مراجعة البيانات'
-      )
+      toastService.confirm({
+        title: 'تأكيد النشر',
+        message: 'هل أنت متأكد من صحة كافة البيانات وترغب في نشر الإعلان الآن؟',
+        intent: 'primary',
+        confirmLabel: 'نشر',
+        cancelLabel: 'مراجعة',
+        onConfirm: () => executeSubmit(),
+      })
     }
   }
 
@@ -198,11 +194,10 @@ export default function NewBusListingScreen() {
     // 0. Edit needs the listing's `version` (the API rejects PATCH without it). A draft restored
     //    from storage by an older app build has none -> ask the user to reopen the listing.
     if (editMode && editVersion == null) {
-      dialogService.alert(
-        'تحديث مطلوب',
-        'تعذر تحديد نسخة الإعلان الحالية. يرجى فتح الإعلان من جديد والضغط على تعديل.',
-        'warning'
-      )
+      toastService.show({
+        kind: 'warning',
+        title: 'تعذر تحديد نسخة الإعلان الحالية، يرجى فتح الإعلان من جديد والضغط على تعديل',
+      })
       return
     }
 
@@ -257,7 +252,7 @@ export default function NewBusListingScreen() {
       logWarn('BusesNew:UploadImages', uploadErr)
       submitLockRef.current = false
       if (uploadErr?.response?.status === 429) {
-        dialogService.alert('خطأ في رفع الصور', getPublishRateLimitErrorMessage(uploadErr), 'error')
+        toastService.show({ kind: 'error', title: getPublishRateLimitErrorMessage(uploadErr) })
       } else {
         showPublishErrorDialog({
           error: uploadErr,
@@ -307,6 +302,7 @@ export default function NewBusListingScreen() {
                 ? 'تم تحديث بيانات الحافلة بنجاح في سوق ون.'
                 : 'تم حفظ التعديلات ولكن تعذر تحديث بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
             })
+            toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
           },
           onError: (err: unknown) => {
             submitLockRef.current = false
@@ -358,6 +354,7 @@ export default function NewBusListingScreen() {
               ? undefined
               : 'تم نشر الحافلة ولكن تعذر ربط بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
           })
+          toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
         },
         onError: (err: unknown) => {
           submitLockRef.current = false

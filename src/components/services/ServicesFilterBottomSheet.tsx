@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Switch, Text, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
+import { View, Switch, Text, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
+import { toastService } from '../../store/toastStore';
 import { SERVICE_TYPES, PROVIDER_TYPES, COMMON_SPECIALIZATIONS } from '../../constants/services';
 import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
@@ -101,7 +102,16 @@ export function ServicesFilterBottomSheet({
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('صلاحية مفقودة', 'يرجى إعطاء صلاحية الموقع لاستخدام هذه الميزة.');
+        toastService.confirm({
+          title: 'صلاحية الموقع مطلوبة',
+          message: 'يرجى إعطاء صلاحية الموقع لاستخدام هذه الميزة.',
+          intent: 'primary',
+          confirmLabel: 'فتح الإعدادات',
+          cancelLabel: 'إلغاء',
+          onConfirm: () => {
+            Linking.openSettings().catch(() => {});
+          },
+        });
         setIsLoadingLocation(false);
         return;
       }
@@ -119,7 +129,16 @@ export function ServicesFilterBottomSheet({
       updateFilter('city', undefined);
 
     } catch (error) {
-      Alert.alert('خطأ', 'لم نتمكن من تحديد موقعك الحالي.');
+      toastService.confirm({
+        title: 'تعذر تحديد موقعك',
+        message: 'لم نتمكن من تحديد موقعك الحالي.',
+        intent: 'primary',
+        confirmLabel: 'حاول تاني',
+        cancelLabel: 'إلغاء',
+        onConfirm: () => {
+          void handleGetLocation();
+        },
+      });
     } finally {
       setIsLoadingLocation(false);
     }

@@ -5,7 +5,7 @@ import { PublicProfile } from '../types/profile.types'
 import { NotificationItem } from '../types/api.types'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
 import { getMutationErrorMessage } from '../utils/listing-detail/getDetailErrorKind'
-import { useToastStore } from '../store/toastStore'
+import { toastService } from '../store/toastStore'
 
 /**
  * Normalizes legacy `{ data: [...] }` envelopes to `{ items: [...] }` safely.
@@ -78,7 +78,7 @@ export function useMarkAllRead() {
     onError: (err, _vars, context) => {
       qc.setQueryData(['notifications'], context?.prev)
       const message = getMutationErrorMessage(err, 'تعذر تعليم الإشعارات كمقروءة')
-      useToastStore.getState().show({ kind: 'error', title: message })
+      toastService.show({ kind: 'error', title: message })
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
@@ -106,7 +106,7 @@ export function useMarkNotificationRead() {
     onError: (err, _vars, context) => {
       qc.setQueryData(['notifications'], context?.prev)
       const message = getMutationErrorMessage(err, 'تعذر تحديث حالة الإشعار')
-      useToastStore.getState().show({ kind: 'error', title: message })
+      toastService.show({ kind: 'error', title: message })
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
@@ -134,7 +134,7 @@ export function useDeleteNotification() {
     onError: (err, _vars, context) => {
       qc.setQueryData(['notifications'], context?.prev)
       const message = getMutationErrorMessage(err, 'تعذر حذف الإشعار')
-      useToastStore.getState().show({ kind: 'error', title: message })
+      toastService.show({ kind: 'error', title: message })
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
@@ -162,7 +162,7 @@ export function useDeleteAllReadNotifications() {
     onError: (err, _vars, context) => {
       qc.setQueryData(['notifications'], context?.prev)
       const message = getMutationErrorMessage(err, 'تعذر حذف الإشعارات المقروءة')
-      useToastStore.getState().show({ kind: 'error', title: message })
+      toastService.show({ kind: 'error', title: message })
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })

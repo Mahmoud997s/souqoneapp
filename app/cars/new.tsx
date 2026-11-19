@@ -23,7 +23,8 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
 import { listingsApi } from '../../src/api/listings'
 import { Listing } from '../../src/types/listing.types'
@@ -134,7 +135,7 @@ export default function NewCarListingScreen() {
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm('مسح المسودة', 'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟', () => {
+    confirmClearDraft(() => {
       resetForm()
       setErrors({})
     })
@@ -268,6 +269,7 @@ export default function NewCarListingScreen() {
                 ? 'تم تحديث بيانات السيارة بنجاح في سوق ون.'
                 : 'تم حفظ التعديلات النصية بنجاح، ولكن واجهنا مشكلة في تحديث بعض الصور. يمكنك مراجعتها من شاشة الإعلان.',
             })
+            toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
           },
           onError: (err: unknown) => {
             submitLockRef.current = false
@@ -305,6 +307,7 @@ export default function NewCarListingScreen() {
             listingId: createdId,
             isEdit: false,
           })
+          toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
         },
         onError: (err: unknown) => {
           submitLockRef.current = false

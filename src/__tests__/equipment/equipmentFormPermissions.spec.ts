@@ -4,7 +4,7 @@ import {
   useEquipmentFormLogic,
   equipmentMediaAdapter,
 } from '../../hooks/useEquipmentFormLogic'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as requestPermissionModule from '../../utils/requestPermission'
 
 jest.mock('expo-image-picker', () => ({
@@ -13,9 +13,9 @@ jest.mock('expo-image-picker', () => ({
   MediaTypeOptions: { Images: 'Images' },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -155,10 +155,11 @@ describe('Equipment Form Logic Permissions & Unified Errors (D-283 / S4)', () =>
         await result.current.handlePickImages()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تعذر اختيار الصور، يرجى المحاولة مجدداً',
-        'error'
+      expect(toastService.show).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: 'error',
+          title: 'تعذر اختيار الصور، يرجى المحاولة مجدداً',
+        })
       )
       expect(result.current.isUploading).toBe(false)
     })

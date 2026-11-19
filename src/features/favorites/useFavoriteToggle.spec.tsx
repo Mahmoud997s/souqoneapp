@@ -6,7 +6,6 @@ import { useFavoriteToggle } from './useFavoriteToggle'
 import { FAVORITE_IDS_QUERY_KEY } from './useFavoriteIds'
 import { favoritesApi } from '../../api/favorites'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { useToastStore } from '../../store/toastStore'
 
 const mockPush = jest.fn()
@@ -222,14 +221,11 @@ describe('useFavoriteToggle (Feature Module)', () => {
     const cachedIds = queryClient.getQueryData<Set<string>>(FAVORITE_IDS_QUERY_KEY)
     expect(cachedIds?.has('BUS_LISTING:bus-777')).toBe(false)
 
-    // Alert called once
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'خطأ',
-      'تعذّر تحديث المفضلة، حاول مرة أخرى'
-    )
-
-    // NO toast on error
-    expect(useToastStore.getState().current).toBeNull()
+    // Error toast shown once
+    expect(useToastStore.getState().current).toMatchObject({
+      kind: 'error',
+      title: 'تعذّر تحديث المفضلة، حاول مرة أخرى',
+    })
   })
 
   it('rolls back state and displays session expired copy on 401 unauthorized', async () => {
@@ -254,10 +250,10 @@ describe('useFavoriteToggle (Feature Module)', () => {
       expect(screen.getByText('IDLE')).toBeTruthy()
     })
 
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'خطأ',
-      expect.stringContaining('انتهت صلاحية الجلسة')
-    )
+    expect(useToastStore.getState().current).toMatchObject({
+      kind: 'error',
+      title: expect.stringContaining('انتهت صلاحية الجلسة'),
+    })
   })
 
   it('rolls back state and stays completely silent (no alert) on request cancellation', async () => {
@@ -283,7 +279,7 @@ describe('useFavoriteToggle (Feature Module)', () => {
     })
 
     // Silent in UI - no alert called
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(useToastStore.getState().current).toBeNull()
   })
 
   it('rolls back state and displays backend Arabic message on 400 validation', async () => {
@@ -308,10 +304,10 @@ describe('useFavoriteToggle (Feature Module)', () => {
       expect(screen.getByText('IDLE')).toBeTruthy()
     })
 
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'خطأ',
-      'لا يمكن إضافة إعلان محذوف إلى المفضلة'
-    )
+    expect(useToastStore.getState().current).toMatchObject({
+      kind: 'error',
+      title: 'لا يمكن إضافة إعلان محذوف إلى المفضلة',
+    })
   })
 
   it('ignores duplicate presses while in-flight', async () => {

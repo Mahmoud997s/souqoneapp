@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { Config } from '../constants/config'
 import { isProfilePhoneRequiredError, promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { logWarn } from '../utils/safeLog'
@@ -74,11 +74,10 @@ export function notifySessionExpiredOnce() {
     // Only show single-flight warning if user was actually logged in and not yet notified
     if (isLoggedIn !== false && !sessionExpiredNoticeShown) {
       sessionExpiredNoticeShown = true
-      dialogService.alert(
-        'انتهت الجلسة',
-        'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى للمتابعة.',
-        'warning'
-      )
+      toastService.show({
+        kind: 'warning',
+        title: 'انتهت جلستك، سجّل دخول تاني',
+      })
     }
   } catch {}
 }
@@ -200,7 +199,10 @@ export function handleBlockedOrSuspended(code: string, suspendedUntil?: string |
 }
 
 apiClient.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    toastService.dismissByDedupeKey('network-offline')
+    return res
+  },
   async (error) => {
     const original = error.config
     const status = error.response?.status
@@ -242,9 +244,13 @@ apiClient.interceptors.response.use(
       if (isProfilePhoneRequiredError(error)) {
         promptProfilePhoneRequired()
       } else if (error.response?.status >= 500) {
-        dialogService.alert('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error')
+        toastService.show({ kind: 'error', title: 'مشكلة في الخادم، حاول بعد شوية' })
       } else if (error.message === 'Network Error') {
-        dialogService.alert('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'offline')
+        toastService.show({
+          kind: 'error',
+          title: 'مفيش اتصال بالإنترنت',
+          dedupeKey: 'network-offline',
+        })
       }
     }
     return Promise.reject(error)

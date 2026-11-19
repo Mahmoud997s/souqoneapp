@@ -9,7 +9,7 @@ import { OPERATOR_ROLES } from '../../constants/operators'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import * as ImagePicker from 'expo-image-picker'
 import { uploadsApi } from '../../api/uploads'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { EditProfileAvatar } from '../profile/EditProfileAvatar'
 import { Config } from '../../constants/config'
 import { WizardCard } from '../ui/WizardCard'
@@ -63,7 +63,10 @@ export function OperatorRoleStep({ formData, errors, onUpdateField }: OperatorRo
       }
     } catch (err: unknown) {
       logError('OperatorRoleStep:UploadAvatar', err)
-      dialogService.alert('خطأ', getMutationErrorMessage(err, 'حدث خطأ أثناء رفع الصورة'))
+      toastService.show({
+        kind: 'error',
+        title: getMutationErrorMessage(err, 'حدث خطأ أثناء رفع الصورة'),
+      })
     } finally {
       setIsUploadingImage(false)
     }

@@ -6,6 +6,10 @@ import { User } from '../types/auth.types'
 import { clearAllUserData, clearLocalUserDraftsAndHistory } from '../utils/clearUserData'
 import { logWarn } from '../utils/safeLog'
 import { useBlockedStore } from './blockedStore'
+import { toastService } from './toastStore'
+import { usePendingVerificationStore } from './pendingVerificationStore'
+
+export type ActiveAuthScreen = 'login' | 'register' | 'verify-email' | null
 
 export const LAST_USER_ID_KEY = '@souqone_last_user_id'
 
@@ -35,7 +39,14 @@ interface AuthState {
   isLoggedIn: boolean
   isGuest: boolean
   isLoading: boolean
-  setAuth: (user: User, accessToken: string, refreshToken: string) => Promise<void>
+  activeAuthScreen: ActiveAuthScreen
+  setActiveAuthScreen: (screen: ActiveAuthScreen) => void
+  setAuth: (
+    user: User,
+    accessToken: string,
+    refreshToken: string,
+    opts?: { mode?: 'login' | 'register'; silent?: boolean }
+  ) => Promise<void>
   setGuest: (isGuest: boolean) => void
   logout: () => Promise<void>
   initialize: () => Promise<void>
@@ -47,8 +58,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoggedIn: false,
   isGuest: false,
   isLoading: true,
+  activeAuthScreen: null,
 
-  setAuth: async (user, accessToken, refreshToken) => {
+  setActiveAuthScreen: (screen) => {
+    if (get().activeAuthScreen === screen) return
+    set({ activeAuthScreen: screen })
+  },
+
+  setAuth: async (user, accessToken, refreshToken, opts) => {
+    const prevState = get()
     await clearDraftsIfUserChanged(user?.id)
     await SecureStore.setItemAsync('accessToken', accessToken)
     await SecureStore.setItemAsync('refreshToken', refreshToken)
@@ -65,6 +83,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       logWarn('authStore:ClearBlocked', error)
     }
     set({ user, isLoggedIn: true, isGuest: false })
+
+    const isSameActiveUser = Boolean(
+      prevState.isLoggedIn && prevState.user?.id && prevState.user.id === user?.id
+    )
+    if (!opts?.silent && !isSameActiveUser) {
+      let pendingSignup = false
+      try {
+        pendingSignup = Boolean(usePendingVerificationStore.getState().pending)
+      } catch {
+        pendingSignup = false
+      }
+      const isRegistration =
+        opts?.mode === 'register' ||
+        prevState.activeAuthScreen === 'register' ||
+        prevState.activeAuthScreen === 'verify-email' ||
+        pendingSignup
+      toastService.show({
+        kind: 'success',
+        title: isRegistration ? 'تم إنشاء حسابك' : 'تم تسجيل الدخول',
+      })
+    }
   },
 
   setGuest: (isGuest) => {

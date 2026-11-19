@@ -7,7 +7,7 @@ import {
   hasChangePasswordErrors,
 } from '../../utils/changePasswordErrors'
 import { usersApi } from '../../api/users'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), back: jest.fn() },
@@ -17,9 +17,9 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 40, bottom: 20, left: 0, right: 0 }),
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
   },
 }))
 
@@ -251,10 +251,10 @@ describe('ChangePassword — Field Errors and S7 Integration (D-280 / R7-2)', ()
       })
 
       await waitFor(() => {
-        expect(dialogService.alert).toHaveBeenCalledWith(
-          'خطأ',
-          expect.stringContaining('وصلت للحد اليومي')
-        )
+        expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+          kind: 'error',
+          title: expect.stringContaining('وصلت للحد اليومي'),
+        }))
       })
     })
   })

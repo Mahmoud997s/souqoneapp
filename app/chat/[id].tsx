@@ -26,7 +26,7 @@ import { ChatSkeleton } from '../../src/components/chat/ChatSkeleton'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 
 function getDateLabel(iso: string) {
   if (!iso) return ''
@@ -98,13 +98,21 @@ export default function ChatRoomScreen() {
     if (!msg) return
     const isOwn = msg.senderId === user?.id
 
-    const options: import('../../src/components/ui/AppDialog').DialogOption[] = [
+    const options: ActionSheetOption[] = [
       { text: '💬 رد', onPress: () => setReplyingToMessage(msg), style: 'default' },
       { text: '😂 إضافة تفاعل', onPress: () => { setSelectedMsgId(msgId); setShowReactionPicker(true); }, style: 'default' },
     ]
 
     if (msg.type === 'TEXT' && msg.content) {
-      options.push({ text: '📋 نسخ النص', onPress: () => Clipboard.setStringAsync(msg.content), style: 'default' })
+      options.push({
+        text: '📋 نسخ النص',
+        onPress: () => {
+          void Clipboard.setStringAsync(msg.content).then(() => {
+            toastService.show({ kind: 'success', title: 'تم نسخ النص' })
+          })
+        },
+        style: 'default',
+      })
     }
 
     if (isOwn) {
@@ -112,12 +120,19 @@ export default function ChatRoomScreen() {
         text: '🗑️ حذف الرسالة',
         style: 'destructive',
         onPress: () => {
-          dialogService.confirm('حذف الرسالة', 'هل أنت متأكد من حذف هذه الرسالة؟', () => handleDeleteMessage(msgId), 'حذف', 'إلغاء', true)
+          toastService.confirm({
+            title: 'حذف الرسالة',
+            message: 'هل أنت متأكد من حذف هذه الرسالة؟',
+            intent: 'danger',
+            confirmLabel: 'حذف',
+            cancelLabel: 'إلغاء',
+            onConfirm: () => handleDeleteMessage(msgId),
+          })
         }
       })
     }
 
-    dialogService.showOptions('خيارات الرسالة', options)
+    toastService.showActionSheet({ title: 'خيارات الرسالة', options })
   }, [messages, user, setReplyingToMessage, handleDeleteMessage])
 
   const handleReactFromPicker = React.useCallback((msgId: string, emoji: string) => {
@@ -127,7 +142,7 @@ export default function ChatRoomScreen() {
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
   const handleRoomOptions = React.useCallback(() => {
-    const options: import('../../src/components/ui/AppDialog').DialogOption[] = []
+    const options: ActionSheetOption[] = []
 
     if (room?.listing) {
       options.push({
@@ -141,34 +156,35 @@ export default function ChatRoomScreen() {
       {
         text: '🔔 كتم الإشعارات',
         onPress: () => {
-          dialogService.alert('تم', 'تم كتم إشعارات المحادثة')
+          toastService.show({ kind: 'info', title: 'تم كتم إشعارات المحادثة' })
         },
         style: 'default',
       },
       {
         text: '🚩 إبلاغ عن مستخدم',
         onPress: () => {
-          dialogService.alert('شكراً لك', 'تم إرسال البلاغ للإدارة للمراجعة')
+          toastService.show({ kind: 'success', title: 'تم إرسال البلاغ للإدارة للمراجعة' })
         },
         style: 'default',
       },
       {
         text: '🚫 حظر المستخدم',
         onPress: () => {
-          dialogService.confirm(
-            'حظر المستخدم',
-            'هل أنت متأكد من حظر هذا المستخدم؟',
-            () => {
-              dialogService.alert('تم', 'تم حظر المستخدم')
+          toastService.confirm({
+            title: 'حظر المستخدم',
+            message: 'هل أنت متأكد من حظر هذا المستخدم؟',
+            intent: 'danger',
+            confirmLabel: 'حظر',
+            cancelLabel: 'إلغاء',
+            onConfirm: () => {
+              toastService.show({ kind: 'info', title: 'تم حظر المستخدم' })
             },
-            'حظر',
-            'إلغاء'
-          )
+          })
         },
       }
     )
 
-    dialogService.showOptions('خيارات المحادثة', options)
+    toastService.showActionSheet({ title: 'خيارات المحادثة', options })
   }, [room?.listing, room?.entityType])
 
   return (

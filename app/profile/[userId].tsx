@@ -21,7 +21,7 @@ import { usePublicProfileServices } from '../../src/hooks/public-profile/usePubl
 import { PublicProfileListingVertical } from '../../src/hooks/public-profile/publicProfileKeys'
 import { usePublicProfile } from '../../src/hooks/useProfile'
 import { useAuthStore } from '../../src/store/authStore'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 import { UnifiedCardItem } from '../../src/types/unified-card.types'
 import { findNewestPublicProfileChatTarget } from '../../src/utils/publicProfileChatTarget'
 
@@ -120,29 +120,33 @@ export default function PublicProfileScreen() {
     try {
       const target = await findNewestPublicProfileChatTarget(userId)
       if (!target) {
-        dialogService.alert('تعذر فتح المحادثة', 'لم نعثر على إعلان نشط. أعد المحاولة.')
+        toastService.show({ kind: 'error', title: 'لم نعثر على إعلان نشط، أعد المحاولة' })
         return
       }
       const response = await chatApi.createRoom(target)
       const conversationId = response.data?.id
       if (conversationId) router.push({ pathname: '/chat/[id]', params: { id: conversationId } })
-      else dialogService.alert('تعذر فتح المحادثة', 'أعد المحاولة لبدء المحادثة.')
+      else toastService.show({ kind: 'error', title: 'تعذر فتح المحادثة، أعد المحاولة' })
     } catch {
-      dialogService.alert('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
+      toastService.show({ kind: 'error', title: 'تعذر فتح المحادثة، حاول مرة أخرى' })
     }
   }
 
   const handleCall = (phone: string) => {
     const cleaned = phone.replace(/[^\d+]/g, '')
     if (cleaned) {
-      Linking.openURL(`tel:${cleaned}`).catch(() => {})
+      Linking.openURL(`tel:${cleaned}`).catch(() => {
+        toastService.show({ kind: 'error', title: 'تعذر إجراء المكالمة' })
+      })
     }
   }
 
   const handleWhatsApp = (phone: string) => {
     const digits = phone.replace(/\D/g, '')
     if (digits) {
-      Linking.openURL(`https://wa.me/${digits}`).catch(() => {})
+      Linking.openURL(`https://wa.me/${digits}`).catch(() => {
+        toastService.show({ kind: 'error', title: 'تعذر فتح واتساب' })
+      })
     }
   }
 

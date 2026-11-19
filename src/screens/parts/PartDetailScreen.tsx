@@ -27,7 +27,7 @@ import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { usePartWizardStore, resolvePartListingType } from '../../store/partWizardStore'
 import { partsApi } from '../../api/parts'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
@@ -184,7 +184,10 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
     })
   }
   const handleProfilePress = (sellerId: string) => sellerId && router.push(`/profile/${sellerId}`)
-  const handleSupportPress = () => Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+  const handleSupportPress = () =>
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
     if (actionId === 'edit') {
@@ -197,17 +200,20 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
 
     if (actionId === 'delete') {
       if (ownerBusyRef.current !== null) return
-      dialogService.confirm(
-        'حذف الإعلان',
-        'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
-        async () => {
+      toastService.confirm({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           if (ownerBusyRef.current !== null) return
           ownerBusyRef.current = 'delete'
           setOwnerBusyAction('delete')
           try {
             await partsApi.remove(id)
             await invalidatePartListingQueries(queryClient, id, { removeDetail: true })
-            dialogService.alert('تم', 'تم حذف إعلان القطعة بنجاح', 'success')
+            toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
             goBackSafely()
           } catch (e: unknown) {
             const kind = getDetailErrorKind(e)
@@ -219,16 +225,13 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             } else if (e instanceof Error && e.message) {
               msg = e.message
             }
-            dialogService.alert('خطأ', msg, 'error')
+            toastService.show({ kind: 'error', title: msg })
           } finally {
             ownerBusyRef.current = null
             setOwnerBusyAction(null)
           }
         },
-        'نعم، احذف',
-        'تراجع',
-        true
-      )
+      })
     }
   }
 

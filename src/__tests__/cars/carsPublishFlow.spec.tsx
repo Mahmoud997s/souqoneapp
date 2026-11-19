@@ -10,7 +10,7 @@ import { carsApi } from '../../api/cars'
 import { router } from 'expo-router'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as listingKeysModule from '../../utils/listing-detail/queryKeys'
 
 jest.setTimeout(30000)
@@ -64,9 +64,9 @@ jest.mock('expo-router', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -195,10 +195,10 @@ describe('Cars Publish Flow (K7, S5 & 429 error handling)', () => {
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'وصلت للحد اليومي للنشر، جرّب غداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'وصلت للحد اليومي للنشر، جرّب غداً.',
+      }))
     })
   })
 })

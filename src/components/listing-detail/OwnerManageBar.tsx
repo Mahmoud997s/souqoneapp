@@ -13,7 +13,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { lineHeightFor } from '../../constants/typography'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { BottomBarTokens } from '../../constants/bottomBarTokens'
 import { GlassSurface } from '../navigation/GlassSurface'
 import type { GlassSupport } from '../navigation/glassCapability'
@@ -131,16 +131,13 @@ export function OwnerManageBar({
 
   const handleManageStatusPress = () => {
     if (isAnyBusy || statusActions.length === 0) return
-    dialogService.showOptions(
-      'إدارة حالة الإعلان',
-      statusActions.map((a) => ({
+    toastService.showActionSheet({
+      title: 'إدارة حالة الإعلان',
+      options: statusActions.map((a) => ({
         text: a.label,
         icon: a.icon,
         onPress: () => {
           if (!isMountedRef.current) return
-          // 400 ms delay so the options Modal finishes closing before the screen's
-          // handleOwnerAction opens dialogService.confirm (same iOS Modal collision
-          // pattern used in useMyListingsScreen.ts).
           if (statusTimeoutRef.current) {
             clearTimeout(statusTimeoutRef.current)
           }
@@ -150,8 +147,8 @@ export function OwnerManageBar({
             onAction(a.id)
           }, STATUS_OPTION_CONFIRM_DELAY_MS)
         },
-      }))
-    )
+      })),
+    })
   }
 
   const renderStickyActionButton = (action: {

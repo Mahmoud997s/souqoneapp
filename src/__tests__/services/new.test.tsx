@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, cleanup, act } from '@testing-library/react-native'
 import NewServiceListingScreen from '../../../app/services/new'
 import { useServiceWizardStore, defaultServiceFormData } from '../../store/serviceWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { servicesApi } from '../../api/services'
 import { WORKING_DAYS_AR } from '../../constants/services'
 import { router } from 'expo-router'
@@ -70,12 +70,12 @@ jest.mock('../../api/uploads', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    confirm: jest.fn((title, msg, onConfirm) => {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    confirm: jest.fn(({ onConfirm }: { onConfirm?: () => void }) => {
       if (onConfirm) onConfirm()
     }),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -146,13 +146,13 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
       fireEvent.press(backBtn)
     })
 
-    expect(dialogService.confirm).toHaveBeenCalledWith(
-      'الخروج من النموذج',
-      expect.stringContaining('هل تريد الخروج؟'),
-      expect.any(Function),
-      'خروج',
-      'متابعة الإعلان'
-    )
+    expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'الخروج من النموذج',
+      message: expect.stringContaining('هل تريد الخروج؟'),
+      onConfirm: expect.any(Function),
+      confirmLabel: 'خروج',
+      cancelLabel: 'متابعة الإعلان',
+    }))
     expect(router.back).toHaveBeenCalled()
   })
 

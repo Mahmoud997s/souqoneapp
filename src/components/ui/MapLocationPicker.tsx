@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { AppButton } from './AppButton'
+import { ModalToastHost } from './ModalToastHost'
 import { logWarn } from '../../utils/safeLog'
 import { getLocationCenterCoords } from '../../constants/locations'
 
@@ -234,6 +235,7 @@ export function MapLocationPicker({
           />
         </View>
       </View>
+      {isVisible && <ModalToastHost />}
     </Modal>
   )
 }

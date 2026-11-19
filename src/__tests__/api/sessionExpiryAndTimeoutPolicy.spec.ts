@@ -10,11 +10,12 @@ import {
 import { shouldRetryQuery } from '../../api/queryClient'
 import { useAuthStore } from '../../store/authStore'
 import { useBlockedStore } from '../../store/blockedStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
+    dismissByDedupeKey: jest.fn(),
   },
 }))
 
@@ -107,7 +108,7 @@ describe('G2 / S8a: Single-Flight Session Expiry Notice (notifySessionExpiredOnc
 
   it('does not show notice if user is not logged in', () => {
     notifySessionExpiredOnce()
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
   })
 
   it('does not show notice if user is blocked (blocked screen takes precedence)', () => {
@@ -115,7 +116,7 @@ describe('G2 / S8a: Single-Flight Session Expiry Notice (notifySessionExpiredOnc
     useBlockedStore.getState().setBlocked({ code: 'ACCOUNT_BANNED', suspendedUntil: null })
 
     notifySessionExpiredOnce()
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
   })
 
   it('shows single-flight notice and triggers logout once when logged in', () => {
@@ -123,26 +124,25 @@ describe('G2 / S8a: Single-Flight Session Expiry Notice (notifySessionExpiredOnc
     useAuthStore.setState({ isLoggedIn: true, user: { id: 'u1' } as any })
 
     notifySessionExpiredOnce()
-    expect(dialogService.alert).toHaveBeenCalledTimes(1)
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'انتهت الجلسة',
-      'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى للمتابعة.',
-      'warning'
-    )
+    expect(toastService.show).toHaveBeenCalledTimes(1)
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'warning',
+      title: 'انتهت جلستك، سجّل دخول تاني',
+    })
     expect(logoutSpy).toHaveBeenCalledTimes(1)
 
     // Second call in same flight must be ignored
     notifySessionExpiredOnce()
-    expect(dialogService.alert).toHaveBeenCalledTimes(1)
+    expect(toastService.show).toHaveBeenCalledTimes(1)
   })
 
   it('resets single-flight guard when resetSessionExpiredNotice is invoked', () => {
     useAuthStore.setState({ isLoggedIn: true, user: { id: 'u1' } as any })
     notifySessionExpiredOnce()
-    expect(dialogService.alert).toHaveBeenCalledTimes(1)
+    expect(toastService.show).toHaveBeenCalledTimes(1)
 
     resetSessionExpiredNotice()
     notifySessionExpiredOnce()
-    expect(dialogService.alert).toHaveBeenCalledTimes(2)
+    expect(toastService.show).toHaveBeenCalledTimes(2)
   })
 })

@@ -1,7 +1,7 @@
 import React from 'react'
 import { router } from 'expo-router'
 import { useEquipmentWizardStore } from '../../src/store/equipmentWizardStore'
-import { dialogService } from '../../src/store/dialogStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { DraftResumeScreen } from '../../src/components/post/DraftResumeScreen'
 
 export default function EquipmentDraftsScreen() {
@@ -12,16 +12,12 @@ export default function EquipmentDraftsScreen() {
   }
 
   const handleDiscard = () => {
-    dialogService.confirm(
-      'مسح المسودة',
-      'هل أنت متأكد؟ سيتم حذف جميع البيانات المدخلة.',
+    confirmClearDraft(
       () => {
         resetDraft()
         router.replace('/equipment/new')
       },
-      'نعم، امسح البيانات',
-      'تراجع',
-      true
+      'هل أنت متأكد؟ سيتم حذف جميع البيانات المدخلة.'
     )
   }
 

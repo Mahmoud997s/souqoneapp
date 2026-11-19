@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import EditOperatorScreen from '../../../app/equipment/operators/edit/[id]'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as equipmentHooks from '../../hooks/useEquipment'
 
 jest.mock('../../api/locations', () => ({
@@ -152,7 +152,7 @@ describe('Operators EditScreen: DetailStates, Retry, PublishSuccessView & 429 (D
 
   it('handles 429 error and 400 fieldErrors redirection in edit flow', async () => {
     let capturedErrorCb: ((err: any) => void) | null = null
-    const alertSpy = jest.spyOn(dialogService, 'alert')
+    const alertSpy = jest.spyOn(toastService, 'show')
     jest.spyOn(equipmentHooks, 'useOperatorItem').mockReturnValue({
       data: {
         id: 'op-123',
@@ -209,7 +209,10 @@ describe('Operators EditScreen: DetailStates, Retry, PublishSuccessView & 429 (D
         },
       })
     })
-    expect(alertSpy).toHaveBeenCalledWith('خطأ', expect.stringContaining('اليومي'))
+    expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: expect.stringContaining('اليومي'),
+    }))
 
     // 2. 400 Step 1 FieldError (title)
     await act(async () => {

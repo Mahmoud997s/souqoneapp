@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native'
 import { usePartFormLogic } from './usePartFormLogic'
 import { defaultPartFormData, PartFormData } from '../store/partWizardStore'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 
 jest.mock('expo-router', () => ({
   router: {
@@ -20,9 +20,9 @@ jest.mock('expo-image-picker', () => ({
   MediaTypeOptions: { Images: 'Images' },
 }))
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -112,8 +112,8 @@ describe('usePartFormLogic Hook', () => {
       { uri: 'file://new-part-1.jpg', isPrimary: false },
       { uri: 'file://new-part-2.jpg', isPrimary: false },
     ])
-    expect(dialogService.alert).not.toHaveBeenCalled()
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('handles image picking when accessPrivileges is limited (iOS)', async () => {
@@ -141,8 +141,8 @@ describe('usePartFormLogic Hook', () => {
     expect(mockSetField).toHaveBeenCalledWith('images', [
       { uri: 'file://limited-part.jpg', isPrimary: false },
     ])
-    expect(dialogService.alert).not.toHaveBeenCalled()
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('shows plain alert without settings button when permission is denied and canAskAgain=true', async () => {
@@ -162,11 +162,11 @@ describe('usePartFormLogic Hook', () => {
 
     await fireEvent.press(screen.getByTestId('btn-pick'))
 
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'إذن الوصول مطلوب',
-      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
-    )
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة',
+    })
+    expect(toastService.confirm).not.toHaveBeenCalled()
     expect(mockSetField).not.toHaveBeenCalled()
   })
 
@@ -187,22 +187,20 @@ describe('usePartFormLogic Hook', () => {
 
     await fireEvent.press(screen.getByTestId('btn-pick'))
 
-    expect(dialogService.alert).not.toHaveBeenCalled()
-    expect(dialogService.confirm).toHaveBeenCalledTimes(1)
+    expect(toastService.show).not.toHaveBeenCalled()
+    expect(toastService.confirm).toHaveBeenCalledTimes(1)
 
-    const [title, message, onConfirm, confirmText, cancelText] = (
-      dialogService.confirm as jest.Mock
-    ).mock.calls[0]
+    const config = (toastService.confirm as jest.Mock).mock.calls[0][0]
 
-    expect(title).toBe('إذن الوصول مطلوب')
-    expect(message).toBe(
+    expect(config.title).toBe('إذن الوصول مطلوب')
+    expect(config.message).toBe(
       'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور القطعة'
     )
-    expect(confirmText).toBe('فتح الإعدادات')
-    expect(cancelText).toBe('إلغاء')
+    expect(config.confirmLabel).toBe('فتح الإعدادات')
+    expect(config.cancelLabel).toBe('إلغاء')
 
     expect(openSettingsSpy).not.toHaveBeenCalled()
-    onConfirm()
+    config.onConfirm()
     expect(openSettingsSpy).toHaveBeenCalledTimes(1)
     expect(mockSetField).not.toHaveBeenCalled()
   })
@@ -222,10 +220,10 @@ describe('usePartFormLogic Hook', () => {
 
     await fireEvent.press(screen.getByTestId('btn-pick'))
 
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'إذن الوصول مطلوب',
-      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
-    )
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة',
+    })
     expect(mockSetField).not.toHaveBeenCalled()
   })
 

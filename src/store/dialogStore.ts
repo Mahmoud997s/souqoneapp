@@ -1,138 +1,212 @@
-/**
- * Global Dialog Store (Zustand)
- * Allows showing AppDialog from anywhere — including Hooks and API client —
- * without needing React context or component hierarchy.
- */
-import { create } from 'zustand';
-import { DialogType, DialogAction, DialogOption } from '../components/ui/AppDialog';
+import {
+  toastService,
+  type ActionSheetOption,
+  type ToastConfig,
+  type ToastKind,
+} from './toastStore'
 
-interface DialogState {
-  visible: boolean;
-  type: DialogType;
-  iconVariant?: DialogType | 'destructive';
-  title?: string;
-  message?: string;
-  actions: DialogAction[];
-  options: DialogOption[];
+export type DialogType =
+  | 'info'
+  | 'success'
+  | 'error'
+  | 'warning'
+  | 'offline'
+  | 'confirm'
+  | 'options'
 
-  // Actions
-  show: (config: {
-    type?: DialogType;
-    iconVariant?: DialogType | 'destructive';
-    title?: string;
-    message?: string;
-    actions?: DialogAction[];
-    options?: DialogOption[];
-  }) => void;
-  hide: () => void;
-
-  /** Simple alert replacement */
-  alert: (title: string, message?: string, type?: DialogType) => void;
-
-  /** Confirm dialog replacement */
-  confirm: (
-    title: string,
-    message: string,
-    onConfirm: () => void,
-    confirmText?: string,
-    cancelText?: string,
-    destructive?: boolean,
-  ) => void;
-
-  /** Options bottom sheet replacement */
-  showOptions: (title: string, opts: DialogOption[]) => void;
+export interface DialogAction {
+  text: string
+  onPress?: () => void
+  style?: 'default' | 'cancel' | 'destructive' | 'primary'
 }
 
-export const useDialogStore = create<DialogState>((set) => ({
-  visible: false,
-  type: 'info',
-  iconVariant: undefined,
-  title: undefined,
-  message: undefined,
-  actions: [],
-  options: [],
+export interface DialogOption {
+  text: string
+  icon?: string
+  onPress?: () => void
+  style?: 'default' | 'destructive'
+}
 
-  show: (config) =>
-    set({
-      visible: true,
-      type: config.type ?? 'info',
-      iconVariant: config.iconVariant,
-      title: config.title,
-      message: config.message,
-      actions: config.actions ?? [],
-      options: config.options ?? [],
-    }),
+const GENERIC_DIALOG_TITLES = new Set([
+  'خطأ',
+  'نجاح',
+  'تنبيه',
+  'تم',
+  'تم بنجاح',
+  'عذراً',
+  'انقطاع الاتصال',
+  'تنبيه في المدخلات',
+  'غير مصرح',
+  'محاولات كثيرة',
+])
 
-  hide: () => set({ visible: false }),
+export function mapDialogTypeToToastKind(type: DialogType = 'info'): ToastKind {
+  switch (type) {
+    case 'success':
+      return 'success'
+    case 'error':
+    case 'offline':
+      return 'error'
+    case 'warning':
+      return 'warning'
+    case 'info':
+    case 'confirm':
+    case 'options':
+    default:
+      return 'info'
+  }
+}
 
-  alert: (title, message, type = 'info') =>
-    set({
-      visible: true,
-      type,
-      iconVariant: undefined,
-      title,
-      message,
-      actions: [{ text: 'حسناً', style: 'default' }],
-      options: [],
-    }),
+export function mapDialogAlertToToast(
+  title?: string,
+  message?: string,
+  type: DialogType = 'info',
+  iconVariant?: DialogType | 'destructive'
+): ToastConfig {
+  const effectiveType =
+    iconVariant && iconVariant !== 'destructive' ? iconVariant : type
+  const kind = mapDialogTypeToToastKind(effectiveType)
+  const cleanTitle = title?.trim() ?? ''
+  const cleanMessage = message?.trim() ?? ''
+  const icon =
+    effectiveType === 'offline' ? 'cloud-offline-outline' : undefined
 
-  confirm: (title, message, onConfirm, confirmText = 'تأكيد', cancelText = 'إلغاء', destructive = false) =>
-    set({
-      visible: true,
-      type: 'confirm',
-      iconVariant: undefined,
-      title,
-      message,
-      options: [],
-      actions: [
-        { text: cancelText, style: 'cancel' },
-        { text: confirmText, style: destructive ? 'destructive' : 'default', onPress: onConfirm },
-      ],
-    }),
+  if (cleanTitle && cleanMessage) {
+    if (GENERIC_DIALOG_TITLES.has(cleanTitle)) {
+      return {
+        kind,
+        ...(icon ? { icon } : {}),
+        title: cleanMessage,
+      }
+    }
+    return {
+      kind,
+      ...(icon ? { icon } : {}),
+      title: cleanTitle,
+      message: cleanMessage,
+    }
+  }
 
-  showOptions: (title, opts) =>
-    set({
-      visible: true,
-      type: 'options',
-      iconVariant: undefined,
-      title,
-      options: opts,
-      actions: [],
-    }),
-}));
+  return {
+    kind,
+    ...(icon ? { icon } : {}),
+    title: cleanTitle || cleanMessage || 'تنبيه',
+  }
+}
 
 /**
- * Imperative API — usable OUTSIDE React components (hooks, API client, etc.)
- * Usage: dialogService.alert('خطأ', 'تعذر الاتصال')
+ * Stateless compatibility facade preserving `dialogService` signatures for callers
+ * (including Window-1 files that cannot be edited in D-366).
+ * All UI presentation routes through `toastService` (`GlobalToast` / `DecisionToastCard` / `GlassActionSheet`).
  */
 export const dialogService = {
   show: (config: {
-    type?: DialogType;
-    iconVariant?: DialogType | 'destructive';
-    title?: string;
-    message?: string;
-    actions?: DialogAction[];
-    options?: DialogOption[];
+    type?: DialogType
+    iconVariant?: DialogType | 'destructive'
+    title?: string
+    message?: string
+    actions?: DialogAction[]
+    options?: DialogOption[]
   }) => {
-    useDialogStore.getState().show(config);
+    const actions = config.actions ?? []
+    const options = config.options ?? []
+
+    if (config.type === 'options' || options.length > 0 || actions.length > 2) {
+      const sheetOptions: ActionSheetOption[] =
+        options.length > 0
+          ? options.map((opt) => ({
+              text: opt.text,
+              icon: opt.icon,
+              onPress: opt.onPress,
+              style: opt.style,
+            }))
+          : actions
+              .filter((a) => a.style !== 'cancel')
+              .map((a) => ({
+                text: a.text,
+                onPress: a.onPress,
+                style: a.style === 'destructive' ? 'destructive' : 'default',
+              }))
+      const cancelAction = actions.find((a) => a.style === 'cancel')
+      toastService.showActionSheet({
+        title: config.title,
+        options: sheetOptions,
+        cancelLabel: cancelAction?.text,
+        onCancel: cancelAction?.onPress,
+      })
+      return
+    }
+
+    if (actions.length === 2 || config.type === 'confirm') {
+      const cancelIdx = actions.findIndex((a) => a.style === 'cancel')
+      const cancelAction = cancelIdx >= 0 ? actions[cancelIdx] : actions[0]
+      const confirmAction =
+        cancelIdx >= 0 ? actions[cancelIdx === 0 ? 1 : 0] : actions[1]
+      const isDanger =
+        config.iconVariant === 'destructive' ||
+        confirmAction?.style === 'destructive'
+
+      toastService.confirm({
+        title: config.title || config.message || 'تأكيد',
+        message:
+          config.title && config.message ? config.message : undefined,
+        intent: isDanger ? 'danger' : 'primary',
+        confirmLabel: confirmAction?.text ?? 'تأكيد',
+        cancelLabel: cancelAction?.text ?? 'إلغاء',
+        onConfirm: () => {
+          confirmAction?.onPress?.()
+        },
+        onCancel: cancelAction?.onPress,
+      })
+      return
+    }
+
+    toastService.show(
+      mapDialogAlertToToast(
+        config.title,
+        config.message,
+        config.type ?? 'info',
+        config.iconVariant
+      )
+    )
   },
+
   alert: (title: string, message?: string, type: DialogType = 'info') => {
-    useDialogStore.getState().alert(title, message, type);
+    toastService.show(mapDialogAlertToToast(title, message, type))
   },
+
   confirm: (
     title: string,
     message: string,
     onConfirm: () => void,
-    confirmText?: string,
-    cancelText?: string,
-    destructive?: boolean,
+    confirmText = 'تأكيد',
+    cancelText = 'إلغاء',
+    destructive = false
   ) => {
-    useDialogStore.getState().confirm(title, message, onConfirm, confirmText, cancelText, destructive);
+    toastService.confirm({
+      title: title || message,
+      message: title && message ? message : undefined,
+      intent: destructive ? 'danger' : 'primary',
+      confirmLabel: confirmText,
+      cancelLabel: cancelText,
+      onConfirm,
+    })
   },
+
   showOptions: (title: string, opts: DialogOption[]) => {
-    useDialogStore.getState().showOptions(title, opts);
+    toastService.showActionSheet({
+      title,
+      options: opts.map((opt) => ({
+        text: opt.text,
+        icon: opt.icon,
+        onPress: opt.onPress,
+        style: opt.style,
+      })),
+    })
   },
+
   hide: () => {
-    useDialogStore.getState().hide();
+    toastService.hide()
+    toastService.hideActionSheet(false)
   },
-};
+}
