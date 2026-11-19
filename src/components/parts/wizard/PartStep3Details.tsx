@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Switch } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { AppInput } from '../../ui/AppInput'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { QUANTITY_OPTIONS, WARRANTY_DURATION_OPTIONS } from '../../../constants/parts'
 import { PartStep3Props } from '../../../types/partForm.types'
@@ -96,12 +97,12 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
       <WizardCard title="الكمية" subtitle="حدد الكمية المتوفرة للبيع">
         <View style={s.inputWrapper}>
           <Text style={s.label}>الكمية</Text>
-          <TouchableOpacity style={s.dropdownBtn} onPress={openQuantityModal} activeOpacity={0.8}>
+          <GlassPickerButton style={s.dropdownBtn} onPress={openQuantityModal}>
             <Text style={formData.quantity ? s.dropdownVal : s.dropdownPlaceholder}>
               {formData.quantity ? getQuantityLabel() : 'اختر الكمية المتوفرة'}
             </Text>
             <Ionicons name="chevron-down" size={18} color={Colors.slateMuted} />
-          </TouchableOpacity>
+          </GlassPickerButton>
         </View>
       </WizardCard>
 
@@ -122,12 +123,12 @@ export function PartStep3Details({ formData, errors, onUpdateField }: PartStep3P
         {formData.hasWarranty && (
           <View style={[s.inputWrapper, { marginTop: Spacing.space3 }]}>
             <Text style={s.label}>مدة الضمان *</Text>
-            <TouchableOpacity style={s.dropdownBtn} onPress={openWarrantyDurationModal} activeOpacity={0.8}>
+            <GlassPickerButton style={s.dropdownBtn} error={Boolean(errors.warrantyDuration)} onPress={openWarrantyDurationModal}>
               <Text style={formData.warrantyDuration ? s.dropdownVal : s.dropdownPlaceholder}>
                 {formData.warrantyDuration ? getWarrantyDurationLabel() : 'اختر مدة الضمان'}
               </Text>
               <Ionicons name="chevron-down" size={18} color={Colors.slateMuted} />
-            </TouchableOpacity>
+            </GlassPickerButton>
             {errors.warrantyDuration ? <Text style={s.inlineErrorTxt}>{errors.warrantyDuration}</Text> : null}
           </View>
         )}
@@ -167,15 +168,7 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
   dropdownBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
     paddingHorizontal: 14,
-    height: 48,
   },
   dropdownPlaceholder: {
     fontFamily: 'Almarai_400Regular',

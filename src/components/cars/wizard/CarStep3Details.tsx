@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Pressable,
   TextInput,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
@@ -15,6 +14,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { AppInput } from '../../ui/AppInput'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
@@ -237,8 +237,8 @@ export function CarStep3Details({
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <Text style={s.label}>الماركة *</Text>
-            <Pressable
-              style={[s.selectorButton, errors.brandId && s.selectorError]}
+            <GlassPickerButton
+              error={Boolean(errors.brandId)}
               onPress={openBrandModal}
             >
               <View style={s.selectorContent}>
@@ -249,17 +249,13 @@ export function CarStep3Details({
               <View style={s.selectorIconWrap}>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
               </View>
-            </Pressable>
+            </GlassPickerButton>
             {errors.brandId ? <Text style={s.inlineErrorTxt}>{errors.brandId}</Text> : null}
           </View>
           <View style={s.flex1}>
             <Text style={s.label}>الموديل *</Text>
-            <Pressable
-              style={[
-                s.selectorButton,
-                !formData.brandId && s.selectorButtonDisabled,
-                errors.carModelId && s.selectorError,
-              ]}
+            <GlassPickerButton
+              error={Boolean(errors.carModelId)}
               onPress={openModelModal}
               disabled={!formData.brandId}
             >
@@ -271,7 +267,7 @@ export function CarStep3Details({
               <View style={s.selectorIconWrap}>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
               </View>
-            </Pressable>
+            </GlassPickerButton>
             {errors.carModelId ? <Text style={s.inlineErrorTxt}>{errors.carModelId}</Text> : null}
           </View>
         </View>
@@ -280,7 +276,7 @@ export function CarStep3Details({
           {trims.length > 0 && (
             <View style={s.flex1}>
               <Text style={s.label}>الفئة</Text>
-              <Pressable style={s.selectorButton} onPress={openTrimModal}>
+              <GlassPickerButton onPress={openTrimModal}>
                 <View style={s.selectorContent}>
                   <Text style={[s.selectorText, !formData.carTrimId && s.placeholder]} numberOfLines={1}>
                     {selectedTrim ? selectedTrim.name : 'اختر الفئة'}
@@ -289,17 +285,13 @@ export function CarStep3Details({
                 <View style={s.selectorIconWrap}>
                   <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
                 </View>
-              </Pressable>
+              </GlassPickerButton>
             </View>
           )}
           <View style={s.flex1}>
             <Text style={s.label}>سنة الصنع *</Text>
-            <Pressable
-              style={[
-                s.selectorButton,
-                !formData.carModelId && s.selectorButtonDisabled,
-                errors.year && s.selectorError,
-              ]}
+            <GlassPickerButton
+              error={Boolean(errors.year)}
               onPress={openYearModal}
               disabled={!formData.carModelId}
             >
@@ -311,7 +303,7 @@ export function CarStep3Details({
               <View style={s.selectorIconWrap}>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
               </View>
-            </Pressable>
+            </GlassPickerButton>
             {errors.year ? <Text style={s.inlineErrorTxt}>{errors.year}</Text> : null}
           </View>
         </View>
@@ -335,7 +327,7 @@ export function CarStep3Details({
 
         <View style={s.inputWrapper}>
           <Text style={s.label}>نوع الوقود *</Text>
-          <Pressable style={s.selectorButton} onPress={openFuelModal}>
+          <GlassPickerButton onPress={openFuelModal}>
             <View style={s.selectorContent}>
               <Text style={[s.selectorText, !formData.fuelType && s.placeholder]} numberOfLines={1}>
                 {FUEL_TYPES.find(f => f.value === formData.fuelType)?.label || 'اختر نوع الوقود'}
@@ -344,13 +336,13 @@ export function CarStep3Details({
             <View style={s.selectorIconWrap}>
               <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
             </View>
-          </Pressable>
+          </GlassPickerButton>
           {errors.fuelType ? <Text style={s.inlineErrorTxt}>{errors.fuelType}</Text> : null}
         </View>
 
         <View style={s.inputWrapper}>
           <Text style={s.label}>شكل السيارة *</Text>
-          <Pressable style={s.selectorButton} onPress={openBodyModal}>
+          <GlassPickerButton onPress={openBodyModal}>
             <View style={s.selectorContent}>
               <Text style={[s.selectorText, !formData.bodyType && s.placeholder]} numberOfLines={1}>
                 {BODY_TYPES.find(b => b.value === formData.bodyType)?.label || 'اختر شكل السيارة'}
@@ -359,13 +351,13 @@ export function CarStep3Details({
             <View style={s.selectorIconWrap}>
               <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
             </View>
-          </Pressable>
+          </GlassPickerButton>
           {errors.bodyType ? <Text style={s.inlineErrorTxt}>{errors.bodyType}</Text> : null}
         </View>
 
         <View style={s.inputWrapper}>
           <Text style={s.label}>نظام الدفع *</Text>
-          <Pressable style={s.selectorButton} onPress={openDriveModal}>
+          <GlassPickerButton onPress={openDriveModal}>
             <View style={s.selectorContent}>
               <Text style={[s.selectorText, !formData.driveType && s.placeholder]} numberOfLines={1}>
                 {DRIVE_TYPES.find(d => d.value === formData.driveType)?.label || 'اختر نظام الدفع'}
@@ -374,7 +366,7 @@ export function CarStep3Details({
             <View style={s.selectorIconWrap}>
               <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
             </View>
-          </Pressable>
+          </GlassPickerButton>
           {errors.driveType ? <Text style={s.inlineErrorTxt}>{errors.driveType}</Text> : null}
         </View>
 
@@ -400,7 +392,7 @@ export function CarStep3Details({
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <Text style={s.label}>اللون الخارجي *</Text>
-            <Pressable style={s.selectorButton} onPress={() => openColorModal('exteriorColor')}>
+            <GlassPickerButton onPress={() => openColorModal('exteriorColor')}>
               <View style={s.selectorContent}>
                 <Text style={[s.selectorText, !formData.exteriorColor && s.placeholder]} numberOfLines={1}>
                   {CAR_COLORS.find((c) => c.value === formData.exteriorColor)?.label || 'اختر اللون'}
@@ -422,13 +414,13 @@ export function CarStep3Details({
                   <Ionicons name="color-palette-outline" size={18} color={Colors.textMuted} />
                 )}
               </View>
-            </Pressable>
+            </GlassPickerButton>
             {errors.exteriorColor ? <Text style={s.inlineErrorTxt}>{errors.exteriorColor}</Text> : null}
           </View>
 
           <View style={s.flex1}>
             <Text style={s.label}>اللون الداخلي</Text>
-            <Pressable style={s.selectorButton} onPress={() => openColorModal('interior')}>
+            <GlassPickerButton onPress={() => openColorModal('interior')}>
               <View style={s.selectorContent}>
                 <Text style={[s.selectorText, !formData.interior && s.placeholder]} numberOfLines={1}>
                   {CAR_COLORS.find((c) => c.value === formData.interior)?.label || 'اختر اللون'}
@@ -450,7 +442,7 @@ export function CarStep3Details({
                   <Ionicons name="color-palette-outline" size={18} color={Colors.textMuted} />
                 )}
               </View>
-            </Pressable>
+            </GlassPickerButton>
           </View>
         </View>
 
@@ -619,24 +611,6 @@ const s = StyleSheet.create({
   chipTxtActive: {
     color: Colors.primary,
     fontFamily: 'Almarai_800ExtraBold',
-  },
-  selectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  selectorButtonDisabled: {
-    backgroundColor: Colors.slateSubtleBg,
-    opacity: 0.6,
-  },
-  selectorError: {
-    borderColor: Colors.error,
-    backgroundColor: Colors.dangerBg,
   },
   selectorContent: {
     flex: 1,

@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
   TextInput,
   ActivityIndicator,
 } from 'react-native'
@@ -15,6 +14,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { AppButton } from '../../ui/AppButton'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { WizardSelectField } from '../../ui/WizardSelectField'
@@ -240,8 +240,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           </View>
         ) : (
           <View>
-            <Pressable
-              style={[s.selectorButton, !data.make && s.selectorButtonEmpty]}
+            <GlassPickerButton
               onPress={openManufacturerModal}
               disabled={isLoadingManufacturers}
               testID="open-make-modal-btn"
@@ -259,7 +258,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
                 )}
               </View>
               <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
-            </Pressable>
+            </GlassPickerButton>
 
             {manufacturersError ? (
               <View style={s.apiErrorRow}>
@@ -323,11 +322,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
             </View>
           ) : (
             <View>
-              <Pressable
-                style={[
-                  s.selectorButton,
-                  (!data.model || !data.manufacturerId) && s.selectorButtonEmpty,
-                ]}
+              <GlassPickerButton
                 onPress={openModelModal}
                 disabled={!data.manufacturerId || isLoadingModels}
                 testID="open-model-modal-btn"
@@ -350,7 +345,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
                   )}
                 </View>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
-              </Pressable>
+              </GlassPickerButton>
 
               {modelsError ? (
                 <View style={s.apiErrorRow}>
@@ -386,8 +381,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
           <View style={{ flex: 1 }}>
             <Text style={s.fieldLabel}>سنة الصنع *</Text>
             {errors.year ? <Text style={s.inlineErrorTxt}>{errors.year}</Text> : null}
-            <Pressable
-              style={[s.selectorButton, !data.year && s.selectorButtonEmpty]}
+            <GlassPickerButton
               onPress={openYearModal}
               testID="open-year-modal-btn"
             >
@@ -395,7 +389,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
                 {data.year || 'السنة'}
               </Text>
               <Ionicons name="calendar-outline" size={16} color={Colors.textMuted} />
-            </Pressable>
+            </GlassPickerButton>
           </View>
 
           {/* Capacity */}
@@ -546,22 +540,6 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
     marginTop: -2,
     marginBottom: 6,
-  },
-  selectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    minHeight: 48,
-  },
-  selectorButtonEmpty: {
-    borderColor: Colors.slateBorder,
-    backgroundColor: Colors.slateSurface,
   },
   selectorContent: {
     flex: 1,

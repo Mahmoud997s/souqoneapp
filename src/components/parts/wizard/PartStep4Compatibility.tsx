@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
   TextInput,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,6 +12,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { MultiSelectSearchModal, MultiSelectOption } from '../../ui/MultiSelectSearchModal'
@@ -229,8 +229,7 @@ export function PartStep4Compatibility({
 
             {!isAllMakes && (
               <>
-                <Pressable
-                  style={s.selectorButton}
+                <GlassPickerButton
                   onPress={openMakesModal}
                   testID="open-makes-modal-btn"
                 >
@@ -244,7 +243,7 @@ export function PartStep4Compatibility({
                   <View style={s.selectorIconWrap}>
                     <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
                   </View>
-                </Pressable>
+                </GlassPickerButton>
 
                 {specificMakes.length > 0 && (
                   <View style={s.pillsWrap} testID="selected-makes-pills">
@@ -277,8 +276,7 @@ export function PartStep4Compatibility({
         <WizardCard title="الموديلات المتوافقة">
           <View style={s.modelsWrapper}>
             {fetchedModels.length > 0 && (
-              <Pressable
-                style={s.selectorButton}
+              <GlassPickerButton
                 onPress={openModelsModal}
                 testID="open-models-modal-btn"
               >
@@ -292,7 +290,7 @@ export function PartStep4Compatibility({
                 <View style={s.selectorIconWrap}>
                   <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
                 </View>
-              </Pressable>
+              </GlassPickerButton>
             )}
 
             {/* Free-text custom model input */}
@@ -347,8 +345,7 @@ export function PartStep4Compatibility({
         <View style={s.rowFields}>
           <View style={s.flex1}>
             <Text style={s.label}>من سنة</Text>
-            <Pressable
-              style={s.selectorButton}
+            <GlassPickerButton
               onPress={openYearFromModal}
               testID="year-from-btn"
             >
@@ -360,13 +357,13 @@ export function PartStep4Compatibility({
               <View style={s.selectorIconWrap}>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
               </View>
-            </Pressable>
+            </GlassPickerButton>
           </View>
 
           <View style={s.flex1}>
             <Text style={s.label}>إلى سنة</Text>
-            <Pressable
-              style={[s.selectorButton, errors.yearTo && s.selectorError]}
+            <GlassPickerButton
+              error={Boolean(errors.yearTo)}
               onPress={openYearToModal}
               testID="year-to-btn"
             >
@@ -378,7 +375,7 @@ export function PartStep4Compatibility({
               <View style={s.selectorIconWrap}>
                 <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
               </View>
-            </Pressable>
+            </GlassPickerButton>
           </View>
         </View>
         {errors.yearTo ? <Text style={s.inlineErrorTxt} testID="year-to-error">{errors.yearTo}</Text> : null}
@@ -508,20 +505,6 @@ const s = StyleSheet.create({
     color: Colors.slateBody,
     textAlign: 'left',
     writingDirection: 'rtl',
-  },
-  selectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.slateSurface,
-    borderWidth: 1.5,
-    borderColor: Colors.slateBorder,
-    borderRadius: Radius.md,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  selectorError: {
-    borderColor: Colors.error,
-    backgroundColor: Colors.dangerBg,
   },
   selectorContent: {
     flex: 1,
