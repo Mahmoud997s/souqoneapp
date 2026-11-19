@@ -30,6 +30,8 @@ import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
+import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
 import { busesApi } from '../../src/api/buses'
 import { useBusWizardStore, BusWizardData } from '../../src/store/busWizardStore'
@@ -144,17 +146,10 @@ export default function NewBusListingScreen() {
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm(
-      'مسح المسودة',
-      'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟',
-      () => {
-        reset()
-        setErrors({})
-      },
-      'نعم، مسح',
-      'تراجع',
-      true
-    )
+    confirmClearDraft(() => {
+      reset()
+      setErrors({})
+    })
   }
 
   const getStepTitle = () => {
@@ -307,6 +302,7 @@ export default function NewBusListingScreen() {
                 ? 'تم تحديث بيانات الحافلة بنجاح في سوق ون.'
                 : 'تم حفظ التعديلات ولكن تعذر تحديث بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
             })
+            toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
           },
           onError: (err: unknown) => {
             submitLockRef.current = false
@@ -358,6 +354,7 @@ export default function NewBusListingScreen() {
               ? undefined
               : 'تم نشر الحافلة ولكن تعذر ربط بعض الصور، يمكنك تعديل الإعلان وإعادة رفعها.',
           })
+          toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
         },
         onError: (err: unknown) => {
           submitLockRef.current = false

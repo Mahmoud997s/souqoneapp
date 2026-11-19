@@ -62,6 +62,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     const currentSegments = segments as readonly string[]
+    if (currentSegments[0] === '(auth)') {
+      const sub = currentSegments[1]
+      if (sub === 'login' || sub === 'register' || sub === 'verify-email') {
+        useAuthStore.getState().setActiveAuthScreen?.(sub)
+      } else {
+        useAuthStore.getState().setActiveAuthScreen?.(null)
+      }
+    } else {
+      useAuthStore.getState().setActiveAuthScreen?.(null)
+    }
+
     const isImageViewerRoute =
       (currentSegments[0] === '(modals)' && currentSegments[1] === 'image-viewer') ||
       pathname === '/image-viewer'

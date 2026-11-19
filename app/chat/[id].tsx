@@ -105,7 +105,15 @@ export default function ChatRoomScreen() {
     ]
 
     if (msg.type === 'TEXT' && msg.content) {
-      options.push({ text: '📋 نسخ النص', onPress: () => Clipboard.setStringAsync(msg.content), style: 'default' })
+      options.push({
+        text: '📋 نسخ النص',
+        onPress: () => {
+          void Clipboard.setStringAsync(msg.content).then(() => {
+            toastService.show({ kind: 'success', title: 'تم نسخ النص' })
+          })
+        },
+        style: 'default',
+      })
     }
 
     if (isOwn) {

@@ -22,6 +22,7 @@ import { GlassNavBar } from '../../../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../../../src/components/ui/AppButton'
 import { Stepper } from '../../../../src/components/ui/Stepper'
 import { dialogService } from '../../../../src/store/dialogStore'
+import { toastService } from '../../../../src/store/toastStore'
 import { useOperatorItem, useUpdateOperator } from '../../../../src/hooks/useEquipment'
 import { useOperatorFormLogic } from '../../../../src/hooks/useOperatorFormLogic'
 import { validateOperatorStep, mapOperatorBackendErrors, OperatorFormErrors } from '../../../../src/hooks/useOperatorValidation'
@@ -188,6 +189,7 @@ export default function EditOperatorScreen() {
         onSuccess: () => {
           submitLockRef.current = false
           setPublishSuccess(true)
+          toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
         },
         onError: (err: unknown) => {
           submitLockRef.current = false

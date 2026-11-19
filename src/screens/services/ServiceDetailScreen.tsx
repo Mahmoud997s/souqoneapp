@@ -27,6 +27,7 @@ import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { servicesApi } from '../../api/services'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
@@ -271,7 +272,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
                 removeDetail: true,
               })
             }
-            dialogService.alert('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
+            toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
             goBackSafely()
           } catch (err: unknown) {
             const errorMsg = getMutationErrorMessage(err, 'فشل حذف الإعلان')

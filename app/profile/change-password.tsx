@@ -14,6 +14,7 @@ import { AppButton } from '../../src/components/ui/AppButton'
 import { usersApi } from '../../src/api/users'
 import { storeRotatedTokens } from '../../src/utils/storeRotatedTokens'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { SecurityInfoBanner } from '../../src/components/profile/SecurityInfoBanner'
 import { PasswordRequirements } from '../../src/components/profile/PasswordRequirements'
@@ -61,7 +62,7 @@ export default function ChangePasswordScreen() {
       })
       await storeRotatedTokens(res?.data)
 
-      dialogService.alert('نجاح', 'تم تغيير كلمة المرور بنجاح!', 'success')
+      toastService.show({ kind: 'success', title: 'تم تغيير كلمة المرور' })
       router.back()
     } catch (err: unknown) {
       const { fieldErrors: backendErrors, generalMessage } = mapChangePasswordBackendErrors(err)

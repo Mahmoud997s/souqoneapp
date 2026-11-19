@@ -20,6 +20,7 @@ import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
 import { reviewsApi } from '../../src/api/reviews'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 import { parseListEnvelope } from '../../src/utils/parseListEnvelope'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
@@ -128,6 +129,7 @@ export default function ReviewsScreen() {
       setIsWriting(false)
       setRating(0)
       setComment('')
+      toastService.show({ kind: 'success', title: 'تم إرسال تقييمك' })
     },
     onError: (err: unknown) => {
       const status = (err as { response?: { status?: number } })?.response?.status

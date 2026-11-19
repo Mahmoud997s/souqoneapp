@@ -20,6 +20,7 @@ import { queryClient as appQueryClient } from '../../src/api/queryClient'
 import { Colors } from '../../src/constants/colors'
 import { useAuthStore } from '../../src/store/authStore'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
@@ -237,6 +238,7 @@ export default function SettingsScreen() {
     if (!user?.id) return
     try {
       await saveNotificationPrefs(user.id, { msgNotif: val, adNotif: adNotifRef.current })
+      toastService.show({ kind: 'success', title: 'تم الحفظ', dedupeKey: 'settings-save' })
     } catch (error) {
       logWarn('SettingsScreen:SaveMsgNotif', error)
       msgNotifRef.current = prevVal
@@ -252,6 +254,7 @@ export default function SettingsScreen() {
     if (!user?.id) return
     try {
       await saveNotificationPrefs(user.id, { msgNotif: msgNotifRef.current, adNotif: val })
+      toastService.show({ kind: 'success', title: 'تم الحفظ', dedupeKey: 'settings-save' })
     } catch (error) {
       logWarn('SettingsScreen:SaveAdNotif', error)
       adNotifRef.current = prevVal
@@ -281,6 +284,7 @@ export default function SettingsScreen() {
         updateUser(updatedUser)
       }
       await queryClient.invalidateQueries({ queryKey: ['me'] })
+      toastService.show({ kind: 'success', title: 'تم الحفظ', dedupeKey: 'settings-save' })
     } catch (error) {
       logWarn('SettingsScreen:ToggleContactVisibility', error)
       setLocal(prevVal)
@@ -296,6 +300,7 @@ export default function SettingsScreen() {
       async () => {
         const { loginRoute } = require('../../src/navigation/listingRoutes')
         await logout()
+        toastService.show({ kind: 'success', title: 'تم تسجيل الخروج' })
         router.replace(loginRoute())
       },
       'تسجيل الخروج',

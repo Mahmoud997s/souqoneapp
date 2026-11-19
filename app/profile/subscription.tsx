@@ -9,6 +9,7 @@ import { Radius } from '../../src/constants/radius'
 import { FEATURES } from '../../src/constants/features'
 import { paymentsApi } from '../../src/api/payments'
 import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 
 type PlanId = 'FREE' | 'PRO' | 'ENTERPRISE'
 
@@ -34,7 +35,7 @@ export default function SubscriptionScreen() {
       if (url) {
         await Linking.openURL(url)
       } else {
-        dialogService.alert('نجاح', 'تم الاشتراك بنجاح')
+        toastService.show({ kind: 'success', title: 'تم الاشتراك' })
       }
     } catch (err: any) {
       dialogService.alert('خطأ', err?.response?.data?.message || 'حدث خطأ، حاول مرة أخرى')

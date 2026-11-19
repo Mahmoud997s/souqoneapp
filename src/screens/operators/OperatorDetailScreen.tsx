@@ -24,6 +24,7 @@ import { PublicProfileTokens } from '../../constants/publicProfileTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 // Hooks & Utilities
 import { useOperatorDetail } from '../../hooks/listing-detail/useOperatorDetail'
@@ -140,6 +141,10 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
         async () => {
           try {
             await ownerActions.run(actionId)
+            toastService.show({
+              kind: 'success',
+              title: actionId === 'delete' ? 'تم إرسال طلب الحذف' : 'تم إلغاء طلب الحذف',
+            })
           } catch (err) {
             const msg = translateOperatorOwnerError(err)
             dialogService.alert('خطأ', msg)

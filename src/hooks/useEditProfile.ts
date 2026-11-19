@@ -11,6 +11,7 @@ import { queryClient } from '../api/queryClient'
 import { GovernorateRef, WilayaRef } from '../types/location.types'
 import { Config } from '../constants/config'
 import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 import {
   validateProfileForm,
@@ -357,7 +358,7 @@ export function useEditProfile() {
 
         // 7. Mark saved and return
         isSaveSuccessfulRef.current = true
-        dialogService.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح!', 'success')
+        toastService.show({ kind: 'success', title: 'تم حفظ التعديلات' })
         router.back()
       }
     } catch (err: unknown) {

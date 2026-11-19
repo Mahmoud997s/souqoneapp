@@ -21,6 +21,8 @@ import { GlassNavBar } from '../../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../../src/components/ui/AppButton'
 import { Stepper } from '../../../src/components/ui/Stepper'
 import { dialogService } from '../../../src/store/dialogStore'
+import { toastService } from '../../../src/store/toastStore'
+import { confirmClearDraft } from '../../../src/utils/confirmClearDraft'
 import { useAuthStore } from '../../../src/store/authStore'
 import { useCreateOperator, useMyOperators } from '../../../src/hooks/useEquipment'
 import { useOperatorWizardStore } from '../../../src/store/operatorWizardStore'
@@ -108,7 +110,7 @@ export default function AddOperatorScreen() {
   }
 
   const handleClearDraft = () => {
-    dialogService.confirm('مسح المسودة', 'هل أنت متأكد من رغبتك في مسح كافة البيانات والبدء من جديد؟', () => {
+    confirmClearDraft(() => {
       resetDraft()
     })
   }
@@ -132,6 +134,7 @@ export default function AddOperatorScreen() {
         setCreatedOperatorId(createdId)
         resetDraft()
         setPublishSuccess(true)
+        toastService.show({ kind: 'success', title: 'تم نشر إعلانك' })
       },
       onError: (err: unknown) => {
         submitLockRef.current = false

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { queryClient } from '../api/queryClient'
 import { useAuthStore } from '../store/authStore'
 import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { usersApi } from '../api/users'
 import { showErrorDialog } from '../utils/showErrorDialog'
 
@@ -20,11 +21,10 @@ export function useAccountDeletion() {
           await usersApi.cancelDeletion()
           updateUser({ deletionScheduledAt: null })
           queryClient.invalidateQueries()
-          dialogService.alert(
-            'تم الإلغاء',
-            'تم إلغاء طلب حذف حسابك وسيتم إظهار إعلاناتك مرة أخرى.',
-            'success',
-          )
+          toastService.show({
+            kind: 'success',
+            title: 'تم إلغاء طلب حذف الحساب',
+          })
         } catch (err: any) {
           const status = err?.response?.status
           const message = err?.response?.data?.message || err?.message

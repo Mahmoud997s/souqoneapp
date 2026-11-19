@@ -12,6 +12,7 @@ import {
   writeProfileCounts,
 } from '../utils/profileCountsStorage'
 import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { locationsApi } from '../api/locations'
 import { authApi } from '../api/auth'
 import { Colors } from '../constants/colors'
@@ -188,7 +189,11 @@ export function useProfileOverview() {
     dialogService.confirm(
       'تسجيل الخروج',
       'هل أنت متأكد من تسجيل الخروج؟',
-      async () => { await logout(); router.replace(loginRoute()) },
+      async () => {
+        await logout()
+        toastService.show({ kind: 'success', title: 'تم تسجيل الخروج' })
+        router.replace(loginRoute())
+      },
       'تسجيل الخروج', 'إلغاء', true
     )
   }

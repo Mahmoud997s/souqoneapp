@@ -34,6 +34,8 @@ import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useCarDetail } from '../../hooks/listing-detail/useCarDetail'
@@ -50,7 +52,6 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
@@ -228,12 +229,15 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert(

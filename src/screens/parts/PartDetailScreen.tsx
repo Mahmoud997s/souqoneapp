@@ -28,6 +28,7 @@ import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { usePartWizardStore, resolvePartListingType } from '../../store/partWizardStore'
 import { partsApi } from '../../api/parts'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
@@ -207,7 +208,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           try {
             await partsApi.remove(id)
             await invalidatePartListingQueries(queryClient, id, { removeDetail: true })
-            dialogService.alert('تم', 'تم حذف إعلان القطعة بنجاح', 'success')
+            toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
             goBackSafely()
           } catch (e: unknown) {
             const kind = getDetailErrorKind(e)

@@ -32,6 +32,8 @@ import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useEquipmentDetail } from '../../hooks/listing-detail/useEquipmentDetail'
@@ -48,7 +50,6 @@ import {
   type SimilarEquipmentItem,
 } from '../../hooks/listing-detail/useEquipmentSimilarListings'
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -183,12 +184,15 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert('تعارض في البيانات', translateEquipmentOwnerError(err))

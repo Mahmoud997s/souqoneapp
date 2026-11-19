@@ -7,6 +7,7 @@ import {
   MY_LISTING_ENTITY_QUERY_KEYS,
 } from './useMyListingOwnerActions'
 import { dialogService } from '../store/dialogStore'
+import { resolveOwnerActionSuccessToastTitle } from '../utils/listing-detail/ownerActionToast'
 import { toastService, type ActionSheetOption } from '../store/toastStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
@@ -298,7 +299,10 @@ export function useMyListingsScreen() {
             // Immediately refetch all queries to update the UI
             await refetch()
 
-            dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
+            toastService.show({
+              kind: 'success',
+              title: resolveOwnerActionSuccessToastTitle(action.id),
+            })
           } catch (err: unknown) {
             const { hasResponse, status } = getErrorStatus(err)
             if (!hasResponse) {

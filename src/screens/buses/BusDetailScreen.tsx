@@ -33,6 +33,8 @@ import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
 import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useBusDetail } from '../../hooks/listing-detail/useBusDetail'
@@ -50,7 +52,6 @@ import {
   type SimilarBusItem,
 } from '../../hooks/listing-detail/useBusSimilarListings'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
@@ -238,12 +239,15 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
           dialogService.alert('تعارض في البيانات', translateBusOwnerError(err))
