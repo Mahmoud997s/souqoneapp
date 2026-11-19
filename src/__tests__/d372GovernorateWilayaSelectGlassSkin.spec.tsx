@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { StyleSheet } from 'react-native'
 import fs from 'fs'
 import path from 'path'
