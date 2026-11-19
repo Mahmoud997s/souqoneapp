@@ -27,7 +27,6 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
 import { toastService } from '../../src/store/toastStore'
 import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
@@ -179,22 +178,23 @@ export default function NewServiceListingScreen() {
 
   const handleExit = () => {
     if (formData.editMode) {
-      dialogService.confirm(
-        'إلغاء التعديل',
-        'هل تريد الخروج؟ لن يتم حفظ التعديلات غير المنشورة.',
-        () => router.back(),
-        'خروج',
-        'متابعة التعديل',
-        true
-      )
+      toastService.confirm({
+        title: 'إلغاء التعديل',
+        message: 'هل تريد الخروج؟ لن يتم حفظ التعديلات غير المنشورة.',
+        intent: 'danger',
+        confirmLabel: 'خروج',
+        cancelLabel: 'متابعة التعديل',
+        onConfirm: () => router.back(),
+      })
     } else {
-      dialogService.confirm(
-        'الخروج من النموذج',
-        'هل تريد الخروج؟ تم حفظ مسودتك تلقائياً ويمكنك استكمالها في أي وقت.',
-        () => router.back(),
-        'خروج',
-        'متابعة الإعلان'
-      )
+      toastService.confirm({
+        title: 'الخروج من النموذج',
+        message: 'هل تريد الخروج؟ تم حفظ مسودتك تلقائياً ويمكنك استكمالها في أي وقت.',
+        intent: 'primary',
+        confirmLabel: 'خروج',
+        cancelLabel: 'متابعة الإعلان',
+        onConfirm: () => router.back(),
+      })
     }
   }
 
@@ -226,15 +226,16 @@ export default function NewServiceListingScreen() {
 
   const promptPublishConfirmation = () => {
     const isEdit = Boolean(formData.editMode)
-    dialogService.confirm(
-      isEdit ? 'تأكيد حفظ التعديلات' : 'تأكيد نشر الإعلان',
-      isEdit
+    toastService.confirm({
+      title: isEdit ? 'تأكيد حفظ التعديلات' : 'تأكيد نشر الإعلان',
+      message: isEdit
         ? 'هل أنت متأكد من رغبتك في حفظ التعديلات وتحديث بيانات الخدمة؟'
         : 'هل راجعت كافة تفاصيل الخدمة وترغب في نشر الإعلان الآن؟',
-      () => handleSubmit(),
-      isEdit ? 'حفظ التعديلات' : 'نشر الآن',
-      'مراجعة البيانات'
-    )
+      intent: 'primary',
+      confirmLabel: isEdit ? 'حفظ التعديلات' : 'نشر الآن',
+      cancelLabel: 'مراجعة البيانات',
+      onConfirm: () => handleSubmit(),
+    })
   }
 
   const submitLockRef = useRef<boolean>(false)

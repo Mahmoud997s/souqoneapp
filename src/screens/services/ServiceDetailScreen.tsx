@@ -26,7 +26,6 @@ import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 import { servicesApi } from '../../api/services'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
@@ -258,10 +257,13 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
 
     if (actionId === 'delete') {
       if (ownerBusyRef.current !== null) return
-      dialogService.confirm(
-        'حذف الإعلان',
-        'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
-        async () => {
+      toastService.confirm({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           if (ownerBusyRef.current !== null) return
           ownerBusyRef.current = 'delete'
           setOwnerBusyAction('delete')
@@ -282,10 +284,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             setOwnerBusyAction(null)
           }
         },
-        'نعم، احذف',
-        'تراجع',
-        true,
-      )
+      })
     }
   }
 

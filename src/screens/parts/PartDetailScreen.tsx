@@ -27,7 +27,6 @@ import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 import { usePartWizardStore, resolvePartListingType } from '../../store/partWizardStore'
 import { partsApi } from '../../api/parts'
@@ -201,10 +200,13 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
 
     if (actionId === 'delete') {
       if (ownerBusyRef.current !== null) return
-      dialogService.confirm(
-        'حذف الإعلان',
-        'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
-        async () => {
+      toastService.confirm({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           if (ownerBusyRef.current !== null) return
           ownerBusyRef.current = 'delete'
           setOwnerBusyAction('delete')
@@ -229,10 +231,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             setOwnerBusyAction(null)
           }
         },
-        'نعم، احذف',
-        'تراجع',
-        true
-      )
+      })
     }
   }
 

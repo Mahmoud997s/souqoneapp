@@ -23,7 +23,6 @@ import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { PublicProfileTokens } from '../../constants/publicProfileTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 
 // Hooks & Utilities
@@ -135,10 +134,13 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
     const actionDef = ownerActions.actions.find((a) => a.id === actionId)
     if (actionDef?.requiresConfirm) {
-      dialogService.confirm(
-        actionDef.confirmTitle ?? 'تأكيد الإجراء',
-        actionDef.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        async () => {
+      toastService.confirm({
+        title: actionDef.confirmTitle ?? 'تأكيد الإجراء',
+        message: actionDef.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: actionDef.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: actionDef.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           try {
             await ownerActions.run(actionId)
             toastService.show({
@@ -150,9 +152,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
             toastService.show({ kind: 'error', title: msg })
           }
         },
-        actionDef.confirmLabel ?? 'تأكيد',
-        'إلغاء'
-      )
+      })
       return
     }
 

@@ -11,7 +11,6 @@ import {
   readProfileCounts,
   writeProfileCounts,
 } from '../utils/profileCountsStorage'
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 import { locationsApi } from '../api/locations'
 import { authApi } from '../api/auth'
@@ -186,16 +185,18 @@ export function useProfileOverview() {
   }
 
   const handleLogout = () => {
-    dialogService.confirm(
-      'تسجيل الخروج',
-      'هل أنت متأكد من تسجيل الخروج؟',
-      async () => {
+    toastService.confirm({
+      title: 'تسجيل الخروج؟',
+      message: 'هل أنت متأكد من تسجيل الخروج؟',
+      intent: 'primary',
+      confirmLabel: 'خروج',
+      cancelLabel: 'إلغاء',
+      onConfirm: async () => {
         await logout()
         toastService.show({ kind: 'success', title: 'تم تسجيل الخروج' })
         router.replace(loginRoute())
       },
-      'تسجيل الخروج', 'إلغاء', true
-    )
+    })
   }
 
   // Group 1: النشاط التجاري والإعلانات

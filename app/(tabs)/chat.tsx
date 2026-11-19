@@ -23,7 +23,7 @@ import { useArchiveStore } from '../../src/store/archiveStore'
 import { usePinStore } from '../../src/store/pinStore'
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
 import { useNavVisibility } from '../../src/context/NavVisibilityContext'
-import { dialogService } from '../../src/store/dialogStore'
+import { toastService } from '../../src/store/toastStore'
 import { ChatHeader } from '../../src/components/chat/ChatHeader'
 import { ChatFilterTabs, ChatFilterTabType } from '../../src/components/chat/ChatFilterTabs'
 import { ChatItemCard } from '../../src/components/chat/ChatItemCard'
@@ -194,15 +194,16 @@ export default function ChatListScreen() {
       const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
       const participantName = otherParticipant?.displayName || otherParticipant?.username || 'المستخدم'
 
-      dialogService.confirm(
-        participantName,
-        room.listing?.title
+      toastService.confirm({
+        title: participantName,
+        message: room.listing?.title
           ? `إعلان: ${room.listing.title}`
           : 'خيارات المحادثة السريعة',
-        () => togglePin(room.id),
-        isPinned ? 'إلغاء التثبيت 📌' : 'تثبيت في الأعلى 📌',
-        isArchived ? 'إلغاء الأرشفة 📥' : 'أرشفة المحادثة 📦'
-      )
+        intent: 'primary',
+        confirmLabel: isPinned ? 'إلغاء التثبيت' : 'تثبيت',
+        cancelLabel: 'إلغاء',
+        onConfirm: () => togglePin(room.id),
+      })
     },
     [pinnedIds, archivedIds, user?.id, togglePin]
   )
@@ -223,14 +224,14 @@ export default function ChatListScreen() {
 
   const handleDelete = useCallback(
     (room: ChatRoom) => {
-      dialogService.confirm(
-        'حذف المحادثة',
-        'هل أنت متأكد من حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
-        () => toggleArchive(room.id),
-        'حذف نهائي',
-        'إلغاء',
-        true
-      )
+      toastService.confirm({
+        title: 'حذف المحادثة',
+        message: 'هل أنت متأكد من حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: () => toggleArchive(room.id),
+      })
     },
     [toggleArchive]
   )

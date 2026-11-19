@@ -6,7 +6,6 @@ import {
   useMyListingOwnerActions,
   MY_LISTING_ENTITY_QUERY_KEYS,
 } from './useMyListingOwnerActions'
-import { dialogService } from '../store/dialogStore'
 import { resolveOwnerActionSuccessToastTitle } from '../utils/listing-detail/ownerActionToast'
 import { toastService, type ActionSheetOption } from '../store/toastStore'
 import { useAuthStore } from '../store/authStore'
@@ -269,10 +268,13 @@ export function useMyListingsScreen() {
     statusTimeoutRef.current = setTimeout(() => {
       statusTimeoutRef.current = null
       if (!isMountedRef.current) return
-      dialogService.confirm(
-        confirmTitle,
-        confirmMessage,
-        async () => {
+      toastService.confirm({
+        title: confirmTitle,
+        message: confirmMessage,
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel,
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           if (isChangingStatus.current) return
           isChangingStatus.current = true
           try {
@@ -333,9 +335,7 @@ export function useMyListingsScreen() {
             isChangingStatus.current = false
           }
         },
-        confirmLabel,
-        'إلغاء'
-      )
+      })
     }, STATUS_OPTION_CONFIRM_DELAY_MS)
   }
 

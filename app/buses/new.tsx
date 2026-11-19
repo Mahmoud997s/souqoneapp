@@ -29,7 +29,6 @@ import { Spacing } from '../../src/constants/spacing'
 import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
 import { AppButton } from '../../src/components/ui/AppButton'
 import { Stepper } from '../../src/components/ui/Stepper'
-import { dialogService } from '../../src/store/dialogStore'
 import { toastService } from '../../src/store/toastStore'
 import { confirmClearDraft } from '../../src/utils/confirmClearDraft'
 import { uploadsApi } from '../../src/api/uploads'
@@ -125,22 +124,23 @@ export default function NewBusListingScreen() {
       prevStep()
     } else {
       if (editMode) {
-        dialogService.confirm(
-          'الخروج من التعديل',
-          'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
-          () => router.back(),
-          'خروج',
-          'إلغاء',
-          true
-        )
+        toastService.confirm({
+          title: 'الخروج من التعديل',
+          message: 'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
+          intent: 'danger',
+          confirmLabel: 'خروج',
+          cancelLabel: 'إلغاء',
+          onConfirm: () => router.back(),
+        })
       } else {
-        dialogService.confirm(
-          'الخروج',
-          'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
-          () => router.back(),
-          'خروج',
-          'إلغاء'
-        )
+        toastService.confirm({
+          title: 'الخروج',
+          message: 'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
+          intent: 'primary',
+          confirmLabel: 'خروج',
+          cancelLabel: 'إلغاء',
+          onConfirm: () => router.back(),
+        })
       }
     }
   }
@@ -175,13 +175,14 @@ export default function NewBusListingScreen() {
     if (editMode) {
       executeSubmit()
     } else {
-      dialogService.confirm(
-        'تأكيد النشر',
-        'هل أنت متأكد من صحة كافة البيانات وترغب في نشر الإعلان الآن؟',
-        () => executeSubmit(),
-        'نعم، نشر الإعلان',
-        'مراجعة البيانات'
-      )
+      toastService.confirm({
+        title: 'تأكيد النشر',
+        message: 'هل أنت متأكد من صحة كافة البيانات وترغب في نشر الإعلان الآن؟',
+        intent: 'primary',
+        confirmLabel: 'نشر',
+        cancelLabel: 'مراجعة',
+        onConfirm: () => executeSubmit(),
+      })
     }
   }
 

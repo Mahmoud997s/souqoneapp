@@ -5,7 +5,6 @@ import { busesApi } from '../api/buses'
 import { equipmentApi } from '../api/equipment'
 import { partsApi } from '../api/parts'
 import { servicesApi } from '../api/services'
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 import { showErrorDialog } from '../utils/showErrorDialog'
 import { MyListingEntityType, MyListingItem } from '../types/my-listings.types'
@@ -98,10 +97,13 @@ export function useMyListingOwnerActions() {
         return
       }
 
-      dialogService.confirm(
-        'حذف الإعلان',
-        'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-        async () => {
+      toastService.confirm({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           const queryKey = MY_LISTING_ENTITY_QUERY_KEYS[item.entityType]
           setBusy(item, 'delete')
           const previousSnapshots = queryClient.getQueriesData({ queryKey })
@@ -123,10 +125,7 @@ export function useMyListingOwnerActions() {
             setBusy(item, null)
           }
         },
-        'حذف',
-        'إلغاء',
-        true
-      )
+      })
     },
     [queryClient, setBusy]
   )
@@ -135,10 +134,13 @@ export function useMyListingOwnerActions() {
     (item: MyListingItem) => {
       if (!item.pendingDeletionRequest) return
 
-      dialogService.confirm(
-        'إلغاء طلب الحذف',
-        'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
-        async () => {
+      toastService.confirm({
+        title: 'إلغاء طلب الحذف',
+        message: 'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
+        intent: 'primary',
+        confirmLabel: 'تأكيد الإلغاء',
+        cancelLabel: 'تراجع',
+        onConfirm: async () => {
           setBusy(item, 'cancelDeletion')
           try {
             await equipmentApi.cancelOperatorDeletionRequest(item.pendingDeletionRequest!.id)
@@ -152,9 +154,7 @@ export function useMyListingOwnerActions() {
             setBusy(item, null)
           }
         },
-        'تأكيد الإلغاء',
-        'تراجع'
-      )
+      })
     },
     [queryClient, setBusy]
   )

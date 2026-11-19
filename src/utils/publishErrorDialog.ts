@@ -1,4 +1,3 @@
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 import { getDetailErrorKind, getMutationErrorMessage } from './listing-detail/getDetailErrorKind'
 import { getPublishRateLimitErrorMessage } from './publishRateLimitError'
@@ -27,14 +26,13 @@ export function showPublishErrorDialog({
   if (kind === 'offline') {
     const message = 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.'
     if (onRetry) {
-      dialogService.show({
-        type: 'offline',
+      toastService.confirm({
         title: 'لا يوجد اتصال',
         message,
-        actions: [
-          { text: 'إغلاق', style: 'cancel' },
-          { text: 'إعادة المحاولة', style: 'default', onPress: onRetry },
-        ],
+        intent: 'primary',
+        confirmLabel: 'إعادة المحاولة',
+        cancelLabel: 'إغلاق',
+        onConfirm: onRetry,
       })
     } else {
       toastService.show({ kind: 'error', title: message, dedupeKey: 'network-offline' })
@@ -92,10 +90,14 @@ export function handlePublishMutationError({
   if (status === 409) {
     if (isEdit) {
       if (onRefetchVersion) {
-        dialogService.confirm(
-          'تحديث مطلوب',
-          'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
-          async () => {
+        toastService.confirm({
+          title: 'تحديث مطلوب',
+          message:
+            'هذا الإعلان تم تعديله من جهاز آخر. سيتم جلب أحدث نسخة من السيرفر لتتمكن من حفظ تعديلاتك الحالية دون فقدانها.',
+          intent: 'primary',
+          confirmLabel: 'تحديث الآن',
+          cancelLabel: 'إلغاء',
+          onConfirm: async () => {
             try {
               await onRefetchVersion()
               toastService.show({
@@ -106,9 +108,7 @@ export function handlePublishMutationError({
               toastService.show({ kind: 'error', title: 'تعذر جلب البيانات' })
             }
           },
-          'تحديث الآن',
-          'إلغاء'
-        )
+        })
       } else {
         toastService.show({
           kind: 'error',

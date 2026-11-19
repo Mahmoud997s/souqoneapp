@@ -10,7 +10,6 @@ import { locationsApi } from '../api/locations'
 import { queryClient } from '../api/queryClient'
 import { GovernorateRef, WilayaRef } from '../types/location.types'
 import { Config } from '../constants/config'
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 import {
@@ -408,28 +407,19 @@ export function useEditProfile() {
       if (isShowingConfirmRef.current) return
       isShowingConfirmRef.current = true
 
-      dialogService.show({
-        type: 'confirm',
-        iconVariant: 'warning',
+      toastService.confirm({
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
-        actions: [
-          {
-            text: 'متابعة التعديل',
-            style: 'cancel',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-            },
-          },
-          {
-            text: 'تجاهل والخروج',
-            style: 'destructive',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-              navigation.dispatch(e.data.action)
-            },
-          },
-        ],
+        intent: 'danger',
+        confirmLabel: 'تجاهل والخروج',
+        cancelLabel: 'متابعة التعديل',
+        onCancel: () => {
+          isShowingConfirmRef.current = false
+        },
+        onConfirm: () => {
+          isShowingConfirmRef.current = false
+          navigation.dispatch(e.data.action)
+        },
       })
     })
 
@@ -446,28 +436,19 @@ export function useEditProfile() {
       if (isShowingConfirmRef.current) return true
       isShowingConfirmRef.current = true
 
-      dialogService.show({
-        type: 'confirm',
-        iconVariant: 'warning',
+      toastService.confirm({
         title: 'تغييرات غير محفوظة',
         message: 'لديك تعديلات لم يتم حفظها بعد، هل تريد تجاهل التغييرات والخروج؟',
-        actions: [
-          {
-            text: 'متابعة التعديل',
-            style: 'cancel',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-            },
-          },
-          {
-            text: 'تجاهل والخروج',
-            style: 'destructive',
-            onPress: () => {
-              isShowingConfirmRef.current = false
-              router.back()
-            },
-          },
-        ],
+        intent: 'danger',
+        confirmLabel: 'تجاهل والخروج',
+        cancelLabel: 'متابعة التعديل',
+        onCancel: () => {
+          isShowingConfirmRef.current = false
+        },
+        onConfirm: () => {
+          isShowingConfirmRef.current = false
+          router.back()
+        },
       })
       return true
     }

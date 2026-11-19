@@ -26,7 +26,6 @@ import { ChatSkeleton } from '../../src/components/chat/ChatSkeleton'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
-import { dialogService } from '../../src/store/dialogStore'
 import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 
 function getDateLabel(iso: string) {
@@ -121,7 +120,14 @@ export default function ChatRoomScreen() {
         text: '🗑️ حذف الرسالة',
         style: 'destructive',
         onPress: () => {
-          dialogService.confirm('حذف الرسالة', 'هل أنت متأكد من حذف هذه الرسالة؟', () => handleDeleteMessage(msgId), 'حذف', 'إلغاء', true)
+          toastService.confirm({
+            title: 'حذف الرسالة',
+            message: 'هل أنت متأكد من حذف هذه الرسالة؟',
+            intent: 'danger',
+            confirmLabel: 'حذف',
+            cancelLabel: 'إلغاء',
+            onConfirm: () => handleDeleteMessage(msgId),
+          })
         }
       })
     }
@@ -164,15 +170,16 @@ export default function ChatRoomScreen() {
       {
         text: '🚫 حظر المستخدم',
         onPress: () => {
-          dialogService.confirm(
-            'حظر المستخدم',
-            'هل أنت متأكد من حظر هذا المستخدم؟',
-            () => {
+          toastService.confirm({
+            title: 'حظر المستخدم',
+            message: 'هل أنت متأكد من حظر هذا المستخدم؟',
+            intent: 'danger',
+            confirmLabel: 'حظر',
+            cancelLabel: 'إلغاء',
+            onConfirm: () => {
               toastService.show({ kind: 'info', title: 'تم حظر المستخدم' })
             },
-            'حظر',
-            'إلغاء'
-          )
+          })
         },
       }
     )

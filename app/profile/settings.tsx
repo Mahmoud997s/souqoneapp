@@ -19,7 +19,6 @@ import { QueryClientContext } from '@tanstack/react-query'
 import { queryClient as appQueryClient } from '../../src/api/queryClient'
 import { Colors } from '../../src/constants/colors'
 import { useAuthStore } from '../../src/store/authStore'
-import { dialogService } from '../../src/store/dialogStore'
 import { toastService } from '../../src/store/toastStore'
 import { usersApi } from '../../src/api/users'
 import { SupportHelpButton } from '../../src/components/ui/SupportHelpButton'
@@ -294,19 +293,19 @@ export default function SettingsScreen() {
   }
 
   const handleLogout = () => {
-    dialogService.confirm(
-      'تسجيل الخروج',
-      'هل أنت متأكد من تسجيل الخروج؟',
-      async () => {
+    toastService.confirm({
+      title: 'تسجيل الخروج؟',
+      message: 'هل أنت متأكد من تسجيل الخروج؟',
+      intent: 'primary',
+      confirmLabel: 'خروج',
+      cancelLabel: 'إلغاء',
+      onConfirm: async () => {
         const { loginRoute } = require('../../src/navigation/listingRoutes')
         await logout()
         toastService.show({ kind: 'success', title: 'تم تسجيل الخروج' })
         router.replace(loginRoute())
       },
-      'تسجيل الخروج',
-      'إلغاء',
-      true
-    )
+    })
   }
 
   return (

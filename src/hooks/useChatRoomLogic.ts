@@ -13,7 +13,6 @@ import { UserSummary } from '../types/auth.types'
 import { ChatFileInfo } from '../components/chat/ChatInput'
 import { logError } from '../utils/safeLog'
 import { showErrorDialog } from '../utils/showErrorDialog'
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 
 export interface LocalMessage {
@@ -363,13 +362,14 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
         } else {
           updateMessage(roomId, msgId, { pendingDelete: false, deleteError: true })
           const reason = ack?.message || ack?.error || 'فشل حذف الرسالة من الخادم. هل تريد إعادة المحاولة؟'
-          dialogService.confirm(
-            'تعذر حذف الرسالة',
-            reason,
-            () => handleDeleteMessage(msgId),
-            'إعادة المحاولة',
-            'إلغاء'
-          )
+          toastService.confirm({
+            title: 'تعذر حذف الرسالة',
+            message: reason,
+            intent: 'primary',
+            confirmLabel: 'إعادة المحاولة',
+            cancelLabel: 'إلغاء',
+            onConfirm: () => handleDeleteMessage(msgId),
+          })
         }
       }
     )

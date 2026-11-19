@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { queryClient } from '../api/queryClient'
 import { useAuthStore } from '../store/authStore'
-import { dialogService } from '../store/dialogStore'
 import { toastService } from '../store/toastStore'
 import { usersApi } from '../api/users'
 import { showErrorDialog } from '../utils/showErrorDialog'
@@ -12,10 +11,13 @@ export function useAccountDeletion() {
   const user = useAuthStore((s) => s.user)
 
   const handleCancelDeletion = () => {
-    dialogService.confirm(
-      'إلغاء طلب حذف الحساب',
-      'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
-      async () => {
+    toastService.confirm({
+      title: 'إلغاء طلب حذف الحساب',
+      message: 'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
+      intent: 'primary',
+      confirmLabel: 'نعم، إلغاء الحذف',
+      cancelLabel: 'تراجع',
+      onConfirm: async () => {
         try {
           setCancelling(true)
           await usersApi.cancelDeletion()
@@ -46,9 +48,7 @@ export function useAccountDeletion() {
           setCancelling(false)
         }
       },
-      'نعم، إلغاء الحذف',
-      'تراجع',
-    )
+    })
   }
 
   return {

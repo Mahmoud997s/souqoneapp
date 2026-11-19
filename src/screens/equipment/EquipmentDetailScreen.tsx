@@ -31,7 +31,6 @@ import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
 import { toastService } from '../../store/toastStore'
 import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
@@ -206,14 +205,14 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
     }
 
     if (action.requiresConfirm) {
-      dialogService.confirm(
-        action.confirmTitle ?? 'تأكيد الإجراء',
-        action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        execute,
-        action.confirmLabel ?? 'تأكيد',
-        'إلغاء',
-        action.tone === 'danger'
-      )
+      toastService.confirm({
+        title: action.confirmTitle ?? 'تأكيد الإجراء',
+        message: action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: action.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: execute,
+      })
     } else {
       await execute()
     }
