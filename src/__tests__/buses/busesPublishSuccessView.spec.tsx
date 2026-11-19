@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NewBusListingScreen from '../../../app/buses/new'
 import { busesApi } from '../../api/buses'
 import { uploadsApi } from '../../api/uploads'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { useBusWizardStore } from '../../store/busWizardStore'
 import { formatCairoResetsTime } from '../../utils/publishRateLimitError'
 
@@ -167,11 +167,11 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     })
 
     confirmSpy = jest
-      .spyOn(dialogService, 'confirm')
-      .mockImplementation((_title, _message, onConfirm) => {
-        onConfirm()
+      .spyOn(toastService, 'confirm')
+      .mockImplementation(({ onConfirm }) => {
+        onConfirm?.()
       })
-    alertSpy = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    alertSpy = jest.spyOn(toastService, 'show').mockImplementation(() => '')
 
     mockedUploadsSingle.mockResolvedValue({
       data: { url: 'https://cdn.souqone.app/uploaded-bus-1.jpg' },
@@ -214,7 +214,10 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     expect(mockedBusesAddImages).toHaveBeenCalledWith('bus-999', [
       'https://cdn.souqone.app/uploaded-bus-1.jpg',
     ])
-    expect(alertSpy).not.toHaveBeenCalled()
+    expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم نشر إعلانك',
+    }))
     expect(useBusWizardStore.getState().currentStep).toBe(1)
     expect(useBusWizardStore.getState().data.title).toBe('')
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['buses'] })
@@ -303,15 +306,19 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     })
 
     const expectedTime = formatCairoResetsTime(resetsAt)
-    expect(alertSpy).toHaveBeenCalledWith(
-      'خطأ',
-      `وصلت للحد اليومي لنشر الإعلانات (2 إعلانات في اليوم). يُعاد تعيين الحد في ${expectedTime}.`
-    )
+    expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: `وصلت للحد اليومي لنشر الإعلانات (2 إعلانات في اليوم). يُعاد تعيين الحد في ${expectedTime}.`,
+    }))
     expect(screen.queryByTestId('publish-success-view')).toBeNull()
   })
 
   it('4. Network and timeout mutation errors use showPublishErrorDialog with offline icon & retry only for offline', async () => {
-    const showSpy = jest.spyOn(dialogService, 'show')
+    confirmSpy.mockImplementation(({ title, onConfirm }) => {
+      if (title === 'تأكيد النشر') {
+        onConfirm?.()
+      }
+    })
     const networkErr = {
       isAxiosError: true,
       code: 'ERR_NETWORK',
@@ -322,18 +329,18 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     const screen = await submitPublishFromStep6()
 
     await waitFor(() => {
-      expect(showSpy).toHaveBeenCalledWith(
+      expect(confirmSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'offline',
           title: 'لا يوجد اتصال',
           message: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.',
+          confirmLabel: 'إعادة المحاولة',
         })
       )
     })
     expect(screen.queryByTestId('publish-success-view')).toBeNull()
 
     alertSpy.mockClear()
-    showSpy.mockClear()
+    confirmSpy.mockClear()
     const timeoutErr = {
       isAxiosError: true,
       code: 'ECONNABORTED',
@@ -346,14 +353,12 @@ describe('Buses R3-3: NewBusListingScreen image-error fix, PublishSuccessView & 
     })
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        'انتهت مهلة الاتصال',
-        'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
-        'offline'
-      )
+      expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'انتهت مهلة الاتصال بالخادم، يرجى التحقق من اتصالك قبل المحاولة مجدداً',
+      }))
     })
-    expect(showSpy).not.toHaveBeenCalled()
-    showSpy.mockRestore()
+    expect(confirmSpy).not.toHaveBeenCalledWith(expect.objectContaining({ title: 'لا يوجد اتصال' }))
   })
 
   it('5. Hardware back button on PublishSuccessView navigates to /buses and blocks going back to form', async () => {

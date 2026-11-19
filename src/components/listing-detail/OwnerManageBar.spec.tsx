@@ -5,7 +5,7 @@ import {
   buildCarOwnerActions,
   buildBusOwnerActions,
 } from '../../utils/listing-detail/ownerActionMatrix'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -29,9 +29,9 @@ jest.mock('@expo/vector-icons', () => {
   }
 })
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    showOptions: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -120,14 +120,14 @@ describe('OwnerManageBar', () => {
     )
 
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    expect(dialogService.showOptions).toHaveBeenLastCalledWith(
-      'إدارة حالة الإعلان',
-      expect.arrayContaining([
+    expect(toastService.showActionSheet).toHaveBeenLastCalledWith({
+      title: 'إدارة حالة الإعلان',
+      options: expect.arrayContaining([
         expect.objectContaining({ text: 'تعليم كمباع' }),
         expect.objectContaining({ text: 'أرشفة' }),
-      ])
-    )
-    const saleOptions = (dialogService.showOptions as jest.Mock).mock.calls[0][1]
+      ]),
+    })
+    const saleOptions = (toastService.showActionSheet as jest.Mock).mock.calls[0][0].options
     expect(saleOptions.map((o: { text: string }) => o.text)).toEqual([
       'تعليم كمباع',
       'أرشفة',
@@ -143,7 +143,7 @@ describe('OwnerManageBar', () => {
       />
     )
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    const archivedOptions = (dialogService.showOptions as jest.Mock).mock.calls[1][1]
+    const archivedOptions = (toastService.showActionSheet as jest.Mock).mock.calls[1][0].options
     expect(archivedOptions.map((o: { text: string }) => o.text)).toEqual([
       'استعادة',
     ])
@@ -158,7 +158,7 @@ describe('OwnerManageBar', () => {
       />
     )
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    const rentedOptions = (dialogService.showOptions as jest.Mock).mock.calls[2][1]
+    const rentedOptions = (toastService.showActionSheet as jest.Mock).mock.calls[2][0].options
     expect(rentedOptions.map((o: { text: string }) => o.text)).toEqual([
       'إعادة إتاحة للإيجار',
     ])
@@ -179,7 +179,7 @@ describe('OwnerManageBar', () => {
     )
 
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+    const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
     jest.useFakeTimers()
     options[1].onPress()
@@ -207,7 +207,7 @@ describe('OwnerManageBar', () => {
     )
 
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+    const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
     jest.useFakeTimers()
     options[0].onPress()
@@ -269,7 +269,7 @@ describe('OwnerManageBar', () => {
     )
 
     await fireEvent.press(screen.getByTestId('btn-owner-manage-status'))
-    const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+    const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
 
     await rendered.unmount()
 

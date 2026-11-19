@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ReviewsScreen from '../../../app/reviews/[entityId]'
 import { useOperatorReviews } from '../../hooks/listing-detail/useOperatorReviews'
 import { reviewsApi } from '../../api/reviews'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { ListContractError } from '../../utils/parseListEnvelope'
 import { getPublishRateLimitErrorMessage } from '../../utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../utils/listing-detail/getDetailErrorKind'
@@ -16,15 +16,15 @@ jest.mock('expo-router', () => ({
 }))
 
 jest.mock('../../api/reviews')
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
 
 const mockedReviewsApi = jest.mocked(reviewsApi)
-const mockedDialogAlert = jest.mocked(dialogService.alert)
+const mockedToastShow = jest.mocked(toastService.show)
 
 jest.setTimeout(25000)
 
@@ -198,10 +198,10 @@ describe('Operator Reviews Hook & Screen Error / Submit Handling (D-283 / R5-1)'
       })
 
       await waitFor(() => {
-        expect(mockedDialogAlert).toHaveBeenCalledWith(
-          'خطأ',
-          getPublishRateLimitErrorMessage(rateLimitError)
-        )
+        expect(mockedToastShow).toHaveBeenCalledWith(expect.objectContaining({
+          kind: 'error',
+          title: getPublishRateLimitErrorMessage(rateLimitError),
+        }))
       })
     })
 
@@ -249,10 +249,10 @@ describe('Operator Reviews Hook & Screen Error / Submit Handling (D-283 / R5-1)'
       })
 
       await waitFor(() => {
-        expect(mockedDialogAlert).toHaveBeenCalledWith(
-          'خطأ',
-          getMutationErrorMessage(serverError, 'تعذر إضافة التقييم')
-        )
+        expect(mockedToastShow).toHaveBeenCalledWith(expect.objectContaining({
+          kind: 'error',
+          title: getMutationErrorMessage(serverError, 'تعذر إضافة التقييم'),
+        }))
       })
     })
 

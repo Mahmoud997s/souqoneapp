@@ -4,7 +4,7 @@ import { useEditProfile } from '../../hooks/useEditProfile'
 import { mapProfileBackendErrors } from '../../utils/profileValidation'
 import { usersApi } from '../../api/users'
 import { locationsApi } from '../../api/locations'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { useAuthStore } from '../../store/authStore'
 import * as requestPermissionModule from '../../utils/requestPermission'
 
@@ -38,11 +38,11 @@ jest.mock('../../api/locations', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
-    confirm: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
+    confirm: jest.fn(),
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -174,7 +174,7 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
   })
 
   describe('useEditProfile — Location Picker Errors (F8)', () => {
-    it('openGovernoratePicker displays formatted error alert if API fails', async () => {
+    it('openGovernoratePicker displays formatted error toast if API fails', async () => {
       ;(locationsApi.getGovernorates as jest.Mock).mockRejectedValueOnce(
         new Error('Network offline')
       )
@@ -185,14 +185,13 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
         await result.current.openGovernoratePicker()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        expect.any(String),
-        'error'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: expect.any(String),
+      }))
     })
 
-    it('openWilayaPicker displays formatted error alert if API fails', async () => {
+    it('openWilayaPicker displays formatted error toast if API fails', async () => {
       ;(locationsApi.getWilayas as jest.Mock).mockRejectedValueOnce(
         new Error('Network offline')
       )
@@ -203,11 +202,10 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
         await result.current.openWilayaPicker()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        expect.any(String),
-        'error'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: expect.any(String),
+      }))
     })
   })
 
@@ -284,11 +282,10 @@ describe('Profile Edit — Errors, Permissions & S7 Validation (D-284 / Wave 8)'
         await result.current.handleSave()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'محاولات كثيرة',
-        expect.stringContaining('وصلت للحد اليومي'),
-        'error'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: expect.stringContaining('وصلت للحد اليومي'),
+      })
     })
   })
 })

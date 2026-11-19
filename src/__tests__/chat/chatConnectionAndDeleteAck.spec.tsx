@@ -12,7 +12,7 @@ import { chatApi } from '../../api/chat'
 import { useSocketStore } from '../../store/socketStore'
 import { useChatMessagesStore } from '../../store/chatMessagesStore'
 import { useChatRoomLogic, LocalMessage } from '../../hooks/useChatRoomLogic'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 jest.setTimeout(30000)
 
@@ -88,11 +88,11 @@ jest.mock('../../store/authStore', () => ({
   ),
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
-    showOptions: jest.fn(),
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -271,12 +271,12 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       expect(messages[0].pending).toBe(false)
       expect(messages[0].error).toBe(true)
 
-      // Verifies dialogService.alert was called with classified error so failure is never silent
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'فشل الإرسال',
-        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
-        'offline'
-      )
+      // Verifies toastService.show was called with classified error so failure is never silent
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'فشل الإرسال',
+        message: 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
+      }))
 
       // Verifies error bubble renders error indicator
       const { getByTestId } = await render(
@@ -316,11 +316,11 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       const messages = useChatMessagesStore.getState().messagesByRoom[roomId] || []
       expect(messages[0].error).toBe(true)
       expect(messages[0].pending).toBe(false)
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'فشل الإرسال',
-        expect.stringContaining('حدث خطأ في الخادم'),
-        'error'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'فشل الإرسال',
+        message: expect.stringContaining('حدث خطأ في الخادم'),
+      }))
     })
   })
 
@@ -343,11 +343,10 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
         result.current.handleDeleteMessage('msg-del-1')
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'تنبيه',
-        'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري',
-        'offline'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'لا يمكن حذف الرسالة أثناء انقطاع الاتصال الفوري',
+      }))
       // Message must NOT be removed or marked pendingDelete
       const current = useChatMessagesStore.getState().messagesByRoom[roomId] || []
       expect(current.length).toBe(1)
@@ -512,13 +511,13 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       expect(rolledBack.pendingDelete).toBe(false)
       expect(rolledBack.deleteError).toBe(true)
 
-      expect(dialogService.confirm).toHaveBeenCalledWith(
-        'تعذر حذف الرسالة',
-        'انتهت مهلة الحذف المسموحة',
-        expect.any(Function),
-        'إعادة المحاولة',
-        'إلغاء'
-      )
+      expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'تعذر حذف الرسالة',
+        message: 'انتهت مهلة الحذف المسموحة',
+        onConfirm: expect.any(Function),
+        confirmLabel: 'إعادة المحاولة',
+        cancelLabel: 'إلغاء',
+      }))
     })
 
     it('Case 3 (Ack Timeout): resets pendingDelete: false and calls refetch when timeout expires (8000ms)', async () => {

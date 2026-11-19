@@ -190,6 +190,7 @@ export const useToastStore = create<ToastState>((set, get) => ({
     if (!state.activeDecision) {
       set({
         activeDecision: item,
+        queuedNotice: state.queuedNotice ?? state.current,
         current: null,
       })
       return

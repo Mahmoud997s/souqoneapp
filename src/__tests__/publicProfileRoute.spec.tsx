@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/authStore'
 import { usePublicProfile } from '../hooks/useProfile'
 import { usePublicProfileCars } from '../hooks/public-profile/usePublicProfileCars'
 import { chatApi } from '../api/chat'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { findNewestPublicProfileChatTarget } from '../utils/publicProfileChatTarget'
 
 jest.mock('expo-router', () => ({
@@ -27,7 +27,7 @@ jest.mock('../hooks/public-profile/usePublicProfileEquipment', () => ({ usePubli
 jest.mock('../hooks/public-profile/usePublicProfileParts', () => ({ usePublicProfileParts: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../hooks/public-profile/usePublicProfileServices', () => ({ usePublicProfileServices: () => ({ data: { pages: [] }, isLoading: false, isError: false, isFetching: false, isFetchingNextPage: false, hasNextPage: false, fetchNextPage: jest.fn(), refetch: jest.fn() }) }))
 jest.mock('../store/authStore', () => ({ useAuthStore: jest.fn() }))
-jest.mock('../store/dialogStore', () => ({ dialogService: { alert: jest.fn() } }))
+jest.mock('../store/toastStore', () => ({ toastService: { show: jest.fn() } }))
 
 jest.mock('../hooks/useProfile', () => ({ usePublicProfile: jest.fn() }))
 
@@ -203,7 +203,10 @@ describe('public profile route states', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(chatApi.createRoom).not.toHaveBeenCalled()
-    expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: 'تعذر فتح المحادثة، حاول مرة أخرى',
+    }))
   })
   it('shows a retryable message when no chat target is available', async () => {
     loadSellerProfile()
@@ -214,7 +217,10 @@ describe('public profile route states', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
     expect(chatApi.createRoom).not.toHaveBeenCalled()
-    expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'لم نعثر على إعلان نشط. أعد المحاولة.')
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: 'لم نعثر على إعلان نشط، أعد المحاولة',
+    }))
   })
 
   it('shows a retryable message when room creation fails', async () => {
@@ -226,7 +232,10 @@ describe('public profile route states', () => {
     await render(<PublicProfileScreen />)
     await fireEvent.press(screen.getByRole('button', { name: 'محادثة' }))
 
-    expect(dialogService.alert).toHaveBeenCalledWith('تعذر فتح المحادثة', 'حدث خطأ مؤقت. أعد المحاولة.')
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: 'تعذر فتح المحادثة، حاول مرة أخرى',
+    }))
   })
 
   it('routes a signed-out visitor to login without looking up chat targets', async () => {

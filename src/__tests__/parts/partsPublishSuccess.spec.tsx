@@ -7,7 +7,7 @@ import { carsApi } from '../../api/cars'
 import { router } from 'expo-router'
 import { usePartWizardStore, defaultPartFormData } from '../../store/partWizardStore'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as partQueryKeysModule from '../../screens/parts/hooks/partQueryKeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -54,9 +54,9 @@ jest.mock('expo-router', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -288,10 +288,10 @@ describe('Parts Publish Success and Rate Limiting Flow (D-238)', () => {
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'وصلت للحد اليومي للنشر، جرّب غداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'وصلت للحد اليومي للنشر، جرّب غداً.',
+      }))
     })
   })
 
@@ -321,10 +321,10 @@ describe('Parts Publish Success and Rate Limiting Flow (D-238)', () => {
     })
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'تجاوزت الحد المسموح من الطلبات، يرجى الانتظار دقيقة واحدة ثم المحاولة مجدداً.',
+      }))
     })
   })
 })

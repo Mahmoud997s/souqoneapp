@@ -61,6 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   activeAuthScreen: null,
 
   setActiveAuthScreen: (screen) => {
+    if (get().activeAuthScreen === screen) return
     set({ activeAuthScreen: screen })
   },
 

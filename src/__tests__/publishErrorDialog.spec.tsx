@@ -2,14 +2,13 @@ import fs from 'fs'
 import path from 'path'
 import axios, { AxiosError } from 'axios'
 import { showPublishErrorDialog } from '../utils/publishErrorDialog'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { uploadAndReconcileEquipmentImages } from '../utils/equipment/equipmentWizardSubmitHelpers'
 import { uploadsApi } from '../api/uploads'
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
-    alert: jest.fn(),
     confirm: jest.fn(),
     hide: jest.fn(),
   },
@@ -37,15 +36,13 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
         onRetry,
       })
 
-      expect(dialogService.show).toHaveBeenCalledTimes(1)
-      const config = (dialogService.show as jest.Mock).mock.calls[0][0]
-      expect(config.type).toBe('offline')
+      expect(toastService.confirm).toHaveBeenCalledTimes(1)
+      const config = (toastService.confirm as jest.Mock).mock.calls[0][0]
       expect(config.title).toBe('لا يوجد اتصال')
       expect(config.message).not.toContain('يرجى التحقق من المدخلات')
+      expect(config.confirmLabel).toBe('إعادة المحاولة')
 
-      const retryAction = config.actions.find((a: any) => a.text === 'إعادة المحاولة')
-      expect(retryAction).toBeDefined()
-      retryAction.onPress()
+      config.onConfirm()
       expect(onRetry).toHaveBeenCalledTimes(1)
     })
 
@@ -57,12 +54,12 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
         fallbackMessage: 'تعذر نشر الإعلان',
       })
 
-      expect(dialogService.show).not.toHaveBeenCalled()
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'لا يوجد اتصال',
-        expect.any(String),
-        'offline'
-      )
+      expect(toastService.confirm).not.toHaveBeenCalled()
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: expect.any(String),
+        dedupeKey: 'network-offline',
+      })
     })
 
     it('shows timeout dialog WITHOUT retry button or auto-retry even when onRetry is provided', () => {
@@ -75,13 +72,13 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
         onRetry,
       })
 
-      expect(dialogService.show).not.toHaveBeenCalled()
+      expect(toastService.confirm).not.toHaveBeenCalled()
       expect(onRetry).not.toHaveBeenCalled()
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'انتهت مهلة الاتصال',
-        expect.any(String),
-        'offline'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: expect.any(String),
+        dedupeKey: 'network-offline',
+      })
 
       jest.clearAllMocks()
       const etimedoutErr = new AxiosError('connect ETIMEDOUT', 'ETIMEDOUT')
@@ -90,12 +87,12 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
         fallbackMessage: 'تعذر نشر الإعلان',
         onRetry,
       })
-      expect(dialogService.show).not.toHaveBeenCalled()
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'انتهت مهلة الاتصال',
-        expect.any(String),
-        'offline'
-      )
+      expect(toastService.confirm).not.toHaveBeenCalled()
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: expect.any(String),
+        dedupeKey: 'network-offline',
+      })
     })
 
     it('delegates 400 / 409 / 429 / 500 errors to showErrorDialog with red error icon', () => {
@@ -112,8 +109,13 @@ describe('1.8 Offline Publish Error Dialog & Unwrapped uploadErr (D-327)', () =>
           onRetry: jest.fn(),
         })
 
-        expect(dialogService.show).not.toHaveBeenCalled()
-        expect(dialogService.alert).toHaveBeenCalledWith('خطأ', expect.any(String), 'error')
+        expect(toastService.confirm).not.toHaveBeenCalled()
+        expect(toastService.show).toHaveBeenCalledWith(
+          expect.objectContaining({
+            kind: 'error',
+            title: expect.any(String),
+          })
+        )
       }
     })
   })

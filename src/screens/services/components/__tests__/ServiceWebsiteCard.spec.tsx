@@ -2,7 +2,7 @@ import React from 'react'
 import { Linking, StyleSheet } from 'react-native'
 import { render, screen, fireEvent, act } from '@testing-library/react-native'
 import { ServiceWebsiteCard } from '../ServiceWebsiteCard'
-import { dialogService } from '../../../../store/dialogStore'
+import { toastService } from '../../../../store/toastStore'
 import { Colors } from '../../../../constants/colors'
 import { Spacing } from '../../../../constants/spacing'
 
@@ -54,7 +54,7 @@ describe('ServiceWebsiteCard', () => {
 
   it('shows error dialog when canOpenURL returns false', async () => {
     jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(false)
-    const alertSpy = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    const showSpy = jest.spyOn(toastService, 'show').mockImplementation(() => {})
 
     await render(
       <ServiceWebsiteCard
@@ -70,12 +70,12 @@ describe('ServiceWebsiteCard', () => {
       fireEvent.press(linkBtn)
     })
 
-    expect(alertSpy).toHaveBeenCalledWith('تنبيه', 'تعذر فتح الرابط المطلوب', 'error')
+    expect(showSpy).toHaveBeenCalledWith({ kind: 'error', title: 'تعذر فتح الرابط' })
   })
 
   it('shows error dialog when Linking throws an error', async () => {
     jest.spyOn(Linking, 'canOpenURL').mockRejectedValue(new Error('Network failure'))
-    const alertSpy = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    const showSpy = jest.spyOn(toastService, 'show').mockImplementation(() => {})
 
     await render(
       <ServiceWebsiteCard
@@ -91,7 +91,7 @@ describe('ServiceWebsiteCard', () => {
       fireEvent.press(linkBtn)
     })
 
-    expect(alertSpy).toHaveBeenCalledWith('تنبيه', 'حدث خطأ أثناء فتح الرابط', 'error')
+    expect(showSpy).toHaveBeenCalledWith({ kind: 'error', title: 'تعذر فتح الرابط' })
   })
 
   describe('Card Spacing and Visual Tokens (D-170b)', () => {

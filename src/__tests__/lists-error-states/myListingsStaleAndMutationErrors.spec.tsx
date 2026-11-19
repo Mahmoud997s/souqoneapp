@@ -8,7 +8,7 @@ import { useMyListingsScreen } from '../../hooks/useMyListingsScreen'
 import { listingsApi } from '../../api/listings'
 import { busesApi } from '../../api/buses'
 import { equipmentApi } from '../../api/equipment'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { useAuthStore } from '../../store/authStore'
 import { invalidateBusListingQueries } from '../../utils/listing-detail/busQueryKeys'
 import { invalidateEquipmentListingQueries } from '../../utils/listing-detail/equipmentQueryKeys'
@@ -58,11 +58,11 @@ jest.mock('../../api/equipment', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    showOptions: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    showActionSheet: jest.fn(),
     confirm: jest.fn(),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -298,25 +298,24 @@ describe('MyListings — Stale Data Banner and F8 Mutation Errors (D-280 / R7-2)
         result.current.handleDelete(carItem)
       })
 
-      expect(dialogService.confirm).toHaveBeenCalledWith(
-        'حذف الإعلان',
-        'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-        expect.any(Function),
-        'حذف',
-        'إلغاء',
-        true
-      )
+      expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
+        onConfirm: expect.any(Function),
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        intent: 'danger',
+      }))
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const onConfirm = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
       await act(async () => {
         await onConfirm()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.',
-        'error'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.',
+      }))
     })
 
     it('confirmStatusChange formats 429 rate limit error with getPublishRateLimitErrorMessage', async () => {
@@ -340,7 +339,7 @@ describe('MyListings — Stale Data Banner and F8 Mutation Errors (D-280 / R7-2)
         result.current.handleStatusChange(carItem)
       })
 
-      const [, options] = (dialogService.showOptions as jest.Mock).mock.calls[0]
+      const { options } = (toastService.showActionSheet as jest.Mock).mock.calls[0][0]
       expect(options.length).toBeGreaterThan(0)
 
       jest.useFakeTimers()
@@ -348,15 +347,15 @@ describe('MyListings — Stale Data Banner and F8 Mutation Errors (D-280 / R7-2)
       jest.advanceTimersByTime(400)
       jest.useRealTimers()
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const onConfirm = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
       await act(async () => {
         await onConfirm()
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'محاولات كثيرة',
-        'وصلت للحد اليومي لنشر الإعلانات (5 إعلانات في اليوم)، جرّب غداً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'وصلت للحد اليومي لنشر الإعلانات (5 إعلانات في اليوم)، جرّب غداً.',
+      }))
     })
   })
 })

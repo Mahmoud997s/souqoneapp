@@ -5,11 +5,11 @@ import {
   mediaLibraryAdapter,
   PermissionAdapter,
 } from '../requestPermission'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -50,8 +50,8 @@ describe('requestPermission utility (D-237)', () => {
 
     expect(result.status).toBe('granted')
     expect(result.granted).toBe(true)
-    expect(dialogService.alert).not.toHaveBeenCalled()
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('2. denied + canAskAgain=true -> plain message alert, no settings button', async () => {
@@ -67,14 +67,14 @@ describe('requestPermission utility (D-237)', () => {
     expect(result.granted).toBe(false)
     expect(result.canAskAgain).toBe(true)
 
-    // Displays standard alert
-    expect(dialogService.alert).toHaveBeenCalledTimes(1)
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'إذن الوصول مطلوب',
-      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
-    )
+    // Displays standard error toast
+    expect(toastService.show).toHaveBeenCalledTimes(1)
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة',
+    })
     // No confirm with settings button
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('3. denied + canAskAgain=false -> settings button (confirm), press calls Linking.openSettings once', async () => {
@@ -90,25 +90,23 @@ describe('requestPermission utility (D-237)', () => {
     expect(result.granted).toBe(false)
     expect(result.canAskAgain).toBe(false)
 
-    // No standard alert
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    // No standard toast
+    expect(toastService.show).not.toHaveBeenCalled()
 
-    // Confirm dialog shown with settings button
-    expect(dialogService.confirm).toHaveBeenCalledTimes(1)
-    const [title, message, onConfirm, confirmText, cancelText] = (
-      dialogService.confirm as jest.Mock
-    ).mock.calls[0]
+    // Confirm decision toast shown with settings button
+    expect(toastService.confirm).toHaveBeenCalledTimes(1)
+    const config = (toastService.confirm as jest.Mock).mock.calls[0][0]
 
-    expect(title).toBe('إذن الوصول مطلوب')
-    expect(message).toBe(
+    expect(config.title).toBe('إذن الوصول مطلوب')
+    expect(config.message).toBe(
       'يرجى السماح بالوصول لمعرض الصور من إعدادات الهاتف لتتمكن من إرفاق صور القطعة'
     )
-    expect(confirmText).toBe('فتح الإعدادات')
-    expect(cancelText).toBe('إلغاء')
+    expect(config.confirmLabel).toBe('فتح الإعدادات')
+    expect(config.cancelLabel).toBe('إلغاء')
 
     // Calling the onConfirm callback triggers Linking.openSettings
     expect(openSettingsSpy).not.toHaveBeenCalled()
-    onConfirm()
+    config.onConfirm()
     expect(openSettingsSpy).toHaveBeenCalledTimes(1)
   })
 
@@ -123,13 +121,13 @@ describe('requestPermission utility (D-237)', () => {
     expect(result.granted).toBe(false)
     expect(result.canAskAgain).toBe(true)
 
-    // Safe fallback alert
-    expect(dialogService.alert).toHaveBeenCalledTimes(1)
-    expect(dialogService.alert).toHaveBeenCalledWith(
-      'إذن الوصول مطلوب',
-      'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة'
-    )
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    // Safe fallback error toast
+    expect(toastService.show).toHaveBeenCalledTimes(1)
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'يرجى السماح بالوصول لمعرض الصور لتتمكن من إرفاق صور القطعة',
+    })
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('5. limited access (iOS accessPrivileges: "limited") is still treated as granted', async () => {
@@ -144,8 +142,8 @@ describe('requestPermission utility (D-237)', () => {
 
     expect(result.status).toBe('granted')
     expect(result.granted).toBe(true)
-    expect(dialogService.alert).not.toHaveBeenCalled()
-    expect(dialogService.confirm).not.toHaveBeenCalled()
+    expect(toastService.show).not.toHaveBeenCalled()
+    expect(toastService.confirm).not.toHaveBeenCalled()
   })
 
   it('6. mediaLibraryAdapter delegates to ImagePicker.requestMediaLibraryPermissionsAsync', async () => {

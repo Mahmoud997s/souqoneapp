@@ -9,7 +9,7 @@ import { equipmentApi } from '../../api/equipment'
 import { router } from 'expo-router'
 import { useEquipmentWizardStore } from '../../store/equipmentWizardStore'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as equipmentQueryKeysModule from '../../utils/listing-detail/equipmentQueryKeys'
 import { getPublishRateLimitErrorMessage } from '../../utils/publishRateLimitError'
 
@@ -50,10 +50,9 @@ jest.mock('expo-router', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
-    alert: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -122,9 +121,9 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
       user: { id: 'u-equip-1', phone: '+96891234567' } as any,
     })
 
-    // Confirm dialog invokes the confirmation callback in create mode
-    ;(dialogService.confirm as jest.Mock).mockImplementation(
-      (_title: string, _msg: string, onConfirm?: () => void) => {
+    // Confirm decision toast invokes the confirmation callback in create mode
+    ;(toastService.confirm as jest.Mock).mockImplementation(
+      ({ onConfirm }: { onConfirm?: () => void }) => {
         if (onConfirm) onConfirm()
       }
     )
@@ -172,7 +171,10 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
       expect(screen.getByText('تم نشر معدتك بنجاح!')).toBeTruthy()
     })
 
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم نشر إعلانك',
+    }))
     expect(invalidateSpy).toHaveBeenCalledWith(expect.any(QueryClient), 'eq-created-123')
     expect(useEquipmentWizardStore.getState().formData.title).toBe('')
 
@@ -218,7 +220,10 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     expect(equipmentApi.removeImage).toHaveBeenCalledWith('old-img-1')
     expect(equipmentApi.removeImage).toHaveBeenCalledWith('old-img-2')
     expect(invalidateSpy).toHaveBeenCalledWith(expect.any(QueryClient), 'eq-edit-789')
-    expect(dialogService.alert).not.toHaveBeenCalled()
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'success',
+      title: 'تم حفظ التعديلات',
+    }))
 
     // Primary -> /equipment/eq-edit-789
     await fireEvent.press(screen.getByTestId('publish-success-primary-btn'))
@@ -248,10 +253,10 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await fireEvent.press(dailySubmitBtn)
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        getPublishRateLimitErrorMessage(dailyErr)
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: getPublishRateLimitErrorMessage(dailyErr),
+      }))
     })
 
     jest.clearAllMocks()
@@ -277,10 +282,10 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await fireEvent.press(monthlySubmitBtn)
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        getPublishRateLimitErrorMessage(monthlyErr)
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: getPublishRateLimitErrorMessage(monthlyErr),
+      }))
     })
   })
 
@@ -309,15 +314,21 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
 
     await waitFor(() => {
       expect(equipmentApi.getById).toHaveBeenCalledWith('eq-edit-789')
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'تم',
-        'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.',
-        'success'
-      )
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'success',
+        title: 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً',
+      }))
     })
 
     jest.clearAllMocks()
     await cleanup()
+    ;(toastService.confirm as jest.Mock).mockImplementation(
+      ({ title, onConfirm }: { title?: string; onConfirm?: () => void }) => {
+        if (title === 'تأكيد النشر' && onConfirm) {
+          onConfirm()
+        }
+      }
+    )
 
     const offlineErr = new AxiosError('Network Error', 'ERR_NETWORK')
     ;(equipmentApi.create as jest.Mock).mockRejectedValueOnce(offlineErr)
@@ -327,11 +338,11 @@ describe('Equipment Publish Success, 429 Rate Limit, and Mutation Errors (D-268 
     await fireEvent.press(offlineSubmitBtn)
 
     await waitFor(() => {
-      expect(dialogService.show).toHaveBeenCalledWith(
+      expect(toastService.confirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'offline',
           title: 'لا يوجد اتصال',
           message: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وأعد المحاولة.',
+          confirmLabel: 'إعادة المحاولة',
         })
       )
     })

@@ -19,7 +19,7 @@ import { OwnerCardActions } from '../../components/profile/my-listings/OwnerCard
 import { MyListingOwnerCard } from '../../components/profile/my-listings/MyListingOwnerCard'
 import { useMyListingOwnerActions } from '../../hooks/useMyListingOwnerActions'
 import { listingsApi } from '../../api/listings'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import type { MyListingItem } from '../../types/my-listings.types'
 
 jest.mock('../../components/navigation/glassSupport', () => ({
@@ -63,10 +63,10 @@ jest.mock('../../api/listings', () => ({
   listingsApi: { remove: jest.fn() },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
     confirm: jest.fn(),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -231,7 +231,7 @@ describe('D-345 Commit 3: Shared Home dimensions, OwnerCardActions, & useMyListi
       result.current.handleDelete(baseCarItem)
     })
 
-    const confirmCallback = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+    const confirmCallback = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
     await act(async () => {
       await confirmCallback()
     })
@@ -247,7 +247,7 @@ describe('D-345 Commit 3: Shared Home dimensions, OwnerCardActions, & useMyListi
     await act(async () => {
       result.current.handleDelete(baseCarItem)
     })
-    const confirmCallback2 = (dialogService.confirm as jest.Mock).mock.calls[1][2]
+    const confirmCallback2 = (toastService.confirm as jest.Mock).mock.calls[1][0].onConfirm
     await act(async () => {
       await confirmCallback2()
     })

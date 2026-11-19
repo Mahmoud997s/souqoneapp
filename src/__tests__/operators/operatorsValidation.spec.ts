@@ -7,7 +7,7 @@ import {
   operatorCertPermissionAdapter,
   operatorAvatarPermissionAdapter,
 } from '../../utils/requestPermission'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as ImagePicker from 'expo-image-picker'
 import { Linking } from 'react-native'
 
@@ -99,7 +99,7 @@ describe('Operators Pure Validation & Permission Adapters (D-281)', () => {
         canAskAgain: false,
         expires: 'never',
       })
-      const confirmSpy = jest.spyOn(dialogService, 'confirm').mockImplementation((title, msg, onConfirm) => {
+      const confirmSpy = jest.spyOn(toastService, 'confirm').mockImplementation(({ onConfirm }) => {
         onConfirm?.()
       })
       const openSettingsSpy = jest.spyOn(Linking, 'openSettings').mockResolvedValue()
@@ -107,11 +107,13 @@ describe('Operators Pure Validation & Permission Adapters (D-281)', () => {
       const res = await requestPermission(operatorCertPermissionAdapter)
       expect(res.status).toBe('denied-blocked')
       expect(confirmSpy).toHaveBeenCalledWith(
-        'إذن الوصول مطلوب',
-        expect.stringContaining('من إعدادات الهاتف'),
-        expect.any(Function),
-        'فتح الإعدادات',
-        'إلغاء'
+        expect.objectContaining({
+          title: 'إذن الوصول مطلوب',
+          message: expect.stringContaining('من إعدادات الهاتف'),
+          confirmLabel: 'فتح الإعدادات',
+          cancelLabel: 'إلغاء',
+          onConfirm: expect.any(Function),
+        })
       )
       expect(openSettingsSpy).toHaveBeenCalled()
     })

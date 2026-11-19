@@ -16,9 +16,10 @@ jest.mock('../../store/authStore', () => ({
   },
 }));
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
+    dismissByDedupeKey: jest.fn(),
   },
 }));
 
@@ -30,7 +31,7 @@ jest.mock('../../services/socket', () => ({
 
 // Import apiClient after mocks are set up
 import { apiClient } from '../client';
-import { dialogService } from '../../store/dialogStore';
+import { toastService } from '../../store/toastStore';
 
 describe('Auth Interceptor & Token Refresh Mechanism', () => {
   let axiosPostSpy: jest.SpyInstance;
@@ -356,7 +357,7 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     };
 
     await expect(apiClient.get('/search/autocomplete', { skipErrorDialog: true } as any)).rejects.toThrow();
-    expect(dialogService.alert).not.toHaveBeenCalled();
+    expect(toastService.show).not.toHaveBeenCalled();
 
     apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
       const err = new AxiosError('Network Error', 'ERR_NETWORK', config);
@@ -364,7 +365,7 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     };
 
     await expect(apiClient.get('/search/autocomplete', { skipErrorDialog: true } as any)).rejects.toThrow();
-    expect(dialogService.alert).not.toHaveBeenCalled();
+    expect(toastService.show).not.toHaveBeenCalled();
   });
 
   it('10. should show error dialog when skipErrorDialog is not set on 500 or Network Error', async () => {
@@ -379,9 +380,12 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     };
 
     await expect(apiClient.get('/items')).rejects.toThrow();
-    expect(dialogService.alert).toHaveBeenCalledWith('عذراً', 'حدث خطأ في الخادم، يرجى المحاولة لاحقاً', 'error');
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'مشكلة في الخادم، حاول بعد شوية',
+    });
 
-    (dialogService.alert as jest.Mock).mockClear();
+    (toastService.show as jest.Mock).mockClear();
 
     apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
       const err = new AxiosError('Network Error', 'ERR_NETWORK', config);
@@ -389,7 +393,11 @@ describe('Auth Interceptor & Token Refresh Mechanism', () => {
     };
 
     await expect(apiClient.get('/items')).rejects.toThrow();
-    expect(dialogService.alert).toHaveBeenCalledWith('انقطاع الاتصال', 'يرجى التحقق من اتصالك بالإنترنت', 'offline');
+    expect(toastService.show).toHaveBeenCalledWith({
+      kind: 'error',
+      title: 'مفيش اتصال بالإنترنت',
+      dedupeKey: 'network-offline',
+    });
   });
 });
 

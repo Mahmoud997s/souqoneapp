@@ -3,16 +3,16 @@ import { renderHook, act } from '@testing-library/react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useServiceFormLogic } from '../../hooks/useServiceFormLogic'
 import { defaultServiceFormData } from '../../store/serviceWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as requestPermissionModule from '../../utils/requestPermission'
 
 jest.mock('expo-router', () => ({
   router: { back: jest.fn(), push: jest.fn() },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -73,14 +73,16 @@ describe('useServiceFormLogic S4 requestPermission integration (D-262)', () => {
     })
 
     expect(permSpy).toHaveBeenCalledTimes(1)
-    expect(dialogService.confirm).toHaveBeenCalledWith(
-      'إذن الوصول مطلوب',
-      expect.stringContaining('إعدادات الهاتف'),
-      expect.any(Function),
-      'فتح الإعدادات',
-      'إلغاء'
+    expect(toastService.confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'إذن الوصول مطلوب',
+        message: expect.stringContaining('إعدادات الهاتف'),
+        confirmLabel: 'فتح الإعدادات',
+        cancelLabel: 'إلغاء',
+        onConfirm: expect.any(Function),
+      })
     )
-    const confirmAction = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+    const confirmAction = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
     confirmAction()
     expect(openSettingsSpy).toHaveBeenCalledTimes(1)
     expect(launchSpy).not.toHaveBeenCalled()

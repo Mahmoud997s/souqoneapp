@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SettingsScreen from '../../../app/profile/settings'
 import { useAuthStore } from '../../store/authStore'
 import { usersApi } from '../../api/users'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import type { UserWithContactVisibility } from '../../types/profile.types'
 
 jest.mock('expo-router', () => ({
@@ -32,11 +32,10 @@ jest.mock('../../api/users', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
-    confirm: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
+    confirm: jest.fn(),
   },
 }))
 
@@ -203,7 +202,10 @@ describe('SettingsScreen — Profile Contact Visibility Toggles (D-357)', () => 
     fireEvent(getByTestId('settings-show-phone-switch'), 'valueChange', true)
 
     await waitFor(() => {
-      expect(dialogService.alert).toHaveBeenCalledTimes(1)
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'تعذر تحديث إعدادات الظهور، حاول مرة أخرى',
+      })
     })
 
     expect(getByTestId('settings-show-phone-switch').props.value).toBe(false)

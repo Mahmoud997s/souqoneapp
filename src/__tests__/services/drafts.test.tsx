@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, cleanup, act } from '@testing-library/react-native'
 import ServiceDraftsScreen from '../../../app/services/drafts'
 import { useServiceWizardStore, defaultServiceFormData } from '../../store/serviceWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { router } from 'expo-router'
 
 jest.mock('expo-router', () => ({
@@ -29,11 +29,12 @@ jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    confirm: jest.fn((title, msg, onConfirm) => {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    confirm: jest.fn(({ onConfirm }) => {
       if (onConfirm) onConfirm()
     }),
+    show: jest.fn(),
   },
 }))
 
@@ -79,13 +80,15 @@ describe('ServiceDraftsScreen', () => {
       fireEvent.press(discardBtn)
     })
 
-    expect(dialogService.confirm).toHaveBeenCalledWith(
-      'مسح المسودة',
-      expect.stringContaining('هل أنت متأكد؟'),
-      expect.any(Function),
-      'نعم، امسح البيانات',
-      'تراجع',
-      true
+    expect(toastService.confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'مسح المسودة',
+        message: expect.stringContaining('هل أنت متأكد؟'),
+        intent: 'danger',
+        confirmLabel: 'مسح',
+        cancelLabel: 'إلغاء',
+        onConfirm: expect.any(Function),
+      })
     )
     expect(useServiceWizardStore.getState().formData.title).toBe('')
     expect(router.replace).toHaveBeenCalledWith('/services/new')

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act, cleanup, waitFor } from '@testing-libra
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceDetailScreen } from '../ServiceDetailScreen'
 import type { ServiceDetailViewModel } from '../../../types/serviceDetailViewModel.types'
-import { dialogService } from '../../../store/dialogStore'
+import { toastService } from '../../../store/toastStore'
 import { servicesApi } from '../../../api/services'
 import { useServiceWizardStore } from '../../../store/serviceWizardStore'
 import * as queryKeys from '../hooks/serviceQueryKeys'
@@ -54,10 +54,11 @@ jest.mock('@expo/vector-icons', () => {
   return { Ionicons: (props: unknown) => <View {...(props as object)} /> }
 })
 
-jest.mock('../../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -433,8 +434,8 @@ describe('ServiceDetailScreen', () => {
     it('prompts confirmation and deletes service on delete action', async () => {
       mockCurrentUser = { id: 'seller-user-99', phone: '96891234567' }
       const confirmSpy = jest
-        .spyOn(dialogService, 'confirm')
-        .mockImplementation((_t, _m, onConfirm) => {
+        .spyOn(toastService, 'confirm')
+        .mockImplementation(({ onConfirm }) => {
           onConfirm()
         })
       const invalidateSpy = jest.spyOn(
@@ -450,29 +451,29 @@ describe('ServiceDetailScreen', () => {
       })
 
       expect(confirmSpy).toHaveBeenCalledWith(
-        'حذف الإعلان',
-        expect.any(String),
-        expect.any(Function),
-        'نعم، احذف',
-        'تراجع',
-        true,
+        expect.objectContaining({
+          title: 'حذف الإعلان',
+          intent: 'danger',
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: expect.any(Function),
+        }),
       )
       expect(servicesApi.remove).toHaveBeenCalledWith('srv-101')
       expect(invalidateSpy).toHaveBeenCalledWith(expect.anything(), 'srv-101', {
         removeDetail: true,
       })
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'تم',
-        'تم حذف إعلان الخدمة بنجاح',
-        'success',
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'success',
+        title: 'تم حذف الإعلان',
+      })
     })
 
     it('shows unified network error message from getMutationErrorMessage when delete fails offline (D-265)', async () => {
       mockCurrentUser = { id: 'seller-user-99', phone: '96891234567' }
       const confirmSpy = jest
-        .spyOn(dialogService, 'confirm')
-        .mockImplementation((_t, _m, onConfirm) => {
+        .spyOn(toastService, 'confirm')
+        .mockImplementation(({ onConfirm }) => {
           onConfirm()
         })
       ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce({
@@ -488,11 +489,10 @@ describe('ServiceDetailScreen', () => {
         fireEvent.press(deleteBtn)
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
-        'error',
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
+      })
       expect(mockRouterBack).not.toHaveBeenCalled()
       confirmSpy.mockRestore()
     })
@@ -500,8 +500,8 @@ describe('ServiceDetailScreen', () => {
     it('shows unified 409 conflict message from getMutationErrorMessage when delete fails with conflict (D-265)', async () => {
       mockCurrentUser = { id: 'seller-user-99', phone: '96891234567' }
       const confirmSpy = jest
-        .spyOn(dialogService, 'confirm')
-        .mockImplementation((_t, _m, onConfirm) => {
+        .spyOn(toastService, 'confirm')
+        .mockImplementation(({ onConfirm }) => {
           onConfirm()
         })
       ;(servicesApi.remove as jest.Mock).mockRejectedValueOnce({
@@ -516,11 +516,10 @@ describe('ServiceDetailScreen', () => {
         fireEvent.press(deleteBtn)
       })
 
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
-        'error',
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'تم تعديل البيانات من جهاز آخر. يرجى التحديث والمحاولة مجدداً.',
+      })
       confirmSpy.mockRestore()
     })
   })
