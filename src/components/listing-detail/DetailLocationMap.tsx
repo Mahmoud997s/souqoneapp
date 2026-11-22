@@ -1,30 +1,65 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Colors } from '../../../constants/colors'
-import { Spacing } from '../../../constants/spacing'
-import { Radius } from '../../../constants/radius'
-import { Shadows } from '../../../constants/shadows'
-import { RTLText } from '../../../constants/rtl'
-import { lineHeightFor } from '../../../constants/typography'
-import MapView, { Marker } from '../../ui/Map'
-import { toastService } from '../../../store/toastStore'
+import MapView, { Marker } from '../ui/Map'
+import { Colors } from '../../constants/colors'
+import { Spacing } from '../../constants/spacing'
+import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
+import { RTLText } from '../../constants/rtl'
+import { lineHeightFor } from '../../constants/typography'
+import { scheduleIdleTask } from '../../utils/scheduleIdleTask'
+import { toastService } from '../../store/toastStore'
 
-export interface BusLocationMapSectionProps {
-  latitude: number
-  longitude: number
-  isMapMounted: boolean
+export interface DetailLocationMapProps {
+  latitude?: number
+  longitude?: number
+  /** Optional external deferred-mount flag (e.g. Cars/Buses). When omitted, defers internally via scheduleIdleTask. */
+  isMapMounted?: boolean
+  testID?: string
 }
 
-export function BusLocationMapSection({
+/**
+ * DetailLocationMap
+ * Unified detail-page location map card matching Cars (`CarDetailScreen`) 1-to-1:
+ * - Renders ONLY when valid finite non-zero coordinates exist.
+ * - Deferred MapView + Marker (delta 0.05) with touch-shield overlay.
+ * - Directions CTA opening Google Maps (`https://www.google.com/maps/dir/?api=1&destination=lat,lng`).
+ */
+export function DetailLocationMap({
   latitude,
   longitude,
-  isMapMounted,
-}: BusLocationMapSectionProps) {
+  isMapMounted: externalIsMapMounted,
+  testID = 'detail-location-map',
+}: DetailLocationMapProps) {
+  const [internalMounted, setInternalMounted] = useState(false)
+
+  const hasValidCoordinates =
+    typeof latitude === 'number' &&
+    typeof longitude === 'number' &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    (latitude !== 0 || longitude !== 0)
+
+  const isMapMounted =
+    externalIsMapMounted !== undefined ? externalIsMapMounted : internalMounted
+
+  useEffect(() => {
+    if (!hasValidCoordinates || externalIsMapMounted !== undefined) return
+    const task = scheduleIdleTask(() => {
+      setInternalMounted(true)
+    })
+    return () => task.cancel()
+  }, [hasValidCoordinates, externalIsMapMounted])
+
+  if (!hasValidCoordinates) {
+    return null
+  }
+
   return (
-    <View style={s.mapSection}>
+    <View style={s.mapSection} testID={testID}>
       <Text style={s.mapSectionTitle}>الموقع والعنوان</Text>
-      <View style={s.mapContainer}>
+      <View style={s.mapContainer} testID={`${testID}-container`}>
         {isMapMounted ? (
           <>
             <MapView
@@ -45,6 +80,7 @@ export function BusLocationMapSection({
                 }}
               />
             </MapView>
+            {/* Overlay to prevent accidental touches capturing scroll */}
             <View style={StyleSheet.absoluteFill} />
           </>
         ) : (
@@ -56,6 +92,7 @@ export function BusLocationMapSection({
       <TouchableOpacity
         style={s.directionsBtn}
         activeOpacity={0.8}
+        testID={`${testID}-directions-btn`}
         accessibilityRole="button"
         accessibilityLabel="الحصول على الاتجاهات"
         onPress={() => {

@@ -77,7 +77,7 @@ import {
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SpecsSections } from '../../components/listing-detail/SpecsSections'
 import { BusContractSection } from '../../components/buses/detail/BusContractSection'
-import { BusLocationMapSection } from '../../components/buses/detail/BusLocationMapSection'
+import { DetailLocationMap } from '../../components/listing-detail/DetailLocationMap'
 import { SimilarListingsGrid } from '../../components/listing-detail/SimilarListingsGrid'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
@@ -436,12 +436,12 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 9. Location Map (only when the listing has coordinates) */}
+        {/* 9. Location Map (only when the listing has coordinates, D-385) */}
         {vm.location.hasCoordinates &&
         vm.location.latitude !== undefined &&
         vm.location.longitude !== undefined ? (
           <Animated.View entering={getEnteringAnimation(7)}>
-            <BusLocationMapSection
+            <DetailLocationMap
               latitude={vm.location.latitude}
               longitude={vm.location.longitude}
               isMapMounted={isMapMounted}

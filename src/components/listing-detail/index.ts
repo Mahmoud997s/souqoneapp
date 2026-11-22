@@ -11,6 +11,9 @@ export type { DetailTopBarProps } from './DetailTopBar'
 export { DetailViewCountItem } from './DetailViewCountItem'
 export type { DetailViewCountItemProps } from './DetailViewCountItem'
 
+export { DetailLocationMap } from './DetailLocationMap'
+export type { DetailLocationMapProps } from './DetailLocationMap'
+
 export { LocationCard } from './LocationCard'
 export type { LocationCardProps } from './LocationCard'
 

@@ -5,6 +5,17 @@
  */
 
 /**
+ * Normalizes Arabic-Indic (٠-٩) and Extended Arabic-Indic (۰-۹) digits to Western Latin digits (0-9).
+ * Intended for address / location display text on detail pages so mixed digits render consistently.
+ */
+export function normalizeArabicIndicDigits(text: string): string {
+  if (!text) return text
+  return text
+    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06F0))
+}
+
+/**
  * Formats numeric amounts using Western digits with comma separators (en-US locale).
  */
 export function formatNumberWestern(num: number | null | undefined): string {

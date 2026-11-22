@@ -82,7 +82,7 @@ import { DetailStates, DetailStateKind } from '../../components/listing-detail/D
 
 import {
   DetailTopBar,
-  LocationCard,
+  DetailLocationMap,
   DetailStaleBanner,
 } from '../../components/listing-detail'
 import { getDetailErrorKind } from '../../utils/listing-detail/getDetailErrorKind'
@@ -428,14 +428,17 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
           </Animated.View>
         ) : null}
 
-        {/* 10. Location Card with embedded map */}
-        <Animated.View entering={getEnteringAnimation(9)}>
-          <LocationCard
-            locationText={vm.location.fullLocationText}
-            latitude={vm.location.latitude}
-            longitude={vm.location.longitude}
-          />
-        </Animated.View>
+        {/* 10. Location Map (only when coordinates exist, D-385) */}
+        {vm.location.hasCoordinates &&
+        vm.location.latitude !== undefined &&
+        vm.location.longitude !== undefined ? (
+          <Animated.View entering={getEnteringAnimation(9)}>
+            <DetailLocationMap
+              latitude={vm.location.latitude}
+              longitude={vm.location.longitude}
+            />
+          </Animated.View>
+        ) : null}
 
         {/* 11. Similar Listings Grid (shows loading, error, items; hides when empty) */}
         {similarListings.items.length > 0 || similarListings.isLoading || similarListings.isError ? (
