@@ -55,7 +55,7 @@ const s = StyleSheet.create({
     padding: Spacing.space4,
     marginHorizontal: Spacing.space4,
     marginVertical: Spacing.space2,
-    gap: Spacing.space3,
+    gap: Spacing.space4,
     ...Shadows.card,
   },
   headerRow: {

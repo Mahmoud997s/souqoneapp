@@ -8,6 +8,7 @@ import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import { PriceBadge } from '../../ui/PriceBadge'
 import { DetailViewCountItem } from '../../listing-detail/DetailViewCountItem'
+import { normalizeArabicIndicDigits } from '../../../utils/numberFormat'
 import { EquipmentOperatorBadge } from './EquipmentOperatorBadge'
 import type { PriceView } from '../../../types/listingDetail.types'
 import type { EquipmentOperatorBadge as EquipmentOperatorBadgeType } from '../../../types/equipmentDetailViewModel.types'
@@ -160,7 +161,7 @@ export function EquipmentHeaderBlock({
             <Ionicons name="location" size={13} color={Colors.primary} />
           </View>
           <Text style={s.metaText} maxFontSizeMultiplier={1.3}>
-            {locationText}
+            {normalizeArabicIndicDigits(locationText)}
           </Text>
         </View>
 

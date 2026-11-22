@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/colors'
 import { DetailViewCountItem } from '../../../components/listing-detail/DetailViewCountItem'
+import { normalizeArabicIndicDigits } from '../../../utils/numberFormat'
 import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import type { ServicePriceViewModel } from '../../../types/serviceDetailViewModel.types'
@@ -59,9 +60,15 @@ export function ServicePriceHeader({
   viewCount,
   locationLabel,
 }: ServicePriceHeaderProps) {
+  const normalizedProviderType = providerTypeLabel?.trim()
   const showProviderTypeBadge =
-    Boolean(providerTypeLabel) &&
-    !(Boolean(isHomeService) && providerTypeLabel?.trim() === 'خدمة متنقلة')
+    Boolean(normalizedProviderType) &&
+    !(
+      Boolean(isHomeService) &&
+      (normalizedProviderType === 'خدمة متنقلة' ||
+        normalizedProviderType === 'MOBILE' ||
+        normalizedProviderType?.includes('متنقلة'))
+    )
   const rangeParts = resolveRangeParts(price)
   return (
     <View style={s.container} testID="service-price-header">
@@ -143,7 +150,7 @@ export function ServicePriceHeader({
             <View style={s.metaDivider} />
             <View style={s.metaItem}>
               <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.metaText}>{locationLabel}</Text>
+              <Text style={s.metaText}>{normalizeArabicIndicDigits(locationLabel || '')}</Text>
             </View>
           </>
         )}
