@@ -44,6 +44,8 @@ import { logWarn } from '../../src/utils/safeLog'
 import { showPublishErrorDialog } from '../../src/utils/publishErrorDialog'
 import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
 import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulServiceData } from '../../src/components/ui/DraftResumePrompt'
 
 import { ServiceStep1Type } from '../../src/components/services/wizard/ServiceStep1Type'
 import { ServiceStep2Images } from '../../src/components/services/wizard/ServiceStep2Images'
@@ -168,35 +170,21 @@ export default function NewServiceListingScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      handleExit()
-    }
-  }
+  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+  const isEditMode = Boolean(formData.editMode)
+  const isEditDirty = useEditDirtyBaseline(isEditMode, formData, formData.editListingId ?? null)
+  const hasCreateData = hasMeaningfulServiceData({ currentStep, formData })
 
-  const handleExit = () => {
-    if (formData.editMode) {
-      toastService.confirm({
-        title: 'إلغاء التعديل',
-        message: 'هل تريد الخروج؟ لن يتم حفظ التعديلات غير المنشورة.',
-        intent: 'danger',
-        confirmLabel: 'خروج',
-        cancelLabel: 'متابعة التعديل',
-        onConfirm: () => router.back(),
-      })
-    } else {
-      toastService.confirm({
-        title: 'الخروج من النموذج',
-        message: 'هل تريد الخروج؟ تم حفظ مسودتك تلقائياً ويمكنك استكمالها في أي وقت.',
-        intent: 'primary',
-        confirmLabel: 'خروج',
-        cancelLabel: 'متابعة الإعلان',
-        onConfirm: () => router.back(),
-      })
-    }
-  }
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode,
+    hasData: hasCreateData,
+    isDirty: isEditDirty,
+    isSubmitting,
+    isPublished: Boolean(publishSuccess),
+    disabled: !hasPhone && !isEditMode,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {
@@ -399,8 +387,6 @@ export default function NewServiceListingScreen() {
       })
     }
   }
-
-  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
 
   if (!hasPhone && !formData.editMode) {
     return (

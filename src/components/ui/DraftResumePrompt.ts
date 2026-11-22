@@ -265,4 +265,45 @@ export function navigateToEquipmentForm(method: 'push' | 'replace' = 'push'): vo
   }
 }
 
+/**
+ * Meaningful data definition for operatorWizardStore
+ * A draft is meaningful if step > 1 or any core operator field has been entered.
+ */
+export function hasMeaningfulOperatorData(state: {
+  currentStep?: number
+  formData?: {
+    title?: string
+    description?: string
+    experienceYears?: string
+    equipmentTypes?: unknown[]
+    specializations?: unknown[]
+    certifications?: unknown[]
+    dailyRate?: string
+    hourlyRate?: string
+    governorateId?: number | null
+    wilayaId?: number | null
+    profileImageUrl?: string | null
+  }
+} | null | undefined): boolean {
+  if (!state || !state.formData) return false
+
+  if ((state.currentStep ?? 1) > 1) return true
+
+  const d = state.formData
+  if (d.title && d.title.trim().length > 0) return true
+  if (d.description && d.description.trim().length > 0) return true
+  if (d.experienceYears && d.experienceYears.trim().length > 0) return true
+  if (d.dailyRate && d.dailyRate.trim().length > 0) return true
+  if (d.hourlyRate && d.hourlyRate.trim().length > 0) return true
+  if (d.profileImageUrl && d.profileImageUrl.trim().length > 0) return true
+  if (Array.isArray(d.equipmentTypes) && d.equipmentTypes.length > 0) return true
+  if (Array.isArray(d.specializations) && d.specializations.length > 0) return true
+  if (Array.isArray(d.certifications) && d.certifications.length > 0) return true
+  if (d.governorateId != null) return true
+  if (d.wilayaId != null) return true
+
+  return false
+}
+
+
 

@@ -34,6 +34,7 @@ import { getDetailErrorKind, getMutationErrorMessage } from '../../../../src/uti
 import { PublishSuccessView } from '../../../../src/components/publish/PublishSuccessView'
 import { getPublishRateLimitErrorMessage } from '../../../../src/utils/publishRateLimitError'
 import { showPublishErrorDialog } from '../../../../src/utils/publishErrorDialog'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../../../src/hooks/useWizardExitGuard'
 
 type OperatorDetailPayload = Omit<OperatorListing, 'governorate' | 'wilaya'> & {
   isNegotiable?: boolean
@@ -59,6 +60,7 @@ export default function EditOperatorScreen() {
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<OperatorFormErrors>({})
   const [publishSuccess, setPublishSuccess] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   const [formData, setFormData] = useState<OperatorFormData>({
     operatorType: 'OPERATOR',
@@ -110,6 +112,7 @@ export default function EditOperatorScreen() {
         whatsappEnabled: operatorData.whatsappEnabled === true,
         profileImageUrl: operatorData.profileImageUrl || '',
       })
+      setIsHydrated(true)
     }
   }, [operatorData])
 
@@ -161,13 +164,19 @@ export default function EditOperatorScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      setCurrentStep((prev) => Math.max(prev - 1, 1))
-    } else {
-      router.back()
-    }
-  }
+  const isEditDirty = useEditDirtyBaseline(isHydrated, formData, id ?? null)
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode: true,
+    hasData: false,
+    isDirty: isEditDirty,
+    isSubmitting: updateMutation.isPending,
+    isPublished: publishSuccess,
+    disabled: isLoading || isError || !operatorData,
+    onPrevStep: () => setCurrentStep((prev) => Math.max(prev - 1, 1)),
+    onExit: () => router.back(),
+  })
 
   const submitLockRef = useRef<boolean>(false)
 

@@ -38,6 +38,8 @@ import { getPublishRateLimitErrorMessage } from '../../../src/utils/publishRateL
 import { getMutationErrorMessage } from '../../../src/utils/listing-detail/getDetailErrorKind'
 import { mapOperatorBackendErrors } from '../../../src/hooks/useOperatorValidation'
 import { showPublishErrorDialog } from '../../../src/utils/publishErrorDialog'
+import { useWizardExitGuard } from '../../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulOperatorData } from '../../../src/components/ui/DraftResumePrompt'
 
 const TOTAL_STEPS = 3
 
@@ -100,13 +102,21 @@ export default function AddOperatorScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      router.back()
-    }
-  }
+  const hasCreateData = hasMeaningfulOperatorData({ currentStep, formData })
+  const isRedirectingOrGuarded =
+    !hasPhone ||
+    (!publishSuccess && (loadingMyOp || Boolean(myOperators && myOperators.length > 0)))
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode: false,
+    hasData: hasCreateData,
+    isDirty: false,
+    isSubmitting: createMutation.isPending,
+    isPublished: publishSuccess,
+    disabled: isRedirectingOrGuarded,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {

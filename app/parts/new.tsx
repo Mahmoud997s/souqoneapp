@@ -47,6 +47,8 @@ import { handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { mapPartBackendErrors } from '../../src/utils/wizardBackendErrors'
 import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
 import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulPartData } from '../../src/components/ui/DraftResumePrompt'
 
 const TOTAL_STEPS = 6
 
@@ -146,13 +148,24 @@ export default function NewPartListingScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      router.back()
-    }
-  }
+  const isSubmitting =
+    imageReconciliation.isReconciling ||
+    createMutation.isPending ||
+    updateMutation.isPending
+  const isEditMode = Boolean(formData.editMode)
+  const isEditDirty = useEditDirtyBaseline(isEditMode, formData, formData.editListingId ?? null)
+  const hasCreateData = hasMeaningfulPartData({ currentStep, formData })
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode,
+    hasData: hasCreateData,
+    isDirty: isEditDirty,
+    isSubmitting,
+    isPublished: Boolean(publishSuccess),
+    disabled: !hasPhone && !isEditMode,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {
@@ -382,11 +395,6 @@ export default function NewPartListingScreen() {
       })
     }
   }
-
-  const isSubmitting =
-    imageReconciliation.isReconciling ||
-    createMutation.isPending ||
-    updateMutation.isPending
 
   if (!hasPhone && !formData.editMode) {
     return (

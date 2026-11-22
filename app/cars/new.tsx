@@ -36,6 +36,8 @@ import { invalidateCarListingQueries } from '../../src/utils/listing-detail/quer
 import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
 import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulCarData } from '../../src/components/ui/DraftResumePrompt'
 import { reconcileEditSectionImages } from '../../src/utils/reconcileEditSectionImages'
 import { PublishSuccessView } from '../../src/components/publish/PublishSuccessView'
 
@@ -126,13 +128,23 @@ export default function NewCarListingScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      router.back()
-    }
-  }
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
+  const submitLockRef = useRef<boolean>(false)
+  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+  const isEditMode = Boolean(formData.editMode)
+  const isEditDirty = useEditDirtyBaseline(isEditMode, formData, formData.editListingId ?? null)
+  const hasCreateData = hasMeaningfulCarData({ formData })
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode,
+    hasData: hasCreateData,
+    isDirty: isEditDirty,
+    isSubmitting,
+    isPublished: Boolean(publishSuccess),
+    disabled: !hasPhone && !isEditMode,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {
@@ -157,9 +169,6 @@ export default function NewCarListingScreen() {
         return 'إضافة سيارة'
     }
   }
-
-  const [isUploadingImages, setIsUploadingImages] = useState(false)
-  const submitLockRef = useRef<boolean>(false)
 
   const handleSubmit = async () => {
     if (submitLockRef.current) return
@@ -328,8 +337,6 @@ export default function NewCarListingScreen() {
       })
     }
   }
-
-  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
 
   if (!hasPhone && !formData.editMode) {
     return (

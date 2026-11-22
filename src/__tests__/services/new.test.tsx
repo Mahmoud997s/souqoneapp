@@ -133,27 +133,47 @@ describe('NewServiceListingScreen (Wizard Route)', () => {
     expect(useServiceWizardStore.getState().currentStep).toBe(2)
   })
 
-  it('triggers exit dialog when clicking back from Step 1', async () => {
+  it('exits silently on empty Step 1 and triggers unified exit decision toast when Step 1 has data', async () => {
     useServiceWizardStore.setState({
       currentStep: 1,
       formData: { ...defaultServiceFormData },
     })
 
+    const { unmount } = await render(<NewServiceListingScreen />)
+
+    const backBtnEmpty = screen.getByLabelText('رجوع')
+    await act(async () => {
+      fireEvent.press(backBtnEmpty)
+    })
+
+    expect(toastService.confirm).not.toHaveBeenCalled()
+    expect(router.back).toHaveBeenCalledTimes(1)
+    await unmount()
+
+    jest.clearAllMocks()
+    useServiceWizardStore.setState({
+      currentStep: 1,
+      formData: {
+        ...defaultServiceFormData,
+        providerName: 'كراج السرعة',
+      },
+    })
+
     await render(<NewServiceListingScreen />)
 
-    const backBtn = screen.getByLabelText('رجوع')
+    const backBtnWithData = screen.getByLabelText('رجوع')
     await act(async () => {
-      fireEvent.press(backBtn)
+      fireEvent.press(backBtnWithData)
     })
 
     expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
-      title: 'الخروج من النموذج',
+      title: 'الخروج',
       message: expect.stringContaining('هل تريد الخروج؟'),
       onConfirm: expect.any(Function),
       confirmLabel: 'خروج',
       cancelLabel: 'متابعة الإعلان',
     }))
-    expect(router.back).toHaveBeenCalled()
+    expect(router.back).toHaveBeenCalledTimes(1)
   })
 
   it('submits valid payload sending empty workingDays and omitted hours when schedule is unspecified', async () => {
