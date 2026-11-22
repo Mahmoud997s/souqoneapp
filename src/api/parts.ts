@@ -8,6 +8,8 @@ export const partsApi = {
              apiClient.get<PaginatedResponse<Part>>('/parts', { params }),
   getById: (id: string, config?: AxiosRequestConfig) =>
              apiClient.get<Part>(`/parts/${id}`, config),
+  getSimilar: (id: string, limit = 8) =>
+             apiClient.get<Part[]>(`/parts/${id}/similar`, { params: { limit } }),
   getMy:   () => apiClient.get<Part[]>('/parts/my'),
   create:  (data: Partial<Part>) => apiClient.post<Part>('/parts', data),
   update:  (id: string, data: Partial<Part>) => apiClient.patch<Part>(`/parts/${id}`, data),

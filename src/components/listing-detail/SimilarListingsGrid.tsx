@@ -6,12 +6,94 @@ import {
   TouchableOpacity,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { Image } from 'expo-image'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
+import { Shadows } from '../../constants/shadows'
 import { RTLText } from '../../constants/rtl'
 import { SkeletonCard } from '../ui/SkeletonCard'
 import { lineHeightFor } from '../../constants/typography'
+import { formatNumberWestern } from '../../utils/numberFormat'
+
+export interface SimilarListingCardProps {
+  title: string
+  imageUri?: string
+  /** Real total photo count ONLY when known from `_count.images`; omit/undefined to hide badge. */
+  knownImageCount?: number
+  priceLabel?: string
+  metaLabel?: string
+  placeholderIcon: keyof typeof Ionicons.glyphMap
+  onPress: () => void
+  testID?: string
+}
+
+/**
+ * SimilarListingCard
+ * Reusable card matching Cars/Buses/Equipment similar-section styling 1-to-1.
+ * Shows the photo count badge ONLY when `knownImageCount >= 1` is explicitly known.
+ */
+export function SimilarListingCard({
+  title,
+  imageUri,
+  knownImageCount,
+  priceLabel,
+  metaLabel,
+  placeholderIcon,
+  onPress,
+  testID = 'similar-item-card',
+}: SimilarListingCardProps) {
+  const showPhotoBadge =
+    typeof knownImageCount === 'number' &&
+    Number.isFinite(knownImageCount) &&
+    knownImageCount >= 1
+
+  return (
+    <TouchableOpacity
+      style={s.similarCard}
+      onPress={onPress}
+      activeOpacity={0.8}
+      testID={testID}
+    >
+      <View style={s.similarCardImagePlaceholder}>
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
+        ) : (
+          <Ionicons
+            name={placeholderIcon}
+            size={28}
+            color={Colors.primary}
+          />
+        )}
+        {showPhotoBadge && (
+          <View style={s.similarPhotoBadge} testID="similar-card-image-count-badge">
+            <Ionicons name="images-outline" size={10} color={Colors.white} />
+            <Text style={s.similarPhotoBadgeText}>
+              {formatNumberWestern(knownImageCount)}
+            </Text>
+          </View>
+        )}
+      </View>
+      <Text style={s.similarCardTitle} numberOfLines={2}>
+        {title}
+      </Text>
+      {priceLabel ? (
+        <Text style={s.similarCardPrice} numberOfLines={1}>
+          {priceLabel}
+        </Text>
+      ) : null}
+      {metaLabel ? (
+        <Text style={s.similarCardMeta} numberOfLines={1}>
+          {metaLabel}
+        </Text>
+      ) : null}
+    </TouchableOpacity>
+  )
+}
 
 export interface SimilarListingsGridProps<TItem> {
   items: TItem[]
@@ -151,6 +233,68 @@ const s = StyleSheet.create({
   },
   col3: {
     width: '31%',
+  },
+  similarCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.space3,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.card,
+  },
+  similarCardImagePlaceholder: {
+    height: 88,
+    backgroundColor: Colors.inputBg,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.space2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  similarPhotoBadge: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: Colors.scrimDark65,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  similarPhotoBadgeText: {
+    color: Colors.white,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 10,
+    lineHeight: lineHeightFor(10),
+  },
+  similarCardTitle: {
+    ...RTLText,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.text,
+    textAlign: 'left',
+    marginBottom: Spacing.space1,
+  },
+  similarCardPrice: {
+    ...RTLText,
+    fontFamily: 'Almarai_800ExtraBold',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    color: Colors.primary,
+    textAlign: 'left',
+  },
+  similarCardMeta: {
+    ...RTLText,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: lineHeightFor(11),
+    color: Colors.textMuted,
+    textAlign: 'left',
+    marginTop: 2,
   },
   errorBox: {
     backgroundColor: Colors.white,

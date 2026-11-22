@@ -39,7 +39,12 @@ import { invalidatePartListingQueries } from './hooks/partQueryKeys'
 import { useFavoriteToggle } from '../../hooks/listing-detail/useFavoriteToggle'
 import { useListingContact } from '../../hooks/listing-detail/useListingContact'
 import { useShareListing } from '../../hooks/listing-detail/useShareListing'
+import {
+  useVerticalSimilarListings,
+  type SimilarPartItem,
+} from '../../hooks/listing-detail/useSimilarListings'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
+import { mapPartToCard } from '../../utils/mappers'
 
 // Presentational Components
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
@@ -47,6 +52,10 @@ import { ImageViewerModal } from '../../components/listing-detail/ImageViewerMod
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
 import { DetailLocationMap } from '../../components/listing-detail/DetailLocationMap'
+import {
+  SimilarListingsGrid,
+  SimilarListingCard,
+} from '../../components/listing-detail/SimilarListingsGrid'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
@@ -147,11 +156,13 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
   })
   const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان قطعة غيار' })
   const contact = useListingContact('SPARE_PART', id, `/parts/${id}`, vm?.title)
+  const similarListings = useVerticalSimilarListings('part', id)
 
   // 4. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [similarPage, setSimilarPage] = useState<number>(1)
   const [ownerBusyAction, setOwnerBusyAction] = useState<OwnerBusyAction>(null)
   const ownerBusyRef = useRef<OwnerBusyAction>(null)
 
@@ -390,6 +401,41 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             <DetailLocationMap
               latitude={vm.location.latitude}
               longitude={vm.location.longitude}
+            />
+          </Animated.View>
+        ) : null}
+
+        {/* 7b. Similar Parts Listings (D-386) */}
+        {similarListings.items.length > 0 || similarListings.isLoading || similarListings.isError ? (
+          <Animated.View entering={getEnteringAnimation(7)} testID="part-similar-section">
+            <SimilarListingsGrid<SimilarPartItem>
+              items={similarListings.items}
+              isLoading={similarListings.isLoading}
+              isError={similarListings.isError}
+              onRetry={similarListings.refetch}
+              page={similarPage}
+              pageCount={1}
+              onPageChange={setSimilarPage}
+              renderItem={(part) => {
+                const card = mapPartToCard(part)
+                const priceDisplay =
+                  card.price !== undefined
+                    ? `${card.price.toLocaleString('en-US')} ${card.currency ?? 'ر.ع.'}`
+                    : card.priceText
+                const rawCount = (part as { _count?: { images?: number } })._count?.images
+                return (
+                  <SimilarListingCard
+                    key={part.id}
+                    title={card.title}
+                    imageUri={card.images[0]}
+                    knownImageCount={typeof rawCount === 'number' && rawCount >= 1 ? rawCount : undefined}
+                    priceLabel={priceDisplay}
+                    metaLabel={card.governorate || undefined}
+                    placeholderIcon="construct-outline"
+                    onPress={() => router.push(`/parts/${part.id}`)}
+                  />
+                )
+              }}
             />
           </Animated.View>
         ) : null}

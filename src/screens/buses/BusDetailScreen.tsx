@@ -47,9 +47,9 @@ import {
   isOptimisticLockError,
 } from '../../hooks/listing-detail/useBusOwnerActions'
 import {
-  useBusSimilarListings,
+  useVerticalSimilarListings,
   type SimilarBusItem,
-} from '../../hooks/listing-detail/useBusSimilarListings'
+} from '../../hooks/listing-detail/useSimilarListings'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
@@ -146,7 +146,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان حافلة' })
   const contact = useListingContact('BUS_LISTING', id, `/buses/${id}`, vm?.title)
   const ownerActions = useBusOwnerActions(currentVm)
-  const similarListings = useBusSimilarListings(id)
+  const similarListings = useVerticalSimilarListings('bus', id)
 
   // 4. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)
