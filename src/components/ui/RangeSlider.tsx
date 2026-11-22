@@ -5,6 +5,20 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 
+export const RANGE_SLIDER_MARKER_SIZE = 26;
+export const RANGE_SLIDER_EDGE_INSET = 4;
+
+/**
+ * Pure geometry helper ensuring both RangeSlider thumbs (width = 26pt, 13pt overhang on each end)
+ * plus a 2pt shadow cushion stay strictly inside the parent container's width.
+ */
+export function computeRangeSliderLength(containerWidth: number): number {
+  return Math.max(
+    120,
+    Math.floor(containerWidth - RANGE_SLIDER_MARKER_SIZE - RANGE_SLIDER_EDGE_INSET)
+  );
+}
+
 interface RangeSliderProps {
   min: number;
   max: number;
@@ -32,6 +46,11 @@ export function RangeSlider({
   ]);
   const [minText, setMinText] = useState((initialLow ?? min).toString());
   const [maxText, setMaxText] = useState((initialHigh ?? max).toString());
+  const [isMinFocused, setIsMinFocused] = useState(false);
+  const [isMaxFocused, setIsMaxFocused] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(
+    () => Dimensions.get('window').width - Spacing.space4 * 2
+  );
   const isDraggingRef = useRef(false);
 
   useEffect(() => {
@@ -59,8 +78,7 @@ export function RangeSlider({
     });
   }, [initialLow, initialHigh, min, max]);
 
-  // Subtracting extra 8px (4px from each side) to keep the markers away from the edges
-  const width = Dimensions.get('window').width - (Spacing.space4 * 2) - 8;
+  const sliderLength = computeRangeSliderLength(containerWidth);
 
   const handleMinChange = (text: string) => {
     const cleaned = text.replace(/[^0-9]/g, '');
@@ -79,7 +97,7 @@ export function RangeSlider({
     if (newMin < min) newMin = min;
     if (newMax > max) newMax = max;
     if (newMin > newMax) newMin = newMax;
-    
+
     setMultiSliderValue([newMin, newMax]);
     setMinText(newMin.toString());
     setMaxText(newMax.toString());
@@ -101,17 +119,33 @@ export function RangeSlider({
     setMaxText(values[1].toString());
   };
 
+  const displayedMin = isMinFocused ? minText : formatValue(multiSliderValue[0]);
+  const displayedMax = isMaxFocused ? maxText : formatValue(multiSliderValue[1]);
+
   return (
-    <View style={s.container}>
+    <View
+      testID="range-slider-container"
+      style={s.container}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && Math.abs(w - containerWidth) > 0.5) {
+          setContainerWidth(w);
+        }
+      }}
+    >
       <View style={s.inputsRow}>
         <View style={s.inputContainer}>
           <Text style={s.inputLabel}>من</Text>
           <TextInput
             style={s.input}
             keyboardType="numeric"
-            value={minText}
+            value={displayedMin}
+            onFocus={() => setIsMinFocused(true)}
             onChangeText={handleMinChange}
-            onBlur={applyTextValues}
+            onBlur={() => {
+              setIsMinFocused(false);
+              applyTextValues();
+            }}
             returnKeyType="done"
             textAlign="right"
             accessibilityLabel="الحد الأدنى"
@@ -124,9 +158,13 @@ export function RangeSlider({
           <TextInput
             style={s.input}
             keyboardType="numeric"
-            value={maxText}
+            value={displayedMax}
+            onFocus={() => setIsMaxFocused(true)}
             onChangeText={handleMaxChange}
-            onBlur={applyTextValues}
+            onBlur={() => {
+              setIsMaxFocused(false);
+              applyTextValues();
+            }}
             returnKeyType="done"
             textAlign="right"
             accessibilityLabel="الحد الأقصى"
@@ -136,7 +174,7 @@ export function RangeSlider({
       </View>
       <MultiSlider
         values={[multiSliderValue[0], multiSliderValue[1]]}
-        sliderLength={width}
+        sliderLength={sliderLength}
         onValuesChangeStart={handleValuesChangeStart}
         onValuesChange={multiSliderValuesChange}
         onValuesChangeFinish={handleValuesChangeFinish}
@@ -214,9 +252,9 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
   },
   marker: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: RANGE_SLIDER_MARKER_SIZE,
+    height: RANGE_SLIDER_MARKER_SIZE,
+    borderRadius: RANGE_SLIDER_MARKER_SIZE / 2,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.slateBorder,
@@ -226,5 +264,5 @@ const s = StyleSheet.create({
     shadowRadius: 5,
     elevation: 4,
     marginTop: 1, // center alignment on track
-  }
+  },
 });
