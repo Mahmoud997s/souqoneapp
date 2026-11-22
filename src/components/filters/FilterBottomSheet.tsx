@@ -24,6 +24,7 @@ import { Colors } from '../../constants/colors';
 import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
 import { logWarn } from '../../utils/safeLog';
+import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface FilterBottomSheetProps {
   visible: boolean;
@@ -361,6 +362,7 @@ export function FilterBottomSheet({
             updateFilter('priceMax', vals[1].toString());
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 
@@ -397,6 +399,7 @@ export function FilterBottomSheet({
                 updateFilter('mileageMax', vals[1].toString());
               }}
               suffix="كم"
+              formatValue={formatNumberWestern}
             />
           </FilterSection>
 

@@ -32,6 +32,7 @@ import {
   EQUIPMENT_YEAR_RANGES,
   EQUIPMENT_HOURS_RANGES,
 } from '../../src/utils/browse-filters/equipmentBrowseFilters';
+import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
 
 // Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -247,9 +248,14 @@ export default function EquipmentBrowseScreen() {
     } else if (qf.id === 'price') {
       isActive = !!filters.priceMax || !!filters.priceMin;
       if (isActive) {
-         const found = PRICE_RANGES.find(b => b.max === (filters.priceMax)?.toString() || b.id === filters.priceId);
-         if (found) displayLabel = found.label;
-         else displayLabel = filters.priceMax ? `أقل من ${filters.priceMax}` : qf.label;
+        const found = filters.priceId
+          ? PRICE_RANGES.find(b => b.id === filters.priceId)
+          : !filters.priceMin
+            ? PRICE_RANGES.find(b => b.max === filters.priceMax?.toString())
+            : undefined;
+        displayLabel = found
+          ? found.label
+          : formatPriceRangeChipLabel(filters.priceMin, filters.priceMax, qf.label, 'ر.ع');
       }
     } else if (qf.id === 'year') {
       isActive = !!filters.yearMax || !!filters.yearMin;

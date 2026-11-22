@@ -23,6 +23,7 @@ import { getBrandLogo } from '../../constants/brandLogos';
 import { PartsFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { formatRtlPlaceholder } from '../../utils/wizardHelpers';
+import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface PartsFilterBottomSheetProps {
   visible: boolean;
@@ -317,6 +318,7 @@ export function PartsFilterBottomSheet({
             updateFilter('priceMax', vals[1].toString());
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 

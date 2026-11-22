@@ -33,6 +33,7 @@ import { FilterGlassTokens } from '../../src/constants/filterGlassTokens';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
@@ -295,8 +296,12 @@ export default function PartsBrowseScreen() {
     } else if (qf.id === 'price') {
       isActive = !!filters.priceMax || !!filters.priceMin;
       if (isActive) {
-        const found = PARTS_PRICE_RANGES.find((p) => p.max === Number(filters.priceMax));
-        displayLabel = found ? found.label : (filters.priceMax ? `حتى ${filters.priceMax} ر.ع` : 'السعر');
+        const found = !filters.priceMin
+          ? PARTS_PRICE_RANGES.find((p) => p.max === Number(filters.priceMax))
+          : undefined;
+        displayLabel = found
+          ? found.label
+          : formatPriceRangeChipLabel(filters.priceMin, filters.priceMax, 'السعر', 'ر.ع');
       }
     } else if (qf.id === 'city') {
       isActive = !!filters.city || !!filters.governorate || !!filters.governorateId;

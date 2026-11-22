@@ -11,6 +11,7 @@ import { EQUIPMENT_CATEGORIES, EQUIPMENT_CONDITIONS } from '../../constants/equi
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 import { logWarn } from '../../utils/safeLog'
+import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface EquipmentFilterState {
   listingType?: string
@@ -410,6 +411,7 @@ export function EquipmentFilterBottomSheet({
             })
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 

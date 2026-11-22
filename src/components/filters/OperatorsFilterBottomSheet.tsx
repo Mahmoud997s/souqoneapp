@@ -14,6 +14,7 @@ import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
 import { logWarn } from '../../utils/safeLog';
 import { AVAILABLE_EQUIPMENT, normalizeOperatorEquipmentType } from '../../constants/operators';
+import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface OperatorsFilterBottomSheetProps {
   visible: boolean;
@@ -308,6 +309,7 @@ export function OperatorsFilterBottomSheet({
             updateFilter('dailyRateMax', vals[1]);
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 

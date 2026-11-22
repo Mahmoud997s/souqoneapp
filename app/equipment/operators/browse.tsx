@@ -31,6 +31,7 @@ import { BrowseHeader } from '../../../src/components/ui/BrowseHeader'
 import { BrowseResultsBar } from '../../../src/components/ui/BrowseResultsBar'
 import { StaleDataBanner } from '../../../src/components/listing-detail/StaleDataBanner'
 import { getListErrorProps } from '../../../src/utils/getListErrorProps'
+import { formatPriceRangeChipLabel } from '../../../src/utils/numberFormat'
 import { FilterGlassTokens } from '../../../src/constants/filterGlassTokens'
 import { ListingTabs } from '../../../src/components/ui/ListingTabs'
 import { QuickFilters, QuickFilterItem } from '../../../src/components/ui/QuickFilters'
@@ -173,14 +174,9 @@ export default function BrowseOperatorsScreen() {
     }
 
     // 4. Rate
-    let rateLabel = 'الأجر'
-    if (filters.dailyRateMin !== undefined && filters.dailyRateMax !== undefined && filters.dailyRateMax < 150) {
-      rateLabel = `${filters.dailyRateMin} - ${filters.dailyRateMax} ر.ع`
-    } else if (filters.dailyRateMax !== undefined && filters.dailyRateMax < 150) {
-      rateLabel = `حتى ${filters.dailyRateMax} ر.ع`
-    } else if (filters.dailyRateMin !== undefined) {
-      rateLabel = `من ${filters.dailyRateMin} ر.ع`
-    }
+    const effectiveRateMax =
+      filters.dailyRateMax !== undefined && filters.dailyRateMax < 150 ? filters.dailyRateMax : undefined
+    const rateLabel = formatPriceRangeChipLabel(filters.dailyRateMin, effectiveRateMax, 'الأجر', 'ر.ع')
 
     // 5. Certification
     const certLabel = filters.certification || 'الشهادات والرخص'

@@ -18,6 +18,7 @@ import {
 import { locationsApi } from '../../api/locations'
 import { GovernorateRef, WilayaRef } from '../../types/location.types'
 import { logWarn } from '../../utils/safeLog'
+import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface BusFilters {
   busListingType?: string
@@ -588,6 +589,7 @@ export function BusFilterBottomSheet({
             })
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 
