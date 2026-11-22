@@ -83,17 +83,14 @@ export function isSegmentedTabsFixed(tabsCount: number): boolean {
 
 const VisualFilterItemCard = React.memo(function VisualFilterItemCard({
   config,
-  activeColor,
 }: {
   config: VisualFilterItemConfig;
-  activeColor: string;
 }) {
   return (
     <View
       style={[
         s.itemCard,
         config.isSelected && s.itemCardSelected,
-        config.isSelected && { borderColor: activeColor },
       ]}
     >
       {config.isSelected && (
@@ -116,7 +113,7 @@ const VisualFilterItemCard = React.memo(function VisualFilterItemCard({
         <Text
           style={[
             s.itemLabel,
-            config.isSelected && [s.itemLabelSelected, { color: activeColor }],
+            config.isSelected && s.itemLabelSelected,
           ]}
           numberOfLines={1}
         >
@@ -235,7 +232,6 @@ export function VisualFiltersBase<TTabId extends string = string>({
                   <VisualFilterItemCard
                     key={config.id}
                     config={config}
-                    activeColor={activeColor}
                   />
                 );
               })}
@@ -380,15 +376,14 @@ export const visualFiltersStyles = StyleSheet.create({
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: FilterGlassTokens.borderColor,
-    paddingBottom: Spacing.space2,
+    backgroundColor: Colors.transparent,
+    borderBottomWidth: 0,
+    paddingBottom: SoftTactileTokens.rhythm.sectionGap,
   },
   segmentedWrapper: {
     marginHorizontal: Spacing.space4,
-    marginBottom: Spacing.space2,
-    marginTop: Spacing.space2,
+    marginBottom: SoftTactileTokens.rhythm.sectionGap,
+    marginTop: SoftTactileTokens.rhythm.sectionGap,
     backgroundColor: FilterGlassTokens.tab.trackBg,
     borderRadius: FilterGlassTokens.tab.trackRadius,
     borderWidth: FilterGlassTokens.tab.trackBorderWidth,
@@ -439,8 +434,8 @@ const s = StyleSheet.create({
     fontFamily: FilterGlassTokens.tab.activeFontFamily,
   },
   contentArea: {
-    backgroundColor: SoftTactileTokens.surfaceBg,
-    paddingTop: Spacing.space2,
+    backgroundColor: Colors.transparent,
+    paddingTop: 0,
   },
   contentAreaDoubleRow: {
     minHeight: 86,
@@ -450,19 +445,16 @@ const s = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: Spacing.space4,
-    gap: 6,
+    gap: SoftTactileTokens.rhythm.cardRowGap,
   },
   column: {
-    gap: 6,
+    gap: SoftTactileTokens.rhythm.cardRowGap,
   },
   itemCard: {
     backgroundColor: SoftTactileTokens.raised.bg,
     borderRadius: FilterGlassTokens.card.borderRadius,
     borderWidth: SoftTactileTokens.raised.borderWidth,
-    borderTopColor: SoftTactileTokens.raised.borderTopColor,
-    borderLeftColor: SoftTactileTokens.raised.borderLeftColor,
-    borderRightColor: SoftTactileTokens.raised.borderRightColor,
-    borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+    borderColor: SoftTactileTokens.raised.borderColor,
     ...SoftTactileTokens.raised.shadow,
     minWidth: 95,
   },
@@ -474,21 +466,18 @@ const s = StyleSheet.create({
     gap: 6,
   },
   itemCardSelected: {
-    backgroundColor: SoftTactileTokens.insetCard.bg,
-    borderTopColor: SoftTactileTokens.insetCard.borderTopColor,
-    borderLeftColor: SoftTactileTokens.insetCard.borderLeftColor,
-    borderRightColor: SoftTactileTokens.insetCard.borderRightColor,
-    borderBottomColor: SoftTactileTokens.insetCard.borderBottomColor,
+    backgroundColor: SoftTactileTokens.inset.bg,
+    borderColor: SoftTactileTokens.inset.borderColor,
     shadowOpacity: 0,
     elevation: 0,
   },
   itemInsetOverlay: {
     ...StyleSheet.absoluteFill,
     borderRadius: FilterGlassTokens.card.borderRadius,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderTopColor: SoftTactileTokens.insetCard.innerTopLeftColor,
-    borderLeftColor: SoftTactileTokens.insetCard.innerTopLeftColor,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1.5,
+    borderTopColor: SoftTactileTokens.inset.innerShadowColor,
+    borderLeftColor: SoftTactileTokens.inset.innerShadowColor,
   },
   itemLabel: {
     fontFamily: FilterGlassTokens.card.fontFamily,
@@ -499,7 +488,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   itemLabelSelected: {
-    color: FilterGlassTokens.card.selectedTextColor,
+    color: SoftTactileTokens.inset.textColor,
   },
   viewAllCard: {
     backgroundColor: FilterGlassTokens.card.viewAllBg,
