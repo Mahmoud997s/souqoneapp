@@ -93,8 +93,8 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      // Zero glass views in flat mode
-      expect(screen.queryByTestId('multi-select-glass')).toBeNull();
+      // Zero glass views in flat mode (default glass=false)
+      expect(screen.queryByTestId('multi-select-glass-layers')).toBeNull();
       expect(screen.getByText('اختر المميزات')).toBeTruthy();
 
       // Open list
@@ -180,9 +180,9 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      // Zero glass views on the flat selects
-      expect(screen.queryByTestId('car-features-select-glass')).toBeNull();
-      expect(screen.queryByTestId('car-transmission-select-glass')).toBeNull();
+      // D-383: outer field renders ONE glass surface per field (not per option)
+      expect(screen.getByTestId('car-features-select-glass-layers')).toBeTruthy();
+      expect(screen.getByTestId('car-transmission-select-glass-layers')).toBeTruthy();
 
       // Saved standard feature shows in header summary (1 standard feature; custom one stays as pill)
       expect(screen.getByText('ميزة واحدة محددة')).toBeTruthy();
@@ -236,7 +236,7 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      expect(screen.queryByTestId('car-cancellation-policy-select-glass')).toBeNull();
+      expect(screen.getByTestId('car-cancellation-policy-select-glass-layers')).toBeTruthy();
       await act(async () => {
         fireEvent.press(screen.getByTestId('car-cancellation-policy-select'));
       });
@@ -297,7 +297,9 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      expect(screen.queryByTestId('bus-features-select-glass')).toBeNull();
+      expect(screen.getByTestId('bus-transmission-select-glass-layers')).toBeTruthy();
+      expect(screen.getByTestId('bus-condition-select-glass-layers')).toBeTruthy();
+      expect(screen.getByTestId('bus-features-select-glass-layers')).toBeTruthy();
       expect(screen.getByText('ميزتان محددتان')).toBeTruthy();
 
       await act(async () => {
@@ -338,8 +340,8 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      expect(screen.queryByTestId('equipment-features-select-glass')).toBeNull();
-      expect(screen.queryByTestId('equipment-condition-select-glass')).toBeNull();
+      expect(screen.getByTestId('equipment-features-select-glass-layers')).toBeTruthy();
+      expect(screen.getByTestId('equipment-condition-select-glass-layers')).toBeTruthy();
       expect(screen.getByText('ميزة واحدة محددة')).toBeTruthy();
       expect(screen.getByText('الميزات المحددة (2):')).toBeTruthy();
 
@@ -374,7 +376,7 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
         />
       );
 
-      expect(screen.queryByTestId('operator-equipment-select-glass')).toBeNull();
+      expect(screen.getByTestId('operator-equipment-select-glass-layers')).toBeTruthy();
       expect(screen.getByText('معدتان محددتان')).toBeTruthy();
 
       await act(async () => {
@@ -399,8 +401,8 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
           onUpdateField={onUpdatePart1}
         />
       );
-      expect(screen.queryByTestId('part-condition-select-glass')).toBeNull();
-      expect(screen.queryByTestId('part-originality-select-glass')).toBeNull();
+      expect(screen.getByTestId('part-condition-select-glass-layers')).toBeTruthy();
+      expect(screen.getByTestId('part-originality-select-glass-layers')).toBeTruthy();
 
       await act(async () => {
         fireEvent.press(screen.getByTestId('part-originality-select'));
@@ -420,7 +422,7 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
           onUpdateField={onUpdatePart4}
         />
       );
-      expect(screen.queryByTestId('part-vehicle-types-select-glass')).toBeNull();
+      expect(screen.getByTestId('part-vehicle-types-select-glass-layers')).toBeTruthy();
       expect(screen.getByText('نوع واحد محدد')).toBeTruthy();
       expect(screen.getByTestId('all-makes-chip')).toBeTruthy();
     });
@@ -434,7 +436,7 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
           onUpdateField={onUpdate1}
         />
       );
-      expect(screen.queryByTestId('service-provider-type-select-glass')).toBeNull();
+      expect(screen.getByTestId('service-provider-type-select-glass-layers')).toBeTruthy();
       await act(async () => {
         fireEvent.press(screen.getByTestId('service-provider-type-select'));
       });
@@ -457,7 +459,7 @@ describe('D-382: Wizard option chips converted to flat WizardSelectField / multi
           onUpdateField={onUpdate3}
         />
       );
-      expect(screen.queryByTestId('service-specializations-select-glass')).toBeNull();
+      expect(screen.getByTestId('service-specializations-select-glass-layers')).toBeTruthy();
       expect(screen.getByText('تخصص واحد محدد')).toBeTruthy();
       await act(async () => {
         fireEvent.press(screen.getByTestId('service-specializations-select'));

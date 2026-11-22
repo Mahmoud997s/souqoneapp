@@ -138,6 +138,7 @@ export function CarStep4Location({
 
             <View>
               <WizardSelectField
+                glass
                 testID="car-cancellation-policy-select"
                 label="سياسة الإلغاء"
                 value={formData.cancellationPolicy}

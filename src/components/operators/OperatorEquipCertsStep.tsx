@@ -66,6 +66,7 @@ export function OperatorEquipCertsStep({
       {/* Equipment Selection Section */}
       <WizardCard title="المعدات المصرح بتشغيلها *" subtitle="اختر كل المعدات المصرح لك بقيادتها ولديك خبرة بها">
         <WizardSelectField
+          glass
           testID="operator-equipment-select"
           multiple
           values={formData.equipmentTypes}
