@@ -165,6 +165,10 @@ describe('BusStep3Details', () => {
   it('toggles feature chips correctly', async () => {
     await render(<BusStep3Details {...defaultProps} />);
 
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('bus-features-select'));
+    });
+
     const acFeature = screen.getByTestId('feature-ac');
     await act(async () => {
       fireEvent.press(acFeature);
@@ -175,6 +179,9 @@ describe('BusStep3Details', () => {
   it('updates transmission, fuel type, and condition', async () => {
     await render(<BusStep3Details {...defaultProps} />);
 
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('bus-transmission-select'));
+    });
     await act(async () => {
       fireEvent.press(screen.getByTestId('transmission-AUTOMATIC'));
     });
@@ -188,6 +195,9 @@ describe('BusStep3Details', () => {
     });
     expect(mockOnUpdateField).toHaveBeenCalledWith('fuelType', 'PETROL');
 
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('bus-condition-select'));
+    });
     await act(async () => {
       fireEvent.press(screen.getByTestId('condition-NEW'));
     });

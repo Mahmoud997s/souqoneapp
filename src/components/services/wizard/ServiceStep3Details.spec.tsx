@@ -66,6 +66,9 @@ describe('ServiceStep3Details', () => {
     }
 
     await render(<ServiceStep3Details {...props} />)
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('service-specializations-select'))
+    })
 
     const maintenanceSpecs = COMMON_SPECIALIZATIONS.MAINTENANCE
     maintenanceSpecs.forEach((spec) => {
@@ -83,6 +86,9 @@ describe('ServiceStep3Details', () => {
     }
 
     await render(<ServiceStep3Details {...props} />)
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('service-specializations-select'))
+    })
 
     const cleaningSpecs = COMMON_SPECIALIZATIONS.CLEANING
     cleaningSpecs.forEach((spec) => {
@@ -102,6 +108,9 @@ describe('ServiceStep3Details', () => {
     }
 
     await render(<ServiceStep3Details {...props} />)
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('service-specializations-select'))
+    })
 
     const chip = screen.getByTestId('spec-chip-ميكانيكا عامة')
     await act(async () => {
@@ -125,6 +134,9 @@ describe('ServiceStep3Details', () => {
     }
 
     await render(<ServiceStep3Details {...props} />)
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('service-specializations-select'))
+    })
 
     const chip = screen.getByTestId('spec-chip-تغيير زيت وفلاتر')
     await act(async () => {

@@ -44,13 +44,15 @@ describe('ServiceStep1Type', () => {
   it('renders all provider type chips and calls onUpdateField when pressed', async () => {
     await render(<ServiceStep1Type {...defaultProps} />)
 
+    await fireEvent.press(screen.getByTestId('service-provider-type-select'))
+
     PROVIDER_TYPES.forEach((pt) => {
       const chip = screen.getByTestId(`provider-type-${pt.id}`)
       expect(chip).toBeTruthy()
     })
 
     const workshopChip = screen.getByTestId('provider-type-WORKSHOP')
-    fireEvent.press(workshopChip)
+    await fireEvent.press(workshopChip)
     expect(mockOnUpdateField).toHaveBeenCalledWith('providerType', 'WORKSHOP')
   })
 
@@ -77,7 +79,7 @@ describe('ServiceStep1Type', () => {
     await render(<ServiceStep1Type {...propsWithErrors} />)
 
     expect(screen.getByTestId('error-service-type').props.children).toBe('اختر نوع الخدمة')
-    expect(screen.getByText('اختر صفة مقدم الخدمة')).toBeTruthy()
+    expect(screen.getByTestId('error-provider-type').props.children).toBe('اختر صفة مقدم الخدمة')
     expect(screen.getByText('اسم مقدم الخدمة لازم يكون 3 أحرف على الأقل')).toBeTruthy()
   })
 })
