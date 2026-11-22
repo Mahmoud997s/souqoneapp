@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Pressable,
   TouchableOpacity,
   StyleProp,
   ViewStyle,
@@ -10,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { FilterGlassTokens, SoftTactileTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens, QuickChipTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 import { FilterGlassSurface } from './FilterGlassSurface';
 import { type GlassSupport } from '../navigation/glassSupport';
@@ -86,40 +87,57 @@ const VisualFilterItemCard = React.memo(function VisualFilterItemCard({
 }: {
   config: VisualFilterItemConfig;
 }) {
+  const isSelected = Boolean(config.isSelected);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const isSelectedPressed = isSelected && (isPressed || isHovered);
+  const cardStateStyle = isSelected
+    ? s.itemCardSelected
+    : isPressed
+      ? s.itemCardPressed
+      : isHovered
+        ? s.itemCardHovered
+        : null;
+
   return (
     <View
+      testID={`visual-filter-card-${config.id}`}
       style={[
         s.itemCard,
-        config.isSelected && s.itemCardSelected,
+        cardStateStyle,
       ]}
     >
-      {config.isSelected && (
+      {isSelectedPressed && (
         <View
-          testID={`visual-filter-item-inset-${config.id}`}
+          testID={`visual-filter-card-pressed-${config.id}`}
           pointerEvents="none"
-          style={s.itemInsetOverlay}
+          style={s.itemSelectedPressedOverlay}
         />
       )}
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <Pressable
         accessibilityRole="button"
         accessibilityLabel={config.label}
-        accessibilityState={{ selected: Boolean(config.isSelected) }}
+        accessibilityState={{ selected: isSelected }}
         hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         style={s.itemCardInner}
         onPress={config.onPress}
+        onPressIn={() => setIsPressed(true)}
+        onPressOut={() => setIsPressed(false)}
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
       >
         {config.icon}
         <Text
           style={[
             s.itemLabel,
-            config.isSelected && s.itemLabelSelected,
+            isSelected && s.itemLabelSelected,
           ]}
           numberOfLines={1}
         >
           {config.label}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 });
@@ -451,12 +469,19 @@ const s = StyleSheet.create({
     gap: SoftTactileTokens.rhythm.cardRowGap,
   },
   itemCard: {
-    backgroundColor: SoftTactileTokens.raised.bg,
+    backgroundColor: QuickChipTokens.normal.bg,
     borderRadius: FilterGlassTokens.card.borderRadius,
-    borderWidth: SoftTactileTokens.raised.borderWidth,
-    borderColor: SoftTactileTokens.raised.borderColor,
-    ...SoftTactileTokens.raised.shadow,
+    borderWidth: QuickChipTokens.borderWidth,
+    borderColor: QuickChipTokens.normal.borderColor,
     minWidth: 95,
+  },
+  itemCardPressed: {
+    backgroundColor: QuickChipTokens.pressed.bg,
+    borderColor: QuickChipTokens.pressed.borderColor,
+  },
+  itemCardHovered: {
+    backgroundColor: QuickChipTokens.hover.bg,
+    borderColor: QuickChipTokens.hover.borderColor,
   },
   itemCardInner: {
     flexDirection: 'row',
@@ -466,29 +491,24 @@ const s = StyleSheet.create({
     gap: 6,
   },
   itemCardSelected: {
-    backgroundColor: SoftTactileTokens.inset.bg,
-    borderColor: SoftTactileTokens.inset.borderColor,
-    shadowOpacity: 0,
-    elevation: 0,
+    backgroundColor: QuickChipTokens.selected.bg,
+    borderColor: QuickChipTokens.selected.borderColor,
   },
-  itemInsetOverlay: {
+  itemSelectedPressedOverlay: {
     ...StyleSheet.absoluteFill,
     borderRadius: FilterGlassTokens.card.borderRadius,
-    borderTopWidth: 1.5,
-    borderLeftWidth: 1.5,
-    borderTopColor: SoftTactileTokens.inset.innerShadowColor,
-    borderLeftColor: SoftTactileTokens.inset.innerShadowColor,
+    backgroundColor: QuickChipTokens.selectedPressed.overlayBg,
   },
   itemLabel: {
     fontFamily: FilterGlassTokens.card.fontFamily,
     fontSize: FilterGlassTokens.card.fontSize,
     lineHeight: FilterGlassTokens.card.lineHeight,
-    color: FilterGlassTokens.card.textColor,
+    color: QuickChipTokens.normal.textColor,
     textAlign: 'left',
     writingDirection: 'rtl',
   },
   itemLabelSelected: {
-    color: SoftTactileTokens.inset.textColor,
+    color: QuickChipTokens.selected.textColor,
   },
   viewAllCard: {
     backgroundColor: FilterGlassTokens.card.viewAllBg,

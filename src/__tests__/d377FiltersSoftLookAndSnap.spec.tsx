@@ -84,8 +84,8 @@ describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, ze
       expect(queryByTestId('quick-filter-inset-city')).toBeNull()
     })
 
-    it('VisualFiltersBase container & contentArea are transparent and cards have single hairline + soft inset without primaryDark border', async () => {
-      const { getByTestId, getByLabelText, getByText } = await render(
+    it('VisualFiltersBase container & contentArea are transparent and cards use plain flat QuickChipTokens without shadow or inset overlay (D-380 Part 3)', async () => {
+      const { getByTestId, getByLabelText, getByText, queryByTestId } = await render(
         <VisualFiltersBase
           tabs={[
             {
@@ -109,23 +109,24 @@ describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, ze
       expect(contentStyle.backgroundColor).toBe(Colors.transparent)
       expect(contentStyle.backgroundColor).not.toBe(Colors.inputBg)
 
-      const raisedStyle = StyleSheet.flatten(getByLabelText('تويوتا').parent?.props.style)
-      expect(raisedStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg)
-      expect(raisedStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor)
-      expect(raisedStyle.borderTopColor).toBeUndefined()
-      expect(raisedStyle.borderBottomColor).toBeUndefined()
-      expect(raisedStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius)
+      const normalStyle = StyleSheet.flatten(getByLabelText('تويوتا').parent?.props.style)
+      expect(normalStyle.backgroundColor).toBe(QuickChipTokens.normal.bg)
+      expect(normalStyle.borderColor).toBe(QuickChipTokens.normal.borderColor)
+      expect(normalStyle.borderTopColor).toBeUndefined()
+      expect(normalStyle.borderBottomColor).toBeUndefined()
+      expect(normalStyle.shadowOpacity).toBeUndefined()
+      expect(normalStyle.elevation).toBeUndefined()
+      expect(normalStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius)
 
-      const insetStyle = StyleSheet.flatten(getByLabelText('نيسان').parent?.props.style)
-      expect(insetStyle.backgroundColor).toBe(Colors.paleMint)
-      expect(insetStyle.borderColor).toBe(SoftTactileTokens.inset.borderColor)
-      expect(insetStyle.borderColor).not.toBe(Colors.primaryDark)
-      expect(insetStyle.borderTopColor).toBeUndefined()
-      expect(insetStyle.borderBottomColor).toBeUndefined()
+      const selectedStyle = StyleSheet.flatten(getByLabelText('نيسان').parent?.props.style)
+      expect(selectedStyle.backgroundColor).toBe(Colors.primary)
+      expect(selectedStyle.borderColor).toBe(Colors.primary)
+      expect(selectedStyle.borderTopColor).toBeUndefined()
+      expect(selectedStyle.borderBottomColor).toBeUndefined()
 
       const selectedLabelStyle = StyleSheet.flatten(getByText('نيسان').props.style)
-      expect(selectedLabelStyle.color).toBe(Colors.primaryDark)
-      expect(getByTestId('visual-filter-item-inset-nissan')).toBeTruthy()
+      expect(selectedLabelStyle.color).toBe(Colors.white)
+      expect(queryByTestId('visual-filter-item-inset-nissan')).toBeNull()
     })
   })
 

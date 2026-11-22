@@ -1,12 +1,14 @@
 import React from 'react';
-import { Text } from 'react-native';
+import fs from 'fs';
+import path from 'path';
+import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   VisualFiltersBase,
   VisualFilterTab,
   isSegmentedTabsFixed,
 } from '../VisualFiltersBase';
-import { FilterGlassTokens, SoftTactileTokens } from '../../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens, QuickChipTokens } from '../../../constants/filterGlassTokens';
 import { Colors } from '../../../constants/colors';
 
 jest.mock('@expo/vector-icons', () => ({
@@ -155,33 +157,86 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     expect(viewAll.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
   });
 
-  it('applies FilterGlassTokens.card styles to item cards and track', async () => {
-    const { getByLabelText } = await render(
+  it('applies plain flat QuickChipTokens to normal and selected item cards without shadow, elevation, or inset overlay (D-380 Part 3)', async () => {
+    const { getByLabelText, getByText, getByTestId, queryByTestId } = await render(
       <VisualFiltersBase tabs={dummyTabs} defaultTab="tab1" />
     );
 
     const unselectedItem = getByLabelText('عنصر 1');
-    const unselectedContainer = unselectedItem.parent;
-    expect(unselectedContainer?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          backgroundColor: SoftTactileTokens.raised.bg,
-          borderColor: SoftTactileTokens.raised.borderColor,
-          borderWidth: SoftTactileTokens.raised.borderWidth,
-          borderRadius: FilterGlassTokens.card.borderRadius,
-        }),
-      ])
-    );
+    const unselectedStyle = StyleSheet.flatten(unselectedItem.parent?.props.style);
+    expect(unselectedStyle.backgroundColor).toBe(QuickChipTokens.normal.bg);
+    expect(unselectedStyle.borderColor).toBe(QuickChipTokens.normal.borderColor);
+    expect(unselectedStyle.borderWidth).toBe(QuickChipTokens.borderWidth);
+    expect(unselectedStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius);
+    expect(unselectedStyle.minWidth).toBe(95);
+    expect(unselectedStyle.shadowOpacity).toBeUndefined();
+    expect(unselectedStyle.elevation).toBeUndefined();
+    expect(queryByTestId('visual-filter-item-inset-item1')).toBeNull();
 
     const selectedItem = getByLabelText('عنصر 2');
-    const selectedContainer = selectedItem.parent;
-    expect(selectedContainer?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          backgroundColor: SoftTactileTokens.inset.bg,
-          borderColor: SoftTactileTokens.inset.borderColor,
-        }),
-      ])
+    const selectedStyle = StyleSheet.flatten(selectedItem.parent?.props.style);
+    expect(selectedStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedStyle.borderColor).toBe(Colors.primary);
+    expect(selectedStyle.shadowOpacity).toBeUndefined();
+    expect(selectedStyle.elevation).toBeUndefined();
+    expect(queryByTestId('visual-filter-item-inset-item2')).toBeNull();
+
+    const selectedLabelStyle = StyleSheet.flatten(getByText('عنصر 2').props.style);
+    expect(selectedLabelStyle.color).toBe(Colors.white);
+
+    // Bottom padding of visual filters block uses unified SoftTactileTokens.rhythm.sectionGap (12)
+    const baseStyle = StyleSheet.flatten(getByTestId('visual-filters-base').props.style);
+    expect(baseStyle.paddingBottom).toBe(SoftTactileTokens.rhythm.sectionGap);
+  });
+
+  it('applies pressed state styles on pressIn for both normal and selected visual filter cards without navy flash (D-380 Part 3)', async () => {
+    const { getByLabelText, getByTestId, queryByTestId } = await render(
+      <VisualFiltersBase tabs={dummyTabs} defaultTab="tab1" />
     );
+
+    // Normal card pressed -> paleMint fill + primary border
+    const normalBtn = getByLabelText('عنصر 1');
+    await fireEvent(normalBtn, 'pressIn');
+    const normalPressedStyle = StyleSheet.flatten(getByTestId('visual-filter-card-item1').props.style);
+    expect(normalPressedStyle.backgroundColor).toBe(Colors.paleMint);
+    expect(normalPressedStyle.borderColor).toBe(Colors.primary);
+
+    await fireEvent(normalBtn, 'pressOut');
+    const normalRestoredStyle = StyleSheet.flatten(getByTestId('visual-filter-card-item1').props.style);
+    expect(normalRestoredStyle.backgroundColor).toBe(Colors.surface);
+    expect(normalRestoredStyle.borderColor).toBe(Colors.border);
+
+    // Selected card pressed -> stays Colors.primary with turquoise scrim overlay (no navy flash)
+    const selectedBtn = getByLabelText('عنصر 2');
+    await fireEvent(selectedBtn, 'pressIn');
+    const selectedPressedStyle = StyleSheet.flatten(getByTestId('visual-filter-card-item2').props.style);
+    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedPressedStyle.backgroundColor).not.toBe(Colors.primaryDark);
+    const overlayStyle = StyleSheet.flatten(getByTestId('visual-filter-card-pressed-item2').props.style);
+    expect(overlayStyle.backgroundColor).toBe(Colors.scrimDark15);
+
+    await fireEvent(selectedBtn, 'pressOut');
+    expect(queryByTestId('visual-filter-card-pressed-item2')).toBeNull();
+  });
+
+  it('contains no animation APIs in VisualFiltersBase.tsx and keeps uniform listHeader marginBottom across all 5 visual-filter browse pages (D-380 Part 3)', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../VisualFiltersBase.tsx'), 'utf8');
+    expect(src).not.toMatch(/\b(Animated|Reanimated|useSharedValue|withTiming|withSpring|LayoutAnimation)\b/);
+
+    const root = path.resolve(__dirname, '../../../..');
+    const visualBrowsePages = [
+      'app/cars/browse.tsx',
+      'app/buses/browse.tsx',
+      'app/equipment/browse.tsx',
+      'app/parts/browse.tsx',
+      'app/services/browse.tsx',
+    ];
+    for (const rel of visualBrowsePages) {
+      const pageSrc = fs.readFileSync(path.join(root, rel), 'utf8');
+      expect({ file: rel, hasUniformListHeader: /listHeader:\s*\{\s*marginBottom:\s*Spacing\.space2,?\s*\}/.test(pageSrc) }).toEqual({
+        file: rel,
+        hasUniformListHeader: true,
+      });
+    }
   });
 });
