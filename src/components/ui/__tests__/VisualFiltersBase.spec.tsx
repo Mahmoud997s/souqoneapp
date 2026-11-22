@@ -166,8 +166,7 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
       expect.arrayContaining([
         expect.objectContaining({
           backgroundColor: SoftTactileTokens.raised.bg,
-          borderTopColor: SoftTactileTokens.raised.borderTopColor,
-          borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+          borderColor: SoftTactileTokens.raised.borderColor,
           borderWidth: SoftTactileTokens.raised.borderWidth,
           borderRadius: FilterGlassTokens.card.borderRadius,
         }),
@@ -179,10 +178,8 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     expect(selectedContainer?.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: SoftTactileTokens.insetCard.bg,
-        }),
-        expect.objectContaining({
-          borderColor: Colors.primary,
+          backgroundColor: SoftTactileTokens.inset.bg,
+          borderColor: SoftTactileTokens.inset.borderColor,
         }),
       ])
     );

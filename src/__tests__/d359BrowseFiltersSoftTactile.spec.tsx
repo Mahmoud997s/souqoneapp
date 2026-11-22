@@ -3,11 +3,11 @@ import { LayoutAnimation, StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilters } from '../components/ui/QuickFilters';
 import { VisualFiltersBase } from '../components/ui/VisualFiltersBase';
-import { FilterGlassTokens } from '../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens } from '../constants/filterGlassTokens';
 import { Colors } from '../constants/colors';
 
-describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab animation, glass tab bar preserved', () => {
-  it('QuickFilters uses calm grey area bg, raised unselected chips without FilterGlassSurface, inset active chip, same sizes', async () => {
+describe('D-359/D-377: Soft tactile QuickFilters & VisualFilters, transparent page bg, no tab animation, glass tab bar preserved', () => {
+  it('QuickFilters uses transparent page bg, raised unselected chips without FilterGlassSurface, soft inset active chip, same sizes', async () => {
     const { getByTestId, getByLabelText, queryByTestId } = await render(
       <QuickFilters
         filters={[
@@ -21,8 +21,8 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
 
     const container = getByTestId('quick-filters-container');
     const containerStyle = StyleSheet.flatten(container.props.style);
-    expect(containerStyle.backgroundColor).toBe(Colors.inputBg);
-    expect(containerStyle.marginVertical).toBe(4);
+    expect(containerStyle.backgroundColor).toBe(Colors.transparent);
+    expect(containerStyle.marginTop).toBe(SoftTactileTokens.rhythm.sectionGap);
     const trackStyle = StyleSheet.flatten(
       (container.children[0] as { props?: { style?: Record<string, unknown> } })?.props?.style as Record<string, unknown>
     ) as { minHeight?: number };
@@ -33,15 +33,15 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
 
     const inactiveChip = getByLabelText('الماركة').parent;
     const inactiveStyle = StyleSheet.flatten(inactiveChip?.props.style);
-    expect(inactiveStyle.backgroundColor).toBe(Colors.inputBg);
+    expect(inactiveStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg);
     expect(inactiveStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius);
-    expect(inactiveStyle.borderTopColor).toBe(Colors.whiteAlpha85);
-    expect(inactiveStyle.borderBottomColor).toBe(Colors.slateBorderStrong);
+    expect(inactiveStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor);
 
     const activeChip = getByLabelText('مسقط').parent;
     const activeStyle = StyleSheet.flatten(activeChip?.props.style);
-    expect(activeStyle.backgroundColor).toBe(FilterGlassTokens.chip.activeBg);
+    expect(activeStyle.backgroundColor).toBe(SoftTactileTokens.inset.bg);
     expect(activeStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius);
+    expect(activeStyle.borderColor).toBe(SoftTactileTokens.inset.borderColor);
     expect(getByTestId('quick-filter-inset-loc')).toBeTruthy();
 
     // Size tokens unchanged
@@ -50,7 +50,7 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
     expect(FilterGlassTokens.chip.borderRadius).toBe(20);
   });
 
-  it('VisualFiltersBase removes LayoutAnimation on tab switch, keeps glass tab bar, and applies raised/inset tokens on calm grey area', async () => {
+  it('VisualFiltersBase removes LayoutAnimation on tab switch, keeps glass tab bar, and applies raised/inset tokens on transparent page bg', async () => {
     const layoutSpy = jest.spyOn(LayoutAnimation, 'configureNext');
 
     const { getByTestId, getByLabelText, queryByTestId } = await render(
@@ -76,22 +76,21 @@ describe('D-359: Soft tactile (neumorphic) QuickFilters & VisualFilters, no tab 
     // Segmented tab bar stays glass
     expect(getByTestId('visual-filters-track-glass-layers')).toBeTruthy();
 
-    // Content area uses calm grey & preserves original minHeight (42 single-row)
+    // Content area uses transparent page bg & preserves original minHeight (42 single-row)
     const contentAreaStyle = StyleSheet.flatten(getByTestId('visual-filters-content-area').props.style);
-    expect(contentAreaStyle.backgroundColor).toBe(Colors.inputBg);
+    expect(contentAreaStyle.backgroundColor).toBe(Colors.transparent);
     expect(contentAreaStyle.minHeight).toBe(42);
 
     // Cards no longer use FilterGlassSurface
     expect(queryByTestId('visual-filter-item-glass-toyota-layers')).toBeNull();
     expect(queryByTestId('visual-filter-item-glass-nissan-layers')).toBeNull();
 
-    // Unselected card is raised
+    // Unselected card is raised with single hairline border
     const toyotaCard = getByLabelText('تويوتا').parent;
     const toyotaStyle = StyleSheet.flatten(toyotaCard?.props.style);
-    expect(toyotaStyle.backgroundColor).toBe(Colors.inputBg);
+    expect(toyotaStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg);
     expect(toyotaStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius);
-    expect(toyotaStyle.borderTopColor).toBe(Colors.whiteAlpha85);
-    expect(toyotaStyle.borderBottomColor).toBe(Colors.slateBorderStrong);
+    expect(toyotaStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor);
 
     // Selected card is inset
     expect(getByTestId('visual-filter-item-inset-nissan')).toBeTruthy();
