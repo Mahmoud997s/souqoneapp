@@ -19,10 +19,24 @@ import { formatNumberWestern, formatPriceRangeChipLabel } from '../utils/numberF
 import { formatNumberWestern as reExportedFormatNumberWestern } from '../utils/listing-detail/formatters';
 import { WIZARD_REVIEW_ROW_STYLES } from '../components/ui/WizardReviewCard';
 import { ServiceStep6Review } from '../components/services/wizard/ServiceStep6Review';
+import { ServicesFilterBottomSheet } from '../components/services/ServicesFilterBottomSheet';
+import { OperatorsFilterBottomSheet } from '../components/filters/OperatorsFilterBottomSheet';
 import { defaultServiceFormData } from '../store/serviceWizardStore';
 import { FilterGlassTokens } from '../constants/filterGlassTokens';
 import { Spacing } from '../constants/spacing';
 import { Colors } from '../constants/colors';
+
+jest.mock('../api/locations', () => ({
+  locationsApi: {
+    getGovernorates: jest.fn().mockResolvedValue([]),
+    getWilayas: jest.fn().mockResolvedValue([]),
+  },
+}));
+
+jest.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: 'denied' }),
+  getCurrentPositionAsync: jest.fn(),
+}));
 
 const mockMultiSlider = jest.fn((_props: any) => null);
 jest.mock('@ptomasroos/react-native-multi-slider', () => {
@@ -43,6 +57,7 @@ jest.mock('expo-image', () => {
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
 }));
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -189,8 +204,86 @@ describe('D-381: Filter sheets polish, number formatting, and review row spacing
       for (const file of sheetFiles) {
         const src = readRepoFile(file);
         expect(src).toContain('FILTER_SHEET_DEFAULT_TITLE');
-        expect(src).toMatch(/resultsCount=\{.*resultsCount\}/);
+        expect(src).toMatch(/resultsCount=\{activeSelector \? undefined : resultsCount\}/);
       }
+    });
+
+    it('ServicesFilterBottomSheet disables apply at 0 results in main view, enables confirm in sub-view picker', async () => {
+      const onApplyFilters = jest.fn();
+      await render(
+        <ServicesFilterBottomSheet
+          visible
+          onClose={jest.fn()}
+          initialFilters={{}}
+          onApplyFilters={onApplyFilters}
+          resultsCount={0}
+        />
+      );
+
+      // Main view with 0 results -> disabled + 'عرض 0 نتيجة'
+      const mainBtn = screen.getByTestId('filter-sheet-apply-btn');
+      expect(mainBtn.props.accessibilityState).toEqual({ disabled: true });
+      expect(screen.getByText('عرض 0 نتيجة')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(mainBtn);
+      });
+      expect(onApplyFilters).not.toHaveBeenCalled();
+
+      // Open nested sub-view picker -> enabled + 'تأكيد الاختيار'
+      await act(async () => {
+        fireEvent.press(screen.getByText('نوع الخدمة (صيانة، غسيل...)'));
+      });
+      const subBtn = screen.getByTestId('filter-sheet-apply-btn');
+      expect(subBtn.props.accessibilityState).toEqual({ disabled: false });
+      expect(screen.getByText('تأكيد الاختيار')).toBeTruthy();
+
+      // Pressing confirm exits sub-view back to main view without submitting
+      await act(async () => {
+        fireEvent.press(subBtn);
+      });
+      expect(onApplyFilters).not.toHaveBeenCalled();
+      expect(screen.getByTestId('filter-sheet-apply-btn').props.accessibilityState).toEqual({
+        disabled: true,
+      });
+    });
+
+    it('OperatorsFilterBottomSheet disables apply at 0 results in main view, enables confirm in sub-view picker', async () => {
+      const onApplyFilters = jest.fn();
+      await render(
+        <OperatorsFilterBottomSheet
+          visible
+          onClose={jest.fn()}
+          initialFilters={{}}
+          onApplyFilters={onApplyFilters}
+          resultsCount={0}
+        />
+      );
+
+      // Main view with 0 results -> disabled + 'عرض 0 نتيجة'
+      const mainBtn = screen.getByTestId('filter-sheet-apply-btn');
+      expect(mainBtn.props.accessibilityState).toEqual({ disabled: true });
+      expect(screen.getByText('عرض 0 نتيجة')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(mainBtn);
+      });
+      expect(onApplyFilters).not.toHaveBeenCalled();
+
+      // Open nested sub-view picker -> enabled + 'تأكيد الاختيار'
+      await act(async () => {
+        fireEvent.press(screen.getByText('اختر نوع المعدة (حفار، كرين، لودر...)'));
+      });
+      const subBtn = screen.getByTestId('filter-sheet-apply-btn');
+      expect(subBtn.props.accessibilityState).toEqual({ disabled: false });
+      expect(screen.getByText('تأكيد الاختيار')).toBeTruthy();
+
+      // Pressing confirm exits sub-view back to main view without submitting
+      await act(async () => {
+        fireEvent.press(subBtn);
+      });
+      expect(onApplyFilters).not.toHaveBeenCalled();
+      expect(screen.getByTestId('filter-sheet-apply-btn').props.accessibilityState).toEqual({
+        disabled: true,
+      });
     });
   });
 

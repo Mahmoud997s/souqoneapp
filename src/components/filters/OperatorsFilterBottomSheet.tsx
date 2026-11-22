@@ -368,8 +368,9 @@ export function OperatorsFilterBottomSheet({
       title={title}
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
-      onApply={handleApply}
-      resultsCount={resultsCount}
+      onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
+      resultsCount={activeSelector ? undefined : resultsCount}
       isNested={activeSelector !== null}
       onBack={() => setActiveSelector(null)}
     >

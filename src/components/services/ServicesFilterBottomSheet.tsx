@@ -369,10 +369,11 @@ export function ServicesFilterBottomSheet({
       title={title}
       isNested={activeSelector !== null}
       onBack={() => setActiveSelector(null)}
-      onApply={handleApply}
+      onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
       onClear={handleReset}
       hasActiveFilters={hasActiveFilters}
-      resultsCount={resultsCount}
+      resultsCount={activeSelector ? undefined : resultsCount}
     >
       {activeSelector ? nestedContent : mainContent}
     </FilterBottomSheetLayout>
