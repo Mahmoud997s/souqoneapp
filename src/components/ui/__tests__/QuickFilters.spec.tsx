@@ -134,8 +134,7 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
       expect.arrayContaining([
         expect.objectContaining({
           backgroundColor: SoftTactileTokens.raised.bg,
-          borderTopColor: SoftTactileTokens.raised.borderTopColor,
-          borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+          borderColor: SoftTactileTokens.raised.borderColor,
           borderWidth: SoftTactileTokens.raised.borderWidth,
           borderRadius: FilterGlassTokens.chip.borderRadius,
         }),
@@ -148,14 +147,14 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
       ])
     );
 
-    // Active chip parent container
+    // Active chip parent container uses unified soft inset tokens
     const activePressable = getByLabelText('مسقط');
     const activeChipContainer = activePressable.parent;
     expect(activeChipContainer?.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: FilterGlassTokens.chip.activeBg,
-          borderTopColor: SoftTactileTokens.insetActiveChip.borderTopColor,
+          backgroundColor: SoftTactileTokens.inset.bg,
+          borderColor: SoftTactileTokens.inset.borderColor,
         }),
       ])
     );

@@ -131,9 +131,9 @@ describe('D-158: My Listings Vertical Rhythm & CarCard No Swipe', () => {
       expect(segmentedStyle.marginTop).toBe(Spacing.space3)
       expect(segmentedStyle.marginTop).toBe(12)
 
-      // Tabs -> Chips: space2 (8) with 0 extra padding
-      expect(segmentedStyle.marginBottom).toBe(Spacing.space2)
-      expect(segmentedStyle.marginBottom).toBe(8)
+      // Tabs -> Chips: unified D-377 sectionGap space3 (12) with 0 extra padding
+      expect(segmentedStyle.marginBottom).toBe(Spacing.space3)
+      expect(segmentedStyle.marginBottom).toBe(12)
       expect(contentAreaStyle.paddingTop).toBe(0)
 
       // Chips -> first section title: space3 (12)

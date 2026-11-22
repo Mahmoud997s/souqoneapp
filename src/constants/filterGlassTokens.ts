@@ -1,5 +1,6 @@
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Colors } from './colors';
+import { Spacing } from './spacing';
 import { TopBarTokens } from './topBarTokens';
 
 /**
@@ -160,51 +161,47 @@ export const FilterGlassTokens = {
 } as const;
 
 /**
- * SoftTactileTokens (D-359)
- * Neumorphic raised / inset tokens for browse QuickFilters chips & VisualFilters item cards.
- * Uses existing app palette tokens only; sizes/radii remain owned by FilterGlassTokens.
+ * SoftTactileTokens (D-377)
+ * Soft raised / inset real-button tokens for QuickFilters chips & VisualFilters item cards
+ * across all browse screens and MyListings.
+ * Containers remain transparent (same background as page); only chips/cards carry the effect.
+ * Single hairline border + soft shadow for raised; soft inner shadow + paleMint tint + primaryDark text for inset.
+ * No two-tone borders, no dark outer border on selected items.
  */
 export const SoftTactileTokens = {
-  surfaceBg: Colors.inputBg,
+  rhythm: {
+    sectionGap: Spacing.space3, // 12: regular vertical rhythm between big filter rows
+    cardRowGap: Spacing.space2, // 8: regular spacing between card rows & columns
+    chipGap: Spacing.space2, // 8: horizontal spacing between quick-filter chips
+  },
   raised: {
-    bg: Colors.inputBg,
-    borderWidth: 1,
-    borderTopColor: Colors.whiteAlpha85,
-    borderLeftColor: Colors.whiteAlpha85,
-    borderRightColor: Colors.border,
-    borderBottomColor: Colors.slateBorderStrong,
+    bg: Colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
     shadow: Platform.select({
       ios: {
         shadowColor: Colors.slateHeading,
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
       },
       android: {
         elevation: 2,
       },
       default: {
         shadowColor: Colors.slateHeading,
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
       },
     }),
   },
-  insetCard: {
+  inset: {
     bg: Colors.paleMint,
-    borderWidth: 1,
-    borderTopColor: Colors.slateBorderStrong,
-    borderLeftColor: Colors.slateBorderStrong,
-    borderRightColor: Colors.whiteAlpha85,
-    borderBottomColor: Colors.whiteAlpha85,
-    innerTopLeftColor: Colors.primarySoft25,
-  },
-  insetActiveChip: {
-    borderTopColor: Colors.primaryDark,
-    borderLeftColor: Colors.primaryDark,
-    borderRightColor: Colors.whiteAlpha45,
-    borderBottomColor: Colors.whiteAlpha45,
-    innerTopLeftColor: Colors.primarySoft30,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.primarySoft25,
+    innerShadowColor: Colors.primarySoft15,
+    textColor: Colors.primaryDark,
+    iconColor: Colors.primaryDark,
   },
 } as const;

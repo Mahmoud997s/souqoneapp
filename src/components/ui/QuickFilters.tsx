@@ -77,7 +77,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
                   onPress={() => onClearFilter(qf.id)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="close-circle" size={12.5} color={FilterGlassTokens.chip.activeIconColor} />
+                  <Ionicons name="close-circle" size={12.5} color={SoftTactileTokens.inset.iconColor} />
                 </TouchableOpacity>
               )}
             </View>
@@ -90,13 +90,14 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
 
 const s = StyleSheet.create({
   quickFiltersContainer: {
-    backgroundColor: SoftTactileTokens.surfaceBg,
-    marginVertical: 4,
+    backgroundColor: Colors.transparent,
+    marginTop: SoftTactileTokens.rhythm.sectionGap,
+    marginBottom: 0,
   },
   quickFiltersContent: {
     paddingHorizontal: Spacing.space4,
     paddingVertical: 2,
-    gap: 6,
+    gap: SoftTactileTokens.rhythm.chipGap,
     alignItems: 'center',
   },
   quickFilterChip: {
@@ -106,19 +107,16 @@ const s = StyleSheet.create({
     borderRadius: FilterGlassTokens.chip.borderRadius,
     backgroundColor: SoftTactileTokens.raised.bg,
     borderWidth: SoftTactileTokens.raised.borderWidth,
-    borderTopColor: SoftTactileTokens.raised.borderTopColor,
-    borderLeftColor: SoftTactileTokens.raised.borderLeftColor,
-    borderRightColor: SoftTactileTokens.raised.borderRightColor,
-    borderBottomColor: SoftTactileTokens.raised.borderBottomColor,
+    borderColor: SoftTactileTokens.raised.borderColor,
     ...SoftTactileTokens.raised.shadow,
   },
   chipInsetOverlay: {
     ...StyleSheet.absoluteFill,
     borderRadius: FilterGlassTokens.chip.borderRadius,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderTopColor: SoftTactileTokens.insetActiveChip.innerTopLeftColor,
-    borderLeftColor: SoftTactileTokens.insetActiveChip.innerTopLeftColor,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1.5,
+    borderTopColor: SoftTactileTokens.inset.innerShadowColor,
+    borderLeftColor: SoftTactileTokens.inset.innerShadowColor,
   },
   chipPressableArea: {
     flexDirection: 'row',
@@ -139,11 +137,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   quickFilterChipActive: {
-    backgroundColor: FilterGlassTokens.chip.activeBg,
-    borderTopColor: SoftTactileTokens.insetActiveChip.borderTopColor,
-    borderLeftColor: SoftTactileTokens.insetActiveChip.borderLeftColor,
-    borderRightColor: SoftTactileTokens.insetActiveChip.borderRightColor,
-    borderBottomColor: SoftTactileTokens.insetActiveChip.borderBottomColor,
+    backgroundColor: SoftTactileTokens.inset.bg,
+    borderColor: SoftTactileTokens.inset.borderColor,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -157,6 +152,6 @@ const s = StyleSheet.create({
     flexShrink: 1,
   },
   quickFilterTxtActive: {
-    color: FilterGlassTokens.chip.activeTextColor,
+    color: SoftTactileTokens.inset.textColor,
   },
 });

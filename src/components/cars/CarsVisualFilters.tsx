@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  LayoutAnimation,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBrands, useCarModels } from '../../hooks/useCars';
@@ -101,7 +100,6 @@ export function CarsVisualFilters({
           <TouchableOpacity
             style={s.inlineEmptyBtn}
             onPress={() => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setActiveTab('brands');
             }}
             activeOpacity={0.7}
@@ -157,7 +155,6 @@ export function CarsVisualFilters({
                 onSelectFilter('make', '', undefined);
               } else {
                 onSelectFilter('make', item.id, item.name);
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setActiveTab('models');
               }
             },

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   View,
   StyleSheet,
@@ -18,6 +18,10 @@ import {
   physicalRowDirection,
   getGestureDirectionMultiplier,
 } from '../../utils/physicalDirection'
+import {
+  computeHorizontalSnapStops,
+  findNearestScrollStop,
+} from '../../utils/horizontalTrackSnap'
 
 export interface PhysicalHorizontalTrackProps {
   children: React.ReactNode
@@ -85,18 +89,24 @@ export function PhysicalHorizontalTrack({
 
   const translateX = useSharedValue(0)
   const startX = useSharedValue(0)
+  const snapStopsShared = useSharedValue<number[]>([0])
+
+  const childWidthsRef = useRef<number[]>([])
+  const [measuredWidthsVersion, setMeasuredWidthsVersion] = useState(0)
+
+  const childArray = useMemo(() => React.Children.toArray(children), [children])
 
   // Extract a stable fingerprint from children keys and count
-  const childrenCount = React.Children.count(children)
+  const childrenCount = childArray.length
   const childrenFingerprint = useMemo(() => {
     let keys = ''
-    React.Children.forEach(children, (child) => {
+    childArray.forEach((child) => {
       if (React.isValidElement(child) && child.key != null) {
         keys += `${child.key}:`
       }
     })
     return keys || `${childrenCount}`
-  }, [children, childrenCount])
+  }, [childArray, childrenCount])
 
   // Composite fingerprint for reset (tab change, data length change, or items replacement)
   const resetFingerprint = useMemo(
@@ -108,7 +118,54 @@ export function PhysicalHorizontalTrack({
   useEffect(() => {
     cancelAnimation(translateX)
     translateX.value = 0
-  }, [resetFingerprint])
+    childWidthsRef.current = new Array(childrenCount).fill(0)
+    setMeasuredWidthsVersion((v) => v + 1)
+  }, [resetFingerprint, childrenCount])
+
+  const recordChildWidth = useCallback((index: number, width: number) => {
+    if (width <= 0) return
+    if (Math.abs((childWidthsRef.current[index] ?? 0) - width) > 0.5) {
+      childWidthsRef.current[index] = width
+      setMeasuredWidthsVersion((v) => v + 1)
+    }
+  }, [])
+
+  const trackLayoutMetrics = useMemo(() => {
+    const flat = StyleSheet.flatten(contentContainerStyle) || {}
+    const gap = typeof flat.gap === 'number' ? flat.gap : typeof flat.columnGap === 'number' ? flat.columnGap : 0
+    const padH = typeof flat.paddingHorizontal === 'number' ? flat.paddingHorizontal : 0
+    const paddingStart =
+      typeof flat.paddingStart === 'number'
+        ? flat.paddingStart
+        : typeof flat.paddingRight === 'number'
+          ? flat.paddingRight
+          : padH
+    const paddingEnd =
+      typeof flat.paddingEnd === 'number'
+        ? flat.paddingEnd
+        : typeof flat.paddingLeft === 'number'
+          ? flat.paddingLeft
+          : padH
+    return { gap, paddingStart, paddingEnd }
+  }, [contentContainerStyle])
+
+  const snapStops = useMemo(() => {
+    const widths = childWidthsRef.current.slice(0, childrenCount)
+    if (widths.length === 0 || widths.some((w) => !w || w <= 0)) {
+      return [0]
+    }
+    return computeHorizontalSnapStops({
+      itemWidths: widths,
+      gap: trackLayoutMetrics.gap,
+      paddingStart: trackLayoutMetrics.paddingStart,
+      paddingEnd: trackLayoutMetrics.paddingEnd,
+      containerWidth,
+    })
+  }, [childrenCount, measuredWidthsVersion, trackLayoutMetrics, containerWidth])
+
+  useEffect(() => {
+    snapStopsShared.value = snapStops
+  }, [snapStops])
 
   // Guard: if content shrinks dynamically and maxScroll < current position, clamp it smoothly
   useEffect(() => {
@@ -157,11 +214,12 @@ export function PhysicalHorizontalTrack({
           return
         }
 
-        // Momentum projection based on velocity flick
+        // Momentum projection based on velocity flick, settled on nearest whole-chip boundary
         const projectedX = currentX + vx * 0.25
         const clampedTarget = Math.max(0, Math.min(maxScroll, projectedX))
+        const snapTarget = findNearestScrollStop(clampedTarget, snapStopsShared.value, maxScroll)
 
-        translateX.value = withSpring(clampedTarget, {
+        translateX.value = withSpring(snapTarget, {
           damping: 24,
           stiffness: 180,
           velocity: Math.abs(vx) > 150 ? vx * 0.5 : 0,
@@ -216,7 +274,20 @@ export function PhysicalHorizontalTrack({
               }
             }}
           >
-            {children}
+            {childArray.map((child, idx) => {
+              const itemKey =
+                React.isValidElement(child) && child.key != null
+                  ? String(child.key)
+                  : `track-item-${idx}`
+              return (
+                <View
+                  key={itemKey}
+                  onLayout={(e) => recordChildWidth(idx, e.nativeEvent.layout.width)}
+                >
+                  {child}
+                </View>
+              )
+            })}
           </Animated.View>
         </View>
       </GestureDetector>
