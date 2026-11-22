@@ -205,3 +205,38 @@ export const SoftTactileTokens = {
     iconColor: Colors.primaryDark,
   },
 } as const;
+
+/**
+ * QuickChipTokens (D-379)
+ * Plain flat chip tokens for QuickFilters across the 6 browse screens.
+ * Built strictly from existing Colors.* tokens; no shadows, no glass, no inset overlay.
+ */
+export const QuickChipTokens = {
+  borderWidth: StyleSheet.hairlineWidth,
+  normal: {
+    bg: Colors.surface,
+    borderColor: Colors.border,
+    textColor: Colors.text,
+    iconColor: Colors.textMuted,
+  },
+  pressed: {
+    bg: Colors.paleMint,
+    borderColor: Colors.primary,
+  },
+  hover: {
+    bg: Colors.paleMint,
+    borderColor: Colors.primaryBorderLight,
+  },
+  selected: {
+    bg: Colors.primary,
+    borderColor: Colors.primary,
+    textColor: Colors.white,
+    iconColor: Colors.white,
+  },
+  selectedPressed: {
+    bg: Colors.primaryDark,
+    borderColor: Colors.primaryDark,
+    textColor: Colors.white,
+    iconColor: Colors.white,
+  },
+} as const;
