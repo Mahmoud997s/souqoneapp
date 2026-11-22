@@ -207,23 +207,22 @@ describe('D-176b Fallback Wash & Sticky Reveal Characterization Tests', () => {
       expect(flatStyle.borderColor).toBe(Colors.border)
     })
 
-    it('(f) ProfilePhoneGuardView uses intensity=50 and light wash (0.08 opacity on white)', async () => {
-      const { getAllByTestId, getByTestId } = await render(
+    it('(f) ProfilePhoneGuardView uses solid wizard card Colors.surface on Colors.homeBg without card GlassSurface (D-378)', async () => {
+      const { getByTestId, queryByTestId } = await render(
         <ProfilePhoneGuardView
           title="توثيق الهاتف"
           headerVariant="glass"
         />
       )
 
-      const blurViews = getAllByTestId('mock-blur-view')
-      expect(blurViews.length).toBeGreaterThanOrEqual(1)
-      const hasIntensity50 = blurViews.some((bv) => bv.props.intensity === 50)
-      expect(hasIntensity50).toBe(true)
+      const rootStyle = StyleSheet.flatten(getByTestId('profile-phone-guard-view').props.style)
+      expect(rootStyle.backgroundColor).toBe(Colors.homeBg)
 
-      const washOverlay = getByTestId('profile-phone-guard-glass-surface-wash-overlay')
-      const flatStyle = StyleSheet.flatten(washOverlay.props.style)
-      expect(flatStyle.backgroundColor).toBe(Colors.white)
-      expect(flatStyle.opacity).toBe(BottomBarTokens.lightWashOpacity) // 0.08
+      const cardStyle = StyleSheet.flatten(getByTestId('profile-phone-guard-card').props.style)
+      expect(cardStyle.backgroundColor).toBe(Colors.surface)
+      expect(cardStyle.borderColor).toBe(Colors.border)
+      expect(queryByTestId('profile-phone-guard-glass-surface')).toBeNull()
+      expect(queryByTestId('profile-phone-guard-glass-surface-wash-overlay')).toBeNull()
     })
 
     it('(g) DraftResumeScreen uses pure blur (opacity 0 wash) for card and footer', async () => {
