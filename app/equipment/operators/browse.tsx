@@ -158,7 +158,7 @@ export default function BrowseOperatorsScreen() {
     let locationLabel = 'المحافظة'
     if (filters.governorateId) {
       const govObj = OMAN_LOCATIONS.find((g) => g.id === String(filters.governorateId))
-      locationLabel = govObj ? govObj.labelAr : `محافظة #${filters.governorateId}`
+      locationLabel = govObj ? govObj.labelAr : 'المحافظة'
     }
 
     // 3. Experience
