@@ -11,7 +11,7 @@ import { EquipmentVisualFilters } from '../components/equipment/EquipmentVisualF
 import { PartsVisualFilters } from '../components/parts/PartsVisualFilters'
 import { ServicesVisualFilters } from '../components/services/ServicesVisualFilters'
 import { MyListingsVisualFilters } from '../components/profile/MyListingsVisualFilters'
-import { FilterGlassTokens, SoftTactileTokens } from '../constants/filterGlassTokens'
+import { FilterGlassTokens, SoftTactileTokens, QuickChipTokens } from '../constants/filterGlassTokens'
 import { Colors } from '../constants/colors'
 import { Spacing } from '../constants/spacing'
 import {
@@ -44,8 +44,8 @@ jest.mock('../hooks/useBuses', () => ({
 
 describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, zero animation, and horizontal snap helper', () => {
   describe('1. Styles: transparent container bg, no two-tone borders, no primaryDark border on selected', () => {
-    it('QuickFilters container is transparent (not grey inputBg) and chips have no two-tone or primaryDark borders', async () => {
-      const { getByTestId, getByLabelText, getByText } = await render(
+    it('QuickFilters container is transparent (not grey inputBg) and chips use plain flat QuickChipTokens without two-tone borders or inset overlay', async () => {
+      const { getByTestId, getByLabelText, getByText, queryByTestId } = await render(
         <QuickFilters
           filters={[
             { id: 'brand', label: 'الماركة', isActive: false },
@@ -60,29 +60,28 @@ describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, ze
       expect(containerStyle.backgroundColor).toBe(Colors.transparent)
       expect(containerStyle.backgroundColor).not.toBe(Colors.inputBg)
 
-      const raisedStyle = StyleSheet.flatten(getByLabelText('الماركة').parent?.props.style)
-      expect(raisedStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg)
-      expect(raisedStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor)
-      expect(raisedStyle.borderTopColor).toBeUndefined()
-      expect(raisedStyle.borderLeftColor).toBeUndefined()
-      expect(raisedStyle.borderRightColor).toBeUndefined()
-      expect(raisedStyle.borderBottomColor).toBeUndefined()
-      expect(raisedStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius)
+      const normalStyle = StyleSheet.flatten(getByLabelText('الماركة').parent?.props.style)
+      expect(normalStyle.backgroundColor).toBe(QuickChipTokens.normal.bg)
+      expect(normalStyle.borderColor).toBe(QuickChipTokens.normal.borderColor)
+      expect(normalStyle.borderTopColor).toBeUndefined()
+      expect(normalStyle.borderLeftColor).toBeUndefined()
+      expect(normalStyle.borderRightColor).toBeUndefined()
+      expect(normalStyle.borderBottomColor).toBeUndefined()
+      expect(normalStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius)
 
       const selectedStyle = StyleSheet.flatten(getByLabelText('مسقط').parent?.props.style)
-      expect(selectedStyle.backgroundColor).toBe(Colors.paleMint)
-      expect(selectedStyle.borderColor).toBe(SoftTactileTokens.inset.borderColor)
-      expect(selectedStyle.borderColor).not.toBe(Colors.primaryDark)
+      expect(selectedStyle.backgroundColor).toBe(Colors.primary)
+      expect(selectedStyle.borderColor).toBe(Colors.primary)
       expect(selectedStyle.borderTopColor).toBeUndefined()
       expect(selectedStyle.borderLeftColor).toBeUndefined()
       expect(selectedStyle.borderRightColor).toBeUndefined()
       expect(selectedStyle.borderBottomColor).toBeUndefined()
-      expect(selectedStyle.shadowOpacity).toBe(0)
-      expect(selectedStyle.elevation).toBe(0)
+      expect(selectedStyle.shadowOpacity).toBeUndefined()
+      expect(selectedStyle.elevation).toBeUndefined()
 
       const selectedTextStyle = StyleSheet.flatten(getByText('مسقط').props.style)
-      expect(selectedTextStyle.color).toBe(Colors.primaryDark)
-      expect(getByTestId('quick-filter-inset-city')).toBeTruthy()
+      expect(selectedTextStyle.color).toBe(Colors.white)
+      expect(queryByTestId('quick-filter-inset-city')).toBeNull()
     })
 
     it('VisualFiltersBase container & contentArea are transparent and cards have single hairline + soft inset without primaryDark border', async () => {

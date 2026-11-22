@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import { FilterGlassTokens, SoftTactileTokens } from '../../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens, QuickChipTokens } from '../../constants/filterGlassTokens';
 import { PhysicalHorizontalTrack } from './PhysicalHorizontalTrack';
 
 export interface QuickFilterItem {
@@ -19,6 +19,77 @@ export interface QuickFiltersProps {
   onClearFilter: (id: string) => void;
 }
 
+interface QuickFilterChipProps {
+  item: QuickFilterItem;
+  onFilterPress: (id: string) => void;
+  onClearFilter: (id: string) => void;
+}
+
+function QuickFilterChip({ item, onFilterPress, onClearFilter }: QuickFilterChipProps) {
+  const isActive = Boolean(item.isActive);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClearPressed, setIsClearPressed] = useState(false);
+
+  const chipStateStyle = isActive
+    ? isPressed || isHovered || isClearPressed
+      ? s.quickFilterChipSelectedPressed
+      : s.quickFilterChipActive
+    : isPressed
+      ? s.quickFilterChipPressed
+      : isHovered
+        ? s.quickFilterChipHovered
+        : null;
+
+  return (
+    <View
+      testID={`quick-filter-chip-${item.id}`}
+      style={[s.quickFilterChip, chipStateStyle]}
+    >
+      <Pressable
+        style={isActive ? s.chipPressableArea : s.chipPressableAreaInactive}
+        accessibilityRole="button"
+        accessibilityLabel={item.label}
+        accessibilityState={{ selected: isActive }}
+        // Effective touch height: visible height is ~28pt (paddingVertical 6*2 + lineHeight 15 + hairline border).
+        // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt),
+        // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged).
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+        onPress={() => onFilterPress(item.id)}
+        onPressIn={() => setIsPressed(true)}
+        onPressOut={() => setIsPressed(false)}
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
+      >
+        {!isActive && item.icon && (
+          <Ionicons name={item.icon} size={12.5} color={QuickChipTokens.normal.iconColor} />
+        )}
+        <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
+          {item.label}
+        </Text>
+        {!isActive && (
+          <Ionicons name="chevron-down" size={11} color={QuickChipTokens.normal.iconColor} />
+        )}
+      </Pressable>
+      {isActive && (
+        <Pressable
+          style={s.clearButton}
+          // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10.
+          // hitSlop 16 is bounded by the chip container, giving accessible sibling hit area without parent nesting clipping.
+          hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+          accessibilityRole="button"
+          accessibilityLabel="إزالة الفلتر"
+          onPress={() => onClearFilter(item.id)}
+          onPressIn={() => setIsClearPressed(true)}
+          onPressOut={() => setIsClearPressed(false)}
+        >
+          <Ionicons name="close-circle" size={12.5} color={QuickChipTokens.selected.iconColor} />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFiltersProps) {
   if (!filters || filters.length === 0) return null;
 
@@ -28,61 +99,14 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
         minHeight={34}
         contentContainerStyle={s.quickFiltersContent}
       >
-        {filters.map((qf) => {
-          const isActive = qf.isActive;
-          
-          return (
-            <View
-              key={qf.id}
-              style={[s.quickFilterChip, isActive && s.quickFilterChipActive]}
-            >
-              {isActive && (
-                <View
-                  testID={`quick-filter-inset-${qf.id}`}
-                  pointerEvents="none"
-                  style={s.chipInsetOverlay}
-                />
-              )}
-              <TouchableOpacity
-                style={[s.chipPressableArea, !isActive && s.chipPressableAreaInactive]}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={qf.label}
-                accessibilityState={{ selected: Boolean(isActive) }}
-                // Effective touch height: visible height is 29pt (paddingVertical 6*2 + lineHeight 15 + border 2).
-                // hitSlop 8 top/bottom extends up to parent PhysicalHorizontalTrack bounds (minHeight 34pt),
-                // yielding effective touch height of ~34pt (clipped by track bounds, keeping visible layout unchanged).
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                onPress={() => onFilterPress(qf.id)}
-              >
-                {!isActive && qf.icon && (
-                  <Ionicons name={qf.icon} size={12.5} color={FilterGlassTokens.chip.iconColor} />
-                )}
-                <Text style={[s.quickFilterTxt, isActive && s.quickFilterTxtActive]} numberOfLines={1}>
-                  {qf.label}
-                </Text>
-                {!isActive && (
-                  <Ionicons name="chevron-down" size={11} color={FilterGlassTokens.chip.iconColor} />
-                )}
-              </TouchableOpacity>
-              {isActive && (
-                <TouchableOpacity
-                  style={s.clearButton}
-                  // Effective clear target: 12.5pt icon with paddingVertical 6 + paddingEnd 10 (visible ~29x22.5pt).
-                  // hitSlop 16 is bounded by the chip container (29pt height), giving effective touch target of ~29x24pt.
-                  // VoiceOver accesses this directly as a sibling button without parent nesting clipping.
-                  hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-                  accessibilityRole="button"
-                  accessibilityLabel="إزالة الفلتر"
-                  onPress={() => onClearFilter(qf.id)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="close-circle" size={12.5} color={SoftTactileTokens.inset.iconColor} />
-                </TouchableOpacity>
-              )}
-            </View>
-          );
-        })}
+        {filters.map((qf) => (
+          <QuickFilterChip
+            key={qf.id}
+            item={qf}
+            onFilterPress={onFilterPress}
+            onClearFilter={onClearFilter}
+          />
+        ))}
       </PhysicalHorizontalTrack>
     </View>
   );
@@ -105,18 +129,25 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: FilterGlassTokens.chip.borderRadius,
-    backgroundColor: SoftTactileTokens.raised.bg,
-    borderWidth: SoftTactileTokens.raised.borderWidth,
-    borderColor: SoftTactileTokens.raised.borderColor,
-    ...SoftTactileTokens.raised.shadow,
+    backgroundColor: QuickChipTokens.normal.bg,
+    borderWidth: QuickChipTokens.borderWidth,
+    borderColor: QuickChipTokens.normal.borderColor,
   },
-  chipInsetOverlay: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: FilterGlassTokens.chip.borderRadius,
-    borderTopWidth: 1.5,
-    borderLeftWidth: 1.5,
-    borderTopColor: SoftTactileTokens.inset.innerShadowColor,
-    borderLeftColor: SoftTactileTokens.inset.innerShadowColor,
+  quickFilterChipPressed: {
+    backgroundColor: QuickChipTokens.pressed.bg,
+    borderColor: QuickChipTokens.pressed.borderColor,
+  },
+  quickFilterChipHovered: {
+    backgroundColor: QuickChipTokens.hover.bg,
+    borderColor: QuickChipTokens.hover.borderColor,
+  },
+  quickFilterChipActive: {
+    backgroundColor: QuickChipTokens.selected.bg,
+    borderColor: QuickChipTokens.selected.borderColor,
+  },
+  quickFilterChipSelectedPressed: {
+    backgroundColor: QuickChipTokens.selectedPressed.bg,
+    borderColor: QuickChipTokens.selectedPressed.borderColor,
   },
   chipPressableArea: {
     flexDirection: 'row',
@@ -127,7 +158,12 @@ const s = StyleSheet.create({
     gap: 5,
   },
   chipPressableAreaInactive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingStart: 10,
     paddingEnd: 10,
+    gap: 5,
   },
   clearButton: {
     paddingVertical: 6,
@@ -136,22 +172,16 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  quickFilterChipActive: {
-    backgroundColor: SoftTactileTokens.inset.bg,
-    borderColor: SoftTactileTokens.inset.borderColor,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
   quickFilterTxt: {
-    fontFamily: FilterGlassTokens.chip.fontFamily,  
+    fontFamily: FilterGlassTokens.chip.fontFamily,
     fontSize: FilterGlassTokens.chip.fontSize,
     lineHeight: FilterGlassTokens.chip.lineHeight,
-    color: FilterGlassTokens.chip.textColor,
+    color: QuickChipTokens.normal.textColor,
     textAlign: 'left',
     writingDirection: 'rtl',
     flexShrink: 1,
   },
   quickFilterTxtActive: {
-    color: SoftTactileTokens.inset.textColor,
+    color: QuickChipTokens.selected.textColor,
   },
 });
