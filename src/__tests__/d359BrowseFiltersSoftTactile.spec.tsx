@@ -3,11 +3,11 @@ import { LayoutAnimation, StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilters } from '../components/ui/QuickFilters';
 import { VisualFiltersBase } from '../components/ui/VisualFiltersBase';
-import { FilterGlassTokens, SoftTactileTokens } from '../constants/filterGlassTokens';
+import { FilterGlassTokens, SoftTactileTokens, QuickChipTokens } from '../constants/filterGlassTokens';
 import { Colors } from '../constants/colors';
 
-describe('D-359/D-377: Soft tactile QuickFilters & VisualFilters, transparent page bg, no tab animation, glass tab bar preserved', () => {
-  it('QuickFilters uses transparent page bg, raised unselected chips without FilterGlassSurface, soft inset active chip, same sizes', async () => {
+describe('D-359/D-377/D-379: Plain flat QuickFilters & soft tactile VisualFilters, transparent page bg, no tab animation, glass tab bar preserved', () => {
+  it('QuickFilters uses transparent page bg, plain flat normal chips without FilterGlassSurface, solid primary selected chip without inset overlay, same sizes', async () => {
     const { getByTestId, getByLabelText, queryByTestId } = await render(
       <QuickFilters
         filters={[
@@ -33,16 +33,16 @@ describe('D-359/D-377: Soft tactile QuickFilters & VisualFilters, transparent pa
 
     const inactiveChip = getByLabelText('الماركة').parent;
     const inactiveStyle = StyleSheet.flatten(inactiveChip?.props.style);
-    expect(inactiveStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg);
+    expect(inactiveStyle.backgroundColor).toBe(QuickChipTokens.normal.bg);
     expect(inactiveStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius);
-    expect(inactiveStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor);
+    expect(inactiveStyle.borderColor).toBe(QuickChipTokens.normal.borderColor);
 
     const activeChip = getByLabelText('مسقط').parent;
     const activeStyle = StyleSheet.flatten(activeChip?.props.style);
-    expect(activeStyle.backgroundColor).toBe(SoftTactileTokens.inset.bg);
+    expect(activeStyle.backgroundColor).toBe(QuickChipTokens.selected.bg);
     expect(activeStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius);
-    expect(activeStyle.borderColor).toBe(SoftTactileTokens.inset.borderColor);
-    expect(getByTestId('quick-filter-inset-loc')).toBeTruthy();
+    expect(activeStyle.borderColor).toBe(QuickChipTokens.selected.borderColor);
+    expect(queryByTestId('quick-filter-inset-loc')).toBeNull();
 
     // Size tokens unchanged
     expect(FilterGlassTokens.chip.fontSize).toBe(11);

@@ -1,7 +1,11 @@
 import React from 'react';
+import fs from 'fs';
+import path from 'path';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QuickFilters, QuickFilterItem } from '../QuickFilters';
-import { FilterGlassTokens, SoftTactileTokens } from '../../../constants/filterGlassTokens';
+import { FilterGlassTokens, QuickChipTokens } from '../../../constants/filterGlassTokens';
+import { Colors } from '../../../constants/colors';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -117,8 +121,8 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     expect(onFilterPress).not.toHaveBeenCalled();
   });
 
-  it('applies ice glass tokens to inactive chips and primary tokens to active chips without overflow hidden', async () => {
-    const { getByLabelText, getByText } = await render(
+  it('applies plain flat QuickChipTokens to normal chips and solid primary tokens to selected chips without shadow, elevation, or inset overlay', async () => {
+    const { getByLabelText, getByText, queryByTestId } = await render(
       <QuickFilters
         filters={dummyFilters}
         onFilterPress={jest.fn()}
@@ -126,37 +130,71 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
       />
     );
 
-    // Inactive chip parent container
-    const inactiveText = getByText('الماركة');
+    // Normal chip container
     const inactivePressable = getByLabelText('الماركة');
-    const inactiveChipContainer = inactivePressable.parent;
-    expect(inactiveChipContainer?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          backgroundColor: SoftTactileTokens.raised.bg,
-          borderColor: SoftTactileTokens.raised.borderColor,
-          borderWidth: SoftTactileTokens.raised.borderWidth,
-          borderRadius: FilterGlassTokens.chip.borderRadius,
-        }),
-      ])
-    );
-    // iOS shadow preservation: overflow must NOT be hidden
-    expect(inactiveChipContainer?.props.style).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ overflow: 'hidden' }),
-      ])
+    const inactiveChipStyle = StyleSheet.flatten(inactivePressable.parent?.props.style);
+    expect(inactiveChipStyle.backgroundColor).toBe(QuickChipTokens.normal.bg);
+    expect(inactiveChipStyle.borderColor).toBe(QuickChipTokens.normal.borderColor);
+    expect(inactiveChipStyle.borderWidth).toBe(QuickChipTokens.borderWidth);
+    expect(inactiveChipStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius);
+    expect(inactiveChipStyle.shadowOpacity).toBeUndefined();
+    expect(inactiveChipStyle.elevation).toBeUndefined();
+    expect(inactiveChipStyle.overflow).not.toBe('hidden');
+    expect(queryByTestId('quick-filter-inset-f1')).toBeNull();
+
+    // Selected chip container
+    const activePressable = getByLabelText('مسقط');
+    const activeChipStyle = StyleSheet.flatten(activePressable.parent?.props.style);
+    expect(activeChipStyle.backgroundColor).toBe(Colors.primary);
+    expect(activeChipStyle.borderColor).toBe(Colors.primary);
+    expect(activeChipStyle.shadowOpacity).toBeUndefined();
+    expect(activeChipStyle.elevation).toBeUndefined();
+    expect(queryByTestId('quick-filter-inset-f2')).toBeNull();
+
+    // Selected chip text & clear icon are white
+    const activeTextStyle = StyleSheet.flatten(getByText('مسقط').props.style);
+    expect(activeTextStyle.color).toBe(Colors.white);
+    const clearBtn = getByLabelText('إزالة الفلتر');
+    const clearIcon = clearBtn.children[0] as { props?: { color?: string } };
+    expect(clearIcon?.props?.color).toBe(Colors.white);
+  });
+
+  it('applies pressed state styles on pressIn and restores on pressOut for both normal and selected chips (D-379)', async () => {
+    const { getByLabelText, getByTestId } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={jest.fn()}
+        onClearFilter={jest.fn()}
+      />
     );
 
-    // Active chip parent container uses unified soft inset tokens
-    const activePressable = getByLabelText('مسقط');
-    const activeChipContainer = activePressable.parent;
-    expect(activeChipContainer?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          backgroundColor: SoftTactileTokens.inset.bg,
-          borderColor: SoftTactileTokens.inset.borderColor,
-        }),
-      ])
-    );
+    // Normal chip pressed -> paleMint fill + primary border
+    const normalBtn = getByLabelText('الماركة');
+    await fireEvent(normalBtn, 'pressIn');
+    const normalPressedStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f1').props.style);
+    expect(normalPressedStyle.backgroundColor).toBe(Colors.paleMint);
+    expect(normalPressedStyle.borderColor).toBe(Colors.primary);
+
+    await fireEvent(normalBtn, 'pressOut');
+    const normalRestoredStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f1').props.style);
+    expect(normalRestoredStyle.backgroundColor).toBe(Colors.surface);
+    expect(normalRestoredStyle.borderColor).toBe(Colors.border);
+
+    // Selected chip pressed -> primaryDark fill + primaryDark border
+    const selectedBtn = getByLabelText('مسقط');
+    await fireEvent(selectedBtn, 'pressIn');
+    const selectedPressedStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
+    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primaryDark);
+    expect(selectedPressedStyle.borderColor).toBe(Colors.primaryDark);
+
+    await fireEvent(selectedBtn, 'pressOut');
+    const selectedRestoredStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
+    expect(selectedRestoredStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedRestoredStyle.borderColor).toBe(Colors.primary);
+  });
+
+  it('contains no animation APIs or activeOpacity in QuickFilters.tsx (D-379)', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../QuickFilters.tsx'), 'utf8');
+    expect(src).not.toMatch(/\b(Animated|Reanimated|useSharedValue|withTiming|withSpring|LayoutAnimation|TouchableOpacity|activeOpacity)\b/);
   });
 });
