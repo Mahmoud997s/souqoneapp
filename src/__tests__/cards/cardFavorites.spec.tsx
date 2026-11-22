@@ -8,7 +8,7 @@ import { PartCard } from '../../components/parts/PartCard'
 import { ServiceCard } from '../../components/services/ServiceCard'
 import { ListingCardBase } from '../../components/ui/ListingCardBase'
 import { favoritesApi } from '../../api/favorites'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { useAuthStore } from '../../store/authStore'
 
 jest.mock('expo-image', () => ({
@@ -40,9 +40,9 @@ jest.mock('../../api/favorites', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
   },
 }))
 
@@ -221,11 +221,11 @@ describe('Card Favorites Entity Types & Error Handling (D-091)', () => {
 
     await waitFor(() => {
       expect(favoritesApi.add).toHaveBeenCalledWith('LISTING', 'fail-test-1')
-      expect(dialogService.alert).toHaveBeenCalledTimes(1)
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تعذّر تحديث المفضلة، حاول مرة أخرى'
-      )
+      expect(toastService.show).toHaveBeenCalledTimes(1)
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'تعذّر تحديث المفضلة، حاول مرة أخرى',
+      }))
     })
   })
 

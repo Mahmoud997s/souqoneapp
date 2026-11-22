@@ -4,11 +4,11 @@ import {
   PROFILE_PHONE_REQUIRED_CODE,
   PROFILE_PHONE_REQUIRED_MESSAGE,
 } from './profilePhoneGuard'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { router } from 'expo-router'
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../store/toastStore', () => ({
+  toastService: {
     confirm: jest.fn(),
   },
 }))
@@ -65,18 +65,18 @@ describe('profilePhoneGuard util', () => {
   })
 
   describe('promptProfilePhoneRequired', () => {
-    it('calls dialogService.confirm with correct Arabic text and navigation callback', () => {
+    it('calls toastService.confirm with correct Arabic text and navigation callback', () => {
       promptProfilePhoneRequired()
 
-      expect(dialogService.confirm).toHaveBeenCalledTimes(1)
-      const [title, message, onConfirm, confirmText, cancelText] = (dialogService.confirm as jest.Mock).mock.calls[0]
-      expect(title).toBe('إضافة رقم الهاتف مطلوبة')
-      expect(message).toBe(PROFILE_PHONE_REQUIRED_MESSAGE)
-      expect(confirmText).toBe('أضف رقمك')
-      expect(cancelText).toBe('إلغاء')
+      expect(toastService.confirm).toHaveBeenCalledTimes(1)
+      const config = (toastService.confirm as jest.Mock).mock.calls[0][0]
+      expect(config.title).toBe('إضافة رقم الهاتف مطلوبة')
+      expect(config.message).toBe(PROFILE_PHONE_REQUIRED_MESSAGE)
+      expect(config.confirmLabel).toBe('أضف رقمك')
+      expect(config.cancelLabel).toBe('إلغاء')
 
       // Execute confirmation callback
-      onConfirm()
+      config.onConfirm()
       expect(router.push).toHaveBeenCalledWith('/profile/edit-profile')
     })
   })

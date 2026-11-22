@@ -27,6 +27,7 @@ import { getGestureDirectionMultiplier } from '../../utils/physicalDirection'
 import type { GalleryImage } from '../../types/carDetailViewModel.types'
 import { Typography, lineHeightFor } from '../../constants/typography'
 import { GALLERY_CATEGORY_ICONS, type GalleryCategory } from './ImageGallery'
+import { ModalToastHost } from '../ui/ModalToastHost'
 
 export const TOP_BAR_SAFE_MARGIN = Spacing.space3
 export const BOTTOM_BAR_SAFE_MARGIN = Spacing.space3
@@ -252,6 +253,7 @@ export function ImageViewerModal({
           <Text style={s.tipText}>اضغط مرتين للتكبير / التصغير</Text>
         </View>
       </View>
+      {visible && <ModalToastHost />}
     </Modal>
   )
 }

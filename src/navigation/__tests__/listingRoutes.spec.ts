@@ -12,7 +12,7 @@ import { useCarWizardStore } from '../../store/carWizardStore'
 import { usePartWizardStore } from '../../store/partWizardStore'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { listingsApi } from '../../api/listings'
 import { partsApi } from '../../api/parts'
 import { servicesApi } from '../../api/services'
@@ -126,7 +126,7 @@ describe('listingRoutes', () => {
       id: 'srv-99',
       title: 'Fetched Service',
     })
-    const alertSpy = jest.spyOn(dialogService, 'alert').mockImplementation(jest.fn())
+    const showSpy = jest.spyOn(toastService, 'show').mockImplementation(jest.fn())
 
     const { result } = await renderHook(() => useListingNavigation())
 
@@ -142,7 +142,7 @@ describe('listingRoutes', () => {
       const ok = await result.current.editListing('SPARE_PART', 'part-99')
       expect(ok).toBe(false)
     })
-    expect(alertSpy).toHaveBeenCalled()
+    expect(showSpy).toHaveBeenCalled()
     expect(result.current.isEditingLoading).toBe(false)
 
     await act(async () => {

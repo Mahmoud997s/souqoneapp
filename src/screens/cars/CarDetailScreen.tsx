@@ -33,7 +33,8 @@ import { SUPPORT_MAILTO } from '../../constants/support'
 import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useCarDetail } from '../../hooks/listing-detail/useCarDetail'
@@ -50,7 +51,6 @@ import {
   type SimilarCarItem,
 } from '../../hooks/listing-detail/useSimilarListings'
 import { carListingToFormData } from '../../utils/listing-detail/carListingToFormData'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
@@ -210,7 +210,9 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
   }
 
   const handleSupportPress = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleOwnerAction = async (actionId: OwnerActionId) => {
@@ -228,37 +230,40 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert(
-            'تعارض في البيانات',
-            'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-          )
+          toastService.show({
+            kind: 'error',
+            title: 'تم تعديل الإعلان من جهاز آخر، يرجى التحديث والمحاولة مجدداً',
+          })
         } else {
           const errorMsg = getMutationErrorMessage(
             err,
             'تعذر إتمام الإجراء المطلوب. يرجى المحاولة لاحقاً.'
           )
-          dialogService.alert('خطأ', errorMsg)
+          toastService.show({ kind: 'error', title: errorMsg })
         }
       }
     }
 
     if (action.requiresConfirm) {
-      dialogService.confirm(
-        action.confirmTitle ?? 'تأكيد الإجراء',
-        action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        execute,
-        action.confirmLabel ?? 'تأكيد',
-        'إلغاء',
-        action.tone === 'danger'
-      )
+      toastService.confirm({
+        title: action.confirmTitle ?? 'تأكيد الإجراء',
+        message: action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: action.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: execute,
+      })
     } else {
       await execute()
     }
@@ -458,7 +463,9 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
               onPress={() => {
                 Linking.openURL(
                   `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
-                )
+                ).catch(() => {
+                  toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق الخرائط' })
+                })
               }}
             >
               <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />

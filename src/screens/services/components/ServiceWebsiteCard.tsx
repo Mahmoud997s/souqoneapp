@@ -6,7 +6,7 @@ import { Spacing } from '../../../constants/spacing'
 import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import type { ServiceWebsiteViewModel } from '../../../types/serviceDetailViewModel.types'
-import { dialogService } from '../../../store/dialogStore'
+import { toastService } from '../../../store/toastStore'
 
 export interface ServiceWebsiteCardProps {
   website?: ServiceWebsiteViewModel
@@ -27,10 +27,10 @@ export function ServiceWebsiteCard({ website }: ServiceWebsiteCardProps) {
       if (canOpen) {
         await Linking.openURL(website.url)
       } else {
-        dialogService.alert('تنبيه', 'تعذر فتح الرابط المطلوب', 'error')
+        toastService.show({ kind: 'error', title: 'تعذر فتح الرابط' })
       }
     } catch {
-      dialogService.alert('تنبيه', 'حدث خطأ أثناء فتح الرابط', 'error')
+      toastService.show({ kind: 'error', title: 'تعذر فتح الرابط' })
     }
   }
 

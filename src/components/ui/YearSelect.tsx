@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import { ModalToastHost } from './ModalToastHost'
 
 interface YearSelectProps {
   value?: string
@@ -145,6 +146,7 @@ export function YearSelect({
             />
           </View>
         </KeyboardAvoidingView>
+        {modalVisible && <ModalToastHost />}
       </Modal>
     </View>
   )

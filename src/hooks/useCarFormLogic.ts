@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { CarFormData, CarFormField } from '../types/carForm.types'
 import { MAX_CAR_IMAGES } from '../constants/cars'
 import { router } from 'expo-router'
@@ -35,7 +35,7 @@ export function useCarFormLogic(
       const currentImagesCount = (formData.images?.length || 0) + (formData.existingImages?.length || 0)
       
       if (currentImagesCount >= MAX_CAR_IMAGES) {
-        dialogService.alert('تنبيه', `لا يمكن تجاوز ${MAX_CAR_IMAGES} صورة كحد أقصى.`)
+        toastService.show({ kind: 'warning', title: `الحد الأقصى ${MAX_CAR_IMAGES} صور` })
         setIsUploading(false)
         return
       }

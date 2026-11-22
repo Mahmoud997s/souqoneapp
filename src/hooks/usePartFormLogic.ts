@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { PartFormData, PartImageItem, PartExistingImage } from '../store/partWizardStore'
 import { MAX_PART_IMAGES } from '../constants/parts'
 import { router } from 'expo-router'
@@ -27,7 +27,7 @@ export function usePartFormLogic(
       const currentImagesCount = (formData.images?.length || 0) + (formData.existingImages?.length || 0)
 
       if (currentImagesCount >= MAX_PART_IMAGES) {
-        dialogService.alert('تنبيه', `لا يمكن تجاوز ${MAX_PART_IMAGES} صور كحد أقصى.`)
+        toastService.show({ kind: 'warning', title: `الحد الأقصى ${MAX_PART_IMAGES} صور` })
         setIsUploading(false)
         return
       }
@@ -48,7 +48,7 @@ export function usePartFormLogic(
         setField('images', newImages)
       }
     } catch (err) {
-      dialogService.alert('خطأ', 'تعذر اختيار الصور، يرجى المحاولة مجدداً')
+      toastService.show({ kind: 'error', title: 'تعذر اختيار الصور، حاول مرة أخرى' })
     } finally {
       setIsUploading(false)
     }

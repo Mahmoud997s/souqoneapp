@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native'
 import { useAccountDeletion } from '../hooks/useAccountDeletion'
 import { useAuthStore } from '../store/authStore'
 import { usersApi } from '../api/users'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 
 const mockInvalidateQueries = jest.fn()
 jest.mock('../api/queryClient', () => ({
@@ -37,10 +37,10 @@ describe('useAccountDeletion hook', () => {
     const spyCancel = jest.spyOn(usersApi, 'cancelDeletion').mockResolvedValue({
       data: { message: 'تم إلغاء طلب حذف الحساب بنجاح' },
     } as any)
-    const spyAlert = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    const spyShow = jest.spyOn(toastService, 'show').mockImplementation(() => {})
     const spyConfirm = jest
-      .spyOn(dialogService, 'confirm')
-      .mockImplementation((_title, _msg, onConfirm) => {
+      .spyOn(toastService, 'confirm')
+      .mockImplementation(({ onConfirm }) => {
         onConfirm()
       })
 
@@ -51,20 +51,21 @@ describe('useAccountDeletion hook', () => {
     })
 
     expect(spyConfirm).toHaveBeenCalledWith(
-      'إلغاء طلب حذف الحساب',
-      'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
-      expect.any(Function),
-      'نعم، إلغاء الحذف',
-      'تراجع'
+      expect.objectContaining({
+        title: 'إلغاء طلب حذف الحساب',
+        message: 'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
+        confirmLabel: 'نعم، إلغاء الحذف',
+        cancelLabel: 'تراجع',
+        onConfirm: expect.any(Function),
+      })
     )
     expect(spyCancel).toHaveBeenCalledTimes(1)
     expect(useAuthStore.getState().user?.deletionScheduledAt).toBeNull()
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(1)
-    expect(spyAlert).toHaveBeenCalledWith(
-      'تم الإلغاء',
-      'تم إلغاء طلب حذف حسابك وسيتم إظهار إعلاناتك مرة أخرى.',
-      'success'
-    )
+    expect(spyShow).toHaveBeenCalledWith({
+      kind: 'success',
+      title: 'تم إلغاء طلب حذف الحساب',
+    })
   })
 
   it('handles 400 "غير مجدول" error gracefully by clearing local state without crash', async () => {
@@ -74,10 +75,10 @@ describe('useAccountDeletion hook', () => {
         data: { message: 'الحساب غير مجدول للحذف' },
       },
     })
-    const spyAlert = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    const spyShow = jest.spyOn(toastService, 'show').mockImplementation(() => {})
     jest
-      .spyOn(dialogService, 'confirm')
-      .mockImplementation((_title, _msg, onConfirm) => {
+      .spyOn(toastService, 'confirm')
+      .mockImplementation(({ onConfirm }) => {
         onConfirm()
       })
 
@@ -89,11 +90,10 @@ describe('useAccountDeletion hook', () => {
 
     expect(useAuthStore.getState().user?.deletionScheduledAt).toBeNull()
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(1)
-    expect(spyAlert).toHaveBeenCalledWith(
-      'تنبيه',
-      'الحساب غير مجدول للحذف حالياً.',
-      'info'
-    )
+    expect(spyShow).toHaveBeenCalledWith({
+      kind: 'info',
+      title: 'الحساب غير مجدول للحذف حالياً',
+    })
   })
 
   it('handles unexpected errors by displaying server error message', async () => {
@@ -103,10 +103,10 @@ describe('useAccountDeletion hook', () => {
         data: { message: 'حدث خطأ في الخادم' },
       },
     })
-    const spyAlert = jest.spyOn(dialogService, 'alert').mockImplementation(() => {})
+    const spyShow = jest.spyOn(toastService, 'show').mockImplementation(() => {})
     jest
-      .spyOn(dialogService, 'confirm')
-      .mockImplementation((_title, _msg, onConfirm) => {
+      .spyOn(toastService, 'confirm')
+      .mockImplementation(({ onConfirm }) => {
         onConfirm()
       })
 
@@ -117,10 +117,11 @@ describe('useAccountDeletion hook', () => {
     })
 
     expect(useAuthStore.getState().user?.deletionScheduledAt).toBe('2026-10-25T11:15:00.000Z')
-    expect(spyAlert).toHaveBeenCalledWith(
-      'خطأ',
-      'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.',
-      'error'
+    expect(spyShow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'error',
+        title: 'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.',
+      })
     )
   })
 })

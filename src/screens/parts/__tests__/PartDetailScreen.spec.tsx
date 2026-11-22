@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import { PartDetailScreen } from '../PartDetailScreen'
-import { dialogService } from '../../../store/dialogStore'
+import { toastService } from '../../../store/toastStore'
 import { assertOwnerHasPhoneForEdit } from '../../../utils/assertOwnerHasPhoneForEdit'
 import { partsApi } from '../../../api/parts'
 import { usePartWizardStore } from '../../../store/partWizardStore'
@@ -58,10 +58,11 @@ jest.mock('@expo/vector-icons', () => {
   return { Ionicons: (props: any) => <View {...props} /> }
 })
 
-jest.mock('../../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -352,8 +353,8 @@ describe('PartDetailScreen', () => {
     it('handles owner delete action with confirmation dialog', async () => {
       mockCurrentUser = { id: 'seller-999' }
 
-      ;(dialogService.confirm as jest.Mock).mockImplementation(
-        (title, message, onConfirm) => {
+      ;(toastService.confirm as jest.Mock).mockImplementation(
+        ({ onConfirm }) => {
           onConfirm()
         }
       )
@@ -363,9 +364,12 @@ describe('PartDetailScreen', () => {
       const deleteBtn = screen.getByTestId('btn-owner-delete')
       await fireEvent.press(deleteBtn)
 
-      expect(dialogService.confirm).toHaveBeenCalled()
+      expect(toastService.confirm).toHaveBeenCalled()
       expect(partsApi.remove).toHaveBeenCalledWith('part-101')
-      expect(dialogService.alert).toHaveBeenCalledWith('تم', 'تم حذف إعلان القطعة بنجاح', 'success')
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'success',
+        title: 'تم حذف الإعلان',
+      })
       expect(mockRouterBack).toHaveBeenCalled()
     })
   })

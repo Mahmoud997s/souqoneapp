@@ -32,7 +32,8 @@ import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
+import { resolveOwnerActionSuccessToastTitle } from '../../utils/listing-detail/ownerActionToast'
 
 // Hooks & Utilities
 import { useBusDetail } from '../../hooks/listing-detail/useBusDetail'
@@ -50,7 +51,6 @@ import {
   type SimilarBusItem,
 } from '../../hooks/listing-detail/useBusSimilarListings'
 import { translateBusOwnerError } from '../../utils/listing-detail/busOwnerErrors'
-import { OWNER_ACTION_SUCCESS_MESSAGE } from '../../utils/listing-detail/ownerActionMatrix'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
 import { useAppReducedMotion } from '../../utils/listing-detail/useAppReducedMotion'
 import {
@@ -215,7 +215,9 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
   }
 
   const handleSupportPress = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleRequireLogin = () => {
@@ -238,30 +240,33 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
       try {
         await ownerActions.run(actionId)
         if (actionId === 'delete') {
+          toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           goBackSafely()
           return
         }
         await refetch()
-        const msg = OWNER_ACTION_SUCCESS_MESSAGE[actionId] ?? 'تم تغيير حالة الإعلان بنجاح'
-        dialogService.alert('تم بنجاح', msg, 'success')
+        toastService.show({
+          kind: 'success',
+          title: resolveOwnerActionSuccessToastTitle(actionId),
+        })
       } catch (err: unknown) {
         if (isOptimisticLockError(err)) {
-          dialogService.alert('تعارض في البيانات', translateBusOwnerError(err))
+          toastService.show({ kind: 'error', title: translateBusOwnerError(err) })
         } else {
-          dialogService.alert('خطأ', translateBusOwnerError(err))
+          toastService.show({ kind: 'error', title: translateBusOwnerError(err) })
         }
       }
     }
 
     if (action.requiresConfirm) {
-      dialogService.confirm(
-        action.confirmTitle ?? 'تأكيد الإجراء',
-        action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        execute,
-        action.confirmLabel ?? 'تأكيد',
-        'إلغاء',
-        action.tone === 'danger'
-      )
+      toastService.confirm({
+        title: action.confirmTitle ?? 'تأكيد الإجراء',
+        message: action.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: action.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: execute,
+      })
     } else {
       await execute()
     }

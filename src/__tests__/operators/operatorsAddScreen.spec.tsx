@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AddOperatorScreen from '../../../app/equipment/operators/add'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import * as equipmentHooks from '../../hooks/useEquipment'
 import { useOperatorWizardStore } from '../../store/operatorWizardStore'
 import { useAuthStore } from '../../store/authStore'
@@ -144,7 +144,7 @@ describe('AddOperatorScreen (S5 / 429 / 400 FieldErrors) (D-281)', () => {
       }),
       isPending: false,
     } as any)
-    const alertSpy = jest.spyOn(dialogService, 'alert')
+    const alertSpy = jest.spyOn(toastService, 'show')
 
     await render(<AddOperatorScreen />, { wrapper: createWrapper() })
     const submitBtn = screen.getByText('نشر بطاقتي في الدليل')
@@ -164,7 +164,10 @@ describe('AddOperatorScreen (S5 / 429 / 400 FieldErrors) (D-281)', () => {
       })
     })
 
-    expect(alertSpy).toHaveBeenCalledWith('خطأ', expect.stringContaining('اليومي'))
+    expect(alertSpy).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: expect.stringContaining('اليومي'),
+    }))
   })
 
   it('redirects wizard to firstInvalidStep and sets field errors on 400 validation error', async () => {

@@ -23,7 +23,7 @@ import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { PublicProfileTokens } from '../../constants/publicProfileTokens'
 import { SUPPORT_MAILTO } from '../../constants/support'
 import { useAuthStore } from '../../store/authStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 // Hooks & Utilities
 import { useOperatorDetail } from '../../hooks/listing-detail/useOperatorDetail'
@@ -134,20 +134,25 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
 
     const actionDef = ownerActions.actions.find((a) => a.id === actionId)
     if (actionDef?.requiresConfirm) {
-      dialogService.confirm(
-        actionDef.confirmTitle ?? 'تأكيد الإجراء',
-        actionDef.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
-        async () => {
+      toastService.confirm({
+        title: actionDef.confirmTitle ?? 'تأكيد الإجراء',
+        message: actionDef.confirmMessage ?? 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+        intent: actionDef.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel: actionDef.confirmLabel ?? 'تأكيد',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           try {
             await ownerActions.run(actionId)
+            toastService.show({
+              kind: 'success',
+              title: actionId === 'delete' ? 'تم إرسال طلب الحذف' : 'تم إلغاء طلب الحذف',
+            })
           } catch (err) {
             const msg = translateOperatorOwnerError(err)
-            dialogService.alert('خطأ', msg)
+            toastService.show({ kind: 'error', title: msg })
           }
         },
-        actionDef.confirmLabel ?? 'تأكيد',
-        'إلغاء'
-      )
+      })
       return
     }
 
@@ -155,7 +160,7 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
       await ownerActions.run(actionId)
     } catch (err) {
       const msg = translateOperatorOwnerError(err)
-      dialogService.alert('خطأ', msg)
+      toastService.show({ kind: 'error', title: msg })
     }
   }
 
@@ -178,7 +183,9 @@ export function OperatorDetailScreen({ id }: OperatorDetailScreenProps) {
   }
 
   const handleOpenSupport = () => {
-    Linking.openURL(SUPPORT_MAILTO).catch(() => {})
+    Linking.openURL(SUPPORT_MAILTO).catch(() => {
+      toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' })
+    })
   }
 
   const handleShare = async () => {

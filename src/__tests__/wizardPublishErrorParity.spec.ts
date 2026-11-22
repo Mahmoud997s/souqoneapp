@@ -1,17 +1,17 @@
 import fs from 'fs'
 import path from 'path'
 import { AxiosError } from 'axios'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { mapCarBackendErrors } from '../hooks/useCarValidation'
 import { mapServiceBackendErrors } from '../hooks/useServiceValidation'
 
 const ROOT = path.resolve(__dirname, '../..')
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
-    confirm: jest.fn(),
+jest.mock('../store/toastStore', () => ({
+  toastService: {
     show: jest.fn(),
+    confirm: jest.fn(),
+    hide: jest.fn(),
   },
 }))
 
@@ -165,7 +165,10 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         expect.objectContaining({ [sampleField]: 'قيمة غير صالحة' }),
         expect.any(Number)
       )
-      expect(dialogService.alert).toHaveBeenCalledWith('تنبيه في المدخلات', 'قيمة غير صالحة')
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'warning',
+        title: 'قيمة غير صالحة',
+      })
 
       // 2. 409 create -> similar-ad message
       jest.clearAllMocks()
@@ -174,10 +177,10 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         isEdit: false,
         fallbackMessage: 'fallback',
       })
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        'تم نشر إعلان مشابه جداً مؤخراً. يرجى الانتظار قليلاً.'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'تم نشر إعلان مشابه جداً مؤخراً، يرجى الانتظار قليلاً',
+      })
 
       // 3. 409 edit -> confirm dialog that invokes onRefetchVersion
       jest.clearAllMocks()
@@ -187,21 +190,22 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         fallbackMessage: 'fallback',
         onRefetchVersion,
       })
-      expect(dialogService.confirm).toHaveBeenCalledWith(
-        'تحديث مطلوب',
-        expect.stringContaining('تم تعديله من جهاز آخر'),
-        expect.any(Function),
-        'تحديث الآن',
-        'إلغاء'
+      expect(toastService.confirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'تحديث مطلوب',
+          message: expect.stringContaining('تم تعديله من جهاز آخر'),
+          confirmLabel: 'تحديث الآن',
+          cancelLabel: 'إلغاء',
+          onConfirm: expect.any(Function),
+        })
       )
-      const confirmCb = (dialogService.confirm as jest.Mock).mock.calls[0][2]
+      const confirmCb = (toastService.confirm as jest.Mock).mock.calls[0][0].onConfirm
       await confirmCb()
       expect(onRefetchVersion).toHaveBeenCalledTimes(1)
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'تم',
-        'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً.',
-        'success'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'success',
+        title: 'تم تحديث النسخة، يمكنك الآن مراجعة بياناتك ومحاولة الحفظ مجدداً',
+      })
 
       // 4. 429 -> existing rate-limit message
       jest.clearAllMocks()
@@ -210,10 +214,10 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         isEdit: false,
         fallbackMessage: 'fallback',
       })
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'خطأ',
-        expect.stringContaining('الحد')
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: expect.stringContaining('الحد'),
+      })
 
       // 5. offline -> showPublishErrorDialog offline with retry
       jest.clearAllMocks()
@@ -223,10 +227,10 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         fallbackMessage: 'fallback',
         onRetry,
       })
-      expect(dialogService.show).toHaveBeenCalledWith(
+      expect(toastService.confirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'offline',
           title: 'لا يوجد اتصال',
+          confirmLabel: 'إعادة المحاولة',
         })
       )
 
@@ -238,11 +242,11 @@ describe('D-351: Wizard Publish Error Parity & Reset-on-Success', () => {
         fallbackMessage: 'fallback',
         onRetry,
       })
-      expect(dialogService.alert).toHaveBeenCalledWith(
-        'انتهت مهلة الاتصال',
-        'انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك قبل المحاولة مجدداً.',
-        'offline'
-      )
+      expect(toastService.show).toHaveBeenCalledWith({
+        kind: 'error',
+        title: 'انتهت مهلة الاتصال بالخادم، يرجى التحقق من اتصالك قبل المحاولة مجدداً',
+        dedupeKey: 'network-offline',
+      })
     }
   })
 })

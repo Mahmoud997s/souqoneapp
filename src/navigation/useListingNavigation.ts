@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { router as expoRouter, useRouter } from 'expo-router'
 import { useAuthStore } from '../store/authStore'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { listingsApi } from '../api/listings'
 import { partsApi } from '../api/parts'
 import { servicesApi } from '../api/services'
@@ -113,7 +113,10 @@ export function useListingNavigation() {
         router.push(route)
         return true
       } catch {
-        dialogService.alert('خطأ', 'تعذر تحميل بيانات الإعلان، يرجى المحاولة مرة أخرى')
+        toastService.show({
+          kind: 'error',
+          title: 'تعذر تحميل بيانات الإعلان، يرجى المحاولة مرة أخرى',
+        })
         return false
       } finally {
         setIsEditingLoading(false)

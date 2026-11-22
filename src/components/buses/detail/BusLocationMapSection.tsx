@@ -8,6 +8,7 @@ import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import MapView, { Marker } from '../../ui/Map'
+import { toastService } from '../../../store/toastStore'
 
 export interface BusLocationMapSectionProps {
   latitude: number
@@ -60,7 +61,9 @@ export function BusLocationMapSection({
         onPress={() => {
           Linking.openURL(
             `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
-          )
+          ).catch(() => {
+            toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق الخرائط' })
+          })
         }}
       >
         <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { dialogService } from '../store/dialogStore';
+import { toastService } from '../store/toastStore';
 
 export const PROFILE_PHONE_REQUIRED_CODE = 'PROFILE_PHONE_REQUIRED';
 export const PROFILE_PHONE_REQUIRED_MESSAGE =
@@ -21,13 +21,14 @@ export function isProfilePhoneRequiredError(error: any): boolean {
 }
 
 export function promptProfilePhoneRequired() {
-  dialogService.confirm(
-    'إضافة رقم الهاتف مطلوبة',
-    PROFILE_PHONE_REQUIRED_MESSAGE,
-    () => {
+  toastService.confirm({
+    title: 'إضافة رقم الهاتف مطلوبة',
+    message: PROFILE_PHONE_REQUIRED_MESSAGE,
+    intent: 'primary',
+    confirmLabel: 'أضف رقمك',
+    cancelLabel: 'إلغاء',
+    onConfirm: () => {
       router.push('/profile/edit-profile' as any);
     },
-    'أضف رقمك',
-    'إلغاء'
-  );
+  });
 }

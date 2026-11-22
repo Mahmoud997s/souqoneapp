@@ -5,7 +5,7 @@ import EditListingLoader from '../../../app/post/edit/[id]'
 import { useServiceWizardStore } from '../../store/serviceWizardStore'
 import { useAuthStore } from '../../store/authStore'
 import { servicesApi } from '../../api/services'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { router } from 'expo-router'
 import type { ServiceDetailResponse } from '../../types/serviceDetailResponse.types'
 
@@ -113,12 +113,12 @@ jest.mock('../../hooks/listing-detail/useListingContact', () => ({
   }),
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    confirm: jest.fn((title, msg, onConfirm) => {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    confirm: jest.fn(({ onConfirm }: { onConfirm?: () => void }) => {
       if (onConfirm) onConfirm()
     }),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }))
 
@@ -201,17 +201,20 @@ describe('Services Edit Flow (Phase 5)', () => {
         fireEvent.press(deleteBtn)
       })
 
-      expect(dialogService.confirm).toHaveBeenCalledWith(
-        'حذف الإعلان',
-        expect.stringContaining('هل أنت متأكد من حذف هذا الإعلان؟'),
-        expect.any(Function),
-        'نعم، احذف',
-        'تراجع',
-        true
-      )
+      expect(toastService.confirm).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'حذف الإعلان',
+        message: expect.stringContaining('هل أنت متأكد من حذف هذا الإعلان؟'),
+        onConfirm: expect.any(Function),
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        intent: 'danger',
+      }))
 
       expect(servicesApi.remove).toHaveBeenCalledWith('srv-999')
-      expect(dialogService.alert).toHaveBeenCalledWith('تم', 'تم حذف إعلان الخدمة بنجاح', 'success')
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'success',
+        title: 'تم حذف الإعلان',
+      }))
       expect(router.back).toHaveBeenCalled()
     })
 
@@ -226,7 +229,10 @@ describe('Services Edit Flow (Phase 5)', () => {
       })
 
       expect(servicesApi.remove).toHaveBeenCalledWith('srv-999')
-      expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'فشل حذف الإعلان', 'error')
+      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'error',
+        title: 'فشل حذف الإعلان',
+      }))
     })
   })
 

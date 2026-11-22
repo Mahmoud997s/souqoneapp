@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { queryClient } from '../api/queryClient'
 import { useAuthStore } from '../store/authStore'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { usersApi } from '../api/users'
 import { showErrorDialog } from '../utils/showErrorDialog'
 
@@ -11,20 +11,22 @@ export function useAccountDeletion() {
   const user = useAuthStore((s) => s.user)
 
   const handleCancelDeletion = () => {
-    dialogService.confirm(
-      'إلغاء طلب حذف الحساب',
-      'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
-      async () => {
+    toastService.confirm({
+      title: 'إلغاء طلب حذف الحساب',
+      message: 'هل تريد بالتأكيد إلغاء طلب حذف حسابك واستعادة إعلاناتك؟',
+      intent: 'primary',
+      confirmLabel: 'نعم، إلغاء الحذف',
+      cancelLabel: 'تراجع',
+      onConfirm: async () => {
         try {
           setCancelling(true)
           await usersApi.cancelDeletion()
           updateUser({ deletionScheduledAt: null })
           queryClient.invalidateQueries()
-          dialogService.alert(
-            'تم الإلغاء',
-            'تم إلغاء طلب حذف حسابك وسيتم إظهار إعلاناتك مرة أخرى.',
-            'success',
-          )
+          toastService.show({
+            kind: 'success',
+            title: 'تم إلغاء طلب حذف الحساب',
+          })
         } catch (err: any) {
           const status = err?.response?.status
           const message = err?.response?.data?.message || err?.message
@@ -35,11 +37,10 @@ export function useAccountDeletion() {
           ) {
             updateUser({ deletionScheduledAt: null })
             queryClient.invalidateQueries()
-            dialogService.alert(
-              'تنبيه',
-              'الحساب غير مجدول للحذف حالياً.',
-              'info',
-            )
+            toastService.show({
+              kind: 'info',
+              title: 'الحساب غير مجدول للحذف حالياً',
+            })
           } else {
             showErrorDialog(err, 'تعذر إلغاء طلب حذف الحساب. يرجى المحاولة مرة أخرى.')
           }
@@ -47,9 +48,7 @@ export function useAccountDeletion() {
           setCancelling(false)
         }
       },
-      'نعم، إلغاء الحذف',
-      'تراجع',
-    )
+    })
   }
 
   return {

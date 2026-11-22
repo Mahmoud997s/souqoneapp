@@ -14,6 +14,7 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { SUPPORT_MAILTO } from '../../constants/support';
+import { toastService } from '../../store/toastStore';
 
 export interface SupportHelpButtonProps {
   title?: string;
@@ -36,7 +37,9 @@ export function SupportHelpButton({
     if (onPress) {
       onPress();
     } else {
-      Linking.openURL(SUPPORT_MAILTO).catch(() => {});
+      Linking.openURL(SUPPORT_MAILTO).catch(() => {
+        toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق البريد' });
+      });
     }
   };
 

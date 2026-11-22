@@ -1,4 +1,4 @@
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 
 /**
  * Checks if a draft exists with meaningful data and prompts the user to resume or discard it.
@@ -8,22 +8,14 @@ export function showDraftResumePrompt(config: {
   onResume: () => void
   onDiscard: () => void
 }) {
-  dialogService.show({
-    type: 'confirm',
+  toastService.confirm({
     title: 'استكمال المسودة',
     message: 'يبدو أن لديك إعلان غير مكتمل سابقاً. هل تود استكمال البيانات أم البدء من جديد؟',
-    actions: [
-      {
-        text: 'البدء من جديد',
-        style: 'destructive',
-        onPress: config.onDiscard,
-      },
-      {
-        text: 'استكمال الإعلان',
-        style: 'default',
-        onPress: config.onResume,
-      },
-    ],
+    intent: 'primary',
+    confirmLabel: 'كمّل',
+    cancelLabel: 'ابدأ من جديد',
+    onConfirm: config.onResume,
+    onCancel: config.onDiscard,
   })
 }
 

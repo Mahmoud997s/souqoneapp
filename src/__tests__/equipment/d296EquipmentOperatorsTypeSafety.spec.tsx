@@ -14,7 +14,7 @@ import { EquipmentStep5Review } from '../../components/equipment/wizard/Equipmen
 import { equipmentApi } from '../../api/equipment'
 import { useEquipment, useOperatorsInfinite, useOperatorItem, useUpdateOperator } from '../../hooks/useEquipment'
 import { useEquipmentWizardStore } from '../../store/equipmentWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { EquipmentFormData } from '../../types/equipmentForm.types'
 import { UnifiedCardItem } from '../../types/unified-card.types'
 
@@ -93,9 +93,9 @@ jest.mock('../../store/equipmentWizardStore', () => ({
   useEquipmentWizardStore: jest.fn(),
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -426,6 +426,9 @@ describe('D-296 Equipment & Operators Strict Type Safety & Behavioral Parity', (
     await fireEvent.press(getByText('حفظ وتحديث البطاقة'))
 
     expect(mutateMock).toHaveBeenCalledTimes(1)
-    expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'رسالة خطأ أولى', 'error')
+    expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'error',
+      title: 'رسالة خطأ أولى',
+    }))
   })
 })

@@ -9,7 +9,7 @@ import {
 import { ProfilePhoneGuardView } from '../components/profile/ProfilePhoneGuardView';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api/auth';
-import { dialogService } from '../store/dialogStore';
+import { toastService } from '../store/toastStore';
 import { router } from 'expo-router';
 
 jest.mock('../api/auth', () => ({
@@ -28,10 +28,10 @@ jest.mock('expo-router', () => ({
   },
 }));
 
-jest.mock('../store/dialogStore', () => ({
-  dialogService: {
+jest.mock('../store/toastStore', () => ({
+  toastService: {
     confirm: jest.fn(),
-    alert: jest.fn(),
+    show: jest.fn(),
   },
 }));
 
@@ -110,15 +110,17 @@ describe('Profile Phone Guard & Error Handling', () => {
     it('shows confirmation dialog and navigates to /profile/edit-profile on accept', () => {
       promptProfilePhoneRequired();
 
-      expect(dialogService.confirm).toHaveBeenCalledWith(
-        'إضافة رقم الهاتف مطلوبة',
-        expect.stringContaining('لازم تضيف رقم هاتفك'),
-        expect.any(Function),
-        'أضف رقمك',
-        'إلغاء'
+      expect(toastService.confirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'إضافة رقم الهاتف مطلوبة',
+          message: expect.stringContaining('لازم تضيف رقم هاتفك'),
+          confirmLabel: 'أضف رقمك',
+          cancelLabel: 'إلغاء',
+          onConfirm: expect.any(Function),
+        })
       );
 
-      const onConfirm = (dialogService.confirm as jest.Mock).mock.calls[0][2];
+      const { onConfirm } = (toastService.confirm as jest.Mock).mock.calls[0][0];
       onConfirm();
       expect(router.push).toHaveBeenCalledWith('/profile/edit-profile');
     });

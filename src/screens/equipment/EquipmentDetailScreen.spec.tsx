@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react-native'
 import type { EquipmentDetailViewModel } from '../../types/equipmentDetailViewModel.types'
 import { EquipmentDetailScreen } from './EquipmentDetailScreen'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { apiClient } from '../../api/client'
 
@@ -37,10 +37,11 @@ jest.mock('@expo/vector-icons', () => {
   return { Ionicons: (props: any) => <View {...props} /> }
 })
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
+    showActionSheet: jest.fn(),
   },
 }))
 
@@ -352,8 +353,8 @@ describe('EquipmentDetailScreen', () => {
 
     it('prompts confirmation dialog and executes delete action', async () => {
       mockCurrentUser = { id: 'seller-999' }
-      ;(dialogService.confirm as jest.Mock).mockImplementation(
-        (_title, _msg, onConfirm) => onConfirm()
+      ;(toastService.confirm as jest.Mock).mockImplementation(
+        ({ onConfirm }) => onConfirm()
       )
 
       await render(<EquipmentDetailScreen id="eq-101" />)
@@ -363,7 +364,7 @@ describe('EquipmentDetailScreen', () => {
         fireEvent.press(deleteBtn)
       })
 
-      expect(dialogService.confirm).toHaveBeenCalled()
+      expect(toastService.confirm).toHaveBeenCalled()
       expect(mockRunOwnerAction).toHaveBeenCalledWith('delete')
     })
   })

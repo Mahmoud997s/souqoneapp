@@ -63,10 +63,6 @@ jest.mock('../components/GlobalSocketHandler', () => ({
   GlobalSocketHandler: () => null,
 }))
 
-jest.mock('../components/ui/GlobalDialog', () => ({
-  GlobalDialog: () => null,
-}))
-
 jest.mock('../components/ui/GlobalToast', () => ({
   GlobalToast: () => null,
 }))

@@ -22,7 +22,6 @@ import { navigateFromNotification } from '../src/utils/notificationRouter'
 import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
 import { GlobalSocketHandler } from '../src/components/GlobalSocketHandler'
-import { GlobalDialog } from '../src/components/ui/GlobalDialog'
 import { GlobalToast } from '../src/components/ui/GlobalToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
@@ -63,6 +62,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     const currentSegments = segments as readonly string[]
+    if (currentSegments[0] === '(auth)') {
+      const sub = currentSegments[1]
+      if (sub === 'login' || sub === 'register' || sub === 'verify-email') {
+        useAuthStore.getState().setActiveAuthScreen?.(sub)
+      } else {
+        useAuthStore.getState().setActiveAuthScreen?.(null)
+      }
+    } else {
+      useAuthStore.getState().setActiveAuthScreen?.(null)
+    }
+
     const isImageViewerRoute =
       (currentSegments[0] === '(modals)' && currentSegments[1] === 'image-viewer') ||
       pathname === '/image-viewer'
@@ -170,7 +180,6 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
-            <GlobalDialog />
             <GlobalToast />
           </BottomSheetModalProvider>
         </NavVisibilityProvider>

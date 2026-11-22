@@ -7,7 +7,7 @@ import NewServiceListingScreen from '../../../app/services/new'
 import { servicesApi } from '../../api/services'
 import { useAuthStore } from '../../store/authStore'
 import { useServiceWizardStore, defaultServiceFormData } from '../../store/serviceWizardStore'
-import { dialogService } from '../../store/dialogStore'
+import { toastService } from '../../store/toastStore'
 import { mapServiceBackendErrors } from '../../hooks/useServiceValidation'
 import * as serviceQueryKeysModule from '../../screens/services/hooks/serviceQueryKeys'
 
@@ -53,10 +53,11 @@ jest.mock('expo-router', () => ({
   },
 }))
 
-jest.mock('../../store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
-    confirm: jest.fn((_title, _msg, onConfirm) => {
+jest.mock('../../store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
+    dismissByDedupeKey: jest.fn(),
+    confirm: jest.fn(({ onConfirm }: { onConfirm?: () => void }) => {
       if (onConfirm) onConfirm()
     }),
   },
@@ -231,7 +232,7 @@ describe('mapServiceBackendErrors & NewServiceListingScreen 400 field error rout
       await waitFor(() => {
         expect(useServiceWizardStore.getState().currentStep).toBe(3)
       })
-      expect(dialogService.alert).not.toHaveBeenCalled()
+      expect(toastService.show).not.toHaveBeenCalled()
       expect(screen.getByText('عنوان الخدمة غير صالح')).toBeTruthy()
 
       // Fix title in Step 3 -> clears title error immediately
@@ -302,7 +303,7 @@ describe('mapServiceBackendErrors & NewServiceListingScreen 400 field error rout
       await waitFor(() => {
         expect(useServiceWizardStore.getState().currentStep).toBe(1)
       })
-      expect(dialogService.alert).not.toHaveBeenCalled()
+      expect(toastService.show).not.toHaveBeenCalled()
       expect(screen.getByText('اسم مقدم الخدمة غير مسموح به')).toBeTruthy()
 
       await act(async () => {
@@ -348,9 +349,9 @@ describe('mapServiceBackendErrors & NewServiceListingScreen 400 field error rout
         expect(useServiceWizardStore.getState().currentStep).toBe(4)
       })
       expect(screen.getByTestId('error-working-hours')).toBeTruthy()
-      expect(dialogService.alert).not.toHaveBeenCalled()
+      expect(toastService.show).not.toHaveBeenCalled()
 
-      // Jump to Step 6 and submit unmappable generic 400 -> should show dialogService.alert fallback
+      // Jump to Step 6 and submit unmappable generic 400 -> should show toastService.show fallback
       await act(async () => {
         useServiceWizardStore.getState().goToStep(6)
       })
@@ -360,7 +361,10 @@ describe('mapServiceBackendErrors & NewServiceListingScreen 400 field error rout
       })
 
       await waitFor(() => {
-        expect(dialogService.alert).toHaveBeenCalledWith('خطأ', 'البيانات المدخلة غير صحيحة', 'error')
+        expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
+          kind: 'error',
+          title: 'البيانات المدخلة غير صحيحة',
+        }))
       })
     })
   })

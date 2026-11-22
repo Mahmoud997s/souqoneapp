@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { uploadsApi } from '../api/uploads'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { buildUploadFilePayload } from '../utils/fileUploadHelper'
 import { requestPermission, operatorCertPermissionAdapter } from '../utils/requestPermission'
 import { showErrorDialog } from '../utils/showErrorDialog'
@@ -71,7 +71,7 @@ export function useOperatorFormLogic({
       if (uploadedUrls.length > 0) {
         onUpdateCertifications([...certifications, ...uploadedUrls])
         onClearFieldError?.('certifications')
-        dialogService.alert('نجاح', 'تم إرفاق صورة الشهادة/الرخصة بنجاح')
+        toastService.show({ kind: 'success', title: 'تم إرفاق صورة الشهادة/الرخصة' })
       }
     } catch (err: any) {
       showErrorDialog(err, 'فشل رفع الصورة، يرجى المحاولة مجدداً')

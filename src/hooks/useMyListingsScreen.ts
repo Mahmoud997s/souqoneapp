@@ -6,7 +6,8 @@ import {
   useMyListingOwnerActions,
   MY_LISTING_ENTITY_QUERY_KEYS,
 } from './useMyListingOwnerActions'
-import { dialogService } from '../store/dialogStore'
+import { resolveOwnerActionSuccessToastTitle } from '../utils/listing-detail/ownerActionToast'
+import { toastService, type ActionSheetOption } from '../store/toastStore'
 import { useAuthStore } from '../store/authStore'
 import { promptProfilePhoneRequired } from '../utils/profilePhoneGuard'
 import { listingsApi } from '../api/listings'
@@ -16,7 +17,6 @@ import { MyListingEntityType, MyListingItem } from '../types/my-listings.types'
 import { MY_LISTINGS_SECTIONS_CONFIG } from '../components/profile/my-listings/sections.config'
 import { GroupedSectionData } from '../components/profile/my-listings/MyListingsAllView'
 import type { OwnerAction } from '../components/listing-detail/OwnerManageBar'
-import type { DialogOption } from '../components/ui/AppDialog'
 import type { BusListingType } from '../types/bus.types'
 import type { EquipmentListingType } from '../types/equipment.types'
 import {
@@ -183,11 +183,10 @@ export function useMyListingsScreen() {
       (item.entityType === 'car' || item.entityType === 'bus') &&
       (item.rawStatus === 'SOLD' || item.rawStatus === 'SUSPENDED')
     ) {
-      dialogService.alert(
-        'تنبيه',
-        'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً.',
-        'warning'
-      )
+      toastService.show({
+        kind: 'warning',
+        title: 'لا يمكن تعديل الإعلان إذا كان مباعاً أو موقوفاً',
+      })
       return
     }
 
@@ -231,17 +230,17 @@ export function useMyListingsScreen() {
     )
 
     if (statusActions.length === 0) {
-      dialogService.alert('تنبيه', 'لا يوجد إجراءات متاحة لهذه الحالة', 'warning')
+      toastService.show({ kind: 'warning', title: 'لا يوجد إجراءات متاحة لهذه الحالة' })
       return
     }
 
-    const options: DialogOption[] = statusActions.map((action) => ({
+    const options: ActionSheetOption[] = statusActions.map((action) => ({
       text: action.label,
       icon: action.icon,
       onPress: () => confirmStatusChange(item, action),
     }))
 
-    dialogService.showOptions('تغيير الحالة', options)
+    toastService.showActionSheet({ title: 'تغيير الحالة', options })
   }
 
   const confirmStatusChange = (item: MyListingItem, action: OwnerAction) => {
@@ -269,10 +268,13 @@ export function useMyListingsScreen() {
     statusTimeoutRef.current = setTimeout(() => {
       statusTimeoutRef.current = null
       if (!isMountedRef.current) return
-      dialogService.confirm(
-        confirmTitle,
-        confirmMessage,
-        async () => {
+      toastService.confirm({
+        title: confirmTitle,
+        message: confirmMessage,
+        intent: action.tone === 'danger' ? 'danger' : 'primary',
+        confirmLabel,
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           if (isChangingStatus.current) return
           isChangingStatus.current = true
           try {
@@ -298,7 +300,10 @@ export function useMyListingsScreen() {
             // Immediately refetch all queries to update the UI
             await refetch()
 
-            dialogService.alert('تم', 'تم تغيير حالة الإعلان بنجاح', 'success')
+            toastService.show({
+              kind: 'success',
+              title: resolveOwnerActionSuccessToastTitle(action.id),
+            })
           } catch (err: unknown) {
             const { hasResponse, status } = getErrorStatus(err)
             if (!hasResponse) {
@@ -308,18 +313,21 @@ export function useMyListingsScreen() {
                 'خطأ في الاتصال'
               )
             } else if (status === 403) {
-              dialogService.alert('غير مصرح', 'لا يمكن استعادة إعلان تم بيعه بالفعل.')
+              toastService.show({
+                kind: 'error',
+                title: 'لا يمكن استعادة إعلان تم بيعه بالفعل',
+              })
             } else if (status === 409) {
-              dialogService.alert(
-                'تحديث مطلوب',
-                'تم تعديل الإعلان من جهاز آخر. يرجى التحديث والمحاولة مجدداً.'
-              )
+              toastService.show({
+                kind: 'error',
+                title: 'تم تعديل الإعلان من جهاز آخر، يرجى التحديث والمحاولة مجدداً',
+              })
               handleRefresh()
             } else if (status === 429) {
-              dialogService.alert(
-                'محاولات كثيرة',
-                getPublishRateLimitErrorMessage(err)
-              )
+              toastService.show({
+                kind: 'error',
+                title: getPublishRateLimitErrorMessage(err),
+              })
             } else {
               showErrorDialog(err, 'حدث خطأ أثناء تغيير الحالة')
             }
@@ -327,9 +335,7 @@ export function useMyListingsScreen() {
             isChangingStatus.current = false
           }
         },
-        confirmLabel,
-        'إلغاء'
-      )
+      })
     }, STATUS_OPTION_CONFIRM_DELAY_MS)
   }
 

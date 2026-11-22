@@ -4,7 +4,7 @@ import { render, fireEvent, waitFor, cleanup, act } from '@testing-library/react
 import * as Notifications from 'expo-notifications'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import SettingsScreen, { resolveHasPassword } from '../settings'
-import { dialogService } from '../../../src/store/dialogStore'
+import { toastService } from '../../../src/store/toastStore'
 import type { User } from '../../../src/types/auth.types'
 
 jest.setTimeout(15000)
@@ -52,9 +52,9 @@ jest.mock('../../../src/store/authStore', () => ({
   useAuthStore: () => mockAuthState,
 }))
 
-jest.mock('../../../src/store/dialogStore', () => ({
-  dialogService: {
-    alert: jest.fn(),
+jest.mock('../../../src/store/toastStore', () => ({
+  toastService: {
+    show: jest.fn(),
     confirm: jest.fn(),
   },
 }))
@@ -237,11 +237,10 @@ describe('D-335: SettingsScreen OAuth note, resolveHasPassword, local notif pref
       })
 
       await waitFor(() => {
-        expect(dialogService.alert).toHaveBeenCalledWith(
-          'خطأ',
-          'تعذر حفظ تفضيلات الإشعارات على الجهاز. حاول مرة أخرى.',
-          'error'
-        )
+        expect(toastService.show).toHaveBeenCalledWith({
+          kind: 'error',
+          title: 'تعذر حفظ تفضيلات الإشعارات، حاول مرة أخرى',
+        })
       })
       expect(getByTestId('settings-msg-notif-switch').props.value).toBe(true)
     })

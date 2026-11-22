@@ -5,7 +5,7 @@ import { busesApi } from '../api/buses'
 import { equipmentApi } from '../api/equipment'
 import { partsApi } from '../api/parts'
 import { servicesApi } from '../api/services'
-import { dialogService } from '../store/dialogStore'
+import { toastService } from '../store/toastStore'
 import { showErrorDialog } from '../utils/showErrorDialog'
 import { MyListingEntityType, MyListingItem } from '../types/my-listings.types'
 import type { OwnerCardBusyAction } from '../components/profile/my-listings/OwnerCardActions'
@@ -93,14 +93,17 @@ export function useMyListingOwnerActions() {
   const handleDelete = useCallback(
     (item: MyListingItem) => {
       if (item.pendingDeletionRequest?.status === 'PENDING') {
-        dialogService.alert('تنبيه', 'يوجد طلب حذف قيد المراجعة بالفعل.', 'warning')
+        toastService.show({ kind: 'warning', title: 'يوجد طلب حذف قيد المراجعة بالفعل' })
         return
       }
 
-      dialogService.confirm(
-        'حذف الإعلان',
-        'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
-        async () => {
+      toastService.confirm({
+        title: 'حذف الإعلان',
+        message: 'هل أنت متأكد من رغبتك في حذف هذا الإعلان نهائياً؟',
+        intent: 'danger',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
           const queryKey = MY_LISTING_ENTITY_QUERY_KEYS[item.entityType]
           setBusy(item, 'delete')
           const previousSnapshots = queryClient.getQueriesData({ queryKey })
@@ -112,7 +115,7 @@ export function useMyListingOwnerActions() {
           try {
             await performDeleteApiCall(item.entityType, item.id)
             await queryClient.invalidateQueries({ queryKey })
-            dialogService.alert('تم', 'تم حذف الإعلان بنجاح', 'success')
+            toastService.show({ kind: 'success', title: 'تم حذف الإعلان' })
           } catch (err: unknown) {
             for (const [key, data] of previousSnapshots) {
               queryClient.setQueryData(key, data)
@@ -122,10 +125,7 @@ export function useMyListingOwnerActions() {
             setBusy(item, null)
           }
         },
-        'حذف',
-        'إلغاء',
-        true
-      )
+      })
     },
     [queryClient, setBusy]
   )
@@ -134,26 +134,27 @@ export function useMyListingOwnerActions() {
     (item: MyListingItem) => {
       if (!item.pendingDeletionRequest) return
 
-      dialogService.confirm(
-        'إلغاء طلب الحذف',
-        'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
-        async () => {
+      toastService.confirm({
+        title: 'إلغاء طلب الحذف',
+        message: 'هل أنت متأكد من رغبتك في إلغاء طلب حذف البروفايل؟',
+        intent: 'primary',
+        confirmLabel: 'تأكيد الإلغاء',
+        cancelLabel: 'تراجع',
+        onConfirm: async () => {
           setBusy(item, 'cancelDeletion')
           try {
             await equipmentApi.cancelOperatorDeletionRequest(item.pendingDeletionRequest!.id)
             await queryClient.invalidateQueries({
               queryKey: MY_LISTING_ENTITY_QUERY_KEYS['operator'],
             })
-            dialogService.alert('تم بنجاح', 'تم إلغاء طلب حذف البروفايل بنجاح.', 'success')
+            toastService.show({ kind: 'success', title: 'تم إلغاء طلب حذف الحساب' })
           } catch (err: unknown) {
             showErrorDialog(err, 'حدث خطأ أثناء إلغاء الطلب')
           } finally {
             setBusy(item, null)
           }
         },
-        'تأكيد الإلغاء',
-        'تراجع'
-      )
+      })
     },
     [queryClient, setBusy]
   )
