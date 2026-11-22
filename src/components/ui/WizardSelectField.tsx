@@ -37,15 +37,30 @@ export interface WizardSelectGroup {
 export interface WizardSelectFieldProps {
   label?: string
   value?: string | null
+  values?: string[]
+  multiple?: boolean
   placeholder?: string
+  formatMultiSummary?: (count: number) => string
   options?: WizardSelectOption[]
   groups?: WizardSelectGroup[]
-  onSelect: (value: string) => void
+  onSelect?: (value: string) => void
+  onToggle?: (value: string) => void
   error?: string
   errorTestID?: string
   disabled?: boolean
   glass?: boolean
   testID?: string
+}
+
+export function formatWizardMultiSummary(
+  count: number,
+  singular = 'عنصر واحد محدد',
+  dual = 'عنصران محددان',
+  pluralSuffix = 'عناصر محددة'
+): string {
+  if (count === 1) return singular
+  if (count === 2) return dual
+  return `${count} ${pluralSuffix}`
 }
 
 const HEADER_HEIGHT = 48
@@ -57,10 +72,14 @@ const ANIMATION_EASING = Easing.bezier(0.2, 0.8, 0.2, 1)
 export function WizardSelectField({
   label,
   value,
+  values,
+  multiple = false,
   placeholder = 'اختر...',
+  formatMultiSummary,
   options,
   groups,
   onSelect,
+  onToggle,
   error,
   errorTestID,
   disabled = false,
@@ -82,9 +101,31 @@ export function WizardSelectField({
   }, [groups, options])
 
   const selectedOption = useMemo(
-    () => allOptions.find((opt) => opt.value === value),
-    [allOptions, value]
+    () => (multiple ? undefined : allOptions.find((opt) => opt.value === value)),
+    [allOptions, multiple, value]
   )
+
+  const selectedValuesSet = useMemo(
+    () => new Set(multiple ? (values ?? []) : []),
+    [multiple, values]
+  )
+
+  const selectedCount = useMemo(
+    () => (multiple ? allOptions.filter((opt) => selectedValuesSet.has(opt.value)).length : 0),
+    [allOptions, multiple, selectedValuesSet]
+  )
+
+  const hasSelection = multiple ? selectedCount > 0 : Boolean(selectedOption)
+
+  const headerDisplayText = useMemo(() => {
+    if (multiple) {
+      if (selectedCount === 0) return placeholder
+      return formatMultiSummary
+        ? formatMultiSummary(selectedCount)
+        : formatWizardMultiSummary(selectedCount)
+    }
+    return selectedOption ? selectedOption.label : placeholder
+  }, [formatMultiSummary, multiple, placeholder, selectedCount, selectedOption])
 
   const estimatedHeight = useMemo(() => {
     if (groups && groups.length > 0) {
@@ -149,10 +190,14 @@ export function WizardSelectField({
 
   const handleSelectOption = useCallback(
     (selectedValue: string) => {
-      onSelect(selectedValue)
+      if (multiple) {
+        onToggle?.(selectedValue)
+        return
+      }
+      onSelect?.(selectedValue)
       setExpandedState(false)
     },
-    [onSelect, setExpandedState]
+    [multiple, onSelect, onToggle, setExpandedState]
   )
 
   const handleContentLayout = useCallback(
@@ -180,7 +225,7 @@ export function WizardSelectField({
   }))
 
   const renderOptionRow = (opt: WizardSelectOption) => {
-    const isSelected = opt.value === value
+    const isSelected = multiple ? selectedValuesSet.has(opt.value) : opt.value === value
     return (
       <TouchableOpacity
         key={opt.value}
@@ -188,8 +233,8 @@ export function WizardSelectField({
         style={[s.optionRow, glass && s.optionRowGlass, isSelected && s.optionRowSelected]}
         onPress={() => handleSelectOption(opt.value)}
         activeOpacity={0.75}
-        accessibilityRole="radio"
-        accessibilityState={{ selected: isSelected }}
+        accessibilityRole={multiple ? 'checkbox' : 'radio'}
+        accessibilityState={multiple ? { checked: isSelected } : { selected: isSelected }}
         accessibilityLabel={opt.label}
       >
         <Text
@@ -238,11 +283,11 @@ export function WizardSelectField({
           <Text
             style={[
               s.headerText,
-              !selectedOption ? s.placeholderText : s.selectedHeaderText,
+              !hasSelection ? s.placeholderText : s.selectedHeaderText,
             ]}
             numberOfLines={1}
           >
-            {selectedOption ? selectedOption.label : placeholder}
+            {headerDisplayText}
           </Text>
 
           <Animated.View style={chevronAnimatedStyle}>
