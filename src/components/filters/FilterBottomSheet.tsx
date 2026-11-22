@@ -17,7 +17,7 @@ import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
 import { RangeSlider } from '../ui/RangeSlider';
 import { NestedSearchableList } from '../ui/NestedSearchableList';
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { FilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
@@ -140,7 +140,7 @@ export function FilterBottomSheet({
   const sortData = SORT_OPTIONS.map(s => ({ id: s.value, label: s.labelAr }));
 
   let nestedContent = null;
-  let title = "تصفية النتائج";
+  let title = FILTER_SHEET_DEFAULT_TITLE;
 
   if (activeSelector === 'make') {
     title = "اختر الماركة";
@@ -452,13 +452,8 @@ export function FilterBottomSheet({
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
       onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
-      applyLabel={
-        activeSelector
-          ? 'تأكيد الاختيار'
-          : resultsCount !== undefined
-          ? `عرض ${resultsCount} نتيجة`
-          : 'تطبيق الفلتر'
-      }
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
+      resultsCount={activeSelector ? undefined : resultsCount}
       isNested={!!activeSelector}
       onBack={() => setActiveSelector(null)}
     >

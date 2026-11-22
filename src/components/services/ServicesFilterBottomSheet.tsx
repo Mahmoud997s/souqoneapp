@@ -7,7 +7,7 @@ import { SERVICE_TYPES, PROVIDER_TYPES, COMMON_SPECIALIZATIONS } from '../../con
 import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
 import { NestedSearchableList } from '../ui/NestedSearchableList';
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout';
 import { ServicesFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
@@ -177,7 +177,7 @@ export function ServicesFilterBottomSheet({
   const currentSpecializations = filters.serviceType ? COMMON_SPECIALIZATIONS[filters.serviceType] || [] : [];
 
   // Dynamic active view
-  let title = "الفلاتر";
+  let title = FILTER_SHEET_DEFAULT_TITLE;
   let nestedContent = null;
 
   if (activeSelector === 'gov') {
@@ -372,7 +372,7 @@ export function ServicesFilterBottomSheet({
       onApply={handleApply}
       onClear={handleReset}
       hasActiveFilters={hasActiveFilters}
-      applyLabel={resultsCount !== undefined ? `عرض ${resultsCount} نتيجة` : 'تطبيق'}
+      resultsCount={resultsCount}
     >
       {activeSelector ? nestedContent : mainContent}
     </FilterBottomSheetLayout>

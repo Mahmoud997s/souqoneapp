@@ -6,7 +6,7 @@ import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
 import { RangeSlider } from '../ui/RangeSlider';
 import { NestedSearchableList } from '../ui/NestedSearchableList';
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout';
 import { OperatorFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -139,7 +139,7 @@ export function OperatorsFilterBottomSheet({
   const sortData = SORT_OPTIONS.map((s) => ({ id: s.id, label: s.label }));
 
   let nestedContent = null;
-  let title = 'تصفية المشغلين';
+  let title = FILTER_SHEET_DEFAULT_TITLE;
 
   if (activeSelector === 'equipmentType') {
     title = 'اختر نوع المعدة';
@@ -367,11 +367,7 @@ export function OperatorsFilterBottomSheet({
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
       onApply={handleApply}
-      applyLabel={
-        resultsCount !== undefined
-          ? `تطبيق الفلاتر (عرض ${resultsCount} مشغل)`
-          : 'تطبيق الفلاتر'
-      }
+      resultsCount={resultsCount}
       isNested={activeSelector !== null}
       onBack={() => setActiveSelector(null)}
     >

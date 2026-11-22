@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout'
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout'
 import { FilterSection } from '../ui/FilterSection'
 import { DropdownSelector } from '../ui/DropdownSelector'
 import { RangeSlider } from '../ui/RangeSlider'
@@ -187,7 +187,7 @@ export function EquipmentFilterBottomSheet({
     : undefined
 
   let nestedContent: React.ReactNode = null
-  let title = 'تصفية النتائج'
+  let title = FILTER_SHEET_DEFAULT_TITLE
 
   if (activeSelector === 'sort') {
     title = 'ترتيب النتائج'
@@ -473,13 +473,8 @@ export function EquipmentFilterBottomSheet({
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
       onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
-      applyLabel={
-        activeSelector
-          ? 'تأكيد الاختيار'
-          : resultsCount !== undefined
-          ? `عرض ${resultsCount} نتيجة`
-          : 'تطبيق الفلتر'
-      }
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
+      resultsCount={activeSelector ? undefined : resultsCount}
       isNested={!!activeSelector}
       onBack={() => setActiveSelector(null)}
     >

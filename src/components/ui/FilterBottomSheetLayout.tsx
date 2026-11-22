@@ -20,15 +20,41 @@ import { TopBarTokens } from '../../constants/topBarTokens';
 import { FilterGlassSurface } from './FilterGlassSurface';
 import { ModalToastHost } from './ModalToastHost';
 import { ResetFilterButton } from './ResetFilterButton';
+import { formatNumberWestern } from '../../utils/numberFormat';
+
+export const FILTER_SHEET_DEFAULT_TITLE = 'تصفية النتائج';
+
+/**
+ * Shared apply-button label and disabled rule across all filter sheets (D-381).
+ * - When `resultsCount` is known: "عرض <N> نتيجة", disabled when `resultsCount === 0`.
+ * - When `resultsCount` is undefined: "تطبيق الفلتر", enabled.
+ */
+export function getFilterSheetApplyState(resultsCount?: number): {
+  label: string;
+  disabled: boolean;
+} {
+  if (resultsCount !== undefined) {
+    return {
+      label: `عرض ${formatNumberWestern(resultsCount)} نتيجة`,
+      disabled: resultsCount === 0,
+    };
+  }
+  return {
+    label: 'تطبيق الفلتر',
+    disabled: false,
+  };
+}
 
 interface FilterBottomSheetLayoutProps {
   visible: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   hasActiveFilters: boolean;
   onClear: () => void;
   onApply: () => void;
   applyLabel?: string;
+  resultsCount?: number;
+  applyDisabled?: boolean;
   children: React.ReactNode;
   useKeyboardAvoiding?: boolean;
   isNested?: boolean;
@@ -38,11 +64,13 @@ interface FilterBottomSheetLayoutProps {
 export function FilterBottomSheetLayout({
   visible,
   onClose,
-  title,
+  title = FILTER_SHEET_DEFAULT_TITLE,
   hasActiveFilters,
   onClear,
   onApply,
-  applyLabel = 'تطبيق الفلتر',
+  applyLabel,
+  resultsCount,
+  applyDisabled,
   children,
   useKeyboardAvoiding = true,
   isNested = false,
@@ -51,6 +79,9 @@ export function FilterBottomSheetLayout({
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = React.useState(false);
   const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+  const computedApply = getFilterSheetApplyState(resultsCount);
+  const resolvedApplyLabel = applyLabel ?? computedApply.label;
+  const isApplyDisabled = applyDisabled ?? computedApply.disabled;
 
   React.useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -85,23 +116,25 @@ export function FilterBottomSheetLayout({
 
       {/* Header */}
       <View style={s.header}>
-        {isNested ? (
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.glassCircle}>
-            <Ionicons name="arrow-forward-outline" size={20} color={Colors.text} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={s.glassCircle}>
-            <Ionicons name="close" size={20} color={Colors.text} />
-          </TouchableOpacity>
-        )}
+        <View testID="filter-sheet-header-start" style={[s.headerSide, s.headerSideStart]}>
+          {isNested ? (
+            <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.glassCircle}>
+              <Ionicons name="arrow-forward-outline" size={20} color={Colors.text} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={s.glassCircle}>
+              <Ionicons name="close" size={20} color={Colors.text} />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <Text style={s.title}>{title}</Text>
+        <Text testID="filter-sheet-title" style={s.title} numberOfLines={1}>{title}</Text>
 
-        {hasActiveFilters ? (
-          <ResetFilterButton onPress={onClear} />
-        ) : (
-          <View style={{ width: 80 }} />
-        )}
+        <View testID="filter-sheet-header-end" style={[s.headerSide, s.headerSideEnd]}>
+          {hasActiveFilters ? (
+            <ResetFilterButton onPress={onClear} />
+          ) : null}
+        </View>
       </View>
 
       {/* Body */}
@@ -118,8 +151,16 @@ export function FilterBottomSheetLayout({
         s.footer, 
         { paddingBottom: isKeyboardVisible ? 9 : (insets.bottom > 0 ? insets.bottom : Spacing.space3) }
       ]}>
-        <TouchableOpacity style={s.applyBtn} onPress={onApply} activeOpacity={0.8}>
-          <Text style={s.applyBtnText}>{applyLabel}</Text>
+        <TouchableOpacity
+          testID="filter-sheet-apply-btn"
+          style={[s.applyBtn, isApplyDisabled && s.applyBtnDisabled]}
+          onPress={onApply}
+          disabled={isApplyDisabled}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isApplyDisabled }}
+          activeOpacity={0.8}
+        >
+          <Text style={[s.applyBtnText, isApplyDisabled && s.applyBtnTextDisabled]}>{resolvedApplyLabel}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -193,6 +234,16 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerSide: {
+    width: 80,
+    justifyContent: 'center',
+  },
+  headerSideStart: {
+    alignItems: 'flex-start',
+  },
+  headerSideEnd: {
+    alignItems: 'flex-end',
+  },
   glassCircle: {
     width: 36,
     height: 36,
@@ -205,6 +256,7 @@ const s = StyleSheet.create({
     ...TopBarTokens.buttonShadow,
   },
   title: {
+    flex: 1,
     fontFamily: 'Almarai_800ExtraBold',
     fontSize: 16,
     lineHeight: 24,
@@ -240,6 +292,11 @@ const s = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
+  applyBtnDisabled: {
+    backgroundColor: Colors.slateBorder,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   applyBtnText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 15,
@@ -247,5 +304,8 @@ const s = StyleSheet.create({
     color: Colors.white,
     includeFontPadding: false,
     writingDirection: 'rtl',
+  },
+  applyBtnTextDisabled: {
+    color: Colors.textMuted,
   },
 });
