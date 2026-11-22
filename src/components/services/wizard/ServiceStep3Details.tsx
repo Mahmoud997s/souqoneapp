@@ -5,7 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
+import { WizardSelectField, formatWizardMultiSummary } from '../../ui/WizardSelectField'
 import { AppInput } from '../../ui/AppInput'
 import { COMMON_SPECIALIZATIONS } from '../../../constants/services'
 import { ServiceStep3Props } from '../../../types/serviceForm.types'
@@ -64,21 +64,21 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
             </Text>
           </View>
         ) : (
-          <View style={s.chipsWrap}>
-            {availableSpecs.map((spec) => {
-              const isSelected = (formData.specializations || []).includes(spec)
-              return (
-                <WizardOptionChip
-                  key={spec}
-                  testID={`spec-chip-${spec}`}
-                  label={spec}
-                  icon={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
-                  selected={isSelected}
-                  onPress={() => toggleSpecialization(spec)}
-                />
-              )
-            })}
-          </View>
+          <WizardSelectField
+            testID="service-specializations-select"
+            multiple
+            values={formData.specializations || []}
+            placeholder="اختر التخصصات"
+            formatMultiSummary={(count) =>
+              formatWizardMultiSummary(count, 'تخصص واحد محدد', 'تخصصان محددان', 'تخصصات محددة')
+            }
+            options={availableSpecs.map((spec) => ({
+              value: spec,
+              label: spec,
+              testID: `spec-chip-${spec}`,
+            }))}
+            onToggle={toggleSpecialization}
+          />
         )}
       </WizardCard>
 

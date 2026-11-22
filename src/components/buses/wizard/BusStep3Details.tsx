@@ -16,8 +16,7 @@ import { AppButton } from '../../ui/AppButton'
 import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
-import { WizardSelectField } from '../../ui/WizardSelectField'
+import { WizardSelectField, formatWizardMultiSummary } from '../../ui/WizardSelectField'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { BusWizardData } from '../../../store/busWizardStore'
 import { busesApi, BusManufacturer, BusModel } from '../../../api/buses'
@@ -438,18 +437,18 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
       {/* 4. Transmission, Fuel, Condition */}
       <WizardCard title="الحالة ونظام الحركة" subtitle="حدد نوع ناقل الحركة ونوع الوقود">
         {/* Transmission */}
-        <Text style={s.fieldLabel}>ناقل الحركة</Text>
-        <View style={s.chipRow}>
-          {BUS_TRANSMISSIONS.map((t) => (
-            <WizardOptionChip
-              key={t.id}
-              testID={`transmission-${t.id}`}
-              label={t.label}
-              selected={data.transmission === t.id}
-              onPress={() => onUpdateField('transmission', t.id)}
-            />
-          ))}
-        </View>
+        <WizardSelectField
+          testID="bus-transmission-select"
+          label="ناقل الحركة"
+          value={data.transmission}
+          placeholder="اختر ناقل الحركة"
+          options={BUS_TRANSMISSIONS.map((t) => ({
+            value: t.id,
+            label: t.label,
+            testID: `transmission-${t.id}`,
+          }))}
+          onSelect={(val) => onUpdateField('transmission', val)}
+        />
 
         {/* Fuel Type */}
         <View style={{ marginTop: 14 }}>
@@ -469,38 +468,40 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         </View>
 
         {/* Condition */}
-        <Text style={[s.fieldLabel, { marginTop: 14 }]}>حالة الحافلة</Text>
-        <View style={s.chipRow}>
-          {BUS_CONDITIONS.map((c) => (
-            <WizardOptionChip
-              key={c.id}
-              testID={`condition-${c.id}`}
-              label={c.label}
-              selected={data.condition === c.id}
-              onPress={() => onUpdateField('condition', c.id)}
-            />
-          ))}
+        <View style={{ marginTop: 14 }}>
+          <WizardSelectField
+            testID="bus-condition-select"
+            label="حالة الحافلة"
+            value={data.condition}
+            placeholder="اختر حالة الحافلة"
+            options={BUS_CONDITIONS.map((c) => ({
+              value: c.id,
+              label: c.label,
+              testID: `condition-${c.id}`,
+            }))}
+            onSelect={(val) => onUpdateField('condition', val)}
+          />
         </View>
       </WizardCard>
 
       {/* 5. Features & Plate Number */}
       <WizardCard title="المميزات ورقم اللوحة" subtitle="حدد التجهيزات الإضافية المتوفرة في الحافلة">
-        <Text style={s.fieldLabel}>التجهيزات والمميزات</Text>
-        <View style={s.featuresGrid}>
-          {BUS_FEATURES.map((feat) => {
-            const isSel = (data.features || []).includes(feat.id)
-            return (
-              <WizardOptionChip
-                key={feat.id}
-                testID={`feature-${feat.id}`}
-                label={feat.label}
-                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                selected={isSel}
-                onPress={() => toggleFeature(feat.id)}
-              />
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="bus-features-select"
+          multiple
+          label="التجهيزات والمميزات"
+          values={data.features || []}
+          placeholder="اختر التجهيزات والمميزات"
+          formatMultiSummary={(count) =>
+            formatWizardMultiSummary(count, 'ميزة واحدة محددة', 'ميزتان محددتان', 'مميزات محددة')
+          }
+          options={BUS_FEATURES.map((feat) => ({
+            value: feat.id,
+            label: feat.label,
+            testID: `feature-${feat.id}`,
+          }))}
+          onToggle={toggleFeature}
+        />
 
         <View style={{ marginTop: 14 }}>
           <AppInput
@@ -631,15 +632,5 @@ const s = StyleSheet.create({
   rowFields: {
     flexDirection: 'row',
     gap: 12,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
 })

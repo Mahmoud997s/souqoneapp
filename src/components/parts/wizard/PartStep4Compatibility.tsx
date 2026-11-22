@@ -12,6 +12,7 @@ import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
+import { WizardSelectField, formatWizardMultiSummary } from '../../ui/WizardSelectField'
 import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardOptionChip } from '../../wizard/WizardOptionChip'
@@ -202,18 +203,21 @@ export function PartStep4Compatibility({
 
       {/* 2. Vehicle Types */}
       <WizardCard title="نوع المركبة المتوافقة">
-        <View style={s.chipRow}>
-          {VEHICLE_TYPE_OPTIONS.map((opt) => (
-            <WizardOptionChip
-              key={opt.id}
-              testID={`vehicle-type-${opt.id}`}
-              label={opt.label}
-              icon={opt.icon as keyof typeof Ionicons.glyphMap}
-              selected={formData.compatibleVehicleTypes.includes(opt.id)}
-              onPress={() => toggleVehicleType(opt.id)}
-            />
-          ))}
-        </View>
+        <WizardSelectField
+          testID="part-vehicle-types-select"
+          multiple
+          values={formData.compatibleVehicleTypes}
+          placeholder="اختر نوع المركبة المتوافقة"
+          formatMultiSummary={(count) =>
+            formatWizardMultiSummary(count, 'نوع واحد محدد', 'نوعان محددان', 'أنواع محددة')
+          }
+          options={VEHICLE_TYPE_OPTIONS.map((opt) => ({
+            value: opt.id,
+            label: opt.label,
+            testID: `vehicle-type-${opt.id}`,
+          }))}
+          onToggle={(val) => toggleVehicleType(val as CompatibleVehicleType)}
+        />
       </WizardCard>
 
       {/* 3. Compatible Makes */}

@@ -55,21 +55,23 @@ describe('PartStep1Category', () => {
 
   it('renders condition chips and updates store on select', async () => {
     await render(<PartStep1Category {...defaultProps} />)
-    
+    await fireEvent.press(screen.getByTestId('part-condition-select'))
+
     const newCondition = screen.getByTestId(`condition-${PART_CONDITIONS[0].id}`)
     expect(newCondition).toBeTruthy()
 
-    fireEvent.press(newCondition)
+    await fireEvent.press(newCondition)
     expect(mockOnUpdateField).toHaveBeenCalledWith('condition', PART_CONDITIONS[0].id)
   })
 
   it('renders originality options and updates store on select', async () => {
     await render(<PartStep1Category {...defaultProps} />)
-    
+    await fireEvent.press(screen.getByTestId('part-originality-select'))
+
     const originalOption = screen.getByTestId(`originality-${PART_ORIGINALITY_OPTIONS[0].value.toString()}`)
     expect(originalOption).toBeTruthy()
 
-    fireEvent.press(originalOption)
+    await fireEvent.press(originalOption)
     expect(mockOnUpdateField).toHaveBeenCalledWith('isOriginal', PART_ORIGINALITY_OPTIONS[0].value)
   })
 

@@ -45,6 +45,10 @@ describe('PartStep4Compatibility', () => {
   it('renders vehicle type options and updates store on select', async () => {
     await render(<PartStep4Compatibility {...defaultProps} />);
 
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('part-vehicle-types-select'));
+    });
+
     const carBtn = screen.getByTestId('vehicle-type-CAR');
     expect(carBtn).toBeTruthy();
 
@@ -67,6 +71,10 @@ describe('PartStep4Compatibility', () => {
     };
 
     await render(<PartStep4Compatibility {...propsWithCar} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('part-vehicle-types-select'));
+    });
 
     const carBtn = screen.getByTestId('vehicle-type-CAR');
     await act(async () => {

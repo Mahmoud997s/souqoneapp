@@ -17,7 +17,7 @@ import { AppInput } from '../ui/AppInput'
 import { AVAILABLE_EQUIPMENT } from '../../constants/operators'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import { WizardCard } from '../ui/WizardCard'
-import { WizardOptionChip } from '../wizard/WizardOptionChip'
+import { WizardSelectField, formatWizardMultiSummary } from '../ui/WizardSelectField'
 
 export interface OperatorEquipCertsStepProps {
   formData: OperatorWizardFormData
@@ -65,25 +65,22 @@ export function OperatorEquipCertsStep({
     <View style={s.stepWrap}>
       {/* Equipment Selection Section */}
       <WizardCard title="المعدات المصرح بتشغيلها *" subtitle="اختر كل المعدات المصرح لك بقيادتها ولديك خبرة بها">
-
-        {errors.equipmentTypes ? (
-          <Text style={s.inlineErrorTxt}>{errors.equipmentTypes}</Text>
-        ) : null}
-
-        <View style={s.equipChipsWrap}>
-          {AVAILABLE_EQUIPMENT.map((eq) => {
-            const isSel = formData.equipmentTypes.includes(eq.id)
-            return (
-              <WizardOptionChip
-                key={eq.id}
-                label={eq.label}
-                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                selected={isSel}
-                onPress={() => onToggleEquipment(eq.id)}
-              />
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="operator-equipment-select"
+          multiple
+          values={formData.equipmentTypes}
+          placeholder="اختر المعدات المصرح بتشغيلها"
+          formatMultiSummary={(count) =>
+            formatWizardMultiSummary(count, 'معدة واحدة محددة', 'معدتان محددتان', 'معدات محددة')
+          }
+          options={AVAILABLE_EQUIPMENT.map((eq) => ({
+            value: eq.id,
+            label: eq.label,
+            testID: `operator-equipment-${eq.id}`,
+          }))}
+          onToggle={onToggleEquipment}
+          error={errors.equipmentTypes}
+        />
       </WizardCard>
 
       {/* Certifications and licenses card */}
