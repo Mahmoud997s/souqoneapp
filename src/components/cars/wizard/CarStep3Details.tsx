@@ -17,7 +17,7 @@ import { AppInput } from '../../ui/AppInput'
 import { GlassInputShell } from '../../ui/GlassInputShell'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { WizardCard } from '../../ui/WizardCard'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
+import { WizardSelectField, formatWizardMultiSummary } from '../../ui/WizardSelectField'
 import { SearchableSelectModal, SelectOption } from '../../ui/SearchableSelectModal'
 import { CarStep3Props } from '../../../types/carForm.types'
 import {
@@ -372,19 +372,19 @@ export function CarStep3Details({
         </View>
 
         <View style={s.inputWrapper}>
-          <Text style={s.label}>ناقل الحركة *</Text>
-          <View style={s.chipRow}>
-            {TRANSMISSION_TYPES.map((opt) => (
-              <WizardOptionChip
-                key={opt.value}
-                label={opt.label}
-                selected={formData.transmission === opt.value}
-                onPress={() => onUpdateField('transmission', opt.value)}
-                error={Boolean(errors.transmission)}
-              />
-            ))}
-          </View>
-          {errors.transmission ? <Text style={s.inlineErrorTxt}>{errors.transmission}</Text> : null}
+          <WizardSelectField
+            testID="car-transmission-select"
+            label="ناقل الحركة *"
+            value={formData.transmission}
+            placeholder="اختر ناقل الحركة"
+            options={TRANSMISSION_TYPES.map((opt) => ({
+              value: opt.value,
+              label: opt.label,
+              testID: `car-transmission-${opt.value}`,
+            }))}
+            onSelect={(val) => onUpdateField('transmission', val)}
+            error={errors.transmission}
+          />
         </View>
       </WizardCard>
 
@@ -500,20 +500,21 @@ export function CarStep3Details({
 
       {/* 4. Features */}
       <WizardCard title="المميزات الإضافية (اختياري)">
-        <View style={s.featuresGrid}>
-          {CAR_FEATURE_KEYS.map((feat) => {
-            const isActive = formData.features.includes(feat.id)
-            return (
-              <WizardOptionChip
-                key={feat.id}
-                label={feat.label}
-                icon={feat.icon as keyof typeof Ionicons.glyphMap}
-                selected={isActive}
-                onPress={() => onToggleFeature(feat.id)}
-              />
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="car-features-select"
+          multiple
+          values={formData.features}
+          placeholder="اختر المميزات"
+          formatMultiSummary={(count) =>
+            formatWizardMultiSummary(count, 'ميزة واحدة محددة', 'ميزتان محددتان', 'مميزات محددة')
+          }
+          options={CAR_FEATURE_KEYS.map((feat) => ({
+            value: feat.id,
+            label: feat.label,
+            testID: `car-feature-${feat.id}`,
+          }))}
+          onToggle={onToggleFeature}
+        />
 
         <GlassInputShell style={s.addFeatureWrap}>
           <TextInput
@@ -634,12 +635,6 @@ const s = StyleSheet.create({
     height: 24,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 2,
   },
   addFeatureWrap: {
     flexDirection: 'row',

@@ -6,7 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { AppInput } from '../../ui/AppInput'
 import { WizardCard } from '../../ui/WizardCard'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
+import { WizardSelectField } from '../../ui/WizardSelectField'
 import { WhatsappToggle } from '../../ui/WhatsappToggle'
 import { GovernorateWilayaSelect } from '../../ui/GovernorateWilayaSelect'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
@@ -137,17 +137,18 @@ export function CarStep4Location({
             </View>
 
             <View>
-              <Text style={[s.switchTitle, { marginBottom: 8 }]}>سياسة الإلغاء</Text>
-              <View style={s.chipRow}>
-                {CANCELLATION_POLICIES.map((opt) => (
-                  <WizardOptionChip
-                    key={opt.value}
-                    label={opt.label}
-                    selected={formData.cancellationPolicy === opt.value}
-                    onPress={() => onUpdateField('cancellationPolicy', opt.value)}
-                  />
-                ))}
-              </View>
+              <WizardSelectField
+                testID="car-cancellation-policy-select"
+                label="سياسة الإلغاء"
+                value={formData.cancellationPolicy}
+                placeholder="اختر سياسة الإلغاء"
+                options={CANCELLATION_POLICIES.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                  testID: `cancellation-policy-${opt.value}`,
+                }))}
+                onSelect={(val) => onUpdateField('cancellationPolicy', val)}
+              />
             </View>
           </>
         )}
