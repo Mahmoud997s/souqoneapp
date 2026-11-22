@@ -7,6 +7,7 @@ import { Radius } from '../../../constants/radius'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
 import { PriceBadge } from '../../ui/PriceBadge'
+import { DetailViewCountItem } from '../../listing-detail/DetailViewCountItem'
 import { EquipmentOperatorBadge } from './EquipmentOperatorBadge'
 import type { PriceView } from '../../../types/listingDetail.types'
 import type { EquipmentOperatorBadge as EquipmentOperatorBadgeType } from '../../../types/equipmentDetailViewModel.types'
@@ -21,6 +22,7 @@ export interface EquipmentHeaderBlockProps {
   operatorBadge: EquipmentOperatorBadgeType | null
   locationText: string
   postedAtLabel: string
+  viewCount?: number
   statusBadge?: {
     label: string
     tone: 'success' | 'warning' | 'danger' | 'neutral'
@@ -46,6 +48,7 @@ export function EquipmentHeaderBlock({
   operatorBadge,
   locationText,
   postedAtLabel,
+  viewCount,
   statusBadge,
 }: EquipmentHeaderBlockProps) {
   const hasRates = Boolean(price.dailyRate || price.monthlyRate)
@@ -169,6 +172,13 @@ export function EquipmentHeaderBlock({
             {postedAtLabel}
           </Text>
         </View>
+
+        {typeof viewCount === 'number' ? (
+          <>
+            <View style={s.metaDot} />
+            <DetailViewCountItem viewCount={viewCount} maxFontSizeMultiplier={1.3} />
+          </>
+        ) : null}
       </View>
     </View>
   )

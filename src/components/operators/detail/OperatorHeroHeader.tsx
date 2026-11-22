@@ -12,6 +12,7 @@ import type { OperatorDetailViewModel } from '../../../types/operatorDetailViewM
 import { GlassSurface } from '../../navigation/GlassSurface'
 import type { GlassSupport } from '../../navigation/glassCapability'
 import { OperatorAvatarBlock } from './OperatorAvatarBlock'
+import { DetailViewCountItem } from '../../listing-detail/DetailViewCountItem'
 
 export interface OperatorHeroHeaderProps {
   vm: OperatorDetailViewModel
@@ -77,6 +78,8 @@ export function OperatorHeroHeader({ vm, support }: OperatorHeroHeaderProps) {
             </Text>
           </>
         )}
+        <Text style={s.metaDot}>•</Text>
+        <DetailViewCountItem viewCount={vm.viewCount} maxFontSizeMultiplier={1.3} />
       </View>
 
       {/* Real Stat Chips in ONE row */}
@@ -162,6 +165,7 @@ const s = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.space1,
