@@ -22,6 +22,36 @@ export function WizardReviewCard({
   )
 }
 
+export const WIZARD_REVIEW_ROW_STYLES = {
+  row: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    paddingVertical: 3,
+    gap: Spacing.space3,
+  },
+  label: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.slateText,
+    textAlign: 'left' as const,
+    writingDirection: 'rtl' as const,
+    flexShrink: 0,
+  },
+  value: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.slateDark,
+    textAlign: 'left' as const,
+    writingDirection: 'rtl' as const,
+    flexShrink: 1,
+  },
+}
+
+export const wizardReviewRowStyles = StyleSheet.create(WIZARD_REVIEW_ROW_STYLES)
+
 const s = StyleSheet.create({
   card: {
     overflow: 'hidden',
