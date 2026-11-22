@@ -2,9 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { GlassSurface } from '../navigation/glassSupport';
-import { BottomBarTokens } from '../../constants/bottomBarTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -16,8 +13,8 @@ import { PROFILE_PHONE_REQUIRED_MESSAGE } from '../../utils/profilePhoneGuard';
 
 /**
  * Header style of the form that renders the guard:
- * - glass: GlassNavBar + ambient gradient (cars / buses / parts / services / equipment ...)
- * - app:   AppHeader showBack (post/step2, carrier-onboarding)
+ * - glass: GlassNavBar on calm Colors.homeBg with centered solid wizard card (cars / buses / parts / services / equipment / operators)
+ * - app:   AppHeader showBack on calm Colors.homeBg with centered solid wizard card (post/step2)
  */
 export type ProfilePhoneGuardHeaderVariant = 'glass' | 'app';
 
@@ -35,7 +32,7 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
   const isGlass = headerVariant === 'glass';
 
   const handleAddPhone = () => {
-    router.push('/profile/edit-profile' as any);
+    router.push('/profile/edit-profile' as never);
   };
 
   const handleBack = () => {
@@ -84,45 +81,32 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
 
   if (isGlass) {
     return (
-      <View style={s.glassRoot} testID="profile-phone-guard-view">
+      <View style={s.root} testID="profile-phone-guard-view">
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-
-        <LinearGradient
-          colors={[Colors.blueTintBg, Colors.violetSoftBg, Colors.peachTintBg]}
-          locations={[0, 0.55, 1]}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[s.orb, s.orbPrimary]} pointerEvents="none" />
-        <View style={[s.orb, s.orbAccent]} pointerEvents="none" />
 
         <GlassNavBar
           title={title}
           paddingTop={insets.top}
           onBackPress={handleBack}
           actions={[
-            { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as any), accessibilityLabel: 'الرسائل' },
-            { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as any), accessibilityLabel: 'الإشعارات' },
+            { icon: 'chatbubble-outline', onPress: () => router.push('/(tabs)/chat' as never), accessibilityLabel: 'الرسائل' },
+            { icon: 'notifications-outline', onPress: () => router.push('/profile/notifications' as never), accessibilityLabel: 'الإشعارات' },
           ]}
         />
 
         <ScrollView
+          testID="profile-phone-guard-scroll"
           style={s.flex}
-          contentContainerStyle={[s.glassContent, { paddingTop: insets.top + 52 + Spacing.space3 }]}
+          contentContainerStyle={[
+            s.scrollContent,
+            {
+              paddingTop: insets.top + 52 + Spacing.space5,
+              paddingBottom: Math.max(insets.bottom, Spacing.space4) + Spacing.space5,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[s.glassCard, { backgroundColor: 'transparent' }]}>
-            <GlassSurface
-              testID="profile-phone-guard-glass-surface"
-              variant="surface"
-              borderRadius={Radius.lg}
-              noBorder
-              intensity={50}
-              washColor={Colors.white}
-              washOpacity={BottomBarTokens.lightWashOpacity}
-            />
-            <View style={s.tint} pointerEvents="none" />
+          <View testID="profile-phone-guard-card" style={s.card}>
             {body}
           </View>
         </ScrollView>
@@ -131,7 +115,7 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
   }
 
   return (
-    <View style={s.appRoot} testID="profile-phone-guard-view">
+    <View style={s.root} testID="profile-phone-guard-view">
       <AppHeader
         title={title}
         showBack
@@ -140,81 +124,51 @@ export function ProfilePhoneGuardView({ title = 'إضافة إعلان', onBack,
       />
 
       <ScrollView
+        testID="profile-phone-guard-scroll"
         style={s.flex}
-        contentContainerStyle={s.appContent}
+        contentContainerStyle={[
+          s.scrollContent,
+          {
+            paddingTop: Spacing.space4,
+            paddingBottom: Math.max(insets.bottom, Spacing.space4) + Spacing.space4,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={s.appCard}>{body}</View>
+        <View testID="profile-phone-guard-card" style={s.card}>
+          {body}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-const cardBase = {
-  borderRadius: Radius.lg,
-  padding: Spacing.space4,
-  alignItems: 'center' as const,
-  gap: Spacing.space3,
-};
-
 const s = StyleSheet.create({
   flex: { flex: 1 },
-  glassRoot: {
+  root: {
     flex: 1,
-    backgroundColor: Colors.violetSoftBg,
+    backgroundColor: Colors.homeBg,
   },
-  appRoot: {
-    flex: 1,
-    backgroundColor: Colors.neutralSurface,
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.space4,
   },
-  orb: {
-    position: 'absolute',
-    borderRadius: 9999,
-  },
-  orbPrimary: {
-    width: 260,
-    height: 260,
-    top: -80,
-    left: -70,
-    backgroundColor: Colors.primary,
-    opacity: 0.08,
-  },
-  orbAccent: {
-    width: 220,
-    height: 220,
-    bottom: 80,
-    right: -60,
-    backgroundColor: Colors.accent,
-    opacity: 0.1,
-  },
-  glassContent: {
-    paddingHorizontal: Spacing.space4 - 4,
-    paddingBottom: 120,
-  },
-  appContent: {
-    padding: Spacing.space4,
-    paddingBottom: 120,
-  },
-  glassCard: {
-    ...cardBase,
+  card: {
+    width: '100%',
     overflow: 'hidden',
+    borderRadius: Radius.lg,
+    padding: Spacing.space4,
+    alignItems: 'center',
+    gap: Spacing.space3,
     borderWidth: 1,
-    borderColor: Colors.whiteAlpha60,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
     ...Platform.select({
       ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
-  },
-  appCard: {
-    ...cardBase,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tint: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.primary,
-    opacity: 0.04,
   },
   iconWrap: {
     width: 60,
