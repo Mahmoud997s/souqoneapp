@@ -7,6 +7,7 @@ import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { PriceBadge } from '../ui/PriceBadge'
 import { DetailViewCountItem } from './DetailViewCountItem'
+import { normalizeArabicIndicDigits } from '../../utils/numberFormat'
 import type { PriceView } from '../../types/carDetailViewModel.types'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
@@ -133,7 +134,7 @@ export function ListingHeaderBlock({
               <View style={s.metaIconWrap}>
                 <Ionicons name="location" size={13} color={Colors.primary} />
               </View>
-              <Text style={s.metaText}>{locationText}</Text>
+              <Text style={s.metaText}>{normalizeArabicIndicDigits(locationText)}</Text>
             </View>
 
             {/* Dot divider */}

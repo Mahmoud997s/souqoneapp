@@ -46,7 +46,7 @@ import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
-import { LocationCard } from '../../components/listing-detail/LocationCard'
+import { DetailLocationMap } from '../../components/listing-detail/DetailLocationMap'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SafetyTips } from '../../components/listing-detail/SafetyTips'
 import { SupportButton } from '../../components/listing-detail/SupportButton'
@@ -326,13 +326,14 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           />
         </Animated.View>
 
-        {/* 2. Header Block (location omitted to avoid duplication with LocationCard) */}
+        {/* 2. Header Block (location in header, matching Cars/Buses, D-385) */}
         <Animated.View entering={getEnteringAnimation(1)}>
           <ListingHeaderBlock
             title={vm.title}
             kindLabel="قطعة غيار"
             conditionLabel={vm.conditionLabel}
             price={vm.price}
+            locationText={vm.location.fullLocationText}
             postedAtLabel={vm.postedAtLabel}
             viewCount={vm.viewCount}
             statusBadge={statusBadge}
@@ -381,14 +382,17 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
           )}
         </Animated.View>
 
-        {/* 7. Location Card with embedded map */}
-        <Animated.View entering={getEnteringAnimation(6)}>
-          <LocationCard
-            locationText={vm.location.fullLocationText}
-            latitude={vm.location.latitude}
-            longitude={vm.location.longitude}
-          />
-        </Animated.View>
+        {/* 7. Location Map (only when coordinates exist, D-385) */}
+        {vm.location.hasCoordinates &&
+        vm.location.latitude !== undefined &&
+        vm.location.longitude !== undefined ? (
+          <Animated.View entering={getEnteringAnimation(6)}>
+            <DetailLocationMap
+              latitude={vm.location.latitude}
+              longitude={vm.location.longitude}
+            />
+          </Animated.View>
+        ) : null}
 
         {/* 8. Safety Tips */}
         <Animated.View entering={getEnteringAnimation(7)}>

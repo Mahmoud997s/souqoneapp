@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
 import { BusContractSection } from './BusContractSection'
-import { BusLocationMapSection } from './BusLocationMapSection'
+import { DetailLocationMap } from '../../listing-detail/DetailLocationMap'
 import { ListingHeaderBlock } from '../../listing-detail/ListingHeaderBlock'
 import { SpecsSections } from '../../listing-detail/SpecsSections'
 import { SimilarListingsGrid } from '../../listing-detail/SimilarListingsGrid'
@@ -407,9 +407,9 @@ describe('BusContractSection (Variant C)', () => {
       assertAllTextsUseAlmaraiAndSafeLineHeight(view.toJSON() as JsonNode | null)
     })
 
-    it('enforces Almarai fontFamily, >= 11pt floor, and lineHeight >= 1.5x fontSize on all Texts in BusLocationMapSection', async () => {
+    it('enforces Almarai fontFamily, >= 11pt floor, and lineHeight >= 1.5x fontSize on all Texts in DetailLocationMap', async () => {
       const view = await render(
-        <BusLocationMapSection
+        <DetailLocationMap
           latitude={23.588}
           longitude={58.3829}
           isMapMounted={false}

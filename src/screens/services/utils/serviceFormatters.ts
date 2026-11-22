@@ -199,7 +199,7 @@ export function formatServicePrice(
   const parseNum = (v: unknown): number | null => {
     if (v === null || v === undefined) return null
     const n = typeof v === 'number' ? v : parseFloat(String(v))
-    return isNaN(n) || n <= 0 ? null : n
+    return !Number.isFinite(n) || n <= 0 ? null : n
   }
 
   const pFrom = parseNum(priceFrom)

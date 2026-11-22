@@ -30,7 +30,6 @@ import { TopBarTokens, DetailLayoutTokens } from '../../constants/topBarTokens'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
 import { SUPPORT_MAILTO } from '../../constants/support'
-import MapView, { Marker } from '../../components/ui/Map'
 import { useAuthStore } from '../../store/authStore'
 import { useCarWizardStore } from '../../store/carWizardStore'
 import { toastService } from '../../store/toastStore'
@@ -62,6 +61,7 @@ import {
 
 // Presentational Components
 import { DetailTopBar } from '../../components/listing-detail/DetailTopBar'
+import { DetailLocationMap } from '../../components/listing-detail/DetailLocationMap'
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
@@ -420,58 +420,16 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
           )}
         </Animated.View>
 
-        {/* 7b. Location Map (only when the listing has coordinates, D-29) */}
+        {/* 7b. Location Map (only when the listing has coordinates, D-29 / D-385) */}
         {vm.location.hasCoordinates &&
         vm.location.latitude !== undefined &&
         vm.location.longitude !== undefined ? (
-          <Animated.View entering={getEnteringAnimation(6)} style={s.mapSection}>
-            <Text style={s.mapSectionTitle}>الموقع والعنوان</Text>
-            <View style={s.mapContainer}>
-              {isMapMounted ? (
-                <>
-                  <MapView
-                    style={{ width: '100%', height: '100%' }}
-                    initialRegion={{
-                      latitude: vm.location.latitude,
-                      longitude: vm.location.longitude,
-                      latitudeDelta: 0.05,
-                      longitudeDelta: 0.05,
-                    }}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                  >
-                    <Marker
-                      coordinate={{
-                        latitude: vm.location.latitude,
-                        longitude: vm.location.longitude,
-                      }}
-                    />
-                  </MapView>
-                  {/* Overlay to prevent accidental touches capturing scroll */}
-                  <View style={StyleSheet.absoluteFill} />
-                </>
-              ) : (
-                <View style={s.mapPlaceholder}>
-                  <Ionicons name="location-outline" size={32} color={Colors.primary} />
-                </View>
-              )}
-            </View>
-            <TouchableOpacity
-              style={s.directionsBtn}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="الحصول على الاتجاهات"
-              onPress={() => {
-                Linking.openURL(
-                  `https://www.google.com/maps/dir/?api=1&destination=${vm.location.latitude},${vm.location.longitude}`
-                ).catch(() => {
-                  toastService.show({ kind: 'error', title: 'تعذر فتح تطبيق الخرائط' })
-                })
-              }}
-            >
-              <Ionicons name="navigate-circle-outline" size={24} color={Colors.primary} />
-              <Text style={s.directionsTxt}>الحصول على الاتجاهات</Text>
-            </TouchableOpacity>
+          <Animated.View entering={getEnteringAnimation(6)}>
+            <DetailLocationMap
+              latitude={vm.location.latitude}
+              longitude={vm.location.longitude}
+              isMapMounted={isMapMounted}
+            />
           </Animated.View>
         ) : null}
 
@@ -602,62 +560,6 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     gap: Spacing.space2,
-  },
-  mapSection: {
-    marginHorizontal: Spacing.space4,
-    marginVertical: Spacing.space2,
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: Spacing.space4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadows.card,
-  },
-  mapSectionTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    lineHeight: lineHeightFor(16),
-    color: Colors.text,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    marginBottom: Spacing.space3,
-  },
-  mapContainer: {
-    width: '100%',
-    height: 180,
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceAlt,
-    position: 'relative',
-  },
-  mapPlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surfaceAlt,
-  },
-  directionsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: Colors.paleMint,
-    paddingVertical: Spacing.space3,
-    minHeight: Spacing.touch,
-    borderRadius: Radius.md,
-    marginTop: Spacing.space3,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  directionsTxt: {
-    ...RTLText,
-    fontFamily: 'Almarai_700Bold',
-    color: Colors.primary,
-    fontSize: 14,
-    lineHeight: lineHeightFor(14),
   },
   similarCard: {
     backgroundColor: Colors.white,

@@ -55,7 +55,8 @@ export interface OwnerManageBarProps {
     tone: 'primary' | 'danger' | 'neutral'
     icon: string
   }[]
-  viewCount: number
+  /** @deprecated D-385: view count is now shown publicly in the detail header (D-384); kept optional for untouched callers. */
+  viewCount?: number
   busy?: boolean
   busyAction?: OwnerBusyAction
   onAction: (id: OwnerActionId) => void
@@ -70,7 +71,6 @@ export interface OwnerManageBarProps {
 export function OwnerManageBar({
   variant = 'inline',
   actions,
-  viewCount,
   busy = false,
   busyAction,
   onAction,
@@ -263,12 +263,8 @@ export function OwnerManageBar({
   // ── INLINE VARIANT (default) ────────────────────────────────────────────────
   return (
     <View style={s.container}>
-      {/* Stats Bar */}
+      {/* Owner Notice Header (view count badge removed in D-385; shown publicly in detail header) */}
       <View style={s.statsHeader}>
-        <View style={s.viewCountBadge}>
-          <Ionicons name="eye-outline" size={16} color={Colors.primary} />
-          <Text style={s.viewCountText}>{viewCount.toLocaleString()} مشاهدة</Text>
-        </View>
         <Text style={s.ownerNotice}>أنت مالك هذا الإعلان</Text>
       </View>
 
@@ -332,21 +328,6 @@ const s = StyleSheet.create({
     paddingBottom: Spacing.space2,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-  },
-  viewCountBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.primaryHex12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-  },
-  viewCountText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 11,
-    lineHeight: lineHeightFor(11),
-    color: Colors.primary,
   },
   ownerNotice: {
     fontFamily: 'Almarai_400Regular',

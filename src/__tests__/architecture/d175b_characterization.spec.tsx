@@ -169,7 +169,8 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
       expect(screen.getByTestId('btn-owner-edit')).toBeTruthy()
       expect(screen.getByTestId('btn-owner-pause')).toBeTruthy()
       expect(screen.getByTestId('btn-owner-delete')).toBeTruthy()
-      expect(screen.getByText('154 مشاهدة')).toBeTruthy()
+      // D-385: duplicate view-count badge removed from OwnerManageBar (single source is header)
+      expect(screen.queryByText('154 مشاهدة')).toBeNull()
 
       const editBtn = screen.getByTestId('btn-owner-edit')
       fireEvent.press(editBtn)

@@ -43,7 +43,7 @@ import { buildShareMessage } from '../../hooks/listing-detail/useShareListing'
 // Presentational Components
 import {
   DetailTopBar,
-  LocationCard,
+  DetailLocationMap,
   DetailStaleBanner,
 } from '../../components/listing-detail'
 import {
@@ -406,7 +406,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
             isHomeService={vm.isHomeService}
             postedAtLabel={vm.postedAtLabel}
             viewCount={vm.viewCount}
-            locationLabel={vm.location.fullLocationText}
+            locationLabel={locationText}
           />
         </Animated.View>
 
@@ -461,14 +461,17 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
           </Animated.View>
         )}
 
-        {/* 8. Location Card with embedded map if coordinates exist */}
-        <Animated.View entering={getEnteringAnimation(7)}>
-          <LocationCard
-            locationText={locationText}
-            latitude={vm.location.latitude}
-            longitude={vm.location.longitude}
-          />
-        </Animated.View>
+        {/* 8. Location Map (only when coordinates exist, D-385) */}
+        {vm.location.hasCoordinates &&
+        vm.location.latitude !== undefined &&
+        vm.location.longitude !== undefined ? (
+          <Animated.View entering={getEnteringAnimation(7)}>
+            <DetailLocationMap
+              latitude={vm.location.latitude}
+              longitude={vm.location.longitude}
+            />
+          </Animated.View>
+        ) : null}
 
         {/* 9. Website Card */}
         {Boolean(vm.website) && (
