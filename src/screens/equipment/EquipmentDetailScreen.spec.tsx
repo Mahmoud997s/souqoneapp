@@ -546,13 +546,13 @@ describe('EquipmentDetailScreen', () => {
   })
 
   describe('Location & Map compliance', () => {
-    it('renders location card with directions link and embedded MapView canvas when coordinates exist', async () => {
+    it('renders unified DetailLocationMap with directions link and embedded MapView canvas when coordinates exist', async () => {
       await render(<EquipmentDetailScreen id="eq-101" />)
 
-      expect(screen.getByTestId('equipment-location-card')).toBeTruthy()
+      expect(screen.getByTestId('detail-location-map')).toBeTruthy()
       expect(screen.getAllByText('مسقط، السيب').length).toBeGreaterThan(0)
-      expect(screen.getByTestId('equipment-directions-button')).toBeTruthy()
-      expect(screen.getByTestId('location-map-container')).toBeTruthy()
+      expect(screen.getByTestId('detail-location-map-directions-btn')).toBeTruthy()
+      expect(screen.getByTestId('detail-location-map-container')).toBeTruthy()
     })
   })
 

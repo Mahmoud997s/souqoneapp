@@ -402,7 +402,7 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
       expect(screen.getByText('1,540 مشاهدة')).toBeTruthy()
     })
 
-    it('OwnerManageBar (sticky): never renders view count, while (inline) renders view count in stats header', async () => {
+    it('OwnerManageBar (sticky and inline): never renders duplicate view count badge (D-385)', async () => {
       const { unmount } = await render(
         <OwnerManageBar
           variant="sticky"
@@ -425,7 +425,7 @@ describe('D-182a: Remove Duplicate Facts from Parts and Services Detail Pages', 
         />,
       )
 
-      expect(screen.getByText(/مشاهدة/)).toBeTruthy()
+      expect(screen.queryByText(/مشاهدة/)).toBeNull()
       expect(screen.getByText('أنت مالك هذا الإعلان')).toBeTruthy()
     })
   })
