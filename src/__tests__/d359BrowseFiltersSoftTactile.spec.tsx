@@ -22,7 +22,8 @@ describe('D-359/D-377/D-379: Plain flat QuickFilters & soft tactile VisualFilter
     const container = getByTestId('quick-filters-container');
     const containerStyle = StyleSheet.flatten(container.props.style);
     expect(containerStyle.backgroundColor).toBe(Colors.transparent);
-    expect(containerStyle.marginTop).toBe(SoftTactileTokens.rhythm.sectionGap);
+    expect(containerStyle.marginTop).toBe(QuickChipTokens.row.marginTop);
+    expect(containerStyle.marginBottom).toBe(QuickChipTokens.row.marginBottom);
     const trackStyle = StyleSheet.flatten(
       (container.children[0] as { props?: { style?: Record<string, unknown> } })?.props?.style as Record<string, unknown>
     ) as { minHeight?: number };

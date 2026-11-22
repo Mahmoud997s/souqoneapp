@@ -213,6 +213,12 @@ export const SoftTactileTokens = {
  */
 export const QuickChipTokens = {
   borderWidth: StyleSheet.hairlineWidth,
+  row: {
+    marginTop: 2,
+    marginBottom: 2,
+    contentPaddingVertical: 2,
+    trackMinHeight: 34,
+  },
   normal: {
     bg: Colors.surface,
     borderColor: Colors.border,
@@ -234,8 +240,9 @@ export const QuickChipTokens = {
     iconColor: Colors.white,
   },
   selectedPressed: {
-    bg: Colors.primaryDark,
-    borderColor: Colors.primaryDark,
+    bg: Colors.primary,
+    borderColor: Colors.primary,
+    overlayBg: Colors.scrimDark15,
     textColor: Colors.white,
     iconColor: Colors.white,
   },
