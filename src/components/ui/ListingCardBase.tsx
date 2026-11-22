@@ -19,6 +19,8 @@ import { BlurView } from 'expo-blur'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
+import { Spacing } from '../../constants/spacing'
+import { lineHeightFor } from '../../constants/typography'
 import * as CardSystemModule from '../../constants/cardSystem'
 import { CardSystem } from '../../constants/cardSystem'
 import { useAuthStore } from '../../store/authStore'
@@ -58,7 +60,8 @@ export interface ListingCardBaseProps {
   location?: string
   onPress: () => void
   displayImages?: string[]
-  imageCount?: number
+  imageCount?: number | null
+  hideImageCountBadge?: boolean
   placeholderIcon?: keyof typeof Ionicons.glyphMap
   pills?: ListingCardPill[]
   badges?: ListingCardBadge[]
@@ -155,6 +158,7 @@ const ListingCardBaseComponent = ({
   onPress,
   displayImages = [],
   imageCount,
+  hideImageCountBadge = false,
   placeholderIcon = 'car-sport',
   pills = [],
   badges = [],
@@ -214,15 +218,20 @@ const ListingCardBaseComponent = ({
   }, [])
 
   const resolvedLocation = location !== undefined ? location : resolveListingLocation(item)
+  const trimmedLocation = typeof resolvedLocation === 'string' ? resolvedLocation.trim() : ''
+  const hasLocation =
+    trimmedLocation.length > 0 && trimmedLocation !== 'موقع غير محدد'
   const rawStatus = status || item?.status || 'ACTIVE'
   const isActuallySold = isSold || rawStatus === 'SOLD'
 
-  const effectiveImageCount =
-    imageCount ??
-    item?.imageCount ??
-    item?.raw?.imageCount ??
-    item?.raw?._count?.images ??
-    (displayImages.length > 0 ? displayImages.length : undefined)
+  const effectiveImageCount: number | null | undefined =
+    imageCount === null
+      ? null
+      : imageCount ??
+        item?.imageCount ??
+        item?.raw?.imageCount ??
+        item?.raw?._count?.images ??
+        (displayImages.length > 0 ? displayImages.length : undefined)
 
 
 
@@ -272,6 +281,7 @@ const ListingCardBaseComponent = ({
           <CardImageSwiper
             images={displayImages}
             imageCount={effectiveImageCount}
+            hideImageCountBadge={hideImageCountBadge}
             cardWidth={cardWidth}
             imageHeight={imageHeight}
             fullWidth={fullWidth}
@@ -280,6 +290,7 @@ const ListingCardBaseComponent = ({
           />
         ) : (
           <Pressable
+            testID="listing-card-image-placeholder"
             onPress={onPress}
             style={[
               s.imagePlaceholder,
@@ -290,11 +301,14 @@ const ListingCardBaseComponent = ({
                 : undefined,
             ]}
           >
-            <Ionicons
-              name={placeholderIcon}
-              size={40}
-              color={Colors.borderStrong}
-            />
+            <View style={s.imagePlaceholderIconCircle}>
+              <Ionicons
+                name={placeholderIcon}
+                size={28}
+                color={Colors.primary}
+              />
+            </View>
+            <Text style={s.imagePlaceholderText}>لا توجد صورة</Text>
           </Pressable>
         )}
 
@@ -408,23 +422,30 @@ const ListingCardBaseComponent = ({
           )}
         </View>
 
-        <View style={[s.locationRow, compactBody && s.locationRowCompact]}>
-          <View style={s.locationInner}>
-            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.locationTxt} numberOfLines={1}>
-              {resolvedLocation}
-            </Text>
-          </View>
-          {!!item?.createdAt && (
-            <>
+        {(hasLocation || Boolean(item?.createdAt)) && (
+          <View
+            testID="listing-card-location-row"
+            style={[s.locationRow, compactBody && s.locationRowCompact]}
+          >
+            {hasLocation && (
+              <View style={s.locationInner}>
+                <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+                <Text style={s.locationTxt} numberOfLines={1}>
+                  {trimmedLocation}
+                </Text>
+              </View>
+            )}
+            {hasLocation && !!item?.createdAt && (
               <Text style={s.dotSeparator}>•</Text>
+            )}
+            {!!item?.createdAt && (
               <View style={s.timeInner}>
                 <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
                 <Text style={s.timeTxt}>{formatDate(item.createdAt)}</Text>
               </View>
-            </>
-          )}
-        </View>
+            )}
+          </View>
+        )}
 
         <View style={[s.divider, compactBody && s.dividerCompact, liquidGlass && s.dividerGlass]} />
 
@@ -607,6 +628,7 @@ const s = StyleSheet.create({
   },
   cardFullWidth: {
     width: '100%',
+    alignSelf: 'stretch',
   },
   cardGridMode: {
     width: '100%',
@@ -633,8 +655,28 @@ const s = StyleSheet.create({
   imagePlaceholder: {
     width: '100%',
     height: CardSystem.aspectRatioHeight,
+    backgroundColor: Colors.slateSubtleBg,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: Spacing.space2,
+  },
+  imagePlaceholderIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePlaceholderText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
   swiperScrollView: {
     width: '100%',
