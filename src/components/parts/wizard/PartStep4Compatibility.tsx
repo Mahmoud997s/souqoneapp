@@ -204,6 +204,7 @@ export function PartStep4Compatibility({
       {/* 2. Vehicle Types */}
       <WizardCard title="نوع المركبة المتوافقة">
         <WizardSelectField
+          glass
           testID="part-vehicle-types-select"
           multiple
           values={formData.compatibleVehicleTypes}

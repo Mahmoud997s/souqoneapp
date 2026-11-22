@@ -65,6 +65,7 @@ export function ServiceStep3Details({ formData, errors, onUpdateField }: Service
           </View>
         ) : (
           <WizardSelectField
+            glass
             testID="service-specializations-select"
             multiple
             values={formData.specializations || []}

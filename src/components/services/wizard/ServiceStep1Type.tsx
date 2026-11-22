@@ -57,6 +57,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
       {/* 2. Provider Type */}
       <WizardCard title="صفة مقدم الخدمة *" subtitle="حدد صفتك أو كيانك التجاري">
         <WizardSelectField
+          glass
           testID="service-provider-type-select"
           value={formData.providerType}
           placeholder="اختر صفة مقدم الخدمة"

@@ -87,6 +87,7 @@ export function EquipmentStep3Details({
           subtitle="اختر التقييم الأقرب لحالة المعدة الحالية"
         >
           <WizardSelectField
+            glass
             testID="equipment-condition-select"
             value={formData.condition}
             placeholder="اختر حالة المعدة"
@@ -148,6 +149,7 @@ export function EquipmentStep3Details({
         subtitle="حدد الميزات الجاهزة في المعدة أو أضف ميزة خاصة"
       >
         <WizardSelectField
+          glass
           testID="equipment-features-select"
           multiple
           values={formData.features}

@@ -373,6 +373,7 @@ export function CarStep3Details({
 
         <View style={s.inputWrapper}>
           <WizardSelectField
+            glass
             testID="car-transmission-select"
             label="ناقل الحركة *"
             value={formData.transmission}
@@ -501,6 +502,7 @@ export function CarStep3Details({
       {/* 4. Features */}
       <WizardCard title="المميزات الإضافية (اختياري)">
         <WizardSelectField
+          glass
           testID="car-features-select"
           multiple
           values={formData.features}

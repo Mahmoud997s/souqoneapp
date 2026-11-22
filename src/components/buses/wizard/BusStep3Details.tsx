@@ -438,6 +438,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
       <WizardCard title="الحالة ونظام الحركة" subtitle="حدد نوع ناقل الحركة ونوع الوقود">
         {/* Transmission */}
         <WizardSelectField
+          glass
           testID="bus-transmission-select"
           label="ناقل الحركة"
           value={data.transmission}
@@ -470,6 +471,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
         {/* Condition */}
         <View style={{ marginTop: 14 }}>
           <WizardSelectField
+            glass
             testID="bus-condition-select"
             label="حالة الحافلة"
             value={data.condition}
@@ -487,6 +489,7 @@ export function BusStep3Details({ data, errors, onUpdateField }: BusStep3Props) 
       {/* 5. Features & Plate Number */}
       <WizardCard title="المميزات ورقم اللوحة" subtitle="حدد التجهيزات الإضافية المتوفرة في الحافلة">
         <WizardSelectField
+          glass
           testID="bus-features-select"
           multiple
           label="التجهيزات والمميزات"

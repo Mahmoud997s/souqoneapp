@@ -94,6 +94,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
 
       <WizardCard title="حالة القطعة *" subtitle="حدد حالة القطعة الحالية">
         <WizardSelectField
+          glass
           testID="part-condition-select"
           value={formData.condition}
           placeholder="اختر حالة القطعة"
@@ -109,6 +110,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
 
       <WizardCard title="أصالة القطعة *" subtitle="هل القطعة أصلية أم تجارية؟">
         <WizardSelectField
+          glass
           testID="part-originality-select"
           value={
             formData.isOriginal === null || formData.isOriginal === undefined
