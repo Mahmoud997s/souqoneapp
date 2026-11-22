@@ -6,7 +6,6 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardSelectField } from '../../ui/WizardSelectField'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { AppInput } from '../../ui/AppInput'
 import { SERVICE_TYPES, PROVIDER_TYPES } from '../../../constants/services'
 import { ServiceFormData } from '../../../store/serviceWizardStore'
@@ -57,23 +56,19 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
 
       {/* 2. Provider Type */}
       <WizardCard title="صفة مقدم الخدمة *" subtitle="حدد صفتك أو كيانك التجاري">
-        {errors.providerType ? (
-          <Text style={s.inlineErrorTxt} testID="error-provider-type">
-            {errors.providerType}
-          </Text>
-        ) : null}
-        <View style={s.chipRow}>
-          {PROVIDER_TYPES.map((pt) => (
-            <WizardOptionChip
-              key={pt.id}
-              testID={`provider-type-${pt.id}`}
-              label={pt.label}
-              selected={formData.providerType === pt.id}
-              onPress={() => onUpdateField('providerType', pt.id)}
-              error={Boolean(errors.providerType)}
-            />
-          ))}
-        </View>
+        <WizardSelectField
+          testID="service-provider-type-select"
+          value={formData.providerType}
+          placeholder="اختر صفة مقدم الخدمة"
+          options={PROVIDER_TYPES.map((pt) => ({
+            value: pt.id,
+            label: pt.label,
+            testID: `provider-type-${pt.id}`,
+          }))}
+          error={errors.providerType}
+          errorTestID="error-provider-type"
+          onSelect={(val) => onUpdateField('providerType', val)}
+        />
       </WizardCard>
 
       {/* 3. Provider Name */}

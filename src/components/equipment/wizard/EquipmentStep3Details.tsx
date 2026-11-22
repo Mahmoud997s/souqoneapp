@@ -5,7 +5,7 @@ import { Colors } from '../../../constants/colors'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
 import { WizardCard } from '../../ui/WizardCard'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
+import { WizardSelectField, formatWizardMultiSummary } from '../../ui/WizardSelectField'
 import { AppInput } from '../../ui/AppInput'
 import { GlassPickerButton } from '../../ui/GlassPickerButton'
 import { YearSelect } from '../../ui/YearSelect'
@@ -86,19 +86,18 @@ export function EquipmentStep3Details({
           title="حالة المعدة الفنية *"
           subtitle="اختر التقييم الأقرب لحالة المعدة الحالية"
         >
-          {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
-
-          <View style={s.conditionsGrid}>
-            {EQUIPMENT_CONDITIONS.map((cond) => (
-              <WizardOptionChip
-                key={cond.id}
-                label={cond.label}
-                selected={formData.condition === cond.id}
-                onPress={() => onUpdateField('condition', cond.id)}
-                error={Boolean(errors.condition)}
-              />
-            ))}
-          </View>
+          <WizardSelectField
+            testID="equipment-condition-select"
+            value={formData.condition}
+            placeholder="اختر حالة المعدة"
+            options={EQUIPMENT_CONDITIONS.map((cond) => ({
+              value: cond.id,
+              label: cond.label,
+              testID: `equipment-condition-${cond.id}`,
+            }))}
+            onSelect={(val) => onUpdateField('condition', val)}
+            error={errors.condition}
+          />
         </WizardCard>
       )}
 
@@ -148,20 +147,21 @@ export function EquipmentStep3Details({
         title="الميزات والمرفقات المتوفرة"
         subtitle="حدد الميزات الجاهزة في المعدة أو أضف ميزة خاصة"
       >
-        <View style={s.chipsWrap}>
-          {POPULAR_EQUIPMENT_FEATURES.map((feat) => {
-            const isSel = formData.features.includes(feat)
-            return (
-              <WizardOptionChip
-                key={feat}
-                label={feat}
-                icon={isSel ? 'checkmark-circle' : 'add-circle-outline'}
-                selected={isSel}
-                onPress={() => onToggleFeature(feat)}
-              />
-            )
-          })}
-        </View>
+        <WizardSelectField
+          testID="equipment-features-select"
+          multiple
+          values={formData.features}
+          placeholder="اختر الميزات"
+          formatMultiSummary={(count) =>
+            formatWizardMultiSummary(count, 'ميزة واحدة محددة', 'ميزتان محددتان', 'مميزات محددة')
+          }
+          options={POPULAR_EQUIPMENT_FEATURES.map((feat) => ({
+            value: feat,
+            label: feat,
+            testID: `equipment-feature-${feat}`,
+          }))}
+          onToggle={onToggleFeature}
+        />
 
         {/* Custom Feature Add Input */}
         <View style={s.addCustomRow}>
@@ -227,21 +227,6 @@ const s = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 10,
-  },
-
-  /* ── Condition Cards ── */
-  conditionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-
-  /* ── Chips ── */
-  chipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 2,
   },
   addCustomRow: {
     flexDirection: 'row',

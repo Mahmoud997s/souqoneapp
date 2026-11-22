@@ -6,7 +6,6 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardSelectField } from '../../ui/WizardSelectField'
-import { WizardOptionChip } from '../../wizard/WizardOptionChip'
 import { PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
 
@@ -94,35 +93,37 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
       </WizardCard>
 
       <WizardCard title="حالة القطعة *" subtitle="حدد حالة القطعة الحالية">
-        {errors.condition ? <Text style={s.inlineErrorTxt}>{errors.condition}</Text> : null}
-        <View style={s.chipRow}>
-          {PART_CONDITIONS.map((c) => (
-            <WizardOptionChip
-              key={c.id}
-              testID={`condition-${c.id}`}
-              label={c.label}
-              selected={formData.condition === c.id}
-              onPress={() => onUpdateField('condition', c.id)}
-              error={Boolean(errors.condition)}
-            />
-          ))}
-        </View>
+        <WizardSelectField
+          testID="part-condition-select"
+          value={formData.condition}
+          placeholder="اختر حالة القطعة"
+          options={PART_CONDITIONS.map((c) => ({
+            value: c.id,
+            label: c.label,
+            testID: `condition-${c.id}`,
+          }))}
+          error={errors.condition}
+          onSelect={(val) => onUpdateField('condition', val)}
+        />
       </WizardCard>
 
       <WizardCard title="أصالة القطعة *" subtitle="هل القطعة أصلية أم تجارية؟">
-        {errors.isOriginal ? <Text style={s.inlineErrorTxt}>{errors.isOriginal}</Text> : null}
-        <View style={s.chipRow}>
-          {PART_ORIGINALITY_OPTIONS.map((c) => (
-            <WizardOptionChip
-              key={c.value.toString()}
-              testID={`originality-${c.value.toString()}`}
-              label={c.label}
-              selected={formData.isOriginal === c.value}
-              onPress={() => onUpdateField('isOriginal', c.value)}
-              error={Boolean(errors.isOriginal)}
-            />
-          ))}
-        </View>
+        <WizardSelectField
+          testID="part-originality-select"
+          value={
+            formData.isOriginal === null || formData.isOriginal === undefined
+              ? undefined
+              : String(formData.isOriginal)
+          }
+          placeholder="اختر أصالة القطعة"
+          options={PART_ORIGINALITY_OPTIONS.map((c) => ({
+            value: c.value.toString(),
+            label: c.label,
+            testID: `originality-${c.value.toString()}`,
+          }))}
+          error={errors.isOriginal}
+          onSelect={(val) => onUpdateField('isOriginal', val === 'true')}
+        />
       </WizardCard>
 
     </View>
