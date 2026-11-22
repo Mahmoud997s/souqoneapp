@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
 
-export interface AddListingButtonProps {
+export interface BottomBarAddButtonProps {
   onPress: () => void;
   testID: string;
   accessibilityLabel: string;
@@ -27,12 +27,12 @@ export interface AddListingButtonProps {
  * - INNER view: same squircle radius + `overflow: 'hidden'` clipping ONLY the sheen gradient,
  *   subtle top highlight, and instant pressed darken overlay (10% darker turquoise via scrimDark10).
  */
-export function AddListingButton({
+export function BottomBarAddButton({
   onPress,
   testID,
   accessibilityLabel,
   isHovered,
-}: AddListingButtonProps) {
+}: BottomBarAddButtonProps) {
   const pressScale = useSharedValue(1);
   const [isPressed, setIsPressed] = useState(false);
 

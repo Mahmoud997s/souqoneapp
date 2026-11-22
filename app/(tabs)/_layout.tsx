@@ -21,7 +21,7 @@ import { useAuthStore } from '../../src/store/authStore'
 import { Colors } from '../../src/constants/colors'
 import { Typography } from '../../src/constants/typography'
 import { BottomBarTokens } from '../../src/constants/bottomBarTokens'
-import { AddListingButton } from '../../src/components/navigation/AddListingButton'
+import { BottomBarAddButton } from '../../src/components/navigation/BottomBarAddButton'
 import { GlassBottomBarShell } from '../../src/components/navigation/GlassBottomBarShell'
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
@@ -195,7 +195,7 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
 
           if (route.name === 'post') {
             return (
-              <AddListingButton
+              <BottomBarAddButton
                 key={route.key}
                 onPress={handlePost}
                 testID="tab-post-fab"

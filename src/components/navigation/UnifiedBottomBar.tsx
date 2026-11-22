@@ -14,7 +14,7 @@ import Animated, {
 
 import { Colors } from '../../constants/colors';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
-import { AddListingButton } from './AddListingButton';
+import { BottomBarAddButton } from './BottomBarAddButton';
 import { GlassBottomBarShell } from './GlassBottomBarShell';
 import { type GlassSupport } from './glassSupport';
 import { useTabDragSelect } from '../../hooks/useTabDragSelect';
@@ -262,7 +262,7 @@ export function UnifiedBottomBar({
       {tabs.map((tab) => {
         if (tab.isPost) {
           return (
-            <AddListingButton
+            <BottomBarAddButton
               key={tab.id}
               onPress={onPostPress}
               isHovered={effectiveActiveTab === tab.id}

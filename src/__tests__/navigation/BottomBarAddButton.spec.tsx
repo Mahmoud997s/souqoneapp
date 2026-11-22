@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { AddListingButton } from '../../components/navigation/AddListingButton';
+import { BottomBarAddButton } from '../../components/navigation/BottomBarAddButton';
 import { UnifiedBottomBar, type BottomBarTabItem } from '../../components/navigation/UnifiedBottomBar';
 import { CustomTabBar } from '../../../app/(tabs)/_layout';
 import { BottomBarTokens } from '../../constants/bottomBarTokens';
@@ -47,14 +47,14 @@ function makeHomeTabBarProps() {
   } as unknown as Parameters<typeof CustomTabBar>[0];
 }
 
-describe('D-380 Part 1: Unified AddListingButton (squircle, two-view shadow/clip separation, pressed state)', () => {
-  it('both CustomTabBar and UnifiedBottomBar import and render the SAME shared AddListingButton component with identical 40pt squircle styles', async () => {
+describe('D-380 Part 1: Unified BottomBarAddButton (squircle, two-view shadow/clip separation, pressed state)', () => {
+  it('both CustomTabBar and UnifiedBottomBar import and render the SAME shared BottomBarAddButton component with identical 40pt squircle styles', async () => {
     const root = path.resolve(__dirname, '../../..');
     const homeSrc = fs.readFileSync(path.join(root, 'app/(tabs)/_layout.tsx'), 'utf8');
     const sectionSrc = fs.readFileSync(path.join(root, 'src/components/navigation/UnifiedBottomBar.tsx'), 'utf8');
 
-    expect(homeSrc).toContain("from '../../src/components/navigation/AddListingButton'");
-    expect(sectionSrc).toContain("from './AddListingButton'");
+    expect(homeSrc).toContain("from '../../src/components/navigation/BottomBarAddButton'");
+    expect(sectionSrc).toContain("from './BottomBarAddButton'");
     expect(homeSrc).not.toContain('fabCircle');
     expect(sectionSrc).not.toContain('fabSquircleWrap');
 
@@ -88,7 +88,7 @@ describe('D-380 Part 1: Unified AddListingButton (squircle, two-view shadow/clip
 
   it('separates outer shadow view (no overflow hidden, no white border) from inner clipped face view (overflow hidden, no dark bottom edge)', async () => {
     const { getByTestId, queryByTestId } = await render(
-      <AddListingButton
+      <BottomBarAddButton
         onPress={jest.fn()}
         testID="section-bottom-bar-add-button"
         accessibilityLabel="إضافة إعلان جديد"
@@ -120,7 +120,7 @@ describe('D-380 Part 1: Unified AddListingButton (squircle, two-view shadow/clip
   it('applies pressed sink + tightened shadow + darker turquoise overlay (no navy) on pressIn and fires onPress', async () => {
     const onPress = jest.fn();
     const { getByTestId, queryByTestId } = await render(
-      <AddListingButton
+      <BottomBarAddButton
         onPress={onPress}
         testID="tab-post-fab"
         accessibilityLabel="إضافة إعلان"
