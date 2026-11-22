@@ -33,6 +33,7 @@ import {
   CAR_TYPES,
 } from '../../src/constants/browseFilters';
 import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
+import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -170,8 +171,13 @@ export default function CarsBrowseScreen() {
       isActive = !!filters.yearMin || !!filters.yearMax;
       if (isActive) displayLabel = filters.yearMin ? String(filters.yearMin) : 'سنة الصنع';
     } else if (qf.id === 'price') {
-      isActive = !!filters.priceMax;
-      if (isActive) displayLabel = PRICE_RANGES.find(p => p.max === Number(filters.priceMax))?.label || 'السعر';
+      isActive = !!filters.priceMin || !!filters.priceMax;
+      if (isActive) {
+        const preset = !filters.priceMin
+          ? PRICE_RANGES.find(p => p.max === Number(filters.priceMax))
+          : undefined;
+        displayLabel = preset?.label || formatPriceRangeChipLabel(filters.priceMin, filters.priceMax, 'السعر', 'ر.ع');
+      }
     } else if (qf.id === 'type') {
       isActive = !!filters.bodyType;
       if (isActive) {

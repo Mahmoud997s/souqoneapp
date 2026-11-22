@@ -1,4 +1,7 @@
 import { logWarn } from '../safeLog'
+import { formatNumberWestern } from '../numberFormat'
+
+export { formatNumberWestern }
 
 const ARABIC_MONTHS = [
   'يناير',
@@ -14,14 +17,6 @@ const ARABIC_MONTHS = [
   'نوفمبر',
   'ديسمبر',
 ]
-
-/**
- * Formats numeric amounts using Western digits with comma separators (en-US locale).
- */
-export function formatNumberWestern(num: number | null | undefined): string {
-  if (num === null || num === undefined || isNaN(num)) return '0'
-  return num.toLocaleString('en-US')
-}
 
 /**
  * Formats prices using Western digits and the OMR currency symbol.

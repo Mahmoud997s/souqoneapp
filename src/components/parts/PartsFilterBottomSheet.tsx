@@ -18,11 +18,12 @@ import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
 import { RangeSlider } from '../ui/RangeSlider';
 import { NestedSearchableList } from '../ui/NestedSearchableList';
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { PartsFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { formatRtlPlaceholder } from '../../utils/wizardHelpers';
+import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface PartsFilterBottomSheetProps {
   visible: boolean;
@@ -122,7 +123,7 @@ export function PartsFilterBottomSheet({
   const sortData = PARTS_SORT_OPTIONS.map(s => ({ id: s.id, label: s.label }));
 
   let nestedContent = null;
-  let title = "تصفية القطع";
+  let title = FILTER_SHEET_DEFAULT_TITLE;
 
   if (activeSelector === 'make') {
     title = "اختر الماركة المتوافقة";
@@ -317,6 +318,7 @@ export function PartsFilterBottomSheet({
             updateFilter('priceMax', vals[1].toString());
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 
@@ -389,13 +391,8 @@ export function PartsFilterBottomSheet({
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
       onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
-      applyLabel={
-        activeSelector
-          ? 'تأكيد الاختيار'
-          : resultsCount !== undefined
-          ? `عرض ${resultsCount} نتيجة`
-          : 'تطبيق الفلتر'
-      }
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
+      resultsCount={activeSelector ? undefined : resultsCount}
       isNested={!!activeSelector}
       onBack={() => setActiveSelector(null)}
     >

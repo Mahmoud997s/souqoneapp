@@ -6,7 +6,7 @@ import { FilterSection } from '../ui/FilterSection';
 import { DropdownSelector } from '../ui/DropdownSelector';
 import { RangeSlider } from '../ui/RangeSlider';
 import { NestedSearchableList } from '../ui/NestedSearchableList';
-import { FilterBottomSheetLayout } from '../ui/FilterBottomSheetLayout';
+import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/FilterBottomSheetLayout';
 import { OperatorFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
@@ -14,6 +14,7 @@ import { locationsApi } from '../../api/locations';
 import { GovernorateRef, WilayaRef } from '../../types/location.types';
 import { logWarn } from '../../utils/safeLog';
 import { AVAILABLE_EQUIPMENT, normalizeOperatorEquipmentType } from '../../constants/operators';
+import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface OperatorsFilterBottomSheetProps {
   visible: boolean;
@@ -139,7 +140,7 @@ export function OperatorsFilterBottomSheet({
   const sortData = SORT_OPTIONS.map((s) => ({ id: s.id, label: s.label }));
 
   let nestedContent = null;
-  let title = 'تصفية المشغلين';
+  let title = FILTER_SHEET_DEFAULT_TITLE;
 
   if (activeSelector === 'equipmentType') {
     title = 'اختر نوع المعدة';
@@ -308,6 +309,7 @@ export function OperatorsFilterBottomSheet({
             updateFilter('dailyRateMax', vals[1]);
           }}
           suffix="ر.ع"
+          formatValue={formatNumberWestern}
         />
       </FilterSection>
 
@@ -366,12 +368,9 @@ export function OperatorsFilterBottomSheet({
       title={title}
       hasActiveFilters={hasActiveFilters}
       onClear={onClearFilters}
-      onApply={handleApply}
-      applyLabel={
-        resultsCount !== undefined
-          ? `تطبيق الفلاتر (عرض ${resultsCount} مشغل)`
-          : 'تطبيق الفلاتر'
-      }
+      onApply={activeSelector ? () => setActiveSelector(null) : handleApply}
+      applyLabel={activeSelector ? 'تأكيد الاختيار' : undefined}
+      resultsCount={activeSelector ? undefined : resultsCount}
       isNested={activeSelector !== null}
       onBack={() => setActiveSelector(null)}
     >

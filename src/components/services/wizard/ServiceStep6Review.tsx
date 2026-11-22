@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { WizardReviewCard } from '../../ui/WizardReviewCard'
+import { WizardReviewCard, WIZARD_REVIEW_ROW_STYLES } from '../../ui/WizardReviewCard'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -409,33 +409,11 @@ const s = StyleSheet.create({
   rowsList: {
     gap: 9,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 3,
-  },
+  ...WIZARD_REVIEW_ROW_STYLES,
   rowIconLabel: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  label: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: Colors.slateText,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-  },
-  value: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: Colors.slateDark,
-    textAlign: 'left',
-    writingDirection: 'rtl',
-    flexShrink: 1,
   },
   valueBold: {
     fontFamily: 'Almarai_800ExtraBold',

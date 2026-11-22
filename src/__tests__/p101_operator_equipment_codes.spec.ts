@@ -289,7 +289,7 @@ describe('P1-01 Operator Equipment Types Standardization (D-318)', () => {
         fireEvent.press(screen.getByText(scaffoldingLabel))
       })
 
-      const applyBtn = screen.getByText('تطبيق الفلاتر')
+      const applyBtn = screen.getByText('تطبيق الفلتر')
       await act(async () => {
         fireEvent.press(applyBtn)
       })
