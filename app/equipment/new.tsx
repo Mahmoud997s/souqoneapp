@@ -39,6 +39,8 @@ import { showPublishErrorDialog, handlePublishMutationError } from '../../src/ut
 import { mapEquipmentBackendErrors } from '../../src/utils/wizardBackendErrors'
 import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
 import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulEquipmentData } from '../../src/components/ui/DraftResumePrompt'
 import { invalidateEquipmentListingQueries } from '../../src/utils/listing-detail/equipmentQueryKeys'
 import {
   uploadAndReconcileEquipmentImages,
@@ -110,31 +112,21 @@ export default function NewEquipmentListingScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      if (formData.editMode) {
-        toastService.confirm({
-          title: 'الخروج من التعديل',
-          message: 'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
-          intent: 'danger',
-          confirmLabel: 'خروج',
-          cancelLabel: 'إلغاء',
-          onConfirm: () => router.back(),
-        })
-      } else {
-        toastService.confirm({
-          title: 'الخروج',
-          message: 'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
-          intent: 'primary',
-          confirmLabel: 'خروج',
-          cancelLabel: 'إلغاء',
-          onConfirm: () => router.back(),
-        })
-      }
-    }
-  }
+  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+  const isEditMode = Boolean(formData.editMode)
+  const isEditDirty = useEditDirtyBaseline(isEditMode, formData, formData.editListingId ?? null)
+  const hasCreateData = hasMeaningfulEquipmentData({ currentStep, formData })
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode,
+    hasData: hasCreateData,
+    isDirty: isEditDirty,
+    isSubmitting,
+    isPublished: Boolean(publishSuccess),
+    disabled: !hasPhone && !isEditMode,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {
@@ -314,8 +306,6 @@ export default function NewEquipmentListingScreen() {
       })
     }
   }
-
-  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
 
   if (publishSuccess) {
     return (

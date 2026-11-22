@@ -22,6 +22,8 @@ import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimi
 import { showPublishErrorDialog, handlePublishMutationError } from '../../src/utils/publishErrorDialog'
 import { getWizardContentPaddingTop } from '../../src/utils/wizardHelpers'
 import { useWizardScrollToTop } from '../../src/hooks/useWizardScrollToTop'
+import { useWizardExitGuard, useEditDirtyBaseline } from '../../src/hooks/useWizardExitGuard'
+import { hasMeaningfulBusData } from '../../src/components/ui/DraftResumePrompt'
 
 import { Colors } from '../../src/constants/colors'
 import { Radius } from '../../src/constants/radius'
@@ -119,31 +121,21 @@ export default function NewBusListingScreen() {
     }
   }
 
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      prevStep()
-    } else {
-      if (editMode) {
-        toastService.confirm({
-          title: 'الخروج من التعديل',
-          message: 'هل تريد الخروج؟ لن يتم حفظ أي تعديلات غير منشورة.',
-          intent: 'danger',
-          confirmLabel: 'خروج',
-          cancelLabel: 'إلغاء',
-          onConfirm: () => router.back(),
-        })
-      } else {
-        toastService.confirm({
-          title: 'الخروج',
-          message: 'هل تريد الخروج؟ يتم حفظ مسودتك تلقائياً ويمكنك العودة إليها لاحقاً.',
-          intent: 'primary',
-          confirmLabel: 'خروج',
-          cancelLabel: 'إلغاء',
-          onConfirm: () => router.back(),
-        })
-      }
-    }
-  }
+  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
+  const isEditMode = Boolean(editMode)
+  const isEditDirty = useEditDirtyBaseline(isEditMode, data, editListingId ?? null)
+  const hasCreateData = hasMeaningfulBusData({ currentStep, data, editMode })
+
+  const { handleBack: handlePrev } = useWizardExitGuard({
+    currentStep,
+    isEditMode,
+    hasData: hasCreateData,
+    isDirty: isEditDirty,
+    isSubmitting,
+    isPublished: Boolean(publishSuccess),
+    disabled: !hasPhone && !isEditMode,
+    onPrevStep: prevStep,
+  })
 
   const handleClearDraft = () => {
     confirmClearDraft(() => {
@@ -375,8 +367,6 @@ export default function NewBusListingScreen() {
       })
     }
   }
-
-  const isSubmitting = isUploadingImages || createMutation.isPending || updateMutation.isPending
 
   if (publishSuccess) {
     return (
