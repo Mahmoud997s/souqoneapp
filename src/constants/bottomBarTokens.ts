@@ -35,8 +35,8 @@ export const BottomBarTokens = {
   minTouchTarget: 44, // Meets Apple HIG (>= 44pt) and WCAG standards
   addButtonSize: 40,
   addButtonRadius: 13.7,
-  addButtonTopRimColor: Colors.whiteAlpha85,
-  addButtonBottomEdgeColor: Colors.primaryDark,
+  addButtonTopHighlightColor: Colors.whiteAlpha50,
+  addButtonPressedOverlayColor: Colors.scrimDark10,
   addButtonFaceSheenColors: [Colors.whiteAlpha20, Colors.transparent] as const,
 
   // ── Glass Background Layers ──
@@ -68,12 +68,23 @@ export const BottomBarTokens = {
   addButtonShadow: Platform.select({
     ios: {
       shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.24,
+      shadowRadius: 12,
     },
     android: {
-      elevation: 4,
+      elevation: 5,
+    },
+  }),
+  addButtonShadowPressed: Platform.select({
+    ios: {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.16,
+      shadowRadius: 5,
+    },
+    android: {
+      elevation: 2,
     },
   }),
 

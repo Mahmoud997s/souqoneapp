@@ -31,8 +31,10 @@ function QuickFilterChip({ item, onFilterPress, onClearFilter }: QuickFilterChip
   const [isHovered, setIsHovered] = useState(false);
   const [isClearPressed, setIsClearPressed] = useState(false);
 
+  const isSelectedPressed = isActive && (isPressed || isHovered || isClearPressed);
+
   const chipStateStyle = isActive
-    ? isPressed || isHovered || isClearPressed
+    ? isSelectedPressed
       ? s.quickFilterChipSelectedPressed
       : s.quickFilterChipActive
     : isPressed
@@ -46,6 +48,13 @@ function QuickFilterChip({ item, onFilterPress, onClearFilter }: QuickFilterChip
       testID={`quick-filter-chip-${item.id}`}
       style={[s.quickFilterChip, chipStateStyle]}
     >
+      {isSelectedPressed && (
+        <View
+          testID={`quick-filter-selected-pressed-${item.id}`}
+          pointerEvents="none"
+          style={s.chipSelectedPressedOverlay}
+        />
+      )}
       <Pressable
         style={isActive ? s.chipPressableArea : s.chipPressableAreaInactive}
         accessibilityRole="button"
@@ -96,7 +105,7 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
   return (
     <View testID="quick-filters-container" style={s.quickFiltersContainer}>
       <PhysicalHorizontalTrack
-        minHeight={34}
+        minHeight={QuickChipTokens.row.trackMinHeight}
         contentContainerStyle={s.quickFiltersContent}
       >
         {filters.map((qf) => (
@@ -115,12 +124,12 @@ export function QuickFilters({ filters, onFilterPress, onClearFilter }: QuickFil
 const s = StyleSheet.create({
   quickFiltersContainer: {
     backgroundColor: Colors.transparent,
-    marginTop: SoftTactileTokens.rhythm.sectionGap,
-    marginBottom: 0,
+    marginTop: QuickChipTokens.row.marginTop,
+    marginBottom: QuickChipTokens.row.marginBottom,
   },
   quickFiltersContent: {
     paddingHorizontal: Spacing.space4,
-    paddingVertical: 2,
+    paddingVertical: QuickChipTokens.row.contentPaddingVertical,
     gap: SoftTactileTokens.rhythm.chipGap,
     alignItems: 'center',
   },
@@ -148,6 +157,11 @@ const s = StyleSheet.create({
   quickFilterChipSelectedPressed: {
     backgroundColor: QuickChipTokens.selectedPressed.bg,
     borderColor: QuickChipTokens.selectedPressed.borderColor,
+  },
+  chipSelectedPressedOverlay: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: FilterGlassTokens.chip.borderRadius,
+    backgroundColor: QuickChipTokens.selectedPressed.overlayBg,
   },
   chipPressableArea: {
     flexDirection: 'row',

@@ -576,7 +576,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.slateSurface,
   },
   listHeader: {
-    paddingBottom: Spacing.space1,
+    marginBottom: Spacing.space2,
   },
   listContent: {},
   cardWrapper: {

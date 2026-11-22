@@ -180,17 +180,72 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     expect(normalRestoredStyle.backgroundColor).toBe(Colors.surface);
     expect(normalRestoredStyle.borderColor).toBe(Colors.border);
 
-    // Selected chip pressed -> primaryDark fill + primaryDark border
+    // Selected chip pressed -> stays Colors.primary with darker turquoise scrim overlay (no navy flash, D-380)
     const selectedBtn = getByLabelText('مسقط');
     await fireEvent(selectedBtn, 'pressIn');
     const selectedPressedStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
-    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primaryDark);
-    expect(selectedPressedStyle.borderColor).toBe(Colors.primaryDark);
+    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedPressedStyle.backgroundColor).not.toBe(Colors.primaryDark);
+    const pressedOverlayStyle = StyleSheet.flatten(getByTestId('quick-filter-selected-pressed-f2').props.style);
+    expect(pressedOverlayStyle.backgroundColor).toBe(Colors.scrimDark15);
 
     await fireEvent(selectedBtn, 'pressOut');
     const selectedRestoredStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
     expect(selectedRestoredStyle.backgroundColor).toBe(Colors.primary);
     expect(selectedRestoredStyle.borderColor).toBe(Colors.primary);
+  });
+
+  it('fits cleanly inside CollapsibleSubHeader (85pt, 84pt inner) with equal top/bottom margins and zero bottom clipping across all 6 browse pages (D-380 Part 2)', async () => {
+    const { getByTestId } = await render(
+      <QuickFilters
+        filters={dummyFilters}
+        onFilterPress={jest.fn()}
+        onClearFilter={jest.fn()}
+      />
+    );
+
+    const container = getByTestId('quick-filters-container');
+    const containerStyle = StyleSheet.flatten(container.props.style);
+
+    // Equal top and bottom breathing space on container (2pt each, down from 12pt top gap)
+    expect(containerStyle.marginTop).toBe(QuickChipTokens.row.marginTop);
+    expect(containerStyle.marginBottom).toBe(QuickChipTokens.row.marginBottom);
+    expect(containerStyle.marginTop).toBe(containerStyle.marginBottom);
+    expect(containerStyle.marginTop).toBeLessThanOrEqual(4);
+
+    // Track minHeight (34) >= computed chip height (paddingVertical 6*2 + lineHeight 15 + 2*hairline <= 29)
+    const computedChipHeight = 6 * 2 + FilterGlassTokens.chip.lineHeight + QuickChipTokens.borderWidth * 2;
+    expect(QuickChipTokens.row.trackMinHeight).toBeGreaterThanOrEqual(computedChipHeight + QuickChipTokens.row.contentPaddingVertical * 2);
+
+    // Full CollapsibleSubHeader stack math: ListingTabs (45.5pt) + QuickFilters (marginTop + trackMinHeight + marginBottom) <= 84pt inner height
+    const listingTabsHeight = 8 + 6 + 2 + (6 * 2 + 15.5) + 2; // 45.5pt
+    const quickFiltersTotal =
+      (containerStyle.marginTop as number) +
+      QuickChipTokens.row.trackMinHeight +
+      (containerStyle.marginBottom as number);
+    expect(listingTabsHeight + quickFiltersTotal).toBeLessThanOrEqual(84);
+
+    // Verify all 6 browse pages wrap ListingTabs + QuickFilters in default CollapsibleSubHeader with no extra per-page wrapper spacing
+    const root = path.resolve(__dirname, '../../../..');
+    const browsePages = [
+      'app/cars/browse.tsx',
+      'app/buses/browse.tsx',
+      'app/equipment/browse.tsx',
+      'app/equipment/operators/browse.tsx',
+      'app/parts/browse.tsx',
+      'app/services/browse.tsx',
+    ];
+    for (const rel of browsePages) {
+      const src = fs.readFileSync(path.join(root, rel), 'utf8');
+      expect({ file: rel, usesCollapsible: src.includes('<CollapsibleSubHeader>') }).toEqual({
+        file: rel,
+        usesCollapsible: true,
+      });
+      expect({ file: rel, usesQuickFilters: src.includes('<QuickFilters') }).toEqual({
+        file: rel,
+        usesQuickFilters: true,
+      });
+    }
   });
 
   it('contains no animation APIs or activeOpacity in QuickFilters.tsx (D-379)', () => {

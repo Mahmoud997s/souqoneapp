@@ -22,7 +22,8 @@ describe('D-359/D-377/D-379: Plain flat QuickFilters & soft tactile VisualFilter
     const container = getByTestId('quick-filters-container');
     const containerStyle = StyleSheet.flatten(container.props.style);
     expect(containerStyle.backgroundColor).toBe(Colors.transparent);
-    expect(containerStyle.marginTop).toBe(SoftTactileTokens.rhythm.sectionGap);
+    expect(containerStyle.marginTop).toBe(QuickChipTokens.row.marginTop);
+    expect(containerStyle.marginBottom).toBe(QuickChipTokens.row.marginBottom);
     const trackStyle = StyleSheet.flatten(
       (container.children[0] as { props?: { style?: Record<string, unknown> } })?.props?.style as Record<string, unknown>
     ) as { minHeight?: number };
@@ -85,15 +86,20 @@ describe('D-359/D-377/D-379: Plain flat QuickFilters & soft tactile VisualFilter
     expect(queryByTestId('visual-filter-item-glass-toyota-layers')).toBeNull();
     expect(queryByTestId('visual-filter-item-glass-nissan-layers')).toBeNull();
 
-    // Unselected card is raised with single hairline border
+    // Unselected card is plain flat with single hairline border (D-380 Part 3)
     const toyotaCard = getByLabelText('تويوتا').parent;
     const toyotaStyle = StyleSheet.flatten(toyotaCard?.props.style);
-    expect(toyotaStyle.backgroundColor).toBe(SoftTactileTokens.raised.bg);
+    expect(toyotaStyle.backgroundColor).toBe(QuickChipTokens.normal.bg);
     expect(toyotaStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius);
-    expect(toyotaStyle.borderColor).toBe(SoftTactileTokens.raised.borderColor);
+    expect(toyotaStyle.borderColor).toBe(QuickChipTokens.normal.borderColor);
+    expect(toyotaStyle.shadowOpacity).toBeUndefined();
+    expect(toyotaStyle.elevation).toBeUndefined();
 
-    // Selected card is inset
-    expect(getByTestId('visual-filter-item-inset-nissan')).toBeTruthy();
+    // Selected card is solid primary without inset overlay (D-380 Part 3)
+    const nissanStyle = StyleSheet.flatten(getByLabelText('نيسان').parent?.props.style);
+    expect(nissanStyle.backgroundColor).toBe(Colors.primary);
+    expect(nissanStyle.borderColor).toBe(Colors.primary);
+    expect(queryByTestId('visual-filter-item-inset-nissan')).toBeNull();
 
     // Tab switch does NOT invoke LayoutAnimation
     fireEvent.press(getByLabelText('الأنواع'));

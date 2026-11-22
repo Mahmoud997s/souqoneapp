@@ -161,12 +161,9 @@ export const FilterGlassTokens = {
 } as const;
 
 /**
- * SoftTactileTokens (D-377)
- * Soft raised / inset real-button tokens for QuickFilters chips & VisualFilters item cards
- * across all browse screens and MyListings.
- * Containers remain transparent (same background as page); only chips/cards carry the effect.
- * Single hairline border + soft shadow for raised; soft inner shadow + paleMint tint + primaryDark text for inset.
- * No two-tone borders, no dark outer border on selected items.
+ * SoftTactileTokens (D-377 / D-380)
+ * Shared spacing rhythm tokens for QuickFilters and VisualFiltersBase across all browse screens and MyListings.
+ * (Raised/inset card styles were removed in D-380 Part 3 in favor of unified QuickChipTokens.)
  */
 export const SoftTactileTokens = {
   rhythm: {
@@ -174,45 +171,22 @@ export const SoftTactileTokens = {
     cardRowGap: Spacing.space2, // 8: regular spacing between card rows & columns
     chipGap: Spacing.space2, // 8: horizontal spacing between quick-filter chips
   },
-  raised: {
-    bg: Colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    shadow: Platform.select({
-      ios: {
-        shadowColor: Colors.slateHeading,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 2,
-      },
-      default: {
-        shadowColor: Colors.slateHeading,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 5,
-      },
-    }),
-  },
-  inset: {
-    bg: Colors.paleMint,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.primarySoft25,
-    innerShadowColor: Colors.primarySoft15,
-    textColor: Colors.primaryDark,
-    iconColor: Colors.primaryDark,
-  },
 } as const;
 
 /**
- * QuickChipTokens (D-379)
- * Plain flat chip tokens for QuickFilters across the 6 browse screens.
+ * QuickChipTokens (D-379 / D-380)
+ * Shared plain flat tokens for BOTH QuickFilters chips and VisualFiltersBase item cards
+ * across all browse screens and MyListings.
  * Built strictly from existing Colors.* tokens; no shadows, no glass, no inset overlay.
  */
 export const QuickChipTokens = {
   borderWidth: StyleSheet.hairlineWidth,
+  row: {
+    marginTop: 2,
+    marginBottom: 2,
+    contentPaddingVertical: 2,
+    trackMinHeight: 34,
+  },
   normal: {
     bg: Colors.surface,
     borderColor: Colors.border,
@@ -234,8 +208,9 @@ export const QuickChipTokens = {
     iconColor: Colors.white,
   },
   selectedPressed: {
-    bg: Colors.primaryDark,
-    borderColor: Colors.primaryDark,
+    bg: Colors.primary,
+    borderColor: Colors.primary,
+    overlayBg: Colors.scrimDark15,
     textColor: Colors.white,
     iconColor: Colors.white,
   },
