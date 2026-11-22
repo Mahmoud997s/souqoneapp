@@ -382,6 +382,7 @@ export function BusDetailScreen({ id }: BusDetailScreenProps) {
             price={vm.price}
             locationText={vm.location.fullLocationText}
             postedAtLabel={vm.postedAtLabel}
+            viewCount={vm.viewCount}
             statusBadge={
               vm.status === 'SOLD'
                 ? { label: 'تم البيع', tone: 'danger' }

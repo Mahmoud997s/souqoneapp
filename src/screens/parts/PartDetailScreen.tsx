@@ -334,6 +334,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
             conditionLabel={vm.conditionLabel}
             price={vm.price}
             postedAtLabel={vm.postedAtLabel}
+            viewCount={vm.viewCount}
             statusBadge={statusBadge}
           />
         </Animated.View>

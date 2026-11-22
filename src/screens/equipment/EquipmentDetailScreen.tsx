@@ -362,6 +362,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
             operatorBadge={vm.operatorBadge}
             locationText={vm.location.fullLocationText}
             postedAtLabel={vm.postedAtLabel}
+            viewCount={vm.viewCount}
             statusBadge={statusBadge}
           />
         </Animated.View>

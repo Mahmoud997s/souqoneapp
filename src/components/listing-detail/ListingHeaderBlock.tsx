@@ -6,6 +6,7 @@ import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
 import { Shadows } from '../../constants/shadows'
 import { PriceBadge } from '../ui/PriceBadge'
+import { DetailViewCountItem } from './DetailViewCountItem'
 import type { PriceView } from '../../types/carDetailViewModel.types'
 import { RTLText } from '../../constants/rtl'
 import { lineHeightFor } from '../../constants/typography'
@@ -17,6 +18,7 @@ export interface ListingHeaderBlockProps {
   price: PriceView
   locationText?: string
   postedAtLabel: string
+  viewCount?: number
   statusBadge?: {
     label: string
     tone: 'success' | 'warning' | 'danger' | 'neutral'
@@ -43,6 +45,7 @@ export function ListingHeaderBlock({
   price,
   locationText,
   postedAtLabel,
+  viewCount,
   statusBadge,
 }: ListingHeaderBlockProps) {
   const toneStyle = statusBadge ? TONE_COLORS[statusBadge.tone] : null
@@ -143,6 +146,14 @@ export function ListingHeaderBlock({
           <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
           <Text style={s.metaTextMuted}>{postedAtLabel}</Text>
         </View>
+
+        {/* View count (visible to everyone, D-384) */}
+        {typeof viewCount === 'number' ? (
+          <>
+            <View style={s.metaDot} />
+            <DetailViewCountItem viewCount={viewCount} />
+          </>
+        ) : null}
       </View>
 
     </View>

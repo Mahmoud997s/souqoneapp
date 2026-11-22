@@ -8,6 +8,9 @@ export type {
 export { DetailTopBar } from './DetailTopBar'
 export type { DetailTopBarProps } from './DetailTopBar'
 
+export { DetailViewCountItem } from './DetailViewCountItem'
+export type { DetailViewCountItemProps } from './DetailViewCountItem'
+
 export { LocationCard } from './LocationCard'
 export type { LocationCardProps } from './LocationCard'
 
