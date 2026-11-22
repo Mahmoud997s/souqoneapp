@@ -14,14 +14,14 @@ const TABS: BottomBarTabItem[] = [
   { id: 'chat', label: 'الرسائل', icon: 'chatbubble', iconOutline: 'chatbubble-outline' },
 ];
 
-describe('D-360: UnifiedBottomBar centre add button raised/embossed + 40px squircle', () => {
-  it('sets BottomBarTokens.addButtonSize to 40, proportional squircle radius, and renders emboss rim while keeping bar height 52', async () => {
+describe('D-360/D-380: UnifiedBottomBar centre add button 40px squircle with clean two-view shadow/face', () => {
+  it('sets BottomBarTokens.addButtonSize to 40, proportional squircle radius, and renders two-view shadow/face while keeping bar height 52', async () => {
     expect(BottomBarTokens.addButtonSize).toBe(40);
     expect(BottomBarTokens.addButtonRadius).toBeCloseTo(13.7, 1);
     expect(BottomBarTokens.expandedHeight).toBe(52);
     expect(BottomBarTokens.expandedRadius).toBe(26);
 
-    const { getByTestId } = await render(
+    const { getByTestId, queryByTestId } = await render(
       <UnifiedBottomBar
         tabs={TABS}
         activeTab="home"
@@ -33,10 +33,9 @@ describe('D-360: UnifiedBottomBar centre add button raised/embossed + 40px squir
     const btn = getByTestId('section-bottom-bar-add-button');
     expect(btn.props.accessibilityLabel).toBe('إضافة إعلان جديد');
 
-    const emboss = getByTestId('section-bottom-bar-add-button-emboss');
-    expect(emboss).toBeTruthy();
-    const embossStyle = StyleSheet.flatten(emboss.props.style);
-    expect(embossStyle.borderTopWidth).toBe(1);
-    expect(embossStyle.borderBottomWidth).toBe(1);
+    const outer = StyleSheet.flatten(getByTestId('section-bottom-bar-add-button-shadow').props.style);
+    expect(outer.overflow).toBeUndefined();
+    expect(outer.borderWidth).toBeUndefined();
+    expect(queryByTestId('section-bottom-bar-add-button-emboss')).toBeNull();
   });
 });
