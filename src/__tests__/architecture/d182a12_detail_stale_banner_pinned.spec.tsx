@@ -129,8 +129,8 @@ jest.mock('../../hooks/listing-detail/useBusOwnerActions', () => ({
   isOptimisticLockError: () => false,
 }))
 
-jest.mock('../../hooks/listing-detail/useBusSimilarListings', () => ({
-  useBusSimilarListings: () => ({
+jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
     items: [],
     isLoading: false,
     isError: false,

@@ -100,8 +100,8 @@ describe('Phase 11: PartCard & Filters Read Path', () => {
       { wrapper: createWrapper() }
     )
 
-    // With maxChips=2, remaining chips show +N
-    expect(screen.getByText('+3')).toBeTruthy()
+    // With maxChips=2, remaining chips show +N (D-386 removed duplicate condition pill)
+    expect(screen.getByText('+2')).toBeTruthy()
   })
 
   it('PartsFilterBottomSheet displays hasWarranty and compatibleVehicleType correctly', async () => {

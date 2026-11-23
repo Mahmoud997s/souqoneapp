@@ -65,8 +65,18 @@ jest.mock('../../../store/toastStore', () => ({
 jest.mock('../../../api/services', () => ({
   servicesApi: {
     getById: jest.fn(),
+    getSimilar: jest.fn().mockResolvedValue({ data: [] }),
     remove: jest.fn().mockResolvedValue({ success: true }),
   },
+}))
+
+jest.mock('../../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
+    items: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
 }))
 
 let mockCurrentUser: { id: string; username?: string; phone?: string } | null = null

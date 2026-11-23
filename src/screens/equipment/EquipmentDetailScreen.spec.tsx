@@ -133,8 +133,8 @@ let mockSimilarItems: any[] = []
 let mockSimilarLoading = false
 let mockSimilarError = false
 const mockSimilarRefetch = jest.fn()
-jest.mock('../../hooks/listing-detail/useEquipmentSimilarListings', () => ({
-  useEquipmentSimilarListings: () => ({
+jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
     items: mockSimilarItems,
     isLoading: mockSimilarLoading,
     isError: mockSimilarError,

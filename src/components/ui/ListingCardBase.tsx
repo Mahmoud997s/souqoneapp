@@ -663,7 +663,7 @@ const s = StyleSheet.create({
   imagePlaceholderIconCircle: {
     width: 56,
     height: 56,
-    borderRadius: Radius.full,
+    borderRadius: Radius.pill,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
