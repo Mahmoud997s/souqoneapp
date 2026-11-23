@@ -21,6 +21,39 @@ export const SERVICE_TYPE_LABELS: Record<string, string> = Object.fromEntries(
   SERVICE_TYPES.map((t) => [t.id, t.label])
 )
 
+export interface ServiceTypeGroup {
+  title: string
+  items: ServiceTypeOption[]
+}
+
+const SERVICE_TYPE_BY_ID = new Map<string, ServiceTypeOption>(
+  SERVICE_TYPES.map((item) => [item.id, item])
+)
+
+const pickServiceTypes = (ids: string[]): ServiceTypeOption[] =>
+  ids
+    .map((id) => SERVICE_TYPE_BY_ID.get(id))
+    .filter((item): item is ServiceTypeOption => Boolean(item))
+
+export const SERVICE_TYPE_GROUPS: ServiceTypeGroup[] = [
+  {
+    title: 'الصيانة والفحص',
+    items: pickServiceTypes(['MAINTENANCE', 'INSPECTION']),
+  },
+  {
+    title: 'الشكل والتجميل',
+    items: pickServiceTypes(['CLEANING', 'BODYWORK', 'MODIFICATION']),
+  },
+  {
+    title: 'التركيبات والمفاتيح',
+    items: pickServiceTypes(['ACCESSORIES_INSTALL', 'KEYS_LOCKS']),
+  },
+  {
+    title: 'السطحات وأخرى',
+    items: pickServiceTypes(['TOWING', 'OTHER_SERVICE']),
+  },
+]
+
 export const PROVIDER_TYPES = [
   { id: 'WORKSHOP', label: 'ورشة / كراج' },
   { id: 'INDIVIDUAL', label: 'فني مستقل' },

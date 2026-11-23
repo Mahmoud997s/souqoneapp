@@ -6,7 +6,7 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardSelectField } from '../../ui/WizardSelectField'
-import { PART_CATEGORIES, PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
+import { PART_CATEGORY_GROUPS, PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
 
 const LISTING_TYPES_DATA: { key: string; label: string }[] = [
@@ -25,12 +25,15 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
     []
   )
 
-  const categoryOptions = useMemo(
+  const categoryGroups = useMemo(
     () =>
-      PART_CATEGORIES.map((cat) => ({
-        value: cat.id,
-        label: cat.label,
-        testID: `category-${cat.id}`,
+      PART_CATEGORY_GROUPS.map((group) => ({
+        title: group.title,
+        options: group.items.map((cat) => ({
+          value: cat.id,
+          label: cat.label,
+          testID: `category-${cat.id}`,
+        })),
       })),
     []
   )
@@ -71,7 +74,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
           testID="part-category-select"
           value={formData.partCategory}
           placeholder="اختر فئة القطعة"
-          options={categoryOptions}
+          groups={categoryGroups}
           error={errors.partCategory}
           errorTestID="error-part-category"
           onSelect={(val) => onUpdateField('partCategory', val)}

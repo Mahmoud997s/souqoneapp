@@ -7,7 +7,7 @@ import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardSelectField } from '../../ui/WizardSelectField'
 import { AppInput } from '../../ui/AppInput'
-import { SERVICE_TYPES, PROVIDER_TYPES } from '../../../constants/services'
+import { SERVICE_TYPE_GROUPS, PROVIDER_TYPES } from '../../../constants/services'
 import { ServiceFormData } from '../../../store/serviceWizardStore'
 
 export interface ServiceStep1Props {
@@ -17,12 +17,15 @@ export interface ServiceStep1Props {
 }
 
 export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceStep1Props) {
-  const serviceTypeOptions = useMemo(
+  const serviceTypeGroups = useMemo(
     () =>
-      SERVICE_TYPES.map((st) => ({
-        value: st.id,
-        label: st.label,
-        testID: `service-type-${st.id}`,
+      SERVICE_TYPE_GROUPS.map((group) => ({
+        title: group.title,
+        options: group.items.map((st) => ({
+          value: st.id,
+          label: st.label,
+          testID: `service-type-${st.id}`,
+        })),
       })),
     []
   )
@@ -47,7 +50,7 @@ export function ServiceStep1Type({ formData, errors, onUpdateField }: ServiceSte
           testID="service-type-select"
           value={formData.serviceType}
           placeholder="اختر نوع الخدمة"
-          options={serviceTypeOptions}
+          groups={serviceTypeGroups}
           error={errors.serviceType}
           errorTestID="error-service-type"
           onSelect={(val) => onUpdateField('serviceType', val)}

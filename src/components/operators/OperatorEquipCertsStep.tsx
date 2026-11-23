@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
 import { CardSystem } from '../../constants/cardSystem'
 import { AppInput } from '../ui/AppInput'
-import { AVAILABLE_EQUIPMENT } from '../../constants/operators'
+import { EQUIPMENT_CATEGORY_GROUPS } from '../../constants/equipment'
 import { OperatorWizardFormData } from '../../store/operatorWizardStore'
 import { WizardCard } from '../ui/WizardCard'
 import { WizardSelectField, formatWizardMultiSummary } from '../ui/WizardSelectField'
@@ -45,6 +45,19 @@ export function OperatorEquipCertsStep({
   const [tempCert, setTempCert] = useState('')
   const [tempSpec, setTempSpec] = useState('')
 
+  const equipmentGroups = useMemo(
+    () =>
+      EQUIPMENT_CATEGORY_GROUPS.map((group) => ({
+        title: group.title,
+        options: group.items.map((eq) => ({
+          value: eq.key,
+          label: eq.label,
+          testID: `operator-equipment-${eq.key}`,
+        })),
+      })),
+    []
+  )
+
   const handleAddCert = () => {
     if (tempCert.trim()) {
       onAddTextCertificate(tempCert.trim())
@@ -74,11 +87,7 @@ export function OperatorEquipCertsStep({
           formatMultiSummary={(count) =>
             formatWizardMultiSummary(count, 'معدة واحدة محددة', 'معدتان محددتان', 'معدات محددة')
           }
-          options={AVAILABLE_EQUIPMENT.map((eq) => ({
-            value: eq.id,
-            label: eq.label,
-            testID: `operator-equipment-${eq.id}`,
-          }))}
+          groups={equipmentGroups}
           onToggle={onToggleEquipment}
           error={errors.equipmentTypes}
         />
