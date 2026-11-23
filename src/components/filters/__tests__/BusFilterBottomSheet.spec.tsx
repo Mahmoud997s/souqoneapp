@@ -15,6 +15,7 @@ import {
   BUS_FUEL_OPTIONS,
 } from '../BusFilterBottomSheet'
 import { locationsApi } from '../../../api/locations'
+import { clearFilterLocationsCache } from '../../../hooks/useFilterLocations'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -31,6 +32,7 @@ jest.mock('../../../api/locations', () => ({
 describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 PR-3)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    clearFilterLocationsCache()
     ;(locationsApi.getGovernorates as jest.Mock).mockResolvedValue([
       { id: 1, nameAr: 'مسقط', nameEn: 'Muscat' },
       { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
