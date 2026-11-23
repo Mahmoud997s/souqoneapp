@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QuickFilterModal, QuickFilterOption } from '../QuickFilterModal';
 import { FilterGlassTokens } from '../../../constants/filterGlassTokens';
 import { locationsApi } from '../../../api/locations';
-import { useFilterLocations, clearFilterLocationsCache } from '../../../hooks/useFilterLocations';
+import { useFilterLocations } from '../../../hooks/useFilterLocations';
 import {
   buildQuickFilterDropdownData,
   applyQuickFilterDropdownSelection,
@@ -220,7 +220,6 @@ function QuickFilterModalHarness<TFilters extends object>({
 describe('QuickFilterModal - Ported Cars, Buses & Services Dropdown Characterization (D-388)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    clearFilterLocationsCache();
     (locationsApi.getGovernorates as jest.Mock).mockResolvedValue([
       { id: 1, nameAr: 'مسقط', nameEn: 'Muscat' },
       { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },

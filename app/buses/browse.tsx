@@ -13,8 +13,6 @@ import Animated from 'react-native-reanimated';
 import { useInfiniteBuses, useBusManufacturers } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import {
@@ -81,10 +79,7 @@ export default function BusesBrowseScreen() {
     isPremium?: string;
   }>();
 
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('BusesBrowse:Governorates', err));
-  }, []);
+  const { governorates } = useFilterLocations();
 
   const { data: manufacturers } = useBusManufacturers();
 
@@ -390,11 +385,6 @@ export default function BusesBrowseScreen() {
     [isFetchingNextPage, listings, handleAddBus]
   );
 
-  const { governorates: quickFilterGovernorates } = useFilterLocations(
-    undefined,
-    activeDropdown === 'city' || activeDropdown === 'governorate',
-  );
-
   const activeDropdownData = useMemo(
     () =>
       buildQuickFilterDropdownData({
@@ -402,9 +392,9 @@ export default function BusesBrowseScreen() {
         filters,
         vertical: 'buses',
         brands: manufacturers || [],
-        governorates: quickFilterGovernorates,
+        governorates,
       }),
-    [activeDropdown, filters, manufacturers, quickFilterGovernorates],
+    [activeDropdown, filters, manufacturers, governorates],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -549,7 +539,7 @@ export default function BusesBrowseScreen() {
               filters: prev,
               vertical: 'buses',
               brands: manufacturers || [],
-              governorates: quickFilterGovernorates,
+              governorates,
             }),
           );
         }}

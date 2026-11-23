@@ -15,7 +15,6 @@ import {
   BUS_FUEL_OPTIONS,
 } from '../BusFilterBottomSheet'
 import { locationsApi } from '../../../api/locations'
-import { clearFilterLocationsCache } from '../../../hooks/useFilterLocations'
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -32,7 +31,6 @@ jest.mock('../../../api/locations', () => ({
 describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 PR-3)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    clearFilterLocationsCache()
     ;(locationsApi.getGovernorates as jest.Mock).mockResolvedValue([
       { id: 1, nameAr: 'مسقط', nameEn: 'Muscat' },
       { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
@@ -64,6 +62,48 @@ describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 P
     expect(fileContent).not.toContain('const GOVERNORATES')
     // Must not use MultiSlider
     expect(fileContent).not.toContain('@ptomasroos/react-native-multi-slider')
+  })
+
+  it('fetches governorates and selects governorate yielding numeric governorateId', async () => {
+    const handleApply = jest.fn()
+    await render(
+      <BusFilterBottomSheet
+        visible={true}
+        onClose={jest.fn()}
+        currentFilters={{}}
+        onApply={handleApply}
+      />
+    )
+
+    await waitFor(() => {
+      expect(locationsApi.getGovernorates).toHaveBeenCalled()
+    })
+
+    // Open governorate selector
+    await act(async () => {
+      fireEvent.press(screen.getByText('المحافظة'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('مسقط')).toBeTruthy()
+    })
+
+    // Select 'مسقط' (id: 1)
+    await act(async () => {
+      fireEvent.press(screen.getByText('مسقط'))
+    })
+
+    // Press apply
+    await act(async () => {
+      fireEvent.press(screen.getByText('تطبيق الفلتر'))
+    })
+
+    expect(handleApply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        governorateId: 1,
+        governorate: 'مسقط',
+      })
+    )
   })
 
   it('renders with header title "تصفية النتائج" and correct section order matching cars/equipment', async () => {
@@ -130,61 +170,19 @@ describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 P
     expect(screen.getByText('نوع الوقود')).toBeTruthy()
   })
 
-  it('fetches governorates and selects governorate yielding numeric governorateId', async () => {
-    const handleApply = jest.fn()
-    await render(
-      <BusFilterBottomSheet
-        visible={true}
-        onClose={jest.fn()}
-        currentFilters={{}}
-        onApply={handleApply}
-      />
-    )
-
-    await waitFor(() => {
-      expect(locationsApi.getGovernorates).toHaveBeenCalled()
-    })
-
-    // Open governorate selector
-    await act(async () => {
-      fireEvent.press(screen.getByText('المحافظة'))
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText('مسقط')).toBeTruthy()
-    })
-
-    // Select 'مسقط' (id: 1)
-    await act(async () => {
-      fireEvent.press(screen.getByText('مسقط'))
-    })
-
-    // Press apply
-    await act(async () => {
-      fireEvent.press(screen.getByText('تطبيق الفلتر'))
-    })
-
-    expect(handleApply).toHaveBeenCalledWith(
-      expect.objectContaining({
-        governorateId: 1,
-        governorate: 'مسقط',
-      })
-    )
-  })
-
   it('fetches wilayas when governorateId is present and selecting wilaya yields numeric wilayaId', async () => {
     const handleApply = jest.fn()
     await render(
       <BusFilterBottomSheet
         visible={true}
         onClose={jest.fn()}
-        currentFilters={{ governorateId: 1, governorate: 'مسقط' }}
+        currentFilters={{ governorateId: 2, governorate: 'ظفار' }}
         onApply={handleApply}
       />
     )
 
     await waitFor(() => {
-      expect(locationsApi.getWilayas).toHaveBeenCalledWith(1)
+      expect(locationsApi.getWilayas).toHaveBeenCalledWith(2)
     })
 
     // Open wilaya selector
@@ -208,7 +206,7 @@ describe('BusFilterBottomSheet Component (Architecture & Design Parity - D-136 P
 
     expect(handleApply).toHaveBeenCalledWith(
       expect.objectContaining({
-        governorateId: 1,
+        governorateId: 2,
         wilayaId: 101,
         city: 'السيب',
       })

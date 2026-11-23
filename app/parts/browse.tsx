@@ -22,8 +22,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useBrands } from '../../src/hooks/useCars';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { navigateToPartForm } from '../../src/components/ui/DraftResumePrompt';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -105,22 +104,7 @@ export default function PartsBrowseScreen() {
   }>();
 
   const listRef = useRef<FlatList<UnifiedCardItem>>(null);
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    locationsApi
-      .getGovernorates()
-      .then((data) => {
-        if (isMounted) setGovernorates(data);
-      })
-      .catch(() => {
-        if (isMounted) setGovernorates([]);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { governorates } = useFilterLocations();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(searchParams.q || '');

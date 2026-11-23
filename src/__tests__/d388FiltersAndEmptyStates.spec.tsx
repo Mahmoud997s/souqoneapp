@@ -4,7 +4,7 @@ import path from 'path';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Text, View } from 'react-native';
 import { locationsApi } from '../api/locations';
-import { useFilterLocations, clearFilterLocationsCache } from '../hooks/useFilterLocations';
+import { useFilterLocations } from '../hooks/useFilterLocations';
 import { BrowseEmptyState } from '../components/ui/BrowseEmptyState';
 import {
   buildQuickFilterDropdownData,
@@ -44,7 +44,6 @@ function LocationProbe({ govId, label }: { govId?: number; label: string }) {
 describe('D-388 Filters, Locations Cache & Shared Browse Empty/Error States', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    clearFilterLocationsCache();
     (locationsApi.getGovernorates as jest.Mock).mockResolvedValue([
       { id: 1, nameAr: 'مسقط', nameEn: 'Muscat' },
       { id: 2, nameAr: 'ظفار', nameEn: 'Dhofar' },
@@ -180,6 +179,22 @@ describe('D-388 Filters, Locations Cache & Shared Browse Empty/Error States', ()
         expect(src).not.toContain('locationsApi');
         expect(src).not.toMatch(/:\s*any\b|\bas\s+any\b/);
       }
+
+      for (const browseScreen of [
+        'app/cars/browse.tsx',
+        'app/buses/browse.tsx',
+        'app/equipment/browse.tsx',
+        'app/parts/browse.tsx',
+        'app/services/browse.tsx',
+      ]) {
+        const src = readRepoFile(browseScreen);
+        expect(src).toContain('useFilterLocations');
+        expect(src).not.toContain('locationsApi');
+      }
+
+      expect(readRepoFile('src/hooks/useFilterLocations.ts')).not.toContain(
+        'clearFilterLocationsCache',
+      );
     });
   });
 

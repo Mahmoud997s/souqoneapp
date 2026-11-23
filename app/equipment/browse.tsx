@@ -17,8 +17,7 @@ import Animated, {
 import { useEquipment } from '../../src/hooks/useEquipment';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 import { EQUIPMENT_CONDITIONS } from '../../src/constants/equipment';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
@@ -98,10 +97,7 @@ const YEAR_RANGES = EQUIPMENT_YEAR_RANGES;
 const HOURS_RANGES = EQUIPMENT_HOURS_RANGES;
 
 export default function EquipmentBrowseScreen() {
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(() => setGovernorates([]));
-  }, []);
+  const { governorates } = useFilterLocations();
   const insets = useSafeAreaInsets();
   const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();

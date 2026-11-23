@@ -1,8 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
 import { SkeletonCard } from './SkeletonCard'
 import { EmptyState } from './EmptyState'
 import { getListErrorProps } from '../../utils/getListErrorProps'
@@ -74,30 +73,19 @@ export function BrowseEmptyState({
   }
 
   if (isError) {
-    if (error !== undefined) {
-      const errorProps = getListErrorProps(error, errorTitle ?? errorText)
-      return (
-        <EmptyState
-          testID={errorTestID}
-          icon={errorProps.icon}
-          iconType="ionicons"
-          iconColor={errorProps.iconColor}
-          title={errorProps.title}
-          subtitle={errorProps.subtitle}
-          actionLabel={errorProps.actionLabel}
-          actionIcon="refresh-outline"
-          onAction={onRetry}
-        />
-      )
-    }
-
+    const errorProps = getListErrorProps(error, errorTitle ?? errorText)
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorTxt}>{errorText}</Text>
-        <TouchableOpacity onPress={onRetry} style={styles.retryBtn}>
-          <Text style={styles.retryTxt}>إعادة المحاولة</Text>
-        </TouchableOpacity>
-      </View>
+      <EmptyState
+        testID={errorTestID}
+        icon={errorProps.icon}
+        iconType="ionicons"
+        iconColor={errorProps.iconColor}
+        title={errorProps.title}
+        subtitle={errorProps.subtitle}
+        actionLabel={errorProps.actionLabel}
+        actionIcon="refresh-outline"
+        onAction={onRetry}
+      />
     )
   }
 
@@ -156,29 +144,5 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: Spacing.space4,
     marginBottom: Spacing.space3,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 100,
-  },
-  errorTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 16,
-    color: Colors.error,
-    marginBottom: Spacing.space4,
-    textAlign: 'center',
-  },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.space5,
-    paddingVertical: Spacing.space3,
-    borderRadius: Radius.lg,
-  },
-  retryTxt: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 15,
-    color: Colors.white,
   },
 })

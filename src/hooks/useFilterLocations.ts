@@ -9,17 +9,6 @@ let pendingGovernorates: Promise<GovernorateRef[]> | null = null;
 const cachedWilayas = new Map<number, WilayaRef[]>();
 const pendingWilayas = new Map<number, Promise<WilayaRef[]>>();
 
-/**
- * Clears the in-memory filter locations cache.
- * Intended for test isolation and explicit cache invalidation.
- */
-export function clearFilterLocationsCache(): void {
-  cachedGovernorates = null;
-  pendingGovernorates = null;
-  cachedWilayas.clear();
-  pendingWilayas.clear();
-}
-
 function fetchGovernoratesCached(): Promise<GovernorateRef[]> {
   if (cachedGovernorates !== null) {
     return Promise.resolve(cachedGovernorates);
