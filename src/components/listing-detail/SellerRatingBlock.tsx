@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { useRouter, router as expoRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Radius } from '../../constants/radius'
@@ -34,7 +34,7 @@ export function SellerRatingBlock({
 }: SellerRatingBlockProps) {
   const trimmedSellerId = sellerId?.trim() ?? ''
   const shouldRender = !isOwner && trimmedSellerId.length > 0
-  const router = typeof useRouter === 'function' ? useRouter() : expoRouter
+  const router = useRouter()
   const { user } = useAuthStore()
   const { averageRating, reviewCount } = useSellerReviewSummary(
     shouldRender ? trimmedSellerId : undefined,

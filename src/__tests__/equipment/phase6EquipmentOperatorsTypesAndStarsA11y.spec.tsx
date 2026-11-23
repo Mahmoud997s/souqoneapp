@@ -5,7 +5,8 @@ import {
   uploadAndReconcileEquipmentImages,
   buildEquipmentListingPayload,
 } from '../../utils/equipment/equipmentWizardSubmitHelpers'
-import ReviewsScreen, { StarRow } from '../../../app/reviews/[entityId]'
+import ReviewsScreen from '../../../app/reviews/[entityId]'
+import { RatingStars } from '../../components/ui/RatingStars'
 import { EquipmentFormData } from '../../types/equipmentForm.types'
 import { reviewsApi } from '../../api/reviews'
 import { uploadsApi } from '../../api/uploads'
@@ -13,6 +14,7 @@ import { uploadsApi } from '../../api/uploads'
 // Mocks
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ entityId: 'eq-test-456', type: 'equipment' }),
+  useRouter: () => ({ back: jest.fn(), push: jest.fn() }),
   router: { back: jest.fn(), push: jest.fn() },
 }))
 
@@ -182,9 +184,9 @@ describe('Phase 6 Equipment & Operators Types Sweep and Star Rating Accessibilit
     })
   })
 
-  describe('StarRow and Reviews Accessibility', () => {
-    it('renders StarRow container with text accessibility role and label', async () => {
-      const { root } = await render(<StarRow rating={4} />)
+  describe('RatingStars and Reviews Accessibility', () => {
+    it('renders RatingStars container with text accessibility role and label', async () => {
+      const { root } = await render(<RatingStars rating={4} />)
       expect(root).toBeTruthy()
       expect(root?.props.accessible).toBe(true)
       expect(root?.props.accessibilityRole).toBe('text')

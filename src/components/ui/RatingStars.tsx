@@ -25,7 +25,7 @@ const STARS = [1, 2, 3, 4, 5] as const
 
 /**
  * RatingStars
- * Single shared star-rating component across the app (replaces StarRow and OperatorStarsRow).
+ * Single shared star-rating component across the app.
  * - Display mode (`onChange` omitted): full / half / outline stars, single accessible text group.
  * - Input mode (`onChange` provided): 5 interactive buttons with >=44pt touch targets.
  */

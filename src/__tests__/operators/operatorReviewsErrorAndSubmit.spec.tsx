@@ -12,6 +12,7 @@ import { getMutationErrorMessage } from '../../utils/listing-detail/getDetailErr
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), back: jest.fn() },
+  useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
   useLocalSearchParams: () => ({ entityId: 'op-123', type: 'OPERATOR_LISTING' }),
 }))
 

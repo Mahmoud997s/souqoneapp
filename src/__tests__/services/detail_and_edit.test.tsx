@@ -64,14 +64,18 @@ const mockServiceData: ServiceDetailResponse = {
   },
 }
 
-jest.mock('expo-router', () => ({
-  router: {
+jest.mock('expo-router', () => {
+  const sharedRouter = {
     push: jest.fn(),
     replace: jest.fn(),
     back: jest.fn(),
-  },
-  useLocalSearchParams: () => ({ id: 'srv-999', type: 'service' }),
-}))
+  }
+  return {
+    router: sharedRouter,
+    useRouter: () => sharedRouter,
+    useLocalSearchParams: () => ({ id: 'srv-999', type: 'service' }),
+  }
+})
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 40, bottom: 20, left: 0, right: 0 }),

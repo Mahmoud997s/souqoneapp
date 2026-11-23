@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { useLocalSearchParams, useRouter, router as expoRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppHeader } from '../../src/components/ui/AppHeader'
@@ -30,8 +30,6 @@ import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
-
-export { RatingStars as StarRow }
 
 export interface ReviewItem {
   id: string
@@ -87,7 +85,7 @@ export default function ReviewsScreen() {
     write?: string
   }>()
   const resolvedType = type && type.trim().length > 0 ? type.trim() : 'USER'
-  const router = typeof useRouter === 'function' ? useRouter() : expoRouter
+  const router = useRouter()
   const { user } = useAuthStore()
   const [isWriting, setIsWriting] = React.useState(write === 'true')
   const [rating, setRating] = React.useState(0)
