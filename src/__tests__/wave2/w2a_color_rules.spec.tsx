@@ -37,7 +37,7 @@ jest.mock('../../components/navigation/glassSupport', () => ({
 
 describe('Wave 2a (2.4 / F-09): Unified Color Rules & Parts Icons', () => {
   it('FilterGlassTokens.tab active tab uses Colors.primary background and Colors.white text', () => {
-    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primary)
+    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primaryStrong)
     expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.white)
   })
 

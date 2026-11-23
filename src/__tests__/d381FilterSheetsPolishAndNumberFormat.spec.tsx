@@ -362,7 +362,7 @@ describe('D-381: Filter sheets polish, number formatting, and review row spacing
 
   describe('Item 5a: Selected segmented tab active state uses primary blue + white text', () => {
     it('keeps ListingTabs and VisualFiltersBase active tab styling at Colors.primary + Colors.white', () => {
-      expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primary);
+      expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primaryStrong);
       expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.white);
 
       const listingTabsSrc = readRepoFile('src/components/ui/ListingTabs.tsx');
