@@ -25,7 +25,12 @@ import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
 import { ListingTabs, TabItem } from '../../src/components/ui/ListingTabs';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
-import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
+import {
+  buildQuickFilterDropdownData,
+  applyQuickFilterDropdownSelection,
+} from '../../src/utils/browse-filters/quickFilterDropdown';
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 import { getListErrorProps } from '../../src/utils/getListErrorProps';
@@ -457,6 +462,22 @@ export default function ServicesBrowseScreen() {
     [isFetchingNextPage, isFetchNextPageError, fetchNextPage, showSkeleton, listings, handleAddService]
   );
 
+  const { governorates: quickFilterGovernorates } = useFilterLocations(
+    undefined,
+    activeDropdown === 'city',
+  );
+
+  const activeDropdownData = useMemo(
+    () =>
+      buildQuickFilterDropdownData({
+        activeDropdown,
+        filters,
+        vertical: 'services',
+        governorates: quickFilterGovernorates,
+      }),
+    [activeDropdown, filters, quickFilterGovernorates],
+  );
+
   const listEmptyComponent = useMemo(() => {
     if (showSkeleton) {
       return null;
@@ -566,12 +587,23 @@ export default function ServicesBrowseScreen() {
       />
 
       <QuickFilterModal
-        visible={activeDropdown !== null}
-        activeDropdown={activeDropdown}
+        visible={activeDropdown !== null && !!activeDropdownData}
+        title={activeDropdownData?.title ?? ''}
+        options={activeDropdownData?.options ?? []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(optionId) => {
+          if (!activeDropdown) return;
+          setFilters((prev) =>
+            applyQuickFilterDropdownSelection({
+              activeDropdown,
+              optionId,
+              filters: prev,
+              vertical: 'services',
+              governorates: quickFilterGovernorates,
+            }),
+          );
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        isService={true}
       />
 
       <ServicesFilterBottomSheet

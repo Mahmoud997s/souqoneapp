@@ -32,7 +32,12 @@ import {
   LISTING_TYPES,
   CAR_TYPES,
 } from '../../src/constants/browseFilters';
-import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
+import {
+  buildQuickFilterDropdownData,
+  applyQuickFilterDropdownSelection,
+} from '../../src/utils/browse-filters/quickFilterDropdown';
 import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
 import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
@@ -326,6 +331,23 @@ export default function CarsBrowseScreen() {
     [isFetchingNextPage, listings, handleAddCar]
   );
 
+  const { governorates: quickFilterGovernorates } = useFilterLocations(
+    undefined,
+    activeDropdown === 'city',
+  );
+
+  const activeDropdownData = useMemo(
+    () =>
+      buildQuickFilterDropdownData({
+        activeDropdown,
+        filters,
+        vertical: 'cars',
+        brands: brands || [],
+        governorates: quickFilterGovernorates,
+      }),
+    [activeDropdown, filters, brands, quickFilterGovernorates],
+  );
+
   const listEmptyComponent = useMemo(
     () => (
       <BrowseEmptyState
@@ -425,12 +447,24 @@ export default function CarsBrowseScreen() {
       />
 
       <QuickFilterModal
-        visible={!!activeDropdown}
-        activeDropdown={activeDropdown}
+        visible={!!activeDropdown && !!activeDropdownData}
+        title={activeDropdownData?.title ?? ''}
+        options={activeDropdownData?.options ?? []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(optionId) => {
+          if (!activeDropdown) return;
+          setFilters((prev) =>
+            applyQuickFilterDropdownSelection({
+              activeDropdown,
+              optionId,
+              filters: prev,
+              vertical: 'cars',
+              brands: brands || [],
+              governorates: quickFilterGovernorates,
+            }),
+          );
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        brands={brands || []}
       />
 
       <CarsBottomBar glassSupport={glassSupport} />

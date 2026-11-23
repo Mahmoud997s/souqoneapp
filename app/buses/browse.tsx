@@ -33,7 +33,12 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { BusCard } from '../../src/components/buses/BusCard';
 import { BusesVisualFilters } from '../../src/components/buses/BusesVisualFilters';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
-import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
+import {
+  buildQuickFilterDropdownData,
+  applyQuickFilterDropdownSelection,
+} from '../../src/utils/browse-filters/quickFilterDropdown';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { EmptyState } from '../../src/components/ui/EmptyState';
@@ -387,6 +392,23 @@ export default function BusesBrowseScreen() {
     [isFetchingNextPage, listings, handleAddBus]
   );
 
+  const { governorates: quickFilterGovernorates } = useFilterLocations(
+    undefined,
+    activeDropdown === 'city' || activeDropdown === 'governorate',
+  );
+
+  const activeDropdownData = useMemo(
+    () =>
+      buildQuickFilterDropdownData({
+        activeDropdown,
+        filters,
+        vertical: 'buses',
+        brands: manufacturers || [],
+        governorates: quickFilterGovernorates,
+      }),
+    [activeDropdown, filters, manufacturers, quickFilterGovernorates],
+  );
+
   const listEmptyComponent = useMemo(
     () => {
       if (isError && listings.length === 0) {
@@ -508,13 +530,24 @@ export default function BusesBrowseScreen() {
       />
 
       <QuickFilterModal
-        visible={!!activeDropdown}
-        activeDropdown={activeDropdown}
+        visible={!!activeDropdown && !!activeDropdownData}
+        title={activeDropdownData?.title ?? ''}
+        options={activeDropdownData?.options ?? []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(optionId) => {
+          if (!activeDropdown) return;
+          setFilters((prev) =>
+            applyQuickFilterDropdownSelection({
+              activeDropdown,
+              optionId,
+              filters: prev,
+              vertical: 'buses',
+              brands: manufacturers || [],
+              governorates: quickFilterGovernorates,
+            }),
+          );
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        brands={manufacturers || []}
-        isBus={true}
       />
 
       <BusesBottomBar glassSupport={glassSupport} />
