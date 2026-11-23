@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useContext } from 'react'
+import { QueryClient, QueryClientContext, useQuery } from '@tanstack/react-query'
 import { listingsApi } from '../../api/listings'
 import { busesApi } from '../../api/buses'
 import { equipmentApi } from '../../api/equipment'
@@ -98,26 +99,36 @@ function isHttp404(err: unknown): boolean {
  * - On 404: original listing is hidden/deleted/not visible, so gracefully returns [] (isError: false).
  * - On other errors: sets isError: true, items: [].
  */
+const fallbackQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+})
+
 export function useVerticalSimilarListings<V extends SimilarVertical>(
   vertical: V,
   id: string,
   limit = 8,
 ): UseSimilarListingsResult<SimilarItemByVertical[V]> {
-  const query = useQuery<SimilarItemByVertical[V][], unknown>({
-    queryKey: getSimilarQueryKey(vertical, id, limit),
-    queryFn: async () => {
-      try {
-        return await fetchSimilarByVertical(vertical, id, limit)
-      } catch (err: unknown) {
-        if (isHttp404(err)) {
-          return []
+  const contextClient = useContext(QueryClientContext)
+  const hasQueryClient = Boolean(contextClient)
+
+  const query = useQuery<SimilarItemByVertical[V][], unknown>(
+    {
+      queryKey: getSimilarQueryKey(vertical, id, limit),
+      queryFn: async () => {
+        try {
+          return await fetchSimilarByVertical(vertical, id, limit)
+        } catch (err: unknown) {
+          if (isHttp404(err)) {
+            return []
+          }
+          throw err
         }
-        throw err
-      }
+      },
+      enabled: Boolean(id) && hasQueryClient,
+      staleTime: 1000 * 60 * 5, // 5 minutes matching backend cache TTL
     },
-    enabled: Boolean(id),
-    staleTime: 1000 * 60 * 5, // 5 minutes matching backend cache TTL
-  })
+    contextClient ?? fallbackQueryClient,
+  )
 
   return {
     items: query.data ?? [],
