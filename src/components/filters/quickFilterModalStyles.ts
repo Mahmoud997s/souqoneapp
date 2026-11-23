@@ -4,7 +4,7 @@ import { FilterGlassTokens } from '../../constants/filterGlassTokens';
 
 /**
  * quickFilterModalStyles
- * Shared glassmorphic stylesheet for QuickFilterModal and LegacyQuickFilterModal
+ * Shared glassmorphic stylesheet for QuickFilterModal
  * extracted per task D-189 to eliminate style duplication and guarantee visual equality.
  * Preserves master 7353e69 QuickFilterModal.tsx modalContent geometry (no border) and shadow per M-036.
  */

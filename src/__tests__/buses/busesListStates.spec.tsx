@@ -58,7 +58,7 @@ jest.mock('../../components/filters/BusFilterBottomSheet', () => ({
   BusFilterBottomSheet: () => null,
 }))
 
-jest.mock('../../components/filters/LegacyQuickFilterModal', () => ({
+jest.mock('../../components/filters/QuickFilterModal', () => ({
   QuickFilterModal: () => null,
 }))
 

@@ -100,9 +100,9 @@ describe('Cars Browse Screen S2 Error and Stale States (D-277)', () => {
   })
 
   describe('BrowseEmptyState (Non-Breaking + getListErrorProps)', () => {
-    it('preserves legacy errorText fallback when error prop is omitted', async () => {
+    it('renders unified EmptyState error view with errorText title when error prop is omitted', async () => {
       const onRetry = jest.fn()
-      const { getByText, queryByTestId } = await render(
+      const { getByText, getByTestId } = await render(
         <BrowseEmptyState
           isLoading={false}
           isError={true}
@@ -111,8 +111,8 @@ describe('Cars Browse Screen S2 Error and Stale States (D-277)', () => {
         />
       )
 
+      expect(getByTestId('browse-error-state')).toBeTruthy()
       expect(getByText('حدث خطأ أثناء تحميل الحافلات')).toBeTruthy()
-      expect(queryByTestId('browse-error-state')).toBeNull()
 
       fireEvent.press(getByText('إعادة المحاولة'))
       expect(onRetry).toHaveBeenCalledTimes(1)

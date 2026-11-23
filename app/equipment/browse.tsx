@@ -17,8 +17,7 @@ import Animated, {
 import { useEquipment } from '../../src/hooks/useEquipment';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { OMAN_LOCATIONS } from '../../src/constants/locations';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
 import { EQUIPMENT_TYPES } from '../../src/utils/equipment-mappers';
 import { EQUIPMENT_CONDITIONS } from '../../src/constants/equipment';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
@@ -44,10 +43,8 @@ import { EquipmentVisualFilters } from '../../src/components/equipment/Equipment
 import { EquipCard } from '../../src/components/cards/EquipCard';
 import { EquipmentFilterBottomSheet, EquipmentFilterState } from '../../src/components/filters/EquipmentFilterBottomSheet';
 import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
-import { SkeletonCard } from '../../src/components/ui/SkeletonCard';
-import { EmptyState } from '../../src/components/ui/EmptyState';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
-import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { EquipmentBottomBar } from '../../src/components/equipment/EquipmentBottomBar';
 import { UNIFIED_BOTTOM_BAR_HEIGHT } from '../../src/components/navigation/UnifiedBottomBar';
 import { useGlassSupport } from '../../src/components/navigation/glassSupport';
@@ -100,10 +97,7 @@ const YEAR_RANGES = EQUIPMENT_YEAR_RANGES;
 const HOURS_RANGES = EQUIPMENT_HOURS_RANGES;
 
 export default function EquipmentBrowseScreen() {
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(() => setGovernorates([]));
-  }, []);
+  const { governorates } = useFilterLocations();
   const insets = useSafeAreaInsets();
   const glassSupport = useGlassSupport();
   const { scrollHandler } = useScrollAwareNav();
@@ -430,54 +424,49 @@ export default function EquipmentBrowseScreen() {
     [isLoading, items.length, handleAddEquipment]
   );
 
-  const listEmptyComponent = useMemo(() => {
-    if (showSkeleton) {
-      return (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <SkeletonCard />
-            </View>
-          ))}
-        </View>
-      );
-    }
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
 
-    if (isError && items.length === 0) {
-      const errorProps = getListErrorProps(error, 'تعذر تحميل المعدات');
-      return (
-        <EmptyState
-          testID="equipment-browse-error-state"
-          icon={errorProps.icon}
-          iconColor={errorProps.iconColor}
-          title={errorProps.title}
-          subtitle={errorProps.subtitle}
-          actionLabel={errorProps.actionLabel}
-          actionIcon="refresh-outline"
-          onAction={() => refetch()}
-        />
-      );
-    }
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
 
-    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
-
-    return (
-      <EmptyState
-        testID="equipment-browse-empty-state"
-        icon="construct-outline"
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={showSkeleton}
+        isError={isError && items.length === 0}
+        error={error}
+        errorTitle="تعذر تحميل المعدات"
+        errorTestID="equipment-browse-error-state"
+        emptyTestID="equipment-browse-empty-state"
+        activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearch.trim().length > 0}
+        onRetry={() => refetch()}
+        onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="construct-outline"
         iconColor={Colors.equipmentPrimary}
-        title="لا توجد معدات مطابقة"
-        subtitle={
-          hasActiveFiltersOrSearch
-            ? 'لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر.'
-            : 'لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك.'
-        }
-        actionLabel={hasActiveFiltersOrSearch ? 'إعادة تعيين الكل' : 'تحديث الصفحة'}
-        actionIcon={hasActiveFiltersOrSearch ? 'close-circle-outline' : 'refresh-outline'}
-        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+        emptyTitle="لا توجد معدات مطابقة"
+        emptySubtitle="لم نعثر على أي معدات تتطابق مع معايير البحث الخاصة بك."
+        emptyFilteredSubtitle="لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر."
       />
-    );
-  }, [showSkeleton, isError, error, items.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
+    ),
+    [
+      showSkeleton,
+      isError,
+      error,
+      items.length,
+      activeFiltersCount,
+      debouncedSearch,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
+  );
 
   return (
     <View style={s.root}>

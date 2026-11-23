@@ -15,9 +15,7 @@ import {
   BUS_TRANSMISSIONS,
   BUS_FUEL_TYPES,
 } from '../../constants/buses'
-import { locationsApi } from '../../api/locations'
-import { GovernorateRef, WilayaRef } from '../../types/location.types'
-import { logWarn } from '../../utils/safeLog'
+import { useFilterLocations } from '../../hooks/useFilterLocations'
 import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface BusFilters {
@@ -159,13 +157,11 @@ export function BusFilterBottomSheet({
   >(null)
   const [showMore, setShowMore] = useState(false)
   const [sliderResetKey, setSliderResetKey] = useState(0)
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([])
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([])
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible)
 
-  const hasActiveFilters = Object.keys(filters).some((key) => {
-    const val = (filters as any)[key]
-    return val !== undefined && val !== ''
-  })
+  const hasActiveFilters = Object.values(filters).some(
+    (val) => val !== undefined && val !== ''
+  )
 
   useEffect(() => {
     if (visible) {
@@ -173,33 +169,8 @@ export function BusFilterBottomSheet({
       setActiveSelector(null)
       setShowMore(false)
       setSliderResetKey((k) => k + 1)
-      locationsApi
-        .getGovernorates()
-        .then((res) => {
-          if (Array.isArray(res)) setGovernorates(res)
-        })
-        .catch(err => logWarn('BusFilter:Gov', err))
     }
   }, [visible, currentFilters, initialFilters])
-
-  useEffect(() => {
-    let cancelled = false
-    const govId = filters.governorateId
-
-    setWilayas([])
-    if (govId) {
-      locationsApi
-        .getWilayas(govId)
-        .then((res) => {
-          if (!cancelled && Array.isArray(res)) setWilayas(res)
-        })
-        .catch(err => logWarn('BusFilter:Wilaya', err))
-    }
-
-    return () => {
-      cancelled = true
-    }
-  }, [filters.governorateId])
 
   const updateFilters = (updates: Partial<BusFilters>) => {
     setFilters((prev) => ({

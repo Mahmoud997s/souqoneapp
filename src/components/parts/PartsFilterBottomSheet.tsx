@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { locationsApi } from '../../api/locations';
-import { GovernorateRef, WilayaRef } from '../../types/location.types';
-import { logWarn } from '../../utils/safeLog';
+import { useFilterLocations } from '../../hooks/useFilterLocations';
 import { 
   POPULAR_PART_MAKES, 
   PART_CONDITIONS, 
@@ -43,8 +41,7 @@ export function PartsFilterBottomSheet({
   const [filters, setFilters] = useState<PartsFilterState>({ ...initialFilters });
   const [activeSelector, setActiveSelector] = useState<'make' | 'gov' | 'city' | 'category' | 'condition' | 'originality' | 'warranty' | 'vehicleType' | 'sort' | null>(null);
   const [showMore, setShowMore] = useState(false);
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible);
 
   const { data: brands } = useBrands();
   const hasActiveFilters = Object.keys(filters).length > 0;
@@ -54,17 +51,8 @@ export function PartsFilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('PartsFilter:Gov', err));
     }
   }, [visible, initialFilters]);
-
-  useEffect(() => {
-    if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('PartsFilter:Wilaya', err));
-    } else {
-      setWilayas([]);
-    }
-  }, [filters.governorateId]);
 
   const updateFilter = <K extends keyof PartsFilterState>(key: K, value: PartsFilterState[K]) => {
     setFilters((prev) => {

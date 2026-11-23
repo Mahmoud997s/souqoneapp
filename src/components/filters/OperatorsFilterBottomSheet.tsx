@@ -10,9 +10,7 @@ import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/Filte
 import { OperatorFilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
-import { locationsApi } from '../../api/locations';
-import { GovernorateRef, WilayaRef } from '../../types/location.types';
-import { logWarn } from '../../utils/safeLog';
+import { useFilterLocations } from '../../hooks/useFilterLocations';
 import { AVAILABLE_EQUIPMENT, normalizeOperatorEquipmentType } from '../../constants/operators';
 import { formatNumberWestern } from '../../utils/numberFormat';
 
@@ -65,8 +63,7 @@ export function OperatorsFilterBottomSheet({
   const [filters, setFilters] = useState<OperatorFilterState>({ ...initialFilters });
   const [activeSelector, setActiveSelector] = useState<'equipmentType' | 'gov' | 'city' | 'sort' | null>(null);
   const [showMore, setShowMore] = useState(false);
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible);
 
   const hasActiveFilters = Object.keys(filters).length > 0;
 
@@ -75,19 +72,13 @@ export function OperatorsFilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('OperatorsFilter:Gov', err));
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('OperatorsFilter:Wilaya', err));
-    } else {
-      setWilayas([]);
-    }
-  }, [filters.governorateId]);
-
-  const updateFilter = (key: keyof OperatorFilterState, value: any) => {
+  const updateFilter = <K extends keyof OperatorFilterState>(
+    key: K,
+    value: OperatorFilterState[K],
+  ) => {
     setFilters((prev) => {
       const next = { ...prev, [key]: value };
       if (key === 'governorateId') {

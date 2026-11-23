@@ -13,8 +13,6 @@ import Animated from 'react-native-reanimated';
 import { useInfiniteBuses, useBusManufacturers } from '../../src/hooks/useBuses';
 import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useDebounce } from '../../src/hooks/useDebounce';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
 import { BUS_LISTING_TYPES, BUS_TYPES, BUS_MAKES } from '../../src/constants/buses';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import {
@@ -33,12 +31,15 @@ import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilt
 import { BusCard } from '../../src/components/buses/BusCard';
 import { BusesVisualFilters } from '../../src/components/buses/BusesVisualFilters';
 import { BusFilterBottomSheet, BusFilters } from '../../src/components/filters/BusFilterBottomSheet';
-import { QuickFilterModal } from '../../src/components/filters/LegacyQuickFilterModal';
+import { QuickFilterModal } from '../../src/components/filters/QuickFilterModal';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
+import {
+  buildQuickFilterDropdownData,
+  applyQuickFilterDropdownSelection,
+} from '../../src/utils/browse-filters/quickFilterDropdown';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
-import { EmptyState } from '../../src/components/ui/EmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
-import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
@@ -78,10 +79,7 @@ export default function BusesBrowseScreen() {
     isPremium?: string;
   }>();
 
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  useEffect(() => {
-    locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('BusesBrowse:Governorates', err));
-  }, []);
+  const { governorates } = useFilterLocations();
 
   const { data: manufacturers } = useBusManufacturers();
 
@@ -387,39 +385,59 @@ export default function BusesBrowseScreen() {
     [isFetchingNextPage, listings, handleAddBus]
   );
 
-  const listEmptyComponent = useMemo(
-    () => {
-      if (isError && listings.length === 0) {
-        const errorProps = getListErrorProps(error, 'تعذر تحميل الحافلات');
-        return (
-          <EmptyState
-            testID="buses-browse-error-state"
-            icon={errorProps.icon}
-            iconColor={errorProps.iconColor}
-            title={errorProps.title}
-            subtitle={errorProps.subtitle}
-            actionLabel={errorProps.actionLabel}
-            actionIcon="refresh-outline"
-            onAction={() => refetch()}
-          />
-        );
-      }
+  const activeDropdownData = useMemo(
+    () =>
+      buildQuickFilterDropdownData({
+        activeDropdown,
+        filters,
+        vertical: 'buses',
+        brands: manufacturers || [],
+        governorates,
+      }),
+    [activeDropdown, filters, manufacturers, governorates],
+  );
 
-      return (
-        <BrowseEmptyState
-          isLoading={isLoading}
-          isError={false}
-          activeFiltersCount={activeFiltersCount}
-          onRetry={refetch}
-          onClearAll={handleClearAll}
-          iconName="bus-outline"
-          emptyTitle="لا توجد حافلات مطابقة"
-          emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
-          errorText="حدث خطأ أثناء تحميل الحافلات"
-        />
-      );
-    },
-    [isLoading, isError, error, listings.length, activeFiltersCount, refetch, handleClearAll]
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
+
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={isLoading}
+        isError={isError && listings.length === 0}
+        error={error}
+        errorTitle="تعذر تحميل الحافلات"
+        errorTestID="buses-browse-error-state"
+        emptyTestID="buses-browse-empty-state"
+        activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearch.trim().length > 0}
+        onRetry={() => refetch()}
+        onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="bus-outline"
+        emptyTitle="لا توجد حافلات مطابقة"
+        emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
+        errorText="حدث خطأ أثناء تحميل الحافلات"
+      />
+    ),
+    [
+      isLoading,
+      isError,
+      error,
+      listings.length,
+      activeFiltersCount,
+      debouncedSearch,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
   );
 
   return (
@@ -508,13 +526,24 @@ export default function BusesBrowseScreen() {
       />
 
       <QuickFilterModal
-        visible={!!activeDropdown}
-        activeDropdown={activeDropdown}
+        visible={!!activeDropdown && !!activeDropdownData}
+        title={activeDropdownData?.title ?? ''}
+        options={activeDropdownData?.options ?? []}
+        selectedId={activeDropdownData?.selectedId}
+        onSelect={(optionId) => {
+          if (!activeDropdown) return;
+          setFilters((prev) =>
+            applyQuickFilterDropdownSelection({
+              activeDropdown,
+              optionId,
+              filters: prev,
+              vertical: 'buses',
+              brands: manufacturers || [],
+              governorates,
+            }),
+          );
+        }}
         onClose={() => setActiveDropdown(null)}
-        filters={filters}
-        setFilters={setFilters}
-        brands={manufacturers || []}
-        isBus={true}
       />
 
       <BusesBottomBar glassSupport={glassSupport} />

@@ -14,8 +14,7 @@ import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { FilterChip } from '../ui/FilterChip';
 import { AppButton } from '../ui/AppButton';
-import { locationsApi } from '../../api/locations';
-import { GovernorateRef, WilayaRef } from '../../types/location.types';
+import { useFilterLocations } from '../../hooks/useFilterLocations';
 import { logWarn } from '../../utils/safeLog';
 
 interface ServicesFilterBottomSheetProps {
@@ -37,8 +36,7 @@ export function ServicesFilterBottomSheet({
   const [activeSelector, setActiveSelector] = useState<'gov' | 'city' | 'serviceType' | 'providerType' | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible);
 
   const hasActiveFilters = Object.keys(filters).length > 0;
 
@@ -46,19 +44,13 @@ export function ServicesFilterBottomSheet({
     if (visible) {
       setFilters({ ...initialFilters });
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('ServicesFilter:Gov', err));
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('ServicesFilter:Wilaya', err));
-    } else {
-      setWilayas([]);
-    }
-  }, [filters.governorateId]);
-
-  const updateFilter = (key: keyof ServicesFilterState, value: any) => {
+  const updateFilter = <K extends keyof ServicesFilterState>(
+    key: K,
+    value: ServicesFilterState[K],
+  ) => {
     setFilters(prev => {
       const next = { ...prev, [key]: value };
       if (value === undefined || value === '') {

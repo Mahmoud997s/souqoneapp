@@ -21,9 +21,7 @@ import { FilterBottomSheetLayout, FILTER_SHEET_DEFAULT_TITLE } from '../ui/Filte
 import { getBrandLogo } from '../../constants/brandLogos';
 import { FilterState } from '../../types/filters.types';
 import { Colors } from '../../constants/colors';
-import { locationsApi } from '../../api/locations';
-import { GovernorateRef, WilayaRef } from '../../types/location.types';
-import { logWarn } from '../../utils/safeLog';
+import { useFilterLocations } from '../../hooks/useFilterLocations';
 import { formatNumberWestern } from '../../utils/numberFormat';
 
 interface FilterBottomSheetProps {
@@ -44,8 +42,7 @@ export function FilterBottomSheet({
   const [filters, setFilters] = useState<FilterState>({ ...initialFilters });
   const [activeSelector, setActiveSelector] = useState<'make' | 'model' | 'trim' | 'gov' | 'city' | 'listingType' | 'condition' | 'transmission' | 'bodyType' | 'fuelType' | 'sort' | null>(null);
   const [showMore, setShowMore] = useState(false);
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([]);
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible);
 
   const { data: brands } = useBrands();
   const { data: models } = useCarModels(filters.makeId || '');
@@ -58,19 +55,10 @@ export function FilterBottomSheet({
       setFilters({ ...initialFilters });
       setShowMore(false);
       setActiveSelector(null);
-      locationsApi.getGovernorates().then(setGovernorates).catch(err => logWarn('FilterBottomSheet:Gov', err));
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    if (filters.governorateId) {
-      locationsApi.getWilayas(filters.governorateId).then(setWilayas).catch(err => logWarn('FilterBottomSheet:Wilaya', err));
-    } else {
-      setWilayas([]);
-    }
-  }, [filters.governorateId]);
-
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     setFilters((prev) => {
       const next = { ...prev, [key]: value };
       if (key === 'governorateId') next.wilayaId = undefined;
@@ -149,8 +137,8 @@ export function FilterBottomSheet({
       <NestedSearchableList
         data={makeData}
         selectedValue={filters.makeId}
-        onSelect={(option: any) => {
-          if (option) updateFilters({ makeId: option.id, make: option.value });
+        onSelect={(option) => {
+          if (option) updateFilters({ makeId: option.id, make: String(option.value ?? option.label) });
           else updateFilters({ makeId: undefined, make: undefined });
           setActiveSelector(null);
         }}
@@ -163,8 +151,8 @@ export function FilterBottomSheet({
       <NestedSearchableList
         data={modelData}
         selectedValue={filters.modelId}
-        onSelect={(option: any) => {
-          if (option) updateFilters({ modelId: option.id, model: option.value });
+        onSelect={(option) => {
+          if (option) updateFilters({ modelId: option.id, model: String(option.value ?? option.label) });
           else updateFilters({ modelId: undefined, model: undefined });
           setActiveSelector(null);
         }}
@@ -177,8 +165,8 @@ export function FilterBottomSheet({
       <NestedSearchableList
         data={trimData}
         selectedValue={filters.trim}
-        onSelect={(option: any) => {
-          if (option) updateFilters({ trim: option.value });
+        onSelect={(option) => {
+          if (option) updateFilters({ trim: String(option.value ?? option.label) });
           else updateFilters({ trim: undefined });
           setActiveSelector(null);
         }}

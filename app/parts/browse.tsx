@@ -22,8 +22,7 @@ import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav';
 import { useBrands } from '../../src/hooks/useCars';
 import { useDebounce } from '../../src/hooks/useDebounce';
 import { navigateToPartForm } from '../../src/components/ui/DraftResumePrompt';
-import { locationsApi } from '../../src/api/locations';
-import { GovernorateRef } from '../../src/types/location.types';
+import { useFilterLocations } from '../../src/hooks/useFilterLocations';
 
 // UI Components
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
@@ -32,14 +31,13 @@ import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { FilterGlassTokens } from '../../src/constants/filterGlassTokens';
 import { QuickFilters, QuickFilterItem } from '../../src/components/ui/QuickFilters';
 import { CollapsibleSubHeader } from '../../src/components/ui/CollapsibleSubHeader';
-import { EmptyState } from '../../src/components/ui/EmptyState';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
 import { UnifiedCardItem } from '../../src/types/unified-card.types';
 import { Radius } from '../../src/constants/radius';
-import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 
 // Parts Components
@@ -106,22 +104,7 @@ export default function PartsBrowseScreen() {
   }>();
 
   const listRef = useRef<FlatList<UnifiedCardItem>>(null);
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    locationsApi
-      .getGovernorates()
-      .then((data) => {
-        if (isMounted) setGovernorates(data);
-      })
-      .catch(() => {
-        if (isMounted) setGovernorates([]);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { governorates } = useFilterLocations();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(searchParams.q || '');
@@ -504,56 +487,60 @@ export default function PartsBrowseScreen() {
     [isFetchingNextPage, isFetchNextPageError, fetchNextPage, listings, handleAddPart]
   );
 
-  const listEmptyComponent = useMemo(() => {
-    if (showSkeleton) {
-      return (
-        <View style={s.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={s.fullCard}>
-              <PartSkeletonCard fullWidth />
-            </View>
-          ))}
-        </View>
-      );
-    }
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
 
-    if (isError && listings.length === 0) {
-      const errorProps = getListErrorProps(error, 'تعذر تحميل قطع الغيار');
-      return (
-        <EmptyState
-          testID="parts-browse-error-state"
-          icon={errorProps.icon}
-          iconColor={errorProps.iconColor}
-          title={errorProps.title}
-          subtitle={errorProps.subtitle}
-          actionLabel={errorProps.actionLabel}
-          actionIcon="refresh-outline"
-          onAction={() => refetch()}
-        />
-      );
-    }
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
 
-    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
-
-    return (
-      <EmptyState
-        testID="parts-browse-empty-state"
-        icon="car-cog"
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={showSkeleton}
+        isError={isError && listings.length === 0}
+        error={error}
+        errorTitle="تعذر تحميل قطع الغيار"
+        errorTestID="parts-browse-error-state"
+        emptyTestID="parts-browse-empty-state"
+        activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearch.trim().length > 0}
+        onRetry={() => refetch()}
+        onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="car-cog"
         iconType="material-community"
         iconSize={40}
         iconColor={Colors.primary}
-        title="لا توجد قطع غيار مطابقة"
-        subtitle={
-          hasActiveFiltersOrSearch
-            ? "لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر."
-            : "لا توجد قطع غيار متاحة في هذا القسم حالياً."
-        }
-        actionLabel={hasActiveFiltersOrSearch ? "إعادة تعيين الكل" : "تحديث الصفحة"}
-        actionIcon={hasActiveFiltersOrSearch ? "close-circle-outline" : "refresh-outline"}
-        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+        emptyTitle="لا توجد قطع غيار مطابقة"
+        emptySubtitle="لا توجد قطع غيار متاحة في هذا القسم حالياً."
+        emptyFilteredSubtitle="لم نعثر على أي نتائج تطابق خيارات التصفية أو البحث الحالية. جرب مسح بعض الفلاتر."
+        renderSkeleton={() => (
+          <View style={s.skeletonGrid}>
+            {[1, 2, 3, 4].map((i) => (
+              <View key={i} style={s.fullCard}>
+                <PartSkeletonCard fullWidth />
+              </View>
+            ))}
+          </View>
+        )}
       />
-    );
-  }, [showSkeleton, isError, error, listings.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
+    ),
+    [
+      showSkeleton,
+      isError,
+      error,
+      listings.length,
+      activeFiltersCount,
+      debouncedSearch,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
+  );
 
   return (
     <View style={s.root}>

@@ -8,9 +8,7 @@ import { DropdownSelector } from '../ui/DropdownSelector'
 import { RangeSlider } from '../ui/RangeSlider'
 import { NestedSearchableList, SelectOption } from '../ui/NestedSearchableList'
 import { EQUIPMENT_CATEGORIES, EQUIPMENT_CONDITIONS } from '../../constants/equipment'
-import { locationsApi } from '../../api/locations'
-import { GovernorateRef, WilayaRef } from '../../types/location.types'
-import { logWarn } from '../../utils/safeLog'
+import { useFilterLocations } from '../../hooks/useFilterLocations'
 import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface EquipmentFilterState {
@@ -93,13 +91,11 @@ export function EquipmentFilterBottomSheet({
   >(null)
   const [showMore, setShowMore] = useState(false)
   const [sliderResetKey, setSliderResetKey] = useState(0)
-  const [governorates, setGovernorates] = useState<GovernorateRef[]>([])
-  const [wilayas, setWilayas] = useState<WilayaRef[]>([])
+  const { governorates, wilayas } = useFilterLocations(filters.governorateId, visible)
 
-  const hasActiveFilters = Object.keys(filters).some((key) => {
-    const val = (filters as any)[key]
-    return val !== undefined && val !== ''
-  })
+  const hasActiveFilters = Object.values(filters).some(
+    (val) => val !== undefined && val !== ''
+  )
 
   useEffect(() => {
     if (visible) {
@@ -107,33 +103,8 @@ export function EquipmentFilterBottomSheet({
       setActiveSelector(null)
       setShowMore(false)
       setSliderResetKey((k) => k + 1)
-      locationsApi
-        .getGovernorates()
-        .then((res) => {
-          if (Array.isArray(res)) setGovernorates(res)
-        })
-        .catch(err => logWarn('EquipmentFilter:Gov', err))
     }
   }, [visible, initialFilters])
-
-  useEffect(() => {
-    let cancelled = false
-    const govId = filters.governorateId
-
-    setWilayas([])
-    if (govId) {
-      locationsApi
-        .getWilayas(govId)
-        .then((res) => {
-          if (!cancelled && Array.isArray(res)) setWilayas(res)
-        })
-        .catch(err => logWarn('EquipmentFilter:Gov', err))
-    }
-
-    return () => {
-      cancelled = true
-    }
-  }, [filters.governorateId])
 
   const updateFilters = (updates: Partial<EquipmentFilterState>) => {
     setFilters((prev) => ({
