@@ -31,9 +31,8 @@ import {
   buildQuickFilterDropdownData,
   applyQuickFilterDropdownSelection,
 } from '../../src/utils/browse-filters/quickFilterDropdown';
-import { EmptyState } from '../../src/components/ui/EmptyState';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
-import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { BROWSE_LIST_VIRTUALIZATION_PROPS } from '../../src/constants/listVirtualization';
@@ -478,47 +477,51 @@ export default function ServicesBrowseScreen() {
     [activeDropdown, filters, quickFilterGovernorates],
   );
 
-  const listEmptyComponent = useMemo(() => {
-    if (showSkeleton) {
-      return null;
-    }
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
 
-    if (isError && listings.length === 0) {
-      const errorProps = getListErrorProps(error, 'تعذر تحميل الخدمات');
-      return (
-        <EmptyState
-          testID="services-browse-error-state"
-          icon={errorProps.icon}
-          iconColor={errorProps.iconColor}
-          title={errorProps.title}
-          subtitle={errorProps.subtitle}
-          actionLabel={errorProps.actionLabel}
-          actionIcon="refresh-outline"
-          onAction={() => refetch()}
-        />
-      );
-    }
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
 
-    const hasActiveFiltersOrSearch = activeFiltersCount > 0 || debouncedSearch.trim().length > 0;
-
-    return (
-      <EmptyState
-        testID="services-browse-empty-state"
-        icon="construct-outline"
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={showSkeleton}
+        isError={isError && listings.length === 0}
+        error={error}
+        errorTitle="تعذر تحميل الخدمات"
+        errorTestID="services-browse-error-state"
+        emptyTestID="services-browse-empty-state"
+        activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearch.trim().length > 0}
+        onRetry={() => refetch()}
+        onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="construct-outline"
         iconSize={40}
         iconColor={Colors.primary}
-        title="لم يتم العثور على خدمات مطابقة"
-        subtitle={
-          hasActiveFiltersOrSearch
-            ? 'جرب تغيير معايير البحث أو إزالة بعض الفلاتر.'
-            : 'لا توجد خدمات متاحة في هذا القسم حالياً.'
-        }
-        actionLabel={hasActiveFiltersOrSearch ? 'إعادة تعيين الكل' : 'تحديث الصفحة'}
-        actionIcon={hasActiveFiltersOrSearch ? 'close-circle-outline' : 'refresh-outline'}
-        onAction={hasActiveFiltersOrSearch ? handleClearAll : () => refetch()}
+        emptyTitle="لم يتم العثور على خدمات مطابقة"
+        emptySubtitle="لا توجد خدمات متاحة في هذا القسم حالياً."
+        emptyFilteredSubtitle="جرب تغيير معايير البحث أو إزالة بعض الفلاتر."
+        renderSkeleton={() => null}
       />
-    );
-  }, [showSkeleton, isError, error, listings.length, activeFiltersCount, debouncedSearch, refetch, handleClearAll]);
+    ),
+    [
+      showSkeleton,
+      isError,
+      error,
+      listings.length,
+      activeFiltersCount,
+      debouncedSearch,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
+  );
 
   return (
     <View style={styles.container}>

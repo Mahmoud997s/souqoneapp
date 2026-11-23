@@ -39,7 +39,7 @@ import {
   applyQuickFilterDropdownSelection,
 } from '../../src/utils/browse-filters/quickFilterDropdown';
 import { formatPriceRangeChipLabel } from '../../src/utils/numberFormat';
-import { BrowseEmptyState } from '../../src/components/cars/BrowseEmptyState';
+import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
 import { BrowseHeader } from '../../src/components/ui/BrowseHeader';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
@@ -348,6 +348,14 @@ export default function CarsBrowseScreen() {
     [activeDropdown, filters, brands, quickFilterGovernorates],
   );
 
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
+
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
   const listEmptyComponent = useMemo(
     () => (
       <BrowseEmptyState
@@ -355,12 +363,30 @@ export default function CarsBrowseScreen() {
         isError={isError}
         error={error}
         errorTitle="تعذر تحميل إعلانات السيارات"
+        errorTestID="browse-error-state"
+        emptyTestID="cars-browse-empty-state"
         activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearchQuery.trim().length > 0}
         onRetry={refetch}
         onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="car-outline"
+        emptyTitle="لا توجد نتائج مطابقة"
+        emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
       />
     ),
-    [isLoading, isError, error, activeFiltersCount, refetch, handleClearAll]
+    [
+      isLoading,
+      isError,
+      error,
+      activeFiltersCount,
+      debouncedSearchQuery,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
   );
 
   return (

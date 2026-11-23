@@ -41,9 +41,7 @@ import {
 } from '../../src/utils/browse-filters/quickFilterDropdown';
 import { BrowseResultsBar } from '../../src/components/ui/BrowseResultsBar';
 import { BrowseEmptyState } from '../../src/components/ui/BrowseEmptyState';
-import { EmptyState } from '../../src/components/ui/EmptyState';
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner';
-import { getListErrorProps } from '../../src/utils/getListErrorProps';
 import { SectionFooterAction } from '../../src/components/ui/SectionFooterAction';
 import { CATEGORY_ICONS } from '../../src/constants/categoryIcons';
 import { navigateToBusForm } from '../../src/components/ui/DraftResumePrompt';
@@ -409,39 +407,47 @@ export default function BusesBrowseScreen() {
     [activeDropdown, filters, manufacturers, quickFilterGovernorates],
   );
 
-  const listEmptyComponent = useMemo(
-    () => {
-      if (isError && listings.length === 0) {
-        const errorProps = getListErrorProps(error, 'تعذر تحميل الحافلات');
-        return (
-          <EmptyState
-            testID="buses-browse-error-state"
-            icon={errorProps.icon}
-            iconColor={errorProps.iconColor}
-            title={errorProps.title}
-            subtitle={errorProps.subtitle}
-            actionLabel={errorProps.actionLabel}
-            actionIcon="refresh-outline"
-            onAction={() => refetch()}
-          />
-        );
-      }
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+  }, []);
 
-      return (
-        <BrowseEmptyState
-          isLoading={isLoading}
-          isError={false}
-          activeFiltersCount={activeFiltersCount}
-          onRetry={refetch}
-          onClearAll={handleClearAll}
-          iconName="bus-outline"
-          emptyTitle="لا توجد حافلات مطابقة"
-          emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
-          errorText="حدث خطأ أثناء تحميل الحافلات"
-        />
-      );
-    },
-    [isLoading, isError, error, listings.length, activeFiltersCount, refetch, handleClearAll]
+  const handleResetSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <BrowseEmptyState
+        isLoading={isLoading}
+        isError={isError && listings.length === 0}
+        error={error}
+        errorTitle="تعذر تحميل الحافلات"
+        errorTestID="buses-browse-error-state"
+        emptyTestID="buses-browse-empty-state"
+        activeFiltersCount={activeFiltersCount}
+        hasActiveSearch={debouncedSearch.trim().length > 0}
+        onRetry={() => refetch()}
+        onClearAll={handleClearAll}
+        onResetFilters={handleResetFilters}
+        onResetSearch={handleResetSearch}
+        iconName="bus-outline"
+        emptyTitle="لا توجد حافلات مطابقة"
+        emptySubtitle="جرب تغيير الفلاتر أو كلمة البحث للعثور على نتائج أخرى"
+        errorText="حدث خطأ أثناء تحميل الحافلات"
+      />
+    ),
+    [
+      isLoading,
+      isError,
+      error,
+      listings.length,
+      activeFiltersCount,
+      debouncedSearch,
+      refetch,
+      handleClearAll,
+      handleResetFilters,
+      handleResetSearch,
+    ]
   );
 
   return (
