@@ -7,6 +7,7 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import { PART_CATEGORY_LABELS } from '../../constants/parts'
 import { formatLocation } from '../../utils/mappers'
 import {
   POPULAR_PART_MAKES,
@@ -32,20 +33,6 @@ export interface PartCardProps {
   compactBody?: boolean
   liquidGlass?: boolean
   glassSupport?: GlassSupport
-}
-
-const CATEGORY_MAP: Record<string, string> = {
-  ENGINE: 'محرك وملحقاته',
-  BODY: 'الهيكل والبودي',
-  ELECTRICAL: 'كهرباء وإلكترونيات',
-  SUSPENSION: 'مساعدات ونظام تعليق',
-  BRAKES: 'فرامل ومكابح',
-  INTERIOR: 'مقصورة وداخلية',
-  TIRES: 'إطارات وجنوط',
-  BATTERIES: 'بطاريات',
-  OILS: 'زيوت وفلاتر',
-  ACCESSORIES: 'إكسسوارات وزينة',
-  OTHER: 'أخرى',
 }
 
 const CONDITION_MAP: Record<string, string> = {
@@ -119,7 +106,7 @@ const PartCardComponent: React.FC<PartCardProps> = ({
 
   // Category
   const rawCategory = rawData.partCategory || rawData.category || item.partCategory
-  const categoryLabel = CATEGORY_MAP[rawCategory] || rawCategory || ''
+  const categoryLabel = PART_CATEGORY_LABELS[rawCategory] || rawCategory || ''
 
   // Condition
   const rawCondition = String(rawData.condition || item.condition || '').toUpperCase()

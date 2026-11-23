@@ -3,6 +3,7 @@ import { View, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getBrandLogo } from '../../constants/brandLogos';
 import { Colors } from '../../constants/colors';
+import { PART_CATEGORIES } from '../../constants/parts';
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -19,18 +20,13 @@ export interface PartCategoryItem {
   bg: string;
 }
 
-const CATEGORIES_DATA: PartCategoryItem[] = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog', color: Colors.primary, bg: Colors.paleMint },
-];
+const CATEGORIES_DATA: PartCategoryItem[] = PART_CATEGORIES.map((cat) => ({
+  id: cat.id,
+  label: cat.label,
+  icon: (cat.icon ?? 'dots-horizontal') as keyof typeof MaterialCommunityIcons.glyphMap,
+  color: Colors.primary,
+  bg: Colors.paleMint,
+}));
 
 const POPULAR_MAKES_DATA = [
   { id: 'toyota', name: 'تويوتا', slug: 'toyota' },

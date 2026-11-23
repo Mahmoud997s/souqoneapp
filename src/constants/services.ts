@@ -2,19 +2,24 @@ export interface ServiceTypeOption {
   id: string
   label: string
   icon?: string
+  materialIcon?: string
 }
 
 export const SERVICE_TYPES: ServiceTypeOption[] = [
-  { id: 'MAINTENANCE', label: 'صيانة وميكانيكا', icon: 'build-outline' },
-  { id: 'CLEANING', label: 'غسيل وتلميع ونانو', icon: 'sparkles-outline' },
-  { id: 'MODIFICATION', label: 'تعديل وتزويد', icon: 'flame-outline' },
-  { id: 'INSPECTION', label: 'فحص وبرمجة كمبيوتر', icon: 'scan-outline' },
-  { id: 'BODYWORK', label: 'سمكرة ودهان وتعديل صدمات', icon: 'color-palette-outline' },
-  { id: 'ACCESSORIES_INSTALL', label: 'تركيب شاشات وإكسسوارات', icon: 'hardware-chip-outline' },
-  { id: 'KEYS_LOCKS', label: 'قص وبرمجة مفاتيح', icon: 'key-outline' },
-  { id: 'TOWING', label: 'سطحات ونقل سيارات', icon: 'car-sport-outline' },
-  { id: 'OTHER_SERVICE', label: 'خدمات أخرى', icon: 'ellipsis-horizontal-outline' },
+  { id: 'MAINTENANCE', label: 'صيانة وميكانيكا', icon: 'build-outline', materialIcon: 'wrench' },
+  { id: 'CLEANING', label: 'غسيل وتلميع ونانو', icon: 'sparkles-outline', materialIcon: 'water' },
+  { id: 'MODIFICATION', label: 'تعديل وتزويد', icon: 'flame-outline', materialIcon: 'tune' },
+  { id: 'INSPECTION', label: 'فحص وبرمجة كمبيوتر', icon: 'scan-outline', materialIcon: 'magnify' },
+  { id: 'BODYWORK', label: 'سمكرة ودهان وتعديل صدمات', icon: 'color-palette-outline', materialIcon: 'spray' },
+  { id: 'ACCESSORIES_INSTALL', label: 'تركيب شاشات وإكسسوارات', icon: 'hardware-chip-outline', materialIcon: 'car-shift-pattern' },
+  { id: 'KEYS_LOCKS', label: 'قص وبرمجة مفاتيح', icon: 'key-outline', materialIcon: 'key' },
+  { id: 'TOWING', label: 'سطحات ونقل سيارات', icon: 'car-sport-outline', materialIcon: 'tow-truck' },
+  { id: 'OTHER_SERVICE', label: 'خدمات أخرى', icon: 'ellipsis-horizontal-outline', materialIcon: 'dots-horizontal' },
 ]
+
+export const SERVICE_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  SERVICE_TYPES.map((t) => [t.id, t.label])
+)
 
 export const PROVIDER_TYPES = [
   { id: 'WORKSHOP', label: 'ورشة / كراج' },

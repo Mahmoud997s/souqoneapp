@@ -2,21 +2,26 @@ export interface PartCategoryOption {
   id: string
   label: string
   icon?: string
+  ionicon?: string
 }
 
 export const PART_CATEGORIES: PartCategoryOption[] = [
-  { id: 'ENGINE', label: 'محرك وملحقاته', icon: 'engine' },
-  { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-side' },
-  { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'car-electric' },
-  { id: 'SUSPENSION', label: 'مساعدات ونظام تعليق', icon: 'car-esp' },
-  { id: 'BRAKES', label: 'فرامل ومكابح', icon: 'car-brake-alert' },
-  { id: 'INTERIOR', label: 'مقصورة وداخلية', icon: 'car-seat' },
-  { id: 'TIRES', label: 'إطارات وجنوط', icon: 'tire' },
-  { id: 'BATTERIES', label: 'بطاريات', icon: 'car-battery' },
-  { id: 'OILS', label: 'زيوت وفلاتر', icon: 'oil' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات وزينة', icon: 'car-cog' },
-  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal' },
+  { id: 'ENGINE', label: 'محرك وملحقاته', icon: 'engine', ionicon: 'hardware-chip-outline' },
+  { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-side', ionicon: 'car-outline' },
+  { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'car-electric', ionicon: 'flash-outline' },
+  { id: 'SUSPENSION', label: 'مساعدات ونظام تعليق', icon: 'car-esp', ionicon: 'git-commit-outline' },
+  { id: 'BRAKES', label: 'فرامل ومكابح', icon: 'car-brake-alert', ionicon: 'disc-outline' },
+  { id: 'INTERIOR', label: 'مقصورة وداخلية', icon: 'car-seat', ionicon: 'car-sport-outline' },
+  { id: 'TIRES', label: 'إطارات وجنوط', icon: 'tire', ionicon: 'ellipse-outline' },
+  { id: 'BATTERIES', label: 'بطاريات', icon: 'car-battery', ionicon: 'battery-charging-outline' },
+  { id: 'OILS', label: 'زيوت وفلاتر', icon: 'oil', ionicon: 'water-outline' },
+  { id: 'ACCESSORIES', label: 'إكسسوارات وزينة', icon: 'car-cog', ionicon: 'sparkles-outline' },
+  { id: 'OTHER', label: 'أخرى', icon: 'dots-horizontal', ionicon: 'ellipsis-horizontal-outline' },
 ]
+
+export const PART_CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+  PART_CATEGORIES.map((c) => [c.id, c.label])
+)
 
 export const PART_CONDITIONS = [
   { id: 'NEW', label: 'جديد' },
