@@ -45,9 +45,9 @@ import {
   isOptimisticLockError,
 } from '../../hooks/listing-detail/useEquipmentOwnerActions'
 import {
-  useEquipmentSimilarListings,
+  useVerticalSimilarListings,
   type SimilarEquipmentItem,
-} from '../../hooks/listing-detail/useEquipmentSimilarListings'
+} from '../../hooks/listing-detail/useSimilarListings'
 import { translateEquipmentOwnerError } from '../../utils/listing-detail/equipmentOwnerErrors'
 import { assertOwnerHasPhoneForEdit } from '../../utils/assertOwnerHasPhoneForEdit'
 import { formatSimilarListingPrice } from '../../utils/listing-detail/formatSimilarListingPrice'
@@ -135,7 +135,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
   const shareListing = useShareListing(currentVm, { shareTitle: vm?.title ?? 'إعلان معدة' })
   const contact = useListingContact('EQUIPMENT_LISTING', id, `/equipment/${id}`, vm?.title)
   const ownerActions = useEquipmentOwnerActions(currentVm)
-  const similarListings = useEquipmentSimilarListings(id)
+  const similarListings = useVerticalSimilarListings('equipment', id)
 
   // 4. UI Local State
   const [galleryIndex, setGalleryIndex] = useState<number>(0)

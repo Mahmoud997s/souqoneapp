@@ -16,12 +16,19 @@ import { Radius } from '../../constants/radius'
 import { CardSystem } from '../../constants/cardSystem'
 import { physicalRightStyle, physicalRowDirection } from '../../utils/physicalDirection'
 import { useGestureSwiper } from '../../hooks/useGestureSwiper'
+import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface CardImageSwiperProps {
   /** Array of image URLs to display */
   images: string[]
-  /** Optional total count of images when images array is truncated */
-  imageCount?: number
+  /**
+   * Optional total count of images when images array is truncated.
+   * Pass `null` when the true count is unknown (e.g. similar endpoints without `_count.images`)
+   * to hide the photo count badge rather than guessing.
+   */
+  imageCount?: number | null
+  /** Explicit flag to hide the photo count badge (e.g. when real count is unknown) */
+  hideImageCountBadge?: boolean
   /** Measured width of the card container in pixels */
   cardWidth: number
   /** Optional custom image height */
@@ -42,16 +49,26 @@ export interface CardImageSwiperProps {
 
 interface StaticCardImageProps {
   primaryUri?: string
-  count: number
+  badgeCount: number | null
   disableImageSwipe: boolean
   containerHeightStyle: ViewStyle
   onPress?: () => void
   style?: StyleProp<ViewStyle>
 }
 
+function ImageCountBadge({ count }: { count: number | null }) {
+  if (count === null || count < 1) return null
+  return (
+    <View style={styles.imageCountBadge} testID="card-image-count-badge">
+      <Ionicons name="images-outline" size={11} color={Colors.white} />
+      <Text style={styles.imageCountText}>{formatNumberWestern(count)}</Text>
+    </View>
+  )
+}
+
 function StaticCardImage({
   primaryUri,
-  count,
+  badgeCount,
   disableImageSwipe,
   containerHeightStyle,
   onPress,
@@ -71,12 +88,7 @@ function StaticCardImage({
         cachePolicy="memory-disk"
         priority="high"
       />
-      {count > 1 && (
-        <View style={styles.imageCountBadge}>
-          <Ionicons name="images-outline" size={11} color={Colors.white} />
-          <Text style={styles.imageCountText}>{count}</Text>
-        </View>
-      )}
+      <ImageCountBadge count={badgeCount} />
     </Pressable>
   )
 }
@@ -84,6 +96,7 @@ function StaticCardImage({
 interface SwipeableCardImagesProps {
   images: string[]
   count: number
+  badgeCount: number | null
   cardWidth: number
   containerHeightStyle: ViewStyle
   invertedGesture?: boolean
@@ -95,6 +108,7 @@ interface SwipeableCardImagesProps {
 function SwipeableCardImages({
   images,
   count,
+  badgeCount,
   cardWidth,
   containerHeightStyle,
   invertedGesture,
@@ -173,6 +187,7 @@ function SwipeableCardImages({
             />
           ))}
         </View>
+        <ImageCountBadge count={badgeCount} />
       </View>
     </GestureDetector>
   )
@@ -194,6 +209,7 @@ function SwipeableCardImages({
 export function CardImageSwiper({
   images,
   imageCount,
+  hideImageCountBadge = false,
   cardWidth,
   imageHeight,
   fullWidth,
@@ -203,7 +219,15 @@ export function CardImageSwiper({
   onActiveIndexChange,
   style,
 }: CardImageSwiperProps) {
-  const count = imageCount !== undefined ? imageCount : images.length
+  const swipeCount = images.length
+  const resolvedBadgeCount =
+    hideImageCountBadge || imageCount === null
+      ? null
+      : imageCount !== undefined
+      ? imageCount
+      : images.length > 0
+      ? images.length
+      : null
 
   const containerHeightStyle = useMemo<ViewStyle>(() => {
     if (imageHeight) return { height: imageHeight, aspectRatio: undefined }
@@ -212,11 +236,11 @@ export function CardImageSwiper({
   }, [imageHeight, fullWidth])
 
   // Case 1: Swipe disabled, single image, or container width not yet measured
-  if (disableImageSwipe || count <= 1 || cardWidth <= 0) {
+  if (disableImageSwipe || swipeCount <= 1 || cardWidth <= 0) {
     return (
       <StaticCardImage
         primaryUri={images[0]}
-        count={count}
+        badgeCount={resolvedBadgeCount}
         disableImageSwipe={disableImageSwipe}
         containerHeightStyle={containerHeightStyle}
         onPress={onPress}
@@ -229,7 +253,8 @@ export function CardImageSwiper({
   return (
     <SwipeableCardImages
       images={images}
-      count={count}
+      count={swipeCount}
+      badgeCount={resolvedBadgeCount}
       cardWidth={cardWidth}
       containerHeightStyle={containerHeightStyle}
       invertedGesture={invertedGesture}

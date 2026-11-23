@@ -39,6 +39,15 @@ jest.mock('../../src/features/favorites/useFavoriteToggle', () => ({
   }),
 }))
 
+jest.mock('../../src/hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
+    items: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
+
 jest.mock('../../src/hooks/listing-detail/useListingContact', () => ({
   useListingContact: () => ({
     call: jest.fn(),

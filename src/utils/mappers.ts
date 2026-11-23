@@ -37,6 +37,32 @@ function extractImages(images: any): string[] {
   ).filter(Boolean)
 }
 
+/**
+ * Shared single-source image count resolver across all 5 main vertical mappers.
+ * Prefers explicit backend counts (`_count.images` / `imageCount`), falling back to
+ * loaded `images.length` only when at least 1 image is present.
+ */
+export function extractImageCount(item: Record<string, unknown> | null | undefined): number | undefined {
+  if (!item || typeof item !== 'object') return undefined
+  const raw = (item.raw && typeof item.raw === 'object' ? item.raw : undefined) as Record<string, unknown> | undefined
+  const itemCountObj = (item._count && typeof item._count === 'object' ? item._count : undefined) as Record<string, unknown> | undefined
+  const rawCountObj = (raw?._count && typeof raw._count === 'object' ? raw._count : undefined) as Record<string, unknown> | undefined
+
+  const candidates = [
+    item.imageCount,
+    raw?.imageCount,
+    itemCountObj?.images,
+    rawCountObj?.images,
+  ]
+  for (const c of candidates) {
+    if (typeof c === 'number' && Number.isFinite(c) && c > 0) {
+      return c
+    }
+  }
+  const imgs = Array.isArray(item.images) ? item.images : Array.isArray(raw?.images) ? raw.images : []
+  return imgs.length > 0 ? imgs.length : undefined
+}
+
 function safePrice(val: any): number {
   const n = parseFloat(String(val ?? '0'))
   return isNaN(n) ? 0 : n
@@ -109,6 +135,7 @@ export function mapListingToCard(item: any): UnifiedCardItem {
     currency: item.currency ?? 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
+    imageCount: extractImageCount(item),
     condition: item.condition?.toUpperCase(),
     listingType: (item.listingType || item.type)?.toUpperCase(),
     isPremium: item.isPremium ?? false,
@@ -136,6 +163,7 @@ export function mapServiceToCard(item: any): UnifiedCardItem {
     currency: 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
+    imageCount: extractImageCount(item),
     category: 'services',
     details: details.length > 0 ? details : undefined,
     whatsappEnabled: item.whatsappEnabled === true,
@@ -228,6 +256,7 @@ export function mapPartToCard(item: any): UnifiedCardItem {
     currency: item.currency ?? 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
+    imageCount: extractImageCount(item),
     isPremium: item.isPremium ?? false,
     isVerified: item.seller?.isVerified ?? item.user?.isVerified ?? false,
     condition: conditionLabel,
@@ -299,7 +328,7 @@ export function mapBusToCard(item: any): UnifiedCardItem {
     currency: item.currency ?? 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
-    imageCount: item.imageCount || item.raw?.imageCount || item._count?.images || item.raw?._count?.images || (Array.isArray(item.images) ? item.images.length : 0),
+    imageCount: extractImageCount(item),
     listingType: (item.busListingType || item.listingType || item.type)?.toUpperCase(),
     category: 'buses',
     details: details.length > 0 ? details : undefined,
@@ -376,7 +405,7 @@ export function mapEquipmentToCard(item: any): UnifiedCardItem {
     currency: item.currency ?? 'ر.ع.',
     governorate: formatLocation(item),
     images: extractImages(item.images),
-    imageCount: item.imageCount || item.raw?.imageCount || item._count?.images || item.raw?._count?.images || (Array.isArray(item.images) ? item.images.length : 0),
+    imageCount: extractImageCount(item),
     isPremium: item.isPremium ?? false,
     isVerified: item.seller?.isVerified ?? item.user?.isVerified ?? false,
     condition: item.condition ? require('./equipment-mappers').getEquipmentConditionLabel(item.condition) : undefined,

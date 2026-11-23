@@ -72,8 +72,18 @@ jest.mock('../../../utils/assertOwnerHasPhoneForEdit', () => ({
 
 jest.mock('../../../api/parts', () => ({
   partsApi: {
+    getSimilar: jest.fn().mockResolvedValue({ data: [] }),
     remove: jest.fn().mockResolvedValue({ success: true }),
   },
+}))
+
+jest.mock('../../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
+    items: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
 }))
 
 let mockCurrentUser: { id: string; name?: string } | null = null

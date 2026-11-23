@@ -60,6 +60,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
   switch (rawEntity) {
     case 'bus':
     case 'buses':
+    case 'bus_listing':
       return (
         <BusCard
           item={normalizedItem}
@@ -72,6 +73,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
       )
 
     case 'equipment':
+    case 'equipment_listing':
       return (
         <EquipCard
           item={normalizedItem}
@@ -85,6 +87,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
 
     case 'part':
     case 'parts':
+    case 'spare_part':
       return (
         <PartCard
           item={normalizedItem}
@@ -98,6 +101,7 @@ export const SearchCardDispatcher = React.memo(function SearchCardDispatcher({
 
     case 'service':
     case 'services':
+    case 'car_service':
       return (
         <ServiceCard
           item={normalizedItem}

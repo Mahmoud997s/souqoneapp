@@ -68,12 +68,6 @@ const BusCardComponent = ({
     .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
     .filter(Boolean) as string[]
 
-  const imageCount =
-    (item as any).imageCount ||
-    rawData.imageCount ||
-    rawData._count?.images ||
-    displayImages.length
-
   const listingTypeStr = String(item.listingType || (item as any).type || '')
   const isRental = listingTypeStr === 'BUS_RENT' || listingTypeStr === 'RENTAL'
   const isSale = listingTypeStr === 'BUS_SALE' || listingTypeStr === 'SALE'
@@ -247,7 +241,6 @@ const BusCardComponent = ({
       isPriceNegotiable={Boolean(isSale && getCardPriceNegotiable(item))}
       onPress={onPress}
       displayImages={displayImages}
-      imageCount={imageCount}
       placeholderIcon="bus-outline"
       pills={pills}
       badges={badges}

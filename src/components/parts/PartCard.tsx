@@ -168,35 +168,45 @@ const PartCardComponent: React.FC<PartCardProps> = ({
   // Location
   const location = item.governorate
     ? item.governorate
-    : formatLocation(rawData) || 'موقع غير محدد'
+    : formatLocation(rawData) || undefined
 
-  // Badges
+  // Badges: ONE consistent primary overlay badge (matching Cars/Buses/Equipment)
   const badges: ListingCardBadge[] = []
-  if (isOriginal === true) {
-    badges.push({
-      key: 'orig',
-      label: 'أصلي وكالة',
-      backgroundColor: Colors.primaryDark,
-      textColor: Colors.white,
-      iconName: 'shield-checkmark',
-    })
-  } else if (isOriginal === false) {
-    badges.push({
-      key: 'commercial',
-      label: 'تجاري / بديل',
-      backgroundColor: Colors.surfaceAlt,
-      textColor: Colors.text2,
-    })
-  }
-
+  let hasConditionOverlayBadge = false
   if (rawCondition === 'NEW') {
     badges.push({ key: 'new', label: 'جديد', backgroundColor: Colors.paleMint, textColor: Colors.primary })
+    hasConditionOverlayBadge = true
   } else if (rawCondition === 'LIKE_NEW') {
     badges.push({ key: 'like_new', label: 'شبه جديد', backgroundColor: Colors.forestGreen, textColor: Colors.white })
+    hasConditionOverlayBadge = true
   } else if (rawCondition === 'USED') {
     badges.push({ key: 'used', label: 'مستعمل', backgroundColor: Colors.surfaceAlt, textColor: Colors.text2 })
+    hasConditionOverlayBadge = true
   } else if (rawCondition === 'REFURBISHED') {
     badges.push({ key: 'refurbished', label: 'مجدد', backgroundColor: Colors.forestGreen, textColor: Colors.white })
+    hasConditionOverlayBadge = true
+  }
+
+  let hasOriginalityOverlayBadge = false
+  if (!hasConditionOverlayBadge) {
+    if (isOriginal === true) {
+      badges.push({
+        key: 'orig',
+        label: 'أصلي وكالة',
+        backgroundColor: Colors.primaryDark,
+        textColor: Colors.white,
+        iconName: 'shield-checkmark',
+      })
+      hasOriginalityOverlayBadge = true
+    } else if (isOriginal === false) {
+      badges.push({
+        key: 'commercial',
+        label: 'تجاري / بديل',
+        backgroundColor: Colors.surfaceAlt,
+        textColor: Colors.text2,
+      })
+      hasOriginalityOverlayBadge = true
+    }
   }
 
   if (FEATURES.PAYMENTS_ENABLED && (rawData.isPremium || item.isPremium)) {
@@ -251,7 +261,15 @@ const PartCardComponent: React.FC<PartCardProps> = ({
       variant: 'blue',
     })
   }
-  if (conditionLabel) {
+  if (!hasOriginalityOverlayBadge && typeof isOriginal === 'boolean') {
+    pills.push({
+      key: isOriginal ? 'orig' : 'commercial',
+      label: isOriginal ? 'أصلي وكالة' : 'تجاري / بديل',
+      iconName: 'shield-checkmark-outline',
+      variant: 'neutral',
+    })
+  }
+  if (!hasConditionOverlayBadge && conditionLabel) {
     pills.push({
       key: 'cond',
       label: conditionLabel,

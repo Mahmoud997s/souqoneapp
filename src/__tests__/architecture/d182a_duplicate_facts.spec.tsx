@@ -59,6 +59,15 @@ jest.mock('@expo/vector-icons', () => {
   }
 })
 
+jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
+    items: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
+
 jest.mock('../../store/dialogStore', () => ({
   dialogService: {
     alert: jest.fn(),

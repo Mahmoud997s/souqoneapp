@@ -60,12 +60,6 @@ const EquipCardComponent = ({
     .map((img: any) => (typeof img === 'string' ? img : img?.url || img?.path))
     .filter(Boolean) as string[]
 
-  const imageCount =
-    (item as any).imageCount ||
-    rawData.imageCount ||
-    rawData._count?.images ||
-    displayImages.length
-
   const listingTypeStr = String(item.listingType || (item as any).type || '')
   const isRental = listingTypeStr === 'RENTAL' || listingTypeStr === 'EQUIPMENT_RENT'
   const isSale = listingTypeStr === 'SALE' || listingTypeStr === 'EQUIPMENT_SALE'
@@ -232,7 +226,6 @@ const EquipCardComponent = ({
       location={location}
       onPress={onPress}
       displayImages={displayImages}
-      imageCount={imageCount}
       placeholderIcon="hardware-chip-outline"
       pills={pills}
       badges={badges}
