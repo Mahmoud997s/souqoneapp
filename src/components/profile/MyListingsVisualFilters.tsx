@@ -3,6 +3,8 @@ import { View, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { FilterGlassTokens } from '../../constants/filterGlassTokens'
+import { PART_CATEGORIES } from '../../constants/parts'
+import { SERVICE_TYPES } from '../../constants/services'
 import {
   VisualFiltersBase,
   VisualFilterTab,
@@ -91,15 +93,11 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     items: [
       { id: 'all_parts', label: 'كل قطع الغيار', icon: 'settings-outline' },
       ...MY_LISTINGS_NO_DRAFT_STATUS_FILTERS,
-      { id: 'ENGINE', label: 'المحرك وملحقاته', icon: 'hardware-chip-outline' },
-      { id: 'BODY', label: 'الهيكل والبودي', icon: 'car-outline' },
-      { id: 'ELECTRICAL', label: 'كهرباء وإلكترونيات', icon: 'flash-outline' },
-      { id: 'SUSPENSION', label: 'مساعدات وتعليق', icon: 'git-commit-outline' },
-      { id: 'BRAKES', label: 'فرامل ومكابح', icon: 'disc-outline' },
-      { id: 'TIRES', label: 'إطارات وجنوط', icon: 'ellipse-outline' },
-      { id: 'BATTERIES', label: 'بطاريات', icon: 'battery-charging-outline' },
-      { id: 'OILS', label: 'زيوت وفلاتر', icon: 'water-outline' },
-      { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'sparkles-outline' },
+      ...PART_CATEGORIES.map((c) => ({
+        id: c.id,
+        label: c.label,
+        icon: (c.ionicon ?? 'grid-outline') as keyof typeof Ionicons.glyphMap,
+      })),
     ],
   },
   {
@@ -109,13 +107,11 @@ export const MAIN_CATEGORY_TABS: CategoryTabItem[] = [
     items: [
       { id: 'all_services', label: 'كل الخدمات', icon: 'build-outline' },
       ...MY_LISTINGS_NO_DRAFT_STATUS_FILTERS,
-      { id: 'MAINTENANCE', label: 'صيانة وميكانيكا', icon: 'construct-outline' },
-      { id: 'CLEANING', label: 'غسيل وتلميع', icon: 'water-outline' },
-      { id: 'INSPECTION', label: 'فحص وبرمجة', icon: 'search-outline' },
-      { id: 'BODYWORK', label: 'سمكرة ودهان', icon: 'color-palette-outline' },
-      { id: 'TOWING', label: 'ونش وسطحة', icon: 'car-outline' },
-      { id: 'ACCESSORIES_INSTALL', label: 'تركيب إكسسوارات', icon: 'hardware-chip-outline' },
-      { id: 'MODIFICATION', label: 'تعديل وتزويد', icon: 'speedometer-outline' },
+      ...SERVICE_TYPES.map((t) => ({
+        id: t.id,
+        label: t.label,
+        icon: (t.icon ?? 'build-outline') as keyof typeof Ionicons.glyphMap,
+      })),
     ],
   },
 ]

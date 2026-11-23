@@ -7,21 +7,10 @@ import {
 } from '../ui/ListingCardBase'
 import { type GlassSupport } from '../navigation/glassSupport'
 import { Colors } from '../../constants/colors'
+import { SERVICE_TYPE_LABELS } from '../../constants/services'
 import { getCardSellerVerified } from '../../utils/cardItemHelpers'
 import { UnifiedCardItem } from '../../types/unified-card.types'
 import { areCardPropsEqual } from '../../utils/cardMemoComparison'
-
-const SERVICE_TYPE_LABELS: Record<string, string> = {
-  MAINTENANCE: 'صيانة',
-  CLEANING: 'غسيل وتلميع',
-  MODIFICATION: 'تعديل',
-  INSPECTION: 'فحص',
-  BODYWORK: 'سمكرة وصبغ',
-  ACCESSORIES_INSTALL: 'إكسسوارات',
-  KEYS_LOCKS: 'مفاتيح وأقفال',
-  TOWING: 'ونش وإنقاذ',
-  OTHER_SERVICE: 'أخرى',
-}
 
 const PROVIDER_TYPE_LABELS: Record<string, string> = {
   WORKSHOP: 'ورشة',

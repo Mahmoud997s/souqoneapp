@@ -6,22 +6,8 @@ import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { WizardCard } from '../../ui/WizardCard'
 import { WizardSelectField } from '../../ui/WizardSelectField'
-import { PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
+import { PART_CATEGORIES, PART_CONDITIONS, PART_ORIGINALITY_OPTIONS } from '../../../constants/parts'
 import { PartStep1Props } from '../../../types/partForm.types'
-
-const CATEGORIES_DATA: { id: string; label: string }[] = [
-  { id: 'ENGINE', label: 'المحرك' },
-  { id: 'BODY', label: 'الهيكل' },
-  { id: 'ELECTRICAL', label: 'الكهرباء' },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق' },
-  { id: 'BRAKES', label: 'الفرامل' },
-  { id: 'INTERIOR', label: 'الداخلية' },
-  { id: 'TIRES', label: 'الإطارات' },
-  { id: 'BATTERIES', label: 'البطاريات' },
-  { id: 'OILS', label: 'الزيوت' },
-  { id: 'ACCESSORIES', label: 'إكسسوارات' },
-  { id: 'OTHER', label: 'أخرى' },
-]
 
 const LISTING_TYPES_DATA: { key: string; label: string }[] = [
   { key: 'SPARE_PART_SALE', label: 'للبيع' },
@@ -41,7 +27,7 @@ export function PartStep1Category({ formData, errors, onUpdateField }: PartStep1
 
   const categoryOptions = useMemo(
     () =>
-      CATEGORIES_DATA.map((cat) => ({
+      PART_CATEGORIES.map((cat) => ({
         value: cat.id,
         label: cat.label,
         testID: `category-${cat.id}`,

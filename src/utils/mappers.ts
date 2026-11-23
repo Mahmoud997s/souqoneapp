@@ -1,6 +1,7 @@
 import { UnifiedCardItem } from '../types/unified-card.types'
 import { GOVERNORATE_OPTIONS, FilterOption } from '../constants/filters'
 import { POST_GOVERNORATES, POST_CITIES_BY_GOVERNORATE, OMAN_LOCATIONS } from '../constants/locations'
+import { PART_CATEGORY_LABELS } from '../constants/parts'
 
 export function translateEnum(value: string | undefined | null, options: FilterOption[]): string {
   if (!value) return '';
@@ -184,20 +185,6 @@ export function mapPartToCard(item: any): UnifiedCardItem {
   const price = safePrice(item.price)
   const details: { icon: string; value: string }[] = []
 
-  const CATEGORY_MAP: Record<string, string> = {
-    ENGINE: 'محرك وملحقاته',
-    BODY: 'الهيكل والبودي',
-    ELECTRICAL: 'كهرباء وإلكترونيات',
-    SUSPENSION: 'مساعدات وتعليق',
-    BRAKES: 'فرامل ومكابح',
-    INTERIOR: 'مقصورة وداخلية',
-    TIRES: 'إطارات وجنوط',
-    BATTERIES: 'بطاريات',
-    OILS: 'زيوت وفلاتر',
-    ACCESSORIES: 'إكسسوارات وزينة',
-    OTHER: 'أخرى',
-  }
-
   const CONDITION_MAP: Record<string, string> = {
     NEW: 'جديد',
     LIKE_NEW: 'شبه جديد',
@@ -208,8 +195,8 @@ export function mapPartToCard(item: any): UnifiedCardItem {
   }
 
   const rawCat = item.partCategory || item.category
-  if (rawCat && CATEGORY_MAP[rawCat]) {
-    details.push({ icon: 'grid-outline', value: CATEGORY_MAP[rawCat] })
+  if (rawCat && PART_CATEGORY_LABELS[rawCat]) {
+    details.push({ icon: 'grid-outline', value: PART_CATEGORY_LABELS[rawCat] })
   }
 
   if (item.partNumber) {

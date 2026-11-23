@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
+import { PART_CATEGORIES } from '../../constants/parts'
 import { type GlassSupport } from '../navigation/glassSupport'
 import {
   GlassCategoriesGrid,
@@ -17,16 +18,14 @@ export interface PartsLandingCategoryItem {
 }
 
 export const PARTS_LANDING_CATEGORIES: PartsLandingCategoryItem[] = [
-  { id: 'ENGINE', label: 'المحرك', icon: 'engine', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BODY', label: 'الهيكل', icon: 'car-side', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ELECTRICAL', label: 'الكهرباء', icon: 'car-electric', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'SUSPENSION', label: 'المساعدات والتعليق', icon: 'car-esp', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BRAKES', label: 'الفرامل', icon: 'car-brake-alert', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'INTERIOR', label: 'الداخلية', icon: 'car-seat', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'TIRES', label: 'الإطارات', icon: 'tire', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'BATTERIES', label: 'البطاريات', icon: 'car-battery', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'OILS', label: 'الزيوت', icon: 'oil', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
-  { id: 'ACCESSORIES', label: 'إكسسوارات', icon: 'car-cog', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
+  ...PART_CATEGORIES.map((cat) => ({
+    id: cat.id,
+    label: cat.label,
+    icon: cat.icon ?? 'dots-horizontal',
+    iconType: 'material' as const,
+    color: Colors.primary,
+    bg: Colors.paleMint,
+  })),
   { id: 'all', label: 'عرض الكل', icon: 'view-grid', iconType: 'material', color: Colors.primary, bg: Colors.paleMint },
 ]
 
