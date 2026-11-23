@@ -96,6 +96,15 @@ jest.mock('../../api/services', () => ({
   },
 }))
 
+jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
+  useVerticalSimilarListings: () => ({
+    items: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
+
 jest.mock('../../hooks/listing-detail/useFavoriteToggle', () => ({
   useFavoriteToggle: () => ({
     isFavorite: false,
