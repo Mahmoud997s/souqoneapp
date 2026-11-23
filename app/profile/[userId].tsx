@@ -20,6 +20,8 @@ import { usePublicProfileParts } from '../../src/hooks/public-profile/usePublicP
 import { usePublicProfileServices } from '../../src/hooks/public-profile/usePublicProfileServices'
 import { PublicProfileListingVertical } from '../../src/hooks/public-profile/publicProfileKeys'
 import { usePublicProfile } from '../../src/hooks/useProfile'
+import { useSellerReviewSummary } from '../../src/hooks/listing-detail/useSellerReviewSummary'
+import { loginRoute } from '../../src/navigation/listingRoutes'
 import { useAuthStore } from '../../src/store/authStore'
 import { toastService } from '../../src/store/toastStore'
 import { UnifiedCardItem } from '../../src/types/unified-card.types'
@@ -31,6 +33,8 @@ export default function PublicProfileScreen() {
   const [activeTab, setActiveTab] = useState<PublicProfileListingVertical>('car')
   const profileQuery = usePublicProfile(userId)
   const { data: profile, isLoading: profileLoading, isError: profileError, error: profileErrorDetails, refetch: refetchProfile } = profileQuery
+  const needsRatingFallback = Boolean(profile && profile.reviewCount === undefined)
+  const sellerRatingSummary = useSellerReviewSummary(needsRatingFallback ? userId : undefined)
   const carsQuery = usePublicProfileCars(userId, activeTab === 'car')
   const busesQuery = usePublicProfileBuses(userId, activeTab === 'bus')
   const equipmentQuery = usePublicProfileEquipment(userId, activeTab === 'equipment')
@@ -162,6 +166,29 @@ export default function PublicProfileScreen() {
       )}
       <PublicProfileHero
         profile={profile}
+        ratingFallback={
+          needsRatingFallback
+            ? {
+                averageRating: sellerRatingSummary.averageRating,
+                reviewCount: sellerRatingSummary.reviewCount,
+              }
+            : undefined
+        }
+        onOpenReviews={
+          userId ? () => router.push(`/reviews/${userId}?type=USER`) : undefined
+        }
+        onRateSeller={
+          !isOwner && userId
+            ? () => {
+                const target = `/reviews/${userId}?type=USER&write=true`
+                if (!user) {
+                  router.push(loginRoute(target))
+                  return
+                }
+                router.push(target)
+              }
+            : undefined
+        }
         action={
           action
             ? {

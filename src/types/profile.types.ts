@@ -13,6 +13,8 @@ export interface PublicProfileCounts {
 export interface PublicProfile extends User {
   _count: PublicProfileCounts
   totalListings: number
+  averageRating?: number | null
+  reviewCount?: number
 }
 
 export interface MenuItem {

@@ -65,6 +65,7 @@ import {
 import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
+import { SellerRatingBlock } from '../../components/listing-detail/SellerRatingBlock'
 import {
   ContactActions,
   type ContactAvailability,
@@ -388,6 +389,7 @@ export function EquipmentDetailScreen({ id }: EquipmentDetailScreenProps) {
               seller={vm.seller}
               onPressProfile={() => handleProfilePress(vm.seller.id)}
             />
+            <SellerRatingBlock sellerId={vm.seller.id} isOwner={isOwner} />
           </Animated.View>
         ) : null}
 

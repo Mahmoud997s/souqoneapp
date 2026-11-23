@@ -66,6 +66,7 @@ import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
+import { SellerRatingBlock } from '../../components/listing-detail/SellerRatingBlock'
 import {
   ContactActions,
   type ContactAvailability,
@@ -401,6 +402,7 @@ export function CarDetailScreen({ id }: CarDetailScreenProps) {
         {!isOwner ? (
           <Animated.View entering={getEnteringAnimation(3)}>
             <SellerCard seller={vm.seller} onPressProfile={handleProfilePress} />
+            <SellerRatingBlock sellerId={vm.seller.id} isOwner={isOwner} />
           </Animated.View>
         ) : null}
 

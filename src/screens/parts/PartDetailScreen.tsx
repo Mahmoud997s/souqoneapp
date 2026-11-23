@@ -51,6 +51,7 @@ import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingHeaderBlock } from '../../components/listing-detail/ListingHeaderBlock'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
+import { SellerRatingBlock } from '../../components/listing-detail/SellerRatingBlock'
 import { DetailLocationMap } from '../../components/listing-detail/DetailLocationMap'
 import {
   SimilarListingsGrid,
@@ -372,6 +373,7 @@ export function PartDetailScreen({ id }: PartDetailScreenProps) {
               seller={vm.seller}
               onPressProfile={() => handleProfilePress(vm.seller.id)}
             />
+            <SellerRatingBlock sellerId={vm.seller.id} isOwner={isOwner} />
           </Animated.View>
         ) : null}
 
