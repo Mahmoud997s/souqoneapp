@@ -145,6 +145,15 @@ jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
     refetch: mockSimilarRefetch,
   }),
 }))
+jest.mock('../../hooks/listing-detail/useSellerReviewSummary', () => ({
+  useSellerReviewSummary: () => ({
+    averageRating: null,
+    reviewCount: 0,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 
 // ── SAMPLE FIXTURES ─────────────────────────────────────────────────────────
 

@@ -8,12 +8,18 @@ export interface CreateReviewParams {
   revieweeId?: string
 }
 
+export interface SellerReviewSummary {
+  averageRating: number | null
+  reviewCount: number
+  distribution?: Record<string, number>
+}
+
+const SERVER_DERIVED_REVIEWEE_TYPES = new Set(['OPERATOR_LISTING', 'USER'])
+
 /**
  * Builds the payload for POST /reviews.
- * For OPERATOR_LISTING, the backend derives the reviewee (effectiveRevieweeId = listing.userId)
- * from entityId (PR #156 / commit f81fa56 on backend main) and ignores client-sent revieweeId.
- * Therefore, revieweeId is omitted for OPERATOR_LISTING to avoid sending redundant or conflicting data.
- * Other review entity types still rely on client-supplied revieweeId.
+ * For OPERATOR_LISTING and USER (D-B18), the backend derives the reviewee on the server
+ * from entityId and ignores client-sent revieweeId, so revieweeId is strictly omitted.
  */
 export function buildCreateReviewPayload(data: CreateReviewParams): CreateReviewParams {
   const payload: CreateReviewParams = {
@@ -24,16 +30,22 @@ export function buildCreateReviewPayload(data: CreateReviewParams): CreateReview
   if (data.comment !== undefined) {
     payload.comment = data.comment
   }
-  if (data.entityType !== 'OPERATOR_LISTING' && data.revieweeId !== undefined) {
+  if (!SERVER_DERIVED_REVIEWEE_TYPES.has(data.entityType) && data.revieweeId !== undefined) {
     payload.revieweeId = data.revieweeId
   }
   return payload
 }
 
 export const reviewsApi = {
-  getByEntity: (entityId: string, entityType?: string) =>
-    apiClient.get('/reviews', { params: { entityId, entityType } }),
+  getByEntity: (entityId: string, entityType?: string) => {
+    const params =
+      entityType === 'USER'
+        ? { userId: entityId, entityType: 'USER' }
+        : { entityId, entityType }
+    return apiClient.get('/reviews', { params })
+  },
+  getSummary: (userId: string) =>
+    apiClient.get<SellerReviewSummary>(`/reviews/summary/${userId}`),
   create: (data: CreateReviewParams) =>
     apiClient.post('/reviews', buildCreateReviewPayload(data)),
 }
-

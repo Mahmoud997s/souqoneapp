@@ -59,6 +59,7 @@ import { ImageGallery } from '../../components/listing-detail/ImageGallery'
 import { ImageViewerModal } from '../../components/listing-detail/ImageViewerModal'
 import { ListingDescription } from '../../components/listing-detail/ListingDescription'
 import { SellerCard } from '../../components/listing-detail/SellerCard'
+import { SellerRatingBlock } from '../../components/listing-detail/SellerRatingBlock'
 import {
   SimilarListingsGrid,
   SimilarListingCard,
@@ -442,6 +443,7 @@ export function ServiceDetailScreen({ id }: ServiceDetailScreenProps) {
               seller={sellerCardData}
               onPressProfile={handleSellerProfilePress}
             />
+            <SellerRatingBlock sellerId={vm.seller.id} isOwner={isOwner} />
           </Animated.View>
         ) : null}
 

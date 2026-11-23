@@ -7,7 +7,7 @@ import { Radius } from '../../../constants/radius'
 import { Shadows } from '../../../constants/shadows'
 import { RTLText } from '../../../constants/rtl'
 import { lineHeightFor } from '../../../constants/typography'
-import { OperatorStarsRow } from './OperatorStarsRow'
+import { RatingStars } from '../../ui/RatingStars'
 import { OperatorReviewsStates } from './OperatorReviewsStates'
 
 export interface OperatorReviewsCardProps {
@@ -79,7 +79,12 @@ export function OperatorReviewsCard({
           <Text style={s.ratingNumber} maxFontSizeMultiplier={1.3} testID="operator-rating-number">
             {formattedRating}
           </Text>
-          <OperatorStarsRow rating={ratingValue} size={18} accessibilityLabel={`التقييم ${formattedRating} من 5 بناءً على ${totalReviews} تقييم`} />
+          <RatingStars
+            testID="operator-stars-row"
+            rating={ratingValue}
+            size={18}
+            accessibilityLabel={`التقييم ${formattedRating} من 5 بناءً على ${totalReviews} تقييم`}
+          />
         </View>
       )}
 

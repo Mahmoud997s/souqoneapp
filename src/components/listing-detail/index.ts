@@ -14,6 +14,9 @@ export type { DetailViewCountItemProps } from './DetailViewCountItem'
 export { DetailLocationMap } from './DetailLocationMap'
 export type { DetailLocationMapProps } from './DetailLocationMap'
 
+export { SellerRatingBlock } from './SellerRatingBlock'
+export type { SellerRatingBlockProps } from './SellerRatingBlock'
+
 export { LocationCard } from './LocationCard'
 export type { LocationCardProps } from './LocationCard'
 

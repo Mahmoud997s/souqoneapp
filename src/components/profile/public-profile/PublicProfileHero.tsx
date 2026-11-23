@@ -5,12 +5,15 @@ import { Ionicons } from '@expo/vector-icons'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { GlassSurface, type GlassSupport } from '../../navigation/glassSupport'
 import { VerifiedBadge } from '../../ui/VerifiedBadge'
+import { RatingStars } from '../../ui/RatingStars'
 import { BottomBarTokens } from '../../../constants/bottomBarTokens'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
+import { lineHeightFor } from '../../../constants/typography'
 import { PublicProfileTokens } from '../../../constants/publicProfileTokens'
 import { PublicProfile } from '../../../types/profile.types'
+import { formatNumberWestern } from '../../../utils/numberFormat'
 
 export type PublicProfileWithOptionalContact = PublicProfile & {
   whatsapp?: string | null
@@ -25,16 +28,40 @@ export interface PublicProfileHeroProps {
     onCall?: (phone: string) => void
     onWhatsApp?: (phone: string) => void
   }
+  /** Optional fallback summary when profile payload lacks averageRating/reviewCount */
+  ratingFallback?: {
+    averageRating: number | null
+    reviewCount: number
+  }
+  onOpenReviews?: () => void
+  onRateSeller?: () => void
   support?: GlassSupport
 }
 
-export function PublicProfileHero({ profile, action, support }: PublicProfileHeroProps) {
+export function PublicProfileHero({
+  profile,
+  action,
+  ratingFallback,
+  onOpenReviews,
+  onRateSeller,
+  support,
+}: PublicProfileHeroProps) {
   const displayName = profile.displayName ?? profile.username ?? 'مستخدم'
   const location = profile.governorateRef?.nameAr ?? profile.wilayaRef?.nameAr ?? profile.governorate
   const counts = [profile._count.listings, profile._count.busListings, profile._count.equipmentListings, profile._count.spareParts, profile._count.carServices]
   const activeCount = counts.reduce((sum, count) => sum + count, 0)
   const sectionCount = counts.filter((count) => count > 0).length
   const joinYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : '—'
+
+  const resolvedReviewCount =
+    typeof profile.reviewCount === 'number' && Number.isFinite(profile.reviewCount)
+      ? profile.reviewCount
+      : ratingFallback?.reviewCount ?? 0
+  const resolvedAvgRating =
+    typeof profile.averageRating === 'number' && Number.isFinite(profile.averageRating)
+      ? profile.averageRating
+      : ratingFallback?.averageRating ?? null
+  const showRatingRow = resolvedReviewCount > 0 && resolvedAvgRating !== null && resolvedAvgRating > 0
 
   const exposedPhone = typeof profile.phone === 'string' ? profile.phone.trim() : ''
   const exposedWhatsapp =
@@ -80,6 +107,19 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
               <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
               <Text style={s.location} numberOfLines={1}>{location}</Text>
             </View>
+          ) : null}
+          {showRatingRow ? (
+            <Pressable
+              testID="public-profile-rating-row"
+              style={s.ratingRow}
+              onPress={onOpenReviews}
+              accessibilityRole="button"
+              accessibilityLabel={`التقييم ${resolvedAvgRating.toFixed(1)} من 5 بناءً على ${formatNumberWestern(resolvedReviewCount)} تقييم`}
+            >
+              <RatingStars rating={resolvedAvgRating} size={14} />
+              <Text style={s.ratingAvg}>{resolvedAvgRating.toFixed(1)}</Text>
+              <Text style={s.ratingCount}>({formatNumberWestern(resolvedReviewCount)})</Text>
+            </Pressable>
           ) : null}
         </View>
       </View>
@@ -157,6 +197,19 @@ export function PublicProfileHero({ profile, action, support }: PublicProfileHer
             />
           ) : null}
         </View>
+      ) : null}
+
+      {onRateSeller ? (
+        <Pressable
+          testID="public-profile-rate-btn"
+          style={s.rateSellerBtn}
+          onPress={onRateSeller}
+          accessibilityRole="button"
+          accessibilityLabel="تقييم البائع"
+        >
+          <Ionicons name="star-outline" size={16} color={Colors.primary} />
+          <Text style={s.rateSellerText}>تقييم البائع</Text>
+        </Pressable>
       ) : null}
     </View>
   )
@@ -366,5 +419,46 @@ const s = StyleSheet.create({
   },
   contactBtnLabelOutline: {
     color: Colors.text,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space1,
+    marginTop: Spacing.space1,
+  },
+  ratingAvg: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.text,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  ratingCount: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: lineHeightFor(12),
+    color: Colors.textMuted,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  rateSellerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.space2,
+    minHeight: Spacing.touch,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primarySoft30,
+    backgroundColor: Colors.primarySoft12,
+  },
+  rateSellerText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.primary,
+    textAlign: 'left',
+    writingDirection: 'rtl',
   },
 })
