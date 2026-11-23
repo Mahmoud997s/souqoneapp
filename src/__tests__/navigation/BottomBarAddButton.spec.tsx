@@ -100,7 +100,7 @@ describe('D-380 Part 1: Unified BottomBarAddButton (squircle, two-view shadow/cl
     expect(outer).not.toBe(inner);
 
     const outerStyle = StyleSheet.flatten(outer.props.style);
-    expect(outerStyle.backgroundColor).toBe(Colors.primary);
+    expect(outerStyle.backgroundColor).toBe(Colors.primaryStrong);
     expect(outerStyle.borderRadius).toBe(BottomBarTokens.addButtonRadius);
     expect(outerStyle.overflow).toBeUndefined();
     expect(outerStyle.borderWidth).toBeUndefined();

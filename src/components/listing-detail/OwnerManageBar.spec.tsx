@@ -301,7 +301,7 @@ describe('OwnerManageBar', () => {
     const statusStyle = StyleSheet.flatten(screen.getByTestId('btn-owner-manage-status').props.style)
     const deleteStyle = StyleSheet.flatten(screen.getByTestId('btn-owner-delete').props.style)
 
-    expect(editStyle.backgroundColor).toBe(Colors.primary)
+    expect(editStyle.backgroundColor).toBe(Colors.primaryStrong)
     expect(statusStyle.backgroundColor).toBe(Colors.surface)
     expect(deleteStyle.backgroundColor).toBe((Colors as Record<string, string>).errorSoftBg)
     expect((Colors as Record<string, string>).errorSoftBg).toBeTruthy()

@@ -138,7 +138,7 @@ describe('ContactActions Glass Conversion Specification', () => {
     expect(callStyle.height).toBe(Spacing.touch)
     expect(callStyle.height).toBeGreaterThanOrEqual(44)
     expect(callStyle.borderRadius).toBe(Radius.md)
-    expect(callStyle.backgroundColor).toBe(Colors.primary)
+    expect(callStyle.backgroundColor).toBe(Colors.primaryStrong)
 
     const waBtn = getByTestId('btn-contact-whatsapp')
     const waStyle = StyleSheet.flatten(waBtn.props.style)

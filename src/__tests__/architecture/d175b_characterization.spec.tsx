@@ -112,7 +112,7 @@ describe('D-175b Pre-Change Characterization Tests (Geometry & Behavior Baseline
       const callStyle = StyleSheet.flatten(callBtn.props.style)
       expect(callStyle.height).toBe(44)
       expect(callStyle.borderRadius).toBe(Radius.md) // 8
-      expect(callStyle.backgroundColor).toBe(Colors.primary)
+      expect(callStyle.backgroundColor).toBe(Colors.primaryStrong)
 
       const waBtn = screen.getByTestId('btn-contact-whatsapp')
       const waStyle = StyleSheet.flatten(waBtn.props.style)

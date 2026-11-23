@@ -97,8 +97,8 @@ describe('D-359/D-377/D-379: Plain flat QuickFilters & soft tactile VisualFilter
 
     // Selected card is solid primary without inset overlay (D-380 Part 3)
     const nissanStyle = StyleSheet.flatten(getByLabelText('نيسان').parent?.props.style);
-    expect(nissanStyle.backgroundColor).toBe(Colors.primary);
-    expect(nissanStyle.borderColor).toBe(Colors.primary);
+    expect(nissanStyle.backgroundColor).toBe(Colors.primaryStrong);
+    expect(nissanStyle.borderColor).toBe(Colors.primaryStrong);
     expect(queryByTestId('visual-filter-item-inset-nissan')).toBeNull();
 
     // Tab switch does NOT invoke LayoutAnimation

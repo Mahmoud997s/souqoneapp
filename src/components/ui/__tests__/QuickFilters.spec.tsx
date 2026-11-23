@@ -145,8 +145,8 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     // Selected chip container
     const activePressable = getByLabelText('مسقط');
     const activeChipStyle = StyleSheet.flatten(activePressable.parent?.props.style);
-    expect(activeChipStyle.backgroundColor).toBe(Colors.primary);
-    expect(activeChipStyle.borderColor).toBe(Colors.primary);
+    expect(activeChipStyle.backgroundColor).toBe(Colors.primaryStrong);
+    expect(activeChipStyle.borderColor).toBe(Colors.primaryStrong);
     expect(activeChipStyle.shadowOpacity).toBeUndefined();
     expect(activeChipStyle.elevation).toBeUndefined();
     expect(queryByTestId('quick-filter-inset-f2')).toBeNull();
@@ -184,15 +184,15 @@ describe('QuickFilters - Characterization & Accessibility Tests', () => {
     const selectedBtn = getByLabelText('مسقط');
     await fireEvent(selectedBtn, 'pressIn');
     const selectedPressedStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
-    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primaryStrong);
     expect(selectedPressedStyle.backgroundColor).not.toBe(Colors.primaryDark);
     const pressedOverlayStyle = StyleSheet.flatten(getByTestId('quick-filter-selected-pressed-f2').props.style);
     expect(pressedOverlayStyle.backgroundColor).toBe(Colors.scrimDark15);
 
     await fireEvent(selectedBtn, 'pressOut');
     const selectedRestoredStyle = StyleSheet.flatten(getByTestId('quick-filter-chip-f2').props.style);
-    expect(selectedRestoredStyle.backgroundColor).toBe(Colors.primary);
-    expect(selectedRestoredStyle.borderColor).toBe(Colors.primary);
+    expect(selectedRestoredStyle.backgroundColor).toBe(Colors.primaryStrong);
+    expect(selectedRestoredStyle.borderColor).toBe(Colors.primaryStrong);
   });
 
   it('fits cleanly inside CollapsibleSubHeader (85pt, 84pt inner) with equal top/bottom margins and zero bottom clipping across all 6 browse pages (D-380 Part 2)', async () => {
