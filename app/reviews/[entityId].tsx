@@ -66,13 +66,15 @@ function extractReviewErrorMessage(err: unknown): string {
   if (response?.status === 429) {
     return getPublishRateLimitErrorMessage(err)
   }
-  const rawMessage = response?.data?.message
-  if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
-    return rawMessage.trim()
-  }
-  if (Array.isArray(rawMessage)) {
-    const first = rawMessage.find((m) => typeof m === 'string' && m.trim().length > 0)
-    if (typeof first === 'string') return first.trim()
+  if (response?.status !== undefined && response.status >= 400 && response.status < 500) {
+    const rawMessage = response.data?.message
+    if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
+      return rawMessage.trim()
+    }
+    if (Array.isArray(rawMessage)) {
+      const first = rawMessage.find((m) => typeof m === 'string' && m.trim().length > 0)
+      if (typeof first === 'string') return first.trim()
+    }
   }
   return getMutationErrorMessage(err, 'تعذر إضافة التقييم')
 }
@@ -87,17 +89,11 @@ export default function ReviewsScreen() {
   const resolvedType = type && type.trim().length > 0 ? type.trim() : 'USER'
   const router = typeof useRouter === 'function' ? useRouter() : expoRouter
   const { user } = useAuthStore()
-  const [isWriting, setIsWriting] = React.useState(write === 'true' && Boolean(user))
+  const [isWriting, setIsWriting] = React.useState(write === 'true')
   const [rating, setRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
   const [submitError, setSubmitError] = React.useState<string | null>(null)
   const queryClient = useQueryClient()
-
-  React.useEffect(() => {
-    if (write === 'true' && !user && entityId) {
-      router.push(loginRoute(`/reviews/${entityId}?type=${resolvedType}&write=true`))
-    }
-  }, [write, user, entityId, resolvedType, router])
 
   const {
     data: reviews,
@@ -157,7 +153,7 @@ export default function ReviewsScreen() {
   })
 
   const handleOpenWriteForm = () => {
-    if (!user) {
+    if (!user && resolvedType === 'USER') {
       router.push(loginRoute(`/reviews/${entityId}?type=${resolvedType}&write=true`))
       return
     }

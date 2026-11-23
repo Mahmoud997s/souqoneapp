@@ -30,6 +30,15 @@ jest.mock('../store/authStore', () => ({ useAuthStore: jest.fn() }))
 jest.mock('../store/toastStore', () => ({ toastService: { show: jest.fn() } }))
 
 jest.mock('../hooks/useProfile', () => ({ usePublicProfile: jest.fn() }))
+jest.mock('../hooks/listing-detail/useSellerReviewSummary', () => ({
+  useSellerReviewSummary: () => ({
+    averageRating: null,
+    reviewCount: 0,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 
 const mockedUseAuthStore = jest.mocked(useAuthStore)
 const mockedRouter = jest.mocked(router)

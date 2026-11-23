@@ -137,6 +137,15 @@ jest.mock('../../hooks/listing-detail/useSimilarListings', () => ({
     refetch: jest.fn(),
   }),
 }))
+jest.mock('../../hooks/listing-detail/useSellerReviewSummary', () => ({
+  useSellerReviewSummary: () => ({
+    averageRating: null,
+    reviewCount: 0,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 
 describe('D-182a12: StaleDataBanner pinned under overlaid DetailTopBar', () => {
   beforeEach(() => {

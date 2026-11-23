@@ -78,6 +78,15 @@ jest.mock('../../../hooks/listing-detail/useSimilarListings', () => ({
     refetch: jest.fn(),
   }),
 }))
+jest.mock('../../../hooks/listing-detail/useSellerReviewSummary', () => ({
+  useSellerReviewSummary: () => ({
+    averageRating: null,
+    reviewCount: 0,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 
 let mockCurrentUser: { id: string; username?: string; phone?: string } | null = null
 

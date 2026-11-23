@@ -43,6 +43,15 @@ jest.mock('../../src/hooks/listing-detail/useSimilarListings', () => ({
     refetch: jest.fn(),
   }),
 }))
+jest.mock('../../src/hooks/listing-detail/useSellerReviewSummary', () => ({
+  useSellerReviewSummary: () => ({
+    averageRating: null,
+    reviewCount: 0,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 jest.mock('../../src/hooks/listing-detail/useListingContact', () => ({
   useListingContact: () => ({
     call: jest.fn(),
