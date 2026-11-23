@@ -44,6 +44,7 @@ jest.mock('../../components/ui/WizardReviewCard', () => {
   const { View } = require('react-native')
   return {
     WizardReviewCard: ({ children }: any) => <View>{children}</View>,
+    WizardReviewContactRow: () => null,
     ReviewMediaGallery: () => null,
     ReviewHeroBanner: () => null,
   }
