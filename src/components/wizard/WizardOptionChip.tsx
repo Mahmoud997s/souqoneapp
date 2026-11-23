@@ -103,8 +103,8 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
   },
   chipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
+    borderColor: Colors.primaryStrong,
   },
   chipError: {
     borderColor: Colors.error,

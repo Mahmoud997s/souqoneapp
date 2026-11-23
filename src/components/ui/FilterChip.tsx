@@ -46,8 +46,8 @@ const s = StyleSheet.create({
     }),
   },
   chipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
+    borderColor: Colors.primaryStrong,
     ...Platform.select({
       ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 3 },
       android: { elevation: 1 },

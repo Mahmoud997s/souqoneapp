@@ -25,7 +25,7 @@ describe('FilterGlassTokens', () => {
     expect(FilterGlassTokens.tab.trackBorderWidth).toBe(1);
     expect(FilterGlassTokens.tab.fontSize).toBe(11.5);
     expect(FilterGlassTokens.tab.lineHeight).toBe(15.5);
-    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primary);
+    expect(FilterGlassTokens.tab.activeBg).toBe(Colors.primaryStrong);
     expect(FilterGlassTokens.tab.activeTextColor).toBe(Colors.white);
 
     // VisualFiltersBase item cards equal to master 7353e69
@@ -55,9 +55,9 @@ describe('FilterGlassTokens', () => {
   });
 
   it('preserves semantic state colors across active and selected items', () => {
-    expect(FilterGlassTokens.chip.activeBg).toBe(Colors.primary);
+    expect(FilterGlassTokens.chip.activeBg).toBe(Colors.primaryStrong);
     expect(FilterGlassTokens.chip.activeTextColor).toBe(Colors.white);
-    expect(QuickChipTokens.selected.bg).toBe(Colors.primary);
+    expect(QuickChipTokens.selected.bg).toBe(Colors.primaryStrong);
     expect(QuickChipTokens.selected.textColor).toBe(Colors.white);
     expect(QuickChipTokens.pressed.bg).toBe(Colors.paleMint);
     expect(FilterGlassTokens.card.selectedTextColor).toBe(Colors.primary);

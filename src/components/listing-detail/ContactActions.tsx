@@ -251,7 +251,7 @@ const s = StyleSheet.create({
     flex: 1,
   },
   callButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
   },
   callButtonText: {
     fontFamily: 'Almarai_700Bold',

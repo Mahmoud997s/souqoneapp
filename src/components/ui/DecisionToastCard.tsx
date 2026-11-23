@@ -202,7 +202,7 @@ export function DecisionToastCard() {
               testID="decision-toast-icon"
               style={[
                 s.iconCircle,
-                { backgroundColor: isDanger ? Colors.error : Colors.primary },
+                { backgroundColor: isDanger ? Colors.error : Colors.primaryStrong },
               ]}
             >
               <Ionicons
@@ -247,7 +247,7 @@ export function DecisionToastCard() {
                 onPress={() => handleActionPress('confirm')}
                 style={[
                   s.capsuleBtn,
-                  { backgroundColor: isDanger ? Colors.error : Colors.primary },
+                  { backgroundColor: isDanger ? Colors.error : Colors.primaryStrong },
                 ]}
               >
                 <Text style={s.confirmTxt} numberOfLines={1}>

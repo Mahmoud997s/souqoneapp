@@ -74,7 +74,7 @@ describe('D-369: Registered fontFamily guard & WizardOptionChip', () => {
     );
     expect(selectedRender.queryByTestId('opt-chip-sel-glass-layers')).toBeNull();
     const selectedBtnStyle = StyleSheet.flatten(selectedRender.getByTestId('opt-chip-sel').props.style);
-    expect(selectedBtnStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedBtnStyle.backgroundColor).toBe(Colors.primaryStrong);
     expect(selectedBtnStyle.flex).toBeUndefined();
     const selectedTextStyle = StyleSheet.flatten(selectedRender.getByText('أوتوماتيك').props.style);
     expect(selectedTextStyle.fontFamily).toBe('Almarai_700Bold');

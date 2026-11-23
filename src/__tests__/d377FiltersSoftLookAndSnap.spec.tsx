@@ -70,8 +70,8 @@ describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, ze
       expect(normalStyle.borderRadius).toBe(FilterGlassTokens.chip.borderRadius)
 
       const selectedStyle = StyleSheet.flatten(getByLabelText('مسقط').parent?.props.style)
-      expect(selectedStyle.backgroundColor).toBe(Colors.primary)
-      expect(selectedStyle.borderColor).toBe(Colors.primary)
+      expect(selectedStyle.backgroundColor).toBe(Colors.primaryStrong)
+      expect(selectedStyle.borderColor).toBe(Colors.primaryStrong)
       expect(selectedStyle.borderTopColor).toBeUndefined()
       expect(selectedStyle.borderLeftColor).toBeUndefined()
       expect(selectedStyle.borderRightColor).toBeUndefined()
@@ -119,8 +119,8 @@ describe('D-377: Filters soft raised/inset look, transparent page bg, rhythm, ze
       expect(normalStyle.borderRadius).toBe(FilterGlassTokens.card.borderRadius)
 
       const selectedStyle = StyleSheet.flatten(getByLabelText('نيسان').parent?.props.style)
-      expect(selectedStyle.backgroundColor).toBe(Colors.primary)
-      expect(selectedStyle.borderColor).toBe(Colors.primary)
+      expect(selectedStyle.backgroundColor).toBe(Colors.primaryStrong)
+      expect(selectedStyle.borderColor).toBe(Colors.primaryStrong)
       expect(selectedStyle.borderTopColor).toBeUndefined()
       expect(selectedStyle.borderBottomColor).toBeUndefined()
 

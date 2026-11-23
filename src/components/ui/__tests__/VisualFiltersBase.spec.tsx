@@ -175,8 +175,8 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
 
     const selectedItem = getByLabelText('عنصر 2');
     const selectedStyle = StyleSheet.flatten(selectedItem.parent?.props.style);
-    expect(selectedStyle.backgroundColor).toBe(Colors.primary);
-    expect(selectedStyle.borderColor).toBe(Colors.primary);
+    expect(selectedStyle.backgroundColor).toBe(Colors.primaryStrong);
+    expect(selectedStyle.borderColor).toBe(Colors.primaryStrong);
     expect(selectedStyle.shadowOpacity).toBeUndefined();
     expect(selectedStyle.elevation).toBeUndefined();
     expect(queryByTestId('visual-filter-item-inset-item2')).toBeNull();
@@ -210,7 +210,7 @@ describe('VisualFiltersBase - Characterization Tests (Existing Behaviour)', () =
     const selectedBtn = getByLabelText('عنصر 2');
     await fireEvent(selectedBtn, 'pressIn');
     const selectedPressedStyle = StyleSheet.flatten(getByTestId('visual-filter-card-item2').props.style);
-    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primary);
+    expect(selectedPressedStyle.backgroundColor).toBe(Colors.primaryStrong);
     expect(selectedPressedStyle.backgroundColor).not.toBe(Colors.primaryDark);
     const overlayStyle = StyleSheet.flatten(getByTestId('visual-filter-card-pressed-item2').props.style);
     expect(overlayStyle.backgroundColor).toBe(Colors.scrimDark15);

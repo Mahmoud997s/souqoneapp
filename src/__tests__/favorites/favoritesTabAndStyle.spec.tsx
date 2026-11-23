@@ -195,7 +195,7 @@ describe('D-338: Favorites ?tab normalization, canonical bottom bar routes, and 
       const carsTab = getByTestId('favorites-tab-cars')
       const carsTabStyle = StyleSheet.flatten(carsTab.props.style)
       expect(carsTabStyle.backgroundColor).toBe(FilterGlassTokens.tab.activeBg)
-      expect(carsTabStyle.backgroundColor).toBe(Colors.primary)
+      expect(carsTabStyle.backgroundColor).toBe(Colors.primaryStrong)
 
       const carsLabel = getByTestId('favorites-tab-label-cars')
       const carsLabelStyle = StyleSheet.flatten(carsLabel.props.style)

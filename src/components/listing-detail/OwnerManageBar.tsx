@@ -358,7 +358,7 @@ const s = StyleSheet.create({
     lineHeight: lineHeightFor(12),
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
   },
   primaryButtonText: {
     color: Colors.white,

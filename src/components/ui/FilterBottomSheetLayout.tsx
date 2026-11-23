@@ -281,7 +281,7 @@ const s = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   applyBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
     paddingVertical: 11,
     borderRadius: 6,
     alignItems: 'center',
