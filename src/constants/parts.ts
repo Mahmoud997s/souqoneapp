@@ -23,6 +23,43 @@ export const PART_CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   PART_CATEGORIES.map((c) => [c.id, c.label])
 )
 
+export interface PartCategoryGroup {
+  title: string
+  items: PartCategoryOption[]
+}
+
+const PART_CATEGORY_BY_ID = new Map<string, PartCategoryOption>(
+  PART_CATEGORIES.map((item) => [item.id, item])
+)
+
+const pickPartCategories = (ids: string[]): PartCategoryOption[] =>
+  ids
+    .map((id) => PART_CATEGORY_BY_ID.get(id))
+    .filter((item): item is PartCategoryOption => Boolean(item))
+
+export const PART_CATEGORY_GROUPS: PartCategoryGroup[] = [
+  {
+    title: 'الميكانيكا',
+    items: pickPartCategories(['ENGINE', 'SUSPENSION', 'BRAKES']),
+  },
+  {
+    title: 'الكهرباء والطاقة',
+    items: pickPartCategories(['ELECTRICAL', 'BATTERIES']),
+  },
+  {
+    title: 'الهيكل والداخل',
+    items: pickPartCategories(['BODY', 'INTERIOR']),
+  },
+  {
+    title: 'الاستهلاكيات',
+    items: pickPartCategories(['TIRES', 'OILS']),
+  },
+  {
+    title: 'إكسسوارات وأخرى',
+    items: pickPartCategories(['ACCESSORIES', 'OTHER']),
+  },
+]
+
 export const PART_CONDITIONS = [
   { id: 'NEW', label: 'جديد' },
   { id: 'USED', label: 'مستعمل' },
