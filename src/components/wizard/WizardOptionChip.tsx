@@ -113,6 +113,7 @@ const s = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12.5,
     lineHeight: 18,
     textAlign: 'left',

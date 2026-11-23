@@ -365,6 +365,7 @@ const s = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'left',

@@ -102,13 +102,14 @@ const s = StyleSheet.create({
     flex: 1,
   },
   headline: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '700',
     color: Colors.text,
     writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(15),
   },
   dateLabel: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     color: Colors.textMuted,
     marginTop: 2,
@@ -131,8 +132,8 @@ const s = StyleSheet.create({
     opacity: 0.6,
   },
   cancelBtnText: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 13,
-    fontWeight: '700',
     color: Colors.primary,
     lineHeight: lineHeightFor(13),
   },

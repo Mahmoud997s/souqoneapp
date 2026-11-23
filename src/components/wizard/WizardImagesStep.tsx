@@ -284,7 +284,6 @@ const s = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 16,
     color: Colors.primary,
-    fontWeight: '700',
   },
   makePrimaryBtn: {
     position: 'absolute',

@@ -295,7 +295,6 @@ const s = StyleSheet.create({
   counterText: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '600',
     lineHeight: lineHeightFor(15),
     color: Colors.white,
   },
