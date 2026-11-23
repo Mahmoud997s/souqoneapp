@@ -1,5 +1,6 @@
 import React from 'react'
-import { StyleSheet, View, Platform, type StyleProp, type ViewStyle } from 'react-native'
+import { StyleSheet, View, Text, Platform, type StyleProp, type ViewStyle } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
@@ -18,6 +19,33 @@ export function WizardReviewCard({
   return (
     <View testID={testID} style={[s.card, style]}>
       {children}
+    </View>
+  )
+}
+
+export interface WizardReviewContactRowProps {
+  whatsappEnabled?: boolean | null
+  testID?: string
+}
+
+export function WizardReviewContactRow({
+  whatsappEnabled,
+  testID = 'wizard-review-contact-row',
+}: WizardReviewContactRowProps) {
+  const isWhatsappOn = Boolean(whatsappEnabled)
+  return (
+    <View testID={testID} style={wizardReviewRowStyles.row}>
+      <View style={s.contactIconLabel}>
+        <Ionicons
+          name={isWhatsappOn ? 'logo-whatsapp' : 'call-outline'}
+          size={16}
+          color={isWhatsappOn ? Colors.emerald : Colors.slateText}
+        />
+        <Text style={wizardReviewRowStyles.label}>طرق التواصل</Text>
+      </View>
+      <Text testID={`${testID}-value`} style={wizardReviewRowStyles.value}>
+        {isWhatsappOn ? 'اتصال + واتساب' : 'اتصال'}
+      </Text>
     </View>
   )
 }
@@ -65,5 +93,10 @@ const s = StyleSheet.create({
       ios: { shadowColor: Colors.slateHeading, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4 },
       android: { elevation: 1.5 },
     }),
+  },
+  contactIconLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 })
