@@ -171,7 +171,7 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.space3,
     paddingVertical: 8,
     borderRadius: Radius.md,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },

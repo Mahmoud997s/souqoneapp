@@ -391,7 +391,7 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   retryBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: Radius.lg,

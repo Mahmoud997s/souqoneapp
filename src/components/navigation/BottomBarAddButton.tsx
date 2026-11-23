@@ -122,7 +122,7 @@ const s = StyleSheet.create({
     width: BottomBarTokens.addButtonSize,
     height: BottomBarTokens.addButtonSize,
     borderRadius: BottomBarTokens.addButtonRadius,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
     ...BottomBarTokens.addButtonShadow,
   },
   outerShadowPressed: {

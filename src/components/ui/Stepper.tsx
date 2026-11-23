@@ -221,7 +221,7 @@ export function Stepper({ currentStep, totalSteps, title, variant = 'dark' }: St
 
 const s = StyleSheet.create({
   banner: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
     borderRadius: 16,
     paddingVertical: Spacing.space4,
     paddingHorizontal: Spacing.space5,
@@ -312,8 +312,8 @@ const s = StyleSheet.create({
     borderColor: Colors.accent,
   },
   circleFilledLight: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
+    borderColor: Colors.primaryStrong,
   },
   stepText: {
     fontFamily: 'Almarai_700Bold',

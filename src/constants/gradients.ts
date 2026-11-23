@@ -9,7 +9,7 @@ export const Gradients = {
 
   // Design System additions (Solid Flat Colors)
   hero: ['#192435', '#192435', '#192435'] as const, // الكحلي: لخلفية البانر الداكن (3 stops matching locations [0, 0.6, 1])
-  button: [Colors.primary, Colors.primary] as const, // الفيروزي الرئيسي للأزرار
+  button: [Colors.primaryStrong, Colors.primaryStrong] as const, // الفيروزي الغامق للأزرار ذات النص الأبيض (WCAG AA)
   driver: [Colors.primary, Colors.primary] as const,
   employer: ['#192435', '#192435'] as const,
 } as const
