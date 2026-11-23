@@ -10,21 +10,28 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter, router as expoRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppHeader } from '../../src/components/ui/AppHeader'
 import { EmptyState } from '../../src/components/ui/EmptyState'
+import { RatingStars } from '../../src/components/ui/RatingStars'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
+import { lineHeightFor } from '../../src/constants/typography'
 import { reviewsApi } from '../../src/api/reviews'
+import { sellerReviewSummaryKey } from '../../src/hooks/listing-detail/useSellerReviewSummary'
+import { useAuthStore } from '../../src/store/authStore'
 import { toastService } from '../../src/store/toastStore'
+import { loginRoute } from '../../src/navigation/listingRoutes'
 import { parseListEnvelope } from '../../src/utils/parseListEnvelope'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
 import { getPublishRateLimitErrorMessage } from '../../src/utils/publishRateLimitError'
 import { getMutationErrorMessage } from '../../src/utils/listing-detail/getDetailErrorKind'
+
+export { RatingStars as StarRow }
 
 export interface ReviewItem {
   id: string
@@ -43,26 +50,6 @@ export interface ReviewItem {
   }
 }
 
-export function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
-  return (
-    <View
-      style={{ flexDirection: 'row' }}
-      accessible={true}
-      accessibilityRole="text"
-      accessibilityLabel={`التقييم ${rating} من 5 نجوم`}
-    >
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Ionicons
-          key={i}
-          name="star"
-          size={size}
-          color={i <= rating ? Colors.warning : Colors.border}
-        />
-      ))}
-    </View>
-  )
-}
-
 function formatTime(iso: string) {
   const d = new Date(iso)
   const diff = Date.now() - d.getTime()
@@ -74,17 +61,43 @@ function formatTime(iso: string) {
   return `منذ ${Math.floor(days / 30)} أشهر`
 }
 
+function extractReviewErrorMessage(err: unknown): string {
+  const response = (err as { response?: { status?: number; data?: { message?: unknown } } })?.response
+  if (response?.status === 429) {
+    return getPublishRateLimitErrorMessage(err)
+  }
+  const rawMessage = response?.data?.message
+  if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
+    return rawMessage.trim()
+  }
+  if (Array.isArray(rawMessage)) {
+    const first = rawMessage.find((m) => typeof m === 'string' && m.trim().length > 0)
+    if (typeof first === 'string') return first.trim()
+  }
+  return getMutationErrorMessage(err, 'تعذر إضافة التقييم')
+}
+
 export default function ReviewsScreen() {
-  const { entityId, type = 'USER', revieweeId, write } = useLocalSearchParams<{
+  const { entityId, type, revieweeId, write } = useLocalSearchParams<{
     entityId: string
     type?: string
     revieweeId?: string
     write?: string
   }>()
-  const [isWriting, setIsWriting] = React.useState(write === 'true')
+  const resolvedType = type && type.trim().length > 0 ? type.trim() : 'USER'
+  const router = typeof useRouter === 'function' ? useRouter() : expoRouter
+  const { user } = useAuthStore()
+  const [isWriting, setIsWriting] = React.useState(write === 'true' && Boolean(user))
   const [rating, setRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
+  const [submitError, setSubmitError] = React.useState<string | null>(null)
   const queryClient = useQueryClient()
+
+  React.useEffect(() => {
+    if (write === 'true' && !user && entityId) {
+      router.push(loginRoute(`/reviews/${entityId}?type=${resolvedType}&write=true`))
+    }
+  }, [write, user, entityId, resolvedType, router])
 
   const {
     data: reviews,
@@ -95,9 +108,9 @@ export default function ReviewsScreen() {
     isRefetching,
     refetch,
   } = useQuery<ReviewItem[]>({
-    queryKey: ['reviews', entityId],
+    queryKey: ['reviews', entityId, resolvedType],
     queryFn: async () => {
-      const res = await reviewsApi.getByEntity(entityId, type)
+      const res = await reviewsApi.getByEntity(entityId, resolvedType)
       const { items } = parseListEnvelope<ReviewItem>(res.data)
       return items
     },
@@ -108,17 +121,22 @@ export default function ReviewsScreen() {
     ? reviews.reduce((sum: number, r: ReviewItem) => sum + (r.rating ?? 0), 0) / reviews.length
     : 0
 
+  const isServerDerivedReviewee = resolvedType === 'OPERATOR_LISTING' || resolvedType === 'USER'
+
   const { mutate: submitReview, isPending: submitting } = useMutation({
     mutationFn: () =>
       reviewsApi.create({
         entityId,
-        entityType: type,
+        entityType: resolvedType,
         rating,
-        comment,
-        ...(type !== 'OPERATOR_LISTING' ? { revieweeId: revieweeId || entityId } : {}),
+        comment: comment.trim() ? comment.trim() : undefined,
+        ...(!isServerDerivedReviewee ? { revieweeId: revieweeId || entityId } : {}),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', entityId] })
+      queryClient.invalidateQueries({ queryKey: ['reviews', entityId, resolvedType] })
+      queryClient.invalidateQueries({ queryKey: sellerReviewSummaryKey(entityId) })
+      queryClient.invalidateQueries({ queryKey: ['user', entityId] })
       queryClient.invalidateQueries({ queryKey: ['operator-detail', entityId] })
       queryClient.invalidateQueries({ queryKey: ['operator-item', entityId] })
       queryClient.invalidateQueries({ queryKey: ['equipment-item', entityId] })
@@ -128,17 +146,24 @@ export default function ReviewsScreen() {
       setIsWriting(false)
       setRating(0)
       setComment('')
+      setSubmitError(null)
       toastService.show({ kind: 'success', title: 'تم إرسال تقييمك' })
     },
     onError: (err: unknown) => {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      const msg =
-        status === 429
-          ? getPublishRateLimitErrorMessage(err)
-          : getMutationErrorMessage(err, 'تعذر إضافة التقييم')
+      const msg = extractReviewErrorMessage(err)
+      setSubmitError(msg)
       toastService.show({ kind: 'error', title: msg })
     },
   })
+
+  const handleOpenWriteForm = () => {
+    if (!user) {
+      router.push(loginRoute(`/reviews/${entityId}?type=${resolvedType}&write=true`))
+      return
+    }
+    setSubmitError(null)
+    setIsWriting(true)
+  }
 
   return (
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -163,7 +188,7 @@ export default function ReviewsScreen() {
                     <Text style={s.score}>{avgRating.toFixed(1)}</Text>
                     <Text style={s.outOf}>/ 5</Text>
                   </View>
-                  <StarRow rating={Math.round(avgRating)} size={16} />
+                  <RatingStars rating={avgRating} size={16} />
                 </View>
                 <View style={s.sumLeft}>
                   <Text style={s.count}>{reviews.length}</Text>
@@ -181,9 +206,9 @@ export default function ReviewsScreen() {
                 onAction={() => refetch()}
               />
             ) : (
-              <View style={s.emptyState}>
+              <View style={s.emptyState} testID="reviews-empty-state">
                 <Ionicons name="star-outline" size={56} color={Colors.border} />
-                <Text style={s.emptyTitle}>لا توجد تقييمات</Text>
+                <Text style={s.emptyTitle}>لا توجد تقييمات بعد</Text>
                 <Text style={s.emptySub}>كن أول من يضيف تقييماً</Text>
               </View>
             )
@@ -203,9 +228,9 @@ export default function ReviewsScreen() {
                       <Text style={s.revTime}>{item.createdAt ? formatTime(item.createdAt) : ''}</Text>
                     </View>
                   </View>
-                  <StarRow rating={item.rating ?? 0} />
+                  <RatingStars rating={item.rating ?? 0} size={14} />
                 </View>
-                {item.comment && <Text style={s.comment}>{item.comment}</Text>}
+                {item.comment ? <Text style={s.comment}>{item.comment}</Text> : null}
               </View>
             )
           }}
@@ -217,43 +242,53 @@ export default function ReviewsScreen() {
           <View style={s.writeHeader}>
             <Text style={s.writeTitle}>تقييمك</Text>
             <TouchableOpacity
-              onPress={() => setIsWriting(false)}
+              style={s.closeBtn}
+              onPress={() => {
+                setIsWriting(false)
+                setSubmitError(null)
+              }}
               accessibilityRole="button"
               accessibilityLabel="إغلاق نافذة التقييم"
             >
               <Ionicons name="close" size={24} color={Colors.text2} />
             </TouchableOpacity>
           </View>
-          <View style={s.starsInput}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <TouchableOpacity
-                key={i}
-                testID={`review-star-btn-${i}`}
-                accessibilityRole="button"
-                accessibilityLabel={`تقييم ${i} من 5 نجوم`}
-                accessibilityState={{ selected: i <= rating }}
-                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-                onPress={() => setRating(i)}
-              >
-                <Ionicons name="star" size={32} color={i <= rating ? Colors.warning : Colors.border} />
-              </TouchableOpacity>
-            ))}
-          </View>
+          <RatingStars
+            rating={rating}
+            size={32}
+            onChange={(next) => {
+              setRating(next)
+              if (submitError) setSubmitError(null)
+            }}
+            starButtonTestIDPrefix="review-star-btn"
+            style={s.starsInput}
+          />
           <TextInput
             testID="review-comment-input"
             style={s.commentInput}
             placeholder="اكتب تعليقك هنا..."
             placeholderTextColor={Colors.textMuted}
             value={comment}
-            onChangeText={setComment}
+            onChangeText={(txt) => {
+              setComment(txt)
+              if (submitError) setSubmitError(null)
+            }}
             multiline
             textAlign="right"
           />
+          {submitError ? (
+            <Text style={s.submitErrorText} testID="review-submit-error" accessibilityRole="alert">
+              {submitError}
+            </Text>
+          ) : null}
           <TouchableOpacity
             testID="submit-review-btn"
             style={[s.writeBtn, (!rating || submitting) && s.writeBtnDisabled]}
             disabled={!rating || submitting}
-            onPress={() => submitReview()}
+            onPress={() => {
+              setSubmitError(null)
+              submitReview()
+            }}
             accessibilityRole="button"
             accessibilityLabel="إرسال التقييم"
           >
@@ -265,7 +300,7 @@ export default function ReviewsScreen() {
           <TouchableOpacity
             testID="open-write-review-btn"
             style={s.writeBtn}
-            onPress={() => setIsWriting(true)}
+            onPress={handleOpenWriteForm}
             accessibilityRole="button"
             accessibilityLabel="إضافة تقييم"
           >
@@ -293,14 +328,14 @@ const s = StyleSheet.create({
   },
   sumRight: { flex: 1, borderLeftWidth: 1, borderLeftColor: Colors.border, alignItems: 'flex-start' },
   scoreRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  score: { fontFamily: 'Almarai_800ExtraBold', fontSize: 32, color: Colors.primary },
-  outOf: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text2 },
+  score: { fontFamily: 'Almarai_800ExtraBold', fontSize: 32, lineHeight: lineHeightFor(32), color: Colors.primary },
+  outOf: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: lineHeightFor(14), color: Colors.text2 },
   sumLeft: { paddingLeft: Spacing.space4, alignItems: 'center', justifyContent: 'center' },
-  count: { fontFamily: 'Almarai_700Bold', fontSize: 24, color: Colors.text },
-  countLbl: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2 },
+  count: { fontFamily: 'Almarai_700Bold', fontSize: 24, lineHeight: lineHeightFor(24), color: Colors.text },
+  countLbl: { fontFamily: 'Almarai_400Regular', fontSize: 12, lineHeight: lineHeightFor(12), color: Colors.text2 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: Spacing.space3 },
-  emptyTitle: { fontFamily: 'Almarai_700Bold', fontSize: 18, color: Colors.text },
-  emptySub: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text2, textAlign: 'center' },
+  emptyTitle: { fontFamily: 'Almarai_700Bold', fontSize: 18, lineHeight: lineHeightFor(18), color: Colors.text },
+  emptySub: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: lineHeightFor(14), color: Colors.text2, textAlign: 'center' },
   reviewCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.xl,
@@ -310,18 +345,47 @@ const s = StyleSheet.create({
   },
   revHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.space3 },
   userInfo: { flexDirection: 'row', gap: Spacing.space3 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.slateTintBg, alignItems: 'center', justifyContent: 'center' },
-  avatarInit: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text },
-  revName: { fontFamily: 'Almarai_700Bold', fontSize: 14, color: Colors.text, writingDirection: 'rtl' },
-  revTime: { fontFamily: 'Almarai_400Regular', fontSize: 12, color: Colors.text2, writingDirection: 'rtl' },
-  comment: { fontFamily: 'Almarai_400Regular', fontSize: 14, color: Colors.text, writingDirection: 'rtl', lineHeight: 22 },
+  avatar: { width: 40, height: 40, borderRadius: Radius.pill, backgroundColor: Colors.slateTintBg, alignItems: 'center', justifyContent: 'center' },
+  avatarInit: { fontFamily: 'Almarai_700Bold', fontSize: 16, lineHeight: lineHeightFor(16), color: Colors.text },
+  revName: { fontFamily: 'Almarai_700Bold', fontSize: 14, lineHeight: lineHeightFor(14), color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
+  revTime: { fontFamily: 'Almarai_400Regular', fontSize: 12, lineHeight: lineHeightFor(12), color: Colors.text2, textAlign: 'left', writingDirection: 'rtl' },
+  comment: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: lineHeightFor(14), color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
   footer: { backgroundColor: Colors.white, padding: Spacing.space4, borderTopWidth: 1, borderTopColor: Colors.border },
   writeBox: { backgroundColor: Colors.white, padding: Spacing.space4, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.space3 },
   writeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  writeTitle: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.text },
-  starsInput: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: Spacing.space2 },
-  commentInput: { height: 80, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, padding: Spacing.space3, fontFamily: 'Almarai_400Regular', textAlignVertical: 'top' },
-  writeBtn: { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: Radius.lg, gap: 8 },
+  writeTitle: { fontFamily: 'Almarai_700Bold', fontSize: 16, lineHeight: lineHeightFor(16), color: Colors.text, textAlign: 'left', writingDirection: 'rtl' },
+  closeBtn: { minWidth: Spacing.touch, minHeight: Spacing.touch, alignItems: 'center', justifyContent: 'center' },
+  starsInput: { paddingVertical: Spacing.space1 },
+  commentInput: {
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    padding: Spacing.space3,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: lineHeightFor(14),
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textAlignVertical: 'top',
+  },
+  submitErrorText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 13,
+    lineHeight: lineHeightFor(13),
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  writeBtn: {
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    borderRadius: Radius.lg,
+    gap: Spacing.space2,
+  },
   writeBtnDisabled: { opacity: 0.5 },
-  writeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, color: Colors.white },
+  writeTxt: { fontFamily: 'Almarai_700Bold', fontSize: 16, lineHeight: lineHeightFor(16), color: Colors.white },
 })
