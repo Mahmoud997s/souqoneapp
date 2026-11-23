@@ -145,21 +145,22 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
   })
 
   describe('4. Parts Landing PartsCategoriesGrid', () => {
-    it('renders 11 parts categories in exact sequence', async () => {
+    it('renders all canonical parts categories + all in exact sequence', async () => {
       const { getAllByText } = await render(<PartsCategoriesGrid />)
 
       const arabicLabels = getAllByText(/[\u0600-\u06FF]/).map((node) => node.props.children)
       expect(arabicLabels).toEqual([
-        'المحرك',
-        'الهيكل',
-        'الكهرباء',
-        'المساعدات والتعليق',
-        'الفرامل',
-        'الداخلية',
-        'الإطارات',
-        'البطاريات',
-        'الزيوت',
-        'إكسسوارات',
+        'محرك وملحقاته',
+        'الهيكل والبودي',
+        'كهرباء وإلكترونيات',
+        'مساعدات ونظام تعليق',
+        'فرامل ومكابح',
+        'مقصورة وداخلية',
+        'إطارات وجنوط',
+        'بطاريات',
+        'زيوت وفلاتر',
+        'إكسسوارات وزينة',
+        'أخرى',
         'عرض الكل',
       ])
     })
@@ -167,67 +168,73 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
     it('navigates to exact routes when each parts category tile is pressed', async () => {
       const { getByText } = await render(<PartsCategoriesGrid />)
 
-      // 1. المحرك
+      // 1. محرك وملحقاته
       await act(async () => {
-        fireEvent.press(getByText('المحرك'))
+        fireEvent.press(getByText('محرك وملحقاته'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=ENGINE')
 
-      // 2. الهيكل
+      // 2. الهيكل والبودي
       await act(async () => {
-        fireEvent.press(getByText('الهيكل'))
+        fireEvent.press(getByText('الهيكل والبودي'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=BODY')
 
-      // 3. الكهرباء
+      // 3. كهرباء وإلكترونيات
       await act(async () => {
-        fireEvent.press(getByText('الكهرباء'))
+        fireEvent.press(getByText('كهرباء وإلكترونيات'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=ELECTRICAL')
 
-      // 4. المساعدات والتعليق
+      // 4. مساعدات ونظام تعليق
       await act(async () => {
-        fireEvent.press(getByText('المساعدات والتعليق'))
+        fireEvent.press(getByText('مساعدات ونظام تعليق'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=SUSPENSION')
 
-      // 5. الفرامل
+      // 5. فرامل ومكابح
       await act(async () => {
-        fireEvent.press(getByText('الفرامل'))
+        fireEvent.press(getByText('فرامل ومكابح'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=BRAKES')
 
-      // 6. الداخلية
+      // 6. مقصورة وداخلية
       await act(async () => {
-        fireEvent.press(getByText('الداخلية'))
+        fireEvent.press(getByText('مقصورة وداخلية'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=INTERIOR')
 
-      // 7. الإطارات
+      // 7. إطارات وجنوط
       await act(async () => {
-        fireEvent.press(getByText('الإطارات'))
+        fireEvent.press(getByText('إطارات وجنوط'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=TIRES')
 
-      // 8. البطاريات
+      // 8. بطاريات
       await act(async () => {
-        fireEvent.press(getByText('البطاريات'))
+        fireEvent.press(getByText('بطاريات'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=BATTERIES')
 
-      // 9. الزيوت
+      // 9. زيوت وفلاتر
       await act(async () => {
-        fireEvent.press(getByText('الزيوت'))
+        fireEvent.press(getByText('زيوت وفلاتر'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=OILS')
 
-      // 10. إكسسوارات
+      // 10. إكسسوارات وزينة
       await act(async () => {
-        fireEvent.press(getByText('إكسسوارات'))
+        fireEvent.press(getByText('إكسسوارات وزينة'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=ACCESSORIES')
 
-      // 11. عرض الكل
+      // 11. أخرى
+      await act(async () => {
+        fireEvent.press(getByText('أخرى'))
+      })
+      expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=OTHER')
+
+      // 12. عرض الكل
       await act(async () => {
         fireEvent.press(getByText('عرض الكل'))
       })
@@ -236,19 +243,20 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
   })
 
   describe('5. Services Landing ServicesCategoriesGrid', () => {
-    it('renders 9 services categories in exact sequence', async () => {
+    it('renders all canonical services categories + all in exact sequence', async () => {
       const { getAllByText } = await render(<ServicesCategoriesGrid />)
 
       const arabicLabels = getAllByText(/[\u0600-\u06FF]/).map((node) => node.props.children)
       expect(arabicLabels).toEqual([
-        'صيانة',
-        'غسيل وتلميع',
-        'فحص',
-        'سمكرة وصبغ',
-        'تعديل',
-        'ونش وإنقاذ',
-        'مفاتيح',
-        'إكسسوارات',
+        'صيانة وميكانيكا',
+        'غسيل وتلميع ونانو',
+        'تعديل وتزويد',
+        'فحص وبرمجة كمبيوتر',
+        'سمكرة ودهان وتعديل صدمات',
+        'تركيب شاشات وإكسسوارات',
+        'قص وبرمجة مفاتيح',
+        'سطحات ونقل سيارات',
+        'خدمات أخرى',
         'عرض الكل',
       ])
     })
@@ -256,55 +264,61 @@ describe('Section Grids Order — New Before Used (D-144)', () => {
     it('navigates to exact routes when each service category tile is pressed', async () => {
       const { getByText } = await render(<ServicesCategoriesGrid />)
 
-      // 1. صيانة
+      // 1. صيانة وميكانيكا
       await act(async () => {
-        fireEvent.press(getByText('صيانة'))
+        fireEvent.press(getByText('صيانة وميكانيكا'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=MAINTENANCE')
 
-      // 2. غسيل وتلميع
+      // 2. غسيل وتلميع ونانو
       await act(async () => {
-        fireEvent.press(getByText('غسيل وتلميع'))
+        fireEvent.press(getByText('غسيل وتلميع ونانو'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=CLEANING')
 
-      // 3. فحص
+      // 3. تعديل وتزويد
       await act(async () => {
-        fireEvent.press(getByText('فحص'))
-      })
-      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=INSPECTION')
-
-      // 4. سمكرة وصبغ
-      await act(async () => {
-        fireEvent.press(getByText('سمكرة وصبغ'))
-      })
-      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=BODYWORK')
-
-      // 5. تعديل
-      await act(async () => {
-        fireEvent.press(getByText('تعديل'))
+        fireEvent.press(getByText('تعديل وتزويد'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=MODIFICATION')
 
-      // 6. ونش وإنقاذ
+      // 4. فحص وبرمجة كمبيوتر
       await act(async () => {
-        fireEvent.press(getByText('ونش وإنقاذ'))
+        fireEvent.press(getByText('فحص وبرمجة كمبيوتر'))
       })
-      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=TOWING')
+      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=INSPECTION')
 
-      // 7. مفاتيح
+      // 5. سمكرة ودهان وتعديل صدمات
       await act(async () => {
-        fireEvent.press(getByText('مفاتيح'))
+        fireEvent.press(getByText('سمكرة ودهان وتعديل صدمات'))
       })
-      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=KEYS_LOCKS')
+      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=BODYWORK')
 
-      // 8. إكسسوارات
+      // 6. تركيب شاشات وإكسسوارات
       await act(async () => {
-        fireEvent.press(getByText('إكسسوارات'))
+        fireEvent.press(getByText('تركيب شاشات وإكسسوارات'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=ACCESSORIES_INSTALL')
 
-      // 9. عرض الكل
+      // 7. قص وبرمجة مفاتيح
+      await act(async () => {
+        fireEvent.press(getByText('قص وبرمجة مفاتيح'))
+      })
+      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=KEYS_LOCKS')
+
+      // 8. سطحات ونقل سيارات
+      await act(async () => {
+        fireEvent.press(getByText('سطحات ونقل سيارات'))
+      })
+      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=TOWING')
+
+      // 9. خدمات أخرى
+      await act(async () => {
+        fireEvent.press(getByText('خدمات أخرى'))
+      })
+      expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=OTHER_SERVICE')
+
+      // 10. عرض الكل
       await act(async () => {
         fireEvent.press(getByText('عرض الكل'))
       })

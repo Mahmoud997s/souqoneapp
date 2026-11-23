@@ -38,7 +38,7 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
     jest.clearAllMocks()
   })
 
-  describe('1. 11-Item Order & Vector Icon Definitions in PartsCategoriesGrid', () => {
+  describe('1. 12-Item Order & Vector Icon Definitions in PartsCategoriesGrid', () => {
     const expectedCategoryIds = [
       'ENGINE',
       'BODY',
@@ -50,10 +50,11 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
       'BATTERIES',
       'OILS',
       'ACCESSORIES',
+      'OTHER',
       'all',
     ]
 
-    it('defines all 11 part categories with iconType: "material" and valid MaterialCommunityIcons names', () => {
+    it('defines all 12 part categories with iconType: "material" and valid MaterialCommunityIcons names', () => {
       expect(PARTS_LANDING_CATEGORIES.map((c) => c.id)).toEqual(expectedCategoryIds)
 
       for (const cat of PARTS_LANDING_CATEGORIES) {
@@ -64,16 +65,17 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
       }
 
       expect(PARTS_LANDING_CATEGORIES.map((c) => c.label)).toEqual([
-        'المحرك',
-        'الهيكل',
-        'الكهرباء',
-        'المساعدات والتعليق',
-        'الفرامل',
-        'الداخلية',
-        'الإطارات',
-        'البطاريات',
-        'الزيوت',
-        'إكسسوارات',
+        'محرك وملحقاته',
+        'الهيكل والبودي',
+        'كهرباء وإلكترونيات',
+        'مساعدات ونظام تعليق',
+        'فرامل ومكابح',
+        'مقصورة وداخلية',
+        'إطارات وجنوط',
+        'بطاريات',
+        'زيوت وفلاتر',
+        'إكسسوارات وزينة',
+        'أخرى',
         'عرض الكل',
       ])
     })
@@ -83,7 +85,7 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
       expect(fs.existsSync(partsDir)).toBe(false)
     })
 
-    it('renders vector icons inside 36x36 icon boxes for all 11 items and ZERO 3D image tiles', async () => {
+    it('renders vector icons inside 36x36 icon boxes for all 12 items and ZERO 3D image tiles', async () => {
       const { queryAllByTestId, getByTestId, getAllByText } = await render(
         <PartsCategoriesGrid />
       )
@@ -94,16 +96,17 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
 
       const labels = getAllByText(/[\u0600-\u06FF]/).map((n) => n.props.children)
       expect(labels).toEqual([
-        'المحرك',
-        'الهيكل',
-        'الكهرباء',
-        'المساعدات والتعليق',
-        'الفرامل',
-        'الداخلية',
-        'الإطارات',
-        'البطاريات',
-        'الزيوت',
-        'إكسسوارات',
+        'محرك وملحقاته',
+        'الهيكل والبودي',
+        'كهرباء وإلكترونيات',
+        'مساعدات ونظام تعليق',
+        'فرامل ومكابح',
+        'مقصورة وداخلية',
+        'إطارات وجنوط',
+        'بطاريات',
+        'زيوت وفلاتر',
+        'إكسسوارات وزينة',
+        'أخرى',
         'عرض الكل',
       ])
 
@@ -120,12 +123,12 @@ describe('D-196 — Parts Landing Restored Vector Category Icons & No 3D Assets'
       const { getByText } = await render(<PartsCategoriesGrid />)
 
       await act(async () => {
-        fireEvent.press(getByText('إكسسوارات'))
+        fireEvent.press(getByText('إكسسوارات وزينة'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=ACCESSORIES')
 
       await act(async () => {
-        fireEvent.press(getByText('المساعدات والتعليق'))
+        fireEvent.press(getByText('مساعدات ونظام تعليق'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/parts/browse?category=SUSPENSION')
 

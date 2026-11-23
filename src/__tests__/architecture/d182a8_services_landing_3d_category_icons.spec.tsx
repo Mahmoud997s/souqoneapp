@@ -39,20 +39,21 @@ describe('D-196 — Services Landing Restored Vector Category Icons & No 3D Asse
     jest.clearAllMocks()
   })
 
-  describe('1. 9-Item Order & Vector Icon Definitions in ServicesCategoriesGrid', () => {
+  describe('1. 10-Item Order & Vector Icon Definitions in ServicesCategoriesGrid', () => {
     const expectedServiceCategoryIds = [
       'MAINTENANCE',
       'CLEANING',
+      'MODIFICATION',
       'INSPECTION',
       'BODYWORK',
-      'MODIFICATION',
-      'TOWING',
-      'KEYS_LOCKS',
       'ACCESSORIES_INSTALL',
+      'KEYS_LOCKS',
+      'TOWING',
+      'OTHER_SERVICE',
       'all',
     ]
 
-    it('defines all 9 service categories with iconType: "material" and valid vector icon names', () => {
+    it('defines all 10 service categories with iconType: "material" and valid vector icon names', () => {
       expect(SERVICES_LANDING_CATEGORIES.map((c) => c.id)).toEqual(expectedServiceCategoryIds)
 
       for (const cat of SERVICES_LANDING_CATEGORIES) {
@@ -63,14 +64,15 @@ describe('D-196 — Services Landing Restored Vector Category Icons & No 3D Asse
       }
 
       expect(SERVICES_LANDING_CATEGORIES.map((c) => c.label)).toEqual([
-        'صيانة',
-        'غسيل وتلميع',
-        'فحص',
-        'سمكرة وصبغ',
-        'تعديل',
-        'ونش وإنقاذ',
-        'مفاتيح',
-        'إكسسوارات',
+        'صيانة وميكانيكا',
+        'غسيل وتلميع ونانو',
+        'تعديل وتزويد',
+        'فحص وبرمجة كمبيوتر',
+        'سمكرة ودهان وتعديل صدمات',
+        'تركيب شاشات وإكسسوارات',
+        'قص وبرمجة مفاتيح',
+        'سطحات ونقل سيارات',
+        'خدمات أخرى',
         'عرض الكل',
       ])
     })
@@ -80,7 +82,7 @@ describe('D-196 — Services Landing Restored Vector Category Icons & No 3D Asse
       expect(fs.existsSync(servicesDir)).toBe(false)
     })
 
-    it('renders vector icons inside 36x36 icon boxes for all 9 items and ZERO 3D image tiles', async () => {
+    it('renders vector icons inside 36x36 icon boxes for all 10 items and ZERO 3D image tiles', async () => {
       const { queryAllByTestId, getByTestId, getAllByText } = await render(
         <ServicesCategoriesGrid />
       )
@@ -91,14 +93,15 @@ describe('D-196 — Services Landing Restored Vector Category Icons & No 3D Asse
 
       const labels = getAllByText(/[\u0600-\u06FF]/).map((n) => n.props.children)
       expect(labels).toEqual([
-        'صيانة',
-        'غسيل وتلميع',
-        'فحص',
-        'سمكرة وصبغ',
-        'تعديل',
-        'ونش وإنقاذ',
-        'مفاتيح',
-        'إكسسوارات',
+        'صيانة وميكانيكا',
+        'غسيل وتلميع ونانو',
+        'تعديل وتزويد',
+        'فحص وبرمجة كمبيوتر',
+        'سمكرة ودهان وتعديل صدمات',
+        'تركيب شاشات وإكسسوارات',
+        'قص وبرمجة مفاتيح',
+        'سطحات ونقل سيارات',
+        'خدمات أخرى',
         'عرض الكل',
       ])
 
@@ -111,23 +114,23 @@ describe('D-196 — Services Landing Restored Vector Category Icons & No 3D Asse
       }
     })
 
-    it('navigates to /services/browse?serviceType=<ID> for all 8 category tabs and /services/browse for all', async () => {
+    it('navigates to /services/browse?serviceType=<ID> for category tabs and /services/browse for all', async () => {
       const { getByText } = await render(<ServicesCategoriesGrid />)
 
       await act(async () => {
-        fireEvent.press(getByText('صيانة'))
+        fireEvent.press(getByText('صيانة وميكانيكا'))
       })
       expect(mockPush).toHaveBeenLastCalledWith(
         '/services/browse?serviceType=MAINTENANCE'
       )
 
       await act(async () => {
-        fireEvent.press(getByText('غسيل وتلميع'))
+        fireEvent.press(getByText('غسيل وتلميع ونانو'))
       })
       expect(mockPush).toHaveBeenLastCalledWith('/services/browse?serviceType=CLEANING')
 
       await act(async () => {
-        fireEvent.press(getByText('فحص'))
+        fireEvent.press(getByText('فحص وبرمجة كمبيوتر'))
       })
       expect(mockPush).toHaveBeenLastCalledWith(
         '/services/browse?serviceType=INSPECTION'
