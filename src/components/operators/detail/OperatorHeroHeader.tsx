@@ -148,7 +148,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_700Bold',
     fontSize: 22,
     lineHeight: lineHeightFor(22),
-    fontWeight: '700',
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.space1,
@@ -172,6 +171,7 @@ const s = StyleSheet.create({
     marginBottom: Spacing.space4,
   },
   metaDot: {
+    fontFamily: 'Almarai_400Regular',
     color: Colors.textMuted,
     marginHorizontal: Spacing.space1,
     fontSize: 12,

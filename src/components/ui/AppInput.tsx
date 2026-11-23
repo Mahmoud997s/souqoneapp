@@ -99,6 +99,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             style={[
               s.input,
               { 
+                fontFamily: 'Almarai_400Regular',
                 fontSize: isSm ? 12.5 : 13.5,
                 lineHeight: isSm ? 17 : 19,
                 minHeight: rest.multiline ? 76 : (inputHeight - 4),

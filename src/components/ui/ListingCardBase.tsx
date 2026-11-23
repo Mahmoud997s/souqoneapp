@@ -857,6 +857,7 @@ const s = StyleSheet.create({
     writingDirection: 'rtl',
   },
   dotSeparator: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     color: Colors.border,
   },

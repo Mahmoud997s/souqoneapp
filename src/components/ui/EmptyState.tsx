@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   compactTitle: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 14,
   },
   subtitle: {
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   compactSubtitle: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     lineHeight: 18,
     maxWidth: 240,

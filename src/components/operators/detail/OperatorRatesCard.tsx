@@ -99,8 +99,8 @@ const s = StyleSheet.create({
     ...Shadows.sm,
   },
   cardTitle: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 16,
-    fontWeight: '700',
     color: Colors.text,
     marginBottom: Spacing.space3,
     writingDirection: RTLText.writingDirection,
@@ -123,6 +123,7 @@ const s = StyleSheet.create({
     gap: Spacing.space2,
   },
   rateTypeLabel: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 14,
     color: Colors.textMuted,
     writingDirection: RTLText.writingDirection,
@@ -139,14 +140,12 @@ const s = StyleSheet.create({
   rateValuePrimary: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '700',
     color: Colors.primary,
     lineHeight: lineHeightFor(15),
   },
   rateValueSecondary: {
     fontFamily: 'Almarai_700Bold',
     fontSize: 15,
-    fontWeight: '700',
     color: Colors.primary,
     lineHeight: lineHeightFor(15),
   },
@@ -157,6 +156,7 @@ const s = StyleSheet.create({
     marginTop: Spacing.space1,
   },
   negotiableNoteText: {
+    fontFamily: 'Almarai_400Regular',
     fontSize: 12,
     color: Colors.textMuted,
     flex: 1,
@@ -170,8 +170,8 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.space2,
   },
   noRateText: {
+    fontFamily: 'Almarai_700Bold',
     fontSize: 14,
-    fontWeight: '600',
     color: Colors.textMuted,
     writingDirection: RTLText.writingDirection,
     lineHeight: lineHeightFor(14),

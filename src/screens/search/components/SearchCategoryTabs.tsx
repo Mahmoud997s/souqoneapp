@@ -139,6 +139,7 @@ const s = StyleSheet.create({
     marginEnd: 2,
   },
   tabText: {
+    fontFamily: 'Almarai_700Bold',
     textAlign: 'center',
     writingDirection: 'rtl',
     fontSize: 11.5,
