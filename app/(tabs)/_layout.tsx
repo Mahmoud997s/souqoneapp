@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { useAuthStore } from '../../src/store/authStore'
+import { useChatTabUnreadCount } from '../../src/hooks/useChat'
 import { Colors } from '../../src/constants/colors'
 import { Typography } from '../../src/constants/typography'
 import { BottomBarTokens } from '../../src/constants/bottomBarTokens'
@@ -34,7 +35,7 @@ const T = {
   white:      Colors.white,
   border:     Colors.border,
   barBg:      Colors.white,
-  badgeBg:    Colors.accent,
+  badgeBg:    Colors.primaryStrong,
   badgeBorder:Colors.white,
 } as const
 
@@ -56,10 +57,14 @@ interface TabItemProps {
   meta: typeof TABS[number]
   focused: boolean
   onPress: () => void
-  showBadge?: boolean
+  badgeCount?: number
 }
 
-function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
+function formatBadgeCount(count: number): string {
+  return count > 99 ? '99+' : String(count)
+}
+
+function TabItem({ meta, focused, onPress, badgeCount = 0 }: TabItemProps) {
   const scale   = useSharedValue(1)
   const dotW    = useSharedValue(focused ? 1 : 0)
   const bgAlpha = useSharedValue(focused ? 1 : 0)
@@ -98,6 +103,12 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
     onPress()
   }, [onPress])
 
+  const hasUnread = badgeCount > 0
+  const badgeText = hasUnread ? formatBadgeCount(badgeCount) : ''
+  const tabAccessibilityLabel = hasUnread
+    ? `${meta.label}، ${badgeText} غير مقروءة`
+    : meta.label
+
   return (
     <Pressable
       onPress={handlePress}
@@ -108,7 +119,7 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
       ]}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
-      accessibilityLabel={meta.label}
+      accessibilityLabel={tabAccessibilityLabel}
     >
       {/* Icon + badge */}
       <View style={s.iconContainer}>
@@ -123,8 +134,12 @@ function TabItem({ meta, focused, onPress, showBadge = false }: TabItemProps) {
           />
         </Animated.View>
 
-        {showBadge && (
-          <View style={s.badge} testID="chat-tab-badge" />
+        {hasUnread && (
+          <View style={s.badge} testID="chat-tab-badge">
+            <Text style={s.badgeText} numberOfLines={1}>
+              {badgeText}
+            </Text>
+          </View>
         )}
       </View>
 
@@ -147,6 +162,7 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { isLoggedIn } = useAuthStore()
+  const chatUnreadCount = useChatTabUnreadCount(isLoggedIn)
 
   const handlePost = useCallback(() => {
     const { loginRoute, postEntryRoute } = require('../../src/navigation/listingRoutes')
@@ -177,8 +193,12 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
     />
   )
 
-  const collapsedBadge = activeRoute?.name === 'chat' ? (
-    <View style={s.collapsedBadge} testID="collapsed-chat-badge" />
+  const collapsedBadge = activeRoute?.name === 'chat' && chatUnreadCount > 0 ? (
+    <View style={s.collapsedBadge} testID="collapsed-chat-badge">
+      <Text style={s.badgeText} numberOfLines={1}>
+        {formatBadgeCount(chatUnreadCount)}
+      </Text>
+    </View>
   ) : undefined
 
   return (
@@ -225,7 +245,7 @@ export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarPro
               meta={meta}
               focused={focused}
               onPress={onPress}
-              showBadge={route.name === 'chat'}
+              badgeCount={route.name === 'chat' ? chatUnreadCount : 0}
             />
           )
         })}
@@ -320,23 +340,36 @@ const s = StyleSheet.create({
   // Unread badge
   badge: {
     position: 'absolute',
-    top: 2,
-    right: 4,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    top: -2,
+    end: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
     backgroundColor: T.badgeBg,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: T.badgeBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontFamily: FONT_ACT,
+    fontSize: 10,
+    lineHeight: 13,
+    color: T.white,
+    textAlign: 'center',
   },
 
   // ── Collapsed Circle Badge ──
   collapsedBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
     backgroundColor: T.badgeBg,
     borderWidth: 1.5,
     borderColor: T.badgeBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

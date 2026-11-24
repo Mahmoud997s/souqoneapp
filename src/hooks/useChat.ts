@@ -22,16 +22,39 @@ function normalizeChatEnvelope(raw: unknown): unknown {
   return raw
 }
 
+export const CHAT_ROOMS_QUERY_KEY = ['chat-rooms'] as const
+
+async function fetchChatRooms(): Promise<ChatRoom[]> {
+  const res = await chatApi.getRooms({ includeArchived: true })
+  const { items } = parseListEnvelope<ChatRoom>(normalizeChatEnvelope(res.data))
+  return items
+}
+
+export function computeChatUnreadTotal(rooms: ChatRoom[] | undefined): number {
+  if (!Array.isArray(rooms)) return 0
+  return rooms.reduce((sum, r) => {
+    if (r.archived) return sum
+    return sum + Math.max(0, r.unreadCount ?? 0)
+  }, 0)
+}
+
 export function useChatRooms() {
   return useQuery({
-    queryKey: ['chat-rooms'],
-    queryFn: async () => {
-      const res = await chatApi.getRooms({ includeArchived: true })
-      const { items } = parseListEnvelope<ChatRoom>(normalizeChatEnvelope(res.data))
-      return items
-    },
+    queryKey: CHAT_ROOMS_QUERY_KEY,
+    queryFn: fetchChatRooms,
     refetchInterval: 15000,
   })
+}
+
+export function useChatTabUnreadCount(enabled = true): number {
+  const { data } = useQuery({
+    queryKey: CHAT_ROOMS_QUERY_KEY,
+    queryFn: fetchChatRooms,
+    refetchInterval: 15000,
+    enabled,
+    select: computeChatUnreadTotal,
+  })
+  return data ?? 0
 }
 
 export function useArchiveRoom() {
