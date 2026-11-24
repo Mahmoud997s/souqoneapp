@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native'
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet'
+import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet'
 import { Colors } from '../../constants/colors'
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '👏', '🎉', '😍']
@@ -23,6 +24,18 @@ export function ReactionPicker({ isVisible, selectedMsgId, onReact, onDismiss }:
     }
   }, [isVisible])
 
+  const renderBackdrop = React.useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.12}
+      />
+    ),
+    []
+  )
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
@@ -30,6 +43,7 @@ export function ReactionPicker({ isVisible, selectedMsgId, onReact, onDismiss }:
       snapPoints={[200]}
       index={0}
       enablePanDownToClose
+      backdropComponent={renderBackdrop}
     >
       <BottomSheetView style={s.container}>
         <Text style={s.title}>أضف تفاعل</Text>

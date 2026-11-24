@@ -33,7 +33,7 @@ export const chatApi = {
     apiClient.get<ChatMessage[]>(`/chat/conversations/${roomId}?page=${page}&limit=${limit}`),
   createRoom: (data: { entityType: string; entityId: string; receiverId?: string; listingId?: string }) =>
     apiClient.post<ChatRoom>('/chat/conversations', data),
-  sendMessage: (roomId: string, data: { content: string; type?: string; mediaUrl?: string }) =>
+  sendMessage: (roomId: string, data: { content?: string; type?: string; mediaUrl?: string }) =>
     apiClient.post<ChatMessage>(`/chat/conversations/${roomId}/messages`, data),
   archiveRoom: (id: string, archive: boolean) =>
     apiClient.patch<{ message: string }>(`/chat/conversations/${id}/archive`, { archive }),

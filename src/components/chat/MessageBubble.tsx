@@ -2,16 +2,15 @@ import React, { useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView, ImageResizeMode } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
+import * as Haptics from 'expo-haptics'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Swipeable } from 'react-native-gesture-handler'
 import { Colors } from '../../constants/colors'
 import { LocalMessage } from '../../hooks/useChatRoomLogic'
+import { fromWireType } from '../../utils/chatMessageType'
 import { AttachmentCard } from './AttachmentCard'
 import { AudioPlayer } from './AudioPlayer'
-import { toastService } from '../../store/toastStore'
 import { ModalToastHost } from '../ui/ModalToastHost'
-import { Swipeable } from 'react-native-gesture-handler'
-
-const screenWidth = Dimensions.get('window').width
-const MAX_IMAGE_WIDTH = screenWidth * 0.7 - 32
 
 function formatMsgTime(iso: string) {
   if (!iso) return ''
@@ -23,34 +22,56 @@ function formatMsgTime(iso: string) {
   return `${h % 12 || 12}:${m} ${ampm}`
 }
 
-function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: boolean; isRead?: boolean; isDelivered?: boolean; error?: boolean }) {
+function MessageStatusIcon({
+  pending,
+  isRead,
+  isDelivered,
+  error,
+  lightOnDark,
+}: {
+  pending?: boolean
+  isRead?: boolean
+  isDelivered?: boolean
+  error?: boolean
+  lightOnDark?: boolean
+}) {
   if (pending) {
-    return <Ionicons name="time-outline" size={13} color={Colors.textMuted} testID="chat-message-pending-icon" />
+    return (
+      <Ionicons
+        name="time-outline"
+        size={13}
+        color={lightOnDark ? Colors.white : Colors.textMuted}
+        testID="chat-message-pending-icon"
+      />
+    )
   }
-  
+
   if (error) {
-    return <Ionicons name="alert-circle" size={14} color={Colors.coralLight} />
+    return null
   }
-  
+
+  const mutedColor = lightOnDark ? Colors.white : Colors.textMuted
+  const readColor = lightOnDark ? Colors.white : Colors.readReceiptBlue
+
   if (isRead) {
     return (
-      <View style={{ flexDirection: 'row', marginStart: -4, alignItems: 'center' }}>
-        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} />
-        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} style={{ marginStart: -6 }} />
+      <View style={s.doubleTickRow}>
+        <Ionicons name="checkmark" size={13} color={readColor} />
+        <Ionicons name="checkmark" size={13} color={readColor} style={{ marginStart: -6 }} />
       </View>
     )
   }
 
   if (isDelivered) {
     return (
-      <View style={{ flexDirection: 'row', marginStart: -4, alignItems: 'center' }}>
-        <Ionicons name="checkmark" size={13} color={Colors.textMuted} />
-        <Ionicons name="checkmark" size={13} color={Colors.textMuted} style={{ marginStart: -6 }} />
+      <View style={s.doubleTickRow}>
+        <Ionicons name="checkmark" size={13} color={mutedColor} />
+        <Ionicons name="checkmark" size={13} color={mutedColor} style={{ marginStart: -6 }} />
       </View>
     )
   }
-  
-  return <Ionicons name="checkmark" size={13} color={Colors.textMuted} />
+
+  return <Ionicons name="checkmark" size={13} color={mutedColor} />
 }
 
 interface Props {
@@ -61,10 +82,11 @@ interface Props {
   onReact?: (msgId: string, emoji: string) => void
   onRetry?: (msgId: string) => void
   onRemoveFailed?: (msgId: string) => void
+  onCancelUpload?: (msgId: string) => void
   onSwipeReply?: (msgId: string) => void
 }
 
-const parseMessageText = (content: string) => {
+export const parseMessageText = (content: string) => {
   if (!content) return { isReply: false, text: '' }
   const match = content.match(/^\[REPLY\|([^\|]+)\|([^\|]+)\|(.*?)\]\n([\s\S]*)$/)
   if (match) {
@@ -73,48 +95,42 @@ const parseMessageText = (content: string) => {
       replyId: match[1],
       replySender: match[2],
       replyText: match[3],
-      text: match[4]
+      text: match[4],
     }
   }
   return { isReply: false, text: content }
 }
 
-export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onReact, onRetry, onRemoveFailed, onSwipeReply }: Props) {
+export function MessageBubble({
+  msg,
+  isOwn,
+  onLongPress,
+  onRetry,
+  onRemoveFailed,
+  onCancelUpload,
+  onSwipeReply,
+}: Props) {
   const [fullScreenImage, setFullScreenImage] = useState(false)
   const swipeableRef = useRef<Swipeable>(null)
-  
-  const isImage = msg.type === 'IMAGE' || (msg.mediaUrl && !msg.type)
-  const isFile = msg.type === 'FILE'
-  const isVoice = msg.type === 'VOICE'
-  const parsed = parseMessageText(msg.content)
-  
-  const handleFailedMessagePress = () => {
-    toastService.showActionSheet({
-      title: 'لم يتم إرسال الرسالة',
-      options: [
-        {
-          text: '🔄 إعادة الإرسال',
-          onPress: () => onRetry?.(msg.id),
-          style: 'default',
-        },
-        {
-          text: '🗑️ حذف الرسالة',
-          onPress: () => onRemoveFailed?.(msg.id),
-          style: 'destructive',
-        },
-      ],
-    })
-  }
+  const insets = useSafeAreaInsets()
+  const maxImageWidth = Math.round(Dimensions.get('window').width * 0.72)
 
-  const renderLeftActions = () => {
-    return (
-      <View style={s.swipeActionContainer}>
-        <View style={s.swipeActionIcon}>
-          <Ionicons name="arrow-undo" size={20} color={Colors.white} style={{ transform: [{ scaleX: -1 }] }} />
-        </View>
+  const localType = msg.type ? fromWireType(msg.type) : msg.mediaUrl ? 'IMAGE' : 'TEXT'
+  const isImage = localType === 'IMAGE'
+  const isFile = localType === 'FILE'
+  const isVoice = localType === 'VOICE'
+  const parsed = parseMessageText(msg.content)
+  const isImageOnly = isImage && !!msg.mediaUrl && !parsed.text && !parsed.isReply
+  const isUploading = !!msg.pending && (isImage || isFile || isVoice) && typeof msg.uploadProgress === 'number'
+  const hasReactions = !!(msg.reactions && msg.reactions.length > 0)
+
+  const renderLeftActions = () => (
+    <View style={s.swipeActionContainer}>
+      <View style={s.swipeActionIcon}>
+        <Ionicons name="arrow-undo" size={16} color={Colors.white} style={{ transform: [{ scaleX: -1 }] }} />
       </View>
-    )
-  }
+    </View>
+  )
 
   return (
     <Swipeable
@@ -122,204 +138,485 @@ export function MessageBubble({ msg, isOwn, isActiveReactMsgId, onLongPress, onR
       renderLeftActions={renderLeftActions}
       friction={2}
       leftThreshold={40}
-      enabled={!msg.pendingDelete}
+      enabled={!msg.pendingDelete && !msg.error}
+      onSwipeableWillOpen={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      }}
       onSwipeableOpen={() => {
         onSwipeReply?.(msg.id)
         setTimeout(() => swipeableRef.current?.close(), 0)
       }}
     >
-      <View style={[s.msgRow, isOwn ? s.msgOwn : s.msgOther]}>
+      <View
+        style={[
+          s.msgRow,
+          isOwn ? s.msgOwn : s.msgOther,
+          hasReactions ? s.msgRowWithReactions : null,
+        ]}
+      >
         <View style={s.bubbleContainer}>
-        <TouchableOpacity 
-          activeOpacity={0.9} 
-          onLongPress={msg.pendingDelete ? undefined : () => onLongPress(msg.id)}
-          onPress={msg.pendingDelete ? undefined : (msg.error && isOwn ? handleFailedMessagePress : undefined)}
-          disabled={msg.pendingDelete}
-          style={[
-            s.msgBubble, 
-            isOwn ? s.msgBubbleOwn : s.msgBubbleOther,
-            msg.error ? s.msgBubbleError : null,
-            msg.pendingDelete ? { opacity: 0.45 } : null,
-            (parsed.isReply || isFile || isVoice) ? s.msgBubbleExtended : null,
-            (msg.reactions && msg.reactions.length > 0) ? { marginBottom: 12 } : null
-          ]}
-          testID={msg.pendingDelete ? "chat-message-pending-delete" : "chat_message_bubble"}
-        >
-          {isImage && msg.mediaUrl ? (
-            <TouchableOpacity 
-              activeOpacity={0.8} 
-              onPress={msg.pendingDelete ? undefined : () => setFullScreenImage(true)}
-              disabled={msg.pendingDelete}
-              accessibilityLabel={`Image: ${msg.content || 'No caption'}`}
-            >
-              <Image 
-                source={{ uri: msg.mediaUrl }} 
-                style={[s.msgImage, !msg.content && s.msgImageOnly]} 
-                contentFit="cover" 
-                transition={200}
-              />
-            </TouchableOpacity>
-          ) : null}
-
-          {isFile && msg.mediaUrl ? (
-            <View style={{ marginBottom: msg.content ? 8 : 0 }}>
-              <AttachmentCard 
-                url={msg.mediaUrl}
-                fileName={msg.content || 'ملف مرفق'}
-                isOwn={isOwn}
-              />
-            </View>
-          ) : null}
-
-          {isVoice && msg.mediaUrl ? (
-            <View style={{ marginBottom: parsed.text ? 8 : 0 }}>
-              <AudioPlayer 
-                uri={msg.mediaUrl}
-                isOwn={isOwn}
-              />
-            </View>
-          ) : null}
-
-          {parsed.isReply && (
-            <View style={[s.replyBox, isOwn ? s.replyBoxOwn : s.replyBoxOther]}>
-              <View style={[s.replyLine, isOwn ? s.replyLineOwn : s.replyLineOther]} />
-              <View style={s.replyContent}>
-                <Text style={[s.replySender, isOwn ? s.replySenderOwn : s.replySenderOther]}>{parsed.replySender}</Text>
-                <Text 
-                  style={[s.replySnippet, isOwn ? s.replySnippetOwn : s.replySnippetOther]} 
-                  numberOfLines={2}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onLongPress={msg.pendingDelete ? undefined : () => onLongPress(msg.id)}
+            onPress={msg.pendingDelete ? undefined : msg.error && isOwn ? () => onRetry?.(msg.id) : undefined}
+            disabled={msg.pendingDelete}
+            style={[
+              s.msgBubble,
+              isOwn ? s.msgBubbleOwn : s.msgBubbleOther,
+              msg.error ? s.msgBubbleError : null,
+              msg.pendingDelete ? s.msgBubblePendingDelete : null,
+              isImageOnly ? s.msgBubbleImageOnly : null,
+              (parsed.isReply || isFile || isVoice) && !isImageOnly ? s.msgBubbleExtended : null,
+            ]}
+            testID={msg.pendingDelete ? 'chat-message-pending-delete' : 'chat_message_bubble'}
+          >
+            {isImage && msg.mediaUrl ? (
+              <View style={isImageOnly ? s.imageOnlyWrap : s.imageWithCaptionWrap}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={msg.pendingDelete || isUploading ? undefined : () => setFullScreenImage(true)}
+                  disabled={msg.pendingDelete || isUploading}
+                  accessibilityLabel={`Image: ${msg.content || 'No caption'}`}
+                  testID="chat-image-tap"
                 >
-                  {parsed.replyText}
+                  <Image
+                    source={{ uri: msg.mediaUrl }}
+                    style={[
+                      s.msgImage,
+                      { width: maxImageWidth, height: maxImageWidth },
+                      isImageOnly ? s.msgImageOnly : null,
+                    ]}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                </TouchableOpacity>
+
+                {isUploading ? (
+                  <View style={s.uploadOverlay} testID="chat-upload-progress-overlay">
+                    <Text style={s.uploadPct}>{`${msg.uploadProgress}%`}</Text>
+                    <View style={s.uploadTrack}>
+                      <View
+                        style={[
+                          s.uploadFill,
+                          { width: `${Math.max(5, Math.min(100, msg.uploadProgress ?? 0))}%` },
+                        ]}
+                      />
+                    </View>
+                    {onCancelUpload ? (
+                      <TouchableOpacity
+                        onPress={() => onCancelUpload(msg.id)}
+                        style={s.uploadCancelBtn}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="إلغاء الرفع"
+                        testID="chat-upload-cancel-btn"
+                      >
+                        <Ionicons name="close" size={18} color={Colors.white} />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                ) : null}
+
+                {isImageOnly ? (
+                  <View style={s.imageOnlyTimePill} testID="chat-image-only-time-pill">
+                    <Text style={s.imageOnlyTimeText}>{formatMsgTime(msg.createdAt)}</Text>
+                    {isOwn ? (
+                      <MessageStatusIcon
+                        pending={msg.pending}
+                        isRead={msg.isRead}
+                        isDelivered={msg.isDelivered}
+                        error={msg.error}
+                        lightOnDark
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {isFile && msg.mediaUrl ? (
+              <View style={parsed.text ? s.mediaSpacer : undefined}>
+                <AttachmentCard
+                  url={msg.mediaUrl}
+                  fileName={msg.fileName || msg.content || 'ملف مرفق'}
+                  fileSize={
+                    typeof msg.fileSize === 'number' && msg.fileSize > 0
+                      ? `${(msg.fileSize / (1024 * 1024)).toFixed(1)} ميجابايت`
+                      : undefined
+                  }
+                  isOwn={isOwn}
+                  uploadProgress={isUploading ? msg.uploadProgress : undefined}
+                  onCancelUpload={onCancelUpload ? () => onCancelUpload(msg.id) : undefined}
+                />
+              </View>
+            ) : null}
+
+            {isVoice && msg.mediaUrl ? (
+              <View style={parsed.text ? s.mediaSpacer : undefined}>
+                <AudioPlayer uri={msg.mediaUrl} isOwn={isOwn} />
+              </View>
+            ) : null}
+
+            {parsed.isReply ? (
+              <View style={[s.replyBox, isOwn ? s.replyBoxOwn : s.replyBoxOther]}>
+                <View style={s.replyLine} />
+                <View style={s.replyContent}>
+                  <Text style={s.replySender}>{parsed.replySender}</Text>
+                  <Text style={s.replySnippet} numberOfLines={2}>
+                    {parsed.replyText}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {!!parsed.text && !isFile ? (
+              <Text style={s.msgTxt}>{parsed.text}</Text>
+            ) : null}
+
+            {!isImageOnly ? (
+              <View style={s.timeRow}>
+                <Text style={s.msgTime}>{formatMsgTime(msg.createdAt)}</Text>
+                {isOwn ? (
+                  <MessageStatusIcon
+                    pending={msg.pending}
+                    isRead={msg.isRead}
+                    isDelivered={msg.isDelivered}
+                    error={msg.error}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+
+            {hasReactions ? (
+              <View
+                style={[
+                  s.reactionsBadge,
+                  isOwn ? s.reactionsBadgeOwn : s.reactionsBadgeOther,
+                ]}
+              >
+                <Text style={s.reactionsBadgeTxt} numberOfLines={2} adjustsFontSizeToFit>
+                  {Array.from(new Set(msg.reactions!.map((r) => r.emoji))).join(' ')}
+                  {msg.reactions!.length > 1 ? ` (${msg.reactions!.length})` : ''}
                 </Text>
               </View>
-            </View>
-          )}
-          
-          {!!parsed.text && !isFile && (
-            <Text style={isOwn ? s.msgTxtOwn : s.msgTxtOther}>{parsed.text}</Text>
-          )}
-          
-          {msg.reactions && msg.reactions.length > 0 && (
-            <View style={[
-              s.reactionsBadge, 
-              isOwn ? s.reactionsBadgeOwn : s.reactionsBadgeOther,
-              { maxWidth: 160 }
-            ]}>
-              <Text 
-                style={s.reactionsBadgeTxt}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-              >
-                {Array.from(new Set(msg.reactions.map(r => r.emoji))).join(' ')}
-                {msg.reactions.length > 1 ? ` (${msg.reactions.length})` : ''}
+            ) : null}
+          </TouchableOpacity>
+        </View>
+
+        {isOwn && msg.error ? (
+          <View style={s.failedBar} testID="chat-message-error-indicator">
+            <View style={s.failedMetaRow}>
+              <Ionicons name="alert-circle" size={14} color={Colors.error} />
+              <Text style={s.failedText}>
+                {msg.errorReason ? `لم تُرسل · ${msg.errorReason}` : 'لم تُرسل'}
               </Text>
             </View>
-          )}
-        </TouchableOpacity>
-        {isOwn && msg.error && (
-          <TouchableOpacity 
-            style={s.errorIconBtn} 
-            onPress={handleFailedMessagePress}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="فشل الإرسال — اضغط للخيارات"
-            testID="chat-message-error-indicator"
-          >
-            <Ionicons name="alert-circle" size={22} color={Colors.dangerBright} />
-          </TouchableOpacity>
-        )}
-      </View>
-      <View style={s.timeRow}>
-        <Text style={s.msgTime}>{formatMsgTime(msg.createdAt)}</Text>
-        {isOwn && <MessageStatusIcon pending={msg.pending} isRead={msg.isRead} isDelivered={msg.isDelivered} error={msg.error} />}
-      </View>
+            <View style={s.failedActionsRow}>
+              <TouchableOpacity
+                style={s.retryCapsule}
+                onPress={() => onRetry?.(msg.id)}
+                hitSlop={{ top: 7, bottom: 7, left: 4, right: 4 }}
+                accessibilityRole="button"
+                accessibilityLabel="إعادة المحاولة"
+                testID="chat-failed-retry-btn"
+              >
+                <Text style={s.retryCapsuleText}>إعادة المحاولة</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.deleteCapsule}
+                onPress={() => onRemoveFailed?.(msg.id)}
+                hitSlop={{ top: 7, bottom: 7, left: 4, right: 4 }}
+                accessibilityRole="button"
+                accessibilityLabel="حذف"
+                testID="chat-failed-delete-btn"
+              >
+                <Text style={s.deleteCapsuleText}>حذف</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
 
-      <Modal visible={fullScreenImage} transparent={true} animationType="fade" onRequestClose={() => setFullScreenImage(false)}>
-        <View style={s.fullScreenContainer}>
-          <TouchableOpacity 
-            style={s.closeFsBtn} 
-            onPress={() => setFullScreenImage(false)}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            accessibilityLabel="إغلاق الصورة"
-          >
-            <Ionicons name="close" size={26} color={Colors.white} />
-          </TouchableOpacity>
-          {msg.mediaUrl && (
-            <ScrollView
-              style={s.zoomScroll}
-              contentContainerStyle={s.zoomScrollContent}
-              maximumZoomScale={4}
-              minimumZoomScale={1}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              centerContent
+        <Modal
+          visible={fullScreenImage}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setFullScreenImage(false)}
+        >
+          <View style={s.fullScreenContainer}>
+            <TouchableOpacity
+              style={[s.closeFsBtn, { top: insets.top + 8 }]}
+              onPress={() => setFullScreenImage(false)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="إغلاق الصورة"
+              testID="chat-fullscreen-close-btn"
             >
-              <Image 
-                source={{ uri: msg.mediaUrl }} 
-                style={s.fullScreenImage} 
-                contentFit="contain" 
-              />
-            </ScrollView>
-          )}
-        </View>
-        {fullScreenImage && <ModalToastHost />}
-      </Modal>
-    </View>
+              <Ionicons name="close" size={24} color={Colors.white} />
+            </TouchableOpacity>
+            {msg.mediaUrl ? (
+              <ScrollView
+                style={s.zoomScroll}
+                contentContainerStyle={s.zoomScrollContent}
+                maximumZoomScale={4}
+                minimumZoomScale={1}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                centerContent
+              >
+                <Image
+                  source={{ uri: msg.mediaUrl }}
+                  style={s.fullScreenImage}
+                  contentFit="contain"
+                />
+              </ScrollView>
+            ) : null}
+          </View>
+          {fullScreenImage ? <ModalToastHost /> : null}
+        </Modal>
+      </View>
     </Swipeable>
   )
 }
 
 const s = StyleSheet.create({
-  msgRow: { marginVertical: 6, paddingHorizontal: 16, position: 'relative' },
-  msgOwn: { alignItems: 'flex-end' },
-  msgOther: { alignItems: 'flex-start' },
-  bubbleContainer: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '82%' },
-  errorIconBtn: { padding: 2 },
+  msgRow: { marginVertical: 4, paddingHorizontal: 16, position: 'relative' },
+  msgRowWithReactions: { marginBottom: 18 },
+  msgOwn: { alignItems: 'flex-start' },
+  msgOther: { alignItems: 'flex-end' },
+  bubbleContainer: { flexDirection: 'row', alignItems: 'center', maxWidth: '78%' },
+  doubleTickRow: { flexDirection: 'row', marginStart: -4, alignItems: 'center' },
   msgBubble: {
-    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, flexShrink: 1,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 6,
+    flexShrink: 1,
     minWidth: 64,
-    shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2,
+    borderRadius: 14,
   },
   msgBubbleExtended: {
     minWidth: 190,
   },
-  msgBubbleError: { opacity: 0.85, borderWidth: 1, borderColor: Colors.dangerLightBorder },
-  // borderBottomRightRadius maps to physical LEFT in RTL. Tail for own message points left.
-  msgBubbleOwn: { backgroundColor: Colors.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 4 },
-  // borderBottomLeftRadius maps to physical RIGHT in RTL. Tail for other message points right.
-  msgBubbleOther: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: Colors.scrimDark03 },
-  msgImage: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH, borderRadius: 12, marginBottom: 6, resizeMode: 'contain' as ImageResizeMode },
-  msgImageOnly: { marginBottom: 0 },
-  msgTxtOwn: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.white, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
-  msgTxtOther: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.text, textAlign: 'left', lineHeight: 24, letterSpacing: 0.2 },
-  timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, opacity: 0.8 },
-  msgTime: { fontFamily: 'Almarai_400Regular',  fontSize: 11, color: Colors.textMuted, marginEnd: 4 },
+  msgBubbleImageOnly: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 0,
+  },
+  msgBubbleError: {
+    backgroundColor: Colors.chatOwnBubbleMutedBg,
+    borderWidth: 1,
+    borderColor: Colors.dangerLightBorder,
+  },
+  msgBubblePendingDelete: {
+    opacity: 0.45,
+  },
+  msgBubbleOwn: {
+    backgroundColor: Colors.chatOwnBubbleBg,
+  },
+  msgBubbleOther: {
+    backgroundColor: Colors.white,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  imageOnlyWrap: {
+    position: 'relative',
+  },
+  imageWithCaptionWrap: {
+    position: 'relative',
+    marginBottom: 6,
+  },
+  msgImage: {
+    borderRadius: 10,
+    resizeMode: 'cover' as ImageResizeMode,
+  },
+  msgImageOnly: {
+    borderRadius: 12,
+  },
+  imageOnlyTimePill: {
+    position: 'absolute',
+    bottom: 8,
+    end: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.scrimDark45,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  imageOnlyTimeText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 14,
+    color: Colors.white,
+  },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    start: 0,
+    end: 0,
+    backgroundColor: Colors.scrimDark45,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  uploadPct: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.white,
+  },
+  uploadTrack: {
+    width: '80%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.whiteAlpha30,
+    overflow: 'hidden',
+  },
+  uploadFill: {
+    height: '100%',
+    backgroundColor: Colors.white,
+  },
+  uploadCancelBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.scrimDark60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaSpacer: {
+    marginBottom: 6,
+  },
+  msgTxt: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.primaryDeep,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+    gap: 4,
+  },
+  msgTime: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.textMuted,
+  },
+  failedBar: {
+    marginTop: 4,
+    gap: 6,
+  },
+  failedMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  failedText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.error,
+    textAlign: 'left',
+    writingDirection: 'rtl',
+  },
+  failedActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  retryCapsule: {
+    height: 30,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    backgroundColor: Colors.primarySoft12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryCapsuleText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.primaryStrong,
+  },
+  deleteCapsule: {
+    height: 30,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    backgroundColor: Colors.errorSoftBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteCapsuleText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.error,
+  },
   reactionsBadge: {
-    position: 'absolute', bottom: -16, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white, borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
-    shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 4,
-    borderWidth: 1, borderColor: Colors.scrimDark04
+    position: 'absolute',
+    bottom: -14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    maxWidth: 160,
   },
   reactionsBadgeOwn: { start: 16 },
   reactionsBadgeOther: { end: 16 },
-  reactionsBadgeTxt: { fontSize: 13, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 18 },
-  fullScreenContainer: { flex: 1, backgroundColor: Colors.shadowBlack, justifyContent: 'center', alignItems: 'center' },
+  reactionsBadgeTxt: {
+    fontSize: 12,
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primaryDeep,
+    lineHeight: 16,
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: Colors.shadowBlack,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   zoomScroll: { flex: 1, width: '100%' },
   zoomScrollContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   fullScreenImage: { width: '100%', height: '100%' },
   closeFsBtn: {
-    position: 'absolute', top: 50, right: 20, zIndex: 10,
-    width: 40, height: 40, borderRadius: 20,
+    position: 'absolute',
+    end: 16,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.scrimDark60,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   swipeActionContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 60,
+    width: 52,
   },
   swipeActionIcon: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primaryStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   replyBox: {
     flexDirection: 'row',
@@ -330,20 +627,15 @@ const s = StyleSheet.create({
     width: '100%',
   },
   replyBoxOwn: {
-    backgroundColor: Colors.whiteAlpha18,
+    backgroundColor: Colors.whiteAlpha50,
   },
   replyBoxOther: {
-    backgroundColor: Colors.scrimDark05,
+    backgroundColor: Colors.gray50Surface,
   },
   replyLine: {
-    width: 3.5,
+    width: 3,
     height: '100%',
-  },
-  replyLineOwn: {
-    backgroundColor: Colors.white,
-  },
-  replyLineOther: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryStrong,
   },
   replyContent: {
     paddingVertical: 5,
@@ -352,57 +644,51 @@ const s = StyleSheet.create({
   },
   replySender: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.primaryStrong,
     marginBottom: 2,
     textAlign: 'left',
     writingDirection: 'rtl',
-  },
-  replySenderOwn: {
-    color: Colors.white,
-  },
-  replySenderOther: {
-    color: Colors.primary,
   },
   replySnippet: {
     fontFamily: 'Almarai_400Regular',
     fontSize: 11,
     lineHeight: 16,
+    color: Colors.textMuted,
     textAlign: 'left',
     writingDirection: 'rtl',
-  },
-  replySnippetOwn: {
-    color: Colors.whiteAlpha85,
-  },
-  replySnippetOther: {
-    color: Colors.scrimDark60,
   },
 })
 
 export const messageBubblePropsAreEqual = (prev: Props, next: Props) => {
   if (prev.isActiveReactMsgId !== next.isActiveReactMsgId) return false
   if (prev.isOwn !== next.isOwn) return false
-  
+
   const pMsg = prev.msg
   const nMsg = next.msg
-  
+
   if (pMsg.id !== nMsg.id) return false
   if (pMsg.content !== nMsg.content) return false
   if (pMsg.isRead !== nMsg.isRead) return false
+  if (pMsg.isDelivered !== nMsg.isDelivered) return false
   if (pMsg.pending !== nMsg.pending) return false
   if (pMsg.error !== nMsg.error) return false
+  if (pMsg.errorReason !== nMsg.errorReason) return false
+  if (pMsg.uploadProgress !== nMsg.uploadProgress) return false
+  if (pMsg.pendingDelete !== nMsg.pendingDelete) return false
   if (pMsg.type !== nMsg.type) return false
   if (pMsg.mediaUrl !== nMsg.mediaUrl) return false
   if (pMsg.reactions?.length !== nMsg.reactions?.length) return false
-  
+
   if (pMsg.reactions && nMsg.reactions) {
     for (let i = 0; i < pMsg.reactions.length; i++) {
       if (pMsg.reactions[i].emoji !== nMsg.reactions[i].emoji) return false
       if (pMsg.reactions[i].userId !== nMsg.reactions[i].userId) return false
     }
   }
-  
+
   return true
 }
 
 export const MemoizedMessageBubble = React.memo(MessageBubble, messageBubblePropsAreEqual)
-

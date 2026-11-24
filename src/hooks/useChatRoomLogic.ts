@@ -12,8 +12,37 @@ import { ChatRoom, ChatMessage } from '../types/listing.types'
 import { UserSummary } from '../types/auth.types'
 import { ChatFileInfo } from '../components/chat/ChatInput'
 import { logError } from '../utils/safeLog'
-import { showErrorDialog } from '../utils/showErrorDialog'
 import { toastService } from '../store/toastStore'
+import {
+  fromWireType,
+  buildSendMessagePayload,
+  getReplyQuoteForMessage,
+  type LocalChatMessageType,
+} from '../utils/chatMessageType'
+
+function extractSendErrorReason(err: unknown): string | undefined {
+  if (!err || typeof err !== 'object') return undefined
+  const anyErr = err as { code?: string; response?: { status?: number; data?: { message?: string | string[] } }; message?: string }
+  const status = anyErr.response?.status
+  if (status === 413) return 'حجم الملف كبير'
+  if (anyErr.code === 'ERR_NETWORK' || anyErr.message === 'Network Error' || anyErr.message === 'Network request failed') {
+    return 'تعذّر الاتصال'
+  }
+  const serverMsg = anyErr.response?.data?.message
+  if (Array.isArray(serverMsg) && typeof serverMsg[0] === 'string' && serverMsg[0].trim()) {
+    return serverMsg[0].trim()
+  }
+  if (typeof serverMsg === 'string' && serverMsg.trim()) {
+    return serverMsg.trim()
+  }
+  return undefined
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const anyErr = err as { code?: string; name?: string }
+  return anyErr.code === 'ERR_CANCELED' || anyErr.name === 'CanceledError' || anyErr.name === 'AbortError'
+}
 
 export interface LocalMessage {
   id: string
@@ -22,11 +51,16 @@ export interface LocalMessage {
   createdAt: string
   pending?: boolean
   error?: boolean
+  errorReason?: string
+  uploadProgress?: number
   isRead?: boolean
   isDelivered?: boolean
   reactions?: { emoji: string; userId: string; username?: string }[]
-  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
+  type?: LocalChatMessageType
   mediaUrl?: string
+  fileName?: string
+  fileSize?: number
+  duration?: number
   pendingDelete?: boolean
   deleteError?: boolean
 }
@@ -84,12 +118,15 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
   const otherTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const deletingIdsRef = useRef<Set<string>>(new Set())
   const deleteTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const uploadControllersRef = useRef<Map<string, AbortController>>(new Map())
 
   useEffect(() => {
     return () => {
       deleteTimeoutsRef.current.forEach((t) => clearTimeout(t))
       deleteTimeoutsRef.current.clear()
       deletingIdsRef.current.clear()
+      uploadControllersRef.current.forEach((c) => c.abort())
+      uploadControllersRef.current.clear()
     }
   }, [])
 
@@ -143,11 +180,11 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       const mapped: LocalMessage[] = initialMessages.map((m: ChatMessage) => ({
         id: m.id,
         senderId: m.senderId ?? m.sender?.id ?? '',
-        content: m.content,
+        content: m.content ?? '',
         createdAt: m.createdAt,
         reactions: (m as { reactions?: { emoji: string; userId: string; username?: string }[] }).reactions ?? [],
         isRead: m.isRead ?? false,
-        type: m.type,
+        type: fromWireType(m.type),
         mediaUrl: m.mediaUrl,
       }))
       
@@ -231,7 +268,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
 
     let finalContent = text
     if (replyingToMessage) {
-      const shortQuote = (replyingToMessage.type === 'IMAGE' ? '📷 صورة' : replyingToMessage.type === 'VOICE' ? '🎤 رسالة صوتية' : replyingToMessage.content).replace(/\n/g, ' ').substring(0, 100)
+      const shortQuote = getReplyQuoteForMessage(replyingToMessage)
       const senderName = replyingToMessage.senderId === user?.id ? 'أنت' : (otherUser?.name || 'مستخدم')
       finalContent = `[REPLY|${replyingToMessage.id}|${senderName}|${shortQuote}]\n${finalContent}`
       setReplyingToMessage(null)
@@ -242,7 +279,8 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
     getSocket()?.emit('stop-typing', { conversationId: roomId })
 
-    const tempId = `temp-${Date.now()}`
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const localType: LocalChatMessageType = mediaType || 'TEXT'
     
     const newMessage: LocalMessage = {
       id: tempId,
@@ -253,16 +291,25 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       isRead: false,
       pending: true,
       error: false,
-      type: mediaType || 'TEXT',
+      uploadProgress: mediaUri ? 0 : undefined,
+      type: localType,
       mediaUrl: mediaUri,
+      fileName: fileInfo?.name,
+      fileSize: fileInfo?.size,
+      duration: fileInfo?.duration,
     }
     
     addMessage(roomId, newMessage)
 
+    const controller = new AbortController()
+    if (mediaUri) {
+      uploadControllersRef.current.set(tempId, controller)
+    }
+
     try {
-      let finalMediaUrl = undefined
+      let finalMediaUrl: string | undefined = undefined
       if (mediaUri) {
-        const filename = mediaUri.split('/').pop() || 'upload.jpg'
+        const filename = fileInfo?.name || mediaUri.split('/').pop() || 'upload.jpg'
         const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
         let mime = 'image/jpeg'
         if (ext === 'm4a') mime = 'audio/m4a'
@@ -276,15 +323,23 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           name: filename,
         } as unknown as Blob)
         
-        const uploadRes = await uploadsApi.single(formData)
+        const uploadRes = await uploadsApi.single(
+          formData,
+          controller.signal,
+          (progress) => updateMessage(roomId, tempId, { uploadProgress: progress })
+        )
         finalMediaUrl = uploadRes.data.url
       }
 
-      const res = await chatApi.sendMessage(roomId, { 
-        content: finalContent, 
-        type: mediaType || 'TEXT', 
-        mediaUrl: finalMediaUrl 
+      uploadControllersRef.current.delete(tempId)
+
+      const payload = buildSendMessagePayload({
+        content: finalContent,
+        type: localType,
+        mediaUrl: finalMediaUrl,
       })
+
+      const res = await chatApi.sendMessage(roomId, payload)
       
       const realMessage = res.data
       
@@ -296,15 +351,39 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
          removeMessage(roomId, tempId)
       } else {
          removeMessage(roomId, tempId)
-         addMessage(roomId, { ...realMessage, senderId: realMessage.senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
+         addMessage(roomId, {
+           ...realMessage,
+           content: realMessage.content ?? '',
+           type: fromWireType(realMessage.type),
+           senderId: realMessage.senderId ?? realMessage.sender?.id ?? '',
+           pending: false,
+           error: false,
+         })
       }
 
     } catch (err) {
+      uploadControllersRef.current.delete(tempId)
+      if (controller.signal.aborted || isAbortError(err)) {
+        return
+      }
       logError('ChatRoom:SendMessage', err)
-      updateMessage(roomId, tempId, { pending: false, error: true })
-      showErrorDialog(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة', 'فشل الإرسال')
+      updateMessage(roomId, tempId, {
+        pending: false,
+        error: true,
+        errorReason: extractSendErrorReason(err),
+        uploadProgress: undefined,
+      })
     }
   }, [msgText, roomId, user?.id, replyingToMessage, addMessage, removeMessage, updateMessage, otherUser?.name])
+
+  const handleCancelUpload = useCallback((msgId: string) => {
+    const controller = uploadControllersRef.current.get(msgId)
+    if (controller) {
+      controller.abort()
+      uploadControllersRef.current.delete(msgId)
+    }
+    removeMessage(roomId, msgId)
+  }, [roomId, removeMessage])
 
   const handleRemoveFailedMessage = useCallback((msgId: string) => {
     removeMessage(roomId, msgId)
@@ -379,12 +458,18 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     const failedMsg = useChatMessagesStore.getState().messagesByRoom[roomId]?.find(m => m.id === msgId)
     if (!failedMsg) return
 
-    updateMessage(roomId, msgId, { pending: true, error: false })
+    updateMessage(roomId, msgId, { pending: true, error: false, errorReason: undefined })
+
+    const controller = new AbortController()
+    const isLocalFile = !!failedMsg.mediaUrl && failedMsg.mediaUrl.startsWith('file://')
+    if (isLocalFile) {
+      uploadControllersRef.current.set(msgId, controller)
+    }
 
     try {
       let finalMediaUrl = failedMsg.mediaUrl
-      if (failedMsg.mediaUrl && failedMsg.mediaUrl.startsWith('file://')) {
-        const filename = failedMsg.mediaUrl.split('/').pop() || 'upload.jpg'
+      if (isLocalFile && failedMsg.mediaUrl) {
+        const filename = failedMsg.fileName || failedMsg.mediaUrl.split('/').pop() || 'upload.jpg'
         const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
         let mime = 'image/jpeg'
         if (ext === 'm4a') mime = 'audio/m4a'
@@ -398,24 +483,47 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
           name: filename,
         } as unknown as Blob)
         
-        const uploadRes = await uploadsApi.single(formData)
+        const uploadRes = await uploadsApi.single(
+          formData,
+          controller.signal,
+          (progress) => updateMessage(roomId, msgId, { uploadProgress: progress })
+        )
         finalMediaUrl = uploadRes.data.url
       }
 
-      const res = await chatApi.sendMessage(roomId, { 
-        content: failedMsg.content, 
-        type: failedMsg.type || 'TEXT', 
-        mediaUrl: finalMediaUrl 
+      uploadControllersRef.current.delete(msgId)
+
+      const payload = buildSendMessagePayload({
+        content: failedMsg.content,
+        type: failedMsg.type || 'TEXT',
+        mediaUrl: finalMediaUrl,
       })
+
+      const res = await chatApi.sendMessage(roomId, payload)
       const realMessage = res.data
       
       removeMessage(roomId, msgId)
-      addMessage(roomId, { ...realMessage, senderId: realMessage.senderId ?? realMessage.sender?.id ?? '', pending: false, error: false })
+      addMessage(roomId, {
+        ...realMessage,
+        content: realMessage.content ?? '',
+        type: fromWireType(realMessage.type),
+        senderId: realMessage.senderId ?? realMessage.sender?.id ?? '',
+        pending: false,
+        error: false,
+      })
       
     } catch (err) {
+      uploadControllersRef.current.delete(msgId)
+      if (controller.signal.aborted || isAbortError(err)) {
+        return
+      }
       logError('ChatRoom:RetryMessage', err)
-      updateMessage(roomId, msgId, { pending: false, error: true })
-      showErrorDialog(err, 'تعذر إرسال الرسالة، اضغط على الرسالة لإعادة المحاولة', 'فشل الإرسال')
+      updateMessage(roomId, msgId, {
+        pending: false,
+        error: true,
+        errorReason: extractSendErrorReason(err),
+        uploadProgress: undefined,
+      })
     }
   }, [roomId, updateMessage, removeMessage, addMessage])
 
@@ -475,6 +583,7 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     msgText,
     handleTextChange,
     handleSend,
+    handleCancelUpload,
     handleRetry,
     handleRemoveFailedMessage,
     handleDeleteMessage,

@@ -1,6 +1,7 @@
 import { connectSocket, getSocket } from './socket'
 import { useChatMessagesStore } from '../store/chatMessagesStore'
 import { LocalMessage } from '../hooks/useChatRoomLogic'
+import { fromWireType, type WireChatMessageType } from '../utils/chatMessageType'
 import { QueryClient } from '@tanstack/react-query'
 import { useChatStore } from '../store/chatStore'
 import { useAuthStore } from '../store/authStore'
@@ -16,7 +17,7 @@ export interface SocketIncomingMessagePayload {
   content?: string
   createdAt?: string
   reactions?: Array<{ emoji: string; userId: string }>
-  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
+  type?: WireChatMessageType | 'VOICE'
   mediaUrl?: string
 }
 
@@ -107,7 +108,7 @@ export const ChatSyncService = {
       content: data.content ?? '',
       createdAt: data.createdAt ?? new Date().toISOString(),
       reactions: data.reactions ?? [],
-      type: data.type,
+      type: fromWireType(data.type),
       mediaUrl: data.mediaUrl,
     }
 

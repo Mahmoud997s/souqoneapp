@@ -39,19 +39,25 @@ export function AudioPlayer({ uri, isOwn }: Props) {
     return `${m}:${sec.toString().padStart(2, '0')}`
   }
 
-  const progress = durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0
+  const progress = durationSec > 0 ? Math.min(100, (currentTimeSec / durationSec) * 100) : 0
 
   return (
     <View style={[s.container, isOwn ? s.own : s.other]}>
-      <TouchableOpacity onPress={handlePlayPause} style={s.btn}>
-        <Ionicons name={isPlaying ? "pause" : "play"} size={20} color={isOwn ? Colors.primary : Colors.white} />
+      <TouchableOpacity
+        onPress={handlePlayPause}
+        style={s.btn}
+        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+        accessibilityRole="button"
+        accessibilityLabel={isPlaying ? 'إيقاف الصوت' : 'تشغيل الرسالة الصوتية'}
+      >
+        <Ionicons name={isPlaying ? 'pause' : 'play'} size={18} color={Colors.white} />
       </TouchableOpacity>
-      
+
       <View style={s.waveform}>
-        <View style={[s.progressBg, isOwn ? s.bgWhiteMuted : s.bgDarkMuted]}>
-          <View style={[s.progressFill, { width: `${progress}%`, backgroundColor: isOwn ? Colors.white : Colors.primary }]} />
+        <View style={s.progressBg}>
+          <View style={[s.progressFill, { width: `${progress}%` }]} />
         </View>
-        <Text style={[s.time, isOwn ? s.txtWhite : s.txtDark]}>
+        <Text style={s.time}>
           {formatTime(currentTimeSec > 0 ? currentTimeSec : durationSec)}
         </Text>
       </View>
@@ -63,24 +69,41 @@ const s = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 16,
-    width: 200,
-    gap: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
+    width: 210,
+    gap: 10,
   },
-  own: { backgroundColor: Colors.scrimDark10 },
-  other: { backgroundColor: Colors.scrimDark05 },
+  own: { backgroundColor: Colors.whiteAlpha50 },
+  other: { backgroundColor: Colors.gray50Surface },
   btn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.whiteAlpha90,
-    alignItems: 'center', justifyContent: 'center'
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primaryStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   waveform: { flex: 1, justifyContent: 'center' },
-  progressBg: { height: 4, borderRadius: 2, width: '100%', overflow: 'hidden' },
-  bgWhiteMuted: { backgroundColor: Colors.whiteAlpha30 },
-  bgDarkMuted: { backgroundColor: Colors.scrimDark10 },
-  progressFill: { height: '100%' },
-  time: { fontFamily: 'Almarai_400Regular', fontSize: 11, marginTop: 6, writingDirection: 'ltr', textAlign: 'left' },
-  txtWhite: { color: Colors.white },
-  txtDark: { color: Colors.textMuted },
+  progressBg: {
+    height: 4,
+    borderRadius: 2,
+    width: '100%',
+    overflow: 'hidden',
+    backgroundColor: Colors.scrimDark10,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primaryStrong,
+  },
+  time: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4,
+    writingDirection: 'ltr',
+    textAlign: 'left',
+    color: Colors.textMuted,
+  },
 })

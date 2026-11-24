@@ -2,11 +2,18 @@ import { apiClient } from './client'
 import { UploadResponse } from '../types/api.types'
 
 export const uploadsApi = {
-  single:   (formData: FormData, signal?: AbortSignal) =>
+  single:   (formData: FormData, signal?: AbortSignal, onUploadProgress?: (progress: number) => void) =>
               apiClient.post<UploadResponse>('/uploads', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 transformRequest: (data) => data,
                 signal,
+                onUploadProgress: onUploadProgress
+                  ? (evt) => {
+                      if (evt.total && evt.total > 0) {
+                        onUploadProgress(Math.min(100, Math.round((evt.loaded / evt.total) * 100)))
+                      }
+                    }
+                  : undefined,
               }),
   multiple: (formData: FormData) =>
               apiClient.post<UploadResponse[]>('/uploads/multiple', formData, {
