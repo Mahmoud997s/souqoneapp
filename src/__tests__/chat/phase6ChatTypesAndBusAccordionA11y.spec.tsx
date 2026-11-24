@@ -3,8 +3,8 @@ import { render, fireEvent, screen } from '@testing-library/react-native'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { BusContractSection } from '../../components/buses/detail/BusContractSection'
 import { ChatItemCard } from '../../components/chat/ChatItemCard'
-import { ChatHeader } from '../../components/chat/ChatHeader'
-import { ChatRoomHeader } from '../../components/chat/ChatRoomHeader'
+import { ChatListHeader } from '../../components/chat/ChatListHeader'
+import { ChatRoomNavTitle } from '../../components/chat/ChatRoomNavTitle'
 import { MessageBubble } from '../../components/chat/MessageBubble'
 import { AttachmentCard } from '../../components/chat/AttachmentCard'
 import { ChatSkeleton } from '../../components/chat/ChatSkeleton'
@@ -197,23 +197,24 @@ describe('Phase 6 Chat Type Safety & Bus Accordion Accessibility (D-289)', () =>
       expect(screen.getByText('3')).toBeTruthy()
     })
 
-    it('renders ChatHeader and ChatRoomHeader cleanly with strictly typed props and Gradients', async () => {
-      const sharedScrollY = { value: 0 } as any
+    it('renders ChatListHeader and ChatRoomNavTitle cleanly with strictly typed props', async () => {
       const onSearchChange = jest.fn()
+      const onTabChange = jest.fn()
 
       await render(
-        <ChatHeader
-          scrollY={sharedScrollY}
+        <ChatListHeader
           searchText="ابحث"
           onSearchChange={onSearchChange}
           unreadCount={5}
+          activeTab="all"
+          onTabChange={onTabChange}
         />
       )
 
       expect(screen.getByText('الرسائل')).toBeTruthy()
 
       await render(
-        <ChatRoomHeader
+        <ChatRoomNavTitle
           displayName="خالد الشعيلي"
           isOnline={true}
           isTyping={false}

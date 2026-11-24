@@ -4,16 +4,12 @@ import {
   Text,
   StyleSheet,
   RefreshControl,
+  FlatList,
   ListRenderItemInfo,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import Animated, {
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Typography } from '../../src/constants/typography'
@@ -21,11 +17,9 @@ import { useChatRooms } from '../../src/hooks/useChat'
 import { useAuthStore } from '../../src/store/authStore'
 import { useArchiveStore } from '../../src/store/archiveStore'
 import { usePinStore } from '../../src/store/pinStore'
-import { useScrollAwareNav } from '../../src/hooks/useScrollAwareNav'
-import { useNavVisibility } from '../../src/context/NavVisibilityContext'
 import { toastService } from '../../src/store/toastStore'
-import { ChatHeader } from '../../src/components/chat/ChatHeader'
-import { ChatFilterTabs, ChatFilterTabType } from '../../src/components/chat/ChatFilterTabs'
+import { ChatListHeader } from '../../src/components/chat/ChatListHeader'
+import { type ChatFilterTabType } from '../../src/components/chat/ChatFilterTabs'
 import { ChatItemCard } from '../../src/components/chat/ChatItemCard'
 import { ChatListSkeleton } from '../../src/components/chat/ChatListSkeleton'
 import { ChatRoom } from '../../src/types/listing.types'
@@ -35,9 +29,7 @@ import { getListErrorProps } from '../../src/utils/getListErrorProps'
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets()
-  const HERO_HEIGHT = insets.top + 120
-  const COMPACT_HEIGHT = insets.top + 54
-  const FILTER_BAR_HEIGHT = 44
+  const [headerHeight, setHeaderHeight] = useState(() => insets.top + 136)
 
   const { user } = useAuthStore()
   const {
@@ -49,8 +41,6 @@ export default function ChatListScreen() {
     isRefetching,
     refetch,
   } = useChatRooms()
-  const { scrollHandler, scrollY } = useScrollAwareNav()
-  const { navHidden } = useNavVisibility()
 
   const [activeTab, setActiveTab] = useState<ChatFilterTabType>('all')
   const [searchText, setSearchText] = useState('')
@@ -326,64 +316,31 @@ export default function ChatListScreen() {
     )
   }
 
-  // ─── Filter Bar Animation (Follows header collapse & hides on scroll down / reveals on scroll up) ───
-  const filterBarAnimStyle = useAnimatedStyle(() => {
-    const currentHeaderBottom = interpolate(
-      scrollY.value,
-      [0, 15, 90],
-      [HERO_HEIGHT, HERO_HEIGHT, COMPACT_HEIGHT],
-      Extrapolation.CLAMP
-    )
-
-    const translateY = interpolate(
-      navHidden.value,
-      [0, 1],
-      [0, -FILTER_BAR_HEIGHT],
-      Extrapolation.CLAMP
-    )
-
-    const opacity = interpolate(
-      navHidden.value,
-      [0, 0.7, 1],
-      [1, 0.3, 0],
-      Extrapolation.CLAMP
-    )
-
-    return {
-      top: currentHeaderBottom,
-      transform: [{ translateY }],
-      opacity,
-    }
-  })
-
   return (
     <View style={styles.container}>
-      {/* Dynamic Animated Collapsible Header */}
-      <ChatHeader
-        scrollY={scrollY}
+      {/* Fixed Light Glass Header with Search & Underline Filter Tabs */}
+      <ChatListHeader
         searchText={searchText}
         onSearchChange={setSearchText}
         unreadCount={totalUnreadCount}
-        totalCount={counts.all}
         onNotificationsPress={() => router.push('/profile/notifications' as any)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        counts={counts}
+        onLayout={(e) => {
+          const measured = Math.round(e.nativeEvent.layout.height)
+          if (measured > 0 && measured !== headerHeight) {
+            setHeaderHeight(measured)
+          }
+        }}
       />
 
-      {/* Floating Animated Filter Bar (Hides on scroll down, shows on scroll up) */}
-      <Animated.View style={[styles.filterBarWrapper, filterBarAnimStyle]}>
-        <ChatFilterTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          counts={counts}
-        />
-      </Animated.View>
-
-      {/* Conversations List with Reanimated FlatList and Scroll Handler */}
-      <Animated.FlatList
+      {/* Conversations List */}
+      <FlatList
+        testID="chat-list-flatlist"
         data={isLoading ? [] : filteredRooms}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
         ListHeaderComponent={
           (isError || isRefetchError) && ((rooms as ChatRoom[] | undefined)?.length ?? 0) > 0 ? (
             <View style={styles.staleBannerWrapper} testID="chat-list-stale-banner">
@@ -394,7 +351,7 @@ export default function ChatListScreen() {
         ListEmptyComponent={renderEmptyComponent}
         contentContainerStyle={[
           styles.contentContainer,
-          { paddingTop: HERO_HEIGHT + FILTER_BAR_HEIGHT + 6 },
+          { paddingTop: headerHeight + 6 },
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -403,7 +360,7 @@ export default function ChatListScreen() {
             onRefresh={refetch}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
-            progressViewOffset={HERO_HEIGHT + FILTER_BAR_HEIGHT}
+            progressViewOffset={headerHeight}
           />
         }
       />
@@ -415,16 +372,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.homeBg,
-  },
-  filterBarWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 90,
-    backgroundColor: Colors.homeBg,
-    paddingVertical: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.scrimDark03,
   },
   contentContainer: {
     paddingBottom: 110,

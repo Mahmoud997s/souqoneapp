@@ -5,9 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
@@ -23,15 +21,13 @@ export interface ChatFilterTabsProps {
 interface TabDef {
   key: ChatFilterTabType
   label: string
-  icon: keyof typeof Ionicons.glyphMap
 }
 
 const TABS: TabDef[] = [
-  { key: 'all', label: 'الكل', icon: 'chatbubbles-outline' },
-  { key: 'unread', label: 'غير مقروءة', icon: 'mail-unread-outline' },
-  { key: 'buying', label: 'مشتريات', icon: 'cart-outline' },
-  { key: 'selling', label: 'مبيعات', icon: 'pricetag-outline' },
-  { key: 'archived', label: 'مؤرشفة', icon: 'archive-outline' },
+  { key: 'all', label: 'الكل' },
+  { key: 'unread', label: 'غير مقروءة' },
+  { key: 'buying', label: 'مشتريات' },
+  { key: 'selling', label: 'مبيعات' },
 ]
 
 export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({
@@ -41,13 +37,13 @@ export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({
 }) => {
   const handleTabPress = (tab: ChatFilterTabType) => {
     if (tab !== activeTab) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
       onTabChange(tab)
     }
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="chat-filter-tabs">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -56,25 +52,22 @@ export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key
           const count = counts[tab.key] ?? 0
-          const showBadge = count > 0 || tab.key === 'all'
-          const isUnreadTab = tab.key === 'unread'
+          const showCount = count > 0 || tab.key === 'all'
 
           return (
             <TouchableOpacity
               key={tab.key}
+              testID={`chat-filter-tab-${tab.key}`}
               style={[
-                styles.tabChip,
-                isActive && styles.tabChipActive,
+                styles.tabItem,
+                isActive && styles.tabItemActive,
               ]}
               activeOpacity={0.75}
               onPress={() => handleTabPress(tab.key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}
             >
-              <Ionicons
-                name={tab.icon}
-                size={14}
-                color={isActive ? Colors.white : Colors.text2}
-                style={styles.tabIcon}
-              />
               <Text
                 style={[
                   styles.tabText,
@@ -84,25 +77,16 @@ export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({
                 {tab.label}
               </Text>
 
-              {showBadge && (
-                <View
+              {showCount ? (
+                <Text
                   style={[
-                    styles.badge,
-                    isActive && styles.badgeActive,
-                    isUnreadTab && count > 0 && !isActive && styles.badgeUnreadAlert,
+                    styles.countText,
+                    isActive && styles.countTextActive,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.badgeText,
-                      isActive && styles.badgeTextActive,
-                      isUnreadTab && count > 0 && !isActive && styles.badgeTextUnreadAlert,
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </View>
-              )}
+                  {count}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           )
         })}
@@ -113,92 +97,48 @@ export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 5,
     justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: Spacing.space4,
-    gap: 7,
+    gap: Spacing.space5,
     alignItems: 'center',
   },
-  tabChip: {
+  tabItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 33,
-    paddingHorizontal: 11,
-    borderRadius: 12,
-    backgroundColor: Colors.white,
-    borderWidth: 1.1,
-    borderColor: Colors.slateBorder,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.shadowBlack,
-        shadowOffset: { width: 0, height: 1.5 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1.5,
-      },
-    }),
+    minHeight: 38,
+    paddingVertical: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.transparent,
+    gap: 4,
   },
-  tabChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.22,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  tabIcon: {
-    marginEnd: 4,
+  tabItemActive: {
+    borderBottomColor: Colors.primaryStrong,
   },
   tabText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12,
-    lineHeight: 15,
-    color: Colors.text2,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.textMuted,
     writingDirection: 'rtl',
-    includeFontPadding: false,
+    textAlign: 'left',
   },
   tabTextActive: {
-    color: Colors.white,
-  },
-  badge: {
-    paddingHorizontal: 4.5,
-    height: 17,
-    minWidth: 17,
-    borderRadius: 8.5,
-    backgroundColor: Colors.chatDivider,
-    marginStart: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeActive: {
-    backgroundColor: Colors.whiteAlpha25,
-  },
-  badgeUnreadAlert: {
-    backgroundColor: Colors.flameSoft12,
-  },
-  badgeText: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 10,
-    lineHeight: 12,
-    color: Colors.text2,
-    includeFontPadding: false,
+    color: Colors.primaryStrong,
   },
-  badgeTextActive: {
-    color: Colors.white,
+  countText: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.textMuted,
+    writingDirection: 'rtl',
+    textAlign: 'left',
   },
-  badgeTextUnreadAlert: {
-    color: Colors.brandOrange,
+  countTextActive: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primaryStrong,
   },
 })
