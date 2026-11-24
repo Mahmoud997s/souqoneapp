@@ -28,6 +28,7 @@ const TABS: TabDef[] = [
   { key: 'unread', label: 'غير مقروءة' },
   { key: 'buying', label: 'مشتريات' },
   { key: 'selling', label: 'مبيعات' },
+  { key: 'archived', label: 'الأرشيف' },
 ]
 
 export const ChatFilterTabs: React.FC<ChatFilterTabsProps> = ({

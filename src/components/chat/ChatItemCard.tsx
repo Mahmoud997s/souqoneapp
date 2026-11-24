@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
   Animated,
 } from 'react-native'
 import { Image } from 'expo-image'
@@ -12,11 +11,10 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Swipeable } from 'react-native-gesture-handler'
 import { Colors } from '../../constants/colors'
-import { Spacing } from '../../constants/spacing'
-import { Radius } from '../../constants/radius'
 import { Config } from '../../constants/config'
 import { ChatRoom } from '../../types/listing.types'
 import { UserSummary } from '../../types/auth.types'
+import { formatNumberWestern } from '../../utils/numberFormat'
 
 export interface ChatItemCardProps {
   room: ChatRoom
@@ -27,7 +25,8 @@ export interface ChatItemCardProps {
   onLongPress?: (room: ChatRoom) => void
   onArchive?: (room: ChatRoom) => void
   onPin?: (room: ChatRoom) => void
-  onDelete?: (room: ChatRoom) => void
+  onMarkRead?: (room: ChatRoom) => void
+  onSwipeWillOpen?: (ref: Swipeable | null) => void
 }
 
 function formatChatTime(iso?: string): string {
@@ -46,7 +45,7 @@ function formatChatTime(iso?: string): string {
   if (diffDays === 1) return 'أمس'
   if (diffDays < 7) return `منذ ${diffDays} أيام`
 
-  return date.toLocaleDateString('ar-OM', { month: 'numeric', day: 'numeric' })
+  return `${date.getDate()}/${date.getMonth() + 1}`
 }
 
 function getAvatarUrl(url?: string | null): string | null {
@@ -65,7 +64,8 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
   onLongPress,
   onArchive,
   onPin,
-  onDelete,
+  onMarkRead,
+  onSwipeWillOpen,
 }) => {
   const swipeableRef = useRef<Swipeable>(null)
 
@@ -82,58 +82,145 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
     otherParticipant?.avatarUrl || otherParticipant?.avatar
   )
 
+  const initialLetter = displayName.trim().charAt(0) || 'م'
   const unreadCount = room.unreadCount ?? 0
   const hasUnread = unreadCount > 0
+  const unreadBadgeText = unreadCount > 99 ? '99+' : String(unreadCount)
+
   const lastMessage = room.lastMessage
   const isOwnLastMessage =
     lastMessage?.sender?.id === currentUserId ||
     lastMessage?.senderId === currentUserId
 
-  const listing = room.listing
-  const isOwnerOfListing = listing && listing.userId === currentUserId
-  const listingImage = listing?.images?.[0]?.url
+  const listingTitle = room.listing?.title || room.entityTitle || ''
+  const priceText =
+    typeof room.listing?.price === 'number' && room.listing.price > 0
+      ? `${formatNumberWestern(room.listing.price)} ر.ع`
+      : ''
+  const metaLine = [listingTitle, priceText].filter(Boolean).join(' · ')
+
+  const msgType = lastMessage?.type as string | undefined
+  const mediaMeta =
+    msgType === 'IMAGE'
+      ? { icon: 'image-outline' as const, label: 'صورة' }
+      : msgType === 'FILE'
+      ? { icon: 'document-text-outline' as const, label: 'ملف' }
+      : msgType === 'VOICE' || msgType === 'AUDIO'
+      ? { icon: 'mic-outline' as const, label: 'رسالة صوتية' }
+      : null
+
+  const previewText = mediaMeta
+    ? mediaMeta.label
+    : lastMessage?.content || 'بدء محادثة جديدة'
+
+  const timeText = formatChatTime(lastMessage?.createdAt || room.updatedAt)
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onPress(room)
   }
 
   const handleLongPress = () => {
     if (onLongPress) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       onLongPress(room)
     }
   }
 
-  // ─── Swipe Actions: Right (Archive / Unarchive) ───
+  // Start-side swipe in RTL (physical right, revealed when dragging toward end/left)
   const renderRightActions = (
+    _progress: Animated.AnimatedInterpolation<number>,
+    _dragX: Animated.AnimatedInterpolation<number>
+  ) => {
+    if ((!hasUnread || !onMarkRead) && !onPin) return null
+
+    return (
+      <View style={styles.actionsContainer}>
+        {hasUnread && onMarkRead ? (
+          <TouchableOpacity
+            testID={`chat-swipe-mark-read-${room.id}`}
+            style={styles.actionPanel}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="تحديد كمقروء"
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+              swipeableRef.current?.close()
+              onMarkRead(room)
+            }}
+          >
+            <View style={[styles.actionCircle, styles.circlePrimary]}>
+              <Ionicons name="checkmark-done-outline" size={20} color={Colors.white} />
+            </View>
+            <Text style={styles.actionLabel} numberOfLines={1}>
+              تحديد كمقروء
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
+        {onPin ? (
+          <TouchableOpacity
+            testID={`chat-swipe-pin-${room.id}`}
+            style={styles.actionPanel}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={isPinned ? 'إلغاء التثبيت' : 'تثبيت'}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              swipeableRef.current?.close()
+              onPin(room)
+            }}
+          >
+            <View style={[styles.actionCircle, styles.circleNeutral]}>
+              <Ionicons
+                name={isPinned ? 'pin' : 'pin-outline'}
+                size={20}
+                color={Colors.white}
+              />
+            </View>
+            <Text style={styles.actionLabel} numberOfLines={1}>
+              {isPinned ? 'إلغاء التثبيت' : 'تثبيت'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    )
+  }
+
+  // End-side swipe in RTL (physical left, revealed when dragging toward start/right)
+  const renderLeftActions = (
     _progress: Animated.AnimatedInterpolation<number>,
     _dragX: Animated.AnimatedInterpolation<number>
   ) => {
     if (!onArchive) return null
 
     return (
-      <View style={styles.rightActionsContainer}>
+      <View style={styles.actionsContainer}>
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            isArchived ? styles.actionBtnUnarchive : styles.actionBtnArchive,
-          ]}
-          activeOpacity={0.82}
+          testID={`chat-swipe-archive-${room.id}`}
+          style={styles.actionPanel}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={isArchived ? 'استعادة' : 'أرشفة'}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             swipeableRef.current?.close()
             onArchive(room)
           }}
         >
-          <View style={styles.actionIconCircle}>
+          <View
+            style={[
+              styles.actionCircle,
+              isArchived ? styles.circlePrimary : styles.circleArchive,
+            ]}
+          >
             <Ionicons
-              name={isArchived ? 'refresh' : 'archive'}
-              size={18}
+              name={isArchived ? 'refresh-outline' : 'archive-outline'}
+              size={20}
               color={Colors.white}
             />
           </View>
-          <Text style={styles.actionBtnText}>
+          <Text style={styles.actionLabel} numberOfLines={1}>
             {isArchived ? 'استعادة' : 'أرشفة'}
           </Text>
         </TouchableOpacity>
@@ -141,54 +228,19 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
     )
   }
 
-  // ─── Swipe Actions: Left (Pin & Delete) ───
-  const renderLeftActions = (
-    _progress: Animated.AnimatedInterpolation<number>,
-    _dragX: Animated.AnimatedInterpolation<number>
-  ) => {
-    return (
-      <View style={styles.leftActionsContainer}>
-        {onPin && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnPin]}
-            activeOpacity={0.82}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              swipeableRef.current?.close()
-              onPin(room)
-            }}
-          >
-            <View style={styles.actionIconCircle}>
-              <Ionicons
-                name={isPinned ? 'pin' : 'pin-outline'}
-                size={17}
-                color={Colors.white}
-              />
-            </View>
-            <Text style={styles.actionBtnText}>
-              {isPinned ? 'إلغاء' : 'تثبيت'}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {onDelete && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnDelete]}
-            activeOpacity={0.82}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-              swipeableRef.current?.close()
-              onDelete(room)
-            }}
-          >
-            <View style={styles.actionIconCircle}>
-              <Ionicons name="trash-outline" size={17} color={Colors.white} />
-            </View>
-            <Text style={styles.actionBtnText}>حذف</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    )
+  const handleSwipeOpen = (direction: 'left' | 'right') => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    if (direction === 'left' && onArchive) {
+      swipeableRef.current?.close()
+      onArchive(room)
+    } else if (direction === 'right') {
+      swipeableRef.current?.close()
+      if (hasUnread && onMarkRead) {
+        onMarkRead(room)
+      } else if (onPin) {
+        onPin(room)
+      }
+    }
   }
 
   return (
@@ -199,409 +251,261 @@ export const ChatItemCard: React.FC<ChatItemCardProps> = React.memo(({
       overshootLeft={false}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
-      containerStyle={styles.swipeContainer}
+      onSwipeableWillOpen={() => onSwipeWillOpen?.(swipeableRef.current)}
+      onSwipeableOpen={handleSwipeOpen}
     >
       <TouchableOpacity
-        style={[
-          styles.container,
-          hasUnread && styles.containerUnread,
-          isArchived && styles.containerArchived,
-          isPinned && styles.containerPinned,
-        ]}
+        testID={`chat-row-${room.id}`}
+        style={styles.row}
         activeOpacity={0.75}
         onPress={handlePress}
         onLongPress={handleLongPress}
       >
-        {/* ── Top Main Row: Avatar + Main Details ── */}
-        <View style={styles.mainRow}>
-          {/* User Avatar */}
-          <View style={styles.avatarContainer}>
-            {avatarUri ? (
-              <Image
-                source={{ uri: avatarUri }}
-                style={styles.avatar}
-                contentFit="cover"
-                transition={200}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarFallbackText}>
-                  {displayName.trim().charAt(0) || 'س'}
-                </Text>
-              </View>
-            )}
-            {hasUnread && <View style={styles.unreadDot} />}
+        <View style={styles.avatar}>
+          {avatarUri ? (
+            <Image
+              source={{ uri: avatarUri }}
+              style={styles.avatarImg}
+              contentFit="cover"
+              transition={150}
+            />
+          ) : (
+            <Text style={styles.avatarInitial}>{initialLetter}</Text>
+          )}
+        </View>
+
+        <View style={styles.contentCol}>
+          {/* Line 1: Name + Time */}
+          <View style={styles.topLine}>
+            <Text
+              style={[styles.name, hasUnread && styles.nameUnread]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {displayName}
+            </Text>
+            <Text
+              style={[styles.time, hasUnread && styles.timeUnread]}
+              numberOfLines={1}
+            >
+              {timeText}
+            </Text>
           </View>
 
-          {/* Info Column */}
-          <View style={styles.infoCol}>
-            {/* Name & Timestamp */}
-            <View style={styles.headerRow}>
-              <View style={styles.nameWrap}>
-                <Text style={styles.nameText} numberOfLines={1}>
-                  {displayName}
-                </Text>
-                {isPinned && (
-                  <View style={styles.pinIconWrap}>
-                    <Ionicons name="pin" size={11} color={Colors.primary} />
-                  </View>
-                )}
-              </View>
-              <Text style={styles.timeText}>
-                {formatChatTime(room.updatedAt || lastMessage?.createdAt)}
+          {/* Line 2: Listing / Entity + Price */}
+          {metaLine ? (
+            <Text style={styles.metaLine} numberOfLines={1} ellipsizeMode="tail">
+              {metaLine}
+            </Text>
+          ) : null}
+
+          {/* Line 3: Last Message + Unread Badge / Pin */}
+          <View style={styles.bottomLine}>
+            <View style={styles.previewRow}>
+              {isOwnLastMessage ? (
+                <Ionicons
+                  name="checkmark-done"
+                  size={14}
+                  color={lastMessage?.isRead ? Colors.primaryStrong : Colors.textMuted}
+                />
+              ) : null}
+              {mediaMeta ? (
+                <Ionicons name={mediaMeta.icon} size={14} color={Colors.textMuted} />
+              ) : null}
+              <Text
+                style={[styles.previewText, hasUnread && styles.previewTextUnread]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {previewText}
               </Text>
             </View>
 
-            {/* Last Message Preview & Status */}
-            <View style={styles.messageRow}>
-              <View style={styles.msgContentRow}>
-                {isOwnLastMessage && (
-                  <Ionicons
-                    name={lastMessage?.isRead ? 'checkmark-done' : 'checkmark'}
-                    size={14}
-                    color={lastMessage?.isRead ? Colors.primary : Colors.slateMuted}
-                    style={styles.sentIcon}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.messageText,
-                    hasUnread && styles.messageTextUnread,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {lastMessage?.content || 'ابدأ المحادثة الآن...'}
-                </Text>
-              </View>
-
-              {/* Unread Counter Badge */}
-              {hasUnread && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadBadgeText}>
-                    {unreadCount > 99 ? '+99' : unreadCount}
-                  </Text>
+            <View style={styles.trailing}>
+              {isPinned ? (
+                <Ionicons
+                  testID={`chat-row-pin-${room.id}`}
+                  name="pin"
+                  size={14}
+                  color={Colors.textMuted}
+                />
+              ) : null}
+              {hasUnread ? (
+                <View style={styles.unreadBadge} testID={`chat-row-unread-${room.id}`}>
+                  <Text style={styles.unreadBadgeText}>{unreadBadgeText}</Text>
                 </View>
-              )}
+              ) : null}
             </View>
           </View>
         </View>
 
-        {/* ── Optional Bottom Row: Associated Listing Snippet ── */}
-        {listing && listing.title ? (
-          <View style={styles.listingSnippet}>
-            {listingImage ? (
-              <Image
-                source={{ uri: listingImage }}
-                style={styles.listingThumb}
-                contentFit="cover"
-                transition={150}
-              />
-            ) : (
-              <View style={styles.listingThumbFallback}>
-                <Ionicons name="pricetag-outline" size={12} color={Colors.primary} />
-              </View>
-            )}
-
-            <Text style={styles.listingTitle} numberOfLines={1}>
-              {listing.title}
-            </Text>
-
-            <View
-              style={[
-                styles.roleTag,
-                isOwnerOfListing ? styles.roleTagSeller : styles.roleTagBuyer,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.roleTagText,
-                  isOwnerOfListing ? styles.roleTagTextSeller : styles.roleTagTextBuyer,
-                ]}
-              >
-                {isOwnerOfListing ? 'إعلانك' : 'مشترياتك'}
-              </Text>
-            </View>
-          </View>
-        ) : null}
+        <View style={styles.divider} />
       </TouchableOpacity>
     </Swipeable>
   )
 })
 
 const styles = StyleSheet.create({
-  swipeContainer: {
-    overflow: 'hidden',
-    borderRadius: 14,
-    backgroundColor: Colors.slateSubtleBg,
-  },
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 13,
-    borderWidth: 1,
-    borderColor: Colors.slateSoftBorder,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.slateHeading,
-        shadowOffset: { width: 0, height: 1.5 },
-        shadowOpacity: 0.04,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 1.5,
-      },
-    }),
-  },
-  containerUnread: {
-    backgroundColor: Colors.chatSurfaceTint,
-    borderColor: Colors.navySoft14,
-  },
-  containerArchived: {
-    opacity: 0.72,
-    backgroundColor: Colors.gray50Surface,
-  },
-  containerPinned: {
-    borderColor: Colors.navySoft16,
-    backgroundColor: Colors.chatSurfaceTint,
-  },
-  mainRow: {
+  row: {
+    height: 76,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginEnd: 12,
+    backgroundColor: Colors.surface,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.chatDivider,
-  },
-  avatarFallback: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.navySoft08,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarFallbackText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 16,
-    lineHeight: 20,
-    color: Colors.primary,
-    includeFontPadding: false,
-  },
-  unreadDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 11,
-    height: 11,
-    borderRadius: 5.5,
-    backgroundColor: Colors.brandOrange,
-    borderWidth: 2,
-    borderColor: Colors.white,
-  },
-  infoCol: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  nameWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginEnd: 8,
-    gap: 5,
-  },
-  nameText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 14.5,
-    lineHeight: 18,
-    color: Colors.text,
-    writingDirection: 'rtl',
-    textAlign: 'left',
-    includeFontPadding: false,
-  },
-  pinIconWrap: {
-    paddingHorizontal: 4,
-    paddingVertical: 1.5,
-    backgroundColor: Colors.navySoft06,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  timeText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 11.5,
-    lineHeight: 15,
-    color: Colors.slateCoolMuted,
-    writingDirection: 'rtl',
-    textAlign: 'left',
-    includeFontPadding: false,
-  },
-  messageRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  msgContentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginEnd: 8,
-  },
-  sentIcon: {
-    marginEnd: 3,
-  },
-  messageText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: Colors.slateText,
-    writingDirection: 'rtl',
-    textAlign: 'left',
-    flex: 1,
-    includeFontPadding: false,
-  },
-  messageTextUnread: {
-    fontFamily: 'Almarai_700Bold',
-    color: Colors.primary,
-  },
-  unreadBadge: {
-    minWidth: 19,
-    height: 19,
-    borderRadius: 9.5,
-    backgroundColor: Colors.brandOrange,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-  unreadBadgeText: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: 10,
-    lineHeight: 13,
-    color: Colors.white,
-    includeFontPadding: false,
-  },
-  listingSnippet: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.chatHeaderBg,
-    borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    marginTop: 8,
-    gap: 7,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: Colors.slateSubtleBg,
     borderWidth: 1,
-    borderColor: Colors.chatInputBorder,
-  },
-  listingThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 5,
-    backgroundColor: Colors.slateBorder,
-  },
-  listingThumbFallback: {
-    width: 24,
-    height: 24,
-    borderRadius: 5,
-    backgroundColor: Colors.navySoft08,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  listingTitle: {
+  avatarImg: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+  },
+  avatarInitial: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 11.5,
-    lineHeight: 15,
-    color: Colors.slateSecondary,
+    fontSize: 16,
+    lineHeight: 22,
+    color: Colors.slateDark,
+    writingDirection: 'rtl',
+  },
+  contentCol: {
+    flex: 1,
+    marginStart: 12,
+    justifyContent: 'center',
+    gap: 2,
+  },
+  topLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  name: {
+    flex: 1,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 14,
+    lineHeight: 19,
+    color: Colors.slateDark,
     writingDirection: 'rtl',
     textAlign: 'left',
-    flex: 1,
-    includeFontPadding: false,
   },
-  roleTag: {
-    paddingHorizontal: 7,
-    paddingVertical: 1.5,
-    borderRadius: Radius.pill,
+  nameUnread: {
+    fontFamily: 'Almarai_800ExtraBold',
   },
-  roleTagSeller: {
-    backgroundColor: Colors.navySoft08,
-  },
-  roleTagBuyer: {
-    backgroundColor: Colors.amberDeepSoft10,
-  },
-  roleTagText: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 9.5,
-    lineHeight: 12,
+  time: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.textMuted,
     writingDirection: 'rtl',
-    includeFontPadding: false,
   },
-  roleTagTextSeller: {
-    color: Colors.primary,
+  timeUnread: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.primaryStrong,
   },
-  roleTagTextBuyer: {
-    color: Colors.brandOrange,
+  metaLine: {
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.textMuted,
+    writingDirection: 'rtl',
+    textAlign: 'left',
   },
-  // ─── Physical RTL Compliant Swipe Action Styles ───
-  rightActionsContainer: {
-    width: 76,
+  bottomLine: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    padding: 3,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  leftActionsContainer: {
-    width: 144,
+  previewRow: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'stretch',
-    padding: 3,
+    alignItems: 'center',
     gap: 4,
   },
-  actionBtn: {
+  previewText: {
     flex: 1,
-    borderRadius: 12,
+    fontFamily: 'Almarai_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.textMuted,
+    writingDirection: 'rtl',
+    textAlign: 'left',
+  },
+  previewTextUnread: {
+    fontFamily: 'Almarai_700Bold',
+    color: Colors.slateDark,
+  },
+  trailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  unreadBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    backgroundColor: Colors.primaryStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+  },
+  unreadBadgeText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 11,
+    lineHeight: 14,
+    color: Colors.white,
+  },
+  divider: {
+    position: 'absolute',
+    bottom: 0,
+    start: 74,
+    end: 16,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.chatDivider,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: Colors.slateCoolBg,
+  },
+  actionPanel: {
+    width: 84,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 4,
-    gap: 3,
+    gap: 4,
   },
-  actionIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: Colors.whiteAlpha22,
+  actionCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionBtnArchive: {
-    backgroundColor: Colors.slateBody,
+  circlePrimary: {
+    backgroundColor: Colors.primaryStrong,
   },
-  actionBtnUnarchive: {
-    backgroundColor: Colors.emerald,
+  circleNeutral: {
+    backgroundColor: Colors.slateDark,
   },
-  actionBtnPin: {
+  circleArchive: {
     backgroundColor: Colors.primary,
   },
-  actionBtnDelete: {
-    backgroundColor: Colors.dangerBright,
-  },
-  actionBtnText: {
+  actionLabel: {
     fontFamily: 'Almarai_700Bold',
-    fontSize: 10.5,
-    lineHeight: 13,
-    color: Colors.white,
-    textAlign: 'center',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.slateDark,
     writingDirection: 'rtl',
-    includeFontPadding: false,
+    textAlign: 'center',
   },
 })

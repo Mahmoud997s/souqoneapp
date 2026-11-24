@@ -162,7 +162,7 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
     it('renders alert banner with testID="chat-connection-banner" and Arabic warning when disconnected', async () => {
       const { getByTestId, getByText } = await render(<ChatConnectionBanner isConnected={false} />)
       expect(getByTestId('chat-connection-banner')).toBeTruthy()
-      expect(getByText('الاتصال الفوري غير مستقر — قد يتأخر استلام الرسائل أو تحديث حالتها')).toBeTruthy()
+      expect(getByText('لا يوجد اتصال، يتم عرض آخر نسخة محفوظة')).toBeTruthy()
     })
 
     it('returns null when isConnected is true', async () => {
@@ -185,7 +185,7 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
     it('resolves semantic Colors tokens in ChatConnectionBanner with zero raw hex in source (D-298)', async () => {
       const { getByTestId, getByText } = await render(<ChatConnectionBanner isConnected={false} />)
       const banner = getByTestId('chat-connection-banner')
-      const message = getByText('الاتصال الفوري غير مستقر — قد يتأخر استلام الرسائل أو تحديث حالتها')
+      const message = getByText('لا يوجد اتصال، يتم عرض آخر نسخة محفوظة')
 
       // Assert rendered styles match semantic tokens
       expect(banner.props.style).toEqual(

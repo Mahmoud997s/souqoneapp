@@ -30,14 +30,12 @@ jest.mock('../../hooks/useChat', () => ({
     isRefetching: false,
     refetch: jest.fn(),
   }),
+  useArchiveRoom: () => ({ mutate: jest.fn() }),
+  useMarkRoomRead: () => ({ mutate: jest.fn() }),
 }))
 
 jest.mock('../../store/authStore', () => ({
   useAuthStore: () => ({ user: { id: 'user-1' } }),
-}))
-
-jest.mock('../../store/archiveStore', () => ({
-  useArchiveStore: () => ({ archivedIds: [], toggleArchive: jest.fn() }),
 }))
 
 jest.mock('../../store/pinStore', () => ({

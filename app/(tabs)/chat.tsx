@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -10,28 +10,31 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { type Swipeable } from 'react-native-gesture-handler'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
-import { Typography } from '../../src/constants/typography'
-import { useChatRooms } from '../../src/hooks/useChat'
+import { useChatRooms, useArchiveRoom, useMarkRoomRead } from '../../src/hooks/useChat'
 import { useAuthStore } from '../../src/store/authStore'
-import { useArchiveStore } from '../../src/store/archiveStore'
 import { usePinStore } from '../../src/store/pinStore'
-import { toastService } from '../../src/store/toastStore'
+import { useSocketStore } from '../../src/store/socketStore'
+import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 import { ChatListHeader } from '../../src/components/chat/ChatListHeader'
 import { type ChatFilterTabType } from '../../src/components/chat/ChatFilterTabs'
 import { ChatItemCard } from '../../src/components/chat/ChatItemCard'
 import { ChatListSkeleton } from '../../src/components/chat/ChatListSkeleton'
+import { ChatConnectionBanner } from '../../src/components/chat/ChatConnectionBanner'
 import { ChatRoom } from '../../src/types/listing.types'
 import { EmptyState } from '../../src/components/ui/EmptyState'
-import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBanner'
+import { AppButton } from '../../src/components/ui/AppButton'
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets()
   const [headerHeight, setHeaderHeight] = useState(() => insets.top + 136)
+  const openSwipeRef = useRef<Swipeable | null>(null)
 
   const { user } = useAuthStore()
+  const isSocketConnected = useSocketStore((s) => s.isConnected)
   const {
     data: rooms,
     isLoading,
@@ -41,20 +44,20 @@ export default function ChatListScreen() {
     isRefetching,
     refetch,
   } = useChatRooms()
+  const archiveMutation = useArchiveRoom()
+  const markReadMutation = useMarkRoomRead()
 
   const [activeTab, setActiveTab] = useState<ChatFilterTabType>('all')
   const [searchText, setSearchText] = useState('')
-  const { archivedIds, toggleArchive } = useArchiveStore()
   const { pinnedIds, togglePin } = usePinStore()
 
-  // Compute live count badges for each filter tab
   const isRoomSelling = useCallback(
     (r: ChatRoom) => {
       const listingUserId =
-        (r.listing as any)?.userId ||
-        (r.listing as any)?.user?.id ||
-        (r as any)?.sellerId ||
-        (r as any)?.creatorId
+        (r.listing as { userId?: string; user?: { id?: string } } | undefined)?.userId ||
+        (r.listing as { userId?: string; user?: { id?: string } } | undefined)?.user?.id ||
+        (r as unknown as { sellerId?: string; creatorId?: string })?.sellerId ||
+        (r as unknown as { sellerId?: string; creatorId?: string })?.creatorId
       return !!user?.id && listingUserId === user?.id
     },
     [user?.id]
@@ -69,8 +72,7 @@ export default function ChatListScreen() {
     let archived = 0
 
     allRooms.forEach((r) => {
-      const isArchived = archivedIds.includes(r.id)
-      if (isArchived) {
+      if (r.archived) {
         archived += 1
       } else {
         all += 1
@@ -86,43 +88,34 @@ export default function ChatListScreen() {
     })
 
     return { all, unread, buying, selling, archived }
-  }, [rooms, archivedIds, isRoomSelling])
+  }, [rooms, isRoomSelling])
 
   const totalUnreadCount = counts.unread ?? 0
 
-  // Filter & Search Logic
   const filteredRooms = useMemo(() => {
     if (!rooms) return []
 
     let result = rooms as ChatRoom[]
 
-    // 1. Filter by Active Tab
     switch (activeTab) {
       case 'unread':
-        result = result.filter(
-          (r) => !archivedIds.includes(r.id) && (r.unreadCount ?? 0) > 0
-        )
+        result = result.filter((r) => !r.archived && (r.unreadCount ?? 0) > 0)
         break
       case 'buying':
-        result = result.filter(
-          (r) => !archivedIds.includes(r.id) && !isRoomSelling(r)
-        )
+        result = result.filter((r) => !r.archived && !isRoomSelling(r))
         break
       case 'selling':
-        result = result.filter(
-          (r) => !archivedIds.includes(r.id) && isRoomSelling(r)
-        )
+        result = result.filter((r) => !r.archived && isRoomSelling(r))
         break
       case 'archived':
-        result = result.filter((r) => archivedIds.includes(r.id))
+        result = result.filter((r) => !!r.archived)
         break
       case 'all':
       default:
-        result = result.filter((r) => !archivedIds.includes(r.id))
+        result = result.filter((r) => !r.archived)
         break
     }
 
-    // 2. Search Text Filtering
     if (searchText.trim()) {
       const query = searchText.toLowerCase().trim()
       result = result.filter((room) => {
@@ -131,16 +124,16 @@ export default function ChatListScreen() {
           room.participants?.[0]
         const nameMatch =
           otherParticipant?.displayName?.toLowerCase().includes(query) ||
-          otherParticipant?.username?.toLowerCase().includes(query) ||
-          (otherParticipant as any)?.name?.toLowerCase().includes(query)
-        const listingMatch = room.listing?.title?.toLowerCase().includes(query)
+          otherParticipant?.username?.toLowerCase().includes(query)
+        const listingMatch =
+          room.listing?.title?.toLowerCase().includes(query) ||
+          room.entityTitle?.toLowerCase().includes(query)
         const lastMsgMatch = room.lastMessage?.content?.toLowerCase().includes(query)
 
         return !!(nameMatch || listingMatch || lastMsgMatch)
       })
     }
 
-    // 3. Sort Pinned items to the top, then by last message / update time
     return [...result].sort((a, b) => {
       const aPinned = pinnedIds.includes(a.id)
       const bPinned = pinnedIds.includes(b.id)
@@ -159,50 +152,34 @@ export default function ChatListScreen() {
         : 0
       return timeB - timeA
     })
-  }, [rooms, activeTab, searchText, archivedIds, pinnedIds, user?.id, isRoomSelling])
+  }, [rooms, activeTab, searchText, pinnedIds, user?.id, isRoomSelling])
 
-  // Handlers
-  const handleRoomPress = useCallback((room: ChatRoom) => {
-    const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
-    const otherName = otherParticipant?.displayName || otherParticipant?.username || (room.listing ? room.listing.title : '')
-    const otherAvatar = otherParticipant?.avatarUrl || otherParticipant?.avatar || ''
-
-    router.push({
-      pathname: '/chat/[id]',
-      params: {
-        id: room.id,
-        otherUserName: otherName,
-        otherUserAvatar: otherAvatar,
-      },
-    })
-  }, [user?.id])
-
-  const handleRoomLongPress = useCallback(
+  const handleRoomPress = useCallback(
     (room: ChatRoom) => {
-      const isPinned = pinnedIds.includes(room.id)
-      const isArchived = archivedIds.includes(room.id)
       const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
-      const participantName = otherParticipant?.displayName || otherParticipant?.username || 'المستخدم'
+      const otherName =
+        otherParticipant?.displayName ||
+        otherParticipant?.username ||
+        (room.listing ? room.listing.title : '')
+      const otherAvatar = otherParticipant?.avatarUrl || otherParticipant?.avatar || ''
 
-      toastService.confirm({
-        title: participantName,
-        message: room.listing?.title
-          ? `إعلان: ${room.listing.title}`
-          : 'خيارات المحادثة السريعة',
-        intent: 'primary',
-        confirmLabel: isPinned ? 'إلغاء التثبيت' : 'تثبيت',
-        cancelLabel: 'إلغاء',
-        onConfirm: () => togglePin(room.id),
+      router.push({
+        pathname: '/chat/[id]',
+        params: {
+          id: room.id,
+          otherUserName: otherName,
+          otherUserAvatar: otherAvatar,
+        },
       })
     },
-    [pinnedIds, archivedIds, user?.id, togglePin]
+    [user?.id]
   )
 
   const handleArchive = useCallback(
     (room: ChatRoom) => {
-      toggleArchive(room.id)
+      archiveMutation.mutate({ roomId: room.id, archive: !room.archived })
     },
-    [toggleArchive]
+    [archiveMutation]
   )
 
   const handlePin = useCallback(
@@ -212,45 +189,78 @@ export default function ChatListScreen() {
     [togglePin]
   )
 
-  const handleDelete = useCallback(
+  const handleMarkRead = useCallback(
     (room: ChatRoom) => {
-      toastService.confirm({
-        title: 'حذف المحادثة',
-        message: 'هل أنت متأكد من حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
-        intent: 'danger',
-        confirmLabel: 'حذف',
-        cancelLabel: 'إلغاء',
-        onConfirm: () => toggleArchive(room.id),
-      })
+      if ((room.unreadCount ?? 0) > 0) {
+        markReadMutation.mutate(room.id)
+      }
     },
-    [toggleArchive]
+    [markReadMutation]
   )
+
+  const handleRoomLongPress = useCallback(
+    (room: ChatRoom) => {
+      const isPinned = pinnedIds.includes(room.id)
+      const isArchived = !!room.archived
+      const otherParticipant = room.participants?.find((p) => p.id !== user?.id)
+      const participantName =
+        otherParticipant?.displayName || otherParticipant?.username || 'خيارات المحادثة'
+
+      const options: ActionSheetOption[] = []
+      if ((room.unreadCount ?? 0) > 0) {
+        options.push({
+          text: 'تحديد كمقروء',
+          onPress: () => handleMarkRead(room),
+          style: 'default',
+        })
+      }
+      options.push({
+        text: isPinned ? 'إلغاء التثبيت' : 'تثبيت',
+        onPress: () => togglePin(room.id),
+        style: 'default',
+      })
+      options.push({
+        text: isArchived ? 'استعادة' : 'أرشفة',
+        onPress: () => handleArchive(room),
+        style: 'default',
+      })
+
+      toastService.showActionSheet({ title: participantName, options })
+    },
+    [pinnedIds, user?.id, handleMarkRead, togglePin, handleArchive]
+  )
+
+  const handleSwipeWillOpen = useCallback((ref: Swipeable | null) => {
+    if (openSwipeRef.current && openSwipeRef.current !== ref) {
+      openSwipeRef.current.close()
+    }
+    openSwipeRef.current = ref
+  }, [])
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<ChatRoom>) => (
-      <View style={styles.itemWrapper}>
-        <ChatItemCard
-          room={item}
-          currentUserId={user?.id}
-          isArchived={archivedIds.includes(item.id)}
-          isPinned={pinnedIds.includes(item.id)}
-          onPress={handleRoomPress}
-          onLongPress={handleRoomLongPress}
-          onArchive={handleArchive}
-          onPin={handlePin}
-          onDelete={handleDelete}
-        />
-      </View>
+      <ChatItemCard
+        room={item}
+        currentUserId={user?.id}
+        isArchived={!!item.archived}
+        isPinned={pinnedIds.includes(item.id)}
+        onPress={handleRoomPress}
+        onLongPress={handleRoomLongPress}
+        onArchive={handleArchive}
+        onPin={handlePin}
+        onMarkRead={handleMarkRead}
+        onSwipeWillOpen={handleSwipeWillOpen}
+      />
     ),
     [
       user?.id,
-      archivedIds,
       pinnedIds,
       handleRoomPress,
       handleRoomLongPress,
       handleArchive,
       handlePin,
-      handleDelete,
+      handleMarkRead,
+      handleSwipeWillOpen,
     ]
   )
 
@@ -261,15 +271,15 @@ export default function ChatListScreen() {
 
     const allRoomsCount = (rooms as ChatRoom[] | undefined)?.length ?? 0
     if (isError && allRoomsCount === 0) {
-      const errorProps = getListErrorProps(error, 'تعذر تحميل المحادثات')
+      const errorProps = getListErrorProps(error, 'تعذّر تحميل الرسائل')
       return (
         <View style={styles.errorStateWrapper} testID="chat-list-error-state">
           <EmptyState
             icon={errorProps.icon}
             iconColor={errorProps.iconColor}
-            title={errorProps.title}
-            subtitle={errorProps.subtitle}
-            actionLabel={errorProps.actionLabel}
+            title="تعذّر تحميل الرسائل"
+            subtitle="تحقق من الاتصال ثم أعد المحاولة."
+            actionLabel="إعادة المحاولة"
             onAction={() => refetch()}
             testID="chat-list-empty-state-error"
           />
@@ -277,48 +287,88 @@ export default function ChatListScreen() {
       )
     }
 
-    return (
-      <View style={styles.emptyState}>
-        <View style={styles.emptyIconCircle}>
-          <Ionicons
-            name={
-              activeTab === 'archived'
-                ? 'archive-outline'
-                : activeTab === 'unread'
-                ? 'checkmark-done-circle-outline'
-                : searchText
-                ? 'search-outline'
-                : 'chatbubbles-outline'
-            }
-            size={38}
-            color={Colors.primary}
+    const trimmedQuery = searchText.trim()
+    if (trimmedQuery) {
+      return (
+        <View style={styles.emptyState} testID="chat-empty-search">
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="search-outline" size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>{`لا توجد نتائج لـ «${trimmedQuery}»`}</Text>
+          <Text style={styles.emptySub}>جرّب اسماً آخر أو جزءاً من عنوان الإعلان.</Text>
+          <AppButton
+            title="مسح البحث"
+            variant="outline"
+            size="default"
+            onPress={() => setSearchText('')}
+            style={styles.emptyBtn}
+            testID="chat-empty-clear-search-btn"
           />
         </View>
-        <Text style={styles.emptyTitle}>
-          {activeTab === 'archived'
-            ? 'لا توجد محادثات مؤرشفة'
-            : activeTab === 'unread'
-            ? 'لا توجد رسائل غير مقروءة'
-            : searchText
-            ? 'لم يتم العثور على نتائج'
-            : 'لا توجد محادثات حتى الآن'}
-        </Text>
+      )
+    }
+
+    if (activeTab === 'unread') {
+      return (
+        <View style={styles.emptyState} testID="chat-empty-unread">
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="checkmark-done-outline" size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>جميع رسائلك مقروءة</Text>
+          <Text style={styles.emptySub}>لا توجد رسائل جديدة حالياً.</Text>
+          <AppButton
+            title="عرض كل المحادثات"
+            variant="outline"
+            size="default"
+            onPress={() => setActiveTab('all')}
+            style={styles.emptyBtn}
+            testID="chat-empty-show-all-btn"
+          />
+        </View>
+      )
+    }
+
+    if (activeTab === 'archived') {
+      return (
+        <View style={styles.emptyState} testID="chat-empty-archived">
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="archive-outline" size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>لا توجد محادثات مؤرشفة</Text>
+          <Text style={styles.emptySub}>
+            ستظهر هنا المحادثات التي تقوم بأرشفتها للرجوع إليها في أي وقت.
+          </Text>
+        </View>
+      )
+    }
+
+    return (
+      <View style={styles.emptyState} testID="chat-empty-default">
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="chatbubbles-outline" size={32} color={Colors.primary} />
+        </View>
+        <Text style={styles.emptyTitle}>لا توجد رسائل بعد</Text>
         <Text style={styles.emptySub}>
-          {activeTab === 'archived'
-            ? 'المحادثات التي تقوم بأرشفتها ستظهر هنا للرجوع إليها في أي وقت.'
-            : activeTab === 'unread'
-            ? 'رائع! لقد اطلعت على جميع رسائلك ومحادثاتك.'
-            : searchText
-            ? `لم نتمكن من العثور على ما يطابق "${searchText}". حاول البحث بكلمات أخرى.`
-            : 'ابدأ المحادثة الآن وتواصل مع أصحاب الإعلانات والمشترين!'}
+          عند تواصل أحد البائعين أو المشترين معك ستظهر المحادثات هنا.
         </Text>
+        <AppButton
+          title="تصفح الإعلانات"
+          variant="primary"
+          size="default"
+          onPress={() => router.push('/(tabs)/search' as any)}
+          style={styles.emptyBtn}
+          testID="chat-empty-browse-btn"
+        />
       </View>
     )
   }
 
+  const allRoomsCount = (rooms as ChatRoom[] | undefined)?.length ?? 0
+  const showOfflineBanner =
+    !isSocketConnected || ((isError || isRefetchError) && allRoomsCount > 0)
+
   return (
     <View style={styles.container}>
-      {/* Fixed Light Glass Header with Search & Underline Filter Tabs */}
       <ChatListHeader
         searchText={searchText}
         onSearchChange={setSearchText}
@@ -335,16 +385,15 @@ export default function ChatListScreen() {
         }}
       />
 
-      {/* Conversations List */}
       <FlatList
         testID="chat-list-flatlist"
         data={isLoading ? [] : filteredRooms}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={
-          (isError || isRefetchError) && ((rooms as ChatRoom[] | undefined)?.length ?? 0) > 0 ? (
-            <View style={styles.staleBannerWrapper} testID="chat-list-stale-banner">
-              <StaleDataBanner onRetry={() => refetch()} isRefetching={isRefetching} />
+          showOfflineBanner ? (
+            <View testID="chat-list-stale-banner">
+              <ChatConnectionBanner isConnected={false} />
             </View>
           ) : null
         }
@@ -371,52 +420,51 @@ export default function ChatListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.homeBg,
+    backgroundColor: Colors.surface,
   },
   contentContainer: {
     paddingBottom: 110,
-  },
-  staleBannerWrapper: {
-    paddingHorizontal: Spacing.space4,
-    paddingBottom: Spacing.space3,
+    flexGrow: 1,
   },
   errorStateWrapper: {
     paddingHorizontal: Spacing.space4,
     paddingTop: Spacing.space4,
   },
-  itemWrapper: {
-    paddingHorizontal: Spacing.space4,
-    marginBottom: Spacing.space3,
-  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 48,
-    paddingHorizontal: 28,
+    paddingHorizontal: Spacing.space6,
+    paddingTop: 56,
   },
   emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.navySoft06,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primarySoft12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.space4,
   },
   emptyTitle: {
-    fontFamily: 'Almarai_800ExtraBold',
-    fontSize: Typography.titleMd.fontSize,
-    color: Colors.text,
-    marginBottom: 8,
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 16,
+    lineHeight: 22,
+    color: Colors.slateDark,
+    marginBottom: Spacing.space2,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   emptySub: {
     fontFamily: 'Almarai_400Regular',
-    fontSize: Typography.bodyMd.fontSize,
-    color: Colors.text2,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textMuted,
     textAlign: 'center',
-    lineHeight: 22,
     writingDirection: 'rtl',
+    marginBottom: Spacing.space5,
+  },
+  emptyBtn: {
+    minWidth: 168,
+    height: 44,
   },
 })
