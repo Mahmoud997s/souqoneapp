@@ -193,7 +193,7 @@ describe('Phase 6 Chat Type Safety & Bus Accordion Accessibility (D-289)', () =>
 
       expect(screen.getByText('أحمد الحارثي')).toBeTruthy()
       expect(screen.getByText('السلام عليكم ورحمة الله')).toBeTruthy()
-      expect(screen.getByText('تويوتا لاندكروزر 2023 V8')).toBeTruthy()
+      expect(screen.getByText(/تويوتا لاندكروزر 2023 V8/)).toBeTruthy()
       expect(screen.getByText('3')).toBeTruthy()
     })
 

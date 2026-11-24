@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
-import { lineHeightFor } from '../../constants/typography'
 import { useSocketStore } from '../../store/socketStore'
 
 export interface ChatConnectionBannerProps {
@@ -12,14 +11,11 @@ export interface ChatConnectionBannerProps {
 }
 
 /**
- * ChatConnectionBanner
- *
- * Rendered directly below ChatRoomHeader when realtime WebSocket connection
- * is disconnected / unstable (S8b). Decoupled from S8a auth session expiry.
+ * Slim 36px offline / cached-data banner rendered directly below the header.
  */
 export function ChatConnectionBanner({
   isConnected: propIsConnected,
-  message = 'الاتصال الفوري غير مستقر — قد يتأخر استلام الرسائل أو تحديث حالتها',
+  message = 'لا يوجد اتصال، يتم عرض آخر نسخة محفوظة',
 }: ChatConnectionBannerProps) {
   const storeIsConnected = useSocketStore((s) => s.isConnected)
   const isConnected = propIsConnected !== undefined ? propIsConnected : storeIsConnected
@@ -37,7 +33,7 @@ export function ChatConnectionBanner({
           color={Colors.warning}
           style={s.icon}
         />
-        <Text style={s.messageText} numberOfLines={2}>
+        <Text style={s.messageText} numberOfLines={1} ellipsizeMode="tail">
           {message}
         </Text>
       </View>
@@ -47,10 +43,11 @@ export function ChatConnectionBanner({
 
 const s = StyleSheet.create({
   container: {
+    minHeight: 36,
     backgroundColor: Colors.warningBg,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.warningBorder,
-    paddingHorizontal: Spacing.space3,
+    paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space2,
     flexDirection: 'row',
     alignItems: 'center',
@@ -68,7 +65,7 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: 'Almarai_400Regular',
     fontSize: 12,
-    lineHeight: lineHeightFor(12),
+    lineHeight: 16,
     color: Colors.warningText,
     textAlign: 'left',
     writingDirection: 'rtl',

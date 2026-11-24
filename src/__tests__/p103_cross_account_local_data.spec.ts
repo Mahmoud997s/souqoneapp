@@ -12,7 +12,6 @@ import { useEquipmentWizardStore } from '../store/equipmentWizardStore';
 import { useOperatorWizardStore } from '../store/operatorWizardStore';
 import { usePostStore } from '../store/postStore';
 import { usePinStore } from '../store/pinStore';
-import { useArchiveStore } from '../store/archiveStore';
 import { useChatMessagesStore } from '../store/chatMessagesStore';
 import { clearAllUserData } from '../utils/clearUserData';
 import type { User } from '../types/auth.types';
@@ -51,7 +50,6 @@ const DRAFT_PERSIST_KEYS = [
   'souqone_equipment_wizard_draft',
   'souqone_operator_wizard_draft',
   'post-draft-storage',
-  'archive-storage',
   'pinned-chat-storage',
   'chat-messages-storage',
   RECENT_SEARCHES_KEY,
@@ -81,9 +79,6 @@ async function seedAllLocalDraftsAndHistory() {
   usePostStore.getState().set({ title: 'مسودة إعلان عام' });
   if (!usePinStore.getState().isPinned('room-1')) {
     usePinStore.getState().togglePin('room-1');
-  }
-  if (!useArchiveStore.getState().isArchived('room-2')) {
-    useArchiveStore.getState().toggleArchive('room-2');
   }
   useChatMessagesStore.setState({
     messagesByRoom: {
@@ -116,7 +111,6 @@ function assertAllStoresAndStorageCleared() {
   expect(useOperatorWizardStore.getState().formData.title).toBe('');
   expect(usePostStore.getState().title).toBe('');
   expect(usePinStore.getState().pinnedIds).toEqual([]);
-  expect(useArchiveStore.getState().archivedIds).toEqual([]);
   expect(useChatMessagesStore.getState().messagesByRoom).toEqual({});
   expect(queryClient.getQueryData(['parts', 'my'])).toBeUndefined();
 }

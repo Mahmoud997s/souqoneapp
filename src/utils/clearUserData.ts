@@ -9,7 +9,6 @@ import { useBusWizardStore } from '../store/busWizardStore'
 import { usePostStore } from '../store/postStore'
 import { usePinStore } from '../store/pinStore'
 import { useChatMessagesStore } from '../store/chatMessagesStore'
-import { useArchiveStore } from '../store/archiveStore'
 import { useCarWizardStore } from '../store/carWizardStore'
 import { usePartWizardStore } from '../store/partWizardStore'
 import { useServiceWizardStore } from '../store/serviceWizardStore'
@@ -26,7 +25,6 @@ export const USER_LOCAL_DRAFT_AND_HISTORY_KEYS = [
   'souqone_equipment_wizard_draft',
   'souqone_operator_wizard_draft',
   'post-draft-storage',
-  'archive-storage',
   'pinned-chat-storage',
   'chat-messages-storage',
 ] as const
@@ -45,7 +43,6 @@ export const clearLocalUserDraftsAndHistory = async (): Promise<void> => {
     () => usePostStore.getState().reset?.(),
     () => usePinStore.getState().reset?.(),
     () => useChatMessagesStore.getState().reset?.(),
-    () => useArchiveStore.getState().reset?.(),
     () => useCarWizardStore.getState().resetForm?.(),
     () => usePartWizardStore.getState().reset?.(),
     () => useServiceWizardStore.getState().reset?.(),

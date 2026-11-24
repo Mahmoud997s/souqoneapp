@@ -47,15 +47,13 @@ jest.mock('../../api/chat', () => ({
     getMessages: jest.fn(),
     createRoom: jest.fn(),
     sendMessage: jest.fn(),
+    archiveRoom: jest.fn(),
+    markRoomRead: jest.fn(),
   },
 }))
 
 jest.mock('../../store/authStore', () => ({
   useAuthStore: () => ({ user: { id: 'user-1' } }),
-}))
-
-jest.mock('../../store/archiveStore', () => ({
-  useArchiveStore: () => ({ archivedIds: [], toggleArchive: jest.fn() }),
 }))
 
 jest.mock('../../store/pinStore', () => ({
@@ -184,7 +182,7 @@ describe('Chat Error & Stale States (R7-1)', () => {
       await waitFor(() => {
         expect(getByTestId('chat-list-error-state')).toBeTruthy()
       })
-      expect(getByText('لا يوجد اتصال بالإنترنت')).toBeTruthy()
+      expect(getByText('تعذّر تحميل الرسائل')).toBeTruthy()
 
       fireEvent.press(getByText('إعادة المحاولة'))
 
@@ -229,7 +227,7 @@ describe('Chat Error & Stale States (R7-1)', () => {
 
       await waitFor(() => {
         expect(getByTestId('chat-list-stale-banner')).toBeTruthy()
-        expect(getByTestId('stale-data-banner')).toBeTruthy()
+        expect(getByTestId('chat-connection-banner')).toBeTruthy()
       })
       expect(getByText('سالم المعمري')).toBeTruthy()
     })

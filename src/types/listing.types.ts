@@ -194,6 +194,8 @@ export interface ChatRoom {
   id: string
   entityType: string
   entityId: string
+  entityTitle?: string
+  archived?: boolean
   participants: UserSummary[]
   lastMessage?: ChatMessage | {
     id: string

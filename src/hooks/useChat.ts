@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { chatApi } from '../api/chat'
 import { ChatRoom, ChatMessage } from '../types/listing.types'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
+import { toastService } from '../store/toastStore'
 
 /**
  * Normalizes legacy `{ data: [...] }` envelopes to `{ items: [...] }` so
@@ -25,11 +26,68 @@ export function useChatRooms() {
   return useQuery({
     queryKey: ['chat-rooms'],
     queryFn: async () => {
-      const res = await chatApi.getRooms()
+      const res = await chatApi.getRooms({ includeArchived: true })
       const { items } = parseListEnvelope<ChatRoom>(normalizeChatEnvelope(res.data))
       return items
     },
     refetchInterval: 15000,
+  })
+}
+
+export function useArchiveRoom() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ roomId, archive }: { roomId: string; archive: boolean }) =>
+      chatApi.archiveRoom(roomId, archive),
+    onMutate: async ({ roomId, archive }) => {
+      await qc.cancelQueries({ queryKey: ['chat-rooms'] })
+      const previousRooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])
+      qc.setQueryData<ChatRoom[]>(['chat-rooms'], (old) =>
+        old ? old.map((r) => (r.id === roomId ? { ...r, archived: archive } : r)) : old
+      )
+      return { previousRooms }
+    },
+    onError: (_err, { archive }, context) => {
+      if (context?.previousRooms !== undefined) {
+        qc.setQueryData(['chat-rooms'], context.previousRooms)
+      }
+      toastService.show({
+        kind: 'error',
+        title: archive ? 'تعذّرت أرشفة المحادثة' : 'تعذّرت استعادة المحادثة',
+      })
+    },
+    onSuccess: (_data, { archive }) => {
+      toastService.show({
+        kind: 'success',
+        title: archive ? 'تمت أرشفة المحادثة' : 'تمت استعادة المحادثة',
+      })
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['chat-rooms'] })
+    },
+  })
+}
+
+export function useMarkRoomRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (roomId: string) => chatApi.markRoomRead(roomId),
+    onMutate: async (roomId) => {
+      await qc.cancelQueries({ queryKey: ['chat-rooms'] })
+      const previousRooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])
+      qc.setQueryData<ChatRoom[]>(['chat-rooms'], (old) =>
+        old ? old.map((r) => (r.id === roomId ? { ...r, unreadCount: 0 } : r)) : old
+      )
+      return { previousRooms }
+    },
+    onError: (_err, _roomId, context) => {
+      if (context?.previousRooms !== undefined) {
+        qc.setQueryData(['chat-rooms'], context.previousRooms)
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['chat-rooms'] })
+    },
   })
 }
 
