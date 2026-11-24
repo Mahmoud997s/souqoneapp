@@ -280,7 +280,7 @@ describe('Phase 6 Chat Type Safety & Bus Accordion Accessibility (D-289)', () =>
       )
 
       expect(screen.getByText('مواصفات_المعدة.pdf')).toBeTruthy()
-      expect(screen.getByText('1.5 MB')).toBeTruthy()
+      expect(screen.getByText(/1\.5 MB/)).toBeTruthy()
     })
 
     it('renders ChatSkeleton cleanly with typed SkeletonBubble and DimensionValue', async () => {

@@ -231,6 +231,8 @@ export const Colors = {
   neutralBgLight:    '#FAFAFA',
   primaryTintBg:     '#E6F7F9',
   primaryBorderLight:'#B3E7EE',
+  chatOwnBubbleBg:   '#D2F1F6',
+  chatOwnBubbleMutedBg: '#E6F7FA',
   slateLavenderMuted:'#C3C6D6',
   amberBright:       '#F18B29',
   gray100Surface:    '#F3F4F6',

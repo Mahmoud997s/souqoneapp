@@ -270,16 +270,10 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       expect(messages.length).toBe(1)
       expect(messages[0].pending).toBe(false)
       expect(messages[0].error).toBe(true)
+      expect(messages[0].errorReason).toBe('تعذّر الاتصال')
 
-      // Verifies toastService.show was called with classified error so failure is never silent
-      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
-        kind: 'error',
-        title: 'فشل الإرسال',
-        message: 'تعذر الاتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مجدداً.',
-      }))
-
-      // Verifies error bubble renders error indicator
-      const { getByTestId } = await render(
+      // Verifies error bubble renders inline error indicator and reason
+      const { getByTestId, getByText } = await render(
         <MessageBubble
           msg={messages[0]}
           isOwn={true}
@@ -288,6 +282,7 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
         />
       )
       expect(getByTestId('chat-message-error-indicator')).toBeTruthy()
+      expect(getByText(/تعذّر الاتصال/)).toBeTruthy()
     })
 
     it('surfaces visible error indicator and alerts user on retry failure', async () => {
@@ -316,11 +311,6 @@ describe('Phase 5 (G3 + G5): ChatConnectionBanner & Delete Ack/Rollback (D-286)'
       const messages = useChatMessagesStore.getState().messagesByRoom[roomId] || []
       expect(messages[0].error).toBe(true)
       expect(messages[0].pending).toBe(false)
-      expect(toastService.show).toHaveBeenCalledWith(expect.objectContaining({
-        kind: 'error',
-        title: 'فشل الإرسال',
-        message: expect.stringContaining('حدث خطأ في الخادم'),
-      }))
     })
   })
 

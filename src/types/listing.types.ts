@@ -181,12 +181,12 @@ export interface EquipmentBid {
 export interface ChatMessage {
   id: string
   roomId: string
-  content: string
+  content?: string
   sender: UserSummary
   senderId?: string
   createdAt: string
   isRead: boolean
-  type?: 'TEXT' | 'IMAGE' | 'FILE'
+  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VOICE' | 'SYSTEM'
   mediaUrl?: string
 }
 
@@ -200,11 +200,11 @@ export interface ChatRoom {
   lastMessage?: ChatMessage | {
     id: string
     senderId?: string
-    content: string
+    content?: string
     createdAt: string
     sender?: UserSummary
     isRead?: boolean
-    type?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE'
+    type?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VOICE' | 'SYSTEM'
     mediaUrl?: string
   }
   unreadCount: number

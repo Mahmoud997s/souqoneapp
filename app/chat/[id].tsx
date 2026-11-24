@@ -28,6 +28,7 @@ import { StaleDataBanner } from '../../src/components/listing-detail/StaleDataBa
 import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
 import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
+import { fromWireType, getReplyQuoteForMessage } from '../../src/utils/chatMessageType'
 
 function getDateLabel(iso: string) {
   if (!iso) return ''
@@ -61,7 +62,7 @@ export default function ChatRoomScreen() {
   const {
     messages, isLoading, isError, error, isRefetchError, isRefetching, refetch,
     otherUser, isOtherUserTyping, isOtherUserOnline, msgText,
-    handleTextChange, handleSend, handleRetry, handleRemoveFailedMessage, handleDeleteMessage, handleReact, activeReactMsgId,
+    handleTextChange, handleSend, handleCancelUpload, handleRetry, handleRemoveFailedMessage, handleDeleteMessage, handleReact, activeReactMsgId,
     setActiveReactMsgId, scrollRef, user,
     replyingToMessage, setReplyingToMessage,
     fetchNextPage, hasNextPage, isFetchingNextPage
@@ -100,13 +101,13 @@ export default function ChatRoomScreen() {
     const isOwn = msg.senderId === user?.id
 
     const options: ActionSheetOption[] = [
-      { text: '💬 رد', onPress: () => setReplyingToMessage(msg), style: 'default' },
-      { text: '😂 إضافة تفاعل', onPress: () => { setSelectedMsgId(msgId); setShowReactionPicker(true); }, style: 'default' },
+      { text: 'رد', onPress: () => setReplyingToMessage(msg), style: 'default' },
+      { text: 'إضافة تفاعل', onPress: () => { setSelectedMsgId(msgId); setShowReactionPicker(true); }, style: 'default' },
     ]
 
-    if (msg.type === 'TEXT' && msg.content) {
+    if (fromWireType(msg.type) === 'TEXT' && msg.content) {
       options.push({
-        text: '📋 نسخ النص',
+        text: 'نسخ النص',
         onPress: () => {
           void Clipboard.setStringAsync(msg.content).then(() => {
             toastService.show({ kind: 'success', title: 'تم نسخ النص' })
@@ -118,7 +119,7 @@ export default function ChatRoomScreen() {
 
     if (isOwn) {
       options.push({
-        text: '🗑️ حذف الرسالة',
+        text: 'حذف الرسالة',
         style: 'destructive',
         onPress: () => {
           toastService.confirm({
@@ -220,7 +221,7 @@ export default function ChatRoomScreen() {
       />
       <View style={{ height: insets.top + 53 }} />
 
-      <ChatConnectionBanner />
+      <ChatConnectionBanner message="لا يوجد اتصال، قد تفشل الرسائل ويمكنك إعادة المحاولة" />
 
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
@@ -265,12 +266,35 @@ export default function ChatRoomScreen() {
           )
         })()
       ) : messages.length === 0 ? (
-        <View style={s.emptyState}>
+        <View style={s.emptyState} testID="chat-room-empty-state">
           <View style={s.emptyIconCircle}>
-            <Ionicons name="chatbubbles-outline" size={40} color={Colors.primary} />
+            <Ionicons name="chatbubbles-outline" size={34} color={Colors.primaryStrong} />
           </View>
-          <Text style={s.emptyTitle}>لا توجد رسائل</Text>
-          <Text style={s.emptySub}>ابدأ المحادثة الآن بكلمة طيبة!</Text>
+          <Text style={s.emptyTitle}>ابدأ المحادثة</Text>
+          <Text style={s.emptySub} numberOfLines={2}>
+            {room?.listing?.title
+              ? `استفسر عن «${room.listing.title}» أو حدّد موعداً للمعاينة.`
+              : 'استفسر عن الإعلان أو حدّد موعداً للمعاينة.'}
+          </Text>
+          <View style={s.quickRepliesRow}>
+            {[
+              'هل الإعلان ما زال متاحاً؟',
+              'ما أقل سعر لديكم؟',
+              'هل يمكن المعاينة اليوم؟',
+            ].map((chip, idx) => (
+              <TouchableOpacity
+                key={chip}
+                style={s.quickReplyChip}
+                onPress={() => handleTextChange(chip)}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                accessibilityRole="button"
+                accessibilityLabel={chip}
+                testID={`chat-quick-reply-${idx}`}
+              >
+                <Text style={s.quickReplyText}>{chip}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       ) : (
         <>
@@ -321,6 +345,7 @@ export default function ChatRoomScreen() {
                   onReact={handleReactFromPicker}
                   onRetry={handleRetry}
                   onRemoveFailed={handleRemoveFailedMessage}
+                  onCancelUpload={handleCancelUpload}
                   onSwipeReply={(msgId) => {
                     const found = messages.find(m => m.id === msgId)
                     if (found) setReplyingToMessage(found)
@@ -335,30 +360,24 @@ export default function ChatRoomScreen() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={0}
       >
-        {replyingToMessage && (
-          <View style={s.replyPreviewContainer}>
-            <View style={s.replyPreviewLine} />
-            <View style={s.replyPreviewContent}>
-              <Text style={s.replyPreviewTitle}>
-                الرد على {replyingToMessage.senderId === user?.id ? 'نفسك' : displayName}
-              </Text>
-              <Text style={s.replyPreviewText} numberOfLines={1}>
-                {replyingToMessage.type === 'IMAGE' ? '📷 صورة' : replyingToMessage.type === 'VOICE' ? '🎤 رسالة صوتية' : replyingToMessage.content}
-              </Text>
-            </View>
-            <TouchableOpacity style={s.replyPreviewClose} onPress={() => setReplyingToMessage(null)}>
-              <Ionicons name="close" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        )}
         <View style={s.inputContainer}>
           <ChatInput
             msgText={msgText}
             onChangeText={handleTextChange}
             onSend={handleSend}
             insetsBottom={insets.bottom}
+            replyPreview={
+              replyingToMessage
+                ? {
+                    senderLabel:
+                      replyingToMessage.senderId === user?.id ? 'أنت' : displayName,
+                    quoteText: getReplyQuoteForMessage(replyingToMessage),
+                    onCancel: () => setReplyingToMessage(null),
+                  }
+                : null
+            }
           />
         </View>
       </KeyboardAvoidingView>
@@ -386,52 +405,36 @@ const s = StyleSheet.create({
   listingBannerTxt: { flex: 1, fontFamily: 'Almarai_700Bold',  fontSize: 14, color: Colors.text, textAlign: 'left' },
   content: { paddingVertical: 16 },
   loader: { marginTop: 40 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 120, paddingHorizontal: 40 },
-  emptyIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: Colors.readReceiptSoft10, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontFamily: 'Almarai_800ExtraBold',  fontSize: 20, color: Colors.text, marginBottom: 8 },
-  emptySub: { fontFamily: 'Almarai_400Regular',  fontSize: 15, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  emptyIconCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.primarySoft12, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  emptyTitle: { fontFamily: 'Almarai_800ExtraBold', fontSize: 18, lineHeight: 26, color: Colors.primaryDeep, marginBottom: 6 },
+  emptySub: { fontFamily: 'Almarai_400Regular', fontSize: 14, lineHeight: 20, color: Colors.textMuted, textAlign: 'center', marginBottom: 16 },
+  quickRepliesRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+  quickReplyChip: {
+    minHeight: 36,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickReplyText: {
+    fontFamily: 'Almarai_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.primaryStrong,
+  },
   dateDivider: { alignItems: 'center', marginVertical: 20 },
   dateDividerTxt: {
     backgroundColor: Colors.scrimDark05, color: Colors.textMuted,
     fontFamily: 'Almarai_700Bold',  fontSize: 11,
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
   },
-  replyPreviewContainer: {
-    flexDirection: 'row',
-    backgroundColor: Colors.neutralLightBg,
-    padding: 10,
-    marginHorizontal: 10,
-    marginTop: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  replyPreviewLine: {
-    width: 4,
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    marginEnd: 8,
-  },
-  replyPreviewContent: {
-    flex: 1,
-  },
-  replyPreviewTitle: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 13,
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  replyPreviewText: {
-    fontFamily: 'Almarai_400Regular',
-    fontSize: 12,
-    color: Colors.textMuted,
-  },
-  replyPreviewClose: {
-    padding: 4,
-  },
   inputContainer: {
-    backgroundColor: Colors.white,
-    paddingTop: 4,
+    backgroundColor: Colors.transparent,
   },
   staleWrap: {
     paddingHorizontal: 16,
