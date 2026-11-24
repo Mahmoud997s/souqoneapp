@@ -36,7 +36,7 @@ function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: 
     return (
       <View style={{ flexDirection: 'row', marginStart: -4, alignItems: 'center' }}>
         <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} />
-        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} style={{ marginLeft: -6 }} />
+        <Ionicons name="checkmark" size={13} color={Colors.readReceiptBlue} style={{ marginStart: -6 }} />
       </View>
     )
   }
@@ -45,7 +45,7 @@ function MessageStatusIcon({ pending, isRead, isDelivered, error }: { pending?: 
     return (
       <View style={{ flexDirection: 'row', marginStart: -4, alignItems: 'center' }}>
         <Ionicons name="checkmark" size={13} color={Colors.textMuted} />
-        <Ionicons name="checkmark" size={13} color={Colors.textMuted} style={{ marginLeft: -6 }} />
+        <Ionicons name="checkmark" size={13} color={Colors.textMuted} style={{ marginStart: -6 }} />
       </View>
     )
   }
@@ -299,8 +299,8 @@ const s = StyleSheet.create({
     shadowColor: Colors.shadowBlack, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 4,
     borderWidth: 1, borderColor: Colors.scrimDark04
   },
-  reactionsBadgeOwn: { left: 16 },
-  reactionsBadgeOther: { right: 16 },
+  reactionsBadgeOwn: { start: 16 },
+  reactionsBadgeOther: { end: 16 },
   reactionsBadgeTxt: { fontSize: 13, fontFamily: 'Almarai_700Bold',  color: Colors.text, lineHeight: 18 },
   fullScreenContainer: { flex: 1, backgroundColor: Colors.shadowBlack, justifyContent: 'center', alignItems: 'center' },
   zoomScroll: { flex: 1, width: '100%' },

@@ -291,6 +291,11 @@ export default function ChatRoomScreen() {
 
             return (
               <View>
+                {showDateDivider && (
+                  <View style={s.dateDivider} testID="chat-date-divider">
+                    <Text style={s.dateDividerTxt}>{currentDateLabel}</Text>
+                  </View>
+                )}
                 <MessageBubble
                   msg={msg}
                   isOwn={isOwn}
@@ -304,11 +309,6 @@ export default function ChatRoomScreen() {
                     if (found) setReplyingToMessage(found)
                   }}
                 />
-                {showDateDivider && (
-                  <View style={s.dateDivider}>
-                    <Text style={s.dateDividerTxt}>{currentDateLabel}</Text>
-                  </View>
-                )}
               </View>
             )
           }}
@@ -393,7 +393,7 @@ const s = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.primary,
     borderRadius: 2,
-    marginRight: 8,
+    marginEnd: 8,
   },
   replyPreviewContent: {
     flex: 1,
