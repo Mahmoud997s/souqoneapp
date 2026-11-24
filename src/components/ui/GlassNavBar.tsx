@@ -23,6 +23,7 @@ export interface GlassNavBarAction {
 
 export interface GlassNavBarProps {
   title: string
+  titleContent?: React.ReactNode
   paddingTop: number
   onBackPress: () => void
   actions?: GlassNavBarAction[]
@@ -45,6 +46,7 @@ const softShadow = Platform.select({
 
 export function GlassNavBar({
   title,
+  titleContent,
   paddingTop,
   onBackPress,
   actions = [],
@@ -100,18 +102,24 @@ export function GlassNavBar({
           />
         </TouchableOpacity>
 
-        {/* Title Badge (flex:1) */}
-        <View style={[s.navTitleBadge, isHomeAppearance && s.navTitleBadgeHome]}>
-          {isHomeAppearance && (
-            <TopBarGlassSurface
-              testID={testID + '-title-glass'}
-              kind="ice-control"
-              borderRadius={NAV_BUTTON_RADIUS}
-              support={support}
-            />
-          )}
-          <Text style={s.navTitle} numberOfLines={1}>{title}</Text>
-        </View>
+        {/* Title Badge (flex:1) or Custom Title Content */}
+        {titleContent ? (
+          <View style={s.navTitleCustom} accessibilityLabel={title} testID={`${testID}-title-content`}>
+            {titleContent}
+          </View>
+        ) : (
+          <View style={[s.navTitleBadge, isHomeAppearance && s.navTitleBadgeHome]}>
+            {isHomeAppearance && (
+              <TopBarGlassSurface
+                testID={testID + '-title-glass'}
+                kind="ice-control"
+                borderRadius={NAV_BUTTON_RADIUS}
+                support={support}
+              />
+            )}
+            <Text style={s.navTitle} numberOfLines={1}>{title}</Text>
+          </View>
+        )}
 
         {/* Action Buttons (Left in RTL), or a placeholder to keep the title centered */}
         {actions.length > 0 ? (
@@ -265,6 +273,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...softShadow,
+  },
+  navTitleCustom: {
+    flex: 1,
+    minHeight: 38,
+    justifyContent: 'center',
   },
   navTitleBadgeHome: {
     backgroundColor: TopBarTokens.iceGlass,

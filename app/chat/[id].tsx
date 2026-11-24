@@ -1,7 +1,7 @@
 import React from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Animated
+  KeyboardAvoidingView, Platform, ActivityIndicator, Animated, StatusBar
 } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -12,7 +12,8 @@ import { Image } from 'expo-image'
 import { Colors } from '../../src/constants/colors'
 import { Spacing } from '../../src/constants/spacing'
 import { Radius } from '../../src/constants/radius'
-import { ChatRoomHeader } from '../../src/components/chat/ChatRoomHeader'
+import { GlassNavBar } from '../../src/components/ui/GlassNavBar'
+import { ChatRoomNavTitle } from '../../src/components/chat/ChatRoomNavTitle'
 import { ChatConnectionBanner } from '../../src/components/chat/ChatConnectionBanner'
 import { useChatRoomLogic } from '../../src/hooks/useChatRoomLogic'
 import { MemoizedMessageBubble as MessageBubble } from '../../src/components/chat/MessageBubble'
@@ -189,19 +190,35 @@ export default function ChatRoomScreen() {
 
   return (
     <View style={s.root}>
-      <ChatRoomHeader
-        displayName={displayName}
-        avatarUri={displayAvatar}
-        isOnline={isOtherUserOnline}
-        isTyping={isOtherUserTyping}
+      <StatusBar barStyle="dark-content" />
+      <GlassNavBar
+        title={displayName}
+        paddingTop={insets.top}
         onBackPress={() => router.back()}
-        onProfilePress={() => {
-          if (otherUser?.id) {
-            router.push({ pathname: '/profile/[userId]', params: { userId: otherUser.id } })
-          }
-        }}
-        onOptionsPress={handleRoomOptions}
+        testID="chat-room-nav-bar"
+        titleContent={
+          <ChatRoomNavTitle
+            displayName={displayName}
+            avatarUri={displayAvatar}
+            isOnline={isOtherUserOnline}
+            isTyping={isOtherUserTyping}
+            onPress={() => {
+              if (otherUser?.id) {
+                router.push({ pathname: '/profile/[userId]', params: { userId: otherUser.id } })
+              }
+            }}
+          />
+        }
+        actions={[
+          {
+            icon: 'ellipsis-vertical',
+            onPress: handleRoomOptions,
+            accessibilityLabel: 'خيارات المحادثة',
+            testID: 'chat-room-options-btn',
+          },
+        ]}
       />
+      <View style={{ height: insets.top + 53 }} />
 
       <ChatConnectionBanner />
 
