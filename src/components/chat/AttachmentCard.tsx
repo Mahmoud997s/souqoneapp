@@ -94,7 +94,7 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 10,
+    marginEnd: 10,
   },
   info: { flex: 1, alignItems: 'flex-start' },
   name: { fontFamily: 'Almarai_700Bold', fontSize: 13, writingDirection: 'rtl', textAlign: 'left', marginBottom: 2 },
