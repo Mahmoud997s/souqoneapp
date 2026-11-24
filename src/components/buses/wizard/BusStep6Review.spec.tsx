@@ -114,7 +114,8 @@ describe('BusStep6Review', () => {
     expect(screen.queryByText('99887766')).toBeNull()
     expect(screen.queryByText('رقم الهاتف')).toBeNull()
     expect(screen.queryByText('رقم الواتساب')).toBeNull()
-    expect(screen.getByText('التواصل عبر الواتساب')).toBeTruthy()
+    expect(screen.getByText('طرق التواصل')).toBeTruthy()
+    expect(screen.getByText('اتصال + واتساب')).toBeTruthy()
   })
 
   it('triggers onEditStep with correct step number for each edit button', async () => {

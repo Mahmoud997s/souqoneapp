@@ -9,7 +9,11 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { WizardReviewCard, WIZARD_REVIEW_ROW_STYLES } from '../../ui/WizardReviewCard'
+import {
+  WizardReviewCard,
+  WizardReviewContactRow,
+  WIZARD_REVIEW_ROW_STYLES,
+} from '../../ui/WizardReviewCard'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -309,13 +313,7 @@ export function ServiceStep6Review({ formData, onEditStep }: ServiceStep6Props) 
             </View>
           ) : null}
 
-          <View style={s.row}>
-            <View style={s.rowIconLabel}>
-              <Ionicons name="logo-whatsapp" size={16} color={Colors.emerald} />
-              <Text style={s.label}>التواصل عبر واتساب</Text>
-            </View>
-            <Text style={s.value}>{formData.whatsappEnabled ? 'مفعّل' : 'معطّل'}</Text>
-          </View>
+          <WizardReviewContactRow whatsappEnabled={formData.whatsappEnabled} />
 
           {formData.website ? (
             <View style={s.row}>

@@ -9,7 +9,11 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { WizardReviewCard, WIZARD_REVIEW_ROW_STYLES } from '../../ui/WizardReviewCard'
+import {
+  WizardReviewCard,
+  WizardReviewContactRow,
+  WIZARD_REVIEW_ROW_STYLES,
+} from '../../ui/WizardReviewCard'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
@@ -461,15 +465,7 @@ export function BusStep6Review({ data, onEditStep }: BusStep6Props) {
             </View>
           ) : null}
 
-          {data.whatsappEnabled ? (
-            <View style={s.row}>
-              <View style={s.rowIconLabel}>
-                <Ionicons name="logo-whatsapp" size={16} color={Colors.emerald} />
-                <Text style={s.label}>التواصل عبر الواتساب</Text>
-              </View>
-              <Text style={s.value}>مفعّل</Text>
-            </View>
-          ) : null}
+          <WizardReviewContactRow whatsappEnabled={data.whatsappEnabled} />
         </View>
       </WizardReviewCard>
     </View>

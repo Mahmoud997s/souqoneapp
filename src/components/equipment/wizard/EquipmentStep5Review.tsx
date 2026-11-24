@@ -9,9 +9,13 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { WizardReviewCard, WIZARD_REVIEW_ROW_STYLES } from '../../ui/WizardReviewCard'
+import {
+  WizardReviewCard,
+  WizardReviewContactRow,
+  WIZARD_REVIEW_ROW_STYLES,
+} from '../../ui/WizardReviewCard'
 import { formatEquipmentPower } from '../../../utils/wizardHelpers'
-import { Colors, BrandColors } from '../../../constants/colors'
+import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
 import { Spacing } from '../../../constants/spacing'
 import { CardSystem } from '../../../constants/cardSystem'
@@ -394,15 +398,7 @@ export function EquipmentStep5Review({ formData, onEditStep }: EquipmentStep5Pro
             </View>
           ) : null}
 
-          <View style={s.row}>
-            <View style={s.rowIconLabel}>
-              <Ionicons name="logo-whatsapp" size={16} color={BrandColors.whatsapp} />
-              <Text style={s.label}>التواصل عبر واتساب</Text>
-            </View>
-            <Text style={[s.value, { color: formData.whatsappEnabled ? Colors.emeraldBright : Colors.textMuted }]}>
-              {formData.whatsappEnabled ? 'مفعّل' : 'غير مفعّل'}
-            </Text>
-          </View>
+          <WizardReviewContactRow whatsappEnabled={formData.whatsappEnabled} />
         </View>
       </WizardReviewCard>
     </View>
@@ -499,22 +495,6 @@ const s = StyleSheet.create({
     fontFamily: 'Almarai_800ExtraBold',
     color: Colors.slateHeading,
     fontSize: 13,
-  },
-  phoneValue: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: Colors.primary,
-    writingDirection: 'ltr',
-    textAlign: 'left',
-  },
-  whatsappValue: {
-    fontFamily: 'Almarai_700Bold',
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: Colors.emeraldBright,
-    writingDirection: 'ltr',
-    textAlign: 'left',
   },
   badge: {
     paddingHorizontal: 8,

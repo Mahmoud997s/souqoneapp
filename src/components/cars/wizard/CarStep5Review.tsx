@@ -9,7 +9,11 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import { WizardReviewCard, WIZARD_REVIEW_ROW_STYLES } from '../../ui/WizardReviewCard'
+import {
+  WizardReviewCard,
+  WizardReviewContactRow,
+  WIZARD_REVIEW_ROW_STYLES,
+} from '../../ui/WizardReviewCard'
 import { formatRtlUnit } from '../../../utils/wizardHelpers'
 import { Colors } from '../../../constants/colors'
 import { Radius } from '../../../constants/radius'
@@ -432,6 +436,8 @@ export function CarStep5Review({ formData, onEditStep }: CarStep5Props) {
               </View>
             </View>
           ) : null}
+
+          <WizardReviewContactRow whatsappEnabled={formData.whatsappEnabled} />
         </View>
       </WizardReviewCard>
     </View>

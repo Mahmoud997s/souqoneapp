@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Radius } from '../../constants/radius'
 import { Spacing } from '../../constants/spacing'
+import { TopBarTokens } from '../../constants/topBarTokens'
+import { GlassSurface } from '../navigation/glassSupport'
 import { WizardCard } from '../ui/WizardCard'
 
 export interface WizardImagesStepProps {
@@ -64,8 +66,18 @@ export function WizardImagesStep({
         style={[s.uploadBox, errors.images ? s.uploadBoxError : null]}
         onPress={onPickImages}
         disabled={isUploading || totalCount >= maxImages}
-        activeOpacity={0.8}
+        activeOpacity={1}
       >
+        <GlassSurface
+          testID={`${uploadBoxTestID}-glass`}
+          variant="surface"
+          noBorder
+          borderRadius={Radius.lg}
+          intensity={TopBarTokens.blurIntensity}
+          washColor={errors.images ? Colors.dangerBg : TopBarTokens.iceGlass}
+          washOpacity={0.85}
+          style={StyleSheet.absoluteFill}
+        />
         {isUploading ? (
           <View style={s.uploadLoadingWrap}>
             <ActivityIndicator size="small" color={Colors.primary} />
@@ -204,14 +216,15 @@ const s = StyleSheet.create({
     borderColor: Colors.blueLightBorder,
     borderStyle: 'dashed',
     borderRadius: Radius.lg,
-    backgroundColor: Colors.blueIceTintBg,
+    backgroundColor: Colors.transparent,
+    overflow: 'hidden',
+    minHeight: 44,
     padding: Spacing.space4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   uploadBoxError: {
     borderColor: Colors.error,
-    backgroundColor: Colors.dangerBg,
   },
   uploadContent: {
     flexDirection: 'row',

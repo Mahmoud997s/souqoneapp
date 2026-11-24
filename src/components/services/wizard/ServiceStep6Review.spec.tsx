@@ -77,7 +77,8 @@ describe('ServiceStep6Review', () => {
     expect(screen.getByText('من 50 إلى 150 ر.ع')).toBeTruthy()
     expect(screen.getByText('مسقط - السيب')).toBeTruthy()
     expect(screen.getByText('شارع 8، المعبيلة')).toBeTruthy()
-    expect(screen.getByText('مفعّل')).toBeTruthy()
+    expect(screen.getByText('طرق التواصل')).toBeTruthy()
+    expect(screen.getByText('اتصال + واتساب')).toBeTruthy()
   })
 
   it('calls onEditStep with corresponding step number on edit buttons press', async () => {
