@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { useContext } from 'react'
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, QueryClient, QueryClientContext } from '@tanstack/react-query'
 import { chatApi } from '../api/chat'
 import { ChatRoom, ChatMessage } from '../types/listing.types'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
@@ -46,15 +47,21 @@ export function useChatRooms() {
   })
 }
 
+const FALLBACK_DISABLED_CLIENT = new QueryClient()
+
 export function useChatTabUnreadCount(enabled = true): number {
-  const { data } = useQuery({
-    queryKey: CHAT_ROOMS_QUERY_KEY,
-    queryFn: fetchChatRooms,
-    refetchInterval: 15000,
-    enabled,
-    select: computeChatUnreadTotal,
-  })
-  return data ?? 0
+  const ctxClient = useContext(QueryClientContext)
+  const { data } = useQuery(
+    {
+      queryKey: CHAT_ROOMS_QUERY_KEY,
+      queryFn: fetchChatRooms,
+      refetchInterval: 15000,
+      enabled: enabled && !!ctxClient,
+      select: computeChatUnreadTotal,
+    },
+    ctxClient ?? FALLBACK_DISABLED_CLIENT
+  )
+  return ctxClient ? (data ?? 0) : 0
 }
 
 export function useArchiveRoom() {
