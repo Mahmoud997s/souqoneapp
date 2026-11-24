@@ -30,6 +30,7 @@ export interface GlassNavBarProps {
   hideBottomBorder?: boolean
   isTransparent?: boolean
   appearance?: 'default' | 'home'
+  buttonShape?: 'rounded' | 'circle'
   support?: GlassSupport
   testID?: string
 }
@@ -53,10 +54,12 @@ export function GlassNavBar({
   hideBottomBorder = false,
   isTransparent = false,
   appearance = 'home',
+  buttonShape = 'rounded',
   support,
   testID = 'glass-nav-bar',
 }: GlassNavBarProps) {
   const isHomeAppearance = appearance === 'home'
+  const buttonRadius = buttonShape === 'circle' ? NAV_BUTTON_SIZE / 2 : NAV_BUTTON_RADIUS
   const content = (
     <>
       {!isTransparent && (
@@ -81,17 +84,18 @@ export function GlassNavBar({
       <View style={s.navBarRow}>
         {/* Back Button (Right in RTL) */}
         <TouchableOpacity
-          style={[s.navBtn, isHomeAppearance && s.navBtnHome]}
+          style={[s.navBtn, isHomeAppearance && s.navBtnHome, { borderRadius: buttonRadius }]}
           hitSlop={isHomeAppearance ? TopBarTokens.buttonHitSlop : undefined}
           activeOpacity={0.75}
           onPress={onBackPress}
           accessibilityLabel="رجوع"
+          testID={`${testID}-back-btn`}
         >
           {isHomeAppearance && (
             <TopBarGlassSurface
               testID={`${testID}-back-glass`}
               kind="ice-control"
-              borderRadius={NAV_BUTTON_RADIUS}
+              borderRadius={buttonRadius}
               support={support}
             />
           )}
@@ -148,6 +152,7 @@ export function GlassNavBar({
                   style={[
                     s.navBtn,
                     isHomeAppearance && s.navBtnHome,
+                    { borderRadius: buttonRadius },
                     isDisabled && !isHomeAppearance && s.navBtnDisabled,
                   ]}
                   hitSlop={isHomeAppearance ? TopBarTokens.buttonHitSlop : undefined}
@@ -160,7 +165,7 @@ export function GlassNavBar({
                     <TopBarGlassSurface
                       testID={`${testID}-action-${idx}-glass`}
                       kind="ice-control"
-                      borderRadius={NAV_BUTTON_RADIUS}
+                      borderRadius={buttonRadius}
                       support={support}
                     />
                   )}

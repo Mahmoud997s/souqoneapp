@@ -196,6 +196,7 @@ export default function ChatRoomScreen() {
         title={displayName}
         paddingTop={insets.top}
         onBackPress={() => router.back()}
+        buttonShape="circle"
         testID="chat-room-nav-bar"
         titleContent={
           <ChatRoomNavTitle

@@ -30,6 +30,12 @@ jest.mock('../../store/authStore', () => ({
   }),
 }))
 
+// Mock useChatTabUnreadCount
+let mockChatUnreadCount = 3
+jest.mock('../../hooks/useChat', () => ({
+  useChatTabUnreadCount: () => mockChatUnreadCount,
+}))
+
 // Mock NavVisibilityContext with mutable shared value
 const mockNavHidden = { value: 0 }
 jest.mock('../../context/NavVisibilityContext', () => ({
@@ -127,6 +133,7 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockIsLoggedIn = true
+    mockChatUnreadCount = 3
     mockNavHidden.value = 0
   })
 
@@ -229,23 +236,33 @@ describe('CustomTabBar (Task D-168 Stage 3 Adoption)', () => {
     expect(queryByTestId('floating-fab')).toBeNull()
   })
 
-  it('(g1) badge on the chat tab is rendered in expanded bar', async () => {
+  it('(g1) badge on the chat tab is rendered with count in expanded bar when unread > 0, and hidden at 0', async () => {
     mockNavHidden.value = 0
+    mockChatUnreadCount = 3
     const props = makeProps({ index: 0 })
-    const { getByTestId } = await render(<CustomTabBar {...props} />)
+    const { getByTestId, queryByTestId, rerender } = await render(<CustomTabBar {...props} />)
 
-    expect(getByTestId('chat-tab-badge')).toBeTruthy()
+    const badge = getByTestId('chat-tab-badge')
+    expect(badge).toBeTruthy()
+    expect(within(badge).getByText('3')).toBeTruthy()
+
+    mockChatUnreadCount = 0
+    await rerender(<CustomTabBar {...props} />)
+    expect(queryByTestId('chat-tab-badge')).toBeNull()
   })
 
-  it('(g2) badge on the chat tab is rendered when chat tab is focused in collapsed circle', async () => {
+  it('(g2) badge on the chat tab is rendered when chat tab is focused in collapsed circle when unread > 0', async () => {
     mockNavHidden.value = 1
+    mockChatUnreadCount = 5
     const props = makeProps({ index: 3 })
     const { getByTestId } = await render(<CustomTabBar {...props} />)
 
     const collapsedBtn = getByTestId('bottom-bar-collapsed-button')
     expect(collapsedBtn).toBeTruthy()
     const collapsedScope = within(collapsedBtn)
-    expect(collapsedScope.getByTestId('collapsed-chat-badge')).toBeTruthy()
+    const collapsedBadge = collapsedScope.getByTestId('collapsed-chat-badge')
+    expect(collapsedBadge).toBeTruthy()
+    expect(within(collapsedBadge).getByText('5')).toBeTruthy()
     expect(collapsedScope.getByTestId('icon-Ionicons-chatbubble')).toBeTruthy()
   })
 
