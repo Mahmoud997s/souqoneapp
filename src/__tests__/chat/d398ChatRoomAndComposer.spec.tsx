@@ -10,6 +10,7 @@ import { useChatMessagesStore } from '../../store/chatMessagesStore'
 import type { LocalMessage } from '../../hooks/useChatRoomLogic'
 
 let mockInsetsTop = 44
+let mockSocketConnected = true
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: mockInsetsTop, bottom: 34, left: 0, right: 0 }),
@@ -77,7 +78,7 @@ jest.mock('../../store/authStore', () => ({
 }))
 
 jest.mock('../../store/socketStore', () => ({
-  useSocketStore: (sel: (s: { isConnected: boolean }) => boolean) => sel({ isConnected: true }),
+  useSocketStore: (sel: (s: { isConnected: boolean }) => boolean) => sel({ isConnected: mockSocketConnected }),
 }))
 
 jest.mock('../../api/chat', () => ({
@@ -96,6 +97,7 @@ jest.setTimeout(30000)
 describe('D-398 — Chat Room Empty State & Composer Controls', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockSocketConnected = true
     useChatMessagesStore.getState().reset()
   })
 
@@ -156,5 +158,19 @@ describe('D-398 — Chat Room Empty State & Composer Controls', () => {
       expect(getByTestId('chat_input_field').props.value).toBe('هل الإعلان ما زال متاحاً؟')
     )
     expect(chatApi.sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('7. offline banner in ChatRoomScreen uses honest retry wording (no outbox promise)', async () => {
+    mockSocketConnected = false
+    ;(chatApi.getMessages as jest.Mock).mockResolvedValue({ data: [] })
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })
+    const { getByTestId, getByText } = await render(
+      <QueryClientProvider client={qc}>
+        <ChatRoomScreen />
+      </QueryClientProvider>
+    )
+
+    await waitFor(() => expect(getByTestId('chat-connection-banner')).toBeTruthy(), { timeout: 10000 })
+    expect(getByText('لا يوجد اتصال، قد تفشل الرسائل ويمكنك إعادة المحاولة')).toBeTruthy()
   })
 })

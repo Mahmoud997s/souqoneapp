@@ -221,7 +221,7 @@ export default function ChatRoomScreen() {
       />
       <View style={{ height: insets.top + 53 }} />
 
-      <ChatConnectionBanner message="لا يوجد اتصال، ستُرسل الرسائل عند عودة الاتصال" />
+      <ChatConnectionBanner message="لا يوجد اتصال، قد تفشل الرسائل ويمكنك إعادة المحاولة" />
 
       {room?.listing && isListingBannerVisible && (
         <ListingBanner
