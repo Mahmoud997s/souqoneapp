@@ -1,27 +1,33 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { AppState, AppStateStatus } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
-import { useChatStore } from '../store/chatStore'
 import { socketService } from '../services/socket'
-import { ChatRoom } from '../types/listing.types'
+import { ChatSyncService, type SocketIncomingMessagePayload } from '../services/ChatSyncService'
+import { CHAT_ROOMS_QUERY_KEY } from '../hooks/useChat'
+
+export interface SocketNotificationEvent {
+  type?: string
+  payload?: SocketIncomingMessagePayload
+}
 
 export function GlobalSocketHandler() {
-  const { isLoggedIn, user } = useAuthStore()
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
   const queryClient = useQueryClient()
 
-  // AppState for socket reconnection
+  // AppState for socket reconnection & single catch-up refetch on foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (!isLoggedIn) return
       if (nextAppState === 'active') {
-        socketService.connect()
+        void socketService.connect()
+        void queryClient.invalidateQueries({ queryKey: CHAT_ROOMS_QUERY_KEY })
       } else if (nextAppState === 'background') {
         socketService.disconnect()
       }
     })
     return () => subscription.remove()
-  }, [isLoggedIn])
+  }, [isLoggedIn, queryClient])
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -29,83 +35,26 @@ export function GlobalSocketHandler() {
       return
     }
 
-    let active = true
-
-    socketService.connect().then(() => {
-      if (!active) return
-
-      const handleGlobalMessage = (data: any) => {
-        const conversationId = data.roomId ?? data.conversationId
-        if (!conversationId) return
-
-        queryClient.setQueryData<ChatRoom[]>(['chat-rooms'], (oldRooms) => {
-          if (!oldRooms) return oldRooms
-
-          const roomIndex = oldRooms.findIndex(r => r.id === conversationId)
-          let updatedRooms = [...oldRooms]
-
-          if (roomIndex > -1) {
-            const room = updatedRooms[roomIndex]
-            
-            const isSender = data.senderId === user?.id || data.sender?.id === user?.id
-            // Get active room from store directly to avoid stale closures
-            const activeRoomId = useChatStore.getState().activeRoomId
-            const isViewingThisRoom = activeRoomId === conversationId
-            
-            const shouldIncrementUnread = !isSender && !isViewingThisRoom
-
-            const updatedRoom = {
-              ...room,
-              lastMessage: {
-                id: data.id ?? String(Date.now()),
-                roomId: conversationId,
-                content: data.content,
-                sender: data.sender || { id: data.senderId || '' },
-                createdAt: data.createdAt ?? new Date().toISOString(),
-                isRead: isSender || isViewingThisRoom ? true : false,
-              },
-              updatedAt: new Date().toISOString(),
-              unreadCount: shouldIncrementUnread ? (room.unreadCount + 1) : room.unreadCount,
-            }
-
-            updatedRooms.splice(roomIndex, 1)
-            updatedRooms.unshift(updatedRoom)
-          } else {
-            queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
-          }
-
-          return updatedRooms
-        })
+    const handleNotification = (data: SocketNotificationEvent) => {
+      if (data?.type === 'MESSAGE' || data?.type === 'NEW_MESSAGE') {
+        const payload = data.payload ?? (data as unknown as SocketIncomingMessagePayload)
+        ChatSyncService.handleIncomingMessage(payload)
       }
+    }
 
-      const handleNotification = (data: any) => {
-        if (data.type === 'NEW_MESSAGE') {
-          handleGlobalMessage(data.payload)
-        }
-      }
+    const handleReconnect = () => {
+      void queryClient.invalidateQueries({ queryKey: CHAT_ROOMS_QUERY_KEY })
+    }
 
-      const handleReconnect = () => {
-        queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
-      }
-
-      socketService.listen('message', handleGlobalMessage)
-      socketService.listen('notification', handleNotification)
-      socketService.listen('connect', handleReconnect)
-      
-      // Cleanup attached to the Promise resolution
-      return () => {
-        socketService.off('message', handleGlobalMessage)
-        socketService.off('notification', handleNotification)
-        socketService.off('connect', handleReconnect)
-      }
-    })
+    socketService.listen<SocketNotificationEvent>('notification', handleNotification)
+    socketService.listen('connect', handleReconnect)
+    void socketService.connect()
 
     return () => {
-      active = false
-      // Fallback cleanup will happen when unmounted due to component scope,
-      // but the exact listeners are cleaned inside the promise.
+      socketService.off('notification', handleNotification)
+      socketService.off('connect', handleReconnect)
     }
-  }, [isLoggedIn, queryClient, user?.id])
+  }, [isLoggedIn, queryClient])
 
   return null
 }

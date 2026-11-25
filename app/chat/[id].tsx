@@ -87,11 +87,6 @@ export default function ChatRoomScreen() {
     roomOtherParticipant?.avatar ||
     undefined
 
-  const reversedMessages = React.useMemo(
-    () => [...messages].reverse(),
-    [messages]
-  )
-
   const [showReactionPicker, setShowReactionPicker] = React.useState(false)
   const [selectedMsgId, setSelectedMsgId] = React.useState<string | null>(null)
 
@@ -306,28 +301,32 @@ export default function ChatRoomScreen() {
           ) : null}
           <FlashList
           ref={scrollRef}
-          data={reversedMessages}
+          data={messages}
           keyExtractor={(item) => item.id}
-          // @ts-ignore
-          inverted
+          maintainVisibleContentPosition={{
+            autoscrollToBottomThreshold: 0.2,
+            startRenderingFromBottom: true,
+          }}
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={() => {
             setShowReactionPicker(false)
             setSelectedMsgId(null)
           }}
-          onEndReached={() => {
+          onStartReached={() => {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage()
           }}
-          onEndReachedThreshold={0.5}
-          // @ts-ignore
-          estimatedItemSize={100}
-          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={Colors.primary} style={{ marginVertical: 16 }} /> : null}
+          onStartReachedThreshold={0.5}
+          ListHeaderComponent={
+            isFetchingNextPage ? (
+              <ActivityIndicator color={Colors.primary} style={{ marginVertical: 16 }} />
+            ) : null
+          }
           renderItem={({ item: msg, index }) => {
             const isOwn = msg.senderId === user?.id
             const currentDateLabel = getDateLabel(msg.createdAt)
-            // Since it's inverted, the "previous" message in time is the NEXT item in the reversed array
-            const prevMessageTime = index < reversedMessages.length - 1 ? reversedMessages[index + 1].createdAt : null
+            // Ascending order: previous message in time is index - 1
+            const prevMessageTime = index > 0 ? messages[index - 1].createdAt : null
             const prevDateLabel = prevMessageTime ? getDateLabel(prevMessageTime) : null
             const showDateDivider = currentDateLabel !== prevDateLabel
 
