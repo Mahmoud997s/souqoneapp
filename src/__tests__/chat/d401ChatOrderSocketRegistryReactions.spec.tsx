@@ -237,7 +237,7 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
     }
   })
 
-  it('(c)+(e) single unread +1 on incoming message, own-sender leaves unread unchanged, and MESSAGE notification dedupes by id', async () => {
+  it('(c)+(e) single unread +1 on incoming message, dedupes duplicate message id, notification does not double-count, own-sender leaves unread unchanged', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const initialRooms: ChatRoom[] = [
       {
@@ -276,7 +276,9 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
 
     const sock = mockCreatedSockets[mockCreatedSockets.length - 1]
     expect(sock).toBeDefined()
-    expect(Array.from(sock.handlers.keys())).toContain('notification')
+    // Single 'message' handler (from ChatSyncService) and no chat-message handler on 'notification'
+    expect(sock.handlers.get('message')?.length).toBe(1)
+    expect(sock.handlers.get('notification')).toBeUndefined()
 
     // Incoming message from other user -> unread 2 -> 3 (NOT 4)
     await act(async () => {
@@ -296,16 +298,27 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
     expect(rooms[0].lastMessage?.type).toBe('IMAGE')
     expect(rooms[0].lastMessage?.mediaUrl).toBe('https://cdn.example/img.jpg')
 
-    // Backend notification with type === 'MESSAGE' for the SAME message id -> deduped (stays 3)
+    // Duplicate 'message' with same id -> deduped (stays 3)
+    await act(async () => {
+      sock.trigger('message', {
+        id: 'msg-incoming-1',
+        conversationId: 'room-bg',
+        senderId: 'user-other',
+        content: 'صورة جديدة',
+        createdAt: '2026-11-24T10:05:00.000Z',
+      })
+    })
+
+    rooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])!
+    expect(rooms[0].unreadCount).toBe(3)
+
+    // Backend 'notification' record (data: { conversationId, messageId }) does not mutate unreadCount (stays 3)
     await act(async () => {
       sock.trigger('notification', {
         type: 'MESSAGE',
-        payload: {
-          id: 'msg-incoming-1',
+        data: {
           conversationId: 'room-bg',
-          senderId: 'user-other',
-          content: 'صورة جديدة',
-          createdAt: '2026-11-24T10:05:00.000Z',
+          messageId: 'msg-incoming-1',
         },
       })
     })
@@ -313,24 +326,7 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
     rooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])!
     expect(rooms[0].unreadCount).toBe(3)
 
-    // Backend notification with type === 'MESSAGE' for a NEW message id -> increments once (3 -> 4)
-    await act(async () => {
-      sock.trigger('notification', {
-        type: 'MESSAGE',
-        payload: {
-          id: 'msg-notif-2',
-          conversationId: 'room-bg',
-          senderId: 'user-other',
-          content: 'من الإشعار',
-          createdAt: '2026-11-24T10:06:00.000Z',
-        },
-      })
-    })
-
-    rooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])!
-    expect(rooms[0].unreadCount).toBe(4)
-
-    // Own-sender message from another device -> MUST NOT zero unreadCount (stays 4)
+    // Own-sender message from another device -> MUST NOT zero unreadCount (stays 3)
     await act(async () => {
       sock.trigger('message', {
         id: 'msg-own-3',
@@ -342,7 +338,7 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
     })
 
     rooms = qc.getQueryData<ChatRoom[]>(['chat-rooms'])!
-    expect(rooms[0].unreadCount).toBe(4)
+    expect(rooms[0].unreadCount).toBe(3)
   })
 
   it('(d) reaction action === "removed" removes that user reaction from store', async () => {
