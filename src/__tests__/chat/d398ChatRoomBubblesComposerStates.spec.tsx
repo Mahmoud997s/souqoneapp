@@ -219,9 +219,7 @@ describe('D-398 — Chat Room Bubbles, Composer & States', () => {
       const content = fs.readFileSync(file, 'utf8')
       expect(emojiRegex.test(content)).toBe(false)
     }
-    const chatRoomSrc = fs
-      .readFileSync(path.join(repoRoot, 'app', 'chat', '[id].tsx'), 'utf8')
-      .replace(/const handleRoomOptions = React\.useCallback[\s\S]*?\[room\?\.listing, room\?\.entityType\]\)/, '')
+    const chatRoomSrc = fs.readFileSync(path.join(repoRoot, 'app', 'chat', '[id].tsx'), 'utf8')
     expect(emojiRegex.test(chatRoomSrc)).toBe(false)
     const chatInputSrc = fs
       .readFileSync(path.join(repoRoot, 'src', 'components', 'chat', 'ChatInput.tsx'), 'utf8')

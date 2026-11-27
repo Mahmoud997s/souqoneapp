@@ -30,11 +30,11 @@ import * as Clipboard from 'expo-clipboard'
 import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 import { fromWireType, getReplyQuoteForMessage } from '../../src/utils/chatMessageType'
 
-function getDateLabel(iso: string) {
+export function getDateLabel(iso: string) {
   if (!iso) return ''
   const d = new Date(iso)
   if (isNaN(d.getTime())) return ''
-  
+
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
@@ -44,7 +44,7 @@ function getDateLabel(iso: string) {
   } else if (d.toDateString() === yesterday.toDateString()) {
     return 'أمس'
   } else {
-    return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
+    return d.toLocaleDateString('ar-OM-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' })
   }
 }
 
@@ -138,51 +138,27 @@ export default function ChatRoomScreen() {
 
   const [isListingBannerVisible, setIsListingBannerVisible] = React.useState(true)
 
-  const handleRoomOptions = React.useCallback(() => {
-    const options: ActionSheetOption[] = []
+  const listingId = room?.listing?.id
+  const listingEntityType = room?.entityType
+  const handleOpenListing = React.useCallback(() => {
+    if (!listingId) return
+    router.push(detailRoute(listingEntityType, listingId))
+  }, [listingEntityType, listingId])
 
-    if (room?.listing) {
-      options.push({
-        text: '🏷️ عرض الإعلان',
-        onPress: () => router.push(detailRoute(room?.entityType, room.listing!.id)),
-        style: 'default',
-      })
-    }
-
-    options.push(
-      {
-        text: '🔔 كتم الإشعارات',
-        onPress: () => {
-          toastService.show({ kind: 'info', title: 'تم كتم إشعارات المحادثة' })
-        },
-        style: 'default',
-      },
-      {
-        text: '🚩 إبلاغ عن مستخدم',
-        onPress: () => {
-          toastService.show({ kind: 'success', title: 'تم إرسال البلاغ للإدارة للمراجعة' })
-        },
-        style: 'default',
-      },
-      {
-        text: '🚫 حظر المستخدم',
-        onPress: () => {
-          toastService.confirm({
-            title: 'حظر المستخدم',
-            message: 'هل أنت متأكد من حظر هذا المستخدم؟',
-            intent: 'danger',
-            confirmLabel: 'حظر',
-            cancelLabel: 'إلغاء',
-            onConfirm: () => {
-              toastService.show({ kind: 'info', title: 'تم حظر المستخدم' })
+  const headerActions = React.useMemo(
+    () =>
+      listingId
+        ? [
+            {
+              icon: 'pricetag-outline' as const,
+              onPress: handleOpenListing,
+              accessibilityLabel: 'عرض الإعلان',
+              testID: 'chat-room-view-listing-btn',
             },
-          })
-        },
-      }
-    )
-
-    toastService.showActionSheet({ title: 'خيارات المحادثة', options })
-  }, [room?.listing, room?.entityType])
+          ]
+        : [],
+    [listingId, handleOpenListing]
+  )
 
   return (
     <View style={s.root}>
@@ -206,14 +182,7 @@ export default function ChatRoomScreen() {
             }}
           />
         }
-        actions={[
-          {
-            icon: 'ellipsis-vertical',
-            onPress: handleRoomOptions,
-            accessibilityLabel: 'خيارات المحادثة',
-            testID: 'chat-room-options-btn',
-          },
-        ]}
+        actions={headerActions}
       />
       <View style={{ height: insets.top + 53 }} />
 

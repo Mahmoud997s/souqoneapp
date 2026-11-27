@@ -1,6 +1,12 @@
 import { apiClient } from './client'
 import { ChatRoom, ChatMessage } from '../types/listing.types'
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipErrorDialog?: boolean
+  }
+}
+
 export const CHAT_CONVERSATIONS_ALLOWED_PARAMS = ['search', 'includeArchived'] as const
 
 export interface GetChatRoomsParams {
@@ -26,17 +32,27 @@ export const chatApi = {
     const queryParams = buildGetChatRoomsParams(params)
     return apiClient.get<ChatRoom[]>(
       '/chat/conversations',
-      queryParams ? { params: queryParams } : undefined
+      queryParams ? { params: queryParams, skipErrorDialog: true } : { skipErrorDialog: true }
     )
   },
   getMessages: (roomId: string, page = 1, limit = 30) =>
-    apiClient.get<ChatMessage[]>(`/chat/conversations/${roomId}?page=${page}&limit=${limit}`),
+    apiClient.get<ChatMessage[]>(`/chat/conversations/${roomId}?page=${page}&limit=${limit}`, {
+      skipErrorDialog: true,
+    }),
   createRoom: (data: { entityType: string; entityId: string; receiverId?: string; listingId?: string }) =>
     apiClient.post<ChatRoom>('/chat/conversations', data),
   sendMessage: (roomId: string, data: { content?: string; type?: string; mediaUrl?: string }) =>
-    apiClient.post<ChatMessage>(`/chat/conversations/${roomId}/messages`, data),
+    apiClient.post<ChatMessage>(`/chat/conversations/${roomId}/messages`, data, {
+      skipErrorDialog: true,
+    }),
   archiveRoom: (id: string, archive: boolean) =>
-    apiClient.patch<{ message: string }>(`/chat/conversations/${id}/archive`, { archive }),
+    apiClient.patch<{ message: string }>(
+      `/chat/conversations/${id}/archive`,
+      { archive },
+      { skipErrorDialog: true }
+    ),
   markRoomRead: (id: string) =>
-    apiClient.patch<{ message?: string }>(`/chat/conversations/${id}/read`),
+    apiClient.patch<{ message?: string }>(`/chat/conversations/${id}/read`, undefined, {
+      skipErrorDialog: true,
+    }),
 }
