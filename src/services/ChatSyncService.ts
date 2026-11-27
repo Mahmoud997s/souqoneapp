@@ -1,4 +1,4 @@
-import { connectSocket, getSocket } from './socket'
+import { socketService, getSocket } from './socket'
 import { useChatMessagesStore } from '../store/chatMessagesStore'
 import { LocalMessage } from '../hooks/useChatRoomLogic'
 import { fromWireType, type WireChatMessageType } from '../utils/chatMessageType'
@@ -13,7 +13,13 @@ export interface SocketIncomingMessagePayload {
   room?: string
   roomId?: string
   senderId?: string
-  sender?: { id?: string }
+  sender?: {
+    id?: string
+    displayName?: string
+    username?: string
+    avatarUrl?: string
+    avatar?: string
+  }
   content?: string
   createdAt?: string
   reactions?: Array<{ emoji: string; userId: string }>
@@ -26,7 +32,7 @@ export interface SocketReactionPayload {
   messageId?: string
   emoji: string
   userId: string
-  action?: 'add' | 'remove'
+  action?: 'add' | 'remove' | 'removed'
 }
 
 export interface SocketMessageDeletedPayload {
@@ -43,64 +49,71 @@ let globalQueryClient: QueryClient | null = null
 
 export const ChatSyncService = {
   init: (queryClient: QueryClient) => {
+    globalQueryClient = queryClient
     if (initialized) return
     initialized = true
-    globalQueryClient = queryClient
 
-    connectSocket().then((socket) => {
-      socket.on('connect', () => {
-        // Automatically rejoin active room if any
-        const activeRoomId = useChatStore.getState().activeRoomId
-        if (activeRoomId) {
-          socket.emit('join-conversation', { conversationId: activeRoomId })
+    socketService.listen('connect', () => {
+      // Automatically rejoin active room if any
+      const activeRoomId = useChatStore.getState().activeRoomId
+      if (activeRoomId) {
+        getSocket()?.emit('join-conversation', { conversationId: activeRoomId })
+      }
+    })
+
+    socketService.listen<SocketIncomingMessagePayload>('message', (data) =>
+      ChatSyncService.handleIncomingMessage(data)
+    )
+
+    socketService.listen<SocketReactionPayload>('message-reaction', (data) => {
+      const { conversationId, messageId, emoji, userId, action } = data
+      if (!conversationId || !messageId) return
+
+      const store = useChatMessagesStore.getState()
+      const roomMessages = store.messagesByRoom[conversationId] || []
+      const msg = roomMessages.find((m) => m.id === messageId)
+
+      if (msg) {
+        let newReactions = msg.reactions ? [...msg.reactions] : []
+        if (action === 'remove' || action === 'removed') {
+          newReactions = newReactions.filter((r) => !(r.userId === userId && r.emoji === emoji))
+        } else {
+          newReactions = newReactions.filter((r) => r.userId !== userId)
+          newReactions.push({ emoji, userId })
         }
-      })
+        store.updateMessage(conversationId, messageId, { reactions: newReactions })
+      }
+    })
 
-      socket.on('message', (data: SocketIncomingMessagePayload) => ChatSyncService.handleIncomingMessage(data))
-      socket.on('new_message', (data: SocketIncomingMessagePayload) => ChatSyncService.handleIncomingMessage(data))
+    socketService.listen<SocketMessageDeletedPayload>('message-deleted', (data) => {
+      const { conversationId, messageId } = data
+      if (conversationId && messageId) {
+        useChatMessagesStore.getState().removeMessage(conversationId, messageId)
+      }
+    })
 
-      socket.on('message-reaction', (data: SocketReactionPayload) => {
-        const { conversationId, messageId, emoji, userId, action } = data
-        if (!conversationId || !messageId) return
-        
-        const store = useChatMessagesStore.getState()
-        const roomMessages = store.messagesByRoom[conversationId] || []
-        const msg = roomMessages.find(m => m.id === messageId)
-        
-        if (msg) {
-          let newReactions = msg.reactions ? [...msg.reactions] : []
-          if (action === 'remove') {
-            newReactions = newReactions.filter((r) => !(r.userId === userId && r.emoji === emoji))
-          } else {
-            newReactions = newReactions.filter((r) => r.userId !== userId)
-            newReactions.push({ emoji, userId })
-          }
-          store.updateMessage(conversationId, messageId, { reactions: newReactions })
+    socketService.listen<SocketMessagesReadPayload>('messages-read', (data) => {
+      const { conversationId } = data
+      if (conversationId) {
+        const user = useAuthStore.getState().user
+        if (user?.id) {
+          useChatMessagesStore.getState().markRoomAsRead(conversationId, user.id)
         }
-      })
-
-      socket.on('message-deleted', (data: SocketMessageDeletedPayload) => {
-        const { conversationId, messageId } = data
-        if (conversationId && messageId) {
-          useChatMessagesStore.getState().removeMessage(conversationId, messageId)
-        }
-      })
-      
-      socket.on('messages-read', (data: SocketMessagesReadPayload) => {
-         const { conversationId } = data
-         if (conversationId) {
-             const user = useAuthStore.getState().user
-             if (user?.id) {
-                 useChatMessagesStore.getState().markRoomAsRead(conversationId, user.id)
-             }
-         }
-      })
+      }
     })
   },
 
   handleIncomingMessage: (data: SocketIncomingMessagePayload) => {
     const roomId = data.conversationId || data.room || data.roomId // Fallbacks depending on backend
     if (!roomId) return
+
+    // Dedupe when both 'message' and 'notification' arrive for the same message id
+    if (data.id) {
+      const existing = useChatMessagesStore.getState().messagesByRoom[roomId]
+      if (existing?.some((m) => m.id === data.id)) {
+        return
+      }
+    }
 
     const msg: LocalMessage = {
       id: data.id ?? String(Date.now()),
@@ -114,9 +127,11 @@ export const ChatSyncService = {
 
     const activeRoomId = useChatStore.getState().activeRoomId
     const user = useAuthStore.getState().user
+    const isSender = msg.senderId === user?.id
+    const isViewingThisRoom = activeRoomId === roomId
 
     // If we are currently in this room and it's from the other person, emit mark-read
-    if (activeRoomId === roomId && msg.senderId !== user?.id) {
+    if (isViewingThisRoom && !isSender) {
       const socket = getSocket()
       if (socket?.connected) {
         socket.emit('mark-read', { conversationId: roomId })
@@ -127,21 +142,49 @@ export const ChatSyncService = {
     // Add to persistent store
     useChatMessagesStore.getState().addMessage(roomId, msg)
 
-    // Update query client for rooms list so the unread badge and last message update instantly
+    // Update query client for rooms list so the unread badge and last message update once
     if (globalQueryClient) {
+      const cachedRooms = globalQueryClient.getQueryData<ChatRoom[]>(['chat-rooms'])
+      if (cachedRooms && !cachedRooms.some((r) => r.id === roomId)) {
+        void globalQueryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
+        return
+      }
+
       globalQueryClient.setQueryData<ChatRoom[]>(['chat-rooms'], (old) => {
         if (!old) return old
-        return old.map((room: ChatRoom) => {
-          if (room.id === roomId) {
+        const shouldIncrementUnread = !isSender && !isViewingThisRoom
+        return old
+          .map((room: ChatRoom) => {
+            if (room.id !== roomId) return room
             return {
               ...room,
-              lastMessage: msg,
+              lastMessage: {
+                id: msg.id,
+                senderId: msg.senderId,
+                content: msg.content,
+                type: msg.type,
+                mediaUrl: msg.mediaUrl,
+                sender: data.sender?.username
+                  ? {
+                      id: data.sender.id ?? msg.senderId,
+                      displayName: data.sender.displayName,
+                      username: data.sender.username,
+                      avatarUrl: data.sender.avatarUrl,
+                      avatar: data.sender.avatar,
+                    }
+                  : undefined,
+                createdAt: msg.createdAt,
+                isRead: isSender || isViewingThisRoom,
+              },
               updatedAt: msg.createdAt,
-              unreadCount: (msg.senderId !== user?.id && activeRoomId !== roomId) ? (room.unreadCount || 0) + 1 : 0
+              unreadCount: shouldIncrementUnread
+                ? (room.unreadCount || 0) + 1
+                : isViewingThisRoom
+                  ? 0
+                  : room.unreadCount || 0,
             }
-          }
-          return room
-        }).sort((a: ChatRoom, b: ChatRoom) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+          })
+          .sort((a: ChatRoom, b: ChatRoom) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       })
     }
   },

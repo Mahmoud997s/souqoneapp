@@ -75,13 +75,24 @@ jest.mock('../../services/ChatSyncService', () => ({
   },
 }))
 
-jest.mock('../../services/socket', () => ({
-  getSocket: () => ({
+jest.mock('../../services/socket', () => {
+  const sock = {
     emit: jest.fn(),
     on: jest.fn(),
     off: jest.fn(),
-  }),
-}))
+  }
+  return {
+    getSocket: () => sock,
+    socketService: {
+      listen: jest.fn(),
+      off: jest.fn(),
+      emit: jest.fn(),
+      connect: jest.fn(() => Promise.resolve(sock)),
+      disconnect: jest.fn(),
+      getSocket: () => sock,
+    },
+  }
+})
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),

@@ -1,9 +1,11 @@
 import { useContext } from 'react'
+import { AppState, type AppStateStatus } from 'react-native'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery, QueryClient, QueryClientContext } from '@tanstack/react-query'
 import { chatApi } from '../api/chat'
 import { ChatRoom, ChatMessage } from '../types/listing.types'
 import { parseListEnvelope } from '../utils/parseListEnvelope'
 import { toastService } from '../store/toastStore'
+import { useSocketStore } from '../store/socketStore'
 
 /**
  * Normalizes legacy `{ data: [...] }` envelopes to `{ items: [...] }` so
@@ -39,11 +41,25 @@ export function computeChatUnreadTotal(rooms: ChatRoom[] | undefined): number {
   }, 0)
 }
 
+export const CHAT_POLL_FALLBACK_MS = 60000
+
+export function getChatRoomsRefetchInterval(
+  isSocketConnected: boolean,
+  appState: AppStateStatus = AppState.currentState
+): number | false {
+  if (isSocketConnected && appState === 'active') {
+    return false
+  }
+  return CHAT_POLL_FALLBACK_MS
+}
+
 export function useChatRooms() {
+  const isSocketConnected = useSocketStore((s) => s.isConnected)
   return useQuery({
     queryKey: CHAT_ROOMS_QUERY_KEY,
     queryFn: fetchChatRooms,
-    refetchInterval: 15000,
+    refetchInterval: () =>
+      getChatRoomsRefetchInterval(isSocketConnected, AppState.currentState),
   })
 }
 
@@ -51,11 +67,13 @@ const FALLBACK_DISABLED_CLIENT = new QueryClient()
 
 export function useChatTabUnreadCount(enabled = true): number {
   const ctxClient = useContext(QueryClientContext)
+  const isSocketConnected = useSocketStore((s) => s.isConnected)
   const { data } = useQuery(
     {
       queryKey: CHAT_ROOMS_QUERY_KEY,
       queryFn: fetchChatRooms,
-      refetchInterval: 15000,
+      refetchInterval: () =>
+        getChatRoomsRefetchInterval(isSocketConnected, AppState.currentState),
       enabled: enabled && !!ctxClient,
       select: computeChatUnreadTotal,
     },

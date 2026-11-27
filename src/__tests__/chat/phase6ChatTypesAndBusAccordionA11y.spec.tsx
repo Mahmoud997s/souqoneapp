@@ -71,6 +71,14 @@ const mockSocketInstance = {
 jest.mock('../../services/socket', () => ({
   getSocket: () => mockSocketInstance,
   connectSocket: () => Promise.resolve(mockSocketInstance),
+  socketService: {
+    listen: jest.fn((ev: string, cb: (...args: any[]) => void) => mockSocketInstance.on(ev, cb)),
+    off: jest.fn((ev: string, cb?: (...args: any[]) => void) => mockSocketInstance.off(ev, cb)),
+    emit: jest.fn((ev: string, data: any) => mockSocketInstance.emit(ev, data)),
+    connect: () => Promise.resolve(mockSocketInstance),
+    disconnect: jest.fn(),
+    getSocket: () => mockSocketInstance,
+  },
 }))
 
 const mockUser: UserSummary = { id: 'user-me', username: 'tester', displayName: 'أنا' }

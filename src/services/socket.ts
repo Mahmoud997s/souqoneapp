@@ -4,10 +4,13 @@ import { Config } from '../constants/config'
 import { useSocketStore } from '../store/socketStore'
 import { logWarn } from '../utils/safeLog'
 
+type SocketEventCallback = (...args: unknown[]) => void
+
 class SocketService {
   private socket: Socket | null = null
   private hasLoggedConnectionError = false
   private connectPromise: Promise<Socket> | null = null
+  private listeners = new Map<string, Set<SocketEventCallback>>()
 
   async connect(): Promise<Socket> {
     if (this.socket?.connected) return this.socket
@@ -47,7 +50,7 @@ class SocketService {
           })
         })
 
-        this.socket.on('account-status', (payload: any) => {
+        this.socket.on('account-status', (payload: { code?: string }) => {
           const code = payload?.code
           if (code === 'ACCOUNT_BANNED' || code === 'ACCOUNT_SUSPENDED') {
             if (this.socket) {
@@ -77,6 +80,12 @@ class SocketService {
           })
         })
 
+        for (const [event, callbacks] of this.listeners.entries()) {
+          for (const cb of callbacks) {
+            this.socket.on(event, cb)
+          }
+        }
+
         this.socket.connect()
         return this.socket
       } finally {
@@ -102,7 +111,7 @@ class SocketService {
     return this.socket
   }
 
-  emit(event: string, data: any) {
+  emit(event: string, data: unknown) {
     if (this.socket?.connected) {
       this.socket.emit(event, data)
     } else {
@@ -110,17 +119,36 @@ class SocketService {
     }
   }
 
-  listen(event: string, callback: (data: any) => void) {
-    if (this.socket) {
-      this.socket.on(event, callback)
+  listen<T = unknown>(event: string, callback: (data: T) => void) {
+    const fn = callback as SocketEventCallback
+    let callbacks = this.listeners.get(event)
+    if (!callbacks) {
+      callbacks = new Set<SocketEventCallback>()
+      this.listeners.set(event, callbacks)
+    }
+    const alreadyRegistered = callbacks.has(fn)
+    callbacks.add(fn)
+    if (this.socket && !alreadyRegistered) {
+      this.socket.on(event, fn)
     }
   }
 
-  off(event: string, callback?: (data: any) => void) {
-    if (this.socket) {
-      if (callback) {
-        this.socket.off(event, callback)
-      } else {
+  off<T = unknown>(event: string, callback?: (data: T) => void) {
+    if (callback) {
+      const fn = callback as SocketEventCallback
+      const callbacks = this.listeners.get(event)
+      if (callbacks) {
+        callbacks.delete(fn)
+        if (callbacks.size === 0) {
+          this.listeners.delete(event)
+        }
+      }
+      if (this.socket) {
+        this.socket.off(event, fn)
+      }
+    } else {
+      this.listeners.delete(event)
+      if (this.socket) {
         this.socket.off(event)
       }
     }

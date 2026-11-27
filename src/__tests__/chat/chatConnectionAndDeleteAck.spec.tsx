@@ -25,6 +25,14 @@ let mockSocket: any = {
 
 jest.mock('../../services/socket', () => ({
   getSocket: () => mockSocket,
+  socketService: {
+    listen: jest.fn((ev: string, cb: (...args: any[]) => void) => mockSocket.on(ev, cb)),
+    off: jest.fn((ev: string, cb?: (...args: any[]) => void) => mockSocket.off(ev, cb)),
+    emit: jest.fn((ev: string, data: any) => mockSocket.emit(ev, data)),
+    connect: jest.fn(() => Promise.resolve(mockSocket)),
+    disconnect: jest.fn(),
+    getSocket: () => mockSocket,
+  },
 }))
 
 jest.mock('expo-audio', () => ({

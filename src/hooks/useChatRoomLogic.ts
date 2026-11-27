@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
-import { getSocket } from '../services/socket'
+import { getSocket, socketService } from '../services/socket'
 import { chatApi } from '../api/chat'
 import { useChatMessagesInfinite } from './useChat'
 import { uploadsApi } from '../api/uploads'
@@ -205,10 +205,9 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
     }
   }, [initialMessagesData, roomId, addMessages, user?.id])
 
-  // Listen to typing events specific to this screen
+  // Listen to typing events specific to this screen via registry so reconnects keep them
   useEffect(() => {
-    const socket = getSocket()
-    if (!socket || !roomId) return
+    if (!roomId) return
 
     const onUserTyping = (data: TypingSocketEvent) => {
       if (data.userId !== user?.id && data.conversationId === roomId) {
@@ -233,14 +232,14 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       }
     }
 
-    socket.on('user-typing', onUserTyping)
-    socket.on('user-stop-typing', onUserStopTyping)
-    socket.on('online-status', onOnlineStatus)
+    socketService.listen<TypingSocketEvent>('user-typing', onUserTyping)
+    socketService.listen<TypingSocketEvent>('user-stop-typing', onUserStopTyping)
+    socketService.listen<{ userId: string; online: boolean }>('online-status', onOnlineStatus)
 
     return () => {
-      socket.off('user-typing', onUserTyping)
-      socket.off('user-stop-typing', onUserStopTyping)
-      socket.off('online-status', onOnlineStatus)
+      socketService.off('user-typing', onUserTyping)
+      socketService.off('user-stop-typing', onUserStopTyping)
+      socketService.off('online-status', onOnlineStatus)
       if (otherTypingTimeoutRef.current) clearTimeout(otherTypingTimeoutRef.current)
     }
   }, [roomId, user?.id, otherUser?.id])
@@ -252,13 +251,6 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       socket.emit('check-online', { userId: otherUser.id })
     }
   }, [otherUser?.id])
-
-  // Auto-scroll when messages change (only needed for FlatList, but keeping basic logic for FlashList too)
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => scrollRef.current?.scrollToOffset({ offset: 0, animated: true }), 50)
-    }
-  }, [messages.length])
 
   const handleSend = useCallback(async (textOverride?: string, mediaUri?: string, mediaType?: 'IMAGE' | 'FILE' | 'VOICE', fileInfo?: ChatFileInfo) => {
     let text = (textOverride ?? msgText).trim().substring(0, 2000)
