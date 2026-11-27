@@ -19,6 +19,7 @@ import {
   getReplyQuoteForMessage,
   type LocalChatMessageType,
 } from '../utils/chatMessageType'
+import { buildChatMediaFormData, validateChatMediaSize } from '../utils/chatMediaUpload'
 
 function extractSendErrorReason(err: unknown): string | undefined {
   if (!err || typeof err !== 'object') return undefined
@@ -302,20 +303,21 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       let finalMediaUrl: string | undefined = undefined
       if (mediaUri) {
         const filename = fileInfo?.name || mediaUri.split('/').pop() || 'upload.jpg'
-        const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
-        let mime = 'image/jpeg'
-        if (ext === 'm4a') mime = 'audio/m4a'
-        if (ext === 'mp4') mime = 'video/mp4'
-        if (ext === 'pdf') mime = 'application/pdf'
-        
-        const formData = new FormData()
-        formData.append('file', {
-          uri: mediaUri,
-          type: mime,
-          name: filename,
-        } as unknown as Blob)
-        
-        const uploadRes = await uploadsApi.single(
+        const sizeCheck = validateChatMediaSize(fileInfo?.size, filename, localType)
+        if (!sizeCheck.valid) {
+          uploadControllersRef.current.delete(tempId)
+          updateMessage(roomId, tempId, {
+            pending: false,
+            error: true,
+            errorReason: sizeCheck.reason,
+            uploadProgress: undefined,
+          })
+          return
+        }
+
+        const formData = buildChatMediaFormData(mediaUri, filename)
+
+        const uploadRes = await uploadsApi.chat(
           formData,
           controller.signal,
           (progress) => updateMessage(roomId, tempId, { uploadProgress: progress })
@@ -462,20 +464,21 @@ export function useChatRoomLogic(roomId: string, initialText?: string, otherUser
       let finalMediaUrl = failedMsg.mediaUrl
       if (isLocalFile && failedMsg.mediaUrl) {
         const filename = failedMsg.fileName || failedMsg.mediaUrl.split('/').pop() || 'upload.jpg'
-        const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
-        let mime = 'image/jpeg'
-        if (ext === 'm4a') mime = 'audio/m4a'
-        if (ext === 'mp4') mime = 'video/mp4'
-        if (ext === 'pdf') mime = 'application/pdf'
-        
-        const formData = new FormData()
-        formData.append('file', {
-          uri: failedMsg.mediaUrl,
-          type: mime,
-          name: filename,
-        } as unknown as Blob)
-        
-        const uploadRes = await uploadsApi.single(
+        const sizeCheck = validateChatMediaSize(failedMsg.fileSize, filename, failedMsg.type === 'TEXT' ? undefined : failedMsg.type)
+        if (!sizeCheck.valid) {
+          uploadControllersRef.current.delete(msgId)
+          updateMessage(roomId, msgId, {
+            pending: false,
+            error: true,
+            errorReason: sizeCheck.reason,
+            uploadProgress: undefined,
+          })
+          return
+        }
+
+        const formData = buildChatMediaFormData(failedMsg.mediaUrl, filename)
+
+        const uploadRes = await uploadsApi.chat(
           formData,
           controller.signal,
           (progress) => updateMessage(roomId, msgId, { uploadProgress: progress })
