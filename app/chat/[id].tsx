@@ -1,7 +1,7 @@
 import React from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Animated, StatusBar
+  Keyboard, KeyboardAvoidingView, Platform, ActivityIndicator, Animated, StatusBar
 } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -29,6 +29,7 @@ import { getListErrorProps } from '../../src/utils/getListErrorProps'
 import * as Clipboard from 'expo-clipboard'
 import { toastService, type ActionSheetOption } from '../../src/store/toastStore'
 import { fromWireType, getReplyQuoteForMessage } from '../../src/utils/chatMessageType'
+import { isScrollNearBottom } from '../../src/hooks/useKeyboardVisible'
 
 export function getDateLabel(iso: string) {
   if (!iso) return ''
@@ -89,6 +90,28 @@ export default function ChatRoomScreen() {
 
   const [showReactionPicker, setShowReactionPicker] = React.useState(false)
   const [selectedMsgId, setSelectedMsgId] = React.useState<string | null>(null)
+  const isNearBottomRef = React.useRef(true)
+  const messagesLengthRef = React.useRef(messages.length)
+  messagesLengthRef.current = messages.length
+
+  React.useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    let rafId: number | null = null
+
+    const sub = Keyboard.addListener(showEvent, () => {
+      if (!isNearBottomRef.current || messagesLengthRef.current === 0) return
+      if (rafId !== null) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        scrollRef.current?.scrollToEnd({ animated: true })
+      })
+    })
+
+    return () => {
+      sub.remove()
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
+  }, [scrollRef])
 
   const handleSelectMessage = React.useCallback((msgId: string) => {
     const msg = messages.find(m => m.id === msgId)
@@ -276,6 +299,12 @@ export default function ChatRoomScreen() {
             autoscrollToBottomThreshold: 0.2,
             startRenderingFromBottom: true,
           }}
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={16}
+          onScroll={(e) => {
+            isNearBottomRef.current = isScrollNearBottom(e.nativeEvent)
+          }}
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={() => {
@@ -328,7 +357,8 @@ export default function ChatRoomScreen() {
       )}
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        testID="chat-keyboard-avoiding-view"
+        behavior="padding"
         keyboardVerticalOffset={0}
       >
         <View style={s.inputContainer}>

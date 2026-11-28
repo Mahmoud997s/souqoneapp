@@ -8,6 +8,7 @@ import { Colors } from '../../constants/colors'
 import { toastService } from '../../store/toastStore'
 import { VoiceRecorder } from './VoiceRecorder'
 import { CHAT_INPUT_BAR_HEIGHT } from '../../constants/bottomBarTokens'
+import { computeChatInputBottomPadding, useKeyboardVisible } from '../../hooks/useKeyboardVisible'
 
 export { CHAT_INPUT_BAR_HEIGHT }
 
@@ -141,9 +142,10 @@ export function ChatInput({ msgText, onChangeText, onSend, insetsBottom, replyPr
     setShowVoice(false)
   }
 
+  const isKeyboardVisible = useKeyboardVisible()
   const hasAttachments = imageUris.length > 0 || !!fileUri
   const canSend = !!msgText.trim() || hasAttachments
-  const bottomPad = Math.max(insetsBottom, 8)
+  const bottomPad = computeChatInputBottomPadding(insetsBottom, isKeyboardVisible)
 
   if (showVoice) {
     return (
