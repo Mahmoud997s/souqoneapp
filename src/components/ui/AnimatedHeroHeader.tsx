@@ -15,6 +15,8 @@ import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
 import { Radius } from '../../constants/radius';
 import { TopBarTokens } from '../../constants/topBarTokens';
+import { NotificationBellBadge } from './NotificationBellBadge';
+import { clampUnreadCount, useUnreadNotificationsCount } from '../../hooks/useProfile';
 
 export interface AnimatedHeroHeaderProps {
   scrollY?: SharedValue<number>;
@@ -101,12 +103,21 @@ export function AnimatedHeroHeader({
   hideChatButton = false,
   headerIcon = 'notifications-outline',
   onHeaderIconPress,
-  headerIconBadgeCount = 0,
+  headerIconBadgeCount,
   primaryCta,
   glassSupport,
 }: AnimatedHeroHeaderProps) {
   const insets = useSafeAreaInsets();
   const topPad = insets.top > 0 ? insets.top : 12;
+  const liveUnreadCount = useUnreadNotificationsCount();
+  const resolvedBadgeCount =
+    headerIconBadgeCount !== undefined
+      ? clampUnreadCount(headerIconBadgeCount)
+      : liveUnreadCount;
+  const bellAccessibilityLabel =
+    resolvedBadgeCount > 0
+      ? `الإشعارات، ${resolvedBadgeCount} غير مقروءة`
+      : 'الإشعارات';
 
   const HERO_HEIGHT = topPad + 114;
   const COMPACT_HEIGHT = topPad + 58;
@@ -415,32 +426,34 @@ export function AnimatedHeroHeader({
             )}
 
             {/* Notification Bell (Always visible in both states!) */}
-            <TouchableOpacity
-              testID="hero-header-notification-btn"
-              style={s.circularBtn}
-              onPress={onHeaderIconPress}
-              activeOpacity={0.7}
-              hitSlop={TopBarTokens.buttonHitSlop}
-              accessibilityRole="button"
-              accessibilityLabel="الإشعارات"
-            >
-              <View
-                pointerEvents="none"
-                testID="hero-header-notification-btn-backing"
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
-                ]}
-              />
-              <GlassSurface
+            <View style={s.bellWrapper}>
+              <TouchableOpacity
                 testID="hero-header-notification-btn"
-                borderRadius={TopBarTokens.buttonRadius}
-                washColor={TopBarTokens.iceGlass}
-                support={glassSupport}
-              />
-              <Ionicons name={headerIcon} size={19} color={Colors.primary} />
-              <View style={s.greenDot} />
-            </TouchableOpacity>
+                style={s.circularBtn}
+                onPress={onHeaderIconPress}
+                activeOpacity={0.7}
+                hitSlop={TopBarTokens.buttonHitSlop}
+                accessibilityRole="button"
+                accessibilityLabel={bellAccessibilityLabel}
+              >
+                <View
+                  pointerEvents="none"
+                  testID="hero-header-notification-btn-backing"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: TopBarTokens.iceGlass, borderRadius: TopBarTokens.buttonRadius },
+                  ]}
+                />
+                <GlassSurface
+                  testID="hero-header-notification-btn"
+                  borderRadius={TopBarTokens.buttonRadius}
+                  washColor={TopBarTokens.iceGlass}
+                  support={glassSupport}
+                />
+                <Ionicons name={headerIcon} size={19} color={Colors.primary} />
+              </TouchableOpacity>
+              <NotificationBellBadge count={resolvedBadgeCount} />
+            </View>
           </View>
         </View>
 
@@ -616,16 +629,10 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     ...TopBarTokens.buttonShadow,
   },
-  greenDot: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.white,
+  bellWrapper: {
+    width: TopBarTokens.buttonSize,
+    height: TopBarTokens.buttonSize,
+    position: 'relative',
   },
   row2Clip: {
     height: ROW2_CLIP_HEIGHT,

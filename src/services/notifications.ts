@@ -3,6 +3,16 @@ import { Platform } from 'react-native'
 import { Colors } from '../../src/constants/colors'
 import { useChatStore } from '../store/chatStore'
 
+export function isChatPushNotification(
+  data: Record<string, unknown> | undefined | null
+): boolean {
+  if (!data) return false
+  if (typeof data.conversationId === 'string' || typeof data.roomId === 'string') {
+    return true
+  }
+  return typeof data.type === 'string' && data.type.toUpperCase() === 'MESSAGE'
+}
+
 export function shouldShowNotificationInForeground(
   data: Record<string, unknown> | undefined | null,
   activeRoomId: string | null | undefined

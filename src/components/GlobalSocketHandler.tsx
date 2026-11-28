@@ -4,6 +4,23 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
 import { socketService } from '../services/socket'
 import { CHAT_ROOMS_QUERY_KEY } from '../hooks/useChat'
+import { NOTIFICATIONS_QUERY_KEY, UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY } from '../hooks/useProfile'
+
+export function isChatNotificationPayload(payload: unknown): boolean {
+  if (!payload || typeof payload !== 'object') return false
+  const record = payload as Record<string, unknown>
+  const nested =
+    record.notification && typeof record.notification === 'object'
+      ? (record.notification as Record<string, unknown>)
+      : null
+  const rawType =
+    typeof record.type === 'string'
+      ? record.type
+      : typeof nested?.type === 'string'
+        ? nested.type
+        : undefined
+  return rawType?.toUpperCase() === 'MESSAGE'
+}
 
 export function GlobalSocketHandler() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
@@ -16,6 +33,8 @@ export function GlobalSocketHandler() {
       if (nextAppState === 'active') {
         void socketService.connect()
         void queryClient.invalidateQueries({ queryKey: CHAT_ROOMS_QUERY_KEY })
+        void queryClient.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY })
+        void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY })
       } else if (nextAppState === 'background') {
         socketService.disconnect()
       }
@@ -34,11 +53,19 @@ export function GlobalSocketHandler() {
       void queryClient.invalidateQueries({ queryKey: CHAT_ROOMS_QUERY_KEY })
     }
 
+    const handleNotification = (payload: unknown) => {
+      if (isChatNotificationPayload(payload)) return
+      void queryClient.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY })
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY })
+    }
+
     socketService.listen('connect', handleReconnect)
+    socketService.listen('notification', handleNotification)
     void socketService.connect()
 
     return () => {
       socketService.off('connect', handleReconnect)
+      socketService.off('notification', handleNotification)
     }
   }, [isLoggedIn, queryClient])
 

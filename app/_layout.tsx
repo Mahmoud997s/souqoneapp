@@ -17,7 +17,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../src/api/queryClient'
 import { useAuthStore } from '../src/store/authStore'
 import { useBlockedStore } from '../src/store/blockedStore'
-import { registerForPushNotifications } from '../src/services/notifications'
+import { isChatPushNotification, registerForPushNotifications } from '../src/services/notifications'
 import { navigateFromNotification } from '../src/utils/notificationRouter'
 import { usersApi } from '../src/api/users'
 import { NavVisibilityProvider } from '../src/context/NavVisibilityContext'
@@ -27,6 +27,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ChatSyncService } from '../src/services/ChatSyncService'
 import { MY_LISTINGS_QUERY_KEY, fetchMyListings } from '../src/hooks/useListings'
+import { NOTIFICATIONS_QUERY_KEY, UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY } from '../src/hooks/useProfile'
 
 export { queryClient }
 
@@ -103,8 +104,13 @@ export default function RootLayout() {
       }
     })
 
-    const sub1 = Notifications.addNotificationReceivedListener((_notification) => {
+    const sub1 = Notifications.addNotificationReceivedListener((notification) => {
       if (__DEV__) console.log('[Push] Notification received')
+      const data = notification?.request?.content?.data as Record<string, unknown> | undefined
+      if (!isChatPushNotification(data)) {
+        void queryClient.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY })
+        void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY })
+      }
     })
     const sub2 = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as any
