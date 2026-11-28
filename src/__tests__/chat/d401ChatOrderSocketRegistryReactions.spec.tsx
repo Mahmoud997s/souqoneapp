@@ -276,9 +276,9 @@ describe('D-401 — Chat Room Order, Socket Registry, Single Unread, Reactions &
 
     const sock = mockCreatedSockets[mockCreatedSockets.length - 1]
     expect(sock).toBeDefined()
-    // Single 'message' handler (from ChatSyncService) and no chat-message handler on 'notification'
+    // Single 'message' handler (from ChatSyncService) and at most the D-404 bell handler on 'notification' (which must not mutate chat-rooms)
     expect(sock.handlers.get('message')?.length).toBe(1)
-    expect(sock.handlers.get('notification')).toBeUndefined()
+    expect(sock.handlers.get('notification')?.length ?? 0).toBeLessThanOrEqual(1)
 
     // Incoming message from other user -> unread 2 -> 3 (NOT 4)
     await act(async () => {
